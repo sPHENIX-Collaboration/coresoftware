@@ -67,6 +67,9 @@ class TimingCut : public SubsysReco
   void set_min_dphi(float new_min_dphi) { _min_dphi = new_min_dphi; }
   float get_min_dphi() { return _min_dphi; }
 
+  void set_abortFailMbd(bool abortFailMbd) { _abortFailMbd = abortFailMbd; }
+  bool get_abortFailMbd() { return _abortFailMbd; }
+
   int Init(PHCompositeNode *topNode) override;
 
   int process_event(PHCompositeNode *topNode) override;
@@ -100,6 +103,7 @@ class TimingCut : public SubsysReco
 
 private:
   bool _doAbort;
+  bool _abortFailMbd = false;
   bool _missingInfoWarningPrinted = false;
   std::string _jetNodeName;
   std::string _ohTowerName;

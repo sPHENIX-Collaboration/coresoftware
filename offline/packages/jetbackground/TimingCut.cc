@@ -203,7 +203,7 @@ int TimingCut::process_event(PHCompositeNode *topNode)
       passMbdt = Pass_Mbd_dt(corrMaxJett, mbd_time);
     }
 
-  bool failAnyCut = !passDeltat || !passLeadt || !passMbdt;
+  bool failAnyCut = !passDeltat || !passLeadt || (!passMbdt && _abortFailMbd);
     
   if (failAnyCut && _doAbort)
   {
