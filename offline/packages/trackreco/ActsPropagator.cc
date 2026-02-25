@@ -48,12 +48,12 @@ ActsPropagator::makeTrackParams(SvtxTrackState* state,
   Acts::BoundSquareMatrix cov = transformer.rotateSvtxTrackCovToActs(state);
 
   return ActsTrackFittingAlgorithm::TrackParameters::create(
-    surf, // NOLINT (performance-unnecessary-value-param)
-             m_geometry->geometry().getGeoContext(),
-             actsFourPos, momentum,
-             trackCharge / momentum.norm(),
-             cov,
-             Acts::ParticleHypothesis::pion());
+      m_geometry->geometry().getGeoContext(),
+      surf,  // NOLINT (performance-unnecessary-value-param)
+      actsFourPos, momentum,
+      trackCharge / momentum.norm(),
+      cov,
+      Acts::ParticleHypothesis::pion());
 }
 ActsPropagator::BoundTrackParamResult
 ActsPropagator::makeTrackParams(SvtxTrack* track,
@@ -85,13 +85,13 @@ ActsPropagator::makeTrackParams(SvtxTrack* track,
 
   Acts::BoundSquareMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
 
-  return ActsTrackFittingAlgorithm::TrackParameters::create(perigee,
-                                                            m_geometry->geometry().getGeoContext(),
-                                                            actsFourPos, momentum,
-                                                            track->get_charge() / track->get_p(),
-                                                            cov,
-                                                            Acts::ParticleHypothesis::pion(),
-							    1*Acts::UnitConstants::cm);
+  return ActsTrackFittingAlgorithm::TrackParameters::create(
+      m_geometry->geometry().getGeoContext(), perigee,
+      actsFourPos, momentum,
+      track->get_charge() / track->get_p(),
+      cov,
+      Acts::ParticleHypothesis::pion(),
+      1 * Acts::UnitConstants::cm);
 }
 
 ActsPropagator::BTPPairResult
@@ -112,15 +112,16 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   auto propagator = makePropagator();
 
-  using Actors = Acts::ActionList<>;
-  using Aborters = Acts::AbortList<ActsAborter>;
-
-  Acts::PropagatorOptions<Actors, Aborters> options(
+  using Actors = Acts::ActorList<>;
+  using PropagatorOptions = SphenixPropagator::Options<Actors>;
+  PropagatorOptions options(
       m_geometry->geometry().getGeoContext(),
       m_geometry->geometry().magFieldContext);
+  ActsAborter aborter;
+  aborter.abortlayer = actslayer;
+  aborter.abortvolume = actsvolume;
+  options.actorList.append(aborter);
 
-  options.abortList.get<ActsAborter>().abortlayer = actslayer;
-  options.abortList.get<ActsAborter>().abortvolume = actsvolume;
 
   auto result = propagator.propagate(params, options);
 
@@ -147,7 +148,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   auto propagator = makePropagator();
 
-  Acts::PropagatorOptions<> options(m_geometry->geometry().getGeoContext(),
+  SphenixPropagator::Options<Acts::ActorList<>> options(m_geometry->geometry().getGeoContext(),
                                     m_geometry->geometry().magFieldContext);
 
   auto result = propagator.propagate(params, *surface,
@@ -175,9 +176,9 @@ ActsPropagator::propagateTrackFast(const Acts::BoundTrackParameters& params,
   }
 
   auto propagator = makeFastPropagator();
-
-  Acts::PropagatorOptions<> options(m_geometry->geometry().getGeoContext(),
-                                    m_geometry->geometry().magFieldContext);
+  using Propagator = Acts::Propagator<Stepper, Acts::VoidNavigator>;
+  Propagator::Options<Acts::ActorList<>> options(m_geometry->geometry().getGeoContext(),
+                                                        m_geometry->geometry().magFieldContext);
 
   auto result = propagator.propagate(params, *surface,
                                      options);
@@ -232,7 +233,7 @@ ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
   }
 
   auto trackingGeometry = m_geometry->geometry().tGeometry;
-  Stepper stepper(field, m_overstepLimit);
+  Stepper stepper(field);
   Acts::Navigator::Config cfg{trackingGeometry};
   cfg.resolvePassive = false;
   cfg.resolveMaterial = true;
