@@ -41,7 +41,6 @@ int DumpTowerInfoContainer::process_Node(PHNode *myNode)
       *fout << "chi2: " << rawtwr->get_chi2() << std::endl;
       *fout << "pedestal: " << rawtwr->get_pedestal() << std::endl;
       *fout << "isHot: " << rawtwr->get_isHot() << std::endl;
-      *fout << "isBadTime: " << rawtwr->get_isBadTime() << std::endl;
       *fout << "isNotInstr: " << rawtwr->get_isNotInstr() << std::endl;
       *fout << "isGood: " << rawtwr->get_isGood() << std::endl;
       *fout << "status: " << static_cast<unsigned int>(rawtwr->get_status()) << std::endl;

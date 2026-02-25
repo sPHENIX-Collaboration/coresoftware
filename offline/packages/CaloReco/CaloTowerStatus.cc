@@ -123,7 +123,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     m_cdbttree_time = new CDBTTree(calibdir);
     if (Verbosity() > 0)
     {
-      std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_time << " not Doing isBadTime" << std::endl;
+      std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_time << std::endl;
     }
   }
   else
@@ -144,7 +144,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
       m_doTime = false;
       if (Verbosity() > 1)
       {
-        std::cout << "CaloTowerStatus::InitRun no timing info, " << m_calibName_time << " not found, not doing isBadTime" << std::endl;
+        std::cout << "CaloTowerStatus::InitRun no timing info, " << m_calibName_time << " not found" << std::endl;
       }
     }
   }
@@ -259,7 +259,6 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
   {
     // only reset what we will set
     m_raw_towers->get_tower_at_channel(channel)->set_isHot(false);
-    m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(false);
     m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(false);
 
     if (m_doHotChi2)
@@ -282,10 +281,6 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     if (fraction_badChi2 > fraction_badChi2_threshold && m_doHotChi2)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
-    }
-    if (!m_raw_towers->get_tower_at_channel(channel)->get_isZS() && std::fabs(time - mean_time) > time_cut && m_doTime)
-    {
-      m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(true);
     }
     if (( hotMap_val == 1 || // dead
           std::fabs(z_score) > z_score_threshold || // hot or cold
