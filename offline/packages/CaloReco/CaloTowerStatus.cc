@@ -252,7 +252,6 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
 {
   unsigned int ntowers = m_raw_towers->size();
   float fraction_badChi2 = 0;
-  float mean_time = 0;
   int hotMap_val = 0;
   float z_score = 0;
   for (unsigned int channel = 0; channel < ntowers; channel++)
@@ -265,17 +264,12 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     {
       fraction_badChi2 = m_cdbInfo_vec[channel].fraction_badChi2;
     }
-    if (m_doTime)
-    {
-      mean_time = m_cdbInfo_vec[channel].mean_time;
-    }
     if (m_doHotMap)
     {
       hotMap_val = m_cdbInfo_vec[channel].hotMap_val;
       z_score = m_cdbInfo_vec[channel].z_score;
     }
     float chi2 = m_raw_towers->get_tower_at_channel(channel)->get_chi2();
-    float time = m_raw_towers->get_tower_at_channel(channel)->get_time();
     float adc = m_raw_towers->get_tower_at_channel(channel)->get_energy();
 
     if (fraction_badChi2 > fraction_badChi2_threshold && m_doHotChi2)

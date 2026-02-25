@@ -5,6 +5,7 @@
 #include <TH1F.h>
 #include <TProfile.h>
 #include <TSpline.h>
+#include <TFitResult.h>
 
 #include <Fit/BinData.h>
 #include <Fit/Chi2FCN.h>
@@ -172,11 +173,12 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         /*
         if(validfit != 0)
         {
-          std::cout<<"invalid fit"<<std::endl;
+          std::cout<<"invalid fit status in waveform fitting: " << validfit <<std::endl;
           for (int i = 0; i < size1; ++i)
         {
-          std::cout<<v.at(i)<<std::endl;
+          std::cout<<v.at(i) << " ";
         }
+        std::cout<<std::endl;
         }
         */
         double chi2min = fitres.MinFcnValue();
@@ -845,7 +847,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
           chi2val += diff * diff;
         }
       }
-      validfit = fitres.Status();
+      validfit = fitres.Get()->Status();
     }
     else if(m_funcfit_type == POWERLAWDOUBLEEXP)
     {
@@ -896,7 +898,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
           chi2val += diff * diff;
         }
       }
-      validfit = fitres.Status();
+      validfit = fitres.Get()->Status();
     }
     else if(m_funcfit_type == FERMIEXP)
     {
@@ -935,7 +937,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
           chi2val += diff * diff;
         }
       }
-      validfit = fitres.Status();
+      validfit = fitres.Get()->Status();
     }
 
     int ndf = ndata - npar;
@@ -949,7 +951,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
     }
 
     fit_values.push_back({static_cast<float>(fit_amp), static_cast<float>(fit_time),
-                          static_cast<float>(fit_ped), static_cast<float>(chi2val), 0, validfit});
+                          static_cast<float>(fit_ped), static_cast<float>(chi2val), 0, static_cast<float>(validfit)});
   }
 
   return fit_values;

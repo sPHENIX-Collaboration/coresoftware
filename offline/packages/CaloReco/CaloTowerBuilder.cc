@@ -513,6 +513,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     {
       towerinfo->set_isRecovered(true);
     }
+    towerinfo->set_FitStatus(static_cast<bool>(processed_waveforms.at(i).at(5)));
     int n_samples = waveforms.at(idx).size();
     if (n_samples == m_nzerosuppsamples || SZS)
     {
