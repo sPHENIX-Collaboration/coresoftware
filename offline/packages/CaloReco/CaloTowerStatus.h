@@ -38,6 +38,11 @@ class CaloTowerStatus : public SubsysReco
     m_inputNodePrefix = name;
     return;
   }
+  void set_inputNode(const std::string &name)
+  {
+    m_inputNode = name;
+    return;
+  }
   void set_badChi2_const_threshold(float threshold)
   {
     badChi2_treshold_const = threshold;
@@ -91,6 +96,23 @@ class CaloTowerStatus : public SubsysReco
     m_doAbortNoHotMap = status;
     return;
   }
+  void set_doAbortNoTime(bool status = true)
+  {
+    m_doAbortNoTime = status;
+    return;
+  }
+  void set_doAbortNoChi2(bool status = true)
+  {
+    m_doAbortNoChi2 = status;
+    return;
+  }
+  void set_doAbortMissingCalib(bool status = true)
+  {
+    m_doAbortNoHotMap = status;
+    m_doAbortNoTime = status;
+    m_doAbortNoChi2 = status;
+    return;
+  }
 
  private:
   TowerInfoContainer *m_raw_towers{nullptr};
@@ -103,6 +125,8 @@ class CaloTowerStatus : public SubsysReco
   bool m_doTime{true};
   bool m_doHotMap{true};
   bool m_doAbortNoHotMap{false};
+  bool m_doAbortNoTime{false};
+  bool m_doAbortNoChi2{false};
 
   CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
 
@@ -115,6 +139,7 @@ class CaloTowerStatus : public SubsysReco
   std::string m_fieldname_z_score;
   std::string m_calibName_hotMap;
   std::string m_inputNodePrefix{"TOWERS_"};
+  std::string m_inputNode;
 
   std::string m_directURL_time;
   std::string m_directURL_hotMap;

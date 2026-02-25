@@ -1,5 +1,5 @@
-#ifndef ONCAL_ONCALSERVER_H
-#define ONCAL_ONCALSERVER_H
+#ifndef FUN4CAL_FUN4CALSERVER_H
+#define FUN4CAL_FUN4CALSERVER_H
 
 #include <fun4all/Fun4AllServer.h>
 #include <phool/PHTimeStamp.h>
@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-class OnCal;
+class CalReco;
 class SubsysReco;
 class TH1;
 
@@ -23,13 +23,13 @@ namespace fetchrun
   };
 };
 
-class OnCalServer : public Fun4AllServer
+class Fun4CalServer : public Fun4AllServer
 {
  public:
-  static OnCalServer *instance();
-  ~OnCalServer() override;
+  static Fun4CalServer *instance();
+  ~Fun4CalServer() override;
   using Fun4AllServer::registerHisto;
-  void registerHisto(TH1 *h1d, OnCal *Calibrator, const int replace = 0);
+  void registerHisto(TH1 *h1d, CalReco *Calibrator, const int replace = 0);
   void unregisterHisto(const std::string &calibratorname);
   void Print(const std::string &what = "ALL") const override;
 
@@ -43,7 +43,7 @@ class OnCalServer : public Fun4AllServer
 
   PHTimeStamp *GetBeginValidityTS();
   void printStamps();
-  PHTimeStamp *GetLastGoodRunTS(OnCal *calibrator, const int irun);
+  PHTimeStamp *GetLastGoodRunTS(CalReco *calibrator, const int irun);
 
   void recordDataBase(const bool bookkeep = false);
 
@@ -60,13 +60,13 @@ class OnCalServer : public Fun4AllServer
   void BeginTimeStamp(const PHTimeStamp &TimeStp);
   void EndTimeStamp(const PHTimeStamp &TimeStp);
 
-  int SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::string &table, const int commit = 0);
-  int SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const int commit = 0);
+  int SyncCalibTimeStampsToOnCal(const CalReco *calibrator, const std::string &table, const int commit = 0);
+  int SyncCalibTimeStampsToOnCal(const CalReco *calibrator, const int commit = 0);
   int SyncOncalTimeStampsToRunDB(const int commit = 0);
-  int ClosestGoodRun(OnCal *calibrator, const int irun, const int previous = fetchrun::CLOSEST);
-  static int CopyTables(const OnCal *calibrator, const int FromRun, const int ToRun, const int commit = 0);
-  static int OverwriteCalibration(OnCal *calibrator, const int runno, const int commit = 0, const int fromrun = -1);
-  int FixMissingCalibration(OnCal *calibrator, const int runno, const int commit = 0, const int fromrun = -1);
+  int ClosestGoodRun(CalReco *calibrator, const int irun, const int previous = fetchrun::CLOSEST);
+  static int CopyTables(const CalReco *calibrator, const int FromRun, const int ToRun, const int commit = 0);
+  static int OverwriteCalibration(CalReco *calibrator, const int runno, const int commit = 0, const int fromrun = -1);
+  int FixMissingCalibration(CalReco *calibrator, const int runno, const int commit = 0, const int fromrun = -1);
 
   int SetBorTime(const int runno);
   int SetEorTime(const int runno);
@@ -74,7 +74,7 @@ class OnCalServer : public Fun4AllServer
   int FindClosestCalibratedRun(const int irun);
   int FillRunListFromFileList();
   int AdjustRichTimeStampForMultipleRuns();
-  int CreateCalibration(OnCal *calibrator, const int myrunnumber, const std::string &what, const int commit = 0);
+  int CreateCalibration(CalReco *calibrator, const int myrunnumber, const std::string &what, const int commit = 0);
   int GetCalibStatus(const std::string &calibname, const int runno);
   static int DisconnectDB();
   void TestMode(const int i = 1);
@@ -113,13 +113,13 @@ class OnCalServer : public Fun4AllServer
   int add_calibrator_to_statustable(const std::string &calibratorname);
   int check_calibrator_in_statustable(const std::string &calibratorname);
   static int GetRunTimeTicks(const int runno, time_t &borticks, time_t &eorticks);
-  void CreateCalibrationUpdateStatus(OnCal *calibrator, const std::string &table, const std::string &tablecomment, const int dbcode);
-  OnCalServer(const std::string &name = "OnCalServer");
+  void CreateCalibrationUpdateStatus(CalReco *calibrator, const std::string &table, const std::string &tablecomment, const int dbcode);
+  Fun4CalServer(const std::string &name = "Fun4CalServer");
   PHTimeStamp beginTimeStamp;  // begin run timestamp of run analysing
   PHTimeStamp endTimeStamp;    // end run timestamp of run analysing
   int testmode{0};
   bool recordDB{false};
-  TH1 *OnCalServerVars{nullptr};
+  TH1 *Fun4CalServerVars{nullptr};
   std::map<std::string, TH1 *> Histo;
   std::map<std::string, std::set<std::string> > calibratorhistomap;
   bool SetEndTimeStampByHand{false};
@@ -137,4 +137,4 @@ class OnCalServer : public Fun4AllServer
   std::set<int> runlist;
 };
 
-#endif /* __ONCALSERVER_H */
+#endif /* __FUN4CALSERVER_H */

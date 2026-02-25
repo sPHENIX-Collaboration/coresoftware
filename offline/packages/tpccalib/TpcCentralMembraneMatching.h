@@ -98,11 +98,34 @@ class TpcCentralMembraneMatching : public SubsysReco
     m_averageMode = averageMode;
   }
 
+  void set_totalDistMode(bool totalDistMode)
+  {
+    m_totalDistMode = totalDistMode;
+  }
+
+  void set_skipOutliers(bool skipOutliers)
+  {
+    m_skipOutliers = skipOutliers;
+  }
+
+  void set_manualInterp(bool manualInterp)
+  {
+    m_manualInterp = manualInterp;
+  }
+
   void set_event_sequence(int seq)
   {
     m_event_sequence = seq;
     m_event_index = 100 * seq;
   }
+
+  void set_stripePatternFile(const std::string &stripePatternFile)
+  {
+    m_stripePatternFile = stripePatternFile;
+  }
+
+  void set_phiHistInRad(bool rad){ m_phiHist_in_rad = rad; }
+
 
   // void set_laminationFile(const std::string& filename)
   //{
@@ -135,6 +158,8 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   //! tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
+
+  bool m_phiHist_in_rad{true};
 
   //! CMFlashClusterContainer *m_corrected_CMcluster_map{nullptr};
   LaserClusterContainer *m_corrected_CMcluster_map{nullptr};
@@ -197,9 +222,12 @@ class TpcCentralMembraneMatching : public SubsysReco
   TTree *match_tree{nullptr};
   TTree *event_tree{nullptr};
 
+  std::string m_stripePatternFile = "/sphenix/u/bkimelman/CMStripePattern.root";
+
   bool m_useHeader{true};
   bool m_averageMode{false};
-
+  bool m_totalDistMode{false};
+  
   std::vector<bool> e_matched;
   std::vector<int> e_truthIndex;
   std::vector<float> e_truthR;
@@ -275,6 +303,9 @@ class TpcCentralMembraneMatching : public SubsysReco
   TGraph2D *gr_dPhi[2]{nullptr, nullptr};
   TGraph *gr_points[2]{nullptr, nullptr};
 
+  TGraph2D *gr_dR_toInterp[2]{nullptr, nullptr};
+  TGraph2D *gr_dPhi_toInterp[2]{nullptr, nullptr};
+
   /// phi cut for matching clusters to pad
   /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
   double m_phi_cut{0.025};
@@ -298,6 +329,7 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   //@}
 
+  /*
   ///@name central membrane pads definitions
   //@{
   static constexpr double mm{1.0};
@@ -364,6 +396,7 @@ class TpcCentralMembraneMatching : public SubsysReco
       std::array<int, nRadii> &nStripesIn,
       std::array<int, nRadii> &nStripesBefore,
       double cx[][nRadii], double cy[][nRadii]);
+  */
 
   /// store centers of all central membrane pads
   std::vector<TVector3> m_truth_pos;
@@ -379,6 +412,8 @@ class TpcCentralMembraneMatching : public SubsysReco
   bool m_fieldOn{true};
   bool m_doFancy{false};
   bool m_doHadd{false};
+  bool m_skipOutliers{false};
+  bool m_manualInterp{false};
 
   std::vector<double> m_reco_RPeaks[2];
   double m_m[2]{};
