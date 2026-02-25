@@ -169,7 +169,8 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         fitter->FitFCN(*EPChi2, nullptr, data.Size(), true);
         ROOT::Fit::FitResult fitres = fitter->Result();
         // get the fit status code (0 means successful fit)
-        int validfit = fitres.Status();
+        int validfit = 1;
+        if (fitres) { validfit = fitres.Status(); }
         /*
         if(validfit != 0)
         {
@@ -244,7 +245,8 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
           recoverFitter->Config().ParSettings(1).SetLimits(-1 * m_peakTimeTemp, size1 - m_peakTimeTemp);  // set lim on time par
           recoverFitter->FitFCN(*recoverEPChi2, nullptr, recoverData.Size(), true);
           ROOT::Fit::FitResult recover_fitres = recoverFitter->Result();
-          int recover_validfit = recover_fitres.Status();
+          int recover_validfit = 1;
+          if (recover_fitres) { recover_validfit = recover_fitres.Status(); }
           double recover_chi2min = recover_fitres.MinFcnValue();
           recover_chi2min /= size1 - 3;  // divide by the number of dof
           if (recover_chi2min < _chi2lowthreshold && recover_f->GetParameter(2) < _bfr_highpedestalthreshold && recover_f->GetParameter(2) > _bfr_lowpedestalthreshold)
@@ -847,7 +849,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
           chi2val += diff * diff;
         }
       }
-      validfit = fitres.Get()->Status();
+      if (fitres.Get()) { validfit = fitres.Get()->Status(); }
     }
     else if(m_funcfit_type == POWERLAWDOUBLEEXP)
     {
@@ -898,7 +900,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
           chi2val += diff * diff;
         }
       }
-      validfit = fitres.Get()->Status();
+      if (fitres.Get()) { validfit = fitres.Get()->Status(); }
     }
     else if(m_funcfit_type == FERMIEXP)
     {
@@ -937,7 +939,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
           chi2val += diff * diff;
         }
       }
-      validfit = fitres.Get()->Status();
+      if (fitres.Get()) { validfit = fitres.Get()->Status(); }
     }
 
     int ndf = ndata - npar;
