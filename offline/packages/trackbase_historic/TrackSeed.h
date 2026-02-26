@@ -49,8 +49,8 @@ class TrackSeed : public PHObject
   virtual float get_py() const { return NAN; }
   virtual short int get_crossing() const { return 0; }
 
-  virtual unsigned int get_silicon_seed_index() const { return 0; }
-  virtual unsigned int get_tpc_seed_index() const { return 0; }
+  virtual unsigned int get_silicon_seed_index() const { return NAN; }
+  virtual unsigned int get_tpc_seed_index() const { return NAN; }
   virtual short int get_crossing_estimate() const { return 0; }
 
   virtual bool empty_cluster_keys() const { return true; }
