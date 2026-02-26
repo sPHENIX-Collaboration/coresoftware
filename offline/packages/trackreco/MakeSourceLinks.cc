@@ -23,6 +23,8 @@
 #include <Acts/EventData/ParticleHypothesis.hpp>
 #include <Acts/EventData/SourceLink.hpp>
 
+#include <ActsExamples/EventData/Measurement.hpp>
+
 #include <phool/PHTimer.h>
 #include <phool/phool.h>
 
@@ -257,7 +259,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
 
     SourceLink sl(surf->geometryId(), index, cluskey);
     Acts::SourceLink actsSL{sl};
-    Acts::Measurement<Acts::BoundIndices, 2> meas(actsSL, indices, loc, cov);
+    measurements.emplaceMeasurement<2>(surf->geometryId(), indices, loc, cov);
     if (m_verbosity > 3)
     {
       unsigned int this_layer = TrkrDefs::getLayer(cluskey);
@@ -268,10 +270,10 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
                   << ", cov : " << cov.transpose() << std::endl
                   << " geo id " << sl.geometryId() << std::endl;
         std::cout << "Surface original transform: " << std::endl;
-        surf.get()->toStream(tGeometry->geometry().getGeoContext(), std::cout);
+        surf.get()->toStream(tGeometry->geometry().getGeoContext());
         std::cout << std::endl
                   << "Surface transient transform: " << std::endl;
-        surf.get()->toStream(transient_geocontext, std::cout);
+        surf.get()->toStream(transient_geocontext);
         std::cout << std::endl;
         std::cout << "Corrected surface transform:" << std::endl;
         std::cout << transformMapTransient->getTransform(surf->geometryId()).matrix() << std::endl;
@@ -284,7 +286,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
     }
 
     sourcelinks.push_back(actsSL);
-    measurements.emplace_back(meas);
   }
 
   SLTrackTimer.stop();
@@ -544,7 +545,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 
     SourceLink sl(surf->geometryId(), index, cluskey);
     Acts::SourceLink actsSL{sl};
-    Acts::Measurement<Acts::BoundIndices, 2> meas(actsSL, indices, loc, cov);
+    measurements.emplaceMeasurement<2>(surf->geometryId(), indices, loc, cov);
     if (m_verbosity > 3)
     {
       std::cout << "MakeSourceLinks::getSourceLinksClusterMover - source link " << sl.index() << ", loc : "
@@ -552,7 +553,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
                 << ", cov : " << cov.transpose() << std::endl
                 << " geo id " << sl.geometryId() << std::endl;
       std::cout << "Surface : " << std::endl;
-      surf.get()->toStream(tGeometry->geometry().getGeoContext(), std::cout);
+      surf.get()->toStream(tGeometry->geometry().getGeoContext());
       std::cout << std::endl;
       std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
       std::cout << "For key " << cluskey << " with local pos " << std::endl
@@ -561,7 +562,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     }
 
     sourcelinks.push_back(actsSL);
-    measurements.emplace_back(meas);
   }
 
   SLTrackTimer.stop();
