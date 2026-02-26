@@ -59,6 +59,7 @@
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
+#include <Acts/Surfaces/SurfaceArray.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
 #include <ActsExamples/Framework/IContextDecorator.hpp>

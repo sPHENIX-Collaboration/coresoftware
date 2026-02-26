@@ -41,6 +41,7 @@ class TGeoVolume;
 namespace Acts
 {
   class Surface;
+  class SurfaceArray;
 }
 
 using Surface = std::shared_ptr<const Acts::Surface>;
