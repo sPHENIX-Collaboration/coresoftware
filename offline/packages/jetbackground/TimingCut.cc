@@ -41,11 +41,13 @@ int TimingCut::Init(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
-  _fitFile = new CDBTF(CDBInterface::instance()->getUrl("OHCAL_JET_TIME_FRACTION"));
-  if(_fitFile)
+  std::string fitUrl = CDBInterface::instance()->getUrl("OHCAL_JET_TIME_FRACTION");
+  if(!fitUrl.empty())
     {
-      _fitFile->LoadCalibrations();
-      _fitFunc = _fitFile->getTF("JET_TIMING_CALO_FRACTION_CALIB_fullrange");
+      CDBTF* fitFile = new CDBTF(fitUrl);
+      fitFile->LoadCalibrations();
+      _fitFunc = (TF1*)fitFile->getTF("JET_TIMING_CALO_FRACTION_CALIB_fullrange")->Clone();
+      delete fitFile;
       if(!_fitFunc)
 	{
 	  std::cout << "ERROR: NO CALIBRATION TF1 FOUND FOR TIMING CUT OHCAL FRACTION CORRECTION! This should never happen. ABORT RUN!" << std::endl;
@@ -125,10 +127,16 @@ int TimingCut::process_event(PHCompositeNode *topNode)
 	      {
 		unsigned int channel = comp.second;
 		TowerInfo* tower = towersOH->get_tower_at_channel(channel);
+		if(!tower)
+		  {
+		    std::cout << "Component tower missing! This should not happen (something is wrong, check your inputs). Abort event!" << std::endl;
+		    return Fun4AllReturnCodes::ABORTEVENT;
+		  }
 		jetOHFrac += tower->get_energy();
 	      }
 	  }
-	jetOHFrac /= jet->get_e();
+	jetOHFrac /= jet->get_e(); //We actually want this to be NaN when jet->get_e() == 0, because that case should fail.
+	                           //NaN always compares to false
       }
       else
       {
@@ -166,7 +174,7 @@ int TimingCut::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  float corrMaxJett = Correct_Time_Ohfrac(maxJett, maxJetOHFrac);
+  float corrMaxJett = Correct_Time_Ohfrac(maxJett, maxJetOHFrac); //likewise, intentional NaNs here.
   float corrSubJett = Correct_Time_Ohfrac(subJett, subJetOHFrac);
   
   bool passDeltat = Pass_Delta_t(corrMaxJett, corrSubJett, maxJetPhi, subJetPhi);
