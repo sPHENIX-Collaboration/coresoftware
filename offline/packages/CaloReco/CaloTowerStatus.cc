@@ -123,7 +123,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     m_cdbttree_time = new CDBTTree(calibdir);
     if (Verbosity() > 0)
     {
-      std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_time << " not Doing isBadTime" << std::endl;
+      std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_time << std::endl;
     }
   }
   else
@@ -144,7 +144,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
       m_doTime = false;
       if (Verbosity() > 1)
       {
-        std::cout << "CaloTowerStatus::InitRun no timing info, " << m_calibName_time << " not found, not doing isBadTime" << std::endl;
+        std::cout << "CaloTowerStatus::InitRun no timing info, " << m_calibName_time << " not found" << std::endl;
       }
     }
   }
@@ -252,23 +252,17 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
 {
   unsigned int ntowers = m_raw_towers->size();
   float fraction_badChi2 = 0;
-  float mean_time = 0;
   int hotMap_val = 0;
   float z_score = 0;
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
     // only reset what we will set
     m_raw_towers->get_tower_at_channel(channel)->set_isHot(false);
-    m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(false);
     m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(false);
 
     if (m_doHotChi2)
     {
       fraction_badChi2 = m_cdbInfo_vec[channel].fraction_badChi2;
-    }
-    if (m_doTime)
-    {
-      mean_time = m_cdbInfo_vec[channel].mean_time;
     }
     if (m_doHotMap)
     {
@@ -276,16 +270,11 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
       z_score = m_cdbInfo_vec[channel].z_score;
     }
     float chi2 = m_raw_towers->get_tower_at_channel(channel)->get_chi2();
-    float time = m_raw_towers->get_tower_at_channel(channel)->get_time();
     float adc = m_raw_towers->get_tower_at_channel(channel)->get_energy();
 
     if (fraction_badChi2 > fraction_badChi2_threshold && m_doHotChi2)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
-    }
-    if (!m_raw_towers->get_tower_at_channel(channel)->get_isZS() && std::fabs(time - mean_time) > time_cut && m_doTime)
-    {
-      m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(true);
     }
     if (( hotMap_val == 1 || // dead
           std::fabs(z_score) > z_score_threshold || // hot or cold

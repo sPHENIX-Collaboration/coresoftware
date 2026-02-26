@@ -5,6 +5,7 @@
 #include <TH1F.h>
 #include <TProfile.h>
 #include <TSpline.h>
+#include <TFitResult.h>
 
 #include <Fit/BinData.h>
 #include <Fit/Chi2FCN.h>
@@ -78,6 +79,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         v.push_back(std::numeric_limits<float>::quiet_NaN());
       }
       v.push_back(0);
+      v.push_back(0);
     }
     else
     {
@@ -118,6 +120,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         {
           v.push_back(std::numeric_limits<float>::quiet_NaN());
         }
+        v.push_back(0);
         v.push_back(0);
       }
       else
@@ -165,16 +168,17 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         }
         fitter->FitFCN(*EPChi2, nullptr, data.Size(), true);
         ROOT::Fit::FitResult fitres = fitter->Result();
-        // get the result status
+        // get the fit status code (0 means successful fit)
+        int validfit = fitres.Status();
         /*
-        bool validfit = fitres.IsValid();
-        if(!validfit)
+        if(validfit != 0)
         {
-          std::cout<<"invalid fit"<<std::endl;
+          std::cout<<"invalid fit status in waveform fitting: " << validfit <<std::endl;
           for (int i = 0; i < size1; ++i)
         {
-          std::cout<<v.at(i)<<std::endl;
+          std::cout<<v.at(i) << " ";
         }
+        std::cout<<std::endl;
         }
         */
         double chi2min = fitres.MinFcnValue();
@@ -240,6 +244,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
           recoverFitter->Config().ParSettings(1).SetLimits(-1 * m_peakTimeTemp, size1 - m_peakTimeTemp);  // set lim on time par
           recoverFitter->FitFCN(*recoverEPChi2, nullptr, recoverData.Size(), true);
           ROOT::Fit::FitResult recover_fitres = recoverFitter->Result();
+          int recover_validfit = recover_fitres.Status();
           double recover_chi2min = recover_fitres.MinFcnValue();
           recover_chi2min /= size1 - 3;  // divide by the number of dof
           if (recover_chi2min < _chi2lowthreshold && recover_f->GetParameter(2) < _bfr_highpedestalthreshold && recover_f->GetParameter(2) > _bfr_lowpedestalthreshold)
@@ -254,6 +259,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
             }
             v.push_back(recover_chi2min);
             v.push_back(1);
+            v.push_back(recover_validfit);
           }
           else
           {
@@ -263,6 +269,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
             }
             v.push_back(chi2min);
             v.push_back(0);
+            v.push_back(validfit);
           }
           recover_f->Delete();
           delete recoverFitFunction;
@@ -277,6 +284,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
           }
           v.push_back(chi2min);
           v.push_back(0);
+          v.push_back(validfit);
         }
         h->Delete();
         f->Delete();
@@ -295,7 +303,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
   {
     const std::vector<float> &tv = chnlvector.at(i);
     int size2 = tv.size();
-    for (int q = 5; q > 0; q--)
+    for (int q = 6; q > 0; q--)
     {
       fit_params_tmp.push_back(tv.at(size2 - q));
     }
@@ -434,7 +442,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(const 
       }
     }
     amp -= ped;
-    std::vector<float> val = {amp, time, ped, chi2, 0};
+    std::vector<float> val = {amp, time, ped, chi2, 0, 0};
     fit_values.push_back(val);
     val.clear();
   }
@@ -457,7 +465,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_nyquist(con
       {
         chi2 = 1000000;
       }
-      fit_values.push_back({v.at(1) - v.at(0), std::numeric_limits<float>::quiet_NaN(), v.at(0), chi2, 0});
+      fit_values.push_back({v.at(1) - v.at(0), std::numeric_limits<float>::quiet_NaN(), v.at(0), chi2, 0, 0});
       continue;
     }
 
@@ -532,7 +540,7 @@ std::vector<float> CaloWaveformFitting::NyquistInterpolation(std::vector<float> 
     float diff = vec_signal_samples[i] - template_function(xval, par);
     chi2 += diff * diff;
   }
-  std::vector<float> val = {max - pedestal, maxpos, pedestal, chi2, 0};
+  std::vector<float> val = {max - pedestal, maxpos, pedestal, chi2, 0, 0};
   return val;
 }
 
@@ -720,7 +728,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
       {
         chi2 = 1000000;
       }
-      fit_values.push_back({amp, time, ped, chi2, 0});
+      fit_values.push_back({amp, time, ped, chi2, 0, 0});
       continue;
     }
 
@@ -761,7 +769,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
       {
         chi2 = 1000000;
       }
-      fit_values.push_back({amp, time, ped, chi2, 0});
+      fit_values.push_back({amp, time, ped, chi2, 0, 0});
       continue;
     }
 
@@ -794,6 +802,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
     double fit_time = 0;
     double fit_ped = 0;
     double chi2val = 0;
+    int validfit = 0;
     int npar = 0;
 
     if (m_funcfit_type == POWERLAWEXP)
@@ -820,7 +829,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
       f.SetParLimits(4, pedestal - std::abs(maxheight - pedestal), pedestal + std::abs(maxheight - pedestal));
 
       // Perform fit
-      h.Fit(&f, "QRN0W", "", 0, nsamples);
+      TFitResultPtr fitres = h.Fit(&f, "SQRN0W", "", 0, nsamples);
 
       // Calculate peak amplitude and time from fit parameters
       // Peak height is (p0 * Power(p2/p3, p2)) / exp(p2)
@@ -838,6 +847,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
           chi2val += diff * diff;
         }
       }
+      if (fitres.Get()) { validfit = fitres.Get()->Status(); }
     }
     else if(m_funcfit_type == POWERLAWDOUBLEEXP)
     {
@@ -867,7 +877,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
       f.SetParLimits(6, risetime * 0.5, risetime * 4);
 
       // Perform fit
-      h.Fit(&f, "QRN0W", "", 0, nsamples);
+      TFitResultPtr fitres = h.Fit(&f, "SQRN0W", "", 0, nsamples);
 
       // Find peak by evaluating the function
       double peakpos1 = f.GetParameter(3);
@@ -888,6 +898,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
           chi2val += diff * diff;
         }
       }
+      if (fitres.Get()) { validfit = fitres.Get()->Status(); }
     }
     else if(m_funcfit_type == FERMIEXP)
     {
@@ -911,7 +922,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
 
       f.FixParameter(2, 0.2);  
 
-      h.Fit(&f, "QRN0W", "", 0, nsamples);
+      TFitResultPtr fitres = h.Fit(&f, "SQRN0W", "", 0, nsamples);
 
       fit_time = f.GetParameter(1);
       fit_amp = f.GetParameter(0);
@@ -926,6 +937,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
           chi2val += diff * diff;
         }
       }
+      if (fitres.Get()) { validfit = fitres.Get()->Status(); }
     }
 
     int ndf = ndata - npar;
@@ -939,7 +951,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
     }
 
     fit_values.push_back({static_cast<float>(fit_amp), static_cast<float>(fit_time),
-                          static_cast<float>(fit_ped), static_cast<float>(chi2val), 0});
+                          static_cast<float>(fit_ped), static_cast<float>(chi2val), 0, static_cast<float>(validfit)});
   }
 
   return fit_values;
