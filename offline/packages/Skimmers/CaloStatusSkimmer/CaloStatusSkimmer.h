@@ -51,19 +51,19 @@ private:
   uint32_t n_skimcounter{0};
   uint32_t n_notowernodecounter{0};
 
-  bool b_do_skim_EMCal{false};
+  bool b_do_skim_EMCal{true};
   uint16_t m_EMC_skim_threshold{192}; 
   // skim if nchannels >= this many not-instrumented (empty/missing packet) channels in EMCal
 
-  bool b_do_skim_HCal{false};
+  bool b_do_skim_HCal{true};
   uint16_t m_HCal_skim_threshold{192}; 
   // skim if nchannels >= this many not-instrumented (empty/missing packet) channels in HCal
 
-  bool b_do_skim_sEPD{false};
+  bool b_do_skim_sEPD{true};
   uint16_t m_sEPD_skim_threshold{1}; 
   // skim if nchannels >= this many not-instrumented (empty/missing packet) channels in sEPD
 
-  bool b_do_skim_ZDC{false};
+  bool b_do_skim_ZDC{true};
   uint16_t m_ZDC_skim_threshold{1}; 
   // skim if nchannels >= this many not-instrumented (empty/missing packet) channels in ZDC
 };
