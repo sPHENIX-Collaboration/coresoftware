@@ -9,7 +9,7 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <Acts/Utilities/Helpers.hpp>
-
+#include <ActsExamples/EventData/Measurement.hpp>
 #include <ActsExamples/EventData/Trajectories.hpp>
 
 class TTree;
@@ -31,7 +31,6 @@ class TrackSeedContainer;
 
 using SourceLink = ActsSourceLink;
 using Trajectory = ActsExamples::Trajectories;
-using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using Acts::VectorHelpers::eta;
 using Acts::VectorHelpers::perp;
 using Acts::VectorHelpers::phi;
@@ -83,7 +82,7 @@ class ActsEvaluator
   void fillFittedTrackParams(const Trajectory::IndexedParameters& paramsMap,
                              const size_t& trackTip);
 
-  void visitTrackStates(const Acts::ConstVectorMultiTrajectory& traj,
+  void visitTrackStates(const Acts::VectorMultiTrajectory& traj,
                         const size_t& trackTip,
                         const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 

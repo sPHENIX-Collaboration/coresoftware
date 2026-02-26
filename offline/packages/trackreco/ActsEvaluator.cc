@@ -238,7 +238,7 @@ void ActsEvaluator::End()
   m_trackFile->Close();
 }
 
-void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& traj,
+void ActsEvaluator::visitTrackStates(const Acts::VectorMultiTrajectory& traj,
                                      const size_t& trackTip,
                                      const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
@@ -276,10 +276,9 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
     Acts::Vector2 local = Acts::Vector2::Zero();
 
     /// get the local measurement that acts used
-    std::visit([&](const auto& meas) {
-	local(0) = meas.parameters()[0];
-	local(1) = meas.parameters()[1];
-      }, measurements[sourceLink.index()]);
+    const auto measurement = measurements.getMeasurement(sourceLink.index());
+    local(0) = measurement.parameters()[0];
+    local(1) = measurement.parameters()[1];
 
     /// Get global position
     /// This is an arbitrary vector. Doesn't matter in coordinate transformation
@@ -396,7 +395,8 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
       auto covariance = state.predictedCovariance();
 
       /// Local hit residual info
-      auto H = state.effectiveProjector();
+      const auto H = state.projectorSubspaceHelper().fullProjector().topLeftCorner(
+          state.calibratedSize(), Acts::eBoundSize);
       auto resCov = cov + H * covariance * H.transpose();
       auto residual = state.effectiveCalibrated() - H * parameters;
       m_res_x_hit.push_back(residual(Acts::eBoundLoc0));
