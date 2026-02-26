@@ -88,7 +88,6 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
        ++track1ID)
   {
     TrackSeed* track1 = m_siliconTracks->get(track1ID);
-
     if (seedsToDelete.contains(track1ID))
     {
       continue;
@@ -125,7 +124,6 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
       {
         continue;
       }
-
       TrackSeed* track2 = m_siliconTracks->get(track2ID);
       if (track2 == nullptr)
       {
@@ -189,7 +187,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
           {
             keysToKeep.insert(mvtx2Keys.begin(), mvtx2Keys.end());
           }
-          matches.insert(std::make_pair(track1ID, mvtx1Keys));
+          matches.insert(std::make_pair(track1ID, keysToKeep));
           seedsToDelete.insert(track2ID);
           if (Verbosity() > 2)
           {
@@ -203,52 +201,41 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
           {
             keysToKeep.insert(mvtx1Keys.begin(), mvtx1Keys.end());
           }
-          matches.insert(std::make_pair(track2ID, mvtx2Keys));
+          matches.insert(std::make_pair(track2ID, keysToKeep));
           seedsToDelete.insert(track1ID);
           if (Verbosity() > 2)
           {
             std::cout << "     will delete seed " << track1ID << std::endl;
           }
         }
+      }
+    }
+  }
 
-        if (Verbosity() > 2)
+  if (m_mergeSeeds)
+  {
+    for (const auto& [trackKey, mvtxKeys] : matches)
+    {
+      auto* track = m_siliconTracks->get(trackKey);
+      if (Verbosity() > 2)
+      {
+        std::cout << "original track: " << std::endl;
+        track->identify();
+      }
+
+      for (const auto& key : mvtxKeys)
+      {
+        if (track->find_cluster_key(key) == track->end_cluster_keys())
         {
-          std::cout << "Match IDed" << std::endl;
-          for (const auto& key : mvtx1Keys)
+          track->insert_cluster_key(key);
+          if (Verbosity() > 2)
           {
-            std::cout << "  total track keys " << key << std::endl;
+            std::cout << "adding " << key << std::endl;
           }
         }
-
-        matches.insert(std::make_pair(track1ID, mvtx1Keys));
-        seedsToDelete.insert(track2ID);
-        break;
       }
     }
   }
-
-  for (const auto& [trackKey, mvtxKeys] : matches)
-  {
-    auto* track = m_siliconTracks->get(trackKey);
-    if (Verbosity() > 2)
-    {
-      std::cout << "original track: " << std::endl;
-      track->identify();
-    }
-
-    for (const auto& key : mvtxKeys)
-    {
-      if (track->find_cluster_key(key) == track->end_cluster_keys())
-      {
-        track->insert_cluster_key(key);
-        if (Verbosity() > 2)
-        {
-          std::cout << "adding " << key << std::endl;
-        }
-      }
-    }
-  }
-
   for (const auto& key : seedsToDelete)
   {
     if (Verbosity() > 2)
@@ -260,14 +247,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
 
   if (Verbosity() > 2)
   {
-    for (const auto& seed : *m_siliconTracks)
-    {
-      if (!seed)
-      {
-        continue;
-      }
-      seed->identify();
-    }
+    printRemainingDuplicates();
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -318,4 +298,83 @@ int PHSiliconSeedMerger::getNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void PHSiliconSeedMerger::printRemainingDuplicates()
+{
+  for (unsigned int track1ID = 0;
+       track1ID != m_siliconTracks->size();
+       ++track1ID)
+  {
+    std::set<TrkrDefs::cluskey> mvtx1Keyscheck;
 
+    TrackSeed* seed = m_siliconTracks->get(track1ID);
+    if (!seed)
+    {
+      continue;
+    }
+    int strobe1 = -9999;
+    for (auto iter = seed->begin_cluster_keys();
+         iter != seed->end_cluster_keys();
+         ++iter)
+    {
+      mvtx1Keyscheck.insert(*iter);
+      if (TrkrDefs::getTrkrId(*iter) == TrkrDefs::mvtxId)
+      {
+        strobe1 = MvtxDefs::getStrobeId(*iter);
+      }
+    }
+
+    for (unsigned int track2ID = 0;
+         track2ID != m_siliconTracks->size();
+         ++track2ID)
+    {
+      std::set<TrkrDefs::cluskey> mvtx2Keyscheck;
+      TrackSeed* seed2 = m_siliconTracks->get(track2ID);
+      if (!seed2)
+      {
+        continue;
+      }
+      int strobe2 = -9999;
+      for (auto iter2 = seed2->begin_cluster_keys();
+           iter2 != seed2->end_cluster_keys();
+           ++iter2)
+      {
+        mvtx2Keyscheck.insert(*iter2);
+        if (TrkrDefs::getTrkrId(*iter2) == TrkrDefs::mvtxId)
+        {
+          strobe2 = MvtxDefs::getStrobeId(*iter2);
+        }
+      }
+      std::vector<TrkrDefs::cluskey> intersectioncheck;
+      std::set_intersection(mvtx1Keyscheck.begin(),
+                            mvtx1Keyscheck.end(),
+                            mvtx2Keyscheck.begin(),
+                            mvtx2Keyscheck.end(),
+                            std::back_inserter(intersectioncheck));
+      if (track1ID != track2ID)
+      {
+        if (intersectioncheck.size() == mvtx1Keyscheck.size() || intersectioncheck.size() == mvtx2Keyscheck.size())
+        {
+          std::cout << "After merge, still have duplicate seeds: "
+                    << " seed1 ID " << track1ID << " strobe " << strobe1 << " nkeys " << mvtx1Keyscheck.size()
+                    << " seed2 ID " << track2ID << " strobe " << strobe2 << " nkeys " << mvtx2Keyscheck.size()
+                    << " intersection size " << intersectioncheck.size()
+                    << std::endl;
+          std::cout << "seed 1 keys " << std::endl;
+          std::cout << "    ";
+          for (const auto& key : mvtx1Keyscheck)
+          {
+            std::cout << key << ", ";
+          }
+          std::cout << std::endl;
+          std::cout << "seed 2 keys " << std::endl;
+          std::cout << "    ";
+          for (const auto& key : mvtx2Keyscheck)
+          {
+            std::cout << key << ", ";
+          }
+          std::cout << std::endl;
+        }
+      }
+    }
+  }
+}

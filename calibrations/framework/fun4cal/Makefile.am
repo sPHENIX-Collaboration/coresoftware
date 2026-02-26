@@ -7,9 +7,9 @@ AM_CPPFLAGS = \
   -isystem$(ROOTSYS)/include 
 
 lib_LTLIBRARIES = \
-  liboncal.la
+  libfun4cal.la
 
-liboncal_la_LIBADD = \
+libfun4cal_la_LIBADD = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OPT_SPHENIX)/lib \
@@ -19,14 +19,14 @@ liboncal_la_LIBADD = \
   -lphool
 
 pkginclude_HEADERS = \
-  OnCalDBCodes.h \
-  OnCalHistoBinDefs.h \
-  OnCal.h \
-  OnCalServer.h
+  Fun4CalDBCodes.h \
+  Fun4CalHistoBinDefs.h \
+  CalReco.h \
+  Fun4CalServer.h
 
-liboncal_la_SOURCES = \
-  OnCal.cc \
-  OnCalServer.cc
+libfun4cal_la_SOURCES = \
+  CalReco.cc \
+  Fun4CalServer.cc
 
 BUILT_SOURCES = \
   testexternals.cc
@@ -38,7 +38,7 @@ testexternals_SOURCES = \
   testexternals.cc
 
 testexternals_LDADD = \
-  liboncal.la
+  libfun4cal.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
