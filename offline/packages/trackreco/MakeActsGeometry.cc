@@ -664,7 +664,7 @@ void MakeActsGeometry::buildActsSurfaces()
   // acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
 
-  makeGeometry(argstr.size(), argv, m_detector);
+  makeGeometry(argstr.size(), argv, responseFile, materialFile);
 
   for (size_t i = 0; i < argstr.size(); ++i)
   {
@@ -707,24 +707,46 @@ void MakeActsGeometry::setMaterialResponseFile(std::string &responseFile,
 
   return;
 }
-void MakeActsGeometry::makeGeometry(int argc, char *argv[],
-                                    ActsExamples::TGeoDetectorWithOptions &detector)
+void MakeActsGeometry::makeGeometry(int argc, char *argv[], const std::string& responseFile, const std::string& materialFile)
 {
+
   // setup and parse options
   boost::program_options::options_description desc;
   ActsExamples::Options::addGeometryOptions(desc);
   ActsExamples::Options::addMaterialOptions(desc);
   ActsExamples::Options::addMagneticFieldOptions(desc);
 
+  ActsExamples::TGeoDetector::Config config;
+  config.surfaceLogLevel = Acts::Logging::FATAL;
+  config.layerLogLevel = Acts::Logging::FATAL;
+  config.volumeLogLevel = Acts::Logging::FATAL;
+  config.detectorElementFactory = sPHENIXElementFactory;
+  config.readJson(responseFile);
+
+  std::shared_ptr<Acts::IMaterialDecorator> matDeco = nullptr;
+  if (materialFile.find(".json") != std::string::npos ||
+      materialFile.find(".cbor") != std::string::npos)
+  {
+    // Set up the converter first
+    Acts::MaterialMapJsonConverter::Config jsonGeoConvConfig;
+    // Set up the json-based decorator
+    matDeco = std::make_shared<Acts::JsonMaterialDecorator>(
+        jsonGeoConvConfig, materialFile, Acts::Logging::FATAL);
+  }
+  else
+  {
+    matDeco = std::make_shared<Acts::MaterialWiper>();
+  }
+  config.materialDecorator = matDeco;
+  // this does the building now. The TGeoDetector owns the 
+  // tracking geometry
+  ActsExamples::TGeoDetectorWithOptions detector(config);
+
   // Add specific options for this geometry
   detector.addOptions(desc);
   auto vm = ActsExamples::Options::parse(desc, argc, argv);
 
-  // The geometry, material and decoration
-  auto geometry = build(vm, detector);
-  // Geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
-
-  m_tGeometry = geometry.first;
+  m_tGeometry = detector.m_detector.trackingGeometry();
   if (m_useField)
   {
     m_magneticField = ActsExamples::Options::readMagneticField(vm);
@@ -739,49 +761,6 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   unpackVolumes();
 
   return;
-}
-
-std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
-          std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
-MakeActsGeometry::build(const boost::program_options::variables_map &vm,
-                        ActsExamples::TGeoDetectorWithOptions &detector)
-{
-  // Material decoration
-  std::shared_ptr<const Acts::IMaterialDecorator> matDeco = nullptr;
-
-  // Retrieve the filename
-  auto fileName = vm["mat-input-file"].template as<std::string>();
-  // json or root based decorator
-  if (fileName.find(".json") != std::string::npos ||
-      fileName.find(".cbor") != std::string::npos)
-  {
-    // Set up the converter first
-    Acts::MaterialMapJsonConverter::Config jsonGeoConvConfig;
-    // Set up the json-based decorator
-    matDeco = std::make_shared<const Acts::JsonMaterialDecorator>(
-        jsonGeoConvConfig, fileName, Acts::Logging::FATAL);
-  }
-  else
-  {
-    matDeco = std::make_shared<const Acts::MaterialWiper>();
-  }
-
-  ActsExamples::TGeoDetector::Config config;
-
-  config.elementFactory = sPHENIXElementFactory;
-
-  config.fileName = vm["geo-tgeo-filename"].as<std::string>();
-
-  config.surfaceLogLevel = Acts::Logging::FATAL;
-  config.layerLogLevel = Acts::Logging::FATAL;
-  config.volumeLogLevel = Acts::Logging::FATAL;
-
-  const auto path = vm["geo-tgeo-jsonconfig"].template as<std::string>();
-
-  readTGeoLayerBuilderConfigsFile(path, config);
-
-  // Return the geometry and context decorators
-  return detector.m_detector.finalize(config, matDeco);
 }
 
 void MakeActsGeometry::readTGeoLayerBuilderConfigsFile(const std::string &path,
@@ -1082,7 +1061,7 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
       TrkrDefs::hitsetkey hitsetkey = getInttHitSetKeyFromCoords(layer, world_center);
 
       // Add this surface to the map
-      std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
+      std::pair<TrkrDefs::hitsetkey, Surface> tmp = std::make_pair(hitsetkey, surf);
       m_clusterSurfaceMapSilicon.insert(tmp);
 
       if (Verbosity() > 10)
@@ -1219,7 +1198,7 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
 	}
 
       // Add this surface to the map
-      std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
+      std::pair<TrkrDefs::hitsetkey, Surface> tmp = std::make_pair(hitsetkey, surf);
       m_clusterSurfaceMapSilicon.insert(tmp);
 
       if (Verbosity() > 10)

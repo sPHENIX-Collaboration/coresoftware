@@ -174,13 +174,13 @@ private:
   void buildActsSurfaces();
 
   /// Function that mimics ActsExamples::GeometryExampleBase
-  void makeGeometry(int argc, char *argv[],
-                    ActsExamples::TGeoDetectorWithOptions &detector);
+  void makeGeometry(int argc, char *argv[], const std::string& responseFile, const std::string& materialFile);
 #ifndef __CLING__
   std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
             std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
   build(const boost::program_options::variables_map &vm,
-        ActsExamples::TGeoDetectorWithOptions &detector);
+        ActsExamples::TGeoDetector::Config config,
+            ActsExamples::TGeoDetectorWithOptions &detector);
 #endif
   void readTGeoLayerBuilderConfigsFile(const std::string &path,
                                        ActsExamples::TGeoDetector::Config &config);
@@ -272,9 +272,6 @@ private:
   const double half_width_clearance_phi = 0.4999;
   /// z does not need spacing as the boxes are rotated around the z axis
   const double half_width_clearance_z = 0.5;
-
-  /// The acts geometry object
-  ActsExamples::TGeoDetectorWithOptions m_detector;
 
   /// Acts geometry objects that are needed to create (for example) the fitter
   TrackingGeometry m_tGeometry;
