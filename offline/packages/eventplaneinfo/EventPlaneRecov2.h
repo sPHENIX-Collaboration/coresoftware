@@ -115,14 +115,14 @@ class EventPlaneRecov2 : public SubsysReco
     std::array<std::array<double, 2>, 2> X_matrix{};
  };
 
- static constexpr size_t m_bins_cent {80};
+ static constexpr size_t m_cent_bins {80};
  static constexpr std::array<int, 3> m_harmonics = {2, 3, 4};
 
  // Holds all correction data
  // key: [Harmonic][Cent][Subdetector]
  // Harmonics {2,3,4} -> 3 elements
  // Subdetectors {S,N,NS} -> 3 elements
- std::array<std::array<std::array<CorrectionData, 3>, m_bins_cent>, m_harmonics.size()> m_correction_data;
+ std::array<std::array<std::array<CorrectionData, 3>, m_cent_bins>, m_harmonics.size()> m_correction_data;
 
  // sEPD Q Vectors
  // key: [Harmonic][Subdetector]

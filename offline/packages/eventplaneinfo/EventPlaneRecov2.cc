@@ -145,7 +145,7 @@ void EventPlaneRecov2::LoadCalib()
     std::string NS_yy_avg_name = std::format("Q_NS_yy_{}_avg", n);
     std::string NS_xy_avg_name = std::format("Q_NS_xy_{}_avg", n);
 
-    for (size_t cent_bin = 0; cent_bin < m_bins_cent; ++cent_bin)
+    for (size_t cent_bin = 0; cent_bin < m_cent_bins; ++cent_bin)
     {
       int key = cent_bin;
 
@@ -200,7 +200,7 @@ void EventPlaneRecov2::print_correction_data()
     std::cout << std::format("\n>>> HARMONIC n = {} <<<\n", n);
 
     // Iterate through Centrality Bins (0-79)
-    for (size_t cent = 0; cent < m_bins_cent; ++cent)
+    for (size_t cent = 0; cent < m_cent_bins; ++cent)
     {
       std::cout << std::format("\n  Centrality Bin: {}\n", cent);
       std::cout << std::format("  {:->30}\n", "");
@@ -390,9 +390,9 @@ int EventPlaneRecov2::process_sEPD(PHCompositeNode* topNode)
 void EventPlaneRecov2::correct_QVecs()
 {
   size_t cent_bin = static_cast<size_t>(m_cent);
-  if (cent_bin >= m_bins_cent)
+  if (cent_bin >= m_cent_bins)
   {
-    cent_bin = m_bins_cent - 1;  // Clamp max
+    cent_bin = m_cent_bins - 1;  // Clamp max
   }
 
   size_t south_idx = static_cast<size_t>(Subdetector::S);
