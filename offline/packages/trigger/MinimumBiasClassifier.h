@@ -1,6 +1,7 @@
 #ifndef TRIGGER_MINBIASCLASSIFIER_H
 #define TRIGGER_MINBIASCLASSIFIER_H
 
+#include <phparameter/PHParameters.h>
 #include <fun4all/SubsysReco.h>
 #include <array>
 #include <limits>
@@ -58,6 +59,7 @@ class MinimumBiasClassifier : public SubsysReco
     m_overwrite_vtx = true;
   }
   void setIsSim(const bool sim) { m_issim = sim; }
+  void set_mbd_total_charge_cut(const double max_charge_cut) { m_max_charge_cut = max_charge_cut; }
 
   void setSpecies(MinimumBiasInfo::SPECIES spec) { m_species = spec; };
   
@@ -100,6 +102,9 @@ class MinimumBiasClassifier : public SubsysReco
   double m_vertex_scale{std::numeric_limits<double>::quiet_NaN()};
   float m_vertex{std::numeric_limits<float>::quiet_NaN()};
   std::vector<std::pair<std::pair<float, float>, float>> m_vertex_scales{};
+
+  PHParameters m_MinBiasParams;
+  PHCompositeNode* m_parNode{nullptr};
 };
 
 #endif

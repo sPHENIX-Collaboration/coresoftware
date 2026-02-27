@@ -31,6 +31,7 @@
 
 MinimumBiasClassifier::MinimumBiasClassifier(const std::string &name)
   : SubsysReco(name)
+  , m_MinBiasParams(name)
 {
 }
 int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
@@ -90,6 +91,17 @@ int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
 
   CreateNodes(topNode);
 
+  // Create Space on NodeTree to save Minimum Bias Params
+  PHNodeIterator parIter(topNode);
+  m_parNode = dynamic_cast<PHCompositeNode *>(parIter.findFirst("PHCompositeNode", "PAR"));
+  if (!m_parNode)
+  {
+    std::cout << "No RUN node found; cannot create PHParameters. Aborting run!";
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_MinBiasParams.SaveToNodeTree(m_parNode, "MinBiasParams");
+
   m_zdc_energy_sum.fill(0);
   m_mbd_charge_sum.fill(0);
   m_mbd_hit.fill(0);
@@ -112,6 +124,13 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   {
     std::cout << "Getting Vertex" << std::endl;
   }
+
+  // set defaults
+  m_MinBiasParams.set_int_param("minbias_background_cut_fail", false);
+  m_MinBiasParams.set_int_param("minbias_two_hit_min_fail", false);
+  m_MinBiasParams.set_int_param("minbias_zdc_energy_min_fail", false);
+  m_MinBiasParams.set_int_param("minbias_mbd_total_energy_max_fail", false);
+  m_MinBiasParams.UpdateNodeTree(m_parNode, "MinBiasParams");
 
   // if (!m_global_vertex_map)
   // {
@@ -163,6 +182,7 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
       return Fun4AllReturnCodes::EVENT_OK;
     }
   }
+
   //  Z vertex is within range
   if (std::fabs(m_vertex) > m_z_vtx_cut && minbiascheck)
   {
@@ -186,6 +206,12 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     m_mbd_hit[side]++;
     m_mbd_charge_sum[side] += m_mbd_pmt->get_q() * m_vertex_scale * m_centrality_scale;
   }
+
+  m_MinBiasParams.set_double_param("minbias_mbd_total_charge_south", m_mbd_charge_sum[0]);
+  m_MinBiasParams.set_double_param("minbias_mbd_total_charge_north", m_mbd_charge_sum[1]);
+  m_MinBiasParams.set_double_param("minbias_vertex_scale", m_vertex_scale);
+  m_MinBiasParams.set_double_param("minbias_centrality_scale", m_centrality_scale);
+
   if (Verbosity())
   {
     std::cout << m_mbd_charge_sum[0] << " " << m_mbd_charge_sum[1] << std::endl;
@@ -195,6 +221,7 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   if (m_box_cut && m_mbd_charge_sum[1] < m_mbd_north_cut && m_mbd_charge_sum[0] > m_mbd_south_cut && minbiascheck)
   {
     minbiascheck = false;
+    m_MinBiasParams.set_int_param("minbias_background_cut_fail", true);
     //    m_mb_info->setIsAuAuMinimumBias(false);
     // return Fun4AllReturnCodes::EVENT_OK;
   }
@@ -205,6 +232,7 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     if (m_mbd_hit[iside] < m_hit_cut && minbiascheck)
     {
       minbiascheck = false;
+      m_MinBiasParams.set_int_param("minbias_two_hit_min_fail", true);
       // m_mb_info->setIsAuAuMinimumBias(false);
       // return Fun4AllReturnCodes::EVENT_OK;
     }
@@ -213,6 +241,7 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
       if (m_zdcinfo->get_zdc_energy(iside) <= m_zdc_cut && minbiascheck)
       {
         minbiascheck = false;
+        m_MinBiasParams.set_int_param("minbias_zdc_energy_min_fail", true);
         // m_mb_info->setIsAuAuMinimumBias(false);
         // return Fun4AllReturnCodes::EVENT_OK;
       }
@@ -221,10 +250,12 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   if ((m_mbd_charge_sum[0] + m_mbd_charge_sum[1]) > m_max_charge_cut && minbiascheck)
   {
     minbiascheck = false;
+    m_MinBiasParams.set_int_param("minbias_mbd_total_energy_max_fail", true);
     // m_mb_info->setIsAuAuMinimumBias(false);
     // return Fun4AllReturnCodes::EVENT_OK;
   }
 
+  m_MinBiasParams.UpdateNodeTree(m_parNode, "MinBiasParams");
   m_mb_info->setIsAuAuMinimumBias(minbiascheck);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -303,6 +334,7 @@ int MinimumBiasClassifier::GetNodes(PHCompositeNode *topNode)
     std::cout << "no vertex map node " << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
