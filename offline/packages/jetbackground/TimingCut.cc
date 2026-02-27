@@ -136,8 +136,15 @@ int TimingCut::process_event(PHCompositeNode *topNode)
 		jetOHFrac += tower->get_energy();
 	      }
 	  }
-	jetOHFrac /= jet->get_e(); //We actually want this to be NaN when jet->get_e() == 0, because that case should fail.
-	                           //NaN always compares to false
+	float jetE = jet->get_e();
+	if(jetE == 0)
+	  {
+	    jetOHFrac = std::numeric_limits<float>::quiet_NaN();
+	  }
+	else
+	  {
+	    jetOHFrac /= jetE;
+	  }
       }
       else
       {
@@ -175,8 +182,20 @@ int TimingCut::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  if(!std::isfinite(maxJetOHFrac) || !std::isfinite(subJetOHFrac))
+    {
+      if(Verbosity() > 1)
+	{
+	  std::cout << "Warning: bad OH fraction for leading or subleading jet; this event will automatically fail cuts." << std::endl;
+	}
+      maxJetOHFrac = std::numeric_limits<float>::quiet_NaN();
+      subJetOHFrac = std::numeric_limits<float>::quiet_NaN();
+    }
+  
   float corrMaxJett = Correct_Time_Ohfrac(maxJett, maxJetOHFrac); //likewise, intentional NaNs here.
   float corrSubJett = Correct_Time_Ohfrac(subJett, subJetOHFrac);
+
+  
   
   bool passDeltat = Pass_Delta_t(corrMaxJett, corrSubJett, maxJetPhi, subJetPhi);
   bool passLeadt = Pass_Lead_t(corrMaxJett);

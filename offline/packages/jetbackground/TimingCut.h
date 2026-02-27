@@ -77,6 +77,14 @@ private:
 
   float Correct_Time_Ohfrac(float t, float ohfrac)
   {
+    if(!_fitFunc)
+      {
+	if(Verbosity() > 0)
+	  {
+	    std::cout << "ERROR: mising fit function. All events will fail!" << std::endl;
+	  }
+	return std::numeric_limits<float>::quiet_NaN();
+      }
     float corrt = t - _fitFunc->Eval(ohfrac);
     return corrt;
   }
