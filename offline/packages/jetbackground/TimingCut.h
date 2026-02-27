@@ -12,6 +12,7 @@
 #include <TF1.h>
 #include <cmath>
 #include <string>
+#include <memory>
 
 class CDBTF;
 class PHCompositeNode;
@@ -83,7 +84,7 @@ private:
   float calc_dphi(float maxJetPhi, float subJetPhi)
   {
     float dPhi = std::abs(maxJetPhi - subJetPhi);
-    if(dPhi>M_PI) dPhi -= M_PI;
+    if(dPhi>M_PI) dPhi = 2*M_PI - dPhi;
     return dPhi;
   }
 
@@ -114,7 +115,7 @@ private:
   float _t_shift{0.0};
   float _mbd_dt_width{3.0};
   float _min_dphi{3*M_PI/4};
-  TF1* _fitFunc{nullptr};
+  std::unique_ptr<TF1> _fitFunc{nullptr};
 };
 
 #endif

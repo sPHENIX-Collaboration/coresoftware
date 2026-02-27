@@ -46,13 +46,14 @@ int TimingCut::Init(PHCompositeNode *topNode)
     {
       CDBTF* fitFile = new CDBTF(fitUrl);
       fitFile->LoadCalibrations();
-      _fitFunc = (TF1*)fitFile->getTF("JET_TIMING_CALO_FRACTION_CALIB_fullrange")->Clone();
-      delete fitFile;
-      if(!_fitFunc)
+      TF1* tmp = fitFile->getTF("JET_TIMING_CALO_FRACTION_CALIB_fullrange");
+      if(!tmp)
 	{
 	  std::cout << "ERROR: NO CALIBRATION TF1 FOUND FOR TIMING CUT OHCAL FRACTION CORRECTION! This should never happen. ABORT RUN!" << std::endl;
 	  return Fun4AllReturnCodes::ABORTRUN;
 	}
+      _fitFunc = std::unique_ptr<TF1>((TF1*)tmp->Clone());
+      delete fitFile;
     }
   else
     {
