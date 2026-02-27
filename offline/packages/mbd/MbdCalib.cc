@@ -1540,7 +1540,7 @@ int MbdCalib::Download_Pileup(const std::string& dbase_location)
 
       if (Verbosity() > 0)
       {
-        if (feech < 2 || feech >= MbdDefs::MBD_N_PMT - 2)
+        if (feech < 2 || feech >= MbdDefs::MBD_N_FEECH - 2)
         {
           std::cout << feech << "\t" << _pileup_p0[feech] << "\t" << _pileup_p0err[feech]
                              << "\t" << _pileup_p1[feech] << "\t" << _pileup_p1err[feech]
