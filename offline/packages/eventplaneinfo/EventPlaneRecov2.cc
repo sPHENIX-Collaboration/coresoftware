@@ -199,7 +199,7 @@ void EventPlaneRecov2::print_correction_data()
     int n = m_harmonics[h_idx];
     std::cout << std::format("\n>>> HARMONIC n = {} <<<\n", n);
 
-    // Iterate through Centrality Bins (0-7)
+    // Iterate through Centrality Bins (0-79)
     for (size_t cent = 0; cent < m_bins_cent; ++cent)
     {
       std::cout << std::format("\n  Centrality Bin: {}\n", cent);
@@ -331,7 +331,7 @@ int EventPlaneRecov2::process_sEPD(PHCompositeNode* topNode)
 
     // skip bad channels
     // skip channels with very low charge
-    if (!tower->get_isGood() || charge < m_sepd_min_channel_charge)
+    if (tower->get_isHot() || charge < m_sepd_min_channel_charge)
     {
       continue;
     }
@@ -389,7 +389,7 @@ int EventPlaneRecov2::process_sEPD(PHCompositeNode* topNode)
 
 void EventPlaneRecov2::correct_QVecs()
 {
-  size_t cent_bin = static_cast<size_t>(m_cent / 10.0);
+  size_t cent_bin = static_cast<size_t>(m_cent);
   if (cent_bin >= m_bins_cent)
   {
     cent_bin = m_bins_cent - 1;  // Clamp max
