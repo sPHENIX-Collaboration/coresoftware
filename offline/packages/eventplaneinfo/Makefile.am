@@ -29,14 +29,12 @@ libeventplaneinfo_la_LIBADD = \
   -lglobalvertex_io
 
 pkginclude_HEADERS = \
-  EventPlaneCalibration.h \
   Eventplaneinfo.h \
   Eventplaneinfov1.h \
   Eventplaneinfov2.h \
   EventplaneinfoMap.h \
   EventplaneinfoMapv1.h \
-  EventPlaneReco.h \
-  EventPlaneRecov2.h
+  EventPlaneReco.h
 
 ROOTDICTS = \
   Eventplaneinfo_Dict.cc \
@@ -58,9 +56,7 @@ libeventplaneinfo_io_la_SOURCES = \
   EventplaneinfoMapv1.cc
 
 libeventplaneinfo_la_SOURCES = \
-  EventPlaneCalibration.cc \
-  EventPlaneReco.cc \
-  EventPlaneRecov2.cc
+  EventPlaneReco.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

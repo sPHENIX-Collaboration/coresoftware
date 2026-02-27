@@ -1,107 +1,134 @@
-// Tell emacs that this is a C++ source
-//  -*- C++ -*-.
 #ifndef EVENTPLANEINFO_EVENTPLANERECO_H
 #define EVENTPLANEINFO_EVENTPLANERECO_H
 
-//===========================================================
-/// \author Ejiro Umaka
-//===========================================================
-
 #include <fun4all/SubsysReco.h>
 
-#include <string> // for string
-#include <vector> // for vector
 
-class TProfile2D;
-class TH1;
+#include <string>
+#include <array>
+#include <memory>
 
+class CDBTTree;
 class PHCompositeNode;
 
-class EventPlaneReco : public SubsysReco {
-public:
-  EventPlaneReco(const std::string &name = "EventPlaneReco");
+class EventPlaneReco : public SubsysReco
+{
+ public:
+
+  explicit EventPlaneReco(const std::string &name = "EventPlaneReco");
   ~EventPlaneReco() override = default;
-  int InitRun(PHCompositeNode *topNode) override;
+
+  // Explicitly disable copying and moving
+  EventPlaneReco(const EventPlaneReco&) = delete;
+  EventPlaneReco& operator=(const EventPlaneReco&) = delete;
+  EventPlaneReco(EventPlaneReco&&) = delete;
+  EventPlaneReco& operator=(EventPlaneReco&&) = delete;
+
+  /** Called during initialization.
+      Typically this is where you can book histograms, and e.g.
+      register them to Fun4AllServer (so they can be output to file
+      using Fun4AllServer::dumpHistos() method).
+   */
+  int Init(PHCompositeNode *topNode) override;
+
+  /** Called for each event.
+      This is where you do the real work.
+   */
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode * /*topNode*/) override;
 
-  void ResetMe();
-  void set_sepd_epreco(bool sepdEpReco) { _sepdEpReco = sepdEpReco; }
-  void set_mbd_epreco(bool mbdEpReco) { _mbdEpReco = mbdEpReco; }
-  void set_isSim(bool isSim) { _isSim = isSim; }
-  void set_sEPD_Mip_cut(const float e) { _epd_e = e; }
-  void set_sEPD_Charge_cut(const float c) { _epd_charge_min = c; }
-  void set_MBD_Min_Qcut(const float f) { _mbd_e = f; }
-  void set_MBD_Vertex_cut(const float v) { _mbd_vertex_cut = v; }
-  void set_Ep_orders(const unsigned int n) { m_MaxOrder = n; }
+  /// Clean up internals after each event.
+  int ResetEvent(PHCompositeNode *topNode) override;
 
-private:
-  int CreateNodes(PHCompositeNode *topNode);
-  unsigned int m_MaxOrder{3};
-  static const int nRings {16};
 
-  std::string FileName;
-    
-  std::vector<std::vector<double>> south_q;
-  std::vector<std::vector<double>> north_q;
-  std::vector<std::vector<double>> northsouth_q;
-  std::vector<std::vector<std::vector<double>>> ring_q_north;
-  std::vector<std::vector<std::vector<double>>> ring_q_south;
-  std::vector<std::pair<double, double>> south_Qvec;
-  std::vector<std::pair<double, double>> north_Qvec;
-  std::vector<std::pair<double, double>> northsouth_Qvec;
-  std::vector<std::vector<std::pair<double, double>>> all_ring_Qvecs_north;
-  std::vector<std::vector<std::pair<double, double>>> all_ring_Qvecs_south;
-    
-  //  const int phibins{24};
-  TH1* h_phi_weight_south_input{nullptr};
-  TH1* h_phi_weight_north_input{nullptr};
-    
-  // recentering utility
-  std::vector<std::vector<double>> south_q_subtract;
-  std::vector<std::vector<double>> north_q_subtract;
-  std::vector<std::vector<double>> northsouth_q_subtract;
+  void set_inputNode(const std::string &inputNode)
+  {
+    m_inputNode = inputNode;
+  }
 
-  // shifting utility
-  std::vector<double> shift_north;
-  std::vector<double> shift_south;
-  std::vector<double> shift_northsouth;
-  std::vector<double> tmp_south_psi;
-  std::vector<double> tmp_north_psi;
-  std::vector<double> tmp_northsouth_psi;
+  void set_directURL_EventPlaneCalib(const std::string &directURL_EventPlaneCalib)
+  {
+    m_directURL_EventPlaneCalib = directURL_EventPlaneCalib;
+  }
 
-  // recentering histograms
-  TProfile2D *tprof_mean_cos_north_epd_input[6]{};
-  TProfile2D *tprof_mean_sin_north_epd_input[6]{};
-  TProfile2D *tprof_mean_cos_south_epd_input[6]{};
-  TProfile2D *tprof_mean_sin_south_epd_input[6]{};
-  TProfile2D *tprof_mean_cos_northsouth_epd_input[6]{};
-  TProfile2D *tprof_mean_sin_northsouth_epd_input[6]{};
+  void set_doAbortNoEventPlaneCalib(bool status = true)
+  {
+    m_doAbortNoEventPlaneCalib = status;
+  }
 
-  // shifting histograms
-  const int _imax{12};
-  TProfile2D *tprof_cos_north_epd_shift_input[6][12]{};
-  TProfile2D *tprof_sin_north_epd_shift_input[6][12]{};
-  TProfile2D *tprof_cos_south_epd_shift_input[6][12]{};
-  TProfile2D *tprof_sin_south_epd_shift_input[6][12]{};
-  TProfile2D *tprof_cos_northsouth_epd_shift_input[6][12]{};
-  TProfile2D *tprof_sin_northsouth_epd_shift_input[6][12]{};
+  void set_sepd_min_channel_charge(double sepd_min_channel_charge)
+  {
+    m_sepd_min_channel_charge = sepd_min_channel_charge;
+  }
 
-  bool _mbdEpReco{false};
-  bool _sepdEpReco{false};
-  bool _isSim{false};
-  bool _do_ep{false};
+ private:
 
-  float _nsum{0.0};
-  float _ssum{0.0};
-  float _mbdvtx{999.0};
-  float _epd_charge_min{5.0};
-  float _epd_charge_max{10000.0};
-  float _epd_e{10.0};
-  float _mbd_e{10.0};
-  float _mbdQ{0.0};
-  double _totalcharge{0.0};
-  float _mbd_vertex_cut{60.0};
+ static int CreateNodes(PHCompositeNode *topNode);
+
+ std::array<std::array<double, 2>, 2> calculate_flattening_matrix(double xx, double yy, double xy, int n, int cent_bin, const std::string& det_label);
+ void LoadCalib();
+
+ void print_correction_data();
+ void print_QVectors();
+
+ int process_centrality(PHCompositeNode *topNode);
+ int process_sEPD(PHCompositeNode *topNode);
+ void correct_QVecs();
+
+ int FillNode(PHCompositeNode *topNode);
+
+ std::string m_directURL_EventPlaneCalib;
+ bool m_doAbortNoEventPlaneCalib{false};
+ bool m_doNotCalib{false};
+ bool m_doNotCalibEvent{false};
+
+ double m_cent{0.0};
+ double m_globalEvent{0};
+ double m_sepd_min_channel_charge{0.2};
+
+ std::string m_calibName{"SEPD_EventPlaneCalib"};
+ std::string m_inputNode{"TOWERINFO_CALIB_SEPD"};
+
+  CDBTTree *m_cdbttree {nullptr};
+
+ enum class Subdetector
+ {
+   S,
+   N,
+   NS
+ };
+
+ struct QVec
+ {
+    double x{0.0};
+    double y{0.0};
+ };
+
+ struct CorrectionData
+ {
+    // Averages of Qx, Qy, Qx^2, Qy^2, Qxy
+    QVec avg_Q{};
+    double avg_Q_xx{0.0};
+    double avg_Q_yy{0.0};
+    double avg_Q_xy{0.0};
+
+    // Correction matrix
+    std::array<std::array<double, 2>, 2> X_matrix{};
+ };
+
+ static constexpr size_t m_cent_bins {80};
+ static constexpr std::array<int, 3> m_harmonics = {2, 3, 4};
+
+ // Holds all correction data
+ // key: [Harmonic][Cent][Subdetector]
+ // Harmonics {2,3,4} -> 3 elements
+ // Subdetectors {S,N,NS} -> 3 elements
+ std::array<std::array<std::array<CorrectionData, 3>, m_cent_bins>, m_harmonics.size()> m_correction_data;
+
+ // sEPD Q Vectors
+ // key: [Harmonic][Subdetector]
+ // Subdetectors {S,N,NS} -> 3 elements
+ std::array<std::array<QVec, 3>, m_harmonics.size()> m_Q_raw{};
+ std::array<std::array<QVec, 3>, m_harmonics.size()> m_Q_recentered{};
+ std::array<std::array<QVec, 3>, m_harmonics.size()> m_Q_flat{};
 };
-
-#endif // EVENTPLANEINFO_EVENTPLANERECO_H
+#endif
