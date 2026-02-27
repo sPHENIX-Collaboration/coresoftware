@@ -26,15 +26,14 @@ lib_LTLIBRARIES = \
   libtrack.la
 
 AM_CPPFLAGS = \
-  -I$(MYINSTALL)/include \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
-  -L$(OFFLINE_MAIN)/lib64 \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64 \
   -L$(ROOTSYS)/lib
 
 
