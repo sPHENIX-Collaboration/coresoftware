@@ -4,7 +4,6 @@
 
 #include "IBaseDetector.h"
 #include <ActsExamples/TGeoDetector/TGeoDetector.hpp>
-#include <ActsExamples/Utilities/OptionsFwd.hpp>
 
 namespace ActsExamples {
 
