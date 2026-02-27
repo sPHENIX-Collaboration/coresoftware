@@ -41,8 +41,7 @@ class TGeoVolume;
 namespace Acts
 {
   class Surface;
-  class SurfaceArray;
-}
+}  // namespace Acts
 
 using Surface = std::shared_ptr<const Acts::Surface>;
 using TrackingGeometry = std::shared_ptr<const Acts::TrackingGeometry>;

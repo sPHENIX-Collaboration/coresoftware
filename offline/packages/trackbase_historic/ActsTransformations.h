@@ -70,7 +70,7 @@ class ActsTransformations
 
   //___________________________________________________________________________________________________________
   void fillSvtxTrackStates(
-    const Acts::ConstVectorMultiTrajectory& traj,
+    const Acts::VectorMultiTrajectory& traj,
     const size_t& trackTip,
     SvtxTrack* svtxTrack,
     const Acts::GeometryContext& geoContext

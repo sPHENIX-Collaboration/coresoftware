@@ -62,7 +62,7 @@ namespace
         MixtureReductionAlgorithm::KLDistance;
     Acts::ComponentMergeMethod mergeMethod =
         Acts::ComponentMergeMethod::eMaxWeight;
-    double reverseFilteringCovarianceScaling = 1.0;
+    double reverseFilteringCovarianceScaling = 100.;
     ActsSourceLink::SurfaceAccessor m_slSurfaceAccessor;
 
     GsfFitterFunctionImpl(Fitter&& f,
