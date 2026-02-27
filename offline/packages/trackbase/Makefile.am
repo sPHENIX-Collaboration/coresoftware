@@ -32,7 +32,7 @@ AM_CPPFLAGS = \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
-  -L$(MYINSTALL)/lib64 \
+  -L$(OFFLINE_MAIN)/lib64 \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -L$(ROOTSYS)/lib
