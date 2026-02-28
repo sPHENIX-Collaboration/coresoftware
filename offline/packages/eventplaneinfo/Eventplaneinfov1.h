@@ -26,14 +26,14 @@ class Eventplaneinfov1 : public Eventplaneinfo
   void Reset() override { *this = Eventplaneinfov1(); }
   PHObject* CloneMe() const override { return new Eventplaneinfov1(*this); }
 
-  void set_qvector(std::vector<std::pair<double, double>> Qvec) override { mQvec = Qvec; }
+  void set_qvector(const std::vector<std::pair<double, double>>& Qvec) override { mQvec = Qvec; }
   void set_qvector_raw(const std::vector<std::pair<double, double>>& Qvec) override { mQvec_raw = Qvec; }
   void set_qvector_recentered(const std::vector<std::pair<double, double>>& Qvec) override { mQvec_recentered = Qvec; }
-  void set_shifted_psi(std::vector<double> Psi_Shifted) override { mPsi_Shifted = Psi_Shifted; }
+  void set_shifted_psi(const std::vector<double>& Psi_Shifted) override { mPsi_Shifted = Psi_Shifted; }
   std::pair<double, double> get_qvector(int order) const override { return safe_qvec(mQvec, order); }
   std::pair<double, double> get_qvector_raw(int order) const override { return safe_qvec(mQvec_raw, order); }
   std::pair<double, double> get_qvector_recentered(int order) const override { return safe_qvec(mQvec_recentered, order); }
-  void set_ring_qvector(std::vector<std::vector<std::pair<double, double>>> Qvec) override { ring_Qvec = Qvec; }
+  void set_ring_qvector(const std::vector<std::vector<std::pair<double, double>>>& Qvec) override { ring_Qvec = Qvec; }
   std::pair<double, double> get_ring_qvector(int ring_index, int order) const override
   {
     if (ring_index < 0 || static_cast<size_t>(ring_index) >= ring_Qvec.size())

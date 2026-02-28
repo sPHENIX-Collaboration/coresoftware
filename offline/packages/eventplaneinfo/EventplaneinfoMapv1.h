@@ -16,6 +16,12 @@ class EventplaneinfoMapv1 : public EventplaneinfoMap
   EventplaneinfoMapv1() = default;
   ~EventplaneinfoMapv1() override;
 
+  // Rule of Five: Explicitly delete to prevent shallow copy/double free
+  EventplaneinfoMapv1(const EventplaneinfoMapv1&) = delete;
+  EventplaneinfoMapv1& operator=(const EventplaneinfoMapv1&) = delete;
+  EventplaneinfoMapv1(EventplaneinfoMapv1&&) = delete;
+  EventplaneinfoMapv1& operator=(EventplaneinfoMapv1&&) = delete;
+
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override { clear(); }
 // cppcheck-suppress [virtualCallInConstructor]
