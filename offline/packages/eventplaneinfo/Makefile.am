@@ -31,7 +31,6 @@ libeventplaneinfo_la_LIBADD = \
 pkginclude_HEADERS = \
   Eventplaneinfo.h \
   Eventplaneinfov1.h \
-  Eventplaneinfov2.h \
   EventplaneinfoMap.h \
   EventplaneinfoMapv1.h \
   EventPlaneReco.h
@@ -39,7 +38,6 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   Eventplaneinfo_Dict.cc \
   Eventplaneinfov1_Dict.cc \
-  Eventplaneinfov2_Dict.cc \
   EventplaneinfoMap_Dict.cc \
   EventplaneinfoMapv1_Dict.cc
 
@@ -51,7 +49,6 @@ libeventplaneinfo_io_la_SOURCES = \
   $(ROOTDICTS) \
   Eventplaneinfo.cc \
   Eventplaneinfov1.cc \
-  Eventplaneinfov2.cc \
   EventplaneinfoMap.cc \
   EventplaneinfoMapv1.cc
 

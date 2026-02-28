@@ -1,7 +1,7 @@
 #include "EventPlaneReco.h"
 
 #include "EventplaneinfoMapv1.h"
-#include "Eventplaneinfov2.h"
+#include "Eventplaneinfov1.h"
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
@@ -561,7 +561,7 @@ int EventPlaneReco::FillNode(PHCompositeNode *topNode)
 
   // Helper lambda to fill nodes using the class's GetPsi method
   auto create_and_fill = [&](const std::vector<std::pair<double, double>>& qvecs_raw, const std::vector<std::pair<double, double>>& qvecs_recentered, const std::vector<std::pair<double, double>>& qvecs) {
-      auto node = std::make_unique<Eventplaneinfov2>();
+      auto node = std::make_unique<Eventplaneinfov1>();
       node->set_qvector_raw(qvecs_raw);
       node->set_qvector_recentered(qvecs_recentered);
       node->set_qvector(qvecs);
