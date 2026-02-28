@@ -12,16 +12,22 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
+#include <cdbobjects/CDBTF.h>  // for CDBTF1
+
+#include <ffamodules/CDBInterface.h>
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfov4.h>
 #include <cmath>
 #include <iostream>  // for basic_ostream, operator<<
 #include <map>       // for _Rb_tree_iterator, opera...
 #include <utility>   // for pair
 #include <vector>    // for vector
 //____________________________________________________________________________..
-TimingCut::TimingCut(const std::string &jetNodeName, const std::string &name, const bool doAbort)
+TimingCut::TimingCut(const std::string &jetNodeName, const std::string &name, const bool doAbort, const std::string &ohTowerName)
   : SubsysReco(name)
   , _doAbort(doAbort)
   , _jetNodeName(jetNodeName)
+  , _ohTowerName(ohTowerName)
   , _cutParams(name)
 {
   SetDefaultParams();
@@ -32,6 +38,26 @@ int TimingCut::Init(PHCompositeNode *topNode)
 {
   if(CreateNodeTree(topNode))
     {
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+  std::string fitUrl = CDBInterface::instance()->getUrl("OHCAL_JET_TIME_FRACTION");
+  if(!fitUrl.empty())
+    {
+      CDBTF* fitFile = new CDBTF(fitUrl);
+      fitFile->LoadCalibrations();
+      TF1* tmp = fitFile->getTF("JET_TIMING_CALO_FRACTION_CALIB_fullrange");
+      if(!tmp)
+	{
+	  std::cout << "ERROR: NO CALIBRATION TF1 FOUND FOR TIMING CUT OHCAL FRACTION CORRECTION! This should never happen. ABORT RUN!" << std::endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
+      _fitFunc = std::unique_ptr<TF1>((TF1*)tmp->Clone());
+      delete fitFile;
+    }
+  else
+    {
+      std::cout << "ERROR: NO CALIBRATION FILE FOUND FOR TIMING CUT OHCAL FRACTION CORRECTION! ABORT RUN!" << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
@@ -57,11 +83,12 @@ int TimingCut::CreateNodeTree(PHCompositeNode *topNode)
 int TimingCut::process_event(PHCompositeNode *topNode)
 {
   JetContainer *jets = findNode::getClass<JetContainer>(topNode, _jetNodeName);
-  if (!jets)
+  TowerInfoContainer* towersOH = findNode::getClass<TowerInfoContainer>(topNode, _ohTowerName);
+  if (!jets || !towersOH)
   {
     if (Verbosity() > 0 && !_missingInfoWarningPrinted)
     {
-      std::cout << "Missing jets; abort event. Further warnings will be suppressed." << std::endl;
+      std::cout << "Missing jets or OHCal towers; abort event. Further warnings will be suppressed." << std::endl;
     }
     _missingInfoWarningPrinted = true;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -69,6 +96,8 @@ int TimingCut::process_event(PHCompositeNode *topNode)
 
   float maxJetpT = 0;
   float subJetpT = 0;
+  float maxJetOHFrac = std::numeric_limits<float>::quiet_NaN();
+  float subJetOHFrac = std::numeric_limits<float>::quiet_NaN();
   float maxJett = std::numeric_limits<float>::quiet_NaN();
   float subJett = std::numeric_limits<float>::quiet_NaN();
   float maxJetPhi = std::numeric_limits<float>::quiet_NaN();
@@ -86,12 +115,36 @@ int TimingCut::process_event(PHCompositeNode *topNode)
       float jetpT = 0;
       float jett = std::numeric_limits<float>::quiet_NaN();
       float jetPhi = std::numeric_limits<float>::quiet_NaN();
+      float jetOHFrac = 0;
       Jet *jet = jets->get_jet(i);
       if (jet)
       {
         jetpT = jet->get_pt();
 	jett = jet->get_property(Jet::PROPERTY::prop_t);
 	jetPhi = jet->get_phi();
+	for(auto comp: jet->get_comp_vec())
+	  {
+	    if(comp.first == 7 || comp.first == 27)
+	      {
+		unsigned int channel = comp.second;
+		TowerInfo* tower = towersOH->get_tower_at_channel(channel);
+		if(!tower)
+		  {
+		    std::cout << "Component tower missing! This should not happen (something is wrong, check your inputs). Abort event!" << std::endl;
+		    return Fun4AllReturnCodes::ABORTEVENT;
+		  }
+		jetOHFrac += tower->get_energy();
+	      }
+	  }
+	float jetE = jet->get_e();
+	if(jetE == 0)
+	  {
+	    jetOHFrac = std::numeric_limits<float>::quiet_NaN();
+	  }
+	else
+	  {
+	    jetOHFrac /= jetE;
+	  }
       }
       else
       {
@@ -104,16 +157,19 @@ int TimingCut::process_event(PHCompositeNode *topNode)
           subJetpT = maxJetpT;
           subJett = maxJett;
 	  subJetPhi = maxJetPhi;
+	  subJetOHFrac = maxJetOHFrac;
         }
         maxJetpT = jetpT;
         maxJett = jett;
 	maxJetPhi = jetPhi;
+	maxJetOHFrac = jetOHFrac;
       }
       else if (jetpT > subJetpT)
       {
         subJetpT = jetpT;
         subJett = jett;
 	subJetPhi = jetPhi;
+	subJetOHFrac = jetOHFrac;
       }
     }
   }
@@ -126,8 +182,23 @@ int TimingCut::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  bool passDeltat = Pass_Delta_t(maxJett, subJett, maxJetPhi, subJetPhi);
-  bool passLeadt = Pass_Lead_t(maxJett);
+  if(!std::isfinite(maxJetOHFrac) || !std::isfinite(subJetOHFrac))
+    {
+      if(Verbosity() > 1)
+	{
+	  std::cout << "Warning: bad OH fraction for leading or subleading jet; this event will automatically fail cuts." << std::endl;
+	}
+      maxJetOHFrac = std::numeric_limits<float>::quiet_NaN();
+      subJetOHFrac = std::numeric_limits<float>::quiet_NaN();
+    }
+  
+  float corrMaxJett = Correct_Time_Ohfrac(maxJett, maxJetOHFrac); //likewise, intentional NaNs here.
+  float corrSubJett = Correct_Time_Ohfrac(subJett, subJetOHFrac);
+
+  
+  
+  bool passDeltat = Pass_Delta_t(corrMaxJett, corrSubJett, maxJetPhi, subJetPhi);
+  bool passLeadt = Pass_Lead_t(corrMaxJett);
 
   MbdOut * mbdout = static_cast<MbdOut*>(findNode::getClass<MbdOut>(topNode,"MbdOut"));
   float m_mbd_t0 = std::numeric_limits<float>::quiet_NaN();
@@ -157,10 +228,10 @@ int TimingCut::process_event(PHCompositeNode *topNode)
   bool passMbdt = false;
   if(!std::isnan(mbd_time))
     {
-      passMbdt = Pass_Mbd_dt(maxJett, mbd_time);
+      passMbdt = Pass_Mbd_dt(corrMaxJett, mbd_time);
     }
 
-  bool failAnyCut = !passDeltat || !passLeadt || !passMbdt;
+  bool failAnyCut = !passDeltat || !passLeadt || (!passMbdt && _abortFailMbd);
     
   if (failAnyCut && _doAbort)
   {
@@ -174,7 +245,11 @@ int TimingCut::process_event(PHCompositeNode *topNode)
   _cutParams.set_int_param("failAnyTimeCut", failAnyCut);
   _cutParams.set_double_param("maxJett",maxJett);
   _cutParams.set_double_param("subJett",subJett);
+  _cutParams.set_double_param("corrMaxJett",corrMaxJett);
+  _cutParams.set_double_param("corrSubJett",corrSubJett);
   _cutParams.set_double_param("mbd_time",mbd_time);
+  _cutParams.set_double_param("leadOhFrac",maxJetOHFrac);
+  _cutParams.set_double_param("subOhFrac",subJetOHFrac);
   _cutParams.set_double_param("dPhi",calc_dphi(maxJetPhi, subJetPhi));
   _cutParams.UpdateNodeTree(parNode, "TimingCutParams");
 
