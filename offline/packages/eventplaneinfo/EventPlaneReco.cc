@@ -85,6 +85,37 @@ int EventPlaneReco::Init(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+int EventPlaneReco::InitRun(PHCompositeNode* topNode)
+{
+  EpdGeom* epdgeom = findNode::getClass<EpdGeom>(topNode, "TOWERGEOM_EPD");
+  if (!epdgeom)
+  {
+    std::cout << PHWHERE << " Error: TOWERGEOM_EPD is missing. Cannot build trig cache." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_trig_cache.assign(m_harmonics.size(), std::vector<std::pair<double, double>>(SEPD_CHANNELS));
+
+  for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
+  {
+    int n = m_harmonics[h_idx];
+    for (int channel = 0; channel < SEPD_CHANNELS; ++channel)
+    {
+      unsigned int key = TowerInfoDefs::encode_epd(channel);
+      double phi = epdgeom->get_phi(key);
+
+      m_trig_cache[h_idx][channel] = {std::cos(n * phi), std::sin(n * phi)};
+    }
+  }
+
+  if (Verbosity() > 0)
+  {
+    std::cout << PHWHERE << " Trigonometry cache initialized for " << SEPD_CHANNELS << " sEPD channels." << std::endl;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
 std::array<std::array<double, 2>, 2> EventPlaneReco::calculate_flattening_matrix(double xx, double yy, double xy, int n, int cent_bin, const std::string& det_label)
 {
   std::array<std::array<double, 2>, 2> mat{};
@@ -308,13 +339,6 @@ int EventPlaneReco::process_sEPD(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  EpdGeom* epdgeom = findNode::getClass<EpdGeom>(topNode, "TOWERGEOM_EPD");
-  if (!epdgeom)
-  {
-    std::cout << PHWHERE << " TOWERGEOM_EPD is missing doing nothing" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
   // sepd
   unsigned int nchannels_epd = towerinfosEPD->size();
 
@@ -327,7 +351,6 @@ int EventPlaneReco::process_sEPD(PHCompositeNode* topNode)
 
     unsigned int key = TowerInfoDefs::encode_epd(channel);
     double charge = tower->get_energy();
-    double phi = epdgeom->get_phi(key);
 
     // skip bad channels
     // skip channels with very low charge
@@ -348,10 +371,10 @@ int EventPlaneReco::process_sEPD(PHCompositeNode* topNode)
 
     for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
     {
-      int n = m_harmonics[h_idx];
-      QVec q_n = {charge * std::cos(n * phi), charge * std::sin(n * phi)};
-      m_Q_raw[h_idx][arm].x += q_n.x;
-      m_Q_raw[h_idx][arm].y += q_n.y;
+      const auto& [cached_cos, cached_sin] = m_trig_cache[h_idx][channel];
+
+      m_Q_raw[h_idx][arm].x += charge * cached_cos;
+      m_Q_raw[h_idx][arm].y += charge * cached_sin;
     }
   }
 
