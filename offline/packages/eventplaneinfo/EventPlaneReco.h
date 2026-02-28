@@ -7,6 +7,7 @@
 #include <string>
 #include <array>
 #include <memory>
+#include <vector>
 
 class CDBTTree;
 class PHCompositeNode;
@@ -30,6 +31,11 @@ class EventPlaneReco : public SubsysReco
       using Fun4AllServer::dumpHistos() method).
    */
   int Init(PHCompositeNode *topNode) override;
+
+  /** Called during initialization.
+   * geometry is available
+   */
+  int InitRun(PHCompositeNode *topNode) override;
 
   /** Called for each event.
       This is where you do the real work.
@@ -130,5 +136,10 @@ class EventPlaneReco : public SubsysReco
  std::array<std::array<QVec, 3>, m_harmonics.size()> m_Q_raw{};
  std::array<std::array<QVec, 3>, m_harmonics.size()> m_Q_recentered{};
  std::array<std::array<QVec, 3>, m_harmonics.size()> m_Q_flat{};
+
+  // [Harmonic Index][Channel Index] -> {cos, sin}
+  std::vector<std::vector<std::pair<double, double>>> m_trig_cache;
+
+  static constexpr int SEPD_CHANNELS = 744;
 };
 #endif
