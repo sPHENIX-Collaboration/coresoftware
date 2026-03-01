@@ -74,9 +74,7 @@ int EventPlaneReco::Init(PHCompositeNode *topNode)
     print_correction_data();
   }
 
-  CreateNodes(topNode);
-
-  return Fun4AllReturnCodes::EVENT_OK;
+  return CreateNodes(topNode);
 }
 
 int EventPlaneReco::InitRun(PHCompositeNode* topNode)
