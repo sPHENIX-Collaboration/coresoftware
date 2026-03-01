@@ -26,17 +26,11 @@
 #include <phool/phool.h>
 #include <phool/PHCompositeNode.h>
 
-// -- root includes --
-#include <TFile.h>
-#include <TTree.h>
-
 // c++ includes --
-#include <filesystem>
-#include <fstream>
-#include <iomanip>
 #include <iostream>
 #include <format>
 #include <algorithm>
+#include <memory>
 
 //____________________________________________________________________________..
 EventPlaneReco::EventPlaneReco(const std::string &name):
