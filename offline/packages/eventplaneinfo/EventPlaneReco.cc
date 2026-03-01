@@ -334,12 +334,21 @@ int EventPlaneReco::process_sEPD(PHCompositeNode* topNode)
   }
 
   // sepd
-  unsigned int nchannels_epd = towerinfosEPD->size();
+  const unsigned int nchannels_epd = towerinfosEPD->size();
+  const unsigned int channel_limit = std::min(nchannels_epd, static_cast<unsigned int>(SEPD_CHANNELS));
+
+  if (nchannels_epd != channel_limit && Verbosity() > 1)
+  {
+    std::cout << PHWHERE
+              << " Warning: sEPD channel count (" << nchannels_epd
+              << ") exceeds trig cache size (" << SEPD_CHANNELS
+              << "); truncating iteration." << std::endl;
+  }
 
   double sepd_total_charge_south = 0;
   double sepd_total_charge_north = 0;
 
-  for (unsigned int channel = 0; channel < nchannels_epd; ++channel)
+  for (unsigned int channel = 0; channel < channel_limit; ++channel)
   {
     TowerInfo* tower = towerinfosEPD->get_tower_at_channel(channel);
 
