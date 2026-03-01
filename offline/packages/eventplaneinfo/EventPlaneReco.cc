@@ -1,7 +1,5 @@
 #include "EventPlaneReco.h"
 
-#include "Eventplaneinfo.h"
-#include "EventplaneinfoMap.h"
 #include "EventplaneinfoMapv1.h"
 #include "Eventplaneinfov1.h"
 
@@ -9,795 +7,648 @@
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
 
+// -- Centrality
+#include <centrality/CentralityInfo.h>
+
+// -- sEPD
 #include <epd/EpdGeom.h>
 
-#include <mbd/MbdGeom.h>
-#include <mbd/MbdOut.h>
-#include <mbd/MbdPmtContainer.h>
-#include <mbd/MbdPmtHit.h>
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
-#include <globalvertex/GlobalVertex.h>
-#include <globalvertex/GlobalVertexMap.h>
-#include <globalvertex/MbdVertex.h>
-#include <globalvertex/MbdVertexMap.h>
+// -- event
+#include <ffaobjects/EventHeader.h>
 
-#include <cdbobjects/CDBHistos.h>
-#include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h> // for SubsysReco
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNode.h> // for PHNode
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h> // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h> // for PHWHERE
-#include <phool/recoConsts.h>
+#include <phool/phool.h>
+#include <phool/PHCompositeNode.h>
 
-#include <TProfile2D.h>
-
-#include <array> // for array
-#include <cfloat>
-#include <cmath>
-#include <cstdlib> // for exit
-#include <format>
+// c++ includes --
 #include <iostream>
-#include <set>     // for _Rb_tree_const_iterator
-#include <utility> // for pair
-#include <vector>  // for vector
+#include <format>
+#include <algorithm>
+#include <memory>
 
-EventPlaneReco::EventPlaneReco(const std::string &name) : SubsysReco(name) {
-
-  south_q.resize(m_MaxOrder);
-  north_q.resize(m_MaxOrder);
-  northsouth_q.resize(m_MaxOrder);
-
-  south_q_subtract.resize(m_MaxOrder);
-  north_q_subtract.resize(m_MaxOrder);
-  northsouth_q_subtract.resize(m_MaxOrder);
-
-  shift_north.resize(m_MaxOrder);
-  shift_south.resize(m_MaxOrder);
-  shift_northsouth.resize(m_MaxOrder);
-  tmp_south_psi.resize(m_MaxOrder);
-  tmp_north_psi.resize(m_MaxOrder);
-  tmp_northsouth_psi.resize(m_MaxOrder);
-
-  for (auto &vec : south_q) {
-    vec.resize(2);
-  }
-
-  for (auto &vec : north_q) {
-    vec.resize(2);
-  }
-
-  for (auto &vec : northsouth_q) {
-    vec.resize(2);
-  }
-
-  for (auto &vec : south_q_subtract) {
-    vec.resize(2);
-  }
-
-  for (auto &vec : north_q_subtract) {
-    vec.resize(2);
-  }
-
-  for (auto &vec : northsouth_q_subtract) {
-    vec.resize(2);
-  }
-
-  ring_q_north.resize(nRings);
-  ring_q_south.resize(nRings);
-
-  for (auto &rq : ring_q_north) {
-    rq.resize(m_MaxOrder, std::vector<double>(2, 0.0));
-  }
-  for (auto &rq : ring_q_south) {
-    rq.resize(m_MaxOrder, std::vector<double>(2, 0.0));
-  }
-
-  all_ring_Qvecs_north.assign(
-      nRings, std::vector<std::pair<double, double>>(m_MaxOrder, {0.0, 0.0}));
-
-  all_ring_Qvecs_south.assign(
-      nRings, std::vector<std::pair<double, double>>(m_MaxOrder, {0.0, 0.0}));
+//____________________________________________________________________________..
+EventPlaneReco::EventPlaneReco(const std::string &name):
+ SubsysReco(name)
+{
 }
 
-int EventPlaneReco::InitRun(PHCompositeNode *topNode) {
+//____________________________________________________________________________..
+int EventPlaneReco::Init(PHCompositeNode *topNode)
+{
+  std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
 
-  FileName = "EVENTPLANE_CORRECTION";
-  if (_isSim) {
-    FileName = "EVENTPLANE_CORRECTION_SIM";
+  if (!m_directURL_EventPlaneCalib.empty())
+  {
+    m_cdbttree = new CDBTTree(m_directURL_EventPlaneCalib);
+    std::cout << PHWHERE << " Custom Event Plane Calib Found: " << m_directURL_EventPlaneCalib << std::endl;
+  }
+  else if (!calibdir.empty())
+  {
+    m_cdbttree = new CDBTTree(calibdir);
+    std::cout << PHWHERE << " Event Plane Calib Found: " << calibdir << std::endl;
+  }
+  else if (m_doAbortNoEventPlaneCalib)
+  {
+    std::cout << PHWHERE << " Error: No Event Plane Calib Found and m_doAbortNoEventPlaneCalib is true. Aborting." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  else
+  {
+    std::cout << PHWHERE << " Error: No Event Plane Calib Found. Skipping Event Plane Calibrations." << std::endl;
+    m_doNotCalib = true;
   }
 
-  std::string calibdir = CDBInterface::instance()->getUrl(FileName);
-
-  if (calibdir.empty()) {
-    std::cout << PHWHERE << "No Eventplane calibration file for domain "
-              << FileName << " found" << std::endl;
-    std::cout << PHWHERE
-              << "Will only produce raw Q vectors and event plane angles "
-              << std::endl;
+  if (!m_doNotCalib)
+  {
+    LoadCalib();
   }
 
-  CDBHistos *cdbhistosIn = new CDBHistos(calibdir);
-  cdbhistosIn->LoadCalibrations();
-
-  // Get phiweights
-  h_phi_weight_south_input =
-      dynamic_cast<TH1F *>(cdbhistosIn->getHisto("h_phi_weight_south", false));
-  h_phi_weight_north_input =
-      dynamic_cast<TH1F *>(cdbhistosIn->getHisto("h_phi_weight_north", false));
-
-  // Get recentering histograms
-  for (unsigned int order = 0; order < m_MaxOrder; order++) {
-    tprof_mean_cos_south_epd_input[order] =
-        dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(
-            std::format("tprof_mean_cos_south_epd_order_{}", order), false));
-    tprof_mean_sin_south_epd_input[order] =
-        dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(
-            std::format("tprof_mean_sin_south_epd_order_{}", order), false));
-    tprof_mean_cos_north_epd_input[order] =
-        dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(
-            std::format("tprof_mean_cos_north_epd_order_{}", order), false));
-    tprof_mean_sin_north_epd_input[order] =
-        dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(
-            std::format("tprof_mean_sin_north_epd_order_{}", order), false));
-    tprof_mean_cos_northsouth_epd_input[order] =
-        dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(
-            std::format("tprof_mean_cos_northsouth_epd_order_{}", order),
-            false));
-    tprof_mean_sin_northsouth_epd_input[order] =
-        dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(
-            std::format("tprof_mean_sin_northsouth_epd_order_{}", order),
-            false));
+  if (Verbosity() > 0)
+  {
+    print_correction_data();
   }
 
-  // Get shifting histograms
-  for (unsigned int order = 0; order < m_MaxOrder; order++) {
-    for (int p = 0; p < _imax; p++) {
-      tprof_cos_north_epd_shift_input[order][p] =
-          dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(
-              std::format("tprof_cos_north_epd_shift_order_{}_{}", order, p),
-              false));
-      tprof_sin_north_epd_shift_input[order][p] =
-          dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(
-              std::format("tprof_sin_north_epd_shift_order_{}_{}", order, p),
-              false));
-      tprof_cos_south_epd_shift_input[order][p] =
-          dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(
-              std::format("tprof_cos_south_epd_shift_order_{}_{}", order, p),
-              false));
-      tprof_sin_south_epd_shift_input[order][p] =
-          dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(
-              std::format("tprof_sin_south_epd_shift_order_{}_{}", order, p),
-              false));
-      tprof_cos_northsouth_epd_shift_input[order][p] =
-          dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(
-              std::format("tprof_cos_northsouth_epd_shift_order_{}_{}", order,
-                          p),
-              false));
-      tprof_sin_northsouth_epd_shift_input[order][p] =
-          dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(
-              std::format("tprof_sin_northsouth_epd_shift_order_{}_{}", order,
-                          p),
-              false));
-    }
-  }
+  CreateNodes(topNode);
 
-  if (Verbosity() > 1) {
-    cdbhistosIn->Print();
-  }
-
-  return CreateNodes(topNode);
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int EventPlaneReco::process_event(PHCompositeNode *topNode) {
-  if (Verbosity() > 1) {
-    std::cout << "EventPlaneReco::process_event -- entered" << std::endl;
+int EventPlaneReco::InitRun(PHCompositeNode* topNode)
+{
+  EpdGeom* epdgeom = findNode::getClass<EpdGeom>(topNode, "TOWERGEOM_EPD");
+  if (!epdgeom)
+  {
+    std::cout << PHWHERE << " Error: TOWERGEOM_EPD is missing. Cannot build trig cache." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  //---------------------------------
-  // Get Objects off of the Node Tree
-  //---------------------------------
+  m_trig_cache.assign(m_harmonics.size(), std::vector<std::pair<double, double>>(SEPD_CHANNELS));
 
-  if (_isSim) {
-    // Use GlobalVertexMap for simulation
-    GlobalVertexMap *vertexmap =
-        findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
-    if (!vertexmap) {
-      std::cout << PHWHERE << "::ERROR - cannot find GlobalVertexMap"
-                << std::endl;
-      exit(-1);
-    }
+  for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
+  {
+    int n = m_harmonics[h_idx];
+    for (int channel = 0; channel < SEPD_CHANNELS; ++channel)
+    {
+      unsigned int key = TowerInfoDefs::encode_epd(channel);
+      double phi = epdgeom->get_phi(key);
 
-    if (!vertexmap->empty()) {
-      GlobalVertex *vtx = vertexmap->begin()->second;
-      if (vtx) {
-        _mbdvtx = vtx->get_z();
-      }
-    }
-  } else {
-    // Use MbdVertexMap for data
-    MbdVertexMap *mbdvtxmap =
-        findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
-    if (!mbdvtxmap) {
-      std::cout << PHWHERE << "::ERROR - cannot find MbdVertexMap" << std::endl;
-      exit(-1);
-    }
-
-    MbdVertex *mvertex = nullptr;
-    if (mbdvtxmap) {
-      for (MbdVertexMap::ConstIter mbditer = mbdvtxmap->begin();
-           mbditer != mbdvtxmap->end(); ++mbditer) {
-        mvertex = mbditer->second;
-      }
-      if (mvertex) {
-        _mbdvtx = mvertex->get_z();
-      }
+      m_trig_cache[h_idx][channel] = {std::cos(n * phi), std::sin(n * phi)};
     }
   }
 
-  EventplaneinfoMap *epmap =
-      findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
-  if (!epmap) {
-    std::cout << PHWHERE << "::ERROR - cannot find EventplaneinfoMap"
-              << std::endl;
-    exit(-1);
-  }
-
-  if (_sepdEpReco) {
-
-    TowerInfoContainer *epd_towerinfo =
-        findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SEPD");
-    if (!epd_towerinfo) {
-      epd_towerinfo = findNode::getClass<TowerInfoContainer>(
-          topNode, "TOWERINFO_CALIB_EPD");
-      if (!epd_towerinfo) {
-        std::cout << PHWHERE
-                  << "::ERROR - cannot find sEPD Calibrated TowerInfoContainer"
-                  << std::endl;
-        exit(-1);
-      }
-    }
-
-    EpdGeom *_epdgeom = findNode::getClass<EpdGeom>(topNode, "TOWERGEOM_EPD");
-    if (!_epdgeom) {
-      std::cout << PHWHERE << "::ERROR - cannot find TOWERGEOM_EPD"
-                << std::endl;
-      exit(-1);
-    }
-
-    ResetMe();
-
-    if ((std::fabs(_mbdvtx) < _mbd_vertex_cut)) {
-
-      unsigned int ntowers = epd_towerinfo->size();
-      for (unsigned int ch = 0; ch < ntowers; ch++) {
-        TowerInfo *_tower = epd_towerinfo->get_tower_at_channel(ch);
-        float epd_e = _tower->get_energy();
-        bool isZS = _tower->get_isZS();
-        if (!isZS) // exclude ZS
-        {
-          unsigned int key = TowerInfoDefs::encode_epd(ch);
-          int arm = TowerInfoDefs::get_epd_arm(key);
-          if (arm == 0) {
-            _ssum += epd_e;
-          } else if (arm == 1) {
-            _nsum += epd_e;
-          }
-        }
-      }
-
-      if (_ssum > _epd_charge_min && _nsum > _epd_charge_min &&
-          _ssum < _epd_charge_max && _nsum < _epd_charge_max) {
-        _do_ep = true;
-      }
-
-      if (_do_ep) {
-
-        // Apply phi weights in builiding ring Q-vectors
-        for (unsigned int ch = 0; ch < ntowers; ch++) {
-          TowerInfo *_tower = epd_towerinfo->get_tower_at_channel(ch);
-          float epd_e = _tower->get_energy();
-          bool isZS = _tower->get_isZS();
-          if (!isZS) // exclude ZS
-          {
-            if (epd_e < 0.2) // expecting Nmips
-            {
-              continue;
-            }
-            unsigned int key = TowerInfoDefs::encode_epd(ch);
-            float tile_phi = _epdgeom->get_phi(key);
-            int arm = TowerInfoDefs::get_epd_arm(key);
-            int rbin = TowerInfoDefs::get_epd_rbin(key);
-            int phibin = TowerInfoDefs::get_epd_phibin(key);
-
-            float truncated_e =
-                (epd_e < _epd_e) ? epd_e : _epd_e; // set cutoff at _epd_e
-
-            float TileWeight = truncated_e; // default
-
-            if (h_phi_weight_south_input && h_phi_weight_north_input) {
-              if (arm == 0) {
-                TileWeight =
-                    truncated_e * h_phi_weight_south_input->GetBinContent(
-                                      phibin + 1); // scale by 1/<N(φ_{i})>
-              } else if (arm == 1) {
-                TileWeight =
-                    truncated_e * h_phi_weight_north_input->GetBinContent(
-                                      phibin + 1); // scale by 1/<N(φ_{i})>
-              }
-            }
-
-            for (unsigned int order = 0; order < m_MaxOrder; ++order) {
-              double Cosine = cos(tile_phi * (double)(order + 1));
-              double Sine = sin(tile_phi * (double)(order + 1));
-
-              // Arm-specific Q-vectors
-              if (arm == 0) {
-                south_q[order][0] += truncated_e * Cosine;
-                south_q[order][1] += truncated_e * Sine;
-                ring_q_south[rbin][order][0] += TileWeight * Cosine;
-                ring_q_south[rbin][order][1] += TileWeight * Sine;
-
-              } else if (arm == 1) {
-                north_q[order][0] += truncated_e * Cosine;
-                north_q[order][1] += truncated_e * Sine;
-                ring_q_north[rbin][order][0] += TileWeight * Cosine;
-                ring_q_north[rbin][order][1] += TileWeight * Sine;
-              }
-
-              // Combined Q-vectors
-              northsouth_q[order][0] += truncated_e * Cosine;
-              northsouth_q[order][1] += truncated_e * Sine;
-            }
-          }
-        }
-
-        _totalcharge = _nsum + _ssum;
-
-        // Get recentering histograms and do recentering
-        // Recentering: subtract Qn,x and Qn,y values averaged over all events
-        for (unsigned int order = 0; order < m_MaxOrder; order++) {
-          if (tprof_mean_cos_south_epd_input[order]) // check if recentering
-                                                     // histograms exist
-          {
-            // south
-            TAxis *south_xaxis =
-                tprof_mean_cos_south_epd_input[order]->GetXaxis();
-            TAxis *south_yaxis =
-                tprof_mean_cos_south_epd_input[order]->GetYaxis();
-            int xbin_south = south_xaxis->FindBin(_ssum);
-            int ybin_south = south_yaxis->FindBin(_mbdvtx);
-
-            double event_ave_cos_south =
-                tprof_mean_cos_south_epd_input[order]->GetBinContent(
-                    xbin_south, ybin_south);
-            double event_ave_sin_south =
-                tprof_mean_sin_south_epd_input[order]->GetBinContent(
-                    xbin_south, ybin_south);
-            south_q_subtract[order][0] = _ssum * event_ave_cos_south;
-            south_q_subtract[order][1] = _ssum * event_ave_sin_south;
-            south_q[order][0] -= south_q_subtract[order][0];
-            south_q[order][1] -= south_q_subtract[order][1];
-
-            // north
-            TAxis *north_xaxis =
-                tprof_mean_cos_north_epd_input[order]->GetXaxis();
-            TAxis *north_yaxis =
-                tprof_mean_cos_north_epd_input[order]->GetYaxis();
-            int xbin_north = north_xaxis->FindBin(_nsum);
-            int ybin_north = north_yaxis->FindBin(_mbdvtx);
-
-            double event_ave_cos_north =
-                tprof_mean_cos_north_epd_input[order]->GetBinContent(
-                    xbin_north, ybin_north);
-            double event_ave_sin_north =
-                tprof_mean_sin_north_epd_input[order]->GetBinContent(
-                    xbin_north, ybin_north);
-            north_q_subtract[order][0] = _nsum * event_ave_cos_north;
-            north_q_subtract[order][1] = _nsum * event_ave_sin_north;
-            north_q[order][0] -= north_q_subtract[order][0];
-            north_q[order][1] -= north_q_subtract[order][1];
-
-            // northsouth
-            TAxis *northsouth_xaxis =
-                tprof_mean_cos_northsouth_epd_input[order]->GetXaxis();
-            TAxis *northsouth_yaxis =
-                tprof_mean_cos_northsouth_epd_input[order]->GetYaxis();
-            int xbin_northsouth = northsouth_xaxis->FindBin(_totalcharge);
-            int ybin_northsouth = northsouth_yaxis->FindBin(_mbdvtx);
-
-            double event_ave_cos_northsouth =
-                tprof_mean_cos_northsouth_epd_input[order]->GetBinContent(
-                    xbin_northsouth, ybin_northsouth);
-            double event_ave_sin_northsouth =
-                tprof_mean_sin_northsouth_epd_input[order]->GetBinContent(
-                    xbin_northsouth, ybin_northsouth);
-            northsouth_q_subtract[order][0] =
-                _totalcharge * event_ave_cos_northsouth;
-            northsouth_q_subtract[order][1] =
-                _totalcharge * event_ave_sin_northsouth;
-            northsouth_q[order][0] -= northsouth_q_subtract[order][0];
-            northsouth_q[order][1] -= northsouth_q_subtract[order][1];
-          }
-        }
-
-        // Get recentered psi_n
-        Eventplaneinfo *epinfo = new Eventplaneinfov1();
-        for (unsigned int order = 0; order < m_MaxOrder; order++) {
-          double n = order + 1.0;
-          if (tprof_mean_cos_south_epd_input[order]) // if present, Qs are
-                                                     // recentered
-          {
-            tmp_south_psi[order] =
-                epinfo->GetPsi(south_q[order][0], south_q[order][1], n);
-            tmp_north_psi[order] =
-                epinfo->GetPsi(north_q[order][0], north_q[order][1], n);
-            tmp_northsouth_psi[order] = epinfo->GetPsi(
-                northsouth_q[order][0], northsouth_q[order][1], n);
-          } else {
-            tmp_south_psi[order] = NAN;
-            tmp_north_psi[order] = NAN;
-            tmp_northsouth_psi[order] = NAN;
-          }
-        }
-
-        // Get shifting histograms and calculate shift
-        for (unsigned int order = 0; order < m_MaxOrder; order++) {
-          for (int p = 0; p < _imax; p++) {
-            if (tprof_cos_south_epd_shift_input[order][p]) // check if shifting
-                                                           // histograms exist
-            {
-              double terms = p + 1.0;
-              double n = order + 1.0;
-              double tmp = n * terms;
-              double prefactor = 2.0 / terms;
-
-              // south
-              TAxis *south_xaxis =
-                  tprof_cos_south_epd_shift_input[order][p]->GetXaxis();
-              TAxis *south_yaxis =
-                  tprof_cos_south_epd_shift_input[order][p]->GetYaxis();
-              int xbin_south = south_xaxis->FindBin(_ssum);
-              int ybin_south = south_yaxis->FindBin(_mbdvtx);
-
-              // north
-              TAxis *north_xaxis =
-                  tprof_cos_north_epd_shift_input[order][p]->GetXaxis();
-              TAxis *north_yaxis =
-                  tprof_cos_north_epd_shift_input[order][p]->GetYaxis();
-              int xbin_north = north_xaxis->FindBin(_nsum);
-              int ybin_north = north_yaxis->FindBin(_mbdvtx);
-
-              //                   // northsouth
-              TAxis *northsouth_xaxis =
-                  tprof_cos_northsouth_epd_shift_input[order][p]->GetXaxis();
-              TAxis *northsouth_yaxis =
-                  tprof_cos_northsouth_epd_shift_input[order][p]->GetYaxis();
-              int xbin_northsouth = northsouth_xaxis->FindBin(_totalcharge);
-              int ybin_northsouth = northsouth_yaxis->FindBin(_mbdvtx);
-
-              //                    Equation (6) of arxiv:nucl-ex/9805001
-              //                    i = terms; n = order; i*n = tmp
-              //                    (2 / i ) * <cos(i*n*psi_n)> * sin(i*n*psi_n)
-              //                    - <sin(i*n*psi_n)> * cos(i*n*psi_n)
-
-              // north
-              shift_north[order] +=
-                  prefactor *
-                  (tprof_cos_north_epd_shift_input[order][p]->GetBinContent(
-                       xbin_north, ybin_north) *
-                       sin(tmp * tmp_north_psi[order]) -
-                   tprof_sin_north_epd_shift_input[order][p]->GetBinContent(
-                       xbin_north, ybin_north) *
-                       cos(tmp * tmp_north_psi[order]));
-
-              // south
-              shift_south[order] +=
-                  prefactor *
-                  (tprof_cos_south_epd_shift_input[order][p]->GetBinContent(
-                       xbin_south, ybin_south) *
-                       sin(tmp * tmp_south_psi[order]) -
-                   tprof_sin_south_epd_shift_input[order][p]->GetBinContent(
-                       xbin_south, ybin_south) *
-                       cos(tmp * tmp_south_psi[order]));
-
-              //                     // northsouth
-              shift_northsouth[order] +=
-                  prefactor *
-                  (tprof_cos_northsouth_epd_shift_input[order][p]
-                           ->GetBinContent(xbin_northsouth, ybin_northsouth) *
-                       sin(tmp * tmp_northsouth_psi[order]) -
-                   tprof_sin_northsouth_epd_shift_input[order][p]
-                           ->GetBinContent(xbin_northsouth, ybin_northsouth) *
-                       cos(tmp * tmp_northsouth_psi[order]));
-            }
-          }
-        }
-
-        // n * deltapsi_n = (2 / i ) * <cos(i*n*psi_n)> * sin(i*n*psi_n) -
-        // <sin(i*n*psi_n)> * cos(i*n*psi_n) Divide out n
-        for (unsigned int order = 0; order < m_MaxOrder; order++) {
-          double n = order + 1.0;
-          shift_north[order] /= n;
-          shift_south[order] /= n;
-          shift_northsouth[order] /= n;
-        }
-
-        // Now add shift to psi_n to flatten it
-        for (unsigned int order = 0; order < m_MaxOrder; order++) {
-          if (tprof_cos_north_epd_shift_input[0][0]) {
-            tmp_south_psi[order] += shift_south[order];
-            tmp_north_psi[order] += shift_north[order];
-            tmp_northsouth_psi[order] += shift_northsouth[order];
-          }
-        }
-
-        // Now enforce the range
-        for (unsigned int order = 0; order < m_MaxOrder; order++) {
-          if (tprof_cos_north_epd_shift_input[0][0]) {
-            double range = M_PI / (double)(order + 1);
-            if (tmp_south_psi[order] < -1.0 * range) {
-              tmp_south_psi[order] += 2.0 * range;
-            }
-            if (tmp_south_psi[order] > range) {
-              tmp_south_psi[order] -= 2.0 * range;
-            }
-            if (tmp_north_psi[order] < -1.0 * range) {
-              tmp_north_psi[order] += 2.0 * range;
-            }
-            if (tmp_north_psi[order] > range) {
-              tmp_north_psi[order] -= 2.0 * range;
-            }
-            if (tmp_northsouth_psi[order] < -1.0 * range) {
-              tmp_northsouth_psi[order] += 2.0 * range;
-            }
-            if (tmp_northsouth_psi[order] > range) {
-              tmp_northsouth_psi[order] -= 2.0 * range;
-            }
-          }
-        }
-
-        for (unsigned int order = 0; order < m_MaxOrder; order++) {
-          south_Qvec.emplace_back(south_q[order][0], south_q[order][1]);
-          north_Qvec.emplace_back(north_q[order][0], north_q[order][1]);
-          northsouth_Qvec.emplace_back(northsouth_q[order][0],
-                                       northsouth_q[order][1]);
-        }
-
-        for (int rbin = 0; rbin < nRings; ++rbin) {
-          for (unsigned int order = 0; order < m_MaxOrder; ++order) {
-            all_ring_Qvecs_north[rbin][order] = std::make_pair(
-                ring_q_north[rbin][order][0], ring_q_north[rbin][order][1]);
-            all_ring_Qvecs_south[rbin][order] = std::make_pair(
-                ring_q_south[rbin][order][0], ring_q_south[rbin][order][1]);
-          }
-        }
-
-        if (epd_towerinfo) {
-          Eventplaneinfo *sepds = new Eventplaneinfov1();
-          sepds->set_qvector(south_Qvec);
-          sepds->set_shifted_psi(tmp_south_psi);
-          epmap->insert(sepds, EventplaneinfoMap::sEPDS);
-
-          Eventplaneinfo *sepdn = new Eventplaneinfov1();
-          sepdn->set_qvector(north_Qvec);
-          sepdn->set_shifted_psi(tmp_north_psi);
-          epmap->insert(sepdn, EventplaneinfoMap::sEPDN);
-
-          Eventplaneinfo *sepdns = new Eventplaneinfov1();
-          sepdns->set_qvector(northsouth_Qvec);
-          sepdns->set_shifted_psi(tmp_northsouth_psi);
-          epmap->insert(sepdns, EventplaneinfoMap::sEPDNS);
-
-          Eventplaneinfo *epring_south = new Eventplaneinfov1();
-          epring_south->set_ring_qvector(all_ring_Qvecs_south);
-          epmap->insert(epring_south, EventplaneinfoMap::sEPDRING_SOUTH);
-
-          Eventplaneinfo *epring_north = new Eventplaneinfov1();
-          epring_north->set_ring_qvector(all_ring_Qvecs_north);
-          epmap->insert(epring_north, EventplaneinfoMap::sEPDRING_NORTH);
-
-          if (Verbosity() > 1) {
-            sepds->identify();
-            sepdn->identify();
-            sepdns->identify();
-            epring_south->identify();
-            epring_north->identify();
-          }
-        }
-      }
-    }
-  }
-
-  if (_mbdEpReco) {
-    ResetMe();
-
-    MbdPmtContainer *mbdpmts =
-        findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
-    if (!mbdpmts) {
-      std::cout << PHWHERE << "::ERROR - cannot find MbdPmtContainer"
-                << std::endl;
-      exit(-1);
-    }
-
-    MbdGeom *mbdgeom = findNode::getClass<MbdGeom>(topNode, "MbdGeom");
-    if (!mbdgeom) {
-      std::cout << PHWHERE << "::ERROR - cannot find MbdGeom" << std::endl;
-      exit(-1);
-    }
-
-    if (mbdpmts) {
-      if (Verbosity()) {
-        std::cout << "EventPlaneReco::process_event -  mbdpmts" << std::endl;
-      }
-
-      for (int ipmt = 0; ipmt < mbdpmts->get_npmt(); ipmt++) {
-        float mbd_q = mbdpmts->get_pmt(ipmt)->get_q();
-        _mbdQ += mbd_q;
-      }
-
-      for (int ipmt = 0; ipmt < mbdpmts->get_npmt(); ipmt++) {
-        float mbd_q = mbdpmts->get_pmt(ipmt)->get_q();
-        float phi = mbdgeom->get_phi(ipmt);
-        int arm = mbdgeom->get_arm(ipmt);
-
-        if (_mbdQ < _mbd_e) {
-          continue;
-        }
-
-        if (arm == 0) {
-          for (unsigned int order = 0; order < m_MaxOrder; order++) {
-            double Cosine = cos(phi * (double)(order + 1));
-            double Sine = sin(phi * (double)(order + 1));
-            south_q[order][0] += mbd_q * Cosine; // south Qn,x
-            south_q[order][1] += mbd_q * Sine;   // south Qn,y
-          }
-        } else if (arm == 1) {
-          for (unsigned int order = 0; order < m_MaxOrder; order++) {
-            double Cosine = cos(phi * (double)(order + 1));
-            double Sine = sin(phi * (double)(order + 1));
-            north_q[order][0] += mbd_q * Cosine; // north Qn,x
-            north_q[order][1] += mbd_q * Sine;   // north Qn,y
-          }
-        }
-      }
-    }
-
-    for (unsigned int order = 0; order < m_MaxOrder; order++) {
-      south_Qvec.emplace_back(south_q[order][0], south_q[order][1]);
-      north_Qvec.emplace_back(north_q[order][0], north_q[order][1]);
-    }
-
-    if (mbdpmts) {
-      Eventplaneinfo *mbds = new Eventplaneinfov1();
-      mbds->set_qvector(south_Qvec);
-      epmap->insert(mbds, EventplaneinfoMap::MBDS);
-
-      Eventplaneinfo *mbdn = new Eventplaneinfov1();
-      mbdn->set_qvector(north_Qvec);
-      epmap->insert(mbdn, EventplaneinfoMap::MBDN);
-
-      if (Verbosity() > 1) {
-        mbds->identify();
-        mbdn->identify();
-      }
-    }
-
-    ResetMe();
-  }
-
-  if (Verbosity()) {
-    epmap->identify();
+  if (Verbosity() > 0)
+  {
+    std::cout << PHWHERE << " Trigonometry cache initialized for " << SEPD_CHANNELS << " sEPD channels." << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+std::array<std::array<double, 2>, 2> EventPlaneReco::calculate_flattening_matrix(double xx, double yy, double xy, int n, int cent_bin, const std::string& det_label)
+{
+  std::array<std::array<double, 2>, 2> mat{};
+
+  double D_arg = (xx * yy) - (xy * xy);
+  if (D_arg <= 0)
+  {
+    std::cout << PHWHERE << "Invalid D-term " << D_arg << " for n=" << n << ", cent bin=" << cent_bin << ", det=" << det_label << std::endl;
+    // Return Identity Matrix to preserve Recentered vector
+    mat[0][0] = 1.0;
+    mat[1][1] = 1.0;
+    return mat;
+  }
+  double D = std::sqrt(D_arg);
+
+  double N_term = D * (xx + yy + (2 * D));
+  if (N_term <= 0)
+  {
+    std::cout << PHWHERE << "Invalid N-term " << N_term << " for n=" << n << ", cent bin=" << cent_bin << ", det=" << det_label << std::endl;
+    // Return Identity Matrix to preserve Recentered vector
+    mat[0][0] = 1.0;
+    mat[1][1] = 1.0;
+    return mat;
+  }
+  double inv_sqrt_N = 1.0 / std::sqrt(N_term);
+
+  mat[0][0] = inv_sqrt_N * (yy + D);
+  mat[0][1] = -inv_sqrt_N * xy;
+  mat[1][0] = mat[0][1];
+  mat[1][1] = inv_sqrt_N * (xx + D);
+  return mat;
+}
+
+//____________________________________________________________________________..
+void EventPlaneReco::LoadCalib()
+{
+  size_t south_idx = static_cast<size_t>(Subdetector::S);
+  size_t north_idx = static_cast<size_t>(Subdetector::N);
+  size_t ns_idx = static_cast<size_t>(Subdetector::NS);
+
+  for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
+  {
+    int n = m_harmonics[h_idx];
+
+    std::string S_x_avg_name = std::format("Q_S_x_{}_avg", n);
+    std::string S_y_avg_name = std::format("Q_S_y_{}_avg", n);
+    std::string N_x_avg_name = std::format("Q_N_x_{}_avg", n);
+    std::string N_y_avg_name = std::format("Q_N_y_{}_avg", n);
+
+    std::string S_xx_avg_name = std::format("Q_S_xx_{}_avg", n);
+    std::string S_yy_avg_name = std::format("Q_S_yy_{}_avg", n);
+    std::string S_xy_avg_name = std::format("Q_S_xy_{}_avg", n);
+    std::string N_xx_avg_name = std::format("Q_N_xx_{}_avg", n);
+    std::string N_yy_avg_name = std::format("Q_N_yy_{}_avg", n);
+    std::string N_xy_avg_name = std::format("Q_N_xy_{}_avg", n);
+
+    std::string NS_xx_avg_name = std::format("Q_NS_xx_{}_avg", n);
+    std::string NS_yy_avg_name = std::format("Q_NS_yy_{}_avg", n);
+    std::string NS_xy_avg_name = std::format("Q_NS_xy_{}_avg", n);
+
+    for (size_t cent_bin = 0; cent_bin < m_cent_bins; ++cent_bin)
+    {
+      int key = cent_bin;
+
+      // South
+      auto& dataS = m_correction_data[h_idx][cent_bin][south_idx];
+      dataS.avg_Q.x = m_cdbttree->GetDoubleValue(key, S_x_avg_name);
+      dataS.avg_Q.y = m_cdbttree->GetDoubleValue(key, S_y_avg_name);
+
+      dataS.avg_Q_xx = m_cdbttree->GetDoubleValue(key, S_xx_avg_name);
+      dataS.avg_Q_yy = m_cdbttree->GetDoubleValue(key, S_yy_avg_name);
+      dataS.avg_Q_xy = m_cdbttree->GetDoubleValue(key, S_xy_avg_name);
+
+      dataS.X_matrix = calculate_flattening_matrix(dataS.avg_Q_xx, dataS.avg_Q_yy, dataS.avg_Q_xy, n, cent_bin, "South");
+
+      // North
+      auto& dataN = m_correction_data[h_idx][cent_bin][north_idx];
+      dataN.avg_Q.x = m_cdbttree->GetDoubleValue(key, N_x_avg_name);
+      dataN.avg_Q.y = m_cdbttree->GetDoubleValue(key, N_y_avg_name);
+
+      dataN.avg_Q_xx = m_cdbttree->GetDoubleValue(key, N_xx_avg_name);
+      dataN.avg_Q_yy = m_cdbttree->GetDoubleValue(key, N_yy_avg_name);
+      dataN.avg_Q_xy = m_cdbttree->GetDoubleValue(key, N_xy_avg_name);
+
+      dataN.X_matrix = calculate_flattening_matrix(dataN.avg_Q_xx, dataN.avg_Q_yy, dataN.avg_Q_xy, n, cent_bin, "North");
+
+      // North South
+      // Note: We do NOT load avg_Q (x,y) for NS because NS is recentered by summing the recentered S and N vectors.
+      auto& dataNS = m_correction_data[h_idx][cent_bin][ns_idx];
+
+      dataNS.avg_Q_xx = m_cdbttree->GetDoubleValue(key, NS_xx_avg_name);
+      dataNS.avg_Q_yy = m_cdbttree->GetDoubleValue(key, NS_yy_avg_name);
+      dataNS.avg_Q_xy = m_cdbttree->GetDoubleValue(key, NS_xy_avg_name);
+
+      dataNS.X_matrix = calculate_flattening_matrix(dataNS.avg_Q_xx, dataNS.avg_Q_yy, dataNS.avg_Q_xy, n, cent_bin, "NorthSouth");
+    }
+  }
+  delete m_cdbttree;
+  m_cdbttree = nullptr;
+}
+
+//____________________________________________________________________________..
+void EventPlaneReco::print_correction_data()
+{
+  std::cout << std::format("\n{:=>60}\n", "");
+  std::cout << std::format("{:^60}\n", "EVENT PLANE CORRECTION DATA SUMMARY");
+  std::cout << std::format("{:=>60}\n", "");
+
+  // Iterate through harmonics {2, 3, 4}
+  for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
+  {
+    int n = m_harmonics[h_idx];
+    std::cout << std::format("\n>>> HARMONIC n = {} <<<\n", n);
+
+    // Iterate through Centrality Bins (0-79)
+    for (size_t cent = 0; cent < m_cent_bins; ++cent)
+    {
+      std::cout << std::format("\n  Centrality Bin: {}\n", cent);
+      std::cout << std::format("  {:->30}\n", "");
+
+      // Header with fixed column widths
+      std::cout << std::format("    {:<12} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
+                               "Detector", "Avg Qx", "Avg Qy", "Avg Qxx", "Avg Qyy", "Avg Qxy");
+
+      // Iterate through Subdetectors {S, N}
+      for (size_t det_idx = 0; det_idx < 3; ++det_idx)
+      {
+        std::string det_name;
+        if (det_idx == 0)
+        {
+          det_name = "South";
+        }
+        else if (det_idx == 1)
+        {
+          det_name = "North";
+        }
+        else
+        {
+          det_name = "NorthSouth";
+        }
+
+        const auto& data = m_correction_data[h_idx][cent][det_idx];
+
+        // For NS, Avg Qx/Qy will be 0.0 because they are not loaded from CDB.
+        // This is expected behavior.
+        std::cout << std::format("    {:<12} {:>10.6f} {:>10.6f} {:>10.6f} {:>10.6f} {:>10.6f}\n",
+                                 det_name,
+                                 data.avg_Q.x, data.avg_Q.y,
+                                 data.avg_Q_xx, data.avg_Q_yy, data.avg_Q_xy);
+
+        // Print X-Matrix in a bracketed layout
+        std::cout << std::format("      X-Matrix: [ {:>8.6f}, {:>8.6f} ]\n",
+                                 data.X_matrix[0][0], data.X_matrix[0][1]);
+        std::cout << std::format("                [ {:>8.6f}, {:>8.6f} ]\n",
+                                 data.X_matrix[1][0], data.X_matrix[1][1]);
+      }
+    }
+  }
+  std::cout << std::format("\n{:=>60}\n", "");
 }
 
 int EventPlaneReco::CreateNodes(PHCompositeNode *topNode) {
   PHNodeIterator iter(topNode);
 
-  PHCompositeNode *dstNode =
-      dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode) {
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+  {
     std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHCompositeNode *globalNode = dynamic_cast<PHCompositeNode *>(
-      iter.findFirst("PHCompositeNode", "GLOBAL"));
-  if (!globalNode) {
+  PHCompositeNode *globalNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "GLOBAL"));
+  if (!globalNode)
+  {
     globalNode = new PHCompositeNode("GLOBAL");
     dstNode->addNode(globalNode);
   }
 
-  EventplaneinfoMap *eps =
-      findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
-  if (!eps) {
+  EventplaneinfoMap *eps = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
+  if (!eps)
+  {
     eps = new EventplaneinfoMapv1();
-    PHIODataNode<PHObject> *EpMapNode =
-        new PHIODataNode<PHObject>(eps, "EventplaneinfoMap", "PHObject");
-    globalNode->addNode(EpMapNode);
+    PHIODataNode<PHObject> *newNode  = new PHIODataNode<PHObject>(eps , "EventplaneinfoMap", "PHObject");
+    globalNode->addNode(newNode);
   }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void EventPlaneReco::ResetMe() {
-  for (auto &vec : south_q) {
-    std::fill(vec.begin(), vec.end(), 0.);
+//____________________________________________________________________________..
+int EventPlaneReco::process_centrality(PHCompositeNode *topNode)
+{
+  CentralityInfo* centInfo = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
+  if (!centInfo)
+  {
+    std::cout << PHWHERE << " CentralityInfo is missing doing nothing" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  for (auto &vec : north_q) {
-    std::fill(vec.begin(), vec.end(), 0.);
-  }
+  m_cent = centInfo->get_centile(CentralityInfo::PROP::mbd_NS) * 100;
 
-  for (auto &vec : northsouth_q) {
-    std::fill(vec.begin(), vec.end(), 0.);
-  }
-
-  for (auto &order_vec : ring_q_north) {
-    for (auto &xy_vec : order_vec) {
-      std::fill(xy_vec.begin(), xy_vec.end(), 0.0);
+  if (!std::isfinite(m_cent) || m_cent < 0)
+  {
+    if (Verbosity() > 1)
+    {
+      std::cout << PHWHERE << " Warning Centrality is out of range. Cent: " << m_cent << ". Cannot calibrate Q vector for this event." << std::endl;
     }
+    m_doNotCalibEvent = true;
   }
 
-  for (auto &order_vec : ring_q_south) {
-    for (auto &xy_vec : order_vec) {
-      std::fill(xy_vec.begin(), xy_vec.end(), 0.0);
-    }
-  }
-
-  south_Qvec.clear();
-  north_Qvec.clear();
-  northsouth_Qvec.clear();
-
-  for (auto &ring : all_ring_Qvecs_north) {
-    for (auto &q : ring) {
-      q = {0.0, 0.0};
-    }
-  }
-
-  for (auto &ring : all_ring_Qvecs_south) {
-    for (auto &q : ring) {
-      q = {0.0, 0.0};
-    }
-  }
-
-  for (auto &vec : south_q_subtract) {
-    std::fill(vec.begin(), vec.end(), 0.);
-  }
-
-  for (auto &vec : north_q_subtract) {
-    std::fill(vec.begin(), vec.end(), 0.);
-  }
-
-  for (auto &vec : northsouth_q_subtract) {
-    std::fill(vec.begin(), vec.end(), 0.);
-  }
-
-  std::fill(shift_north.begin(), shift_north.end(), 0.);
-  std::fill(shift_south.begin(), shift_south.end(), 0.);
-  std::fill(shift_northsouth.begin(), shift_northsouth.end(), 0.);
-
-  std::fill(tmp_south_psi.begin(), tmp_south_psi.end(), NAN);
-  std::fill(tmp_north_psi.begin(), tmp_north_psi.end(), NAN);
-  std::fill(tmp_northsouth_psi.begin(), tmp_northsouth_psi.end(), NAN);
-
-  _nsum = 0.;
-  _ssum = 0.;
-  _do_ep = false;
-  _mbdQ = 0.;
-  _totalcharge = 0.;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int EventPlaneReco::End(PHCompositeNode * /*topNode*/) {
+//____________________________________________________________________________..
+int EventPlaneReco::process_sEPD(PHCompositeNode* topNode)
+{
+  TowerInfoContainer* towerinfosEPD = findNode::getClass<TowerInfoContainer>(topNode, m_inputNode);
+  if (!towerinfosEPD)
+  {
+    std::cout << PHWHERE << " TOWERINFO_CALIB_SEPD is missing doing nothing" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
-  std::cout << " EventPlaneReco::End() " << std::endl;
+  // sepd
+  unsigned int nchannels_epd = towerinfosEPD->size();
+
+  double sepd_total_charge_south = 0;
+  double sepd_total_charge_north = 0;
+
+  for (unsigned int channel = 0; channel < nchannels_epd; ++channel)
+  {
+    TowerInfo* tower = towerinfosEPD->get_tower_at_channel(channel);
+
+    unsigned int key = TowerInfoDefs::encode_epd(channel);
+    double charge = tower->get_energy();
+
+    // skip bad channels
+    // skip channels with very low charge
+    if (tower->get_isHot() || charge < m_sepd_min_channel_charge)
+    {
+      continue;
+    }
+
+    // arm = 0: South
+    // arm = 1: North
+    unsigned int arm = TowerInfoDefs::get_epd_arm(key);
+
+    // sepd charge sums
+    double& sepd_total_charge = (arm == 0) ? sepd_total_charge_south : sepd_total_charge_north;
+
+    // Compute total charge for the respective sEPD arm
+    sepd_total_charge += charge;
+
+    for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
+    {
+      const auto& [cached_cos, cached_sin] = m_trig_cache[h_idx][channel];
+
+      m_Q_raw[h_idx][arm].x += charge * cached_cos;
+      m_Q_raw[h_idx][arm].y += charge * cached_sin;
+    }
+  }
+
+  // ensure both total charges are nonzero
+  if (sepd_total_charge_south == 0 || sepd_total_charge_north == 0)
+  {
+    if (Verbosity() > 1)
+    {
+      std::cout << PHWHERE << " Error: Total sEPD Charge is Zero: "
+                << "South = " << sepd_total_charge_south
+                << ", North = " << sepd_total_charge_north << std::endl;
+    }
+
+    // ensure raw Q vec is reset
+    m_Q_raw = {};
+    m_doNotCalibEvent = true;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
+  for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
+  {
+    m_Q_raw[h_idx][0].x /= sepd_total_charge_south;
+    m_Q_raw[h_idx][0].y /= sepd_total_charge_south;
+
+    m_Q_raw[h_idx][1].x /= sepd_total_charge_north;
+    m_Q_raw[h_idx][1].y /= sepd_total_charge_north;
+
+    // NEW: Calculate Raw NS (Sum of Raw S + Raw N)
+    m_Q_raw[h_idx][2].x = m_Q_raw[h_idx][0].x + m_Q_raw[h_idx][1].x;
+    m_Q_raw[h_idx][2].y = m_Q_raw[h_idx][0].y + m_Q_raw[h_idx][1].y;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void EventPlaneReco::correct_QVecs()
+{
+  size_t cent_bin = static_cast<size_t>(m_cent);
+  if (cent_bin >= m_cent_bins)
+  {
+    cent_bin = m_cent_bins - 1;  // Clamp max
+  }
+
+  size_t south_idx = static_cast<size_t>(Subdetector::S);
+  size_t north_idx = static_cast<size_t>(Subdetector::N);
+  size_t ns_idx = static_cast<size_t>(Subdetector::NS);
+
+  for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
+  {
+    auto& dataS = m_correction_data[h_idx][cent_bin][south_idx];
+    auto& dataN = m_correction_data[h_idx][cent_bin][north_idx];
+    auto& dataNS = m_correction_data[h_idx][cent_bin][ns_idx];
+
+    double Q_S_x_avg = dataS.avg_Q.x;
+    double Q_S_y_avg = dataS.avg_Q.y;
+    double Q_N_x_avg = dataN.avg_Q.x;
+    double Q_N_y_avg = dataN.avg_Q.y;
+
+    QVec q_S = m_Q_raw[h_idx][south_idx];
+    QVec q_N = m_Q_raw[h_idx][north_idx];
+
+    // Apply Recentering
+    QVec q_S_recenter = {q_S.x - Q_S_x_avg, q_S.y - Q_S_y_avg};
+    QVec q_N_recenter = {q_N.x - Q_N_x_avg, q_N.y - Q_N_y_avg};
+    QVec q_NS_recenter = {q_S_recenter.x + q_N_recenter.x, q_S_recenter.y + q_N_recenter.y};
+
+    m_Q_recentered[h_idx][south_idx] = q_S_recenter;
+    m_Q_recentered[h_idx][north_idx] = q_N_recenter;
+    m_Q_recentered[h_idx][ns_idx] = q_NS_recenter;
+
+    // Flattening Matrix
+    const auto &X_S = dataS.X_matrix;
+    const auto &X_N = dataN.X_matrix;
+    const auto &X_NS = dataNS.X_matrix;
+
+    // Apply Flattening
+    double Q_S_x_flat = X_S[0][0] * q_S_recenter.x + X_S[0][1] * q_S_recenter.y;
+    double Q_S_y_flat = X_S[1][0] * q_S_recenter.x + X_S[1][1] * q_S_recenter.y;
+    double Q_N_x_flat = X_N[0][0] * q_N_recenter.x + X_N[0][1] * q_N_recenter.y;
+    double Q_N_y_flat = X_N[1][0] * q_N_recenter.x + X_N[1][1] * q_N_recenter.y;
+
+    double Q_NS_x_flat = X_NS[0][0] * q_NS_recenter.x + X_NS[0][1] * q_NS_recenter.y;
+    double Q_NS_y_flat = X_NS[1][0] * q_NS_recenter.x + X_NS[1][1] * q_NS_recenter.y;
+
+    QVec q_S_flat = {Q_S_x_flat, Q_S_y_flat};
+    QVec q_N_flat = {Q_N_x_flat, Q_N_y_flat};
+    QVec q_NS_flat = {Q_NS_x_flat, Q_NS_y_flat};
+
+    m_Q_flat[h_idx][south_idx] = q_S_flat;
+    m_Q_flat[h_idx][north_idx] = q_N_flat;
+    m_Q_flat[h_idx][ns_idx] = q_NS_flat;
+  }
+}
+
+void EventPlaneReco::print_QVectors()
+{
+  std::string header_text = std::format("EVENT Q-VECTOR SUMMARY (Event: {}, CENTRALITY: {:.0f}%)", m_globalEvent, m_cent);
+
+  std::cout << std::format("\n{:*>100}\n", "");
+  std::cout << std::format("{:^100}\n", header_text);
+  std::cout << std::format("{:*>100}\n", "");
+
+  // Table Header
+  std::cout << std::format("  {:<10} {:<10} | {:>21} | {:>21} | {:>21}\n",
+                           "Harmonic", "Detector", "Raw (x, y)", "Recentered (x, y)", "Flattened (x, y)");
+  std::cout << std::format("  {:-<100}\n", "");
+
+  for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
+  {
+    int n = m_harmonics[h_idx];
+
+    for (size_t det_idx = 0; det_idx < 3; ++det_idx)
+    {
+      std::string det_name;
+      if (det_idx == 0)
+      {
+        det_name = "South";
+      }
+      else if (det_idx == 1)
+      {
+        det_name = "North";
+      }
+      else
+      {
+        det_name = "NorthSouth";
+      }
+
+      const auto& raw = m_Q_raw[h_idx][det_idx];
+      const auto& rec = m_Q_recentered[h_idx][det_idx];
+      const auto& flat = m_Q_flat[h_idx][det_idx];
+
+      std::string h_label = (det_idx == 0) ? std::format("n={}", n) : "";
+
+      // Groups x and y into (val, val) pairs for better scannability
+      std::string raw_str  = std::format("({:>8.5f}, {:>8.5f})", raw.x, raw.y);
+      std::string rec_str  = std::format("({:>8.5f}, {:>8.5f})", rec.x, rec.y);
+      std::string flat_str = std::format("({:>8.5f}, {:>8.5f})", flat.x, flat.y);
+
+      std::cout << std::format("  {:<10} {:<10} | {:<21} | {:<21} | {:10}\n",
+                               h_label, det_name, raw_str, rec_str, flat_str);
+    }
+    if (h_idx < m_harmonics.size() - 1)
+    {
+      std::cout << std::format("  {:.>100}\n", "");
+    }
+  }
+  std::cout << std::format("{:*>100}\n\n", "");
+}
+
+int EventPlaneReco::FillNode(PHCompositeNode *topNode)
+{
+  EventplaneinfoMap *epmap = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
+  if (!epmap)
+  {
+    std::cout << PHWHERE << " EventplaneinfoMap is missing doing nothing" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  size_t vec_size = static_cast<size_t>(*std::ranges::max_element(m_harmonics));
+
+  std::vector<std::pair<double, double>> south_Qvec_raw(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+  std::vector<std::pair<double, double>> south_Qvec_recentered(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+  std::vector<std::pair<double, double>> south_Qvec(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+
+  std::vector<std::pair<double, double>> north_Qvec_raw(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+  std::vector<std::pair<double, double>> north_Qvec_recentered(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+  std::vector<std::pair<double, double>> north_Qvec(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+
+  std::vector<std::pair<double, double>> northsouth_Qvec_raw(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+  std::vector<std::pair<double, double>> northsouth_Qvec_recentered(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+  std::vector<std::pair<double, double>> northsouth_Qvec(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+
+  for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
+  {
+    int n = m_harmonics[h_idx];
+    int idx = n - 1;
+
+    // Fallback logic: Use raw if calibration failed or centrality is out of range
+    const auto& Q_S = (m_doNotCalib || m_doNotCalibEvent) ? m_Q_raw[h_idx][0] : m_Q_flat[h_idx][0];
+    const auto& Q_N = (m_doNotCalib || m_doNotCalibEvent) ? m_Q_raw[h_idx][1] : m_Q_flat[h_idx][1];
+    const auto& Q_NS = (m_doNotCalib || m_doNotCalibEvent) ? m_Q_raw[h_idx][2] : m_Q_flat[h_idx][2];
+
+    const auto& Q_S_raw = m_Q_raw[h_idx][0];
+    const auto& Q_S_recentered = m_Q_recentered[h_idx][0];
+
+    const auto& Q_N_raw = m_Q_raw[h_idx][1];
+    const auto& Q_N_recentered = m_Q_recentered[h_idx][1];
+
+    const auto& Q_NS_raw = m_Q_raw[h_idx][2];
+    const auto& Q_NS_recentered = m_Q_recentered[h_idx][2];
+
+    // South
+    south_Qvec_raw[idx] = {Q_S_raw.x, Q_S_raw.y};
+    south_Qvec_recentered[idx] = {Q_S_recentered.x, Q_S_recentered.y};
+    south_Qvec[idx] = {Q_S.x, Q_S.y};
+
+    // North
+    north_Qvec_raw[idx] = {Q_N_raw.x, Q_N_raw.y};
+    north_Qvec_recentered[idx] = {Q_N_recentered.x, Q_N_recentered.y};
+    north_Qvec[idx] = {Q_N.x, Q_N.y};
+
+    // Combined (North + South)
+    northsouth_Qvec_raw[idx] = {Q_NS_raw.x, Q_NS_raw.y};
+    northsouth_Qvec_recentered[idx] = {Q_NS_recentered.x, Q_NS_recentered.y};
+    northsouth_Qvec[idx] = {Q_NS.x, Q_NS.y};
+  }
+
+  // Helper lambda to fill nodes using the class's GetPsi method
+  auto create_and_fill = [&](const std::vector<std::pair<double, double>>& qvecs_raw, const std::vector<std::pair<double, double>>& qvecs_recentered, const std::vector<std::pair<double, double>>& qvecs) {
+      auto node = std::make_unique<Eventplaneinfov1>();
+      node->set_qvector_raw(qvecs_raw);
+      node->set_qvector_recentered(qvecs_recentered);
+      node->set_qvector(qvecs);
+
+      std::vector<double> psi_vec(vec_size, std::numeric_limits<double>::quiet_NaN());
+      for (int n : m_harmonics) {
+          psi_vec[n-1] = node->GetPsi(qvecs[n-1].first, qvecs[n-1].second, n);
+      }
+      node->set_shifted_psi(psi_vec);
+      return node;
+  };
+
+  epmap->insert(create_and_fill(south_Qvec_raw, south_Qvec_recentered, south_Qvec).release(), EventplaneinfoMap::sEPDS);
+  epmap->insert(create_and_fill(north_Qvec_raw, north_Qvec_recentered, north_Qvec).release(), EventplaneinfoMap::sEPDN);
+  epmap->insert(create_and_fill(northsouth_Qvec_raw, northsouth_Qvec_recentered, northsouth_Qvec).release(), EventplaneinfoMap::sEPDNS);
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//____________________________________________________________________________..
+int EventPlaneReco::process_event(PHCompositeNode *topNode)
+{
+  EventHeader *eventInfo = findNode::getClass<EventHeader>(topNode, "EventHeader");
+  if (!eventInfo)
+  {
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_globalEvent = eventInfo->get_EvtSequence();
+
+  int ret = process_centrality(topNode);
+  if (ret)
+  {
+    return ret;
+  }
+
+  ret = process_sEPD(topNode);
+  if (ret)
+  {
+    return ret;
+  }
+
+  // Calibrate Q Vectors
+  if (!m_doNotCalib && !m_doNotCalibEvent)
+  {
+    correct_QVecs();
+  }
+
+  ret = FillNode(topNode);
+  if (ret)
+  {
+    return ret;
+  }
+
+  if (Verbosity() > 1)
+  {
+    print_QVectors();
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//____________________________________________________________________________..
+int EventPlaneReco::ResetEvent(PHCompositeNode */*topNode*/)
+{
+  m_doNotCalibEvent = false;
+
+  m_Q_raw = {};
+  m_Q_recentered = {};
+  m_Q_flat = {};
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
