@@ -407,9 +407,19 @@ int EventPlaneReco::process_sEPD(PHCompositeNode* topNode)
 void EventPlaneReco::correct_QVecs()
 {
   size_t cent_bin = static_cast<size_t>(m_cent);
+
+  // Skip calibration for out-of-range centrality
   if (cent_bin >= m_cent_bins)
   {
-    cent_bin = m_cent_bins - 1;  // Clamp max
+    if (Verbosity() > 2)
+    {
+      std::cout << PHWHERE << " Warning: Centrality " << m_cent
+                << "% exceeds calibration range (0-" << m_cent_bins - 1
+                << "). Using raw Q-vectors." << std::endl;
+    }
+
+    m_doNotCalibEvent = true;
+    return;
   }
 
   size_t south_idx = static_cast<size_t>(Subdetector::S);
