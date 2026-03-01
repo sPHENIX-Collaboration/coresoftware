@@ -9,8 +9,6 @@
 #include <utility>  // for pair, make_pair
 #include <vector>
 
-class PHObject;
-
 class Eventplaneinfov1 : public Eventplaneinfo
 {
  public:

@@ -6,7 +6,6 @@
 
 #include <string>
 #include <array>
-#include <memory>
 #include <vector>
 
 class CDBTTree;
