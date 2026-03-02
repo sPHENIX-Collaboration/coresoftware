@@ -23,7 +23,7 @@ CaloStatusSkimmer::CaloStatusSkimmer(const std::string &name)
 int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
 {
   n_eventcounter++;
-  if (b_do_skim_EMCal)
+  if (m_EMC_skim_threshold > 0)
   {
     TowerInfoContainer *towers =
         findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_CEMC");
@@ -58,7 +58,7 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (b_do_skim_HCal)
+  if (m_HCal_skim_threshold > 0)
   {
     TowerInfoContainer *hcalin_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALIN");
     TowerInfoContainer *hcalout_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALOUT");
@@ -107,7 +107,7 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (b_do_skim_sEPD)
+  if (m_sEPD_skim_threshold > 0)
   {
     TowerInfoContainer *sepd_towers =
         findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_SEPD");
@@ -143,7 +143,7 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (b_do_skim_ZDC)
+  if (m_ZDC_skim_threshold > 0)
   {
     TowerInfoContainer *zdc_towers =
         findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_ZDC");

@@ -26,23 +26,19 @@ public:
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
 
-  void do_skim_EMCal(bool do_skim, uint16_t threshold) {
-    b_do_skim_EMCal = do_skim;
+  void do_skim_EMCal( uint16_t threshold) {
     m_EMC_skim_threshold = threshold;
   }
 
-  void do_skim_HCal(bool do_skim, uint16_t threshold) {
-    b_do_skim_HCal = do_skim;
+  void do_skim_HCal( uint16_t threshold) {
     m_HCal_skim_threshold = threshold;
   }
 
-  void do_skim_sEPD(bool do_skim, uint16_t threshold) {
-    b_do_skim_sEPD = do_skim;
+  void do_skim_sEPD( uint16_t threshold) {
     m_sEPD_skim_threshold = threshold;
   }
 
-  void do_skim_ZDC(bool do_skim, uint16_t threshold) {
-    b_do_skim_ZDC = do_skim;
+  void do_skim_ZDC( uint16_t threshold) {
     m_ZDC_skim_threshold = threshold;
   }
 
@@ -51,19 +47,16 @@ private:
   uint32_t n_skimcounter{0};
   uint32_t n_notowernodecounter{0};
 
-  bool b_do_skim_EMCal{false};
+  // If the threshold is set to 0, then the skimming for that subsystem is disabled. If threshold is > 0, then the event is skimmed if nchannels >= threshold not-instrumented (empty/missing packet) channels in that subsystem.
   uint16_t m_EMC_skim_threshold{192}; 
   // skim if nchannels >= this many not-instrumented (empty/missing packet) channels in EMCal
 
-  bool b_do_skim_HCal{false};
   uint16_t m_HCal_skim_threshold{192}; 
   // skim if nchannels >= this many not-instrumented (empty/missing packet) channels in HCal
 
-  bool b_do_skim_sEPD{false};
   uint16_t m_sEPD_skim_threshold{1}; 
   // skim if nchannels >= this many not-instrumented (empty/missing packet) channels in sEPD
 
-  bool b_do_skim_ZDC{false};
   uint16_t m_ZDC_skim_threshold{1}; 
   // skim if nchannels >= this many not-instrumented (empty/missing packet) channels in ZDC
 };

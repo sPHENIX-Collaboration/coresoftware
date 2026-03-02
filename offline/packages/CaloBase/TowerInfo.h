@@ -30,8 +30,8 @@ class TowerInfo : public PHObject
   virtual float get_pedestal() { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_isHot(bool /*isHot*/) { return; }
   virtual bool get_isHot() const { return false; }
-  virtual void set_isBadTime(bool /*isBadTime*/) { return; }
-  virtual bool get_isBadTime() const { return false; }
+  virtual void set_FitStatus(bool /*fitstatus*/) { return; }
+  virtual bool get_FitStatus() const { return false; }
   virtual void set_isBadChi2(bool /*isBadChi2*/) { return; }
   virtual bool get_isBadChi2() const { return false; }
   virtual void set_isNotInstr(bool /*isNotInstr*/) { return; }

@@ -24,8 +24,8 @@ class TowerInfov2 : public TowerInfov1
   void set_isHot(bool isHot) override { set_status_bit(0, isHot); }
   bool get_isHot() const override { return get_status_bit(0); }
 
-  void set_isBadTime(bool isBadTime) override { set_status_bit(1, isBadTime); }
-  bool get_isBadTime() const override { return get_status_bit(1); }
+  void set_FitStatus(bool fitstatus) override { set_status_bit(1, fitstatus); }
+  bool get_FitStatus() const override { return get_status_bit(1); }
 
   void set_isBadChi2(bool isBadChi2) override { set_status_bit(2, isBadChi2); }
   bool get_isBadChi2() const override { return get_status_bit(2); }
@@ -45,7 +45,7 @@ class TowerInfov2 : public TowerInfov1
   void set_isSaturated(bool isSaturated) override { set_status_bit(7, isSaturated); }
   bool get_isSaturated() const override { return get_status_bit(7); }
 
-  bool get_isGood() const override { return !(get_isHot() || get_isBadChi2() || get_isNoCalib()); }
+  bool get_isGood() const override { return !(get_isHot() || get_isBadChi2() || get_isNoCalib() || get_isNotInstr()); }
 
   uint8_t get_status() const override { return _status; }
 

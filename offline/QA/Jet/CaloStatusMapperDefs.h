@@ -59,7 +59,6 @@ namespace CaloStatusMapperDefs
   {
     Good,
     Hot,
-    BadTime,
     BadChi,
     NotInstr,
     NoCalib,
@@ -74,7 +73,6 @@ namespace CaloStatusMapperDefs
     static std::map<Stat, std::string> mapStatLabels = {
         {Stat::Good, "Good"},
         {Stat::Hot, "Hot"},
-        {Stat::BadTime, "BadTime"},
         {Stat::BadChi, "BadChi"},
         {Stat::NotInstr, "NotInstr"},
         {Stat::NoCalib, "NoCalib"},
@@ -173,10 +171,6 @@ namespace CaloStatusMapperDefs
     {
       status = Stat::Hot;
     }
-    else if (tower->get_isBadTime())
-    {
-      status = Stat::BadTime;
-    }
     else if (tower->get_isBadChi2())
     {
       status = Stat::BadChi;
@@ -204,7 +198,6 @@ namespace CaloStatusMapperDefs
   {
     bool skip = false;
     if ((label == "Hot") ||
-        (label == "BadTime") ||
         (label == "BadChi") ||
         (label == "NoCalib") ||
         (label == "NotInstr") ||

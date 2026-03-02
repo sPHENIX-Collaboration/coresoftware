@@ -48,7 +48,6 @@ CaloTowerStatus::~CaloTowerStatus()
     std::cout << "CaloTowerStatus::~CaloTowerStatus() Calling dtor" << std::endl;
   }
   delete m_cdbttree_chi2;
-  delete m_cdbttree_time;
   delete m_cdbttree_hotMap;
 }
 
@@ -114,41 +113,6 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  m_calibName_time = m_detector + "_meanTime";
-  m_fieldname_time = "time";
-
-  calibdir = CDBInterface::instance()->getUrl(m_calibName_time);
-  if (!calibdir.empty())
-  {
-    m_cdbttree_time = new CDBTTree(calibdir);
-    if (Verbosity() > 0)
-    {
-      std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_time << " not Doing isBadTime" << std::endl;
-    }
-  }
-  else
-  {
-    if (use_directURL_time)
-    {
-      calibdir = m_directURL_time;
-      std::cout << "CaloTowerStatus::InitRun: Using default time  " << calibdir << std::endl;
-      m_cdbttree_time = new CDBTTree(calibdir);
-    }
-    else
-    {
-      if (m_doAbortNoTime)
-      {
-        std::cout << "CaloTowerStatus::InitRun: No time calibration found for " << m_calibName_time << " and abort mode is set. Exiting." << std::endl;
-        gSystem->Exit(1);
-      }
-      m_doTime = false;
-      if (Verbosity() > 1)
-      {
-        std::cout << "CaloTowerStatus::InitRun no timing info, " << m_calibName_time << " not found, not doing isBadTime" << std::endl;
-      }
-    }
-  }
-
   m_calibName_hotMap = m_detector + "nome";
   if (m_dettype == CaloTowerDefs::CEMC || m_dettype == CaloTowerDefs::SEPD)
   {
@@ -191,7 +155,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    std::cout << "CaloTowerStatus::Init " << m_detector << "  doing time status =" <<  std::boolalpha << m_doTime << "  doing hotBadChi2=" <<  std::boolalpha << m_doHotChi2 << " doing hot map=" << std::boolalpha << m_doHotMap << std::endl;
+    std::cout << "CaloTowerStatus::Init " << m_detector << "  doing hotBadChi2=" <<  std::boolalpha << m_doHotChi2 << " doing hot map=" << std::boolalpha << m_doHotMap << std::endl;
   }
 
   PHNodeIterator iter(topNode);
@@ -235,10 +199,6 @@ void CaloTowerStatus::LoadCalib()
     {
       m_cdbInfo_vec[channel].fraction_badChi2 = m_cdbttree_chi2->GetFloatValue(key, m_fieldname_chi2);
     }
-    if (m_doTime)
-    {
-      m_cdbInfo_vec[channel].mean_time = m_cdbttree_time->GetFloatValue(key, m_fieldname_time);
-    }
     if (m_doHotMap)
     {
       m_cdbInfo_vec[channel].hotMap_val = m_cdbttree_hotMap->GetIntValue(key, m_fieldname_hotMap);
@@ -252,23 +212,17 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
 {
   unsigned int ntowers = m_raw_towers->size();
   float fraction_badChi2 = 0;
-  float mean_time = 0;
   int hotMap_val = 0;
   float z_score = 0;
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
     // only reset what we will set
     m_raw_towers->get_tower_at_channel(channel)->set_isHot(false);
-    m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(false);
     m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(false);
 
     if (m_doHotChi2)
     {
       fraction_badChi2 = m_cdbInfo_vec[channel].fraction_badChi2;
-    }
-    if (m_doTime)
-    {
-      mean_time = m_cdbInfo_vec[channel].mean_time;
     }
     if (m_doHotMap)
     {
@@ -276,16 +230,11 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
       z_score = m_cdbInfo_vec[channel].z_score;
     }
     float chi2 = m_raw_towers->get_tower_at_channel(channel)->get_chi2();
-    float time = m_raw_towers->get_tower_at_channel(channel)->get_time();
     float adc = m_raw_towers->get_tower_at_channel(channel)->get_energy();
 
     if (fraction_badChi2 > fraction_badChi2_threshold && m_doHotChi2)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
-    }
-    if (!m_raw_towers->get_tower_at_channel(channel)->get_isZS() && std::fabs(time - mean_time) > time_cut && m_doTime)
-    {
-      m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(true);
     }
     if (( hotMap_val == 1 || // dead
           std::fabs(z_score) > z_score_threshold || // hot or cold
