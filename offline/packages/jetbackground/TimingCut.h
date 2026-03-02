@@ -22,7 +22,7 @@ class TimingCut : public SubsysReco
  public:
   explicit TimingCut(const std::string &jetNodeName, const std::string &name = "TimingCutModule", bool doAbort = false, const std::string &ohTowerName = "TOWERINFO_CALIB_HCALOUT");
 
-  ~TimingCut() override = default;
+  ~TimingCut() override;
 
   void set_t_shift(float new_shift) { _t_shift = new_shift; }
   float get_t_shift() { return _t_shift; }
@@ -123,7 +123,7 @@ private:
   float _t_shift{0.0};
   float _mbd_dt_width{3.0};
   float _min_dphi{3*M_PI/4};
-  std::unique_ptr<TF1> _fitFunc{nullptr};
+  TF1* _fitFunc{nullptr};
 };
 
 #endif

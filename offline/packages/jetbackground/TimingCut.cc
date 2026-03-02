@@ -33,6 +33,15 @@ TimingCut::TimingCut(const std::string &jetNodeName, const std::string &name, co
   SetDefaultParams();
 }
 
+TimingCut::~TimingCut()
+{
+  if(_fitFunc)
+    {
+      delete _fitFunc;
+      _fitFunc = nullptr;
+    }
+}
+
 //____________________________________________________________________________..
 int TimingCut::Init(PHCompositeNode *topNode)
 {
@@ -52,7 +61,7 @@ int TimingCut::Init(PHCompositeNode *topNode)
 	  std::cout << "ERROR: NO CALIBRATION TF1 FOUND FOR TIMING CUT OHCAL FRACTION CORRECTION! This should never happen. ABORT RUN!" << std::endl;
 	  return Fun4AllReturnCodes::ABORTRUN;
 	}
-      _fitFunc = std::unique_ptr<TF1>((TF1*)tmp->Clone());
+      _fitFunc = (TF1*)tmp->Clone();
       delete fitFile;
     }
   else
