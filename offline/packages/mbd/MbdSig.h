@@ -116,6 +116,7 @@ class MbdSig
   void SetMinMaxFitTime(const Double_t mintime, const Double_t maxtime);
 
   void WritePedHist();
+  void WritePedvsEvent();
   void WriteChi2Hist();
 
   void DrawWaveform();      /// Draw Subtracted Waveform
@@ -157,22 +158,22 @@ class MbdSig
   TGraphErrors *gpulse{nullptr};     //!
 
   /** for CalcPed0 */
-  //std::unique_ptr<MbdRunningStats> ped0stats{nullptr};    //!
-  MbdRunningStats *ped0stats{nullptr};    //!
-  TH1 *hPed0{nullptr};            //! all events
-  TH1 *hPedEvt{nullptr};          //! evt-by-event pedestal
+  MbdRunningStats *ped0stats{nullptr};    //! running pedestal
+  TH1 *hPed0{nullptr};                //! all events
+  TH1 *hPedEvt{nullptr};              //! evt-by-event pedestal
+  TGraphErrors *gPedvsEvent{nullptr}; //! Keep track of pedestal vs evtnum
   TF1 *ped_fcn{nullptr};
-  TF1 *ped_tail{nullptr};         //! tail of prev signal
+  TF1 *ped_tail{nullptr};             //! tail of prev signal
   Double_t ped0{0.};                  //!
   Double_t ped0rms{0.};               //!
-  int   use_ped0{0};                 //! whether to apply ped0
-  Int_t minped0samp{-9999};       //! min sample for event-by-event ped, inclusive
-  Int_t maxped0samp{-9999};       //! max sample for event-by-event ped, inclusive
+  int   use_ped0{0};                  //! whether to apply ped0
+  Int_t minped0samp{-9999};           //! min sample for event-by-event ped, inclusive
+  Int_t maxped0samp{-9999};           //! max sample for event-by-event ped, inclusive
   Double_t minped0x{0.};              //! min x for event-by-event ped, inclusive
   Double_t maxped0x{0.};              //! max x for event-by-event ped, inclusive
-  Double_t ped_presamp{};         //! presamples for ped calculation
-  Double_t ped_presamp_nsamps{};  //! num of presamples for ped calculation
-  Double_t ped_presamp_maxsamp{-1}; //! a peak sample for ped calc (-1 = use max)
+  Double_t ped_presamp{};             //! presamples for ped calculation
+  Double_t ped_presamp_nsamps{};      //! num of presamples for ped calculation
+  Double_t ped_presamp_maxsamp{-1};   //! a peak sample for ped calc (-1 = use max)
 
   /** for time calibration */
   // Double_t time_calib;
@@ -200,6 +201,7 @@ class MbdSig
   TH1 *h_chi2ndf{nullptr};  //! for eval
 
   int _verbose{0};
+  bool _pedstudyflag{false};
 };
 
 #endif  // __MBDSIG_H__

@@ -713,7 +713,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     }
 
     // valid packet
-    const uint16_t& pkt_length = data_buffer[0];  // this is indeed the number of 10-bit words + 5 in this packet
+    const uint16_t pkt_length = data_buffer[0];  // this is indeed the number of 10-bit words + 5 in this packet
     if (pkt_length > MAX_PACKET_LENGTH)
     {
       if (m_verbosity > 1)

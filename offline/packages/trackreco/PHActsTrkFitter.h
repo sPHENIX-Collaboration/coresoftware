@@ -164,18 +164,20 @@ class PHActsTrkFitter : public SubsysReco
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
   ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
-      const std::vector<Acts::SourceLink>& sourceLinks,
-      const ActsTrackFittingAlgorithm::TrackParameters& seed,
-      const ActsTrackFittingAlgorithm::GeneralFitterOptions&
-          kfOptions,
-      const SurfacePtrVec& surfSequence,
-      const CalibratorAdapter& calibrator,
-      ActsTrackFittingAlgorithm::TrackContainer& tracks);
+    const std::vector<Acts::SourceLink>& sourceLinks,
+    const ActsTrackFittingAlgorithm::TrackParameters& seed,
+    const ActsTrackFittingAlgorithm::GeneralFitterOptions& kfOptions,
+    const SurfacePtrVec& surfSequence,
+    const CalibratorAdapter& calibrator,
+    ActsTrackFittingAlgorithm::TrackContainer& tracks);
 
-  /// Functions to get list of sorted surfaces for direct navigation, if
-  /// applicable
-  SourceLinkVec getSurfaceVector(const SourceLinkVec& sourceLinks,
-                                 SurfacePtrVec& surfaces) const;
+  // remove all source links for detectors that we don't want to include in the fit
+  SourceLinkVec filterSourceLinks(const SourceLinkVec& sourceLinks ) const;
+
+  /// get list of sorted surfaces for direct navigation, if applicable
+  SurfacePtrVec getSurfaceVector(const SourceLinkVec& sourceLinks) const;
+
+  /// check ordering of the surfaces
   void checkSurfaceVec(SurfacePtrVec& surfaces) const;
 
   bool getTrackFitResult(const FitResult& fitOutput, TrackSeed* seed,

@@ -114,6 +114,12 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     }
     else
     {
+      if (m_doAbortNoEnergyCalib)
+      {
+        std::cout << "CaloTowerCalib::InitRun: No energy calibration found for " << m_calibName << " and abort mode is set. Exiting." << std::endl;
+        gSystem->Exit(1);
+      }
+
       calibdir = CDBInterface::instance()->getUrl(default_time_independent_calib);
 
       if (calibdir.empty())
@@ -151,6 +157,11 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     }
     else
     {
+      if (m_doAbortNoTimeCalib)
+      {
+        std::cout << "CaloTowerCalib::InitRun: No time calibration found for " << m_calibName_time << " and abort mode is set. Exiting." << std::endl;
+        gSystem->Exit(1);
+      }
       m_dotimecalib = false;
       if (Verbosity() > 0)
       {
@@ -185,6 +196,11 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
       }
       else
       {
+        if (m_doAbortNoZSCalib)
+        {
+          std::cout << "CaloTowerCalib::InitRun: No ZS cross calibration found for " << m_calibName_ZScrosscalib << " and abort mode is set. Exiting." << std::endl;
+          gSystem->Exit(1);
+        }
         m_doZScrosscalib = false;
         if (Verbosity() > 0)
         {

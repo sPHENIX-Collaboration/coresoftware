@@ -143,8 +143,8 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
 
       if( fabs(1.0 - std::tan(dcaVals1(2))) < 0.1 && abs(dcaVals2(2)-dcaVals1(2)) < 0.1 )
 	{
-	  diag = true;
-	  std::cout << "*** Found phi values of interest " << std::endl;
+	  //	  diag = true;
+	  //	  std::cout << "*** Found phi values of interest " << std::endl;
 	}
       if(diag) { std::cout << "    tr1: id, dca3dxy1,dca3dz1,phi1: " << tr1->get_id() << "  " << dcaVals1(0) << "  " << dcaVals1(1) << "  " << dcaVals1(2) << std::endl; }
       if(diag) { std::cout << "    tr2: id,dca3dxy2,dca3dz2,phi2: " << tr2->get_id() << "  " << dcaVals2(0) << "  " << dcaVals2(1) << "  " << dcaVals2(2) << std::endl; }      
