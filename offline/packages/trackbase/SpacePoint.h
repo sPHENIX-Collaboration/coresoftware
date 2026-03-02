@@ -6,7 +6,7 @@
 #include "trackbase/TrkrDefs.h"
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
-#include <Acts/Seeding/Seed.hpp>
+#include <Acts/EventData/Seed.hpp>
 
 /**
  * A struct for Acts to take cluster information for seeding
@@ -42,6 +42,7 @@ inline bool operator==(SpacePoint a, SpacePoint b)
 }
 
 using SpacePointPtr = std::unique_ptr<SpacePoint>;
+using SpacePointContainer = std::vector<SpacePoint>;
 using SeedContainer = std::vector<Acts::Seed<SpacePoint>>;
 
 #endif

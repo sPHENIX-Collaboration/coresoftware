@@ -33,8 +33,7 @@
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <Acts/Seeding/InternalSeed.hpp>
-#include <Acts/Seeding/Seed.hpp>
+#include <Acts/EventData/Seed.hpp>
 #include <Acts/Seeding/SeedFilter.hpp>
 #include <Acts/Seeding/SeedFilterConfig.hpp>
 #include <Acts/Seeding/SeedFinderOrthogonal.hpp>

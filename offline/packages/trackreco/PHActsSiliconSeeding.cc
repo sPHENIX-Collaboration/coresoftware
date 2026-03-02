@@ -43,9 +43,8 @@
 #ifndef __clang__
 #pragma GCC diagnostic pop
 #endif
-#include <Acts/Seeding/InternalSeed.hpp>
 #include <Acts/Seeding/InternalSpacePoint.hpp>
-#include <Acts/Seeding/Seed.hpp>
+#include <Acts/EventData/Seed.hpp>
 #include <Acts/Seeding/SeedFilter.hpp>
 #include <cmath>
 

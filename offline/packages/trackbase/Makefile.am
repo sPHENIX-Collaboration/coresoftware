@@ -72,6 +72,7 @@ pkginclude_HEADERS = \
   LaserClusterv1.h \
   LaserClusterv2.h \
   MaterialWiper.h \
+  MagneticFieldOptions.h \
   MvtxDefs.h \
   MvtxEventInfo.h \
   MvtxEventInfov1.h \
@@ -215,6 +216,7 @@ libtrack_la_SOURCES = \
   Calibrator.cc \
   ClusterErrorPara.cc \
   CommonOptions.cc \
+  MagneticFieldOptions.cc \
   sPHENIXActsDetectorElement.cc \
   TGeoDetectorWithOptions.cc \
   TrackFittingAlgorithmFunctionsGsf.cc \
