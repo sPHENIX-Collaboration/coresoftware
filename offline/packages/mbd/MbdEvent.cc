@@ -156,7 +156,7 @@ int MbdEvent::InitRun()
   {
     // Download calibrations
     int status = _mbdcal->Download_All();
-    if ( status < 0 && _calpass==0 )  // only abort for normal processing
+    if ( status < 0 && _calpass==0 && _fitsonly )  // only abort for production waveform pass
     {
       return Fun4AllReturnCodes::ABORTRUN;
     }
@@ -444,13 +444,18 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
 
+  int evtseq = 0;
+  if ( gl1raw != nullptr )
+  {
+    evtseq = gl1raw->getEvtSequence();
+  }
+
   // Only use MBDNS triggered events for MBD calibrations
   if ( _calpass>0 && gl1raw != nullptr )
   {
     const uint64_t MBDTRIGS = 0x7c00;  // MBDNS trigger bits
     //uint64_t trigvec = gl1raw->getTriggerVector();  // raw trigger only (obsolete, was only available in run1)
     uint64_t strig = gl1raw->getScaledVector();  // scaled trigger only
-    int evtseq = gl1raw->getEvtSequence();
     if ( Verbosity() )
     {
       static int counter = 0;
@@ -528,6 +533,7 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
         if ( _nsamples > 0 && _nsamples <= 30 )
         {
           _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
+          _mbdsig[feech].SetEvtNum( evtseq );
         }
         /*
         else
@@ -658,6 +664,7 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
 
         _mbdsig[feech].SetNSamples( _nsamples );
         _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
+        _mbdsig[feech].SetEvtNum( m_evt );
         //_mbdsig[feech].Print();
       }
 
@@ -760,7 +767,7 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
       m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl(); // in adc units
       if (do_templatefit)
       {
-        //std::cout << "fittemplate" << std::endl;
+        //std::cout << "fittemplate " << ifeech << std::endl;
         _mbdsig[ifeech].FitTemplate( _mbdcal->get_sampmax(ifeech) );
 
         /*
@@ -784,6 +791,8 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
   {
     int feech = _mbdgeom->get_feech(ipmt);
     bbcraws->get_pmt(ipmt)->set_pmt(ipmt, m_ampl[feech], m_ttdc[ipmt], m_qtdc[ipmt]);
+    bbcraws->get_pmt(ipmt)->set_chi2ndf( _mbdsig[feech].GetChi2NDF() );
+    bbcraws->get_pmt(ipmt)->set_fitinfo( _mbdsig[feech].GetFitInfo() );
   }
   bbcraws->set_npmt(MbdDefs::BBC_N_PMT);  // this would need to be changed if we zero-suppressed
   bbcraws->set_clocks(m_evt, m_clk, m_femclk);
@@ -901,7 +910,10 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
   // Copy to output
   for (int ipmt = 0; ipmt < MbdDefs::BBC_N_PMT; ipmt++)
   {
+    int feech = _mbdgeom->get_feech(ipmt);
     bbcpmts->get_pmt(ipmt)->set_pmt(ipmt, m_pmtq[ipmt], m_pmttt[ipmt], m_pmttq[ipmt]);
+    bbcraws->get_pmt(ipmt)->set_chi2ndf( _mbdsig[feech].GetChi2NDF() );
+    bbcraws->get_pmt(ipmt)->set_fitinfo( _mbdsig[feech].GetFitInfo() );
   }
   bbcpmts->set_npmt(MbdDefs::BBC_N_PMT);
 

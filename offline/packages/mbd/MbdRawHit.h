@@ -49,8 +49,7 @@ class MbdRawHit : public PHObject
   virtual UShort_t get_fitinfo() const
   {
     PHOOL_VIRTUAL_WARNING;
-    //return MbdReturnCodes::MBD_INVALID_USHORT;
-    return 0; //chiu
+    return 0;
   }
 
   virtual void set_pmt(const Short_t /*pmt*/, const Float_t /*adc*/, const Float_t /*ttdc*/, const Float_t /*qtdc*/)

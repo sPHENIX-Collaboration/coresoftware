@@ -79,13 +79,7 @@ int MbdCalib::Download_All()
   // if rc flag MBD_CALDIR does not exist, we create it and set it to an empty string
   if (!_rc->FlagExist("MBD_CALDIR"))
   {
-    std::string sampmax_url = _cdb->getUrl("MBD_SAMPMAX");
-    if (Verbosity() > 0)
-    {
-      std::cout << "sampmax_url " << sampmax_url << std::endl;
-    }
-    Download_SampMax(sampmax_url);
-
+    // Always load Status
     std::string status_url = _cdb->getUrl("MBD_STATUS");
     if ( ! status_url.empty() )
     {
@@ -99,6 +93,14 @@ int MbdCalib::Download_All()
 
     if ( !_rawdstflag )
     {
+      // sampmax and ped will be calculated on the fly if calibs don't exist
+      std::string sampmax_url = _cdb->getUrl("MBD_SAMPMAX");
+      if (Verbosity() > 0)
+      {
+        std::cout << "sampmax_url " << sampmax_url << std::endl;
+      }
+      Download_SampMax(sampmax_url);
+
       std::string ped_url = _cdb->getUrl("MBD_PED");
       if (Verbosity() > 0)
       {
@@ -106,7 +108,6 @@ int MbdCalib::Download_All()
       }
       Download_Ped(ped_url);
 
-    
       std::string pileup_url = _cdb->getUrl("MBD_PILEUP");
       if ( pileup_url.empty() )
       {
@@ -135,29 +136,29 @@ int MbdCalib::Download_All()
       }
     }
 
-    std::string qfit_url = _cdb->getUrl("MBD_QFIT");
-    if (Verbosity() > 0)
-    {
-      std::cout << "qfit_url " << qfit_url << std::endl;
-    }
-    Download_Gains(qfit_url);
-
-    std::string tt_t0_url = _cdb->getUrl("MBD_TT_T0");
-    if ( Verbosity() > 0 )
-    {
-      std::cout << "tt_t0_url " << tt_t0_url << std::endl;
-    }
-    Download_TTT0(tt_t0_url);
-
-    std::string tq_t0_url = _cdb->getUrl("MBD_TQ_T0");
-    if (Verbosity() > 0)
-    {
-      std::cout << "tq_t0_url " << tq_t0_url << std::endl;
-    }
-    Download_TQT0(tq_t0_url);
-
     if ( !_fitsonly )
     {
+      std::string qfit_url = _cdb->getUrl("MBD_QFIT");
+      if (Verbosity() > 0)
+      {
+        std::cout << "qfit_url " << qfit_url << std::endl;
+      }
+      Download_Gains(qfit_url);
+
+      std::string tt_t0_url = _cdb->getUrl("MBD_TT_T0");
+      if ( Verbosity() > 0 )
+      {
+        std::cout << "tt_t0_url " << tt_t0_url << std::endl;
+      }
+      Download_TTT0(tt_t0_url);
+
+      std::string tq_t0_url = _cdb->getUrl("MBD_TQ_T0");
+      if (Verbosity() > 0)
+      {
+        std::cout << "tq_t0_url " << tq_t0_url << std::endl;
+      }
+      Download_TQT0(tq_t0_url);
+
       std::string t0corr_url = _cdb->getUrl("MBD_T0CORR");
       if ( Verbosity() > 0 )
       {
