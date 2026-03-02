@@ -920,7 +920,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
       f.SetParLimits(3, 0.5, 4.0);
       f.SetParLimits(4, pedestal-500, pedestal+500);
 
-      f.FixParameter(2, 0.2);  
+      f.FixParameter(2, 0.1);  
 
       TFitResultPtr fitres = h.Fit(&f, "SQRN0W", "", 0, nsamples);
 
