@@ -125,7 +125,7 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
     Acts::Vector3 dcaVals1 = calculateDca(tr1, mom1, pos1);
     if (fabs(dcaVals1(0)) < this_dca_cut || fabs(dcaVals1(1)) < this_dca_cut)
       {
-	std::cout << "  tr1 failed dca cuts " << std::endl;      
+	//	std::cout << "  tr1 failed dca cuts " << std::endl;      
 	continue;
       }
     // look for close DCA matches with all other such tracks
@@ -134,35 +134,17 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
       auto id2 = tr2_it->first;
       auto *tr2 = tr2_it->second;
 
-      bool diag = false;
-      
       // dca xy and dca z cut here compare to track dca cut
       Acts::Vector3 pos2(tr2->get_x(), tr2->get_y(), tr2->get_z());
       Acts::Vector3 mom2(tr2->get_px(), tr2->get_py(), tr2->get_pz());
       Acts::Vector3 dcaVals2 = calculateDca(tr2, mom2, pos2);
 
-      if( fabs(1.0 - std::tan(dcaVals1(2))) < 0.1 && abs(dcaVals2(2)-dcaVals1(2)) < 0.1 )
-	{
-	  //	  diag = true;
-	  //	  std::cout << "*** Found phi values of interest " << std::endl;
-	}
-      if(diag) { std::cout << "    tr1: id, dca3dxy1,dca3dz1,phi1: " << tr1->get_id() << "  " << dcaVals1(0) << "  " << dcaVals1(1) << "  " << dcaVals1(2) << std::endl; }
-      if(diag) { std::cout << "    tr2: id,dca3dxy2,dca3dz2,phi2: " << tr2->get_id() << "  " << dcaVals2(0) << "  " << dcaVals2(1) << "  " << dcaVals2(2) << std::endl; }      
-
       if (tr2->get_quality() > _qual_cut)
       {
-        if(diag)
-	  {
-	    std::cout << " tr2 failed quality cut " << tr2->get_quality() << std::endl;
-	  }
 	  continue;
       }
       if (tr2->get_pt() < track_pt_cut)
       {
-	if(diag)
-	  {
-	    std::cout << " tr2 failed pT cut " << tr2->get_pt() << std::endl;
-	  }
         continue;
       }
 
@@ -182,10 +164,6 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
         }
         if (_require_mvtx)
         {
-	  if(diag)
-	    {
-	      std::cout << " tr2 failed mvtx cut " << std::endl;
-	    }
 	  continue;
 	}
       }
@@ -224,10 +202,6 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
       
       if (fabs(dcaVals2(0)) < this_dca_cut2 || fabs(dcaVals2(1)) < this_dca_cut2)
       {
-	if(diag)
-	  {
-	    std::cout << " tr2 failed dca cut " << std::endl;
-	  }
         continue;
       }
 
@@ -256,7 +230,6 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
       // This presently assumes straight line tracks to get a rough answer
       // Should update to use circles instead?
       findPcaTwoTracks(pos1, pos2, mom1, mom2, pca_rel1, pca_rel2, pair_dca);
-      if(diag) {  std::cout << " pair dca " << pair_dca << " pca_rel1 " << pca_rel1(0) << "  " << pca_rel1(1) << "  " << pca_rel1(2) << std::endl; }
       // tracks with small relative pca are k short candidates
       if (abs(pair_dca) < pair_dca_cut)
       {
@@ -303,12 +276,6 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
 	    fillHistogram(projected_mom1, projected_mom2, recomass, invariantMass, invariantPt, invariantPhi, rapidity, pseudorapidity,decaymassa, decaymassb);
 	    fillNtp(tr1, tr2, decaymassa, decaymassb, dcaVals1, dcaVals2, pca_rel1, pca_rel2, pair_dca, invariantMass, invariantPt, invariantPhi, rapidity, pseudorapidity, projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj, track1_silicon_cluster_size, track2_silicon_cluster_size, track1_mvtx_cluster_size, track1_mvtx_state_size, track1_intt_cluster_size, track1_intt_state_size, track2_mvtx_cluster_size, track2_mvtx_state_size, track2_intt_cluster_size, track2_intt_state_size, m_runNumber, m_evtNumber);
 
-	    if(diag)
-	      {
-		std::cout << "Accepted Track Pair" << " id1 " << id1 << " id2 " << id2 << " crossing1 " << crossing1 << " crossing2 " << crossing2 << std::endl;
-		std::cout << "  invariant mass: " << invariantMass << " decaymassa " << decaymassa << " decaymassb " << decaymassb << std::endl;
-	      }
-	    
 	    if (Verbosity() > 1)
 	      {
 		std::cout << "Accepted Track Pair" << " id1 " << id1 << " id2 " << id2 << " crossing1 " << crossing1 << " crossing2 " << crossing2 << std::endl;
@@ -508,40 +475,6 @@ void KshortReconstruction::fillHistogram(Eigen::Vector3d mom1, Eigen::Vector3d m
       massreco->Fill(invariantMass);
     }
 }
-
-/*
-
-void KshortReconstruction::fillHistogram(Eigen::Vector3d mom1, Eigen::Vector3d mom2, TH1* massreco, double& invariantMass, double& invariantPt, float& invariantPhi, float& rapidity, float& pseudorapidity)
-{
-  double E1 = sqrt(pow(mom1(0), 2) + pow(mom1(1), 2) + pow(mom1(2), 2) + pow(decaymass, 2));
-  double E2 = sqrt(pow(mom2(0), 2) + pow(mom2(1), 2) + pow(mom2(2), 2) + pow(decaymass, 2));
-
-  TLorentzVector v1(mom1(0), mom1(1), mom1(2), E1);
-  TLorentzVector v2(mom2(0), mom2(1), mom2(2), E2);
-
-  TLorentzVector tsum;
-  tsum = v1 + v2;
-
-  rapidity = tsum.Rapidity();
-  pseudorapidity = tsum.Eta();
-  invariantMass = tsum.M();
-  invariantPt = tsum.Pt();
-  invariantPhi = tsum.Phi();
-
-  if (Verbosity() > 2)
-  {
-    std::cout << "px1: " << mom1(0) << " py1: " << mom1(1) << " pz1: " << mom1(2) << " E1: " << E1 << std::endl;
-    std::cout << "px2: " << mom2(0) << " py2: " << mom2(1) << " pz2: " << mom2(2) << " E2: " << E2 << std::endl;
-    std::cout << "tsum: " << tsum(0) << " " << tsum(1) << " " << tsum(2) << " " << tsum(3) << std::endl;
-    std::cout << "invariant mass: " << invariantMass << " invariant Pt: " << invariantPt << " invariantPhi: " << invariantPhi << std::endl;
-  }
-
-  if (invariantPt > invariant_pt_cut)
-  {
-    massreco->Fill(invariantMass);
-  }
-}
-*/
 
 bool KshortReconstruction::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d PCA, Eigen::Vector3d& pos, Eigen::Vector3d& mom)
 {
@@ -792,13 +725,6 @@ KshortReconstruction::KshortReconstruction(const std::string& name)
 
 Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack* track, const Acts::Vector3& momentum, Acts::Vector3 position)
 {
-
-  /*
-  std::cout << "   Input:  pos(0) " << position(0) << " pos(1) " << position(1) << " pos(2) " << position(2) 
-	    << " mom(0) " << momentum(0) << " mom(1) " << momentum(1) << " mom(2) " << momentum(2) 
-	    << std::endl;
-  */
-  
   // For the purposes of this module, we set default values to prevent this track from being rejected if the dca calc fails
   Acts::Vector3 r = momentum.cross(Acts::Vector3(0., 0., 1.));
   float phi = std::atan2(r(1), r(0));
@@ -836,13 +762,6 @@ Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack* track, const Acts::V
   outVals(0) = abs(dca3dxy);
   outVals(1) = abs(dca3dz);
   outVals(2) = phi;
-  /*
-  std::cout << " calculateDca: dca3dxy " << outVals(0) << " dca3dz " << outVals(1) << " phi " << outVals(2) << std::endl
-	    << "        vertex(0) " << vertex(0) << " vertex(1) " << vertex(1) << " vertex(2) " << vertex(2) << std::endl
-    	    << "        position(0) " << position(0) << " position(1) " << position(1) << " position(2) " << position(2) << std::endl 
-	    << "        momentum(0) " << momentum(0) << " momentum(1) " << momentum(1) << " momentum(2) " << momentum(2) 
-	    << std::endl;
-  */
   
   if (Verbosity() > 4)
   {
