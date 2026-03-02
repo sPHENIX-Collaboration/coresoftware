@@ -286,11 +286,11 @@ int EventPlaneReco::CreateNodes(PHCompositeNode *topNode) {
     dstNode->addNode(globalNode);
   }
 
-  EventplaneinfoMap *eps = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
+  EventplaneinfoMap *eps = findNode::getClass<EventplaneinfoMap>(topNode, m_EventPlaneInfoNodeName);
   if (!eps)
   {
     eps = new EventplaneinfoMapv1();
-    PHIODataNode<PHObject> *newNode  = new PHIODataNode<PHObject>(eps , "EventplaneinfoMap", "PHObject");
+    PHIODataNode<PHObject> *newNode  = new PHIODataNode<PHObject>(eps , m_EventPlaneInfoNodeName, "PHObject");
     globalNode->addNode(newNode);
   }
 
@@ -537,7 +537,7 @@ void EventPlaneReco::print_QVectors()
 
 int EventPlaneReco::FillNode(PHCompositeNode *topNode)
 {
-  EventplaneinfoMap *epmap = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
+  EventplaneinfoMap *epmap = findNode::getClass<EventplaneinfoMap>(topNode, m_EventPlaneInfoNodeName);
   if (!epmap)
   {
     std::cout << PHWHERE << " EventplaneinfoMap is missing doing nothing" << std::endl;

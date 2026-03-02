@@ -65,9 +65,14 @@ class EventPlaneReco : public SubsysReco
     m_sepd_min_channel_charge = sepd_min_channel_charge;
   }
 
+  void set_EventPlaneInfoNodeName(const std::string &name)
+  {
+    m_EventPlaneInfoNodeName = name;
+  }
+
  private:
 
- static int CreateNodes(PHCompositeNode *topNode);
+ int CreateNodes(PHCompositeNode *topNode);
 
  std::array<std::array<double, 2>, 2> calculate_flattening_matrix(double xx, double yy, double xy, int n, int cent_bin, const std::string& det_label);
  void LoadCalib();
@@ -92,6 +97,7 @@ class EventPlaneReco : public SubsysReco
 
  std::string m_calibName{"SEPD_EventPlaneCalib"};
  std::string m_inputNode{"TOWERINFO_CALIB_SEPD"};
+ std::string m_EventPlaneInfoNodeName{"EventplaneinfoMap"};
 
   CDBTTree *m_cdbttree {nullptr};
 
