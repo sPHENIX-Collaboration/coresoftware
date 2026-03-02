@@ -14,6 +14,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/alignmentTransformationContainer.h>
 #include <trackbase/sPHENIXActsDetectorElement.h>
+#include <trackbase/MagneticFieldOptions.h>
 
 #include <intt/CylinderGeomIntt.h>
 
@@ -64,20 +65,20 @@
 
 #include <ActsExamples/Framework/IContextDecorator.hpp>
 
+#include <ActsPlugins/Json/JsonMaterialDecorator.hpp>
+#include <ActsPlugins/Json/MaterialMapJsonConverter.hpp>
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #pragma GCC diagnostic ignored "-Wuninitialized"
 #include <trackbase/CommonOptions.h>
 #pragma GCC diagnostic pop
 
-#include <trackbase/MagneticFieldOptions.h>
 #include <ActsExamples/Utilities/Options.hpp>
 
 #include <ActsExamples/TGeoDetector/JsonTGeoDetectorConfig.hpp>
 
 #include <Acts/Material/IMaterialDecorator.hpp>
-#include <Acts/Plugins/Json/JsonMaterialDecorator.hpp>
-#include <Acts/Plugins/Json/MaterialMapJsonConverter.hpp>
 #include <trackbase/MaterialWiper.h>
 
 #include <TGeoManager.h>
