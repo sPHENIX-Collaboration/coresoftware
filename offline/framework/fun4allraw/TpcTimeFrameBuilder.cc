@@ -268,6 +268,8 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
       {
         delete hit;
       }
+      it->second.clear();
+      it->second.shrink_to_fit();
       it = m_timeFrameMap.erase(it);
     }
     else if (it->first < bclk_rollover_corrected + GL1_BCO_MATCH_WINDOW)
@@ -363,11 +365,13 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t& bclk)
 
     if (it != m_timeFrameMap.end())
     {
-      while (!it->second.empty())
-      {
-        delete it->second.back();
-        it->second.pop_back();
-      }
+      for(auto* hit : it->second)
+	{
+	  delete hit;
+	}
+      it->second.clear();
+      it->second.shrink_to_fit();
+    
       m_timeFrameMap.erase(it);
     }
   }
@@ -388,7 +392,6 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t& bclk)
         it->second.pop_back();
         ++count;
       }
-
       if (m_verbosity >= 1)
       {
         std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id
@@ -640,18 +643,19 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
                 << std::endl;
       m_hNorm->Fill("TimeFrameSizeLimitError", 1);
 
-      while (!timeframe.second.empty())
-      {
-        delete timeframe.second.back();
-        timeframe.second.pop_back();
-      }
+      for(auto* hit : timeframe.second)
+	{
+	  delete hit;
+	}
+      timeframe.second.clear();
+      timeframe.second.shrink_to_fit();
     }
   }
 
   m_packetTimer->stop();
   assert(h_ProcessPacket_Time);
   h_ProcessPacket_Time->Fill(call_count, m_packetTimer->elapsed());
-
+    
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -2055,4 +2059,5 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::cleanup(uint64_t ref_bco)
 
   // clear orphans
   m_orphans.clear();
+
 }
