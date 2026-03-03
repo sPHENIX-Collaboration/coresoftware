@@ -25,10 +25,10 @@ class EventplaneinfoMap : public PHObject
     sEPDRING_NORTH = 200  
   };
 
-  typedef std::map<unsigned int, Eventplaneinfo*>::const_iterator ConstIter;
-  typedef std::map<unsigned int, Eventplaneinfo*>::iterator Iter;
+  using ConstIter = std::map<unsigned int, Eventplaneinfo*>::const_iterator;
+  using Iter = std::map<unsigned int, Eventplaneinfo*>::iterator;
 
-  ~EventplaneinfoMap() override {}
+  ~EventplaneinfoMap() override = default;
 
   void identify(std::ostream& os = std::cout) const override { os << "EventplaneinfoMap base class" << std::endl; }
   virtual bool empty() const {return true;}
@@ -47,7 +47,13 @@ class EventplaneinfoMap : public PHObject
   virtual Iter end();
 
  protected:
-  EventplaneinfoMap() {}
+  EventplaneinfoMap() = default;
+
+  // Rule of Five: Protected to support derived classes
+  EventplaneinfoMap(const EventplaneinfoMap&) = default;
+  EventplaneinfoMap& operator=(const EventplaneinfoMap&) = default;
+  EventplaneinfoMap(EventplaneinfoMap&&) = default;
+  EventplaneinfoMap& operator=(EventplaneinfoMap&&) = default;
 
  private:
   ClassDefOverride(EventplaneinfoMap, 1);
