@@ -1011,7 +1011,6 @@ void SingleTriggeredInput::CreateDSTNodes(Event* evt)
   {
     int packet_id = piter->getIdentifier();
     m_PacketSet.insert(packet_id);
-    std::string PacketNodeName = std::to_string(packet_id);
     CaloPacket* calopacket = findNode::getClass<CaloPacket>(detNode, packet_id);
     if (!calopacket)
     {
