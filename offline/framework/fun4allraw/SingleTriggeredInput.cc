@@ -999,7 +999,7 @@ void SingleTriggeredInput::CreateDSTNodes(Event* evt)
       dstNode->addNode(detNode);
     }
     detNodeKeep = dynamic_cast<PHCompositeNode*>(iterDst.findFirst("PHCompositeNode", "PacketsKeep"));
-    if (!detNode)
+    if (!detNodeKeep)
     {
       detNodeKeep = new PHCompositeNode("PacketsKeep");
       dstNode->addNode(detNodeKeep);
