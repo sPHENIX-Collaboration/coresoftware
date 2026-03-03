@@ -7,7 +7,7 @@ void MbdRawHitV1::Reset()
 
 void MbdRawHitV1::Clear(Option_t* /*unused*/)
 {
-  std::cout << "clearing " << bpmt << std::endl;
+  //std::cout << "clearing " << bpmt << std::endl;
   bpmt = -1;
   badc = std::numeric_limits<float>::quiet_NaN();
   bttdc = std::numeric_limits<float>::quiet_NaN();

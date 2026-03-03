@@ -52,7 +52,12 @@ public:
    */
   void set_npmt(const Short_t ival) override
   {
-    npmt = ival;
+    if ( ival != MbdRawHits->GetEntries() )
+    {
+      std::cout << "ERROR, " << ival << " differs from " << MbdRawHits->GetEntries() << std::endl;
+      std::cout << " Setting npmt to " << MbdRawHits->GetEntries() << std::endl; 
+    }
+    npmt = MbdRawHits->GetEntries();
     return;
   }
 

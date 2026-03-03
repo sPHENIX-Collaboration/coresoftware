@@ -1391,11 +1391,16 @@ int MbdSig::FitTemplate( const Int_t sampmax )
   f_time = template_fcn->GetParameter(1);
   f_chi2 = template_fcn->GetChisquare();
   f_ndf = template_fcn->GetNDF();
+  Double_t chi2ndf = 1e9;
+  if ( f_ndf>0. )
+  {
+    chi2ndf = f_chi2/f_ndf;
+  }
 
   // Good fit
-  if ( (f_chi2/f_ndf) < 5. && f_ndf>6. )
+  if ( f_ndf>6. && chi2ndf<5. )
   {
-    h_chi2ndf->Fill( f_chi2/f_ndf );
+    h_chi2ndf->Fill( chi2ndf );
 
     _verbose = 0;
     return 1;
@@ -1417,8 +1422,8 @@ int MbdSig::FitTemplate( const Int_t sampmax )
 
     if ( _verbose )
     {
-      std::cout << "BADTIME " << _evt_counter << "\t" << _ch << "\t" << sampmax << "\t" << f_ampl << "\t" <<  f_time
-        << "\t" << f_chi2/f_ndf << std::endl;
+      std::cout << "BADFIT " << _evt_counter << "\t" << _ch << "\t" << sampmax << "\t" << f_ampl << "\t" <<  f_time
+        << "\t" << chi2ndf << std::endl;
       gSubPulse->Draw("ap");
       template_fcn->Draw("same");
       PadUpdate();
@@ -1449,10 +1454,14 @@ int MbdSig::FitTemplate( const Int_t sampmax )
     Double_t time2 = twotemplate_fcn->GetParameter(3);
     Double_t newchi2 = twotemplate_fcn->GetChisquare();
     Double_t newndf = twotemplate_fcn->GetNDF();
-    Double_t newchi2ndf = newchi2/newndf;
+    Double_t newchi2ndf = 0.;
+    if ( newndf>0.) 
+    {
+      newchi2ndf = newchi2/newndf;
+    }
 
     // bad two component fit, use original fit
-    if ( time2>15. || ampl1<0 || ampl2<0. || newchi2ndf>(f_chi2/f_ndf) )
+    if ( time2>15. || ampl1<0 || ampl2<0. || newchi2ndf>chi2ndf)
     {
       if (_verbose)
       {
@@ -1460,7 +1469,7 @@ int MbdSig::FitTemplate( const Int_t sampmax )
         PrintResiduals(gSubPulse,twotemplate_fcn);
       }
       f_fitmode = 3;
-      h_chi2ndf->Fill( f_chi2/f_ndf );
+      h_chi2ndf->Fill( chi2ndf );
       _verbose = 0;
       return 1;
     }
@@ -1481,7 +1490,7 @@ int MbdSig::FitTemplate( const Int_t sampmax )
     f_ndf = newndf;
 
     // poor fit
-    if ( _verbose && (f_chi2/f_ndf) > 5. && f_ndf>6. )
+    if ( _verbose && f_ndf>6. && (f_chi2/f_ndf) > 5. )
     {
       std::cout << "double fit high chi2/ndf " << f_chi2/f_ndf << std::endl;
       PrintResiduals(gSubPulse,twotemplate_fcn);

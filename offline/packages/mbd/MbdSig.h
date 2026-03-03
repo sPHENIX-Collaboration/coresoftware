@@ -44,7 +44,7 @@ class MbdSig
   Double_t GetIntegral() { return f_integral; }
   Double_t GetChi2() { return f_chi2; }
   Double_t GetNDF() { return f_ndf; }
-  Double_t GetChi2NDF() { return f_chi2/f_ndf; }
+  Double_t GetChi2NDF() { return (f_ndf > 0.) ? (f_chi2 / f_ndf) : std::numeric_limits<double>::quiet_NaN(); }
   UShort_t GetFitInfo() { return f_fitmode; }
 
   /**

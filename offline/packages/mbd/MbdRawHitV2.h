@@ -49,10 +49,11 @@ class MbdRawHitV2 : public MbdRawHit
   //! Store chi2/ndf (encoded in fitstat)
   void set_chi2ndf(const Double_t chi2ndf) override
   {
-    unsigned short us_chi2ndf = static_cast<unsigned short>( chi2ndf*100. );
-    if ( chi2ndf>40.95 )
+    UShort_t us_chi2ndf = 0;
+    if (std::isfinite(chi2ndf) && chi2ndf > 0.)
     {
-      us_chi2ndf = 4095;
+      const Double_t clipped = (chi2ndf > 40.95) ? 40.95 : chi2ndf;
+      us_chi2ndf = static_cast<UShort_t>(clipped * 100.);
     }
     fitstat &= 0xf000;
     fitstat |= us_chi2ndf;
