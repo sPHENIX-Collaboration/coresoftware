@@ -40,7 +40,29 @@ class MbdRawHit : public PHObject
     return MbdReturnCodes::MBD_INVALID_FLOAT;
   }
 
+  virtual Float_t get_chi2ndf() const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    return MbdReturnCodes::MBD_INVALID_FLOAT;
+  }
+
+  virtual UShort_t get_fitinfo() const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    return 0;
+  }
+
   virtual void set_pmt(const Short_t /*pmt*/, const Float_t /*adc*/, const Float_t /*ttdc*/, const Float_t /*qtdc*/)
+  {
+    PHOOL_VIRTUAL_WARNING;
+  }
+
+  virtual void set_chi2ndf(const Double_t /*chi2ndf*/)
+  {
+    PHOOL_VIRTUAL_WARNING;
+  }
+
+  virtual void set_fitinfo(const UShort_t /*fitinfo*/)
   {
     PHOOL_VIRTUAL_WARNING;
   }
