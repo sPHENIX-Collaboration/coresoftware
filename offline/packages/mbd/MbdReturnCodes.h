@@ -8,8 +8,9 @@
 
 namespace MbdReturnCodes
 {
-  const short MBD_INVALID_SHORT = std::numeric_limits<short>::min();  //-9999;
-  const int MBD_INVALID_INT = std::numeric_limits<int>::min();        //-9999;
+  const short MBD_INVALID_SHORT = std::numeric_limits<short>::min();
+  const unsigned short MBD_INVALID_USHORT = std::numeric_limits<unsigned short>::min();
+  const int MBD_INVALID_INT = std::numeric_limits<int>::min();
   const float MBD_INVALID_FLOAT = std::numeric_limits<float>::quiet_NaN();
 }  // namespace MbdReturnCodes
 

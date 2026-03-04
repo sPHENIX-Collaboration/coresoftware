@@ -124,6 +124,9 @@ class TpcCentralMembraneMatching : public SubsysReco
     m_stripePatternFile = stripePatternFile;
   }
 
+  void set_phiHistInRad(bool rad){ m_phiHist_in_rad = rad; }
+
+
   // void set_laminationFile(const std::string& filename)
   //{
   // m_lamfilename = filename;
@@ -155,6 +158,8 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   //! tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
+
+  bool m_phiHist_in_rad{true};
 
   //! CMFlashClusterContainer *m_corrected_CMcluster_map{nullptr};
   LaserClusterContainer *m_corrected_CMcluster_map{nullptr};

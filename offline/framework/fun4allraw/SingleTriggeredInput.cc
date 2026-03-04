@@ -26,7 +26,7 @@
 #include <utility>  // for pair
 #include <vector>
 
-SingleTriggeredInput::SingleTriggeredInput(const std::string &name)
+SingleTriggeredInput::SingleTriggeredInput(const std::string& name)
   : Fun4AllBase(name)
 {
   m_bclkarray.fill(std::numeric_limits<uint64_t>::max());
@@ -35,7 +35,7 @@ SingleTriggeredInput::SingleTriggeredInput(const std::string &name)
 
 SingleTriggeredInput::~SingleTriggeredInput()
 {
-  std::set<Event *> evtset;
+  std::set<Event*> evtset;
   for (auto& [pid, dq] : m_PacketEventDeque)
   {
     while (!dq.empty())
@@ -44,7 +44,7 @@ SingleTriggeredInput::~SingleTriggeredInput()
       dq.pop_front();
     }
   }
-  for (auto *evt : evtset)
+  for (auto* evt : evtset)
   {
     delete evt;
   }
@@ -64,7 +64,7 @@ bool SingleTriggeredInput::CheckFemDiffIdx(int pid, size_t index, const std::deq
     return false;
   }
 
-  Packet* pkt_prev = events[index-1]->getPacket(pid);
+  Packet* pkt_prev = events[index - 1]->getPacket(pid);
   Packet* pkt_curr = events[index]->getPacket(pid);
   if (!pkt_prev || !pkt_curr)
   {
@@ -73,7 +73,8 @@ bool SingleTriggeredInput::CheckFemDiffIdx(int pid, size_t index, const std::deq
     return false;
   }
 
-  auto get_majority_femclk = [](Packet* pkt) -> uint16_t {
+  auto get_majority_femclk = [](Packet* pkt) -> uint16_t
+  {
     int nmod = pkt->iValue(0, "NRMODULES");
     std::map<uint16_t, int> counts;
     for (int j = 0; j < nmod; ++j)
@@ -85,7 +86,9 @@ bool SingleTriggeredInput::CheckFemDiffIdx(int pid, size_t index, const std::deq
     {
       return std::numeric_limits<uint16_t>::max();
     }
-    return std::max_element(counts.begin(), counts.end(), [](const auto& a, const auto& b) { return a.second < b.second; })->first;
+    return std::max_element(counts.begin(), counts.end(), [](const auto& a, const auto& b)
+                            { return a.second < b.second; })
+        ->first;
   };
 
   uint16_t clk_prev = get_majority_femclk(pkt_prev);
@@ -108,38 +111,38 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
 {
   bad_indices.clear();
   shift = 0;
-  CurrentPoolLastDiffBad=false;
+  CurrentPoolLastDiffBad = false;
 
   if (std::equal(sebdiff.begin(), sebdiff.end(), gl1diff.begin()))
   {
     return true;
   }
 
-  //Finding intermittent corrupted data
+  // Finding intermittent corrupted data
   size_t n = sebdiff.size();
   std::vector<int> bad_diff_indices;
   for (size_t i = 0; i < n; ++i)
   {
-    if ( sebdiff[i] != gl1diff[i] )
+    if (sebdiff[i] != gl1diff[i])
     {
-      if ( !m_packetclk_copy_runs )
+      if (!m_packetclk_copy_runs)
       {
-        //backup procedure to recover stuck 16bit XMIT clock
-        size_t idxcheck =  i == 0  ? i+1 : i;
+        // backup procedure to recover stuck 16bit XMIT clock
+        size_t idxcheck = i == 0 ? i + 1 : i;
         bool passFemDiffCheckIdx = CheckFemDiffIdx(pid, idxcheck, m_PacketEventDeque[pid], gl1diff[idxcheck]);
-        if ( passFemDiffCheckIdx )
+        if (passFemDiffCheckIdx)
         {
           m_OverrideWithRepClock.insert(pid);
           continue;
         }
-      } 
+      }
       bad_diff_indices.push_back(i);
     }
   }
 
   if (bad_diff_indices.empty())
   {
-    if ( Verbosity() > 0 )
+    if (Verbosity() > 0)
     {
       std::cout << Name() << " recovered from bad XMIT clocks. Merging pool" << std::endl;
     }
@@ -147,14 +150,14 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
   }
 
   bool move_to_shift_algo = false;
-  if(bad_diff_indices.size() >=5)
+  if (bad_diff_indices.size() >= 5)
   {
     std::cout << std::endl;
     std::cout << "----------------- " << Name() << " -----------------" << std::endl;
     std::cout << "More than 5 diffs are bad.. try shifting algorithm" << std::endl;
     move_to_shift_algo = true;
   }
-  if(!move_to_shift_algo)
+  if (!move_to_shift_algo)
   {
     std::cout << std::endl;
     std::cout << "----------------- " << Name() << " -----------------" << std::endl;
@@ -164,23 +167,23 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
     int end = bad_diff_indices[idx] + bad_diff_indices.size();
 
     int length = end - start;
-    if(length<=0)
+    if (length <= 0)
     {
       std::cout << Name() << ": length of bad diffs is <=0. This should not happen... something very wrong. rejecting the pool" << std::endl;
       return false;
     }
-    if(length>=5)
+    if (length >= 5)
     {
       std::cout << Name() << ": length of bad diffs >=5 with bad_diff_indices.size() " << bad_diff_indices.size() << ". This should not have happened.. rejecting pool" << std::endl;
       return false;
     }
 
-    if(start==static_cast<int>(pooldepth - 1))
+    if (start == static_cast<int>(pooldepth - 1))
     {
       bad_indices.push_back(start);
-      CurrentPoolLastDiffBad= true;
+      CurrentPoolLastDiffBad = true;
     }
-    else if (start==0)
+    else if (start == 0)
     {
       if (PrevPoolLastDiffBad)
       {
@@ -202,14 +205,14 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
         }
       }
     }
-    else if (start < static_cast<int>(pooldepth - 1) && start >0)
+    else if (start < static_cast<int>(pooldepth - 1) && start > 0)
     {
-      if(length==1)
+      if (length == 1)
       {
         std::cout << Name() << ": Isolated bad diff[" << start << "] - rejecting pool" << std::endl;
         return false;
       }
-      if(length>=2)
+      if (length >= 2)
       {
         for (int j = start; j < end; ++j)
         {
@@ -219,7 +222,7 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
     }
     else
     {
-      std::cout << Name() << ": no categories assigned for length " << length << " and start / end " << start << " / " << end << " rejecting pool" << std::endl; 
+      std::cout << Name() << ": no categories assigned for length " << length << " and start / end " << start << " / " << end << " rejecting pool" << std::endl;
       return false;
     }
     size_t nbads = bad_indices.size();
@@ -234,14 +237,14 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
     return true;
   }
 
-  //Try shift 
-  if(!move_to_shift_algo)
+  // Try shift
+  if (!move_to_shift_algo)
   {
     std::cout << Name() << ": Unexpected shift flag = " << move_to_shift_algo << ". Something went wrong - rejecting pool" << std::endl;
     return false;
   }
-  
-  if(move_to_shift_algo)
+
+  if (move_to_shift_algo)
   {
     std::cout << Name() << ": Inconsistent diffs of " << bad_diff_indices.size() << ". Trying now shifting events to resynchronize" << std::endl;
   }
@@ -254,7 +257,7 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
   {
     if (sebdiff[i] != gl1diff[i - 1])
     {
-      match= false;
+      match = false;
       break;
     }
   }
@@ -270,7 +273,7 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
   {
     if (sebdiff[i] != gl1diff[i + 1])
     {
-      match= false;
+      match = false;
       break;
     }
   }
@@ -283,7 +286,7 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
   return false;
 }
 
-int SingleTriggeredInput::fileopen(const std::string &filenam)
+int SingleTriggeredInput::fileopen(const std::string& filenam)
 {
   std::cout << PHWHERE << "trying to open " << filenam << std::endl;
   if (IsOpen())
@@ -342,7 +345,7 @@ int SingleTriggeredInput::FillEventVector()
   int representative_pid = -1;
   for (int pid : m_PacketSet)
   {
-    if ( !m_PacketEventDeque[pid].empty() )
+    if (!m_PacketEventDeque[pid].empty())
     {
       allPacketEventDequeEmpty = false;
       break;
@@ -352,18 +355,19 @@ int SingleTriggeredInput::FillEventVector()
     m_bclkarray_map[pid][0] = tmp;
     m_bclkdiffarray_map[pid].fill(std::numeric_limits<uint64_t>::max());
 
-    static bool firstclockarray=true;
-    if(firstclockarray){
+    static bool firstclockarray = true;
+    if (firstclockarray)
+    {
       std::cout << "first clock call pid " << pid << " m_bclkarray_map[pid][0] : " << m_bclkarray_map[pid][0] << std::endl;
-      firstclockarray=false;
+      firstclockarray = false;
     }
 
-    if ( representative_pid == -1 ) 
+    if (representative_pid == -1)
     {
       representative_pid = pid;
     }
   }
-  if ( !allPacketEventDequeEmpty )
+  if (!allPacketEventDequeEmpty)
   {
     return 0;
   }
@@ -381,11 +385,11 @@ int SingleTriggeredInput::FillEventVector()
       if (gl1)
       {
         int nskip = gl1->GetGl1SkipArray()[i];
-        if(nskip >0) 
+        if (nskip > 0)
         {
           skiptrace = true;
         }
-        
+
         while (nskip > 0)
         {
           Event* skip_evt = GetEventIterator()->getNextEvent();
@@ -399,7 +403,7 @@ int SingleTriggeredInput::FillEventVector()
             }
             skip_evt = GetEventIterator()->getNextEvent();
           }
-          
+
           if (skip_evt->getEvtType() != DATAEVENT)
           {
             delete skip_evt;
@@ -434,7 +438,7 @@ int SingleTriggeredInput::FillEventVector()
           nskip--;
         }
 
-        if(skiptrace)
+        if (skiptrace)
         {
           evt = GetEventIterator()->getNextEvent();
           while (!evt)
@@ -468,12 +472,12 @@ int SingleTriggeredInput::FillEventVector()
           int gl1pid = Gl1Input()->m_bclkdiffarray_map.begin()->first;
           uint64_t gl1_diff = gl1->m_bclkdiffarray_map[gl1pid][i];
 
-          bool clockconsistency=true;
+          bool clockconsistency = true;
           if (seb_diff != gl1_diff)
           {
-            clockconsistency=false;
+            clockconsistency = false;
             int clockconstcount = 0;
-            while(!clockconsistency && clockconstcount<5)
+            while (!clockconsistency && clockconstcount < 5)
             {
               std::cout << Name() << ": Still inconsistent clock diff after Gl1 drop. gl1diff vs sebdiff : " << gl1_diff << " vs " << seb_diff << std::endl;
               delete pkt;
@@ -500,9 +504,9 @@ int SingleTriggeredInput::FillEventVector()
               uint64_t seb_diff_next = m_bclkdiffarray_map[representative_pid][i];
               uint64_t gl1_diff_next = gl1->m_bclkdiffarray_map[gl1pid][i];
               std::cout << "seb_diff_next : " << seb_diff_next << " , gl1_diff_next : " << gl1_diff_next << std::endl;
-              if(seb_diff_next == gl1_diff_next)
+              if (seb_diff_next == gl1_diff_next)
               {
-                clockconsistency=true;
+                clockconsistency = true;
                 std::cout << Name() << " : recovered by additional skip in skiptrace" << std::endl;
               }
               clockconstcount++;
@@ -536,22 +540,22 @@ int SingleTriggeredInput::FillEventVector()
       continue;
     }
     evt->convert();
-    
+
     if (firstcall)
     {
       std::cout << "Creating DSTs first call" << std::endl;
       CreateDSTNodes(evt);
       int run = evt->getRunNumber();
-      m_packetclk_copy_runs = (run >= 44000 && run < 56079); 
+      m_packetclk_copy_runs = (run >= 44000 && run < 56079);
       firstcall = false;
     }
 
     for (int pid : m_PacketSet)
     {
-      Event *thisevt = evt;
+      Event* thisevt = evt;
       if (m_PacketShiftOffset[pid] == 1)
       {
-        if (i==0)
+        if (i == 0)
         {
           thisevt = m_PacketEventBackup[pid];
           m_ShiftedEvents[pid] = evt;
@@ -560,13 +564,13 @@ int SingleTriggeredInput::FillEventVector()
         {
           thisevt = m_ShiftedEvents[pid];
           m_ShiftedEvents[pid] = evt;
-          if (i == pooldepth -1)
+          if (i == pooldepth - 1)
           {
             m_PacketEventBackup[pid] = evt;
           }
         }
       }
-      
+
       Packet* pkt = thisevt->getPacket(pid);
       if (!pkt)
       {
@@ -594,7 +598,7 @@ int SingleTriggeredInput::FillEventVector()
   return minSize;
 }
 
-uint64_t SingleTriggeredInput::GetClock(Event *evt, int pid)
+uint64_t SingleTriggeredInput::GetClock(Event* evt, int pid)
 {
   Packet* packet = evt->getPacket(pid);
   if (!packet)
@@ -625,20 +629,19 @@ void SingleTriggeredInput::FillPacketClock(Event* evt, Packet* pkt, size_t event
   auto& clkarray = m_bclkarray_map[pid];
   auto& diffarray = m_bclkdiffarray_map[pid];
 
-
   // Special handling for FEM-copied clocks
   if (m_packetclk_copy_runs && m_CorrectCopiedClockPackets.contains(pid))
   {
     if (event_index == 0)
     {
-      clkarray[event_index+1] = m_PreviousValidBCOMap[pid];
+      clkarray[event_index + 1] = m_PreviousValidBCOMap[pid];
     }
-    else if (event_index >=1) 
+    else if (event_index >= 1)
     {
       Event* shifted_evt = m_PacketEventDeque[pid][event_index - 1];
-      clkarray[event_index+1] = GetClock(shifted_evt, pid);
+      clkarray[event_index + 1] = GetClock(shifted_evt, pid);
     }
-    
+
     uint64_t prev = clkarray[event_index];
     uint64_t curr = clkarray[event_index + 1];
 
@@ -654,7 +657,6 @@ void SingleTriggeredInput::FillPacketClock(Event* evt, Packet* pkt, size_t event
     return;
   }
 
-
   uint64_t clk = GetClock(evt, pid);
   if (clk == std::numeric_limits<uint64_t>::max())
   {
@@ -665,7 +667,7 @@ void SingleTriggeredInput::FillPacketClock(Event* evt, Packet* pkt, size_t event
   clkarray[event_index + 1] = clk;
 
   uint64_t prev = clkarray[event_index];
-  if(prev == std::numeric_limits<uint64_t>::max())
+  if (prev == std::numeric_limits<uint64_t>::max())
   {
     static std::unordered_set<int> warned;
 
@@ -689,7 +691,7 @@ void SingleTriggeredInput::FillPacketClock(Event* evt, Packet* pkt, size_t event
   {
     int packet_number = pkt->iValue(0);
     gl1->SetPacketNumbers(gl1->GetCurrentPacketNumber(), packet_number);
-    if ( event_index < pooldepth )
+    if (event_index < pooldepth)
     {
       gl1->SetGl1PacketNumber(event_index, packet_number);
     }
@@ -697,7 +699,7 @@ void SingleTriggeredInput::FillPacketClock(Event* evt, Packet* pkt, size_t event
     int skip_count = 0;
     if (gl1->GetLastPacketNumber() != 0)
     {
-      int diff = gl1->GetCurrentPacketNumber() - gl1->GetLastPacketNumber() ;
+      int diff = gl1->GetCurrentPacketNumber() - gl1->GetLastPacketNumber();
       skip_count = diff - 1;
     }
 
@@ -715,7 +717,8 @@ void SingleTriggeredInput::FillPool()
     return;
   }
 
-  bool all_packets_bad = !m_PacketAlignmentProblem.empty() && std::all_of(m_PacketAlignmentProblem.begin(), m_PacketAlignmentProblem.end(), [](const std::pair<const int, bool> &entry) -> bool { return entry.second;});
+  bool all_packets_bad = !m_PacketAlignmentProblem.empty() && std::all_of(m_PacketAlignmentProblem.begin(), m_PacketAlignmentProblem.end(), [](const std::pair<const int, bool>& entry) -> bool
+                                                                          { return entry.second; });
   if (all_packets_bad)
   {
     std::cout << Name() << ": ALL packets are marked as bad. Stop combining for this SEB." << std::endl;
@@ -738,9 +741,8 @@ void SingleTriggeredInput::FillPool()
       int gl1pid = Gl1Input()->m_bclkdiffarray_map.begin()->first;
       const auto& gl1diff = Gl1Input()->m_bclkdiffarray_map.at(gl1pid);
 
-      bool allgl1max = std::all_of(gl1diff.begin(), gl1diff.end(), [](uint64_t val) {
-          return val == std::numeric_limits<uint64_t>::max();
-        });
+      bool allgl1max = std::all_of(gl1diff.begin(), gl1diff.end(), [](uint64_t val)
+                                   { return val == std::numeric_limits<uint64_t>::max(); });
       if (allgl1max)
       {
         std::cout << Name() << " : GL1 clock diffs all filled with max 64 bit values for PID " << gl1pid << " return and try next pool" << std::endl;
@@ -751,13 +753,13 @@ void SingleTriggeredInput::FillPool()
       for (const auto& [pid, sebdiff] : m_bclkdiffarray_map)
       {
         size_t packetpoolsize = m_PacketEventDeque[pid].size();
-        if(packetpoolsize==0)
+        if (packetpoolsize == 0)
         {
           std::cout << Name() << ": packet pool size is zero.... something is wrong" << std::endl;
           return;
         }
 
-        if(m_PacketAlignmentProblem[pid])
+        if (m_PacketAlignmentProblem[pid])
         {
           continue;
         }
@@ -768,22 +770,23 @@ void SingleTriggeredInput::FillPool()
         bool PrevPoolLastDiffBad = m_PrevPoolLastDiffBad[pid];
 
         bool aligned = false;
-        if( packetpoolsize < pooldepth && FilesDone() )
+        if (packetpoolsize < pooldepth && FilesDone())
         {
           aligned = true;
         }
-        else 
+        else
         {
           aligned = CheckPoolAlignment(pid, sebdiff, gl1diff, bad_indices, shift, CurrentPoolLastDiffBad, PrevPoolLastDiffBad);
         }
-        
+
         if (aligned)
         {
           m_PrevPoolLastDiffBad[pid] = CurrentPoolLastDiffBad;
           if (!bad_indices.empty())
           {
             std::cout << Name() << ": Packet " << pid << " has bad indices: ";
-            for (int bi : bad_indices){
+            for (int bi : bad_indices)
+            {
               std::cout << bi << " ";
               m_DitchPackets[pid].insert(bi);
             }
@@ -795,12 +798,13 @@ void SingleTriggeredInput::FillPool()
               uint64_t gl1_clk = Gl1Input()->m_bclkarray_map[gl1pid][i];
               uint64_t seb_clk = m_bclkarray_map[pid][i];
               std::cout << "pool index i " << i << ", gl1 / seb : " << gl1_clk << " / " << seb_clk;
-              if(i<pooldepth){
+              if (i < pooldepth)
+              {
                 uint64_t gl1_diff = Gl1Input()->m_bclkdiffarray_map[gl1pid][i];
                 uint64_t seb_diff = m_bclkdiffarray_map[pid][i];
                 std::cout << " -> diff of gl1 vs seb : " << gl1_diff << " " << seb_diff << std::endl;
               }
-              else if(i==pooldepth)
+              else if (i == pooldepth)
               {
                 std::cout << std::endl;
               }
@@ -810,11 +814,11 @@ void SingleTriggeredInput::FillPool()
           if (shift == -1)
           {
             std::cout << Name() << ": Packet " << pid << " shifted by -1 with dropping the first seb event" << std::endl;
-            if(m_PacketShiftOffset[pid] == -1)
+            if (m_PacketShiftOffset[pid] == -1)
             {
               std::cout << "Packet " << pid << " requires an additional shift -1. Lets not handle this for the moment.. stop combining" << std::endl;
               m_PacketAlignmentProblem[pid] = true;
-            } 
+            }
 
             if (!m_PacketEventDeque[pid].empty())
             {
@@ -828,12 +832,12 @@ void SingleTriggeredInput::FillPool()
 
             for (size_t i = 0; i < packetpoolsize - 1; ++i)
             {
-              m_bclkarray_map[pid][i] = m_bclkarray_map[pid][i+1];
+              m_bclkarray_map[pid][i] = m_bclkarray_map[pid][i + 1];
             }
 
             for (size_t i = 0; i < packetpoolsize; ++i)
             {
-              m_bclkdiffarray_map[pid][i] = ComputeClockDiff(m_bclkarray_map[pid][i+1], m_bclkarray_map[pid][i]);
+              m_bclkdiffarray_map[pid][i] = ComputeClockDiff(m_bclkarray_map[pid][i + 1], m_bclkarray_map[pid][i]);
             }
             Event* evt = GetEventIterator()->getNextEvent();
             if (evt)
@@ -861,7 +865,7 @@ void SingleTriggeredInput::FillPool()
           else if (shift == 1)
           {
             std::cout << Name() << ": Packet " << pid << " requires shift +1 (insert dummy at front)" << std::endl;
-            
+
             if (m_packetclk_copy_runs)
             {
               std::cout << Name() << " : runs where clocks are copied from the first XMIT. Checking FEM clock diff" << std::endl;
@@ -879,7 +883,7 @@ void SingleTriggeredInput::FillPool()
               std::cout << Name() << " : Packet identified as misaligned also with FEMs. Do normal recovery process" << std::endl;
             }
 
-            if(m_PacketShiftOffset[pid] == 1)
+            if (m_PacketShiftOffset[pid] == 1)
             {
               std::cout << "Packet " << pid << " requires an additional shift +1. Lets not handle this for the moment.. stop combining" << std::endl;
               m_PacketAlignmentProblem[pid] = true;
@@ -887,11 +891,11 @@ void SingleTriggeredInput::FillPool()
 
             for (size_t i = pooldepth; i > 0; --i)
             {
-              m_bclkarray_map[pid][i] = m_bclkarray_map[pid][i-1];
+              m_bclkarray_map[pid][i] = m_bclkarray_map[pid][i - 1];
             }
-            for (size_t i = 1 ; i < pooldepth; ++i)
+            for (size_t i = 1; i < pooldepth; ++i)
             {
-              m_bclkdiffarray_map[pid][i] = ComputeClockDiff(m_bclkarray_map[pid][i+1], m_bclkarray_map[pid][i]);
+              m_bclkdiffarray_map[pid][i] = ComputeClockDiff(m_bclkarray_map[pid][i + 1], m_bclkarray_map[pid][i]);
             }
 
             m_bclkarray_map[pid][0] = 0;
@@ -901,7 +905,7 @@ void SingleTriggeredInput::FillPool()
             if (!m_PacketEventDeque[pid].empty())
             {
               m_PacketEventBackup[pid] = m_PacketEventDeque[pid].back();
-              Event* dummy_event = m_PacketEventDeque[pid][0]; 
+              Event* dummy_event = m_PacketEventDeque[pid][0];
               m_PacketEventDeque[pid].push_front(dummy_event);
               m_PacketEventDeque[pid].pop_back();
             }
@@ -924,12 +928,13 @@ void SingleTriggeredInput::FillPool()
             uint64_t gl1_clk = Gl1Input()->m_bclkarray_map[gl1pid][i];
             uint64_t seb_clk = m_bclkarray_map[pid][i];
             std::cout << "pool index i " << i << ", gl1 / seb : " << gl1_clk << " / " << seb_clk;
-            if(i<pooldepth){
+            if (i < pooldepth)
+            {
               uint64_t gl1_diff = Gl1Input()->m_bclkdiffarray_map[gl1pid][i];
               uint64_t seb_diff = m_bclkdiffarray_map[pid][i];
               std::cout << " -- diff of gl1 vs seb : " << gl1_diff << " " << seb_diff << std::endl;
             }
-            else if(i==pooldepth)
+            else if (i == pooldepth)
             {
               std::cout << std::endl;
             }
@@ -944,10 +949,10 @@ void SingleTriggeredInput::FillPool()
           if (m_PacketAlignmentFailCount[pid] >= m_max_alignment_retries)
           {
             std::cout << Name() << ": Max retries reached — permanently ditching packet " << pid << std::endl;
-            m_PacketAlignmentFailCount[pid] = 0; 
+            m_PacketAlignmentFailCount[pid] = 0;
             m_PacketAlignmentProblem[pid] = true;
           }
-          
+
           m_PrevPoolLastDiffBad[pid] = false;
         }
       }
@@ -956,7 +961,7 @@ void SingleTriggeredInput::FillPool()
   return;
 }
 
-void SingleTriggeredInput::CreateDSTNodes(Event *evt)
+void SingleTriggeredInput::CreateDSTNodes(Event* evt)
 {
   std::string CompositeNodeName = "Packets";
   if (KeepMyPackets())
@@ -964,31 +969,61 @@ void SingleTriggeredInput::CreateDSTNodes(Event *evt)
     CompositeNodeName = "PacketsKeep";
   }
   PHNodeIterator iter(m_topNode);
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     dstNode = new PHCompositeNode("DST");
     m_topNode->addNode(dstNode);
   }
   PHNodeIterator iterDst(dstNode);
-  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", CompositeNodeName));
-  if (!detNode)
+  PHCompositeNode* detNode{nullptr};
+  PHCompositeNode* detNodeKeep{nullptr};
+  if (m_KeepPacketSet.empty())
   {
-    detNode = new PHCompositeNode(CompositeNodeName);
-    dstNode->addNode(detNode);
+    detNode = dynamic_cast<PHCompositeNode*>(iterDst.findFirst("PHCompositeNode", CompositeNodeName));
+    if (!detNode)
+    {
+      detNode = new PHCompositeNode(CompositeNodeName);
+      dstNode->addNode(detNode);
+    }
   }
-  std::vector<Packet *> pktvec = evt->getPacketVector();
-  for (auto *piter : pktvec)
+  else
+  {
+    // if we want to keep a few packets, we need two detNodes, Packet and PacketKeep
+    // this construct here allows for the KeepMyPackets flag to take effect, then both
+    // node pointers detNode and detNodeKeep point to the same (so KeepMyPackets has precedence)
+    detNode = dynamic_cast<PHCompositeNode*>(iterDst.findFirst("PHCompositeNode", CompositeNodeName));
+    if (!detNode)
+    {
+      detNode = new PHCompositeNode(CompositeNodeName);
+      dstNode->addNode(detNode);
+    }
+    detNodeKeep = dynamic_cast<PHCompositeNode*>(iterDst.findFirst("PHCompositeNode", "PacketsKeep"));
+    if (!detNodeKeep)
+    {
+      detNodeKeep = new PHCompositeNode("PacketsKeep");
+      dstNode->addNode(detNodeKeep);
+    }
+  }
+
+  std::vector<Packet*> pktvec = evt->getPacketVector();
+  for (auto* piter : pktvec)
   {
     int packet_id = piter->getIdentifier();
     m_PacketSet.insert(packet_id);
-    std::string PacketNodeName = std::to_string(packet_id);
-    CaloPacket *calopacket = findNode::getClass<CaloPacket>(detNode, PacketNodeName);
+    CaloPacket* calopacket = findNode::getClass<CaloPacket>(detNode, packet_id);
     if (!calopacket)
     {
       calopacket = new CaloPacketv1();
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(calopacket, PacketNodeName, "PHObject");
-      detNode->addNode(newNode);
+      PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(calopacket, packet_id, "PHObject");
+      if (m_KeepPacketSet.contains(packet_id))
+      {
+        detNodeKeep->addNode(newNode);
+      }
+      else
+      {
+        detNode->addNode(newNode);
+      }
     }
     m_PacketShiftOffset.try_emplace(packet_id, 0);
     delete piter;
@@ -1031,15 +1066,16 @@ bool SingleTriggeredInput::FemClockAlignment(int pid, const std::deque<Event*>& 
     }
 
     int majority_clk = std::max_element(
-        clk_count.begin(), clk_count.end(),
-        [](const auto& a, const auto& b) { return a.second < b.second; })->first;
+                           clk_count.begin(), clk_count.end(),
+                           [](const auto& a, const auto& b)
+                           { return a.second < b.second; })
+                           ->first;
 
     if (clk_count[majority_clk] < 2)
     {
       std::cout << Name() << ": FemClockAlignment — no majority FEM clocks for packet " << pid << " at pool index " << i << std::endl;
       return false;
     }
-
 
     if (i >= 1 && prev_clk != std::numeric_limits<uint64_t>::max() && gl1diff[i] != std::numeric_limits<uint64_t>::max())
     {
@@ -1059,9 +1095,9 @@ bool SingleTriggeredInput::FemClockAlignment(int pid, const std::deque<Event*>& 
   return true;
 }
 
-int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt)
+int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket* pkt)
 {
-  CaloPacket *calopkt = dynamic_cast<CaloPacket *>(pkt);
+  CaloPacket* calopkt = dynamic_cast<CaloPacket*>(pkt);
   if (!calopkt)
   {
     return 0;
@@ -1099,7 +1135,7 @@ int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt)
         }
       }
     }
-    else 
+    else
     {
       for (int j = 0; j < nrModules; j++)
       {
@@ -1147,7 +1183,7 @@ int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt)
       for (const auto iterA : ClockMap)
       {
         std::cout << "Clock : 0x" << std::hex << iterA.first << std::dec
-                 << " shows up " << iterA.second << " times" << std::endl;
+                  << " shows up " << iterA.second << " times" << std::endl;
       }
     }
     return -1;
@@ -1158,8 +1194,8 @@ int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt)
 
 void SingleTriggeredInput::dumpdeque()
 {
-  const auto *iter1 = clkdiffbegin();
-  const auto *iter2 = Gl1Input()->clkdiffbegin();
+  const auto* iter1 = clkdiffbegin();
+  const auto* iter2 = Gl1Input()->clkdiffbegin();
   while (iter1 != clkdiffend())
   {
     std::cout << Name() << " clk: 0x" << std::hex << *iter1
@@ -1191,11 +1227,11 @@ int SingleTriggeredInput::ReadEvent()
     std::cout << "deque size: " << size << std::endl;
   }
 
-  auto *ref_evt = m_PacketEventDeque.begin()->second.front();
+  auto* ref_evt = m_PacketEventDeque.begin()->second.front();
   RunNumber(ref_evt->getRunNumber());
 
   uint64_t event_number = ref_evt->getEvtSequence();
-  if(event_number % 10000==0)
+  if (event_number % 10000 == 0)
   {
     std::cout << "processed events : " << event_number << std::endl;
   }
@@ -1204,12 +1240,13 @@ int SingleTriggeredInput::ReadEvent()
 
   bool all_packets_unshifted = std::all_of(
       m_PacketShiftOffset.begin(), m_PacketShiftOffset.end(),
-      [](const std::pair<int, int>& p) { return p.second == 0; });
+      [](const std::pair<int, int>& p)
+      { return p.second == 0; });
 
   std::set<Event*> events_to_delete;
   for (auto& [pid, dq] : m_PacketEventDeque)
   {
-    if(m_PacketAlignmentProblem[pid]) 
+    if (m_PacketAlignmentProblem[pid])
     {
       continue;
     }
@@ -1225,7 +1262,7 @@ int SingleTriggeredInput::ReadEvent()
       return -1;
     }
 
-    CaloPacket *newhit = findNode::getClass<CaloPacket>(m_topNode, packet_id);
+    CaloPacket* newhit = findNode::getClass<CaloPacket>(m_topNode, packet_id);
     newhit->Reset();
     if (m_DitchPackets.contains(packet_id) && m_DitchPackets[packet_id].contains(0))
     {
@@ -1253,7 +1290,7 @@ int SingleTriggeredInput::ReadEvent()
     {
       uint64_t prev_packet_clock = m_PreviousValidBCOMap[packet_id];
       newhit->setBCO(prev_packet_clock);
-      m_PreviousValidBCOMap[packet_id] = GetClock(evt,packet_id);
+      m_PreviousValidBCOMap[packet_id] = GetClock(evt, packet_id);
     }
     else
     {
@@ -1292,7 +1329,7 @@ int SingleTriggeredInput::ReadEvent()
     int iret = FemEventNrClockCheck(newhit);
     if (iret < 0)
     {
-      std::cout << Name() <<" : failed on FemEventNrClockCheck reset calo packet " << std::endl;
+      std::cout << Name() << " : failed on FemEventNrClockCheck reset calo packet " << std::endl;
       newhit->Reset();
     }
 
@@ -1302,7 +1339,7 @@ int SingleTriggeredInput::ReadEvent()
     }
   }
 
-  for(Event *evtdelete : events_to_delete)
+  for (Event* evtdelete : events_to_delete)
   {
     delete evtdelete;
   }

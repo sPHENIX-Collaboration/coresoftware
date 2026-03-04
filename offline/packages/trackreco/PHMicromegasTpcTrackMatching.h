@@ -42,13 +42,13 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   void set_pt_cut( const float pt) { _pt_cut = pt; }
   void set_dphi_cut( const float dphi) { _dphi_cut = dphi; }
   void SetIteration(int iter) { _n_iteration = iter; }
-
+  void set_clustermap_name(const std::string& name) { _clustermap_name = name; }
   void zeroField(const bool flag) { _zero_field = flag; }
   int Init(PHCompositeNode* topNode) override;
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode*) override;
   int End(PHCompositeNode*) override;
-
+  
   // deprecated calls
   inline void set_sc_calib_mode(const bool) {}
   inline void set_collision_rate(const double) {}
@@ -89,6 +89,8 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   TrackSeedContainer* _tpc_track_map{nullptr};
   TrackSeedContainer* _si_track_map{nullptr};
 
+  std::string _clustermap_name = "TRKR_CLUSTER";
+  
   //! default rphi search window for each layer
   std::array<double, _n_mm_layers> _rphi_search_win{0.25, 13.0};
 

@@ -889,12 +889,12 @@ int PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
   }
   else
   {
-    _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+    _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, _clustermap_name);
   }
 
   if (!_cluster_map)
   {
-    std::cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
+    std::cerr << PHWHERE << " ERROR: Can't find node " << _clustermap_name << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

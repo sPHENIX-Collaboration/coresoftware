@@ -17,6 +17,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 class Event;
@@ -58,15 +59,16 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual std::array<uint64_t, pooldepth>::const_iterator beginclock() { return m_bclkarray.begin(); }
   virtual void KeepPackets() { m_KeepPacketsFlag = true; }
   virtual bool KeepMyPackets() const { return m_KeepPacketsFlag; }
+  virtual void KeepPacket(const int packetnum) { m_KeepPacketSet.insert(packetnum); }
   void topNode(PHCompositeNode *topNode) { m_topNode = topNode; }
   PHCompositeNode *topNode() { return m_topNode; }
   virtual void FakeProblemEvent(const int ievent) { m_ProblemEvent = ievent; }
   virtual int FemEventNrClockCheck(OfflinePacket *calopkt);
   void dumpdeque();
   int checkfirstsebevent();
-  virtual bool CheckFemDiffIdx(int pid, size_t index, const std::deque<Event*>& events, uint64_t gl1diffidx);
-  virtual bool CheckPoolAlignment(int pid, const std::array<uint64_t, pooldepth>& sebdiff, const std::array<uint64_t, pooldepth>& gl1diff, std::vector<int>& bad_indices, int& shift, bool& CurrentPoolLastDiffBad, bool PrevPoolLastDiffBad);
-  virtual bool FemClockAlignment(int pid, const std::deque<Event*>& events, const std::array<uint64_t, pooldepth>& gl1diff);
+  virtual bool CheckFemDiffIdx(int pid, size_t index, const std::deque<Event *> &events, uint64_t gl1diffidx);
+  virtual bool CheckPoolAlignment(int pid, const std::array<uint64_t, pooldepth> &sebdiff, const std::array<uint64_t, pooldepth> &gl1diff, std::vector<int> &bad_indices, int &shift, bool &CurrentPoolLastDiffBad, bool PrevPoolLastDiffBad);
+  virtual bool FemClockAlignment(int pid, const std::deque<Event *> &events, const std::array<uint64_t, pooldepth> &gl1diff);
 
  protected:
   PHCompositeNode *m_topNode{nullptr};
@@ -76,16 +78,15 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   // the accompanying diff to the previous beam clock with this event, so any mismatch
   // gives us the event index in the deque which is off
   std::deque<Event *> m_EventDeque;
-  std::map<int, std::deque<Event*>> m_PacketEventDeque;
-  std::map<int, Event*> m_PacketEventBackup;
+  std::map<int, std::deque<Event *>> m_PacketEventDeque;
+  std::map<int, Event *> m_PacketEventBackup;
   std::map<int, int> m_PacketShiftOffset;
   std::array<uint64_t, pooldepth + 1> m_bclkarray{};  // keep the last bco from previous loop
   std::array<uint64_t, pooldepth> m_bclkdiffarray{};
   std::map<int, std::array<uint64_t, pooldepth + 1>> m_bclkarray_map;
-  std::map<int, std::array<uint64_t, pooldepth>>     m_bclkdiffarray_map;
+  std::map<int, std::array<uint64_t, pooldepth>> m_bclkdiffarray_map;
   std::set<int> m_PacketSet;
   static uint64_t ComputeClockDiff(uint64_t curr, uint64_t prev) { return (curr - prev) & 0xFFFFFFFF; }
-
 
  private:
   Eventiterator *m_EventIterator{nullptr};
@@ -104,6 +105,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   bool firstclockcheck{true};
   bool m_KeepPacketsFlag{false};
   bool m_packetclk_copy_runs{false};
+  int64_t eventcounter{0};
   std::set<int> m_CorrectCopiedClockPackets;
   std::map<int, std::set<int>> m_DitchPackets;
   std::set<int> m_FEMEventNrSet;
@@ -112,7 +114,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   std::map<int, bool> m_PacketAlignmentProblem;
   std::map<int, bool> m_PrevPoolLastDiffBad;
   std::map<int, uint64_t> m_PreviousValidBCOMap;
-  long long eventcounter{0};
+  std::unordered_set<int> m_KeepPacketSet;
 };
 
 #endif

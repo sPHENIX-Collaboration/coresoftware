@@ -166,7 +166,7 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
       }
       float new_energy = raw_energy - UE;
       // if a tower is masked, leave it at zero
-      if (tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2())
+      if (!tower->get_isGood())
       {
         new_energy = 0;
       }
@@ -259,7 +259,7 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
       }
       float new_energy = raw_energy - UE;
       // if a tower is masked, leave it at zero
-      if (tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2())
+      if (!tower->get_isGood())
       {
         new_energy = 0;
       }
@@ -348,7 +348,7 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
       }
       float new_energy = raw_energy - UE;
       // if a tower is masked, leave it at zero
-      if (tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2())
+      if (!tower->get_isGood())
       {
         new_energy = 0;
       }

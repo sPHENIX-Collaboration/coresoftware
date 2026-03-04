@@ -20,7 +20,7 @@ class TowerInfoContainerv3;
 
 class CaloTowerBuilder : public SubsysReco
 {
- public:
+public:
   explicit CaloTowerBuilder(const std::string &name = "CaloTowerBuilder");
   ~CaloTowerBuilder() override;
 
@@ -129,7 +129,7 @@ class CaloTowerBuilder : public SubsysReco
 
   CaloWaveformProcessing *get_WaveformProcessing() { return WaveformProcessing; }
 
- private:
+private:
   int process_sim();
   bool skipChannel(int ich, int pid);
   static bool isSZS(float time, float chi2);

@@ -4,6 +4,9 @@
 #include <trackbase/TrkrDefs.h>
 #include <Acts/Definitions/Algebra.hpp>
 
+#include <tpc/TpcClusterMover.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 #include <utility>
 
 class SvtxTrack;
@@ -13,6 +16,13 @@ class TrkrClusterContainer;
 class GlobalVertex;
 namespace TrackAnalysisUtils
 {
+
+  struct TrackFitResiduals
+  {
+    std::map<TrkrDefs::cluskey, Acts::Vector2> local_residuals;
+    std::map<TrkrDefs::cluskey, Acts::Vector3> global_residuals;
+  };
+
   /// Returns DCA as .first and uncertainty on DCA as .second
   using DCA = std::pair<float, float>;
   using DCAPair = std::pair<DCA, DCA>;
@@ -28,9 +38,12 @@ namespace TrackAnalysisUtils
                         // to pass these from the geometry object, which keeps the dependencies
                         // of this helper class minimal. This will also help us catch any changes
                         // when/if the tpc geometry changes in the future. This is to get us going
-                        float thickness_per_region[4]);
+                        const float thickness_per_region[4]);
   float calc_dedx(TrackSeed* tpcseed, TrkrClusterContainer* clustermap, ActsGeometry* tgeometry,
-                  float thickness_per_region[4]);
+                  float const thickness_per_region[4]);
+  TrackFitResiduals
+  get_residuals(SvtxTrack* track, TrkrClusterContainer* clustermap,
+                PHCompositeNode* topNode);
 
 };  // namespace TrackAnalysisUtils
 

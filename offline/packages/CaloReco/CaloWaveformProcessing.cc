@@ -135,6 +135,7 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(con
         val.push_back(std::numeric_limits<float>::quiet_NaN());
       }
       val.push_back(0);
+      val.push_back(0);
       fit_values.push_back(val);
     }
     else
@@ -177,6 +178,7 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(con
           val.push_back(std::numeric_limits<float>::quiet_NaN());
         }
         val.push_back(0);
+        val.push_back(0);
         fit_values.push_back(val);
       }
       else
@@ -195,12 +197,13 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(con
           }
           val.push_back(2000);
           val.push_back(0);
+          val.push_back(0);
           fit_values.push_back(val);
         }
         else
         {
           float v_diff = v[1] - v[0];
-          std::vector<float> val1{v_diff, std::numeric_limits<float>::quiet_NaN(), v[1], std::numeric_limits<float>::quiet_NaN(), 0};
+          std::vector<float> val1{v_diff, std::numeric_limits<float>::quiet_NaN(), v[1], std::numeric_limits<float>::quiet_NaN(), 0, 0};
           fit_values.push_back(val1);
         }
       }

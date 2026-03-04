@@ -23,6 +23,7 @@ class PHIODataNode : public PHDataNode<T>
   T *operator*() { return this->getData(); }
   PHIODataNode(T *, const std::string &);
   PHIODataNode(T *, const std::string &, const std::string &);
+  PHIODataNode(T *, const int, const std::string &);
   virtual ~PHIODataNode() = default;
   typedef PHTypedNodeIterator<T> iterator;
   void BufferSize(int size) { buffersize = size; }
@@ -48,6 +49,16 @@ template <class T>
 PHIODataNode<T>::PHIODataNode(T *d, const std::string &n,
                               const std::string &objtype)
   : PHDataNode<T>(d, n, objtype)
+{
+  this->type = "PHIODataNode";
+  TObject *TO = static_cast<TObject *>(d);
+  this->objectclass = TO->GetName();
+}
+
+template <class T>
+PHIODataNode<T>::PHIODataNode(T *d, const int id,
+                              const std::string &objtype)
+  : PHDataNode<T>(d, std::to_string(id), objtype)
 {
   this->type = "PHIODataNode";
   TObject *TO = static_cast<TObject *>(d);

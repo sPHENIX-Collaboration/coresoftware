@@ -35,7 +35,9 @@ class MbdCalib
   float get_tq0(const int ipmt) const { return _tqfit_t0mean[ipmt]; }
   float get_t0corr() const { return _t0corrmean; }
   float get_ped(const int ifeech) const { return _pedmean[ifeech]; }
+  float get_pederr(const int ifeech) const { return _pedmeanerr[ifeech]; }
   float get_pedrms(const int ifeech) const { return _pedsigma[ifeech]; }
+  float get_pedrmserr(const int ifeech) const { return _pedsigmaerr[ifeech]; }
   int   get_sampmax(const int ifeech) const { return _sampmax[ifeech]; }
   int   get_status(const int ifeech) const { return _mbdstatus[ifeech]; }
 

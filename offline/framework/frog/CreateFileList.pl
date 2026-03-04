@@ -64,7 +64,7 @@ my %proddesc = (
     "23" => "cosmic field off",
     "24" => "AMPT",
     "25" => "EPOS",
-    "26" => "JS pythia8 Detroit",
+    "26" => "JS pythia8 Detroit (MB)",
     "27" => "JS pythia8 Photonjet ptmin = 5GeV",
     "28" => "JS pythia8 Photonjet ptmin = 10GeV",
     "29" => "JS pythia8 Photonjet ptmin = 20GeV",

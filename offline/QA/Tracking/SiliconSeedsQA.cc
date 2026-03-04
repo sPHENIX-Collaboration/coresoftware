@@ -233,7 +233,7 @@ void SiliconSeedsQA::createHistos()
   }
 
   {
-    h_ntrack1d = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d").c_str(), "Number of reconstructed tracks;Number of silicon tracklets;Entries", 50, 0, 200);
+    h_ntrack1d = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d").c_str(), "Number of reconstructed tracks;Number of silicon tracklets;Entries", 500, 0, 2000);
     hm->registerHisto(h_ntrack1d);
   }
 
@@ -304,7 +304,7 @@ void SiliconSeedsQA::createHistos()
 
   // vertex
   {
-    h_nvertex = new TH1F(std::string(getHistoPrefix() + "nrecovertices").c_str(), "Num of reco vertices per event;Number of vertices;Entries", 20, 0, 20);
+    h_nvertex = new TH1F(std::string(getHistoPrefix() + "nrecovertices").c_str(), "Num of reco vertices per event;Number of vertices;Entries", 60, 0, 60);
     hm->registerHisto(h_nvertex);
   }
 

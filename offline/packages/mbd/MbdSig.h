@@ -31,6 +31,7 @@ class MbdSig
   void SetNSamples( const int s ) { _nsamples = s; }
   void SetY(const Float_t *y, const int invert = 1);
   void SetXY(const Float_t *x, const Float_t *y, const int invert = 1);
+  void SetEvtNum(const int evtnum) { _evt_counter = evtnum; }
 
   int  GetNSamples() { return _nsamples; }
 
@@ -41,6 +42,10 @@ class MbdSig
   Double_t GetAmpl() { return f_ampl; }
   Double_t GetTime() { return f_time; }
   Double_t GetIntegral() { return f_integral; }
+  Double_t GetChi2() { return f_chi2; }
+  Double_t GetNDF() { return f_ndf; }
+  Double_t GetChi2NDF() { return (f_ndf > 0.) ? (f_chi2 / f_ndf) : std::numeric_limits<double>::quiet_NaN(); }
+  UShort_t GetFitInfo() { return f_fitmode; }
 
   /**
    * Fill hists from data between minsamp and maxsamp bins
@@ -110,10 +115,13 @@ class MbdSig
 
   // Double_t FitPulse();
   void SetTimeOffset(const Double_t o) { f_time_offset = o; }
+  Double_t SignalTail(const Double_t *x, const Double_t *par);
   Double_t TemplateFcn(const Double_t *x, const Double_t *par);
   Double_t TwoTemplateFcn(const Double_t *x, const Double_t *par);
   TF1 *GetTemplateFcn() { return template_fcn; }
   void SetMinMaxFitTime(const Double_t mintime, const Double_t maxtime);
+
+  void PrintResiduals(TGraphErrors *g, TF1 *f);
 
   void WritePedHist();
   void WritePedvsEvent();
@@ -147,6 +155,7 @@ class MbdSig
 
   Double_t f_integral{0.}; /** integral */
 
+  UShort_t f_fitmode{0};
   Double_t f_chi2{0.};
   Double_t f_ndf{0.};
 
@@ -163,7 +172,6 @@ class MbdSig
   TH1 *hPedEvt{nullptr};              //! evt-by-event pedestal
   TGraphErrors *gPedvsEvent{nullptr}; //! Keep track of pedestal vs evtnum
   TF1 *ped_fcn{nullptr};
-  TF1 *ped_tail{nullptr};             //! tail of prev signal
   Double_t ped0{0.};                  //!
   Double_t ped0rms{0.};               //!
   int   use_ped0{0};                  //! whether to apply ped0
