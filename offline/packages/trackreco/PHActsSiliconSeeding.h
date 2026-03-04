@@ -33,6 +33,7 @@ class TrkrClusterIterationMap;
 class TrkrClusterCrossingAssoc;
 
 using GridSeeds = std::vector<std::vector<Acts::Seed<SpacePoint>>>;
+using SpacePointProxy_type = typename Acts::SpacePointContainer<ActsExamples::SpacePointContainer<std::vector<const SpacePoint *>>, Acts::detail::RefHolder>::SpacePointProxyType;
 
 /**
  * This class runs the Acts seeder over the MVTX measurements
@@ -225,8 +226,7 @@ class PHActsSiliconSeeding : public SubsysReco
       TrkrCluster *clus);
 
   /// Get all space points for the seeder
-  std::vector<const SpacePoint *> getSiliconSpacePoints(Acts::Extent &rRangeSPExtent,
-                                                        const int strobe);
+  std::vector<const SpacePoint *> getSiliconSpacePoints(const int strobe);
   void printSeedConfigs(Acts::SeedFilterConfig &sfconfig);
   bool isTimingMismatched(TrackSeed& seed) const;
   
@@ -288,7 +288,7 @@ class PHActsSiliconSeeding : public SubsysReco
   int m_lowStrobeIndex = 0;
   int m_highStrobeIndex = 1;
   /// Configuration classes for Acts seeding
-  Acts::SeedFinderConfig<SpacePoint> m_seedFinderCfg;
+  Acts::SeedFinderConfig<SpacePointProxy_type> m_seedFinderCfg;
   Acts::CylindricalSpacePointGridConfig m_gridCfg;
   Acts::CylindricalSpacePointGridOptions m_gridOptions;
   Acts::SeedFinderOptions m_seedFinderOptions;
@@ -353,8 +353,8 @@ class PHActsSiliconSeeding : public SubsysReco
   std::vector<std::pair<int, int>> zBinNeighborsTop;
   std::vector<std::pair<int, int>> zBinNeighborsBottom;
   int nphineighbors = 1;
-  std::unique_ptr<const Acts::GridBinFinder<2ul>> m_bottomBinFinder;
-  std::unique_ptr<const Acts::GridBinFinder<2ul>> m_topBinFinder;
+  std::unique_ptr<const Acts::GridBinFinder<3ul>> m_bottomBinFinder;
+  std::unique_ptr<const Acts::GridBinFinder<3ul>> m_topBinFinder;
 
   int m_event = 0;
 
