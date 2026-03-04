@@ -39,7 +39,6 @@ class TTree;
 using SourceLink = ActsSourceLink;
 using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
 using Trajectory = ActsExamples::Trajectories;
-using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
 using SourceLinkVec = std::vector<Acts::SourceLink>;
 
@@ -177,7 +176,6 @@ class PHCosmicsTrkFitter : public SubsysReco
   std::unique_ptr<ActsEvaluator> m_evaluator = nullptr;
   std::string m_evalname = "ActsEvaluator.root";
 
-  std::map<const unsigned int, Trajectory>* m_trajectories = nullptr;
   SvtxTrackMap* m_seedTracks = nullptr;
 
   //! tpc global position wrapper

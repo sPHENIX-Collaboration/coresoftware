@@ -81,7 +81,6 @@ namespace
 
 PHCosmicsTrkFitter::PHCosmicsTrkFitter(const std::string& name)
   : SubsysReco(name)
-  , m_trajectories(nullptr)
 {
 }
 
@@ -206,8 +205,6 @@ int PHCosmicsTrkFitter::ResetEvent(PHCompositeNode* /*topNode*/)
   {
     std::cout << "Reset PHCosmicsTrkFitter" << std::endl;
   }
-
-  m_trajectories->clear();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -498,8 +495,8 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     }
     //! Reset the track seed with the dummy covariance
     auto seed = ActsTrackFittingAlgorithm::TrackParameters::create(
-        pSurface,
         m_transient_geocontext,
+        pSurface,
         actsFourPos,
         momentum,
         charge / momentum.norm(),
@@ -519,13 +516,12 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     }
 
     //! Set host of propagator options for Acts to do e.g. material integration
-    Acts::PropagatorPlainOptions ppPlainOptions;
-
     auto calibptr = std::make_unique<Calibrator>();
     CalibratorAdapter calibrator{*calibptr, measurements};
 
     auto magcontext = m_tGeometry->geometry().magFieldContext;
     auto calibcontext = m_tGeometry->geometry().calibContext;
+      auto ppPlainOptions = Acts::PropagatorPlainOptions(m_transient_geocontext, magcontext);
 
     ActsTrackFittingAlgorithm::GeneralFitterOptions
         kfOptions{
@@ -607,11 +603,6 @@ bool PHCosmicsTrkFitter::getTrackFitResult(FitResult& fitOutput,
               << std::endl;
     std::cout << "For trackTip == " << outtrack.tipIndex() << std::endl;
   }
-
-  Trajectory trajectory(tracks.trackStateContainer(),
-                        trackTips, indexedParams);
-
-  m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
 
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
@@ -791,15 +782,6 @@ int PHCosmicsTrkFitter::createNodes(PHCompositeNode* topNode)
   {
     svtxNode = new PHCompositeNode("SVTX");
     dstNode->addNode(svtxNode);
-  }
-
-  m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
-  if (!m_trajectories)
-  {
-    m_trajectories = new std::map<const unsigned int, Trajectory>;
-    auto node =
-        new PHDataNode<std::map<const unsigned int, Trajectory>>(m_trajectories, "ActsTrajectories");
-    svtxNode->addNode(node);
   }
 
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);

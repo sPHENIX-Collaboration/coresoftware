@@ -694,8 +694,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
       /// Reset the track seed with the dummy covariance
       auto seed = ActsTrackFittingAlgorithm::TrackParameters::create(
-                      pSurface,
                       m_transient_geocontext,
+                      pSurface,
                       actsFourPos,
                       momentum,
                       charge / momentum.norm(),
@@ -709,13 +709,12 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
 
       /// Set host of propagator options for Acts to do e.g. material integration
-      Acts::PropagatorPlainOptions ppPlainOptions;
-
       auto calibptr = std::make_unique<Calibrator>();
       CalibratorAdapter calibrator{*calibptr, measurements};
 
       auto magcontext = m_tGeometry->geometry().magFieldContext;
       auto calibcontext = m_tGeometry->geometry().calibContext;
+      auto ppPlainOptions = Acts::PropagatorPlainOptions(m_transient_geocontext, magcontext);
 
       ActsTrackFittingAlgorithm::GeneralFitterOptions
           kfOptions{
@@ -928,10 +927,7 @@ bool PHActsTrkFitter::getTrackFitResult(
     {
       h_updateTime->Fill(updateTime);
     }
-
-    Trajectory trajectory(tracks.trackStateContainer(),
-                          trackTips, indexedParams);
-
+    
     if (m_actsEvaluator)
     {
       m_evaluator->evaluateTrackFit(tracks, trackTips, indexedParams, track,
