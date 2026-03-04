@@ -16,6 +16,8 @@
 #include <fastjet/PseudoJet.hh>
 #include <map>
 #include <string>
+#include <unordered_set>
+#include <unordered_map>
 #include <vector>
 //____________________________________________________________________________..
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
@@ -267,11 +269,6 @@ void HepMCParticleTrigger::SetAbsEtaHighLow(double ptHigh, double ptLow)
 }
 bool HepMCParticleTrigger::isGoodEvent(HepMC::GenEvent* e1)
 {
-  // this is really just the call to actually evaluate and return the filter
-  /*if (this->threshold == 0)
-  {
-    return true;
-  }*/
   std::vector<int> n_trigger_particles = getParticles(e1);
   for (auto ntp : n_trigger_particles)
   {
@@ -286,21 +283,46 @@ bool HepMCParticleTrigger::isGoodEvent(HepMC::GenEvent* e1)
 std::vector<int> HepMCParticleTrigger::getParticles(HepMC::GenEvent* e1)
 {
   std::vector<int> n_trigger{};
-  std::map<int, int> particle_types;
+  std::unordered_set<int> particle_pids;
+  particle_pids.reserve(_theParticles.size());
+  for (auto it : _theParticles)
+  {
+    particle_pids.insert(std::abs(it));
+  }
+  std::unordered_map<int, int> particle_types;
+  particle_types.reserve(particle_pids.size());
+
   for (HepMC::GenEvent::particle_const_iterator iter = e1->particles_begin(); iter != e1->particles_end(); ++iter)
   {
-    if (m_doStableParticleOnly && ((*iter)->end_vertex() || (*iter)->status() != 1))
+    const HepMC::GenParticle *g = *iter;
+    if (m_doStableParticleOnly && (g->end_vertex() || g->status() != 1))
     {
       continue;
     }
-    auto p = (*iter)->momentum();
+
+    int pid = std::abs(g->pdg_id());
+    auto ipidx = particle_pids.find(pid);
+    if(ipidx == particle_pids.end())
+    {
+      continue;
+    }
+
+    if (m_rejectFromHadronDecay)
+    {
+      if(IsFromHadronDecay(g))
+      {
+        continue;
+      }
+    }
+    
+    auto p = g->momentum();
     float px = p.px();
     float py = p.py();
     float pz = p.pz();
     float p_M = std::sqrt(std::pow(px, 2) + std::pow(py, 2) + std::pow(pz, 2));
     float pt = std::sqrt(std::pow(px, 2) + std::pow(py, 2));
-    int pid = std::abs((*iter)->pdg_id());
     double eta = p.eta();
+
     if ((_doEtaHighCut || _doBothEtaCut) && eta > _theEtaHigh)
     {
       continue;
@@ -341,22 +363,25 @@ std::vector<int> HepMCParticleTrigger::getParticles(HepMC::GenEvent* e1)
     {
       continue;
     }
-    if (particle_types.contains(pid))
+
+    particle_types[pid]++;
+
+    if(particle_types.size() == particle_pids.size())
     {
-      particle_types[pid]++;
-    }
-    else
-    {
-      particle_types[pid] = 1;
+      break;
     }
   }
+
   n_trigger.reserve(_theParticles.size());
-  for (auto p : _theParticles)
+  
+  for (auto it : _theParticles)
   {
-    n_trigger.push_back(particleAboveThreshold(particle_types, p));  // make sure we have at least one of each required particle
+    auto ptid = particle_types.find(std::abs(it));
+    n_trigger.push_back((ptid != particle_types.end()) ? ptid->second : 0);
   }
   return n_trigger;
 }
+
 int HepMCParticleTrigger::particleAboveThreshold(const std::map<int, int>& n_particles, int trigger_particle)
 {
   // search through for the number of identified trigger particles passing cuts
@@ -367,3 +392,48 @@ int HepMCParticleTrigger::particleAboveThreshold(const std::map<int, int>& n_par
   }
   return 0;
 }
+
+bool HepMCParticleTrigger::IsFromHadronDecay(const HepMC::GenParticle* gp)
+{
+  if (!gp) 
+  {
+    return false;
+  }
+
+  const HepMC::GenVertex* vtx = gp->production_vertex();
+  if (!vtx) 
+  {
+    return false;
+  }
+
+  for (auto it = vtx->particles_in_const_begin(); it != vtx->particles_in_const_end(); ++it)
+  {
+    const HepMC::GenParticle* mom = *it;
+    if (!mom) 
+    {
+      continue;
+    }
+
+    if (IsHadronPDG(mom->pdg_id()))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+bool HepMCParticleTrigger::IsHadronPDG(int _pdg)
+{
+  if(IsIonPDG(_pdg)) 
+  {
+    return false;
+  }
+
+  if(std::abs(_pdg) < 100 )
+  {
+    return false;
+  }
+
+  return true;
+} 
