@@ -220,7 +220,14 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   int m_evtNumber{-1};
   int64_t m_bco{-1};
 
+  // BCO for the last event 
+  int64_t m_last_event_bco{-1}; //BCO for the last event
+  int64_t m_prev_event_bco{-1}; //Stores the BCO of the previous event. This is what becomes last_event_bco for the next event.
+  int64_t m_prev_runNumber{-1}; //Detects when run changes. Important if job processes multiple runs.
+  int64_t m_prev_evtNumber{-1}; //Detects when event changes within a run.
+
   bool m_trigger_info_available{false};
 };
 
 #endif
+
