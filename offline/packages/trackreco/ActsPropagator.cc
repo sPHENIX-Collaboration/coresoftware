@@ -112,9 +112,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   auto propagator = makePropagator();
 
-  using Actors = Acts::ActorList<>;
-  using PropagatorOptions = SphenixPropagator::Options<Actors>;
-  PropagatorOptions options(
+  SphenixPropagatorOptions options(
       m_geometry->geometry().getGeoContext(),
       m_geometry->geometry().magFieldContext);
   ActsAborter aborter;
