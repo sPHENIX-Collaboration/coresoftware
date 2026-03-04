@@ -14,6 +14,7 @@
 #include <Acts/Seeding/SpacePointGrid.hpp>
 #include <Acts/Utilities/GridBinFinder.hpp>
 
+#include <ActsExamples/EventData/SpacePointContainer.hpp>
 #include <trackbase/SpacePoint.h>
 
 #include <TFile.h>
@@ -33,8 +34,10 @@ class TrkrClusterIterationMap;
 class TrkrClusterCrossingAssoc;
 
 using GridSeeds = std::vector<std::vector<Acts::Seed<SpacePoint>>>;
-using SpacePointProxy_type = typename Acts::SpacePointContainer<ActsExamples::SpacePointContainer<std::vector<const SpacePoint *>>, Acts::detail::RefHolder>::SpacePointProxyType;
-
+using SpacePointContainerRefHolder = Acts::SpacePointContainer<SpacePointContainerType, Acts::detail::RefHolder>;
+using SpacePointProxy_type = typename SpacePointContainerRefHolder::SpacePointProxyType;
+using value_type = SpacePointContainerRefHolder::SpacePointProxyType;
+using seed_type = Acts::Seed<value_type>;
 /**
  * This class runs the Acts seeder over the MVTX measurements
  * to create track stubs for the rest of the stub matching pattern
@@ -213,10 +216,10 @@ class PHActsSiliconSeeding : public SubsysReco
   Acts::SeedFilterConfig configureSeedFilter() const;
 
   /// Take final seeds and fill the TrackSeedContainer
-  void makeSvtxTracks(const GridSeeds &seedVector);
+  void makeSvtxTracks(const std::vector<seed_type>& seedVector);
 
   /// Take final seeds and fill the TrackSeedContainer
-  void makeSvtxTracksWithTime(const GridSeeds &seedVector, const int &strobe);
+  void makeSvtxTracksWithTime(const std::vector<seed_type>& seedVector, const int &strobe);
 
   /// Create a seeding space point out of an Acts::SourceLink
   SpacePointPtr makeSpacePoint(

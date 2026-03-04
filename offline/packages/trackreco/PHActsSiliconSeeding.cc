@@ -43,6 +43,7 @@
 #ifndef __clang__
 #pragma GCC diagnostic pop
 #endif
+
 #include <Acts/Seeding/InternalSpacePoint.hpp>
 #include <Acts/EventData/Seed.hpp>
 #include <Acts/Seeding/SeedFilter.hpp>
@@ -231,11 +232,10 @@ void PHActsSiliconSeeding::runSeeder()
     // Prepare interface SpacePoint backend-ACTS
     ActsExamples::SpacePointContainer container(spVec);
     // Prepare Acts API
-    Acts::SpacePointContainer<decltype(container), Acts::detail::RefHolder>
+    SpacePointContainerRefHolder
         spContainer(spConfig, spOptions, container);
 
-    using value_type = typename decltype(spContainer)::SpacePointProxyType;
-    using seed_type = Acts::Seed<value_type>;
+    
 
     Acts::CylindricalSpacePointGrid<value_type> grid =
         Acts::CylindricalSpacePointGridCreator::createGrid<value_type>(
@@ -327,7 +327,7 @@ void PHActsSiliconSeeding::runSeeder()
   return;
 }
 
-void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
+void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<seed_type>& seedVector,
                                                   const int& strobe)
 
 {
@@ -335,17 +335,8 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
   int numGoodSeeds = 0;
   m_seedid = -1;
 
-  for (const auto& seeds : seedVector)
+  for (const auto& seed : seedVector)
   {
-    /// loop over acts triplets
-    for (const auto& seed : seeds)
-    {
-      if (Verbosity() > 1)
-      {
-        std::cout << "Seed " << numSeeds << " has "
-                  << seed.sp().size() << " measurements "
-                  << std::endl;
-      }
       numSeeds++;
       if (m_seedAnalysis)
       {
@@ -355,10 +346,10 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
 
       std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
       std::vector<Acts::Vector3> clus_positions;
-
-      for (const auto& spacePoint : seed.sp())
+      const auto& sps = seed.sp();
+      for (int spid = 0; spid < 3; spid++)
       {
-        const auto& cluskey = spacePoint->Id();
+        const auto& cluskey = sps[spid]->externalSpacePoint()->Id();
 
         auto globalPosition = m_tGeometry->getGlobalPosition(
             cluskey,
@@ -401,9 +392,10 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
         {
           // make the svtxtrack seed with both mvtx + intt clusters
           auto trackSeed = std::make_unique<TrackSeed_v2>();
-          for (const auto& mvtx_clus : seed.sp())
+          
+          for (int spid = 0; spid < 3; spid++)
           {
-            const auto& cluskey = mvtx_clus->Id();
+            const auto& cluskey = sps[spid]->externalSpacePoint()->Id();
             trackSeed->insert_cluster_key(cluskey);
           }
           for (auto& intt_clus : intt_clus_vec)
@@ -426,9 +418,9 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
       {
         /// make a single mvtx only seed
         auto trackSeed = std::make_unique<TrackSeed_v2>();
-        for (const auto& mvtx_clus : seed.sp())
+        for (int spid = 0; spid < 3; spid++)
         {
-          const auto& cluskey = mvtx_clus->Id();
+          const auto& cluskey = sps[spid]->externalSpacePoint()->Id();
           trackSeed->insert_cluster_key(cluskey);
         }
         TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 7);
@@ -439,34 +431,23 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
         m_seedContainer->insert(trackSeed.get());
         numGoodSeeds++;
       }
-    }
+    
   }
   if (Verbosity() > 4)
   {
     std::cout << "num good seeds : " << numGoodSeeds << std::endl;
   }
 }
-void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
+void PHActsSiliconSeeding::makeSvtxTracks(const std::vector<seed_type>& seedVector)
 {
   int numSeeds = 0;
   int numGoodSeeds = 0;
   m_seedid = -1;
 
   int strobe = m_lowStrobeIndex;
-  /// Loop over grid volumes. In our case this will be strobe
-  for (const auto& seeds : seedVector)
+  for (const auto& seed : seedVector)
   {
-    /// Loop over actual seeds in this grid volume
-    for (const auto& seed : seeds)
-    {
-      if (Verbosity() > 1)
-      {
-        std::cout << "Seed " << numSeeds << " has "
-                  << seed.sp().size() << " measurements "
-                  << std::endl;
-      }
-
-      if (m_seedAnalysis)
+         if (m_seedAnalysis)
       {
         clearTreeVariables();
         m_seedid++;
@@ -479,9 +460,10 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
       std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
       auto trackSeed = std::make_unique<TrackSeed_v2>();
 
-      for (const auto& spacePoint : seed.sp())
+      const auto& sps = seed.sp();
+      for (int spid = 0; spid < 3; spid++)
       {
-        const auto& cluskey = spacePoint->Id();
+        const auto& cluskey = sps[spid]->externalSpacePoint()->Id();
         cluster_keys.push_back(cluskey);
 
         trackSeed->insert_cluster_key(cluskey);
@@ -499,7 +481,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
         if (Verbosity() > 1)
         {
           std::cout << "Adding cluster with x,y "
-                    << spacePoint->x() << ", " << spacePoint->y()
+                    << sps[spid]->externalSpacePoint()->x() << ", " << sps[spid]->externalSpacePoint()->y()
                     << " mm in detector "
                     << (unsigned int) TrkrDefs::getTrkrId(cluskey)
                     << " with cluskey " << cluskey
@@ -620,7 +602,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
         std::cout << "Intt fit time " << circlefittime << " and svtx time "
                   << svtxtracktime << std::endl;
       }
-    }
+    
     strobe++;
     if (strobe > m_highStrobeIndex)
     {
