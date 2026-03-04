@@ -119,7 +119,7 @@ AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
 
 ACTS_LIBS = \
   -lActsCore \
-  -lActsPluginTGeo \
+  -lActsPluginRoot \
   -lActsExamplesDetectorTGeo \
   -lActsExamplesFramework
 
@@ -174,7 +174,6 @@ libtrack_reco_la_SOURCES = \
 
 libtrack_reco_la_LIBADD = \
   -lActsCore \
-  -lActsPluginTGeo \
   -lActsExamplesDetectorTGeo \
   -lActsExamplesFramework \
   -lcalo_io \
