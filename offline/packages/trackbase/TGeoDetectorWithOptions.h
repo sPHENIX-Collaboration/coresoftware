@@ -14,11 +14,6 @@ class TGeoDetectorWithOptions : public IBaseDetector {
 
   void addOptions(
       boost::program_options::options_description& opt) const override;
-
-  auto finalize(const boost::program_options::variables_map& vm,
-                std::shared_ptr<const Acts::IMaterialDecorator> mdecorator)
-      -> std::pair<TrackingGeometryPtr, ContextDecorators> override;
-      
        
 };
 }  // namespace ActsExamples

@@ -79,42 +79,4 @@ void TGeoDetectorWithOptions::addOptions(
       "Json file to dump empty config into.");
 }
 
-auto TGeoDetectorWithOptions::finalize(
-    const boost::program_options::variables_map& vm,
-    std::shared_ptr<const Acts::IMaterialDecorator> mdecorator)
-    -> std::pair<TrackingGeometryPtr, ContextDecorators> {
-  TGeoDetector::Config config;
-
-  config.fileName = vm["geo-tgeo-filename"].as<std::string>();
-
-  config.surfaceLogLevel =
-      Acts::Logging::Level(vm["geo-surface-loglevel"].template as<size_t>());
-  config.layerLogLevel =
-      Acts::Logging::Level(vm["geo-layer-loglevel"].template as<size_t>());
-  config.volumeLogLevel =
-      Acts::Logging::Level(vm["geo-volume-loglevel"].template as<size_t>());
-
-  // No valid geometry configuration. Stop
-  if (vm["geo-tgeo-jsonconfig"].as<std::string>().empty()) {
-    writeTGeoDetectorConfig(vm, config);
-    std::exit(EXIT_SUCCESS);
-  }
-  // Enable dump from full config
-  else if (!(vm["geo-tgeo-dump-jsonconfig"].as<std::string>().compare(
-                   "tgeo_empty_cofig.json") == 0)) {
-    readTGeoLayerBuilderConfigs(vm, config);
-    writeTGeoDetectorConfig(vm, config);
-  } else {
-    readTGeoLayerBuilderConfigs(vm, config);
-  }
-
-  auto logger = Acts::getDefaultLogger("TGeoDetector", Acts::Logging::INFO);
-  ContextDecorators tgeoContextDecorators = {};
-  std::vector<std::shared_ptr<const Acts::DetectorElementBase>> detectorStore;
-  TrackingGeometryPtr tgeoTrackingGeometry = ActsExamples::buildTGeoDetectorWrapper(
-      config, Acts::GeometryContext(), detectorStore, std::move(mdecorator), *logger);
-
-  return {std::move(tgeoTrackingGeometry), std::move(tgeoContextDecorators)};
-}
-
 }  // namespace ActsExamples
