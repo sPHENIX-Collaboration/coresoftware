@@ -449,7 +449,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 
         if (m_writeTree)
         {
-          double fXh[18];
+          float fXh[18];
           int nh = 0;
 
           fXh[nh++] = _ievent - 1;
@@ -547,7 +547,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 
           if (m_writeTree)
           {
-            double fXh[11];
+            float fXh[11];
             int nh = 0;
 
             fXh[nh++] = _ievent - 1;
@@ -629,7 +629,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 
           if (m_writeTree)
           {
-            double fXh[18];
+            float fXh[18];
             int nh = 0;
 
             fXh[nh++] = _ievent - 1;

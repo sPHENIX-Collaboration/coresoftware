@@ -278,7 +278,7 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
     unsigned int phibin = layergeom->get_phibin(phi, side);
     if (m_writeTree)
     {
-      double fX[12];
+      float fX[12];
       int n = 0;
 
       fX[n++] = _ievent - 1;
@@ -487,7 +487,7 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
           }
           if (m_writeTree)
           {
-            double fXh[18];
+            float fXh[18];
             int nh = 0;
 
             fXh[nh++] = _ievent - 1;
@@ -716,7 +716,7 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
 #endif
             if (m_writeTree)
             {
-              double fXh[18];
+              float fXh[18];
               int nh = 0;
 
               fXh[nh++] = _ievent - 1;

@@ -657,7 +657,7 @@ void Tpc3DClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
             << std::endl;
   */
   // if (m_output){
-  double fX[20] = {0};
+  float fX[20] = {0};
   int n = 0;
   fX[n++] = m_event;
   fX[n++] = m_seed;
