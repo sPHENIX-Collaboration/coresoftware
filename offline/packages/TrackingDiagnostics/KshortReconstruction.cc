@@ -361,14 +361,14 @@ void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, float m
   double py1 = track1->get_py();
   double pz1 = track1->get_pz();
   auto *tpcSeed1 = track1->get_tpc_seed();
-  size_t tpcClusters1 = tpcSeed1->size_cluster_keys();
+  size_t tpcClusters1 = tpcSeed1 ? tpcSeed1->size_cluster_keys() : 0;
   double eta1 = asinh(pz1 / sqrt(pow(px1, 2) + pow(py1, 2)));
 
   double px2 = track2->get_px();
   double py2 = track2->get_py();
   double pz2 = track2->get_pz();
   auto *tpcSeed2 = track2->get_tpc_seed();
-  size_t tpcClusters2 = tpcSeed2->size_cluster_keys();
+  size_t tpcClusters2 = tpcSeed2 ? tpcSeed2->size_cluster_keys() : 0;
   double eta2 = asinh(pz2 / sqrt(pow(px2, 2) + pow(py2, 2)));
 
   auto vtxid = track1->get_vertex_id();
@@ -391,8 +391,12 @@ void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, float m
   float mag_pathLength_proj = sqrt(pow(pathLength_proj(0), 2) + pow(pathLength_proj(1), 2) + pow(pathLength_proj(2), 2));
 
   Acts::Vector3 projected_momentum = projected_mom1 + projected_mom2;
-  float cos_theta_reco = pathLength_proj.dot(projected_momentum) / (projected_momentum.norm() * pathLength_proj.norm());
-
+  const double denom = projected_momentum.norm() * pathLength_proj.norm();
+  float cos_theta_reco = 0.0;
+  if (denom > 1e-12)
+    {
+      cos_theta_reco = pathLength_proj.dot(projected_momentum) / denom;
+    }
 
   float reco_info[] = {(float) track1->get_id(), mass1, (float) track1->get_crossing(), track1->get_x(), track1->get_y(), track1->get_z(), track1->get_px(), track1->get_py(), track1->get_pz(), (float) dcavals1(0), (float) dcavals1(1), (float) dcavals1(2), (float) pca_rel1(0), (float) pca_rel1(1), (float) pca_rel1(2), (float) eta1, (float) track1->get_charge(), (float) tpcClusters1, (float) track2->get_id(), mass2, (float) track2->get_crossing(), track2->get_x(), track2->get_y(), track2->get_z(), track2->get_px(), track2->get_py(), track2->get_pz(), (float) dcavals2(0), (float) dcavals2(1), (float) dcavals2(2), (float) pca_rel2(0), (float) pca_rel2(1), (float) pca_rel2(2), (float) eta2, (float) track2->get_charge(), (float) tpcClusters2, (float) ntracks_vertex, (float) vertex(0), (float) vertex(1), (float) vertex(2), (float) pair_dca, (float) invariantMass, (float) invariantPt, invariantPhi, (float) pathLength(0), (float) pathLength(1), (float) pathLength(2), mag_pathLength, rapidity, pseudorapidity, (float) projected_pos1(0), (float) projected_pos1(1), (float) projected_pos1(2), (float) projected_pos2(0), (float) projected_pos2(1), (float) projected_pos2(2), (float) projected_mom1(0), (float) projected_mom1(1), (float) projected_mom1(2), (float) projected_mom2(0), (float) projected_mom2(1), (float) projected_mom2(2), (float) pca_rel1_proj(0), (float) pca_rel1_proj(1), (float) pca_rel1_proj(2), (float) pca_rel2_proj(0), (float) pca_rel2_proj(1), (float) pca_rel2_proj(2), (float) pair_dca_proj, (float) pathLength_proj(0), (float) pathLength_proj(1), (float) pathLength_proj(2), mag_pathLength_proj, track1->get_quality(), track2->get_quality(), cos_theta_reco, (float) track1_silicon_cluster_size, (float) track2_silicon_cluster_size, (float) track1_mvtx_cluster_size, (float) track1_mvtx_state_size, (float) track1_intt_cluster_size,  (float) track1_intt_state_size, (float) track2_mvtx_cluster_size, (float) track2_mvtx_state_size,  (float) track2_intt_cluster_size, (float) track2_intt_state_size, (float) runNumber, (float) eventNumber};
 
@@ -636,15 +640,21 @@ void KshortReconstruction::findPcaTwoTracks(const Acts::Vector3& pos1, const Act
   }
 
   // get the points at which the normal to the lines intersect the lines, where the lines are perpendicular
-  double X = b1.dot(b2) - (b1.dot(b1) * b2.dot(b2) / b2.dot(b1));
-  double Y = (a2.dot(b2) - a1.dot(b2)) - ((a2.dot(b1) - a1.dot(b1)) * b2.dot(b2) / b2.dot(b1));
-  double c = Y / X;
 
-  double F = b1.dot(b1) / b2.dot(b1);
-  double G = -(a2.dot(b1) - a1.dot(b1)) / b2.dot(b1);
-  double d = (c * F) + G;
-
-  // then the points of closest approach are:
+  // coderabbit suggestion 
+  const double b1b1 = b1.dot(b1);
+  const double b2b2 = b2.dot(b2);
+  const double b1b2 = b1.dot(b2);
+  const double denom = b1b1 * b2b2 - b1b2 * b1b2;
+  if (std::abs(denom) < 1e-12)
+    {
+      return;
+    }
+  const Eigen::Vector3d w0 = a1 - a2;
+  const double c = (b1b2 * b2.dot(w0) - b2b2 * b1.dot(w0)) / denom;
+  const double d = (b1b1 * b2.dot(w0) - b1b2 * b1.dot(w0)) / denom;
+  
+    // then the points of closest approach are:
   pca1 = a1 + c * b1;
   pca2 = a2 + d * b2;
 
