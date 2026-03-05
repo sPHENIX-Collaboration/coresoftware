@@ -571,7 +571,7 @@ void Tpc3DClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
         clus->setHitX(clus->getNhits() - 1, r * cos(phi));
         clus->setHitY(clus->getNhits() - 1, r * sin(phi));
         clus->setHitZ(clus->getNhits() - 1, hitZ);
-        clus->setHitAdc(clus->getNhits() - 1, (double) adc);
+        clus->setHitAdc(clus->getNhits() - 1, adc);
 
         rSum += r * adc;
         phiSum += phi * adc;
