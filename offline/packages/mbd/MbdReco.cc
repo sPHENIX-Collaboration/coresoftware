@@ -2,7 +2,7 @@
 #include "MbdEvent.h"
 #include "MbdGeomV1.h"
 #include "MbdOutV2.h"
-#include "MbdRawContainerV1.h"
+#include "MbdRawContainerV2.h"
 #include "MbdPmtContainerV1.h"
 #include "MbdPmtSimContainerV1.h"
 
@@ -262,7 +262,7 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
   if (!m_mbdraws)
   {
     std::cout << "Creating MbdRawContainer Node " << std::endl;
-    m_mbdraws = new MbdRawContainerV1();
+    m_mbdraws = new MbdRawContainerV2();
     PHIODataNode<PHObject> *MbdRawContainerNode = new PHIODataNode<PHObject>(m_mbdraws, "MbdRawContainer", "PHObject");
     bbcNode->addNode(MbdRawContainerNode);
   }

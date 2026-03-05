@@ -6,6 +6,7 @@
 #include <TF1.h>
 #include <TFile.h>
 #include <TGraphErrors.h>
+#include <TRatioPlot.h>
 #include <TH2.h>
 #include <TMath.h>
 #include <TPad.h>
@@ -80,10 +81,6 @@ void MbdSig::Init()
   ped_fcn = new TF1("ped_fcn","[0]",0,2);
   ped_fcn->SetLineColor(3);
 
-  // Set tail function
-  ped_tail = new TF1("ped_tail","[0]+[1]*exp(-[2]*x)",0,2);
-  ped_tail->SetLineColor(2);
-
   name = "h_chi2ndf"; name += _ch;
   h_chi2ndf = new TH1F(name,name,2000,0,100);
 
@@ -157,7 +154,7 @@ MbdSig::~MbdSig()
   delete template_fcn;
   delete twotemplate_fcn;
   delete ped_fcn;
-  delete ped_tail;
+  delete fit_pileup;
   delete h_chi2ndf;
   if ( _pedstudyflag )
   {
@@ -237,8 +234,6 @@ void MbdSig::SetY(const Float_t* y, const int invert)
       Remove_Pileup();
     }
   }
-
-  _evt_counter++;
 }
 
 void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
@@ -320,18 +315,17 @@ void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
     */
   }
 
-  _evt_counter++;
   _verbose = 0;
 }
 
 void MbdSig::Remove_Pileup()
 {
-  //_verbose = 100;
   _verbose = 0;
 
   /*
-  if ( (_ch==238&&_evt_counter==7104) || (_ch==255&&_evt_counter==7762) )
+  if ( _ch==46 && (_evt_counter>200910 && _evt_counter<200920))
   {
+    std::cout << PHWHERE << "\t" << _evt_counter << "\t" << _ch << std::endl;
     _verbose = 100;
   }
   */
@@ -352,6 +346,7 @@ void MbdSig::Remove_Pileup()
       {
         TString name = "fit_pileup"; name += _ch;
         fit_pileup = new TF1(name,"pol3",0,16000);
+        fit_pileup->SetLineColor(7);
         for (int ipar=0; ipar<4; ipar++)
         {
           fit_pileup->SetParameter( ipar, _mbdcal->get_pileup(_ch,ipar+1) );
@@ -421,7 +416,6 @@ void MbdSig::Remove_Pileup()
         PadUpdate();
         //gSubPulse->Print("ALL");
       }
-
     }
     else
     {
@@ -429,8 +423,9 @@ void MbdSig::Remove_Pileup()
       if ( fit_pileup == nullptr )
       {
         TString name = "fit_pileup"; name += _ch;
-        fit_pileup = new TF1(name,"gaus",-0.1,4.1);
-        fit_pileup->SetLineColor(2);
+        //fit_pileup = new TF1(name,"gaus",-0.1,4.1);
+        fit_pileup = new TF1(name, this, &MbdSig::SignalTail, -0.1, 4.1, 3, "MbdSig", "SignalTail");
+        fit_pileup->SetLineColor(6);
       }
 
       fit_pileup->SetRange(-0.1,4.1);
@@ -704,6 +699,17 @@ int MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
   ped_fcn->SetRange(minsamp-0.1,maxsamp+0.1);
   ped_fcn->SetParameter(0,1500.);
 
+  gRawPulse->Fit( ped_fcn, "RNQ" );
+  double chi2 = ped_fcn->GetChisquare();
+  double ndf = ped_fcn->GetNDF();
+
+  /*
+  if ( chi2/ndf>4 )
+  {
+    _verbose=100;
+  }
+  */
+
   if ( _verbose )
   {
     gRawPulse->Fit( ped_fcn, "RQ" );
@@ -716,15 +722,6 @@ int MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
       PadUpdate();
     }
   }
-  else
-  {
-    //std::cout << PHWHERE << std::endl;
-    gRawPulse->Fit( ped_fcn, "RNQ" );
-
-  }
-
-  double chi2 = ped_fcn->GetChisquare();
-  double ndf = ped_fcn->GetNDF();
 
   if ( chi2/ndf < 4.0 )
   {
@@ -1110,6 +1107,21 @@ void MbdSig::PadUpdate() const
   }
 }
 
+Double_t MbdSig::SignalTail(const Double_t* x, const Double_t* par)
+{
+  // par[0] is the amplitude (relative to the spline amplitude)
+  // par[1] is the time
+  // x[0] units are in sample number
+  Double_t xx = x[0]-par[1];
+  if ( xx<0. )
+  {
+    return par[0];
+  }
+  Double_t f = par[0]*TMath::Gaus(x[0],par[1],par[2]);
+
+  return f;
+}
+
 Double_t MbdSig::TwoTemplateFcn(const Double_t* x, const Double_t* par)
 {
   Double_t f = TemplateFcn(x,par) + TemplateFcn(x,par+2);
@@ -1209,11 +1221,13 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
   }
 
   // reject points with very bad rms in shape
+  /*
   if (template_yrms[ilow] >= 1.0 || template_yrms[ihigh] >= 1.0)
   {
     TF1::RejectPoint();
     // return f;
   }
+  */
 
   // Reject points where ADC saturates
   int samp_point = static_cast<int>(x[0]);
@@ -1231,8 +1245,16 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
 }
 
 // sampmax>0 means fit to the peak near sampmax
+// fitmode:
+//   0 - no info or no fit
+//   1 - regular template fit (shortened)
+//   2 - two template fit
+//   3 - two template fit, neg ampl 2nd template
+//   4 - saturated template fit
+//   5 - saturated and shortened template fit
 int MbdSig::FitTemplate( const Int_t sampmax )
 {
+  //_verbose = 100;
   //std::cout << PHWHERE << std::endl;
   /*
   if ( _evt_counter==2142 && _ch==92 )
@@ -1241,6 +1263,11 @@ int MbdSig::FitTemplate( const Int_t sampmax )
     //_verbose = 12;      // don't see pedestal fits
   }
   */
+
+  // Reset Fit Quality Parameters
+  f_chi2 = 0.;
+  f_ndf = 0.;
+  f_fitmode = 0;
 
   // Check if channel is empty
   if (gSubPulse->GetN() == 0)
@@ -1262,9 +1289,9 @@ int MbdSig::FitTemplate( const Int_t sampmax )
       nsaturated++;
     }
   }
+
   /*
-  //if ( nsaturated>2 && _ch==185 )
-  if ( nsaturated>2 )
+  if ( nsaturated>0 )
   {
     _verbose = 12;
   }
@@ -1294,8 +1321,7 @@ int MbdSig::FitTemplate( const Int_t sampmax )
       }
     }
 
-    //gSubPulse->GetPoint(sampmax, x_at_max, ymax);
-    if ( nsaturated<=3 )
+    if ( nsaturated==0 )
     {
       x_at_max -= 2.0;
     }
@@ -1331,14 +1357,17 @@ int MbdSig::FitTemplate( const Int_t sampmax )
     return 1;
   }
 
+  // Start with fit over early part of waveform to reduce pileup and afterpulse effects
   template_fcn->SetParameters(ymax, x_at_max);
-  if ( nsaturated<=3 )
+  if ( nsaturated==0 )
   {
     template_fcn->SetRange(0, x_at_max+4.2);
+    f_fitmode = 1;
   }
   else
   {
-    template_fcn->SetRange(0, sampmax + nsaturated - 0.5);
+    template_fcn->SetRange(0, sampmax + nsaturated + 0.5);
+    f_fitmode = 4;
   }
 
   if (_verbose == 0)
@@ -1362,30 +1391,46 @@ int MbdSig::FitTemplate( const Int_t sampmax )
   f_time = template_fcn->GetParameter(1);
   f_chi2 = template_fcn->GetChisquare();
   f_ndf = template_fcn->GetNDF();
+  Double_t chi2ndf = 1e9;
+  if ( f_ndf>0. )
+  {
+    chi2ndf = f_chi2/f_ndf;
+  }
 
   // Good fit
-  if ( (f_chi2/f_ndf) < 5. && f_ndf>6. )
+  if ( f_ndf>6. && chi2ndf<5. )
   {
-    h_chi2ndf->Fill( f_chi2/f_ndf );
+    h_chi2ndf->Fill( chi2ndf );
+
     _verbose = 0;
     return 1;
   }
 
-  // fit was out of time, likely from pileup, try two waveforms
-  if ( (f_time<(sampmax-2.5) || f_time>sampmax) && (nsaturated<=3) )
+  /*
+  _verbose = 100;
+  if ( _verbose )
+  {
+    PrintResiduals(gSubPulse,template_fcn);
+  }
+  */
+
+  // fit was bad, refit with two templates
+  if ( nsaturated==0 )
   {
     //_verbose = 100;
+    f_fitmode = 2;
 
     if ( _verbose )
     {
-      std::cout << "BADTIME " << _evt_counter << "\t" << _ch << "\t" << sampmax << "\t" << f_ampl << "\t" <<  f_time << std::endl;
+      std::cout << "BADFIT " << _evt_counter << "\t" << _ch << "\t" << sampmax << "\t" << f_ampl << "\t" <<  f_time
+        << "\t" << chi2ndf << std::endl;
       gSubPulse->Draw("ap");
       template_fcn->Draw("same");
       PadUpdate();
     }
 
     twotemplate_fcn->SetParameters(ymax,x_at_max,ymax,10);
-    twotemplate_fcn->SetRange(0,_nsamples);
+    twotemplate_fcn->SetRange(0,_nsamples-0.9);
 
     if (_verbose == 0)
     {
@@ -1393,7 +1438,7 @@ int MbdSig::FitTemplate( const Int_t sampmax )
     }
     else
     {
-      std::cout << "doing fit1 " << x_at_max << "\t" << ymax << std::endl;
+      std::cout << "doing 2wave fit " << x_at_max << "\t" << ymax << std::endl;
       gSubPulse->Fit(twotemplate_fcn, "R");
       gSubPulse->Draw("ap");
       gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
@@ -1402,55 +1447,69 @@ int MbdSig::FitTemplate( const Int_t sampmax )
       //gSubPulse->Print("ALL");
     }
 
-    //PadUpdate();
- 
-    // Get fit parameters
-    f_ampl = twotemplate_fcn->GetParameter(0);
-    f_time = twotemplate_fcn->GetParameter(1);
-    f_chi2 = twotemplate_fcn->GetChisquare();
-    f_ndf = twotemplate_fcn->GetNDF();
-
-    // Good fit
-    if ( (f_chi2/f_ndf) < 5. && f_ndf>6. )
+    // Check two component fit
+    Double_t ampl1 = twotemplate_fcn->GetParameter(0);
+    Double_t time1 = twotemplate_fcn->GetParameter(1);
+    Double_t ampl2 = twotemplate_fcn->GetParameter(2);
+    Double_t time2 = twotemplate_fcn->GetParameter(3);
+    Double_t newchi2 = twotemplate_fcn->GetChisquare();
+    Double_t newndf = twotemplate_fcn->GetNDF();
+    Double_t newchi2ndf = 0.;
+    if ( newndf>0.) 
     {
-      h_chi2ndf->Fill( f_chi2/f_ndf );
+      newchi2ndf = newchi2/newndf;
+    }
+
+    // bad two component fit, use original fit
+    if ( time2>15. || ampl1<0 || ampl2<0. || newchi2ndf>chi2ndf)
+    {
+      if (_verbose)
+      {
+        std::cout << "Using original " << newchi2ndf << std::endl;
+        PrintResiduals(gSubPulse,twotemplate_fcn);
+      }
+      f_fitmode = 3;
+      h_chi2ndf->Fill( chi2ndf );
       _verbose = 0;
       return 1;
     }
+
+    // Get new fit parameters (pick fit closest in time to first fit
+    if ( std::abs(f_time-time1) < std::abs(f_time-time2) )
+    {
+      f_ampl = ampl1;
+      f_time = time1;
+    }
+    else
+    {
+      f_ampl = ampl2;
+      f_time = time2;
+    }
+
+    f_chi2 = newchi2;
+    f_ndf = newndf;
+
+    // poor fit
+    if ( _verbose && f_ndf>6. && (f_chi2/f_ndf) > 5. )
+    {
+      std::cout << "double fit high chi2/ndf " << f_chi2/f_ndf << std::endl;
+      PrintResiduals(gSubPulse,twotemplate_fcn);
+      PadUpdate();
+    }
+
+    h_chi2ndf->Fill( f_chi2/f_ndf );
+    _verbose = 0;
+    return 1;
   }
 
-  // refit with new range to exclude after-pulses
+  // Try a refit of saturated waveform with different range
   template_fcn->SetParameters(ymax, x_at_max);
-  //template_fcn->SetParameters( f_ampl, f_time );
-
-  if ( nsaturated<=3 )
-  {
-    template_fcn->SetRange(0, x_at_max+4.2);
-    //template_fcn->SetRange( 0., f_time+4.0 );
-  }
-  else
-  {
-    template_fcn->SetRange( 0., f_time+nsaturated+0.8 );
-  }
+  template_fcn->SetRange( 0., _nsamples-0.5 );
 
   if (_verbose == 0)
   {
     //std::cout << PHWHERE << std::endl;
-    int fit_status = gSubPulse->Fit(template_fcn, "RNQ");
-    if ( fit_status<0 && _verbose>0 )
-    {
-      std::cout << PHWHERE << "\t" << fit_status << std::endl;
-      gSubPulse->Print("ALL");
-      gSubPulse->Draw("ap");
-      gSubPulse->Fit(template_fcn, "R");
-      std::cout << "ampl time before refit " << _ch << "\t" << f_ampl << "\t" << f_time << std::endl;
-      f_ampl = template_fcn->GetParameter(0);
-      f_time = template_fcn->GetParameter(1);
-      std::cout << "ampl time after  refit " << _ch << "\t" << f_ampl << "\t" << f_time << std::endl;
-      PadUpdate();
-      std::string junk;
-      std::cin >> junk;
-    }
+    gSubPulse->Fit(template_fcn, "RNQ");
   }
   else
   {
@@ -1462,19 +1521,21 @@ int MbdSig::FitTemplate( const Int_t sampmax )
     std::cout << "ampl time after  refit " << f_ampl << "\t" << f_time << std::endl;
   }
 
-  f_ampl = template_fcn->GetParameter(0);
-  f_time = template_fcn->GetParameter(1);
-  f_chi2 = template_fcn->GetChisquare();
-  f_ndf = template_fcn->GetNDF();
+  // pick lower chi2/ndf of two saturated fits
+  Double_t newchi2 = template_fcn->GetChisquare();
+  Double_t newndf = template_fcn->GetNDF();
+  if ( (newchi2/newndf)<f_chi2/f_ndf )
+  {
+    f_ampl = template_fcn->GetParameter(0);
+    f_time = template_fcn->GetParameter(1);
+    f_chi2 = newchi2;
+    f_ndf = newndf;
+    f_fitmode = 5;
+  }
 
   h_chi2ndf->Fill( f_chi2/f_ndf );
 
-  //if ( f_time<0 || f_time>30 )
-  //if ( (_ch==185||_ch==155||_ch==249) && (fabs(f_ampl) > 44000.) )
-  //double chi2 = template_fcn->GetChisquare();
-  //double ndf = template_fcn->GetNDF();
-  //if ( (_ch==185||_ch==155||_ch==249) && (fabs(chi2/ndf) > 100.) && nsaturated > 3)
-  if (_verbose > 0 && fabs(f_ampl) > 0.)
+  if (_verbose > 0 && std::abs(f_ampl) > 0.)
   {
     _verbose = 12;
     std::cout << "FitTemplate " << _ch << "\t" << f_ampl << "\t" << f_time << std::endl;
@@ -1485,6 +1546,9 @@ int MbdSig::FitTemplate( const Int_t sampmax )
     gPad->SetGridy(1);
     template_fcn->SetLineColor(4);
     template_fcn->Draw("same");
+
+    PrintResiduals(gSubPulse,template_fcn);
+
     PadUpdate();
   }
 
@@ -1544,3 +1608,22 @@ int MbdSig::SetTemplate(const std::vector<float>& shape, const std::vector<float
 
   return 1;
 }
+
+void MbdSig::PrintResiduals(TGraphErrors *g, TF1 *f)
+{
+  // print residuals
+  double smin{0};
+  double smax{0};
+  f->GetRange(smin,smax);
+
+  double x{0};
+  double y{0};
+  for (double samp=0; samp<=smax; samp+=1.0)
+  {
+    g->GetPoint(int(samp),x,y);
+    double yerr = g->GetErrorY(int(samp));
+    double resid = (y - f->Eval(x))/yerr;
+    std::cout << samp << "\t" << x << "\t" << resid << "\t" << y << "\t" <<  f->Eval(x) << "\t" << yerr << std::endl;
+  }
+}
+
