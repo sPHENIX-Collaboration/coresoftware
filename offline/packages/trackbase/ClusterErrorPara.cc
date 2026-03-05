@@ -546,6 +546,7 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
 
   double phierror = cluster->getRPhiError();
   double zerror = cluster->getZError();
+
   if(is_data_reco==false){
     if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
       {
@@ -723,6 +724,7 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
     if (TrkrDefs::getTrkrId(key) == TrkrDefs::mvtxId){
       phierror*=2;
       zerror*=2;
+
     }
     
     if (TrkrDefs::getTrkrId(key) == TrkrDefs::inttId){
@@ -761,9 +763,10 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
 	*/
 	zerror = 0.577;
       }
+
     }
   }
-      
+
   return std::make_pair(square(phierror), square(zerror));
 }
 

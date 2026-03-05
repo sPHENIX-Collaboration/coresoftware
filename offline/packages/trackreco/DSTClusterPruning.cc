@@ -185,8 +185,11 @@ void DSTClusterPruning::prune_clusters()
       {
         if (!trackseed)
         {
-          std::cout << "No TrackSeed" << std::endl;
-          continue;
+	  if(Verbosity() > 1)
+	    {
+	      std::cout << "No TrackSeed" << std::endl;
+	    }
+	  continue;
         }
 
         for (auto key_iter = trackseed->begin_cluster_keys(); key_iter != trackseed->end_cluster_keys(); ++key_iter)

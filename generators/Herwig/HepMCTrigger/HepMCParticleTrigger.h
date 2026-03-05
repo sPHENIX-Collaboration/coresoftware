@@ -16,6 +16,7 @@ class PHCompositeNode;
 namespace HepMC
 {
   class GenEvent;
+  class GenParticle;
 }
 
 class HepMCParticleTrigger : public SubsysReco
@@ -65,9 +66,14 @@ class HepMCParticleTrigger : public SubsysReco
   void SetPzLow(double);
   void SetPzHighLow(double, double);
 
+  void SetRejectFromHadronDecay(bool b) {m_rejectFromHadronDecay = b;}
   void SetStableParticleOnly(bool b) { m_doStableParticleOnly = b; }
+
   int getNevts(){return this->n_evts;}
   int getNgood(){return this->n_good;}
+
+  bool IsFromHadronDecay(const HepMC::GenParticle* gp);
+  bool IsIonPDG(int _pdg) { return (std::abs(_pdg) >= 1000000000); }
 
  private:
   bool isGoodEvent(HepMC::GenEvent* e1);
@@ -76,14 +82,15 @@ class HepMCParticleTrigger : public SubsysReco
   //  std::vector<int> _theParentsi {};
   std::vector<int> _theParticles{};
   bool m_doStableParticleOnly{true};
+  bool m_rejectFromHadronDecay{true};
   float threshold{0.};
   int goal_event_number{1000};
   bool set_event_limit{false};
   int n_evts{0};
   int n_good{0};
 
-  float _theEtaHigh{1.1};
-  float _theEtaLow{-1.1};
+  float _theEtaHigh{2.0};
+  float _theEtaLow{-2.0};
   float _thePtHigh{999.9};
   float _thePtLow{-999.9};
   float _thePHigh{999.9};
@@ -110,6 +117,8 @@ class HepMCParticleTrigger : public SubsysReco
   bool _doPzHighCut{false};
   bool _doPzLowCut{false};
   bool _doBothPzCut{false};
+  
+  bool IsHadronPDG(int _pdg);
 };
 
 #endif  // HEPMCPARTICLETRIGGER_H
