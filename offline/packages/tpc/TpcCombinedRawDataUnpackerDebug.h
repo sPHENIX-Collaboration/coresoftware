@@ -28,7 +28,7 @@ class TpcCombinedRawDataUnpackerDebug : public SubsysReco
   int End(PHCompositeNode *topNode) override;
   void writeTree() { m_writeTree = true; }
   void do_zero_suppression(bool b) { m_do_zerosup = b; }
-  void set_pedestalSigmaCut(float b) { m_ped_sig_cut = b; }
+  void set_pedestalSigmaCut(double b) { m_ped_sig_cut = b; }
   void do_noise_rejection(bool b) { m_do_noise_rejection = b; }
   void doBaselineCorr(bool val) { m_do_baseline_corr = val; }
   void doZSEmulation(bool val) { m_do_zs_emulation = val; }
@@ -49,8 +49,8 @@ class TpcCombinedRawDataUnpackerDebug : public SubsysReco
   struct chan_info
   {
     unsigned int fee = std::numeric_limits<unsigned int>::max();
-    float ped = -1;
-    float width = -1;
+    double ped = -1;
+    double width = -1;
   };
   unsigned int get_rx(unsigned int layer)
   {
@@ -104,7 +104,7 @@ class TpcCombinedRawDataUnpackerDebug : public SubsysReco
   int FEE_map[26]{4, 5, 0, 2, 1, 11, 9, 10, 8, 7, 6, 0, 1, 3, 7, 6, 5, 4, 3, 2, 0, 2, 1, 3, 5, 4};
   int FEE_R[26]{2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
 
-  float m_ped_sig_cut{4.0};
+  double m_ped_sig_cut{4.0};
 
   bool m_writeTree{false};
   bool m_do_zerosup{true};
@@ -117,7 +117,7 @@ class TpcCombinedRawDataUnpackerDebug : public SubsysReco
   std::string outfile_name;
   std::map<unsigned int, chan_info> chan_map;                  // stays in place
   std::map<unsigned int, TH2I *> feeadc_map;                   // histos reset after each event
-  std::map<unsigned int, std::vector<float>> feebaseline_map;  // cleared after each event
+  std::map<unsigned int, std::vector<double>> feebaseline_map;  // cleared after each event
 };
 
 #endif  // TPC_COMBINEDRAWDATAUNPACKER_H

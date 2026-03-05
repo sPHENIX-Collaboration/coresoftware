@@ -23,14 +23,14 @@ class LaserEventInfov1 : public LaserEventInfo
   int getPeakSample(const bool side) const override { return m_peakSample[side]; }
   void setPeakSample(const bool side, const int sample) override { m_peakSample[side] = sample; }
 
-  float getPeakWidth(const bool side) const override { return m_peakWidth[side]; }
-  void setPeakWidth(const bool side, const float width) override { m_peakWidth[side] = width; }
+  double getPeakWidth(const bool side) const override { return m_peakWidth[side]; }
+  void setPeakWidth(const bool side, const double width) override { m_peakWidth[side] = width; }
 
  protected:
 
   bool m_isLaserEvent{false};
   int m_peakSample[2] = {std::numeric_limits<int>::max(), std::numeric_limits<int>::max()};
-  float m_peakWidth[2] = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
+  double m_peakWidth[2] = {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
 
   ClassDefOverride(LaserEventInfov1, 1);
 };
