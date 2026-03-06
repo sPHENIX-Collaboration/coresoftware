@@ -5,6 +5,11 @@
 
 #include <trackbase/ActsTrackingGeometry.h>
 
+#include <g4eval/SvtxEvalStack.h>
+#include <g4eval/SvtxTrackEval.h>
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+
 #include <Eigen/Dense>
 
 class TFile;
@@ -39,12 +44,17 @@ class KshortReconstruction : public SubsysReco
   void set_output_file(const std::string& outputfile) { filepath = outputfile; }
   void save_tracks(bool save = true) { m_save_tracks = save; }
 
+  //Truth matching code
+  void truthMatch(bool match = true) { m_truth_match = match; }
+  void setMotherID(std::string id = "K_S0") { m_mother_name = id; m_used_string = true; }
+  void setMotherID(int id = 310) { m_mother_id = id; m_used_string = false; }
+
  private:
   void fillNtp(SvtxTrack* track1, SvtxTrack* track2, float mass1, float mass2, Acts::Vector3 dcavals1, Acts::Vector3 dcavals2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, float invariantPhi, float rapidity, float pseudorapidity, Eigen::Vector3d projected_pos1, Eigen::Vector3d projected_pos2, Eigen::Vector3d projected_mom1, Eigen::Vector3d projected_mom2, Acts::Vector3 pca_rel1_proj, Acts::Vector3 pca_rel2_proj, double pair_dca_proj,unsigned int track1_silicon_cluster_size, unsigned int track2_silicon_cluster_size, unsigned int track1_mvtx_cluster_size, unsigned int track1_mvtx_state_size, unsigned int track1_intt_cluster_size, unsigned int track1_intt_state_size, unsigned int track2_mvtx_cluster_size, unsigned int track2_mvtx_state_size, unsigned int track2_intt_cluster_size, unsigned int track2_intt_state_size, int runNumber, int eventNumber);
 
   //  void fillNtp(SvtxTrack* track1, SvtxTrack* track2, Acts::Vector3 dcavals1, Acts::Vector3 dcavals2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, float invariantPhi, float rapidity, float pseudorapidity, Eigen::Vector3d projected_pos1, Eigen::Vector3d projected_pos2, Eigen::Vector3d projected_mom1, Eigen::Vector3d projected_mom2, Acts::Vector3 pca_rel1_proj, Acts::Vector3 pca_rel2_proj, double pair_dca_proj,unsigned int track1_silicon_cluster_size, unsigned int track2_silicon_cluster_size, unsigned int track1_mvtx_cluster_size, unsigned int track1_mvtx_state_size, unsigned int track1_intt_cluster_size, unsigned int track1_intt_state_size, unsigned int track2_mvtx_cluster_size, unsigned int track2_mvtx_state_size, unsigned int track2_intt_cluster_size, unsigned int track2_intt_state_size, int runNumber, int eventNumber);
 
-  void fillHistogram(Eigen::Vector3d mom1, Eigen::Vector3d mom2, TH1* massreco, double& invariantMass, double& invariantPt, float& invariantPhi, float& rapidity, float& pseudorapidity, float& decaymassa, float& decaymassb);
+  void fillHistogram(Eigen::Vector3d mom1, Eigen::Vector3d mom2, TH1* massreco, double& invariantMass, double& invariantPt, float& invariantPhi, float& rapidity, float& pseudorapidity, float& decaymass1, float& decaymass2);
   
   //  void fillHistogram(Eigen::Vector3d mom1, Eigen::Vector3d mom2, TH1* massreco, double& invariantMass, double& invariantPt, float& invariantPhi, float& rapidity, float& pseudorapidity);
 
@@ -83,6 +93,25 @@ class KshortReconstruction : public SubsysReco
   bool m_save_tracks {false};
   SvtxTrackMap *m_output_trackMap {nullptr};
   std::string m_output_trackMap_node_name {"KshortReconstruction_SvtxTrackMap"};
+
+  //Truth matching code
+  bool m_truth_match {false};
+  bool m_used_string {false};
+  std::string m_mother_name {"K_S0"};
+  int m_mother_id {310};
+
+  PHG4Particle *truth_particle_1 {nullptr};
+  PHG4Particle *truth_particle_2 {nullptr};
+  int truth_mother_id_particle_1 {0};
+  int truth_mother_id_particle_2 {0};
+
+  PHG4TruthInfoContainer *m_truthinfo {nullptr};
+  SvtxEvalStack *m_svtx_evalstack {nullptr};
+  SvtxTrackEval *trackeval {nullptr};
+
+  int getMotherPDG();
+  PHG4Particle *getTruthTrack(SvtxTrack *thisTrack, PHCompositeNode *topNode);
+
 };
 
 #endif  // KSHORTRECONSTRUCTION_H
