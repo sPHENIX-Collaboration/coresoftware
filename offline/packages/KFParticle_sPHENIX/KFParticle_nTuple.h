@@ -35,6 +35,13 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
                   std::vector<KFParticle> daughters,
                   std::vector<KFParticle> intermediates);
 
+  // pass event-level BCO values from KFParticle_sPHENIX
+  void set_event_bcos(const int64_t this_bco, const int64_t last_bco)
+  {
+    m_event_bco = this_bco;
+    m_last_event_bco = last_bco;
+  }
+
   float calc_secondary_vertex_mass_noPID(std::vector<KFParticle> kfp_daughters);
 
   bool fillConditionMet() const;
@@ -219,7 +226,16 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   int m_runNumber{-1};
   int m_evtNumber{-1};
   int64_t m_bco{-1};
-
+  int64_t m_event_bco{-1};//current event BCO
+  int64_t m_last_event_bco{-1}; //only keeping this, BCO for the last event
+  //Moving this logic to KFParticle_sPHENIX.cc, will be removed here after everything worked
+  /*
+  // BCO for the last event 
+  int64_t m_last_event_bco{-1}; //BCO for the last event
+  int64_t m_prev_event_bco{-1}; //Stores the BCO of the previous event. This is what becomes last_event_bco for the next event.
+  int64_t m_prev_runNumber{-1}; //Detects when run changes. Important if job processes multiple runs.
+  int64_t m_prev_evtNumber{-1}; //Detects when event changes within a run.
+  */
   bool m_trigger_info_available{false};
 };
 
