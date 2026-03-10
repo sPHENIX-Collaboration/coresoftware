@@ -219,8 +219,13 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
     m_primary_vtx_x = thisVtx->point3d().x();
     m_primary_vtx_y = thisVtx->point3d().y();
     m_primary_vtx_z = thisVtx->point3d().z();
-
-   if (m_primary_vtx_x == 0 && m_primary_vtx_y == 0 && m_primary_vtx_z == 0) m_is_primary = true;
+   constexpr float epsilon = 1e-6f;
+   if (std::abs(m_primary_vtx_x) < epsilon && 
+       std::abs(m_primary_vtx_y) < epsilon && 
+       std::abs(m_primary_vtx_z) < epsilon)
+   {
+     m_is_primary = true;
+   }
   }
 
   for (unsigned int i = 1; i < decay.size(); ++i)
