@@ -14,7 +14,7 @@ class BcoLumiReco : public SubsysReco
 {
  public:
   BcoLumiReco(const std::string &name = "BCOLUMIRECO");
-  ~BcoLumiReco() override = default;
+  ~BcoLumiReco() override;
 
   int Init(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;

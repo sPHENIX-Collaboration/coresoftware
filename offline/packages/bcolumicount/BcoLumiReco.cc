@@ -29,6 +29,12 @@ BcoLumiReco::BcoLumiReco(const std::string &name)
   return;
 }
 
+BcoLumiReco::~BcoLumiReco()
+{
+  delete m_synccopy;
+  delete m_tmpsync;
+}
+
 int BcoLumiReco::Init(PHCompositeNode *topNode)
 {
   int iret = CreateNodeTree(topNode);
