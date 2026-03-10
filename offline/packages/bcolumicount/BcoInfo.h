@@ -27,13 +27,13 @@ class BcoInfo : public PHObject
   /// isValid returns non zero if object contains valid data
   int isValid() const override;
 
-    uint64_t get_previous_bco() const {return 0;}
-  uint64_t get_current_bco() const {return 0;}
-  uint64_t get_future_bco() const {return 0;}
+  virtual uint64_t get_previous_bco() const {return 0;}
+  virtual uint64_t get_current_bco() const {return 0;}
+  virtual uint64_t get_future_bco() const {return 0;}
 
-  void set_previous_bco(uint64_t /*val*/) {return;}
-  void set_current_bco(uint64_t /*val*/) {return;}
-  void set_future_bco(uint64_t /*val*/) {return;}
+  virtual void set_previous_bco(uint64_t /*val*/) {return;}
+  virtual void set_current_bco(uint64_t /*val*/) {return;}
+  virtual void set_future_bco(uint64_t /*val*/) {return;}
 
 
  private:

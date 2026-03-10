@@ -25,7 +25,7 @@ class BcoLumiReco : public SubsysReco
   static int CreateNodeTree(PHCompositeNode *topNode);
   SyncObject *synccopy {nullptr};
   SyncObject *tmpsync {nullptr};
-  std::array<uint64_t,3> bco;
+  std::array<uint64_t,3> bco {0};
 };
 
 #endif // BCOLUMICOUNT_BCOLUMIRECO_H

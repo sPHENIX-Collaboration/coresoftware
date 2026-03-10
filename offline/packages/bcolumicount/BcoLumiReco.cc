@@ -1,5 +1,7 @@
 #include "BcoLumiReco.h"
 
+#include "BcoInfov1.h"
+
 #include <ffaobjects/SyncDefs.h>
 #include <ffaobjects/SyncObject.h>
 
@@ -48,13 +50,34 @@ int BcoLumiReco::CreateNodeTree(PHCompositeNode *topNode)
     std::cout << PHWHERE << " DST Node is missing doing nothing" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
+  BcoInfo *bcoinfo = findNode::getClass<BcoInfo>(topNode,"BCOINFO");
+  if (!bcoinfo)
+  {
+    bcoinfo = new BcoInfov1();
+    PHIODataNode<PHObject> *newnode = new PHIODataNode<PHObject>(bcoinfo,"BCOINFO","PHObject");
+    dstNode->addNode(newnode);
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int BcoLumiReco::process_event(PHCompositeNode *topNode)
 {
   static bool ifirst = true;
+  Event* evt = findNode::getClass<Event>(topNode,"PRDF");
+  if (evt)
+  {
+    evt->identify();
+    if (evt->getEvtType() != DATAEVENT)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    Packet *packet = evt->getPacket(14001);
+    uint64_t gtm_bco = packet->lValue(0, "BCO");
+    std::cout << std::hex << "packet ival: 0x" << packet->lValue(0, "BCO")
+	      << " uint64_t: 0x" << gtm_bco << std::dec << std::endl;
+    push(gtm_bco);
+    delete packet;
+  }
   if (ifirst) // abort first event
   {
     ifirst = false;
@@ -68,15 +91,8 @@ int BcoLumiReco::process_event(PHCompositeNode *topNode)
     tmpsync = dynamic_cast<SyncObject*> (synccopy->CloneMe()); // just to create this object
     return Fun4AllReturnCodes::ABORTEVENT; // and abort
   }
-  Event* evt = findNode::getClass<Event>(topNode,"PRDF");
-  if (evt)
-  {
-    evt->identify();
-      Packet *packet = evt->getPacket(14001);
-uint64_t gtm_bco = packet->lValue(0, "BCO");
-push(gtm_bco);
-delete packet;
-  }
+  BcoInfo *bcoinfo = findNode::getClass<BcoInfo>(topNode,"BCOINFO");
+
   std::cout << "current event is: " << syncobject->EventNumber() << "\n";
   std::cout << "saving as event: " << synccopy->EventNumber() << "\n";
   *tmpsync = *syncobject; // save current version
@@ -94,6 +110,9 @@ delete packet;
   std::cout << "current  bco: " << get_current_bco() << "\n";
   std::cout << "future   bco: " << get_future_bco() << std::endl;
   std::cout << std::dec;
+  bcoinfo->set_previous_bco(get_previous_bco());
+  bcoinfo->set_current_bco(get_current_bco());
+  bcoinfo->set_future_bco(get_future_bco());
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

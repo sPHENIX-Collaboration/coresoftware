@@ -21,6 +21,7 @@ libbcolumicount_la_LIBADD = \
   libbcolumicount_io.la \
   -lfun4all \
   -lffaobjects \
+  -lffarawobjects \
   -lSubsysReco
 
 ROOTDICTS = \
@@ -34,6 +35,7 @@ nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 pkginclude_HEADERS = \
   BcoInfo.h \
   BcoInfov1.h \
+  BcoLumiCheck.h \
   BcoLumiReco.h
 
 
@@ -43,6 +45,7 @@ libbcolumicount_io_la_SOURCES = \
   BcoInfov1.cc
 
 libbcolumicount_la_SOURCES = \
+  BcoLumiCheck.cc \
   BcoLumiReco.cc
 
 BUILT_SOURCES = testexternals.cc

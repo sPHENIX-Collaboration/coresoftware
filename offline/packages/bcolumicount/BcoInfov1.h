@@ -30,13 +30,13 @@ class BcoInfov1 : public BcoInfo
   /// isValid returns non zero if object contains valid data
   int isValid() const override;
 
-  uint64_t get_previous_bco() const {return bco[0];}
-  uint64_t get_current_bco() const {return bco[1];}
-  uint64_t get_future_bco() const {return bco[2];}
+  uint64_t get_previous_bco() const override {return bco[0];}
+  uint64_t get_current_bco() const override {return bco[1];}
+  uint64_t get_future_bco() const override {return bco[2];}
 
-  void set_previous_bco(uint64_t val) {bco[0] = val;}
-  void set_current_bco(uint64_t val) {bco[1] = val;}
-  void set_future_bco(uint64_t val) {bco[2] = val;}
+  void set_previous_bco(uint64_t val) override {bco[0] = val;}
+  void set_current_bco(uint64_t val) override {bco[1] = val;}
+  void set_future_bco(uint64_t val) override {bco[2] = val;}
 
 
  private:
