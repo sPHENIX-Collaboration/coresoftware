@@ -19,7 +19,6 @@ libbcolumicount_io_la_LIBADD = \
 
 libbcolumicount_la_LIBADD = \
   libbcolumicount_io.la \
-  -lfun4all \
   -lffaobjects \
   -lffarawobjects \
   -lSubsysReco

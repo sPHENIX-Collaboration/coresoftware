@@ -62,7 +62,10 @@ int BcoLumiReco::process_event(PHCompositeNode *topNode)
   Event *evt = findNode::getClass<Event>(topNode, "PRDF");
   if (evt)
   {
-    evt->identify();
+    if (Verbosity() > 1)
+    {
+      evt->identify();
+    }
     if (evt->getEvtType() != DATAEVENT)
     {
       return Fun4AllReturnCodes::ABORTEVENT;
