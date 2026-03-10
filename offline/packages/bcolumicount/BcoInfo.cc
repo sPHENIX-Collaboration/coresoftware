@@ -4,8 +4,6 @@
 
 #include <iostream>
 
-class PHObject;
-
 void BcoInfo::Reset()
 {
   std::cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << std::endl;

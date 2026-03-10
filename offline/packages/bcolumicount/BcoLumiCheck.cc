@@ -1,6 +1,6 @@
 #include "BcoLumiCheck.h"
 
-#include "BcoInfov1.h"
+#include "BcoInfo.h"
 
 #include <ffaobjects/SyncDefs.h>
 #include <ffaobjects/SyncObject.h>
@@ -8,20 +8,13 @@
 #include <ffarawobjects/Gl1Packet.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>          // for PHNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
-#include <phool/recoConsts.h>
-
-#include <Event/Event.h>
-#include <Event/EventTypes.h>
 
 #include <iostream>
 

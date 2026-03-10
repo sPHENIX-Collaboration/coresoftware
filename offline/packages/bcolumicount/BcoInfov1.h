@@ -8,8 +8,6 @@
 #include <array>
 #include <iostream>
 
-class PHObject;
-
 class BcoInfov1 : public BcoInfo
 {
  public:

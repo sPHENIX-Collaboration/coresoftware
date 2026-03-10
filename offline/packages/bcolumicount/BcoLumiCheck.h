@@ -3,10 +3,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <array>
 #include <string>
-
-class SyncObject;
 
 class BcoLumiCheck : public SubsysReco
 {

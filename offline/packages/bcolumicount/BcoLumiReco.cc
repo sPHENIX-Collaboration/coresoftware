@@ -1,12 +1,12 @@
 #include "BcoLumiReco.h"
 
+#include "BcoInfo.h"
 #include "BcoInfov1.h"
 
 #include <ffaobjects/SyncDefs.h>
 #include <ffaobjects/SyncObject.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
@@ -16,11 +16,11 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
-#include <phool/recoConsts.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
-
+#include <Event/packet.h>  // for Packet
+#
 #include <iostream>
 
 BcoLumiReco::BcoLumiReco(const std::string &name)

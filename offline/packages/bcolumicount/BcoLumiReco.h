@@ -4,8 +4,10 @@
 #include <fun4all/SubsysReco.h>
 
 #include <array>
+#include <cstdint>
 #include <string>
 
+class PHCompositeNode;
 class SyncObject;
 
 class BcoLumiReco : public SubsysReco
