@@ -24,7 +24,7 @@ void LaserEventInfov2::Reset()
   for (int i = 0; i < 2; i++)
   {
     m_peakSample[i] = std::numeric_limits<int>::max();
-    m_peakWidth[i] = std::numeric_limits<float>::quiet_NaN();
+    m_peakWidth[i] = std::numeric_limits<double>::quiet_NaN();
   }
 
   return;

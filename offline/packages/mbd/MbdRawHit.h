@@ -42,13 +42,23 @@ class MbdRawHit : public PHObject
 
   virtual Float_t get_chi2ndf() const
   {
-    PHOOL_VIRTUAL_WARNING;
+    static int ctr = 0;
+    if ( ctr<3 )
+    {
+      PHOOL_VIRTUAL_WARNING;
+      ctr++;
+    }
     return MbdReturnCodes::MBD_INVALID_FLOAT;
   }
 
   virtual UShort_t get_fitinfo() const
   {
-    PHOOL_VIRTUAL_WARNING;
+    static int ctr = 0;
+    if ( ctr<3 )
+    {
+      PHOOL_VIRTUAL_WARNING;
+      ctr++;
+    }
     return 0;
   }
 
@@ -59,12 +69,22 @@ class MbdRawHit : public PHObject
 
   virtual void set_chi2ndf(const Double_t /*chi2ndf*/)
   {
-    PHOOL_VIRTUAL_WARNING;
+    static int ctr = 0;
+    if ( ctr<3 )
+    {
+      PHOOL_VIRTUAL_WARNING;
+      ctr++;
+    }
   }
 
   virtual void set_fitinfo(const UShort_t /*fitinfo*/)
   {
-    PHOOL_VIRTUAL_WARNING;
+    static int ctr = 0;
+    if ( ctr<3 )
+    {
+      PHOOL_VIRTUAL_WARNING;
+      ctr++;
+    }
   }
 
   virtual void identify(std::ostream& out = std::cout) const override;

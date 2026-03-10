@@ -48,7 +48,7 @@ class TpcLoadDistortionCorrection : public SubsysReco
   }
 
   //! set the scale factor to be applied to the correction
-  void set_scale_factor(DistortionType i, float value)
+  void set_scale_factor(DistortionType i, double value)
   {
     m_use_scalefactor[i] = true;
     m_scalefactor[i] = value;
@@ -97,7 +97,7 @@ class TpcLoadDistortionCorrection : public SubsysReco
   std::array<bool,nDistortionTypes> m_use_scalefactor = {};
 
   //! scale factors
-  std::array<float,nDistortionTypes> m_scalefactor = {1.0,1.0,1.0,1.0};
+  std::array<double,nDistortionTypes> m_scalefactor = {1.0,1.0,1.0,1.0};
 
   //! set the phi histogram to be interpreted as radians rather than mm
   std::array<bool,nDistortionTypes> m_phi_hist_in_radians = {true,true,true,true};

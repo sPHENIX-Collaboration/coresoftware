@@ -34,7 +34,7 @@ class PHG4TpcGeomContainer;
 class Tpc3DClusterizer : public SubsysReco
 {
  public:
-typedef boost::geometry::model::point<float, 3, boost::geometry::cs::cartesian> point;
+typedef boost::geometry::model::point<double, 3, boost::geometry::cs::cartesian> point;
 typedef boost::geometry::model::box<point> box;
 typedef std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey> specHitKey;
 typedef std::pair<point, specHitKey> pointKeyLaser;
@@ -49,7 +49,7 @@ typedef std::pair<point, specHitKey> pointKeyLaser;
 
   // void calc_cluster_parameter(std::vector<pointKeyLaser> &clusHits, std::multimap<unsigned int,std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap);
   void calc_cluster_parameter(std::vector<pointKeyLaser> &clusHits, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
-  // void remove_hits(std::vector<pointKeyLaser> &clusHits,  boost::geometry::index::rtree<pointKeyLaser, boost::geometry::index::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap, std::multimap <unsigned int, float*> &adcCoords);
+  // void remove_hits(std::vector<pointKeyLaser> &clusHits,  boost::geometry::index::rtree<pointKeyLaser, boost::geometry::index::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap, std::multimap <unsigned int, double*> &adcCoords);
   void remove_hits(std::vector<pointKeyLaser> &clusHits, boost::geometry::index::rtree<pointKeyLaser, boost::geometry::index::quadratic<16>> &rtree, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
 
   void set_debug(bool debug) { m_debug = debug; }
@@ -57,9 +57,9 @@ typedef std::pair<point, specHitKey> pointKeyLaser;
   void set_output(bool output) { m_output = output; }
   void set_output_name(const std::string &name) { m_outputFileName = name; }
 
-  void set_pedestal(float val) { pedestal = val; }
-  void set_min_clus_size(float val) { min_clus_size = val; }
-  void set_min_adc_sum(float val) { min_adc_sum = val; }
+  void set_pedestal(double val) { pedestal = val; }
+  void set_min_clus_size(double val) { min_clus_size = val; }
+  void set_min_adc_sum(double val) { min_adc_sum = val; }
 
  private:
   int m_event {-1};
@@ -106,8 +106,8 @@ typedef std::pair<point, specHitKey> pointKeyLaser;
 
   LaserCluster *m_currentCluster {nullptr};
   std::vector<LaserCluster *> m_eventClusters;
-  std::vector<float> m_currentHit;
-  std::vector<float> m_currentHit_hardware;
+  std::vector<double> m_currentHit;
+  std::vector<double> m_currentHit_hardware;
 
   std::unique_ptr<PHTimer> t_all;
   std::unique_ptr<PHTimer> t_search;

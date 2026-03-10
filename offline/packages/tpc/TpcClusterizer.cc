@@ -101,16 +101,16 @@ namespace
     unsigned int layer = 0;
     int side = 0;
     unsigned int sector = 0;
-    float radius = 0;
-    float drift_velocity = 0;
+    double radius = 0;
+    double drift_velocity = 0;
     unsigned short pads_per_sector = 0;
-    float phistep = 0;
-    float pedestal = 0;
-    float seed_threshold = 0;
-    float edge_threshold = 0;
-    float min_err_squared = 0;
-    float min_clus_size = 0;
-    float min_adc_sum = 0;
+    double phistep = 0;
+    double pedestal = 0;
+    double seed_threshold = 0;
+    double edge_threshold = 0;
+    double min_err_squared = 0;
+    double min_clus_size = 0;
+    double min_adc_sum = 0;
     bool do_assoc = true;
     bool do_wedge_emulation = true;
     bool do_singles = true;
@@ -661,8 +661,8 @@ namespace
     double clusiphi = iphi_sum / adc_sum;
     double clusphi = my_data.layergeom->get_phi(clusiphi, my_data.side);
 
-    float clusx = radius * cos(clusphi);
-    float clusy = radius * sin(clusphi);
+    double clusx = radius * cos(clusphi);
+    double clusy = radius * sin(clusphi);
     double clust = t_sum / adc_sum;
     // needed for surface identification
     double zdriftlength = clust * my_data.tGeometry->get_drift_velocity();
@@ -750,22 +750,22 @@ namespace
       {
         // Create a vector of inputs
         std::vector<torch::jit::IValue> inputs;
-        inputs.emplace_back(torch::stack({torch::from_blob(std::vector<float>(training_hits->v_adc.begin(), training_hits->v_adc.end()).data(), {1, 2 * nd + 1, 2 * nd + 1}, torch::kFloat32),
+        inputs.emplace_back(torch::stack({torch::from_blob(std::vector<double>(training_hits->v_adc.begin(), training_hits->v_adc.end()).data(), {1, 2 * nd + 1, 2 * nd + 1}, torch::kFloat32),
                                           torch::full({1, 2 * nd + 1, 2 * nd + 1}, std::clamp((training_hits->layer - 7) / 16, 0, 2), torch::kFloat32),
                                           torch::full({1, 2 * nd + 1, 2 * nd + 1}, training_hits->z / radius, torch::kFloat32)},
                                          1));
 
         // Execute the model and turn its output into a tensor
         at::Tensor ten_pos = module_pos.forward(inputs).toTensor();
-        float nn_phi = training_hits->phi + std::clamp(ten_pos[0][0][0].item<float>(), -(float) nd, (float) nd) * training_hits->phistep;
-        float nn_z = training_hits->z + std::clamp(ten_pos[0][1][0].item<float>(), -(float) nd, (float) nd) * training_hits->zstep;
-        float nn_x = radius * std::cos(nn_phi);
-        float nn_y = radius * std::sin(nn_phi);
+        double nn_phi = training_hits->phi + std::clamp(ten_pos[0][0][0].item<double>(), -(double) nd, (double) nd) * training_hits->phistep;
+        double nn_z = training_hits->z + std::clamp(ten_pos[0][1][0].item<double>(), -(double) nd, (double) nd) * training_hits->zstep;
+        double nn_x = radius * std::cos(nn_phi);
+        double nn_y = radius * std::sin(nn_phi);
         Acts::Vector3 nn_global(nn_x, nn_y, nn_z);
         nn_global *= Acts::UnitConstants::cm;
         Acts::Vector3 nn_local = surface->transform(my_data.tGeometry->geometry().geoContext).inverse() * nn_global;
         nn_local /= Acts::UnitConstants::cm;
-        float nn_t = my_data.m_tdriftmax - std::fabs(nn_z) / my_data.tGeometry->get_drift_velocity();
+        double nn_t = my_data.m_tdriftmax - std::fabs(nn_z) / my_data.tGeometry->get_drift_velocity();
         clus_base->setLocalX(nn_local(0));
         clus_base->setLocalY(nn_t);
       }
@@ -921,7 +921,7 @@ namespace
 	{
 	  continue;
 	}
-        float_t fadc = (hitr->second->getAdc()) - pedestal;  // proper int rounding +0.5
+        double_t fadc = (hitr->second->getAdc()) - pedestal;  // proper int rounding +0.5
         unsigned short adc = 0;
         if (fadc > 0)
         {
@@ -1657,13 +1657,13 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       
       /*
       PHG4TpcGeom *testlayergeom = geom_container->GetLayerCellGeom(32);
-      for( float iphi = 1408; iphi < 1408+ 128;iphi+=0.1){
+      for( double iphi = 1408; iphi < 1408+ 128;iphi+=0.1){
         double clusiphi = iphi;
         double clusphi = testlayergeom->get_phi(clusiphi);
         double radius = layergeom->get_radius();
-        float clusx = radius * cos(clusphi);
-        float clusy = radius * sin(clusphi);
-        float clusz  = -37.524;
+        double clusx = radius * cos(clusphi);
+        double clusy = radius * sin(clusphi);
+        double clusz  = -37.524;
 
         TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey( 32,11, 0 );
         Acts::Vector3 global(clusx, clusy, clusz);
@@ -1762,11 +1762,11 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
         {
           for (const auto &hit : data.phivec_ClusHitsVerbose[index])
           {
-            mClusHitsVerbose->addPhiHit(hit.first, (float) hit.second);
+            mClusHitsVerbose->addPhiHit(hit.first, (double) hit.second);
           }
           for (const auto &hit : data.zvec_ClusHitsVerbose[index])
           {
-            mClusHitsVerbose->addZHit(hit.first, (float) hit.second);
+            mClusHitsVerbose->addZHit(hit.first, (double) hit.second);
           }
           mClusHitsVerbose->push_hits(ckey);
         }

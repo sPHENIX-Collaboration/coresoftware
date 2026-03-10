@@ -39,6 +39,18 @@ class MbdRawHitV1 : public MbdRawHit
     bqtdc = tq;
   }
 
+  //! dummy method, only exists in V2
+  void set_chi2ndf(const Double_t /*chi2ndf*/) override
+  {
+    return;
+  }
+
+  //! dummy method, only exists in V2
+  void set_fitinfo(const UShort_t /*fitinfo*/) override
+  {
+    return;
+  }
+
   //! Prints out exact identity of object
   void identify(std::ostream& out = std::cout) const override;
 

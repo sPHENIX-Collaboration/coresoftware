@@ -64,7 +64,7 @@ namespace
     unsigned int layer = 0;
     int side = 0;
     unsigned int sector = 0;
-    float pedestal = 0;
+    double pedestal = 0;
     bool do_assoc = true;
     unsigned short phibins = 0;
     unsigned short phioffset = 0;
@@ -292,7 +292,7 @@ namespace
       unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
       unsigned short zbin = TpcDefs::getTBin(hitr->first) - zoffset;
 
-      float_t fadc = (hitr->second->getAdc()) - pedestal;  // proper int rounding +0.5
+      double_t fadc = (hitr->second->getAdc()) - pedestal;  // proper int rounding +0.5
       // std::cout << " layer: " << my_data->layer  << " phibin " << phibin << " zbin " << zbin << " fadc " << hitr->second->getAdc() << " pedestal " << pedestal << " fadc " << std::endl
 
       unsigned short adc = 0;
