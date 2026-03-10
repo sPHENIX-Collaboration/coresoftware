@@ -46,7 +46,7 @@ class KshortReconstruction : public SubsysReco
 
   //Truth matching code
   void truthMatch(bool match = true) { m_truth_match = match; }
-  void setMotherID(std::string id = "K_S0") { m_mother_name = id; m_used_string = true; }
+  void setMotherID(const std::string id = "K_S0") { m_mother_name = id; m_used_string = true; }
   void setMotherID(int id = 310) { m_mother_id = id; m_used_string = false; }
 
  private:

@@ -715,15 +715,21 @@ void KshortReconstruction::findPcaTwoTracks(const Acts::Vector3& pos1, const Act
   }
 
   // get the points at which the normal to the lines intersect the lines, where the lines are perpendicular
-  double X = b1.dot(b2) - (b1.dot(b1) * b2.dot(b2) / b2.dot(b1));
-  double Y = (a2.dot(b2) - a1.dot(b2)) - ((a2.dot(b1) - a1.dot(b1)) * b2.dot(b2) / b2.dot(b1));
-  double c = Y / X;
 
-  double F = b1.dot(b1) / b2.dot(b1);
-  double G = -(a2.dot(b1) - a1.dot(b1)) / b2.dot(b1);
-  double d = (c * F) + G;
+  // coderabbit suggestion 
+  const double b1b1 = b1.dot(b1);
+  const double b2b2 = b2.dot(b2);
+  const double b1b2 = b1.dot(b2);
+  const double denom = b1b1 * b2b2 - b1b2 * b1b2;
+  if (std::abs(denom) < 1e-12)
+    {
+      return;
+    }
+  const Eigen::Vector3d w0 = a1 - a2;
+  const double c = (b1b2 * b2.dot(w0) - b2b2 * b1.dot(w0)) / denom;
+  const double d = (b1b1 * b2.dot(w0) - b1b2 * b1.dot(w0)) / denom;
 
-  // then the points of closest approach are:
+    // then the points of closest approach are:
   pca1 = a1 + c * b1;
   pca2 = a2 + d * b2;
 
@@ -923,7 +929,16 @@ int KshortReconstruction::getNodes(PHCompositeNode* topNode)
 
 int KshortReconstruction::getMotherPDG()
 {
-  return TDatabasePDG::Instance()->GetParticle(m_mother_name.c_str())->PdgCode();
+  TParticlePDG* particle = TDatabasePDG::Instance()->GetParticle(m_mother_name.c_str());
+  if (!particle)
+  {
+    if (Verbosity() > 2)
+    {
+      std::cout << "Error: Unknown particle name '" << m_mother_name << "'" << std::endl;
+    }
+    return -1;  // or throw exception
+  }
+  return particle->PdgCode();
 }
 
 PHG4Particle *KshortReconstruction::getTruthTrack(SvtxTrack *thisTrack, PHCompositeNode *topNode)
@@ -937,7 +952,7 @@ PHG4Particle *KshortReconstruction::getTruthTrack(SvtxTrack *thisTrack, PHCompos
   PHG4Particle *particle = nullptr;
 
   SvtxPHG4ParticleMap *dst_reco_truth_map = findNode::getClass<SvtxPHG4ParticleMap>(topNode, "SvtxPHG4ParticleMap");
-  if (dst_reco_truth_map)
+  if (dst_reco_truth_map && dst_reco_truth_map->processed())
   {
     std::map<float, std::set<int>> truth_set = dst_reco_truth_map->get(thisTrack->get_id());
     if (!truth_set.empty())

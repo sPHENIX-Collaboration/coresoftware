@@ -38,6 +38,7 @@
 #include <map>
 #include <set>
 
+
 //____________________________________________________________________________..
 HFTrackEfficiency::HFTrackEfficiency(const std::string &name)
   : SubsysReco(name)
@@ -218,6 +219,8 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
     m_primary_vtx_x = thisVtx->point3d().x();
     m_primary_vtx_y = thisVtx->point3d().y();
     m_primary_vtx_z = thisVtx->point3d().z();
+
+   if (m_primary_vtx_x == 0 && m_primary_vtx_y == 0 && m_primary_vtx_z == 0) m_is_primary = true;
   }
 
   for (unsigned int i = 1; i < decay.size(); ++i)
@@ -289,6 +292,8 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
             {
               daughterG4->identify();
             }
+
+            m_is_primary = m_truthInfo->is_sPHENIX_primary(motherG4);
 
             CLHEP::Hep3Vector *mother3Vector = new CLHEP::Hep3Vector(motherG4->get_px(), motherG4->get_py(), motherG4->get_pz());
             motherTrueLV->setVectM((*mother3Vector), getParticleMass(decay[0].second));
@@ -429,6 +434,7 @@ void HFTrackEfficiency::initializeBranches()
   m_tree->SetAutoSave(-5e6);  // Save the output file every 5MB
 
   m_tree->Branch("all_tracks_reconstructed", &m_all_tracks_reconstructed, "all_tracks_reconstructed/O");
+  m_tree->Branch("is_primary", &m_is_primary, "is_primary/O");
   m_tree->Branch("true_mother_mass", &m_true_mother_mass, "true_mother_mass/F");
   m_tree->Branch("reco_mother_mass", &m_reco_mother_mass, "reco_mother_mass/F");
   m_tree->Branch("true_mother_pT", &m_true_mother_pT, "true_mother_pT/F");
@@ -465,6 +471,7 @@ void HFTrackEfficiency::initializeBranches()
 void HFTrackEfficiency::resetBranches()
 {
   m_all_tracks_reconstructed = false;
+  m_is_primary = false;
   m_true_mother_mass = std::numeric_limits<float>::quiet_NaN();
   m_reco_mother_mass = std::numeric_limits<float>::quiet_NaN();
   m_true_mother_pT = std::numeric_limits<float>::quiet_NaN();
