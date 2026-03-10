@@ -23,4 +23,3 @@ int BcoInfo::isValid() const
   std::cout << PHWHERE << "isValid not implemented by daughter class" << std::endl;
   return 0;
 }
-

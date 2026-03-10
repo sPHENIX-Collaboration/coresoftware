@@ -17,8 +17,9 @@ class BcoLumiCheck : public SubsysReco
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
+
  private:
   static int CreateNodeTree(PHCompositeNode *topNode);
 };
 
-#endif // BCOLUMICOUNT_BCOLUMICHECK_H
+#endif  // BCOLUMICOUNT_BCOLUMICHECK_H

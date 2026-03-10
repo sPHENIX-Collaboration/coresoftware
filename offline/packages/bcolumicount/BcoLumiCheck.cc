@@ -37,7 +37,7 @@ int BcoLumiCheck::Init(PHCompositeNode *topNode)
   return iret;
 }
 
-int BcoLumiCheck::InitRun(PHCompositeNode */*topNode*/)
+int BcoLumiCheck::InitRun(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -57,20 +57,22 @@ int BcoLumiCheck::CreateNodeTree(PHCompositeNode *topNode)
 
 int BcoLumiCheck::process_event(PHCompositeNode *topNode)
 {
-  BcoInfo *bcoinfo = findNode::getClass<BcoInfo>(topNode,"BCOINFO");
+  BcoInfo *bcoinfo = findNode::getClass<BcoInfo>(topNode, "BCOINFO");
   SyncObject *syncobject = findNode::getClass<SyncObject>(topNode, syncdefs::SYNCNODENAME);
   Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(topNode, 14001);
   if (gl1packet)
   {
-    std::cout << "Event No: " << syncobject->EventNumber() << std::endl;
-std::cout << std::hex << "gl1:  bco 0x" << gl1packet->lValue(0, "BCO") << std::endl;
+    std::cout << "Event No: " << syncobject->EventNumber() << std::hex
+              << " gl1:  bco 0x" << gl1packet->lValue(0, "BCO") << std::dec << std::endl;
     if (bcoinfo)
     {
-      std::cout << "prev bco: 0x" << bcoinfo->get_previous_bco()  << std::endl;
-      std::cout << "curr bco: 0x" << bcoinfo->get_current_bco()  << std::endl;
-      std::cout << "futu bco: 0x" << bcoinfo->get_future_bco()  << std::endl;
+      std::cout << "prev event: " << bcoinfo->get_previous_evtno() << std::hex
+                << " bco: 0x" << bcoinfo->get_previous_bco() << std::dec << std::endl;
+      std::cout << "curr event: " << bcoinfo->get_current_evtno() << std::hex
+                << " bco: 0x" << bcoinfo->get_current_bco() << std::dec << std::endl;
+      std::cout << "futu event: " << bcoinfo->get_future_evtno() << std::hex
+                << " bco: 0x" << bcoinfo->get_future_bco() << std::dec << std::endl;
     }
-    std::cout << std::dec;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }

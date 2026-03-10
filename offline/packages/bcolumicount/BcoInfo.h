@@ -27,17 +27,23 @@ class BcoInfo : public PHObject
   /// isValid returns non zero if object contains valid data
   int isValid() const override;
 
-  virtual uint64_t get_previous_bco() const {return 0;}
-  virtual uint64_t get_current_bco() const {return 0;}
-  virtual uint64_t get_future_bco() const {return 0;}
+  virtual uint64_t get_previous_bco() const { return 0; }
+  virtual uint64_t get_current_bco() const { return 0; }
+  virtual uint64_t get_future_bco() const { return 0; }
 
-  virtual void set_previous_bco(uint64_t /*val*/) {return;}
-  virtual void set_current_bco(uint64_t /*val*/) {return;}
-  virtual void set_future_bco(uint64_t /*val*/) {return;}
+  virtual void set_previous_bco(uint64_t /*val*/) { return; }
+  virtual void set_current_bco(uint64_t /*val*/) { return; }
+  virtual void set_future_bco(uint64_t /*val*/) { return; }
 
+  virtual int get_previous_evtno() const { return 0; }
+  virtual int get_current_evtno() const { return 0; }
+  virtual int get_future_evtno() const { return 0; }
+
+  virtual void set_previous_evtno(int /*val*/) { return; }
+  virtual void set_current_evtno(int /*val*/) { return; }
+  virtual void set_future_evtno(int /*val*/) { return; }
 
  private:
-
   ClassDefOverride(BcoInfo, 1)
 };
 
