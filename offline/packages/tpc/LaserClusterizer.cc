@@ -1177,9 +1177,6 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
         thread_pair.data.peakTimeBin = m_laserEventInfo->getPeakSample(s);
         thread_pair.data.layerMin = 3;
         thread_pair.data.layerMax = 3;
-        // ******************** //
-        // m_tdriftmax = m_tGeometry->get_max_driftlength() / m_tGeometry->get_drift_velocity(); 
-        // ******************** //
         thread_pair.data.tdriftmax = m_tdriftmax;
         thread_pair.data.eventNum = m_event;
         thread_pair.data.Verbosity = Verbosity();
