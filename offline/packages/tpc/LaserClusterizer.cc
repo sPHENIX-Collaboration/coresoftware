@@ -859,6 +859,7 @@ namespace
       {
         // clean up
         alignmentTransformationContainer::use_alignment = alignmentflag;
+        delete clus;
         delete fit3D;
         if (my_data.hitHist)
         {
@@ -881,7 +882,7 @@ namespace
     clus->setX(global(0));
     clus->setY(global(1));
     clus->setZ(global(2));
-    
+
     alignmentTransformationContainer::use_alignment = alignmentflag;
     pthread_mutex_unlock(&mythreadlock);
 
