@@ -181,7 +181,8 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 	std::cout << "New event detected" << std::endl;
     	std::cout << "Previous event BCO: " << m_prev_event_bco << std::endl;
 	}
-    m_last_event_bco = m_prev_event_bco;
+   // m_last_event_bco = m_prev_event_bco;
+    m_last_event_bco = (run == m_prev_runNumber) ? m_prev_event_bco : -1;
     m_prev_event_bco = m_this_event_bco;
 
     m_prev_runNumber = run;
@@ -204,6 +205,10 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 	}
   m_this_event_bco = -1;
   m_last_event_bco = -1;
+  m_prev_event_bco = -1;
+  m_prev_runNumber = -1;
+  m_prev_eventNumber = -1;
+
   }
 // End BCO matching here
   if (!m_use_fake_pv)
