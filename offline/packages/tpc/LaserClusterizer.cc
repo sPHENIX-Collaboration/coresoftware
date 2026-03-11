@@ -444,6 +444,7 @@ namespace
 
     double maxAdc = 0.0;
     TrkrDefs::hitsetkey maxKey = 0;
+    double secondmaxAdc = 0.0;
     TrkrDefs::hitsetkey secondmaxKey = 0;
 
     unsigned int nHits = clusHits.size();
@@ -556,10 +557,18 @@ namespace
 
       if (adc > maxAdc)
       {
-        maxAdc = adc;
+        secondmaxAdc = maxAdc;
         secondmaxKey = maxKey;
+        maxAdc = adc;
         maxKey = spechitkey.second;
       }
+      else if (adc > secondmaxAdc)
+      {
+        secondmaxAdc = adc;
+        secondmaxKey = spechitkey.second;
+      }
+
+
     }
 
     if (nHits == 0)
@@ -824,6 +833,7 @@ namespace
 
     pthread_mutex_lock(&mythreadlock);
     // Get surface of max ADC hit
+    bool alignmentflag = alignmentTransformationContainer::use_alignment;
     alignmentTransformationContainer::use_alignment = false;
     Acts::Vector3 ideal(clus->getX(), clus->getY(), clus->getZ());
     TrkrDefs::subsurfkey subsurfkey = 0;
@@ -848,7 +858,7 @@ namespace
       if (!surface)
       {
         // clean up
-        alignmentTransformationContainer::use_alignment = true;
+        alignmentTransformationContainer::use_alignment = alignmentflag;
         delete fit3D;
         if (my_data.hitHist)
         {
@@ -871,6 +881,8 @@ namespace
     clus->setX(global(0));
     clus->setY(global(1));
     clus->setZ(global(2));
+    
+    alignmentTransformationContainer::use_alignment = alignmentflag;
     pthread_mutex_unlock(&mythreadlock);
 
 
@@ -878,6 +890,7 @@ namespace
     my_data.cluster_vector.push_back(clus);
     my_data.cluster_key_vector.push_back(ckey);
 
+    
     delete fit3D;
 
     if (my_data.hitHist)
