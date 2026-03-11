@@ -11,6 +11,7 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/alignmentTransformationContainer.h>
 
 #include <ffaobjects/EventHeader.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -818,6 +819,35 @@ namespace
       clus->setSDWeightedIT(sqrt(sigmaWeightedIT / adcSum));
     }
 
+
+    // Get surface of max ADC hit
+    alignmentTransformationContainer::use_alignment = false;
+    Acts::Vector3 ideal(clusX, clusY, clusZ);
+    TrkrDefs::subsurfkey subsurfkey = 0;
+
+    Surface surface = my_data.tGeometry->get_tpc_surface_from_coords(
+        maxKey,
+        ideal,
+        subsurfkey);
+
+    if (!surface)
+    {
+      return;
+    }
+
+    // Convert from ideal TPC coordinates to surface coordinates 
+    Acts::Vector3 local = surface->transform(my_data.tGeometry->geometry().getGeoContext()).inverse() * (ideal * Acts::UnitConstants::cm);
+    local /= Acts::UnitConstants::cm;
+
+    // Convert back to TPC coordinates with alignment applied 
+    alignmentTransformationContainer::use_alignment = true;
+    Acts::Vector3 global = surface->transform(my_data.tGeometry->geometry().getGeoContext()) * (local * Acts::UnitConstants::cm);
+    global /= Acts::UnitConstants::cm;
+    clus->setX(global(0));
+    clus->setY(global(1));
+    clus->setZ(global(2));
+
+
     const auto ckey = TrkrDefs::genClusKey(maxKey, my_data.cluster_vector.size());
     my_data.cluster_vector.push_back(clus);
     my_data.cluster_key_vector.push_back(ckey);
@@ -995,6 +1025,7 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   // get the first layer to get the clock freq
   AdcClockPeriod = m_geom_container->GetFirstLayerCellGeom()->get_zstep();
   m_tdriftmax = AdcClockPeriod * NZBinsSide;
+  
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1146,6 +1177,9 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
         thread_pair.data.peakTimeBin = m_laserEventInfo->getPeakSample(s);
         thread_pair.data.layerMin = 3;
         thread_pair.data.layerMax = 3;
+        // ******************** //
+        // m_tdriftmax = m_tGeometry->get_max_driftlength() / m_tGeometry->get_drift_velocity(); 
+        // ******************** //
         thread_pair.data.tdriftmax = m_tdriftmax;
         thread_pair.data.eventNum = m_event;
         thread_pair.data.Verbosity = Verbosity();
