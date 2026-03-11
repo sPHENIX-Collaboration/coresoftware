@@ -422,6 +422,12 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   bool m_save_dst;
   bool m_save_output;
   int candidateCounter = 0;
+  //Adding member variables for BCO matching
+  int64_t m_this_event_bco{-1};
+  int64_t m_last_event_bco{-1};
+  int64_t m_prev_event_bco{-1};
+  int64_t m_prev_runNumber{-1};
+  int64_t m_prev_eventNumber{-1}; //till here
   std::string m_outfile_name;
   TFile *m_outfile;
   std::string m_decayDescriptor;

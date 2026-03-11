@@ -303,7 +303,9 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 
   m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
   m_tree->Branch("eventNumber", &m_evtNumber, "eventNumber/I");
-  m_tree->Branch("BCO", &m_bco, "BCO/L");
+  m_tree->Branch("event_bco", &m_event_bco, "event_bco/L"); //adding for the current event BCO, not shifted
+  m_tree->Branch("BCO", &m_bco, "BCO/L"); //already there, this is shifted BCO
+  m_tree->Branch("last_event_bco", &m_last_event_bco, "last_event_bco/L"); //BCO for the last event 
 
   if (m_get_trigger_info)
   {
@@ -674,10 +676,23 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     }
     m_bco = gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0];
     //m_bco = m_trigger_info_available ? gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0] : 0;
+
+	//moving this logic to KFParticle_sPHENIX.cc in process_event, will be removed later
+	/*
+	//BCO for the last event try
+  	if (m_runNumber != m_prev_runNumber || m_evtNumber != m_prev_evtNumber)
+	{
+	m_last_event_bco = m_prev_event_bco;
+	m_prev_event_bco = m_bco;
+	m_prev_runNumber = m_runNumber;
+	m_prev_evtNumber = m_evtNumber;
+	} //end BCO for last event
+	*/
   }
   else
   {
     m_runNumber = m_evtNumber = m_bco = -1;
+   // m_last_event_bco = -1; //add for last event BCO
   }
 
   if (m_trigger_info_available)
