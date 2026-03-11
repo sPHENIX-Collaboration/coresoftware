@@ -677,22 +677,10 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_bco = gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0];
     //m_bco = m_trigger_info_available ? gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0] : 0;
 
-	//moving this logic to KFParticle_sPHENIX.cc in process_event, will be removed later
-	/*
-	//BCO for the last event try
-  	if (m_runNumber != m_prev_runNumber || m_evtNumber != m_prev_evtNumber)
-	{
-	m_last_event_bco = m_prev_event_bco;
-	m_prev_event_bco = m_bco;
-	m_prev_runNumber = m_runNumber;
-	m_prev_evtNumber = m_evtNumber;
-	} //end BCO for last event
-	*/
   }
   else
   {
     m_runNumber = m_evtNumber = m_bco = -1;
-   // m_last_event_bco = -1; //add for last event BCO
   }
 
   if (m_trigger_info_available)
