@@ -18,6 +18,11 @@
 class PHCompositeNode;
 class InttEventInfo;
 
+namespace odbc
+{
+  class Statement;
+}  // namespace odbc
+
 class InttCombinedRawDataDecoder : public SubsysReco
 {
  public:
@@ -64,6 +69,9 @@ class InttCombinedRawDataDecoder : public SubsysReco
   void set_DACValues(std::vector<int> input_dac_vec);
 
  private:
+  int QuerySingleDACValue(odbc::Statement *statement, int runnumber, int adc_value, int &DAC_value);
+  int QueryAllDACValues(odbc::Statement *statement, int runnumber);
+
   InttEventInfo* intt_event_header = nullptr;
   std::string m_InttRawNodeName = "INTTRAWHIT";
   bool m_runStandAlone = false;
@@ -77,8 +85,7 @@ class InttCombinedRawDataDecoder : public SubsysReco
   // InttDacMap m_dacmap;
   InttBCOMap m_bcomap;
 
-  std::vector<int> m_DACValues;
-  const std::vector<int> default_DACValues = {30, 45, 60, 90, 120, 150, 180, 210}; // note : this is the setting used by most of the physics runs
+  std::vector<int> m_intt_dac_values;
   int DACValue_set_count = 0;
 
   int m_inttFeeOffset = 23;   //23 is the offset for INTT in streaming mode

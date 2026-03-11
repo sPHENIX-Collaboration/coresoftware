@@ -18,7 +18,12 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+#include <fun4all/DBInterface.h>
 
+#include <odbc++/resultset.h>
+#include <odbc++/statement.h>
+
+#include <phool/recoConsts.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>  // for PHIODataNode
 #include <phool/PHNodeIterator.h>
@@ -37,7 +42,7 @@ InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   : SubsysReco(name)
   // , m_calibinfoDAC({"INTT_DACMAP", CDB})
   , m_calibinfoBCO({"INTT_BCOMAP", CDB})
-  , m_DACValues(0)
+  , m_intt_dac_values(0)
 {
   // Do nothing
   // Consider calling LoadHotChannelMapRemote()
@@ -129,17 +134,14 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   }
 
   ///////////////////////////////////////
-  if ( DACValue_set_count == 1 && (m_DACValues.size() != 8 || std::find(m_DACValues.begin(), m_DACValues.end(), -1) != m_DACValues.end()) )
-  {
-    std::cout << PHWHERE << ", " << "INTT DAC values retrieved from intt_setting table not properly set, exiting." << std::endl;
-    gSystem->Exit(1);
-    exit(1);
-  }
-  
+  recoConsts *rc = recoConsts::instance();
+  int run_number = rc->get_IntFlag("RUNNUMBER");
+
+  odbc::Statement* statement = DBInterface::instance()->getStatement("daq");
   if (DACValue_set_count == 0){
-    std::cout << PHWHERE << ", " << "INTT DAC values not set, used the default setting {30, 45, 60, 90, 120, 150, 180, 210} " << std::endl;
-    m_DACValues = default_DACValues;
-  }
+    std::cout<< PHWHERE << ", " << "No manual setting for DAC values. Querying INTT DAC values from intt_setting table for run number " << run_number << std::endl;
+    InttCombinedRawDataDecoder::QueryAllDACValues(statement, run_number);
+  }  
 
   // std::cout << "calibinfo DAC : " << m_calibinfoDAC.first << " " << (m_calibinfoDAC.second == CDB ? "CDB" : "FILE") << std::endl;
   // m_dacmap.Verbosity(Verbosity());
@@ -443,8 +445,12 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
       ////////////////////////
       // dac conversion
       // int dac = m_dacmap.GetDAC(raw, adc);
-      int dac = (adc >= 0 && adc <= 7) ? m_DACValues[adc] : -1;
-      // std::cout<< PHWHERE << "\n" << "ADC value: " << adc << ", converted DAC value: " << dac << std::endl;
+      int dac = (adc >= 0 && adc <= 7) ? m_intt_dac_values[adc] : -1;
+
+      if (Verbosity() > 100000){
+        std::cout<< PHWHERE << "\n" << "ADC value: " << adc << ", converted DAC value: " << dac << std::endl;
+      }
+      
 
       hit = new TrkrHitv2;
       //--hit->setAdc(adc);
@@ -460,12 +466,98 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 
 void InttCombinedRawDataDecoder::set_DACValues(std::vector<int> input_dac_vec) 
 {
-  m_DACValues = input_dac_vec;
+  m_intt_dac_values = input_dac_vec;
   DACValue_set_count = 1;
+  int count_minus = 0;
   std::cout<<PHWHERE<< ", DAC values are set by user input, the values are: ";
-  for (auto &dac_value : m_DACValues)
+  for (auto &dac_value : m_intt_dac_values)
   {
-    std::cout << dac_value << " ";
+    std::cout << dac_value << ", ";
+
+    if (dac_value <= 0) {count_minus++;}
   }
   std::cout << std::endl;
+
+  if ( m_intt_dac_values.size() != 8 || count_minus != 0){
+    std::cerr << PHWHERE << "\n"
+              << "\tError: DAC values were set by user, but it should be 8 integers and all should be positive. Please check your input. Exiting. \n"
+              << "\tThe current input DAC values are: ";
+    for (size_t i = 0; i < m_intt_dac_values.size(); ++i)
+    {
+      std::cout << "dac" << i << ": " << m_intt_dac_values[i] << ", ";
+    }
+    std::cout << std::endl;
+
+    exit(1);
+    gSystem->Exit(1);
+  }
+}
+
+
+int InttCombinedRawDataDecoder::QuerySingleDACValue(odbc::Statement *statement, int runnumber, int adc_value, int &DAC_value) // adc_value should be from 0 to 7
+{
+  std::unique_ptr<odbc::ResultSet> result_set;
+  std::string column_name = "dac" + std::to_string(adc_value);
+  DAC_value = -1;
+  
+
+  try
+  {
+    std::string sql = "SELECT " + column_name + " From intt_setting WHERE runnumber = " + std::to_string(runnumber) + ";";
+    result_set = std::unique_ptr<odbc::ResultSet>(statement->executeQuery(sql));
+    if (result_set && result_set->next())
+    {
+      DAC_value = result_set->getInt(column_name.c_str());
+    }
+  }
+  catch (odbc::SQLException& e)
+  {
+    std::cerr << PHWHERE << "\n"
+              << "\tSQL Exception:\n"
+              << "\t" << e.getMessage() << std::endl;
+    return 1;
+  }
+
+  if (Verbosity())
+  {
+    std::cout << column_name << " of run " << runnumber <<" is " << DAC_value << std::endl;
+  }
+
+  return 0;
+}
+
+int InttCombinedRawDataDecoder::QueryAllDACValues(odbc::Statement *statement, int runnumber)
+{
+  int error_count = 0;
+
+  for (int i = 0; i < 8; ++i)
+  {
+    int DAC_value = -1;
+
+    error_count += QuerySingleDACValue(statement, runnumber, i, DAC_value);
+
+    m_intt_dac_values.push_back(DAC_value);
+  }
+
+  if (error_count != 0 || m_intt_dac_values.size() != 8 || std::find(m_intt_dac_values.begin(), m_intt_dac_values.end(), -1) != m_intt_dac_values.end())
+  {
+    std::cerr << PHWHERE << "\n"
+              << "\tError retrieving DAC values. error_count: " << error_count
+              << ", size of m_intt_dac_values: " << m_intt_dac_values.size() << std::endl;
+    std:: cout << "In the dac map: ";
+    for (size_t i = 0; i < m_intt_dac_values.size(); ++i)
+    {
+      std::cout << "dac" << i << ": " << m_intt_dac_values[i] << ", ";
+    }
+    std::cout << std::endl;
+    std::cout<< " The DAC values should be 8 integers and all should be positive. Exiting."<< std::endl;
+    std::cout<< " Please contact the INTT group if the run you analyzed doesn't appear in the intt_setting table."<< std::endl;
+    
+    exit(1);
+    gSystem->Exit(1);
+
+    return error_count;
+  }
+
+  return 0;
 }
