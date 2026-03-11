@@ -444,6 +444,7 @@ namespace
 
     double maxAdc = 0.0;
     TrkrDefs::hitsetkey maxKey = 0;
+    TrkrDefs::hitsetkey secondmaxKey = 0;
 
     unsigned int nHits = clusHits.size();
 
@@ -556,6 +557,7 @@ namespace
       if (adc > maxAdc)
       {
         maxAdc = adc;
+        secondmaxKey = maxKey;
         maxKey = spechitkey.second;
       }
     }
@@ -820,9 +822,10 @@ namespace
     }
 
 
+    pthread_mutex_lock(&mythreadlock);
     // Get surface of max ADC hit
     alignmentTransformationContainer::use_alignment = false;
-    Acts::Vector3 ideal(clusX, clusY, clusZ);
+    Acts::Vector3 ideal(clus->getX(), clus->getY(), clus->getZ());
     TrkrDefs::subsurfkey subsurfkey = 0;
 
     Surface surface = my_data.tGeometry->get_tpc_surface_from_coords(
@@ -832,7 +835,29 @@ namespace
 
     if (!surface)
     {
-      return;
+      // try second maximum ADC hit
+      if (secondmaxKey != 0)
+      {
+        surface = my_data.tGeometry->get_tpc_surface_from_coords(
+            secondmaxKey,
+            ideal,
+            subsurfkey);
+      }
+
+      // if still no surface, skip this cluster
+      if (!surface)
+      {
+        // clean up
+        alignmentTransformationContainer::use_alignment = true;
+        delete fit3D;
+        if (my_data.hitHist)
+        {
+          delete my_data.hitHist;
+          my_data.hitHist = nullptr;
+        }
+        pthread_mutex_unlock(&mythreadlock);
+        return;
+      }
     }
 
     // Convert from ideal TPC coordinates to surface coordinates 
@@ -846,6 +871,7 @@ namespace
     clus->setX(global(0));
     clus->setY(global(1));
     clus->setZ(global(2));
+    pthread_mutex_unlock(&mythreadlock);
 
 
     const auto ckey = TrkrDefs::genClusKey(maxKey, my_data.cluster_vector.size());
