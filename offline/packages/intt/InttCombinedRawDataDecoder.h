@@ -3,12 +3,13 @@
 
 #include "InttBadChannelMap.h"
 #include "InttBCOMap.h"
-#include "InttDacMap.h"
+// #include "InttDacMap.h"
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
 #include <fun4all/SubsysReco.h>
 
+#include <algorithm>
 #include <set>
 #include <string>
 #include <vector>
@@ -40,10 +41,10 @@ class InttCombinedRawDataDecoder : public SubsysReco
   /// Depreciated; use LoadHotChannelMap(const std::string&);
   int LoadHotChannelMapRemote(std::string const& s = "INTT_HotChannelMap") {return LoadBadChannelMap(s);}
 
-  void SetCalibDAC(std::string const& calibname = "INTT_DACMAP", const CalibRef& calibref = CDB)
-  {
-    m_calibinfoDAC = std::pair<std::string, CalibRef>(calibname, calibref);
-  }
+  // void SetCalibDAC(std::string const& calibname = "INTT_DACMAP", const CalibRef& calibref = CDB)
+  // {
+  //   m_calibinfoDAC = std::pair<std::string, CalibRef>(calibname, calibref);
+  // }
 
   void SetCalibBCO(std::string const& calibname = "INTT_BCOMAP", const CalibRef& calibref = CDB)
   {
@@ -60,6 +61,7 @@ class InttCombinedRawDataDecoder : public SubsysReco
   void set_bcoFilter(bool flag) {m_bcoFilter = flag; }
   void set_SaturatedChipRejection(bool flag){m_SaturatedChipRejection = flag;} // note : this is for removing a fraction of the saturated chips
   void set_HighChipMultiplicityCut(int cut){HighChipMultiplicityCut = cut;}
+  void set_DACValues(std::vector<int> input_dac_vec);
 
  private:
   InttEventInfo* intt_event_header = nullptr;
@@ -68,12 +70,16 @@ class InttCombinedRawDataDecoder : public SubsysReco
   bool m_writeInttEventHeader = false;
   bool m_bcoFilter = false;
   bool m_SaturatedChipRejection = true; // note : true as default
-  std::pair<std::string, CalibRef> m_calibinfoDAC;
+  // std::pair<std::string, CalibRef> m_calibinfoDAC;
   std::pair<std::string, CalibRef> m_calibinfoBCO;
 
   InttBadChannelMap m_badmap;
-  InttDacMap m_dacmap;
+  // InttDacMap m_dacmap;
   InttBCOMap m_bcomap;
+
+  std::vector<int> m_DACValues;
+  const std::vector<int> default_DACValues = {30, 45, 60, 90, 120, 150, 180, 210}; // note : this is the setting used by most of the physics runs
+  int DACValue_set_count = 0;
 
   int m_inttFeeOffset = 23;   //23 is the offset for INTT in streaming mode
   bool m_outputBcoDiff = false;

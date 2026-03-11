@@ -35,8 +35,9 @@
 
 InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   : SubsysReco(name)
-  , m_calibinfoDAC({"INTT_DACMAP", CDB})
+  // , m_calibinfoDAC({"INTT_DACMAP", CDB})
   , m_calibinfoBCO({"INTT_BCOMAP", CDB})
+  , m_DACValues(0)
 {
   // Do nothing
   // Consider calling LoadHotChannelMapRemote()
@@ -128,16 +129,28 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   }
 
   ///////////////////////////////////////
-  std::cout << "calibinfo DAC : " << m_calibinfoDAC.first << " " << (m_calibinfoDAC.second == CDB ? "CDB" : "FILE") << std::endl;
-  m_dacmap.Verbosity(Verbosity());
-  if (m_calibinfoDAC.second == CDB)
+  if ( DACValue_set_count == 1 && (m_DACValues.size() != 8 || std::find(m_DACValues.begin(), m_DACValues.end(), -1) != m_DACValues.end()) )
   {
-    m_dacmap.LoadFromCDB(m_calibinfoDAC.first);
+    std::cout << PHWHERE << ", " << "INTT DAC values retrieved from intt_setting table not properly set, exiting." << std::endl;
+    gSystem->Exit(1);
+    exit(1);
   }
-  else
-  {
-    m_dacmap.LoadFromFile(m_calibinfoDAC.first);
+  
+  if (DACValue_set_count == 0){
+    std::cout << PHWHERE << ", " << "INTT DAC values not set, used the default setting {30, 45, 60, 90, 120, 150, 180, 210} " << std::endl;
+    m_DACValues = default_DACValues;
   }
+
+  // std::cout << "calibinfo DAC : " << m_calibinfoDAC.first << " " << (m_calibinfoDAC.second == CDB ? "CDB" : "FILE") << std::endl;
+  // m_dacmap.Verbosity(Verbosity());
+  // if (m_calibinfoDAC.second == CDB)
+  // {
+  //   m_dacmap.LoadFromCDB(m_calibinfoDAC.first);
+  // }
+  // else
+  // {
+  //   m_dacmap.LoadFromFile(m_calibinfoDAC.first);
+  // }
 
   ///////////////////////////////////////
   std::cout << "calibinfo BCO : " << m_calibinfoBCO.first << " " << (m_calibinfoBCO.second == CDB ? "CDB" : "FILE") << std::endl;
@@ -429,7 +442,9 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 
       ////////////////////////
       // dac conversion
-      int dac = m_dacmap.GetDAC(raw, adc);
+      // int dac = m_dacmap.GetDAC(raw, adc);
+      int dac = (adc >= 0 && adc <= 7) ? m_DACValues[adc] : -1;
+      // std::cout<< PHWHERE << "\n" << "ADC value: " << adc << ", converted DAC value: " << dac << std::endl;
 
       hit = new TrkrHitv2;
       //--hit->setAdc(adc);
@@ -440,4 +455,17 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
   }
   
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+void InttCombinedRawDataDecoder::set_DACValues(std::vector<int> input_dac_vec) 
+{
+  m_DACValues = input_dac_vec;
+  DACValue_set_count = 1;
+  std::cout<<PHWHERE<< ", DAC values are set by user input, the values are: ";
+  for (auto &dac_value : m_DACValues)
+  {
+    std::cout << dac_value << " ";
+  }
+  std::cout << std::endl;
 }
