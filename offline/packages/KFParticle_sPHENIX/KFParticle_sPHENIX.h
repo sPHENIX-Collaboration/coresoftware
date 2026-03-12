@@ -44,6 +44,7 @@
 #include <string>
 #include <utility>  // for pair
 #include <vector>   // for vector
+#include <stdint.h> //include for new member added
 
 class PHCompositeNode;
 class TFile;
@@ -424,7 +425,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   int candidateCounter = 0;
   //Adding member variables for BCO matching
   int64_t m_this_event_bco{-1};
-  int64_t m_last_event_bco_sPHENIX{-1};
+  int64_t m_last_event_bco{-1};
   int64_t m_prev_event_bco{-1};
   int64_t m_prev_runNumber{-1};
   int64_t m_prev_eventNumber{-1}; //till here

@@ -9,7 +9,6 @@
 #include <limits>
 #include <string>  // for string
 #include <vector>
-
 class PHCompositeNode;
 class TTree;
 

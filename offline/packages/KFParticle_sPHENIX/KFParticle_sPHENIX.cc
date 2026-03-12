@@ -166,7 +166,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   {
   const int64_t run = evtHeader->get_RunNumber();
   const int64_t evn = evtHeader->get_EvtSequence();
-  m_this_event_bco = static_cast<int64_t>(gl1packet->lValue(0, "BCO"));
+  m_this_event_bco = static_cast<uint64_t>(gl1packet->lValue(0, "BCO"));
 
     if (Verbosity() >= VERBOSITY_SOME)
   	{
@@ -181,9 +181,9 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 	std::cout << "New event detected" << std::endl;
     	std::cout << "Previous event BCO: " << m_prev_event_bco << std::endl;
 	}
-   // m_last_event_bco = m_prev_event_bco;
-    m_last_event_bco = (run == m_prev_runNumber) ? m_prev_event_bco : -1;
-    m_prev_event_bco = m_this_event_bco;
+    //m_last_event_bco = m_prev_event_bco;
+     m_last_event_bco = (run == m_prev_runNumber) ? m_prev_event_bco : -1;
+	m_prev_event_bco = m_this_event_bco;
 
     m_prev_runNumber = run;
     m_prev_eventNumber = evn;
@@ -208,7 +208,6 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   m_prev_event_bco = -1;
   m_prev_runNumber = -1;
   m_prev_eventNumber = -1;
-
   }
 // End BCO matching here
   if (!m_use_fake_pv)

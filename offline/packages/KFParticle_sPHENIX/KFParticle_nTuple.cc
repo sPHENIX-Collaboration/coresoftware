@@ -663,25 +663,41 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   PHNode* evtNode = nodeIter.findFirst("EventHeader");
 
-  if (evtNode)
+   if (evtNode)
+ {
+  EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+  if (evtHeader)
   {
-    EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
     m_runNumber = evtHeader->get_RunNumber();
     m_evtNumber = evtHeader->get_EvtSequence();
-
-    auto* gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
-    if (!gl1packet)
-    {
-      gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-    }
-    m_bco = gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0];
-    //m_bco = m_trigger_info_available ? gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0] : 0;
-
   }
   else
   {
-    m_runNumber = m_evtNumber = m_bco = -1;
+    m_runNumber = -1;
+    m_evtNumber = -1;
   }
+
+  auto* gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+  if (!gl1packet)
+  {
+    gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+  }
+
+  if (gl1packet)
+  {
+    m_bco = gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0];
+  }
+  else
+  {
+    m_bco = -1;
+  }
+}
+  else
+ {
+  m_runNumber = -1;
+  m_evtNumber = -1;
+  m_bco = -1;
+ }
 
   if (m_trigger_info_available)
   {
