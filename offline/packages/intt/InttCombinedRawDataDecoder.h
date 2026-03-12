@@ -69,7 +69,6 @@ class InttCombinedRawDataDecoder : public SubsysReco
   void set_DACValues(std::vector<int> input_dac_vec);
 
  private:
-  int QuerySingleDACValue(odbc::Statement *statement, int runnumber, int adc_value, int &DAC_value);
   int QueryAllDACValues(odbc::Statement *statement, int runnumber);
 
   InttEventInfo* intt_event_header = nullptr;

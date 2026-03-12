@@ -140,7 +140,25 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   odbc::Statement* statement = DBInterface::instance()->getStatement("daq");
   if (DACValue_set_count == 0){
     std::cout<< PHWHERE << ", " << "No manual setting for DAC values. Querying INTT DAC values from intt_setting table for run number " << run_number << std::endl;
-    InttCombinedRawDataDecoder::QueryAllDACValues(statement, run_number);
+    int error_count = InttCombinedRawDataDecoder::QueryAllDACValues(statement, run_number);
+
+    if (error_count != 0 || m_intt_dac_values.size() != 8 || std::find(m_intt_dac_values.begin(), m_intt_dac_values.end(), -1) != m_intt_dac_values.end())
+    {
+      std::cerr << PHWHERE << "\n"
+                << "\tError retrieving DAC values. error_count: " << error_count
+                << ", size of m_intt_dac_values: " << m_intt_dac_values.size() << std::endl;
+      std:: cout << "In the dac map: ";
+      for (size_t i = 0; i < m_intt_dac_values.size(); ++i)
+      {
+        std::cout << "dac" << i << ": " << m_intt_dac_values[i] << ", ";
+      }
+      std::cout << std::endl;
+      std::cout<< " The DAC values should be 8 integers and all should be positive. Exiting."<< std::endl;
+      std::cout<< " Please contact the INTT group if the run you analyzed doesn't appear in the intt_setting table."<< std::endl;
+      
+      exit(1);
+      gSystem->Exit(1);
+    }
   }  
 
   // std::cout << "calibinfo DAC : " << m_calibinfoDAC.first << " " << (m_calibinfoDAC.second == CDB ? "CDB" : "FILE") << std::endl;
@@ -493,21 +511,29 @@ void InttCombinedRawDataDecoder::set_DACValues(std::vector<int> input_dac_vec)
   }
 }
 
-
-int InttCombinedRawDataDecoder::QuerySingleDACValue(odbc::Statement *statement, int runnumber, int adc_value, int &DAC_value) // adc_value should be from 0 to 7
+int InttCombinedRawDataDecoder::QueryAllDACValues(odbc::Statement *statement, int runnumber)
 {
+
   std::unique_ptr<odbc::ResultSet> result_set;
-  std::string column_name = "dac" + std::to_string(adc_value);
-  DAC_value = -1;
-  
+  m_intt_dac_values.clear();
 
   try
   {
-    std::string sql = "SELECT " + column_name + " From intt_setting WHERE runnumber = " + std::to_string(runnumber) + ";";
+    std::string sql = "SELECT dac0, dac1, dac2, dac3, dac4, dac5, dac6, dac7 From intt_setting WHERE runnumber = " + std::to_string(runnumber) + ";";
     result_set = std::unique_ptr<odbc::ResultSet>(statement->executeQuery(sql));
     if (result_set && result_set->next())
     {
-      DAC_value = result_set->getInt(column_name.c_str());
+      for (int i = 0; i < 8; i++)
+      {
+        std::string column_name = "dac" + std::to_string(i);
+        int DAC_value = -1;
+
+        DAC_value = result_set->getInt(column_name.c_str());
+
+        m_intt_dac_values.push_back(DAC_value);
+
+        std::cout<< PHWHERE << ", retrieved DAC value for " << column_name << ": " << DAC_value << std::endl;
+      }
     }
   }
   catch (odbc::SQLException& e)
@@ -516,47 +542,6 @@ int InttCombinedRawDataDecoder::QuerySingleDACValue(odbc::Statement *statement, 
               << "\tSQL Exception:\n"
               << "\t" << e.getMessage() << std::endl;
     return 1;
-  }
-
-  if (Verbosity())
-  {
-    std::cout << column_name << " of run " << runnumber <<" is " << DAC_value << std::endl;
-  }
-
-  return 0;
-}
-
-int InttCombinedRawDataDecoder::QueryAllDACValues(odbc::Statement *statement, int runnumber)
-{
-  int error_count = 0;
-
-  for (int i = 0; i < 8; ++i)
-  {
-    int DAC_value = -1;
-
-    error_count += QuerySingleDACValue(statement, runnumber, i, DAC_value);
-
-    m_intt_dac_values.push_back(DAC_value);
-  }
-
-  if (error_count != 0 || m_intt_dac_values.size() != 8 || std::find(m_intt_dac_values.begin(), m_intt_dac_values.end(), -1) != m_intt_dac_values.end())
-  {
-    std::cerr << PHWHERE << "\n"
-              << "\tError retrieving DAC values. error_count: " << error_count
-              << ", size of m_intt_dac_values: " << m_intt_dac_values.size() << std::endl;
-    std:: cout << "In the dac map: ";
-    for (size_t i = 0; i < m_intt_dac_values.size(); ++i)
-    {
-      std::cout << "dac" << i << ": " << m_intt_dac_values[i] << ", ";
-    }
-    std::cout << std::endl;
-    std::cout<< " The DAC values should be 8 integers and all should be positive. Exiting."<< std::endl;
-    std::cout<< " Please contact the INTT group if the run you analyzed doesn't appear in the intt_setting table."<< std::endl;
-    
-    exit(1);
-    gSystem->Exit(1);
-
-    return error_count;
   }
 
   return 0;
