@@ -152,7 +152,13 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
     std::cout<< PHWHERE << ", " << "No manual setting for DAC values. Querying INTT DAC values from intt_setting table for run number " << run_number << std::endl;
     int error_count = InttCombinedRawDataDecoder::QueryAllDACValues(statement, run_number);
 
-    if (error_count != 0 || m_intt_dac_values.size() != 8 || std::find(m_intt_dac_values.begin(), m_intt_dac_values.end(), -1) != m_intt_dac_values.end())
+    int count_minus = 0;
+    for (const auto& dac_value : m_intt_dac_values)
+    {
+      if (dac_value <= 0) {count_minus++;}
+    }
+
+    if (error_count != 0 || m_intt_dac_values.size() != 8 || count_minus != 0)
     {
       std::cerr << PHWHERE << "\n"
                 << "\tError retrieving DAC values. error_count: " << error_count
@@ -506,7 +512,7 @@ void InttCombinedRawDataDecoder::set_DACValues(std::vector<int> input_dac_vec)
   }
   std::cout << std::endl;
 
-  if ( m_intt_dac_values.size() != 8 || count_minus != 0){
+  if (m_intt_dac_values.size() != 8 || count_minus != 0){
     std::cerr << PHWHERE << "\n"
               << "\tError: DAC values were set by user, but it should be 8 integers and all should be positive. Please check your input. Exiting. \n"
               << "\tThe current input DAC values are: ";
