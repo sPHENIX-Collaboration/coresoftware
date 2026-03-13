@@ -137,14 +137,17 @@ int KFParticle_sPHENIX::InitRun(PHCompositeNode *topNode)
 int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 {
   
-  std::vector<KFParticle> mother, vertex_kfparticle;
-  std::vector<std::vector<KFParticle>> daughters, intermediates;
-  int nPVs, multiplicity;
+  std::vector<KFParticle> mother;
+  std::vector<KFParticle> vertex_kfparticle;
+  std::vector<std::vector<KFParticle>> daughters;
+  std::vector<std::vector<KFParticle>> intermediates;
+  int nPVs;
+  int multiplicity;
 
   SvtxTrackMap *check_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
   multiplicity = check_trackmap->size();
 
-  if (check_trackmap->size() == 0)
+  if (check_trackmap->empty())
   {
     if (Verbosity() >= VERBOSITY_SOME)
     {
@@ -215,7 +218,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     if (m_use_mbd_vertex)
     {
       MbdVertexMap* check_vertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
-      if (check_vertexmap->size() == 0)
+      if (check_vertexmap->empty())
       {
         if (Verbosity() >= VERBOSITY_SOME)
         {
@@ -227,7 +230,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     else
     {
       SvtxVertexMap* check_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name);
-      if (check_vertexmap->size() == 0)
+      if (check_vertexmap->empty())
       {
         if (Verbosity() >= VERBOSITY_SOME)
         {
@@ -248,7 +251,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     vertex_kfparticle = mother;
   }
 
-  if (mother.size() != 0)
+  if (!mother.empty())
   {
     for (unsigned int i = 0; i < mother.size(); ++i)
     {
@@ -538,7 +541,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   setNumberOfTracks(nTracks);
   setDaughters(daughter_list);
 
-  if (intermediates_name.size() > 0)
+  if (!intermediates_name.empty())
   {
     hasIntermediateStates();
     setIntermediateStates(intermediate_list);
@@ -554,15 +557,14 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     }
     return 0;
   }
-  else
+  
+  if (Verbosity() >= VERBOSITY_SOME)
   {
-    if (Verbosity() >= VERBOSITY_SOME)
-    {
-      std::cout << "KFParticle: Your decay descriptor, " << Name() << " cannot be parsed"
-                << "\nExiting!" << std::endl;
-    }
-    return Fun4AllReturnCodes::ABORTRUN;
+    std::cout << "KFParticle: Your decay descriptor, " << Name() << " cannot be parsed"
+	      << "\nExiting!" << std::endl;
   }
+  return Fun4AllReturnCodes::ABORTRUN;
+ 
 }
 
 void KFParticle_sPHENIX::getField()
