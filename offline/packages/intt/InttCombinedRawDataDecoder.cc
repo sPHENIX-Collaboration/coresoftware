@@ -537,19 +537,20 @@ int InttCombinedRawDataDecoder::QueryAllDACValues(odbc::Statement *statement, in
   {
     std::string sql = "SELECT dac0, dac1, dac2, dac3, dac4, dac5, dac6, dac7 From intt_setting WHERE runnumber = " + std::to_string(runnumber) + ";";
     result_set = std::unique_ptr<odbc::ResultSet>(statement->executeQuery(sql));
-    if (result_set && result_set->next())
+    
+    if (!(result_set && result_set->next()))
     {
-      for (int i = 0; i < 8; i++)
-      {
-        std::string column_name = "dac" + std::to_string(i);
-        int DAC_value = -1;
-
-        DAC_value = result_set->getInt(column_name.c_str());
-
-        m_intt_dac_values.push_back(DAC_value);
-
-        std::cout<< PHWHERE << ", retrieved DAC value for " << column_name << ": " << DAC_value << std::endl;
-      }
+      std::cerr << PHWHERE << "\n"
+                << "\tNo DAC row found in intt_setting for run " << runnumber << std::endl;
+      return 1;
+    }
+    for (int i = 0; i < 8; i++)
+    {
+      std::string column_name = "dac" + std::to_string(i);
+      int DAC_value = -1;
+      DAC_value = result_set->getInt(column_name.c_str());
+      m_intt_dac_values.push_back(DAC_value);
+      std::cout << PHWHERE << ", retrieved DAC value for " << column_name << ": " << DAC_value << std::endl;
     }
   }
   catch (odbc::SQLException& e)
