@@ -138,6 +138,16 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   int run_number = rc->get_IntFlag("RUNNUMBER");
 
   odbc::Statement* statement = DBInterface::instance()->getStatement("daq");
+  if (!statement)
+  {
+    std::cerr << PHWHERE << "\n"
+              << "\tCould not get ODBC statement for 'daq' database\n"
+              << "\tExiting\n"
+              << std::flush;
+    exit(1);
+    gSystem->Exit(1);
+  }
+
   if (DACValue_set_count == 0){
     std::cout<< PHWHERE << ", " << "No manual setting for DAC values. Querying INTT DAC values from intt_setting table for run number " << run_number << std::endl;
     int error_count = InttCombinedRawDataDecoder::QueryAllDACValues(statement, run_number);
