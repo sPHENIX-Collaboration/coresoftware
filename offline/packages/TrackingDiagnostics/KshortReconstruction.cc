@@ -6,6 +6,7 @@
 #include <trackbase/ActsGeometry.h>
 
 #include <trackbase_historic/ActsTransformations.h>
+#include <trackbase_historic/SvtxPHG4ParticleMap.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 
 #include <trackreco/ActsPropagator.h>
@@ -24,6 +25,7 @@
 #include <ActsExamples/EventData/Trajectories.hpp>
 #pragma GCC diagnostic pop
 
+#include <TDatabasePDG.h>
 #include <TFile.h>
 #include <TH1.h>
 #include <TLorentzVector.h>
@@ -56,11 +58,57 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
     m_runNumber = m_evtNumber = -1;
   }
 
+  //Truth matching setup. Setting IDs and getting nodes
+  if (m_truth_match)
+  {
+    if (m_used_string)
+    {
+      m_mother_id = getMotherPDG();
+    }
+
+    m_truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+
+    if (!m_truthinfo) //Missing truth info container. Disable truth matching
+    {
+      m_truth_match = false;
+    }
+
+  }
+
+
   // Loop over tracks and check for close DCA match with all other tracks
   for (auto tr1_it = m_svtxTrackMap->begin(); tr1_it != m_svtxTrackMap->end(); ++tr1_it)
   {
+
     auto id1 = tr1_it->first;
     auto *tr1 = tr1_it->second;
+
+    //Truth matching. Let's see if this track came from the right mother
+    if (m_truth_match)
+    {
+      truth_particle_1 = getTruthTrack(tr1, topNode);
+
+      if (truth_particle_1 == nullptr)
+      {
+        continue;
+      }
+
+      int parent_id = truth_particle_1->get_parent_id();
+      if (parent_id == 0) //Particle is primary. Trying to access its parent returns nullptr
+      {
+        continue;
+      }
+
+      PHG4Particle *g4mother = m_truthinfo->GetParticle(parent_id);
+
+      if (g4mother == nullptr || (abs(g4mother->get_pid()) != abs(m_mother_id))) //PID check
+      {
+        continue;
+      }
+
+      truth_mother_id_particle_1 = g4mother->get_barcode();
+    }
+
     if (tr1->get_quality() > _qual_cut)
     {
       continue;
@@ -133,6 +181,37 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
     {
       auto id2 = tr2_it->first;
       auto *tr2 = tr2_it->second;
+
+      //Truth matching. Let's see if this track came from the right mother
+      if (m_truth_match)
+      {
+        truth_particle_2 = getTruthTrack(tr2, topNode);
+
+        if (truth_particle_2 == nullptr)
+        {
+          continue;
+        }
+
+        int parent_id = truth_particle_2->get_parent_id();
+        if (parent_id == 0) //Particle is primary. Trying to access its parent returns nullptr
+        {
+          continue;
+        }
+        PHG4Particle *g4mother = m_truthinfo->GetParticle(parent_id);
+  
+        if (g4mother == nullptr || (abs(g4mother->get_pid()) != abs(m_mother_id))) //PID check
+        {
+          continue;
+        }
+  
+        truth_mother_id_particle_2 = g4mother->get_barcode();
+
+        //Check that the two tracks came from the same mother
+        if (truth_mother_id_particle_1 != truth_mother_id_particle_2) 
+        {
+          continue;
+        }
+      }
 
       // dca xy and dca z cut here compare to track dca cut
       Acts::Vector3 pos2(tr2->get_x(), tr2->get_y(), tr2->get_z());
@@ -361,14 +440,14 @@ void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, float m
   double py1 = track1->get_py();
   double pz1 = track1->get_pz();
   auto *tpcSeed1 = track1->get_tpc_seed();
-  size_t tpcClusters1 = tpcSeed1 ? tpcSeed1->size_cluster_keys() : 0;
+  size_t tpcClusters1 = tpcSeed1->size_cluster_keys();
   double eta1 = asinh(pz1 / sqrt(pow(px1, 2) + pow(py1, 2)));
 
   double px2 = track2->get_px();
   double py2 = track2->get_py();
   double pz2 = track2->get_pz();
   auto *tpcSeed2 = track2->get_tpc_seed();
-  size_t tpcClusters2 = tpcSeed2 ? tpcSeed2->size_cluster_keys() : 0;
+  size_t tpcClusters2 = tpcSeed2->size_cluster_keys();
   double eta2 = asinh(pz2 / sqrt(pow(px2, 2) + pow(py2, 2)));
 
   auto vtxid = track1->get_vertex_id();
@@ -391,14 +470,10 @@ void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, float m
   float mag_pathLength_proj = sqrt(pow(pathLength_proj(0), 2) + pow(pathLength_proj(1), 2) + pow(pathLength_proj(2), 2));
 
   Acts::Vector3 projected_momentum = projected_mom1 + projected_mom2;
-  const double denom = projected_momentum.norm() * pathLength_proj.norm();
-  float cos_theta_reco = 0.0;
-  if (denom > 1e-12)
-    {
-      cos_theta_reco = pathLength_proj.dot(projected_momentum) / denom;
-    }
+  float cos_theta_reco = pathLength_proj.dot(projected_momentum) / (projected_momentum.norm() * pathLength_proj.norm());
 
-  float reco_info[] = {(float) track1->get_id(), mass1, (float) track1->get_crossing(), track1->get_x(), track1->get_y(), track1->get_z(), track1->get_px(), track1->get_py(), track1->get_pz(), (float) dcavals1(0), (float) dcavals1(1), (float) dcavals1(2), (float) pca_rel1(0), (float) pca_rel1(1), (float) pca_rel1(2), (float) eta1, (float) track1->get_charge(), (float) tpcClusters1, (float) track2->get_id(), mass2, (float) track2->get_crossing(), track2->get_x(), track2->get_y(), track2->get_z(), track2->get_px(), track2->get_py(), track2->get_pz(), (float) dcavals2(0), (float) dcavals2(1), (float) dcavals2(2), (float) pca_rel2(0), (float) pca_rel2(1), (float) pca_rel2(2), (float) eta2, (float) track2->get_charge(), (float) tpcClusters2, (float) ntracks_vertex, (float) vertex(0), (float) vertex(1), (float) vertex(2), (float) pair_dca, (float) invariantMass, (float) invariantPt, invariantPhi, (float) pathLength(0), (float) pathLength(1), (float) pathLength(2), mag_pathLength, rapidity, pseudorapidity, (float) projected_pos1(0), (float) projected_pos1(1), (float) projected_pos1(2), (float) projected_pos2(0), (float) projected_pos2(1), (float) projected_pos2(2), (float) projected_mom1(0), (float) projected_mom1(1), (float) projected_mom1(2), (float) projected_mom2(0), (float) projected_mom2(1), (float) projected_mom2(2), (float) pca_rel1_proj(0), (float) pca_rel1_proj(1), (float) pca_rel1_proj(2), (float) pca_rel2_proj(0), (float) pca_rel2_proj(1), (float) pca_rel2_proj(2), (float) pair_dca_proj, (float) pathLength_proj(0), (float) pathLength_proj(1), (float) pathLength_proj(2), mag_pathLength_proj, track1->get_quality(), track2->get_quality(), cos_theta_reco, (float) track1_silicon_cluster_size, (float) track2_silicon_cluster_size, (float) track1_mvtx_cluster_size, (float) track1_mvtx_state_size, (float) track1_intt_cluster_size,  (float) track1_intt_state_size, (float) track2_mvtx_cluster_size, (float) track2_mvtx_state_size,  (float) track2_intt_cluster_size, (float) track2_intt_state_size, (float) runNumber, (float) eventNumber};
+
+  float reco_info[] = {(float) track1->get_id(), (float) mass1, (float) track1->get_crossing(), track1->get_x(), track1->get_y(), track1->get_z(), track1->get_px(), track1->get_py(), track1->get_pz(), (float) dcavals1(0), (float) dcavals1(1), (float) dcavals1(2), (float) pca_rel1(0), (float) pca_rel1(1), (float) pca_rel1(2), (float) eta1, (float) track1->get_charge(), (float) tpcClusters1, (float) track2->get_id(), (float) mass2, (float) track2->get_crossing(), track2->get_x(), track2->get_y(), track2->get_z(), track2->get_px(), track2->get_py(), track2->get_pz(), (float) dcavals2(0), (float) dcavals2(1), (float) dcavals2(2), (float) pca_rel2(0), (float) pca_rel2(1), (float) pca_rel2(2), (float) eta2, (float) track2->get_charge(), (float) tpcClusters2, (float) ntracks_vertex, (float) vertex(0), (float) vertex(1), (float) vertex(2), (float) pair_dca, (float) invariantMass, (float) invariantPt, invariantPhi, (float) pathLength(0), (float) pathLength(1), (float) pathLength(2), mag_pathLength, rapidity, pseudorapidity, (float) projected_pos1(0), (float) projected_pos1(1), (float) projected_pos1(2), (float) projected_pos2(0), (float) projected_pos2(1), (float) projected_pos2(2), (float) projected_mom1(0), (float) projected_mom1(1), (float) projected_mom1(2), (float) projected_mom2(0), (float) projected_mom2(1), (float) projected_mom2(2), (float) pca_rel1_proj(0), (float) pca_rel1_proj(1), (float) pca_rel1_proj(2), (float) pca_rel2_proj(0), (float) pca_rel2_proj(1), (float) pca_rel2_proj(2), (float) pair_dca_proj, (float) pathLength_proj(0), (float) pathLength_proj(1), (float) pathLength_proj(2), mag_pathLength_proj, track1->get_quality(), track2->get_quality(), cos_theta_reco, (float) track1_silicon_cluster_size, (float) track2_silicon_cluster_size, (float) track1_mvtx_cluster_size, (float) track1_mvtx_state_size, (float) track1_intt_cluster_size,  (float) track1_intt_state_size, (float) track2_mvtx_cluster_size, (float) track2_mvtx_state_size,  (float) track2_intt_cluster_size, (float) track2_intt_state_size, (float) runNumber, (float) eventNumber};
 
   ntp_reco_info->Fill(reco_info);
 }
@@ -653,7 +728,7 @@ void KshortReconstruction::findPcaTwoTracks(const Acts::Vector3& pos1, const Act
   const Eigen::Vector3d w0 = a1 - a2;
   const double c = (b1b2 * b2.dot(w0) - b2b2 * b1.dot(w0)) / denom;
   const double d = (b1b1 * b2.dot(w0) - b1b2 * b1.dot(w0)) / denom;
-  
+
     // then the points of closest approach are:
   pca1 = a1 + c * b1;
   pca2 = a2 + d * b2;
@@ -850,4 +925,56 @@ int KshortReconstruction::getNodes(PHCompositeNode* topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int KshortReconstruction::getMotherPDG()
+{
+  TParticlePDG* particle = TDatabasePDG::Instance()->GetParticle(m_mother_name.c_str());
+  if (!particle)
+  {
+    if (Verbosity() > 2)
+    {
+      std::cout << "Error: Unknown particle name '" << m_mother_name << "'" << std::endl;
+    }
+    return -1;  // or throw exception
+  }
+  return particle->PdgCode();
+}
+
+PHG4Particle *KshortReconstruction::getTruthTrack(SvtxTrack *thisTrack, PHCompositeNode *topNode)
+{
+  /*
+   * There are two methods for getting the truth rack from the reco track
+   * 1. (recommended) Use the reco -> truth tables (requires SvtxPHG4ParticleMap). Introduced Summer of 2022
+   * 2. Get truth track via nClusters. Older method and will work with older DSTs
+   */
+
+  PHG4Particle *particle = nullptr;
+
+  SvtxPHG4ParticleMap *dst_reco_truth_map = findNode::getClass<SvtxPHG4ParticleMap>(topNode, "SvtxPHG4ParticleMap");
+  if (dst_reco_truth_map && dst_reco_truth_map->processed())
+  {
+    std::map<float, std::set<int>> truth_set = dst_reco_truth_map->get(thisTrack->get_id());
+    if (!truth_set.empty())
+    {
+      std::pair<float, std::set<int>> best_weight = *truth_set.rbegin();
+      int best_truth_id = *best_weight.second.rbegin();
+      particle = m_truthinfo->GetParticle(best_truth_id);
+    }
+  }
+  else
+  {
+    if (!m_svtx_evalstack)
+    {
+      m_svtx_evalstack = new SvtxEvalStack(topNode);
+      trackeval = m_svtx_evalstack->get_track_eval();
+      //trutheval = m_svtx_evalstack->get_truth_eval();
+      //vertexeval = m_svtx_evalstack->get_vertex_eval();
+    }
+
+    m_svtx_evalstack->next_event(topNode);
+
+    particle = trackeval->max_truth_particle_by_nclusters(thisTrack);
+  }
+  return particle;
 }

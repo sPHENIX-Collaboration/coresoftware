@@ -89,6 +89,7 @@ class HFTrackEfficiency : public SubsysReco
 
   static const int m_maxTracks{5};
   bool m_all_tracks_reconstructed{false};
+  bool m_is_primary{false};
   float m_true_mother_mass{std::numeric_limits<float>::quiet_NaN()};
   float m_reco_mother_mass{std::numeric_limits<float>::quiet_NaN()};
   float m_true_mother_pT{std::numeric_limits<float>::quiet_NaN()};
