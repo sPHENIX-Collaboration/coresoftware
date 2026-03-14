@@ -3,12 +3,13 @@
 
 #include "InttBadChannelMap.h"
 #include "InttBCOMap.h"
-#include "InttDacMap.h"
+// #include "InttDacMap.h"
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
 #include <fun4all/SubsysReco.h>
 
+#include <algorithm>
 #include <set>
 #include <string>
 #include <vector>
@@ -16,6 +17,11 @@
 
 class PHCompositeNode;
 class InttEventInfo;
+
+namespace odbc
+{
+  class Statement;
+}  // namespace odbc
 
 class InttCombinedRawDataDecoder : public SubsysReco
 {
@@ -40,10 +46,10 @@ class InttCombinedRawDataDecoder : public SubsysReco
   /// Depreciated; use LoadHotChannelMap(const std::string&);
   int LoadHotChannelMapRemote(std::string const& s = "INTT_HotChannelMap") {return LoadBadChannelMap(s);}
 
-  void SetCalibDAC(std::string const& calibname = "INTT_DACMAP", const CalibRef& calibref = CDB)
-  {
-    m_calibinfoDAC = std::pair<std::string, CalibRef>(calibname, calibref);
-  }
+  // void SetCalibDAC(std::string const& calibname = "INTT_DACMAP", const CalibRef& calibref = CDB)
+  // {
+  //   m_calibinfoDAC = std::pair<std::string, CalibRef>(calibname, calibref);
+  // }
 
   void SetCalibBCO(std::string const& calibname = "INTT_BCOMAP", const CalibRef& calibref = CDB)
   {
@@ -60,20 +66,26 @@ class InttCombinedRawDataDecoder : public SubsysReco
   void set_bcoFilter(bool flag) {m_bcoFilter = flag; }
   void set_SaturatedChipRejection(bool flag){m_SaturatedChipRejection = flag;} // note : this is for removing a fraction of the saturated chips
   void set_HighChipMultiplicityCut(int cut){HighChipMultiplicityCut = cut;}
+  void set_DACValues(const std::vector<int>& input_dac_vec);
 
  private:
+  int QueryAllDACValues(odbc::Statement *statement, int runnumber);
+
   InttEventInfo* intt_event_header = nullptr;
   std::string m_InttRawNodeName = "INTTRAWHIT";
   bool m_runStandAlone = false;
   bool m_writeInttEventHeader = false;
   bool m_bcoFilter = false;
   bool m_SaturatedChipRejection = true; // note : true as default
-  std::pair<std::string, CalibRef> m_calibinfoDAC;
+  // std::pair<std::string, CalibRef> m_calibinfoDAC;
   std::pair<std::string, CalibRef> m_calibinfoBCO;
 
   InttBadChannelMap m_badmap;
-  InttDacMap m_dacmap;
+  // InttDacMap m_dacmap;
   InttBCOMap m_bcomap;
+
+  std::vector<int> m_intt_dac_values;
+  int DACValue_set_count = 0;
 
   int m_inttFeeOffset = 23;   //23 is the offset for INTT in streaming mode
   bool m_outputBcoDiff = false;
