@@ -498,7 +498,7 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 }
 
 
-void InttCombinedRawDataDecoder::set_DACValues(std::vector<int> input_dac_vec) 
+void InttCombinedRawDataDecoder::set_DACValues(const std::vector<int>& input_dac_vec) 
 {
   m_intt_dac_values = input_dac_vec;
   DACValue_set_count = 1;
@@ -548,7 +548,7 @@ int InttCombinedRawDataDecoder::QueryAllDACValues(odbc::Statement *statement, in
     {
       std::string column_name = "dac" + std::to_string(i);
       int DAC_value = -1;
-      DAC_value = result_set->getInt(column_name.c_str());
+      DAC_value = result_set->getInt(column_name);
       m_intt_dac_values.push_back(DAC_value);
       std::cout << PHWHERE << ", retrieved DAC value for " << column_name << ": " << DAC_value << std::endl;
     }

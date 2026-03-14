@@ -66,7 +66,7 @@ class InttCombinedRawDataDecoder : public SubsysReco
   void set_bcoFilter(bool flag) {m_bcoFilter = flag; }
   void set_SaturatedChipRejection(bool flag){m_SaturatedChipRejection = flag;} // note : this is for removing a fraction of the saturated chips
   void set_HighChipMultiplicityCut(int cut){HighChipMultiplicityCut = cut;}
-  void set_DACValues(std::vector<int> input_dac_vec);
+  void set_DACValues(const std::vector<int>& input_dac_vec);
 
  private:
   int QueryAllDACValues(odbc::Statement *statement, int runnumber);
