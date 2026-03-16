@@ -1299,7 +1299,11 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
   dst_clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!dst_clustermap)
   {
-    std::cout << "KFParticle detector info: TRKR_CLUSTER does not exist" << std::endl;
+    dst_clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_SEED");
+    if (!dst_clustermap)
+    {
+      std::cout << "KFParticle detector info: TRKR_CLUSTER does not exist" << std::endl;
+    }
   }
 
   track = getTrack(daughter.Id(), dst_trackmap);
