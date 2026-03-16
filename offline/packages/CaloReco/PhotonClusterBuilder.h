@@ -53,6 +53,7 @@ class PhotonClusterBuilder : public SubsysReco
   double deltaR(double eta1, double phi1, double eta2, double phi2);
   float calculate_layer_et(float seed_eta, float seed_phi, float radius, TowerInfoContainer* towerContainer, RawTowerGeomContainer* geomContainer, RawTowerDefs::CalorimeterId calo_id, float vertex_z);
   bool m_do_bdt{false};
+  bool m_do_subtracted_iso{false};
 
   std::string m_input_cluster_node{"CLUSTERINFO_CEMC"};
   std::string m_output_photon_node{"PHOTONCLUSTER_CEMC"};
@@ -61,6 +62,7 @@ class PhotonClusterBuilder : public SubsysReco
   std::string m_bdt_model_file{"myBDT_5.root"};
   std::vector<std::string> m_bdt_feature_list;
   float m_vertex{std::numeric_limits<float>::quiet_NaN()};
+  float m_subtracted_iso_defval{-999};
 
   RawClusterContainer* m_rawclusters{nullptr};
   RawClusterContainer* m_photon_container{nullptr};
@@ -70,6 +72,9 @@ class PhotonClusterBuilder : public SubsysReco
   RawTowerGeomContainer* m_geomIH{nullptr};
   TowerInfoContainer* m_ohcal_tower_container{nullptr};
   RawTowerGeomContainer* m_geomOH{nullptr};
+  TowerInfoContainer* m_emc_sub1_tower_container{nullptr};
+  TowerInfoContainer* m_ihcal_sub1_tower_container{nullptr};
+  TowerInfoContainer* m_ohcal_sub1_tower_container{nullptr};
   std::unique_ptr<TMVA::Experimental::RBDT> m_bdt;
 };
 

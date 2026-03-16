@@ -117,6 +117,19 @@ int PhotonClusterBuilder::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  if (m_do_subtracted_iso)
+  {
+    m_emc_sub1_tower_container = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1");
+    m_ihcal_sub1_tower_container = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN_SUB1");
+    m_ohcal_sub1_tower_container = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT_SUB1");
+
+    if (!m_emc_sub1_tower_container || !m_ihcal_sub1_tower_container || !m_ohcal_sub1_tower_container)
+    {
+      std::cout << Name() << ": subtracted isolation enabled but one or more SUB1 tower nodes are missing; "
+                << "iso_sub_* values will remain at " << m_subtracted_iso_defval << std::endl;
+    }
+  }
+
   CreateNodes(topNode);
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -323,7 +336,7 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
         nsaturated++;
       }
     }
-    
+
     int totalphibins = 256;
     auto dphiwrap = [totalphibins](int towerphi, int maxiphi_arg)
     {
@@ -435,7 +448,7 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   float e72 = 0;
   float detacog = std::abs(maxieta - avg_eta);
   float dphicog = std::abs(maxiphi - avg_phi);
-  float drad = std::sqrt(dphicog*dphicog + detacog*detacog);
+  float drad = std::sqrt(dphicog * dphicog + detacog * detacog);
 
 
   int signphi = (avg_phi - std::floor(avg_phi)) > 0.5 ? 1 : -1;
@@ -767,6 +780,41 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   photon->set_shower_shape_parameter("iso_02_emcal", emcal_et_02 - ET);
   photon->set_shower_shape_parameter("iso_01_emcal", emcal_et_01 - ET);
   photon->set_shower_shape_parameter("iso_005_emcal", emcal_et_005 - ET);
+
+  photon->set_shower_shape_parameter("iso_sub_04_emcal", m_subtracted_iso_defval);
+  photon->set_shower_shape_parameter("iso_sub_04_hcalin", m_subtracted_iso_defval);
+  photon->set_shower_shape_parameter("iso_sub_04_hcalout", m_subtracted_iso_defval);
+  photon->set_shower_shape_parameter("iso_sub_03_emcal", m_subtracted_iso_defval);
+  photon->set_shower_shape_parameter("iso_sub_03_hcalin", m_subtracted_iso_defval);
+  photon->set_shower_shape_parameter("iso_sub_03_hcalout", m_subtracted_iso_defval);
+  photon->set_shower_shape_parameter("iso_sub_02_emcal", m_subtracted_iso_defval);
+  photon->set_shower_shape_parameter("iso_sub_01_emcal", m_subtracted_iso_defval);
+  photon->set_shower_shape_parameter("iso_sub_005_emcal", m_subtracted_iso_defval);
+
+  if (m_do_subtracted_iso && m_emc_sub1_tower_container && m_ihcal_sub1_tower_container && m_ohcal_sub1_tower_container)
+  {
+    const float sub_emcal_et_04 = calculate_layer_et(cluster_eta, cluster_phi, 0.4, m_emc_sub1_tower_container, m_geomIH, RawTowerDefs::CalorimeterId::HCALIN, m_vertex);
+    const float sub_ihcal_et_04 = calculate_layer_et(cluster_eta, cluster_phi, 0.4, m_ihcal_sub1_tower_container, m_geomIH, RawTowerDefs::CalorimeterId::HCALIN, m_vertex);
+    const float sub_ohcal_et_04 = calculate_layer_et(cluster_eta, cluster_phi, 0.4, m_ohcal_sub1_tower_container, m_geomOH, RawTowerDefs::CalorimeterId::HCALOUT, m_vertex);
+
+    const float sub_emcal_et_03 = calculate_layer_et(cluster_eta, cluster_phi, 0.3, m_emc_sub1_tower_container, m_geomIH, RawTowerDefs::CalorimeterId::HCALIN, m_vertex);
+    const float sub_ihcal_et_03 = calculate_layer_et(cluster_eta, cluster_phi, 0.3, m_ihcal_sub1_tower_container, m_geomIH, RawTowerDefs::CalorimeterId::HCALIN, m_vertex);
+    const float sub_ohcal_et_03 = calculate_layer_et(cluster_eta, cluster_phi, 0.3, m_ohcal_sub1_tower_container, m_geomOH, RawTowerDefs::CalorimeterId::HCALOUT, m_vertex);
+
+    const float sub_emcal_et_02 = calculate_layer_et(cluster_eta, cluster_phi, 0.2, m_emc_sub1_tower_container, m_geomIH, RawTowerDefs::CalorimeterId::HCALIN, m_vertex);
+    const float sub_emcal_et_01 = calculate_layer_et(cluster_eta, cluster_phi, 0.1, m_emc_sub1_tower_container, m_geomIH, RawTowerDefs::CalorimeterId::HCALIN, m_vertex);
+    const float sub_emcal_et_005 = calculate_layer_et(cluster_eta, cluster_phi, 0.05, m_emc_sub1_tower_container, m_geomIH, RawTowerDefs::CalorimeterId::HCALIN, m_vertex);
+
+    photon->set_shower_shape_parameter("iso_sub_04_emcal", sub_emcal_et_04 - ET);
+    photon->set_shower_shape_parameter("iso_sub_04_hcalin", sub_ihcal_et_04);
+    photon->set_shower_shape_parameter("iso_sub_04_hcalout", sub_ohcal_et_04);
+    photon->set_shower_shape_parameter("iso_sub_03_emcal", sub_emcal_et_03 - ET);
+    photon->set_shower_shape_parameter("iso_sub_03_hcalin", sub_ihcal_et_03);
+    photon->set_shower_shape_parameter("iso_sub_03_hcalout", sub_ohcal_et_03);
+    photon->set_shower_shape_parameter("iso_sub_02_emcal", sub_emcal_et_02 - ET);
+    photon->set_shower_shape_parameter("iso_sub_01_emcal", sub_emcal_et_01 - ET);
+    photon->set_shower_shape_parameter("iso_sub_005_emcal", sub_emcal_et_005 - ET);
+  }
 }
 
 double PhotonClusterBuilder::getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz)
