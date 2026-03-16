@@ -42,6 +42,7 @@ class PhotonClusterBuilder : public SubsysReco
   void set_bdt_model_file(const std::string& path) { m_bdt_model_file = path; }
   void set_bdt_feature_list(const std::vector<std::string>& features) { m_bdt_feature_list = features; }
   void set_do_bdt(bool do_bdt) { m_do_bdt = do_bdt; }
+  void set_do_subtracted_iso(bool do_subtracted_iso) { m_do_subtracted_iso = do_subtracted_iso; }
   const std::vector<std::string>& get_bdt_feature_list() const { return m_bdt_feature_list; }
 
  private:
