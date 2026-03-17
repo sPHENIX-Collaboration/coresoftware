@@ -37,9 +37,9 @@ class CDBUtils
   int deletePayloadIOV(const std::string &pl_type, uint64_t iov_start);
   int deletePayloadIOV(const std::string &pl_type, uint64_t iov_start, uint64_t iov_end);
 
-  auto returnPayloadIOVs(uint64_t iov, const std::string ptype = "");
-  auto PayloadIOVsCommon(uint64_t iov, const std::string ptype = "");
-  void listPayloadIOVs(uint64_t iov, const std::string ptype = "");
+  auto returnPayloadIOVs(uint64_t iov, const std::string &ptype = "");
+  auto PayloadIOVsCommon(uint64_t iov, const std::string &ptype = "");
+  void listPayloadIOVs(uint64_t iov, const std::string &ptype = "");
 
 private:
   int m_Verbosity {0};
