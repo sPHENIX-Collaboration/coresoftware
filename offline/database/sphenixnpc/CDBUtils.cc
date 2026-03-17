@@ -12,12 +12,12 @@
 #include <utility>  // for pair, make_pair
 
 CDBUtils::CDBUtils()
-  : cdbclient(new SphenixClient())
+  : cdbclient(std::make_unique<SphenixClient>())
 {
 }
 
 CDBUtils::CDBUtils(const std::string &globaltag)
-  : cdbclient(new SphenixClient(globaltag))
+  : cdbclient(std::make_unique<SphenixClient>(globaltag))
 {
 }
 

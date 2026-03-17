@@ -2,6 +2,7 @@
 #define SPHENIXNPC_CDBUTILS_H
 
 #include <cstdint>  // for uint64_t
+#include <memory>
 #include <set>
 #include <string>
 
@@ -43,7 +44,7 @@ class CDBUtils
 
 private:
   int m_Verbosity {0};
-  SphenixClient *cdbclient {nullptr};
+  std::unique_ptr<SphenixClient> cdbclient;
   std::string m_CachedGlobalTag;
   std::set<std::string> m_PayloadTypeCache;
 };
