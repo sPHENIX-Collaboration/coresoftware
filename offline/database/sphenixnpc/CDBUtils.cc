@@ -75,7 +75,7 @@ int CDBUtils::createPayloadType(const std::string &pt)
   return cdbclient->createDomain(pt);
 }
 
-auto CDBUtils::PayloadIOVsCommon(uint64_t iov, const std::string &ptype)
+std::map<std::string, std::tuple<std::string, uint64_t, uint64_t>> CDBUtils::PayloadIOVs(uint64_t iov, const std::string &ptype)
 {
   std::map<std::string, std::tuple<std::string, uint64_t, uint64_t>> iovs;
   nlohmann::json resp = cdbclient->getPayloadIOVs(iov);
@@ -90,11 +90,11 @@ auto CDBUtils::PayloadIOVsCommon(uint64_t iov, const std::string &ptype)
     std::string url = val["payload_url"];
     uint64_t bts = val["minor_iov_start"];
     uint64_t ets = val["minor_iov_end"];
-    if (ets >= iov)
+    if (ets > iov)
     {
       if (!ptype.empty())
       {
-	if (ptype != pt)
+	if (pt.find(ptype) == std::string::npos)
 	{
 	  continue;
 	}
@@ -105,15 +105,9 @@ auto CDBUtils::PayloadIOVsCommon(uint64_t iov, const std::string &ptype)
   return iovs;
 }
 
-auto CDBUtils::returnPayloadIOVs(uint64_t iov, const std::string &ptype)
-{
-  auto iovs = PayloadIOVsCommon(iov,ptype);
-  return iovs;
-}
-
 void CDBUtils::listPayloadIOVs(uint64_t iov, const std::string &ptype)
 {
-  auto iovs = PayloadIOVsCommon(iov,ptype);
+  auto iovs = PayloadIOVs(iov,ptype);
   for (const auto &it : iovs)
   {
     std::cout << it.first << ": " << std::get<0>(it.second)

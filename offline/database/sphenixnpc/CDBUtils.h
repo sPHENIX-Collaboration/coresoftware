@@ -2,6 +2,7 @@
 #define SPHENIXNPC_CDBUTILS_H
 
 #include <cstdint>  // for uint64_t
+#include <map>
 #include <memory>
 #include <set>
 #include <string>
@@ -38,8 +39,7 @@ class CDBUtils
   int deletePayloadIOV(const std::string &pl_type, uint64_t iov_start);
   int deletePayloadIOV(const std::string &pl_type, uint64_t iov_start, uint64_t iov_end);
 
-  auto returnPayloadIOVs(uint64_t iov, const std::string &ptype = "");
-  auto PayloadIOVsCommon(uint64_t iov, const std::string &ptype = "");
+  std::map<std::string, std::tuple<std::string, uint64_t, uint64_t>> PayloadIOVs(uint64_t iov, const std::string &ptype = "");
   void listPayloadIOVs(uint64_t iov, const std::string &ptype = "");
 
 private:
