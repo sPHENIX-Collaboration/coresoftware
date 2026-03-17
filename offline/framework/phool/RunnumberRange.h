@@ -29,7 +29,7 @@ namespace RunnumberRange
   static const int RUN3AUAU_LAST = 78954;
   static const int RUN3PP_FIRST = 79146; // first beam data
   static const int RUN3PP_LAST = 81668;
-  static const int RUN3OO_FIRST = 82374;
+  static const int RUN3OO_FIRST = 82388; // after trigger settled down (run 82374 excluded);
   static const int RUN3OO_LAST = 82703;
 }
 
