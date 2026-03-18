@@ -351,6 +351,19 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
         continue;
       }
 
+      if (std::find(permanant_mask_chip.begin(), permanant_mask_chip.end(), std::format("{}_{}_{}", raw.felix_server, raw.felix_channel, raw.chip)) != permanant_mask_chip.end())
+      {
+        if (1 < Verbosity())
+        {
+          std::cout
+            << PHWHERE << "\n"
+            << "\tMasking permanant bad chip due to timing issues:\n"
+            << "\t" << raw.felix_server << " " << raw.felix_channel << " " << raw.chip << " " << raw.channel << "\n"
+            << std::endl;
+        }
+        continue;
+      }
+
       ////////////////////////
       // bco filter
       if (m_bcomap.IsBad(raw, bco_full, bco) && m_bcoFilter)
