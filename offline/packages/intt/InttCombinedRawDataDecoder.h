@@ -95,6 +95,10 @@ class InttCombinedRawDataDecoder : public SubsysReco
   std::map<std::string, int> evt_ChipHit_count_map;
   int HighChipMultiplicityCut = 71;
 
+  std::vector<std::string> permanant_mask_chip = {
+    "2_9_15" // note : FELIX 2, FELIX channel 9, chip 15 (chip ID range: 0 to 25)
+  };
+
 };
 
 #endif  // INTT_COMBINEDRAWDATADECODER_H
