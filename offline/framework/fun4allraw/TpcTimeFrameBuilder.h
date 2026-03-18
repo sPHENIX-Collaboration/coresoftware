@@ -43,16 +43,6 @@ class TpcTimeFrameBuilder
   void setMaskedFEEs(const std::map<int, std::set<int>> &maskedFEEs)
   {
     m_maskedFEEs = maskedFEEs;
-
-
-      for(const auto& [ebdc, feeset]: m_maskedFEEs)
-      {
-        std::cout << "checking ebdc " << ebdc << std::endl;
-        for(const auto& feeid : feeset)
-        {
-          std::cout << "fee id in set: " << feeid << std::endl;
-        }
-      }
   }
 
   // enable saving of digital current debug TTree with file name `name`

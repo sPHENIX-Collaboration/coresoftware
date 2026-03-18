@@ -67,8 +67,6 @@ SingleTpcTimeFrameInput::SingleTpcTimeFrameInput(const std::string &name)
   m_hNorm->GetXaxis()->LabelsOption("v");
   hm->registerHisto(m_hNorm);
 
-
-  fillBadFeeMap();
 }
 
 SingleTpcTimeFrameInput::~SingleTpcTimeFrameInput()
