@@ -13,8 +13,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/InputFileHandlerReturnCodes.h>
 
-#include <ffamodules/CDBInterface.h>
 #include <cdbobjects/CDBTTree.h>
+#include <ffamodules/CDBInterface.h>
 #include <phool/PHTimer.h>  // for PHTimer
 
 #include <TAxis.h>
@@ -66,7 +66,6 @@ SingleTpcTimeFrameInput::SingleTpcTimeFrameInput(const std::string &name)
   assert(i <= 20);
   m_hNorm->GetXaxis()->LabelsOption("v");
   hm->registerHisto(m_hNorm);
-
 }
 
 SingleTpcTimeFrameInput::~SingleTpcTimeFrameInput()
@@ -403,16 +402,16 @@ void SingleTpcTimeFrameInput::ConfigureStreamingInputManager()
 
 void SingleTpcTimeFrameInput::fillBadFeeMap()
 {
-const std::string filename = CDBInterface::instance()->getUrl("TPC_DECODER_BAD_FEE");
+  const std::string filename = CDBInterface::instance()->getUrl("TPC_DECODER_BAD_FEE");
 
-// map of ebdc to std::set<fee id> to mask
-std::map<int, std::set<int>> maskedFEEs;
+  // map of ebdc to std::set<fee id> to mask
+  std::map<int, std::set<int>> maskedFEEs;
 
-if (filename.empty())
-{
-  if (Verbosity() > 0)
+  if (filename.empty())
   {
-    std::cout << "SingleTpcTimeFrameInput::fillBadFeeMap - no file found for TPC_DECODER_BAD_FEE, not filling bad fee map" << std::endl;
+    if (Verbosity() > 0)
+    {
+      std::cout << "SingleTpcTimeFrameInput::fillBadFeeMap - no file found for TPC_DECODER_BAD_FEE, not filling bad fee map" << std::endl;
     }
     return;
   }
@@ -422,11 +421,11 @@ if (filename.empty())
 
   const int nentries = cdbtree.GetSingleIntValue("N_MASKED_FEES");
 
-  for(int i=0; i<nentries; i++)
+  for (int i = 0; i < nentries; i++)
   {
     maskedFEEs[cdbtree.GetIntValue(i, "EBDC")].insert(cdbtree.GetIntValue(i, "FEEID"));
   }
-  for(const auto& [packet, tb] : m_TpcTimeFrameBuilderMap)
+  for (const auto &[packet, tb] : m_TpcTimeFrameBuilderMap)
   {
     tb->setMaskedFEEs(maskedFEEs);
   }

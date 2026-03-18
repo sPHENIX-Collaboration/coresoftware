@@ -595,7 +595,7 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
     if ((dma_word_data.dma_header & 0xFF00U) == FEE_MAGIC_KEY)
     {
       unsigned int fee_id = dma_word_data.dma_header & 0xffU;
-      
+
       // for packet id 4XYZ ebdc is XY, endpoint is Z
       if (m_maskedFEEs[((m_packet_id / 10) % 100)].contains(fee_id))
       {
