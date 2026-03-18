@@ -8,6 +8,9 @@
 #include <ffarawobjects/TpcRawHitv2.h>
 #include <ffarawobjects/TpcRawHitv3.h>
 
+#include <cdbobjects/CDBTTree.h>
+#include <ffamodules/CDBInterface.h>
+
 #include <phool/PHTimer.h>  // for PHTimer
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -2061,4 +2064,30 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::cleanup(uint64_t ref_bco)
 
   // clear orphans
   m_orphans.clear();
+}
+
+
+void TpcTimeFrameBuilder::fillBadFeeMap()
+{
+  const std::string filename = CDBInterface::instance()->getUrl("TPC_DECODER_BAD_FEE");
+
+  if (filename.empty())
+  {
+    if (m_verbosity > 0)
+    {
+      std::cout << "TpcTimeFrameBuilder::fillBadFeeMap - no file found for TPC_DECODER_BAD_FEE, not filling bad fee map" << std::endl;
+    }
+    return;
+  }
+
+  CDBTTree cdbtree(filename);
+  cdbtree.LoadCalibrations();
+
+  const int nentries = cdbtree.GetSingleIntValue("N_MASKED_FEES");
+
+  for (int i = 0; i < nentries; i++)
+  {
+    m_maskedFEEs[cdbtree.GetIntValue(i, "EBDC")].insert(cdbtree.GetIntValue(i, "FEEID"));
+  }
+
 }

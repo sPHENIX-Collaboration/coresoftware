@@ -40,11 +40,9 @@ class TpcTimeFrameBuilder
   {
     m_fastBCOSkip = fastBCOSkip;
   }
-  void setMaskedFEEs(const std::map<int, std::set<int>> &maskedFEEs)
-  {
-    m_maskedFEEs = maskedFEEs;
-  }
 
+  void fillBadFeeMap();
+  
   // enable saving of digital current debug TTree with file name `name`
   void SaveDigitalCurrentDebugTTree(const std::string &name);
 
