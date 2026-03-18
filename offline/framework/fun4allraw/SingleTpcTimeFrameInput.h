@@ -41,10 +41,12 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
   {
     m_digitalCurrentDebugTTreeName = name;
   }
+  
 
  private:
   const int NTPCPACKETS = 3;
 
+  void fillBadFeeMap();
   Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
@@ -53,7 +55,7 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
   //! packet ID -> TimeFrame builder
   std::map<int, TpcTimeFrameBuilder *> m_TpcTimeFrameBuilderMap;
   std::set<int> m_SelectedPacketIDs;
-  
+
   TH1 *m_hNorm = nullptr;
 
   PHTimer *m_FillPoolTimer = nullptr;

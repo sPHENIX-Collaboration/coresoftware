@@ -40,6 +40,20 @@ class TpcTimeFrameBuilder
   {
     m_fastBCOSkip = fastBCOSkip;
   }
+  void setMaskedFEEs(const std::map<int, std::set<int>> &maskedFEEs)
+  {
+    m_maskedFEEs = maskedFEEs;
+
+
+      for(const auto& [ebdc, feeset]: m_maskedFEEs)
+      {
+        std::cout << "checking ebdc " << ebdc << std::endl;
+        for(const auto& feeid : feeset)
+        {
+          std::cout << "fee id in set: " << feeid << std::endl;
+        }
+      }
+  }
 
   // enable saving of digital current debug TTree with file name `name`
   void SaveDigitalCurrentDebugTTree(const std::string &name);
@@ -370,6 +384,8 @@ class TpcTimeFrameBuilder
 
  private:
   std::vector<std::deque<uint16_t>> m_feeData;
+
+  std::map<int, std::set<int>> m_maskedFEEs;
 
   int m_verbosity = 0;
   int m_packet_id = 0;
