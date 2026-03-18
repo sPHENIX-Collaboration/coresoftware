@@ -42,7 +42,7 @@ class TpcTimeFrameBuilder
   }
 
   void fillBadFeeMap();
-  
+
   // enable saving of digital current debug TTree with file name `name`
   void SaveDigitalCurrentDebugTTree(const std::string &name);
 

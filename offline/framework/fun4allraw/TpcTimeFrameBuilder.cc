@@ -2066,7 +2066,6 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::cleanup(uint64_t ref_bco)
   m_orphans.clear();
 }
 
-
 void TpcTimeFrameBuilder::fillBadFeeMap()
 {
   const std::string filename = CDBInterface::instance()->getUrl("TPC_DECODER_BAD_FEE");
@@ -2089,5 +2088,4 @@ void TpcTimeFrameBuilder::fillBadFeeMap()
   {
     m_maskedFEEs[cdbtree.GetIntValue(i, "EBDC")].insert(cdbtree.GetIntValue(i, "FEEID"));
   }
-
 }
