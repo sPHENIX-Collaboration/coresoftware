@@ -1,5 +1,5 @@
 
-#include "filter-datasets.h"
+#include "FilterDatasets.h"
 
 // -- My Utils --
 #include "myUtils.h"
@@ -7,6 +7,12 @@
 // sPHENIX includes --
 #include <ffamodules/CDBInterface.h>
 #include <phool/recoConsts.h>
+
+#include <RtypesCore.h>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 FilterDatasets::FilterDatasets(Bool_t debug)
   : m_debug(debug)

@@ -16,8 +16,8 @@ AM_LDFLAGS = \
    `root-config --libs`
 
 pkginclude_HEADERS = \
-  genStatus.h \
-  filter-datasets.h \
+  GenStatus.h \
+  FilterDatasets.h \
   geometry_constants.h \
   myUtils.h
 
@@ -25,8 +25,8 @@ lib_LTLIBRARIES = \
   libcalo_cdb.la
 
 libcalo_cdb_la_SOURCES = \
-  genStatus.cc \
-  filter-datasets.cc \
+  GenStatus.cc \
+  FilterDatasets.cc \
   myUtils.cc
 
 libcalo_cdb_la_LIBADD = \
