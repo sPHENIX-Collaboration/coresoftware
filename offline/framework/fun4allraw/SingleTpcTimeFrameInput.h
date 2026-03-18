@@ -44,8 +44,7 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
 
  private:
   const int NTPCPACKETS = 3;
-
-  void fillBadFeeMap();
+  
   Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
