@@ -35,6 +35,7 @@ libcalo_cdb_la_LIBADD = \
   -lcalo_io \
   -lcdbobjects \
   -lsphenixnpc \
+  -lffamodules \
   -lemcNoisyTowerFinder
 
 CaloCDB_GenStatus_SOURCES = CaloCDB-GenStatus.cc

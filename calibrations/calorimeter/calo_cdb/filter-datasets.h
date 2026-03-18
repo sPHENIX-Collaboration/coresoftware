@@ -1,17 +1,13 @@
 #ifndef CALOCDB_FILTERDATASETS_H
 #define CALOCDB_FILTERDATASETS_H
 
-// -- sPHENIX includes --
-#include <sphenixnpc/CDBUtils.h>
-
 // -- ROOT includes --
 #include <RtypesCore.h>
 
 // -- c++ includes --
 #include <map>
-#include <memory>
+#include <cstdint>
 #include <string>
-#include <utility>
 #include <vector>
 
 class FilterDatasets
@@ -26,7 +22,6 @@ class FilterDatasets
   void readRunInfo(const std::string &line);
 
   std::string getCalibration(const std::string &pl_type, uint64_t iov);
-  int setGlobalTag(const std::string &tagname);
 
   std::vector<std::pair<std::string, std::string>> m_runInfo;
   std::map<std::string, int> m_ctr;
@@ -37,8 +32,6 @@ class FilterDatasets
                                       , "CEMC_ZSCrossCalib", "HCALIN_ZSCrossCalib", "HCALOUT_ZSCrossCalib"};
 
   Bool_t m_debug;
-
-  std::unique_ptr<CDBUtils> uti{nullptr};
 };
 
 #endif
