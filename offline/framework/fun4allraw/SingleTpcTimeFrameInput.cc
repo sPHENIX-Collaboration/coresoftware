@@ -293,6 +293,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 
         m_TpcTimeFrameBuilderMap[packet_id] = new TpcTimeFrameBuilder(packet_id);
         m_TpcTimeFrameBuilderMap[packet_id]->setVerbosity(Verbosity());
+        m_TpcTimeFrameBuilderMap[packet_id]->fillBadFeeMap();
         if (!m_digitalCurrentDebugTTreeName.empty())
         {
           m_TpcTimeFrameBuilderMap[packet_id]->SaveDigitalCurrentDebugTTree(m_digitalCurrentDebugTTreeName);
