@@ -4,9 +4,12 @@
 // root includes --
 #include <TF1.h>
 #include <TFitResult.h>
+#include <TH1.h>
+#include <TMath.h>
 
 // c++ includes --
 #include <memory>
+#include <sstream>
 
 TFitResultPtr myUtils::doGausFit(TH1 *hist, Double_t start, Double_t end, const std::string &name)
 {
