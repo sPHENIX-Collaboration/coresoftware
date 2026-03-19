@@ -15,10 +15,14 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64 \
    `root-config --libs`
 
+# Headers installed for use in macros and by other packages
 pkginclude_HEADERS = \
   GenStatus.h \
+  geometry_constants.h
+
+# Headers used only for building this library and its binaries
+noinst_HEADERS = \
   FilterDatasets.h \
-  geometry_constants.h \
   myUtils.h
 
 lib_LTLIBRARIES = \
