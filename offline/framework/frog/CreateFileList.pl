@@ -135,7 +135,7 @@ foreach my $argument (@ARGV)
 	else
 	{
 	    push(@newargs, $argument);
-	    if ($ARGV[$iarg+1] ne "pau" && $ARGV[$iarg+1] ne "auau" && $ARGV[$iarg+1] ne "central")
+	    if ($ARGV[$iarg+1] ne "pau" && $ARGV[$iarg+1] ne "auau" && $ARGV[$iarg+1] ne "central" && $ARGV[$iarg+1] ne "oo" )
 	    {
 		push(@newargs,"auau");
 	    }
@@ -328,6 +328,10 @@ if (defined $prodtype)
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
 		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
+		}
 		else
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
@@ -356,6 +360,10 @@ if (defined $prodtype)
 		elsif ($embed eq "central")
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
 		}
 		else
 		{
@@ -523,6 +531,10 @@ if (defined $prodtype)
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
 		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
+		}
 		else
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
@@ -565,6 +577,10 @@ if (defined $prodtype)
 		elsif ($embed eq "central")
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
 		}
 		else
 		{
@@ -666,6 +682,10 @@ if (defined $prodtype)
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
 		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
+		}
 		else
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
@@ -700,6 +720,10 @@ if (defined $prodtype)
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
 		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
+		}
 		else
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
@@ -728,6 +752,10 @@ if (defined $prodtype)
 		elsif ($embed eq "central")
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
 		}
 		else
 		{
@@ -845,6 +873,10 @@ if (defined $prodtype)
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
 		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
+		}
 		else
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
@@ -873,6 +905,10 @@ if (defined $prodtype)
 		elsif ($embed eq "central")
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
 		}
 		else
 		{
@@ -903,6 +939,10 @@ if (defined $prodtype)
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
 		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
+		}
 		else
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
@@ -931,6 +971,10 @@ if (defined $prodtype)
 		elsif ($embed eq "central")
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
 		}
 		else
 		{
@@ -975,6 +1019,10 @@ if (defined $prodtype)
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
 		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
+		}
 		else
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
@@ -1008,6 +1056,10 @@ if (defined $prodtype)
 		elsif ($embed eq "central")
 		{
 		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
 		}
 		else
 		{
