@@ -14,6 +14,8 @@ void TrkrHitv2::CopyFrom(const TrkrHit& source)
 
   // copy adc
   setAdc(source.getAdc());
+  setFPHXBCO(source.getFPHXBCO());
+  setBCO(source.getBCO());
 }
 
 // these set and get the energy before digitization
