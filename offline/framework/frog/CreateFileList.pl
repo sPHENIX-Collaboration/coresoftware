@@ -82,7 +82,10 @@ my %proddesc = (
     "41" => "Herwig Jet ptmin = 12 GeV",
     "42" => "Herwig Jet ptmin = 20 GeV",
     "43" => "Herwig Jet ptmin = 40 GeV",
-    "44" => "Herwig Jet ptmin = 50 GeV"
+    "44" => "Herwig Jet ptmin = 50 GeV",
+    "45" => "Herwig Photonjet ptmin = 5 GeV",
+    "46" => "Herwig Photonjet ptmin = 10 GeV",
+    "47" => "Herwig Photonjet ptmin = 20 GeV"
     );
 
 my %pileupdesc = (
@@ -1219,6 +1222,122 @@ if (defined $prodtype)
         $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
+    elsif ($prodtype == 45)
+    {
+        $embedok = 1;
+	$filenamestring = "Herwig_PhotonJet5";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm%s",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 45)
+    {
+        $embedok = 1;
+	$filenamestring = "Herwig_PhotonJet5";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm%s",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 46)
+    {
+        $embedok = 1;
+	$filenamestring = "Herwig_PhotonJet10";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm%s",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 47)
+    {
+        $embedok = 1;
+	$filenamestring = "Herwig_PhotonJet20";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm%s",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
     else
     {
 	print "no production type $prodtype\n";
@@ -1369,6 +1488,10 @@ while($#ARGV >= 0)
 }
 print "This Can Take a While (10 minutes depending on the amount of events and the number of file types you want)\n";
 my $conds = sprintf("dsttype = ? and filename like \'\%%%s\%\'",$filenamestring_with_runnumber);
+if (! defined $double)
+{
+    $conds = sprintf("%s and filename not like '\%%pythia8_\%_pythia8\%'",$conds);
+}
 
 if (exists $notlike{$filenamestring})
 {
