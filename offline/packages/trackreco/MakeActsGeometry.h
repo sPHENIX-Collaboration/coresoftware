@@ -216,6 +216,7 @@ private:
   //   void makeTGeoNodeMap(PHCompositeNode *topNode);
 
   void unpackVolumes();
+  std::unique_ptr<ActsExamples::TGeoDetectorWithOptions> m_TGeoDetector = nullptr;
 
   /// Subdetector geometry containers for getting layer information
   PHG4CylinderGeomContainer *m_geomContainerMvtx = nullptr;

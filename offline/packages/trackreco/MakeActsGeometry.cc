@@ -299,19 +299,18 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->set_tpc_tzero(m_tpc_tzero);
   m_actsGeometry->set_sampa_tzero_bias(m_sampa_tzero_bias);
   // alignment_transformation.useInttSurveyGeometry(m_inttSurvey);
+
   if (Verbosity() > 1)
   {
     alignment_transformation.verbosity();
   }
   alignment_transformation.createMap(topNode);
-
   for (auto &[layer, factor] : m_misalignmentFactor)
   {
     alignment_transformation.misalignmentFactor(layer, factor);
   }
-
   // print
-  if (Verbosity())
+  if (Verbosity() > 3)
   {
     for (const auto &id : surfMaps.m_tpcVolumeIds)
     {
@@ -742,13 +741,13 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[], const std::string& r
   config.materialDecorator = matDeco;
   // this does the building now. The TGeoDetector owns the 
   // tracking geometry
-  ActsExamples::TGeoDetectorWithOptions detector(config);
+  m_TGeoDetector = std::make_unique<ActsExamples::TGeoDetectorWithOptions>(config);
 
   // Add specific options for this geometry
-  detector.addOptions(desc);
+  m_TGeoDetector->addOptions(desc);
   auto vm = ActsExamples::Options::parse(desc, argc, argv);
 
-  m_tGeometry = detector.m_detector.trackingGeometry();
+  m_tGeometry = m_TGeoDetector->m_detector.trackingGeometry();
   if (m_useField)
   {
     m_magneticField = ActsExamples::Options::readMagneticField(vm);
