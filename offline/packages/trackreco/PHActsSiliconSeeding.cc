@@ -442,7 +442,6 @@ void PHActsSiliconSeeding::makeSvtxTracks(const std::vector<seed_type>& seedVect
   int numGoodSeeds = 0;
   m_seedid = -1;
 
-  int strobe = m_lowStrobeIndex;
   for (const auto& seed : seedVector)
   {
          if (m_seedAnalysis)
@@ -601,11 +600,6 @@ void PHActsSiliconSeeding::makeSvtxTracks(const std::vector<seed_type>& seedVect
                   << svtxtracktime << std::endl;
       }
     
-    strobe++;
-    if (strobe > m_highStrobeIndex)
-    {
-      std::cout << PHWHERE << "Error: some how grid seed vector is not the same as the number of strobes" << std::endl;
-    }
   }
 
   if (m_seedAnalysis)

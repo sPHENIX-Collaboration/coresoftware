@@ -721,6 +721,7 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[], const std::string& r
   config.surfaceLogLevel = Acts::Logging::FATAL;
   config.layerLogLevel = Acts::Logging::FATAL;
   config.volumeLogLevel = Acts::Logging::FATAL;
+  config.logLevel = Acts::Logging::FATAL;
   config.detectorElementFactory = sPHENIXElementFactory;
   config.readJson(responseFile);
 
