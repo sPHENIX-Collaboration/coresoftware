@@ -765,40 +765,6 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[], const std::string& r
   return;
 }
 
-void MakeActsGeometry::readTGeoLayerBuilderConfigsFile(const std::string &path,
-                                                       ActsExamples::TGeoDetector::Config &config)
-{
-  if (path.empty())
-  {
-    std::cout << "There is no acts geometry response file loaded. Cannot build, exiting"
-              << std::endl;
-    exit(1);
-  }
-
-  nlohmann::json djson;
-  std::ifstream infile(path, std::ifstream::in | std::ifstream::binary);
-  infile >> djson;
-
-  config.unitScalor = djson["geo-tgeo-unit-scalor"];
-
-  config.buildBeamPipe = djson["geo-tgeo-build-beampipe"];
-  if (config.buildBeamPipe)
-  {
-    const auto beamPipeParameters =
-        djson["geo-tgeo-beampipe-parameters"].get<std::array<double, 3>>();
-    config.beamPipeRadius = beamPipeParameters[0];
-    config.beamPipeHalflengthZ = beamPipeParameters[1];
-    config.beamPipeLayerThickness = beamPipeParameters[2];
-  }
-
-  // Fill nested volume configs
-  for (const auto &volume : djson["Volumes"])
-  {
-    auto &vol = config.volumes.emplace_back();
-    vol = volume;
-  }
-}
-
 void MakeActsGeometry::unpackVolumes()
 {
   // m_tGeometry is a TrackingGeometry pointer

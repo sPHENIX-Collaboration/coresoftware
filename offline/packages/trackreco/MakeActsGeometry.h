@@ -175,15 +175,6 @@ private:
 
   /// Function that mimics ActsExamples::GeometryExampleBase
   void makeGeometry(int argc, char *argv[], const std::string& responseFile, const std::string& materialFile);
-#ifndef __CLING__
-  std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
-            std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
-  build(const boost::program_options::variables_map &vm,
-        ActsExamples::TGeoDetector::Config config,
-            ActsExamples::TGeoDetectorWithOptions &detector);
-#endif
-  void readTGeoLayerBuilderConfigsFile(const std::string &path,
-                                       ActsExamples::TGeoDetector::Config &config);
 
   void setMaterialResponseFile(std::string &responseFile,
                                std::string &materialFile);
