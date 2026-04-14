@@ -351,13 +351,25 @@ int EventPlaneReco::process_sEPD(PHCompositeNode* topNode)
     TowerInfo* tower = towerinfosEPD->get_tower_at_channel(channel);
 
     unsigned int key = TowerInfoDefs::encode_epd(channel);
+    int rbin = TowerInfoDefs::get_epd_rbin(key);
     double charge = tower->get_energy();
 
-    // skip bad channels
-    // skip channels with very low charge
-    if (tower->get_isHot() || charge < m_sepd_min_channel_charge)
+    // Skip Innermost Ring
+    if (m_skipRing0 && rbin == 0)
     {
       continue;
+    }
+
+    // Skip Noise
+    if (charge <= m_sepd_min_channel_charge)
+    {
+      continue;
+    }
+
+    // Clamp on high charge threshold
+    if (m_sEPD_charge_threshold > 0 && charge > m_sEPD_charge_threshold)
+    {
+      charge = m_sEPD_charge_threshold;
     }
 
     // arm = 0: South

@@ -22,7 +22,8 @@ libCaloStatusSkimmer_la_SOURCES = \
 libCaloStatusSkimmer_la_LIBADD = \
   -lphool \
   -lSubsysReco \
-  -lcalo_io
+  -lcalo_io \
+  -lqautils
 
 BUILT_SOURCES = testexternals.cc
 

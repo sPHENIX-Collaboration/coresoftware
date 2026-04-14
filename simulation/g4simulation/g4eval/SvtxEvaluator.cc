@@ -172,7 +172,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                               "gpx:gpy:gpz:gpt:geta:gphi:"
                               "gvx:gvy:gvz:gvt:"
                               "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
-                              "gembed:gprimary:"
+                              "gembed:gprimary:gparentflavor:gparentid:gprimaryflavor:gprimaryid:"
                               "trackID:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:"
                               "siqr:siphi:sithe:six0:siy0:tpqr:tpphi:tpthe:tpx0:tpy0:"
                               "charge:quality:chisq:ndf:nhits:layers:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:"
@@ -192,7 +192,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                              "gpx:gpy:gpz:gpt:geta:gphi:"
                              "gvx:gvy:gvz:gvt:"
                              "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
-                             "gembed:gprimary:nfromtruth:nwrong:ntrumaps:nwrongmaps:ntruintt:nwrongintt:"
+                             "gembed:gprimary:gparentflavor:gparentid:gprimaryflavor:gprimaryid:nfromtruth:nwrong:ntrumaps:nwrongmaps:ntruintt:nwrongintt:"
                              "ntrutpc:nwrongtpc:ntrumms:nwrongmms:ntrutpc1:nwrongtpc1:ntrutpc11:nwrongtpc11:ntrutpc2:nwrongtpc2:ntrutpc3:nwrongtpc3:layersfromtruth:"
                              "npedge:nredge:nbig:novlp:merr:msize:"
                              "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
@@ -2712,7 +2712,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         float gtrackID = g4particle->get_track_id();
         float gflavor = g4particle->get_pid();
-        auto g4clustermap = trutheval->all_truth_clusters(g4particle);
+	auto g4clustermap = trutheval->all_truth_clusters(g4particle);
         std::set<TrkrDefs::cluskey> g4clusters;
         for(const auto& [key, cluster]: g4clustermap)
         {
@@ -2880,7 +2880,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         float gembed = trutheval->get_embed(g4particle);
         float gprimary = trutheval->is_primary(g4particle);
+	float gparentflavor = trutheval->get_parent_particle_flavor(g4particle);
+        PHG4Particle* parent = trutheval->get_parent_particle(g4particle);
+	float gparentid = parent->get_track_id();
+	float gprimaryflavor = trutheval->get_primary_particle_flavor(g4particle);
+	PHG4Particle* g4primary = trutheval->get_primary_particle(g4particle);
+	float gprimaryid = g4primary->get_track_id();
 
+	// matched track quantities
         float trackID = std::numeric_limits<float>::quiet_NaN();
         float charge = std::numeric_limits<float>::quiet_NaN();
         float quality = std::numeric_limits<float>::quiet_NaN();
@@ -3323,6 +3330,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                gfz,
                                gembed,
                                gprimary,
+			       gparentflavor,
+			       gparentid,
+			       gprimaryflavor,
+			       gprimaryid,
                                trackID,
                                px,
                                py,
@@ -3758,7 +3769,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         float gtrackID = std::numeric_limits<float>::quiet_NaN();
         float gflavor = std::numeric_limits<float>::quiet_NaN();
-        float ng4hits = std::numeric_limits<float>::quiet_NaN();
+	float gparentflavor = std::numeric_limits<float>::quiet_NaN();
+	float gparentid = std::numeric_limits<float>::quiet_NaN();
+	float gprimaryflavor = std::numeric_limits<float>::quiet_NaN();
+	float gprimaryid = std::numeric_limits<float>::quiet_NaN();			
+
+	float ng4hits = std::numeric_limits<float>::quiet_NaN();
         unsigned int ngmaps = 0;
         unsigned int ngintt = 0;
         unsigned int ngmms = 0;
@@ -3830,6 +3846,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             gtrackID = g4particle->get_track_id();
             gflavor = g4particle->get_pid();
 
+	    gparentflavor = (float) trutheval->get_parent_particle_flavor(g4particle);
+	    PHG4Particle* parent = trutheval->get_parent_particle(g4particle);
+	    gparentid = (float) parent->get_track_id();
+	    gprimaryflavor = (float) trutheval->get_primary_particle_flavor(g4particle);
+	    PHG4Particle* g4primary = trutheval->get_primary_particle(g4particle);
+	    gprimaryid = (float) g4primary->get_track_id();
+	    //  std::cout << " gtrackID " << gtrackID << " gflavor " <<gflavor << " gparentflavor " << gparentflavor << " gprimaryflavor " << gprimaryflavor << " gprimaryid " << gprimaryid << std::endl;
+	    
             std::set<TrkrDefs::cluskey> g4clusters = clustereval->all_clusters_from(g4particle);
             ng4hits = g4clusters.size();
             gpx = g4particle->get_px();
@@ -4053,8 +4077,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                               gfx,
                               gfy,
                               gfz,
-                              gembed,
+			      gembed,
                               gprimary,
+			      gparentflavor,
+			      gparentid,
+			      gprimaryflavor,
+			      gprimaryid,
                               nfromtruth,
                               nwrong,
                               ntrumaps,

@@ -147,6 +147,7 @@ bool BaseTruthEval::is_primary(PHG4Particle* particle)
   }
 
   bool is_primary = false;
+  //particle->identify();
   if (particle->get_parent_id() == 0)
   {
     is_primary = true;
@@ -262,6 +263,46 @@ PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Particle* particle)
 
   PHG4Particle* returnval = m_TruthInfo->GetPrimaryParticle(particle->get_primary_id());
 
+  if (m_Strict)
+  {
+    assert(returnval);
+  }
+  else if (!returnval)
+  {
+    ++m_Errors;
+  }
+
+  return returnval;
+}
+
+PHG4Particle* BaseTruthEval::get_parent_particle(PHG4Particle* particle)
+{
+  if (!has_reduced_node_pointers())
+  {
+    ++m_Errors;
+    return nullptr;
+  }
+
+  if (m_Strict)
+  {
+    assert(particle);
+  }
+  else if (!particle)
+  {
+    ++m_Errors;
+    return nullptr;
+  }
+
+  PHG4Particle* returnval = m_TruthInfo->GetParticle(particle->get_parent_id());
+  if(!returnval)
+    {
+      // std::cout << "  did not get parent particle for particle with parent id " << particle->get_parent_id() << std::endl; 
+      returnval = particle;
+    }
+  
+  //std::cout << "  parent for particle " << particle->get_track_id() << " is " << particle->get_parent_id()
+  //    << " with pid " << returnval->get_pid() << std::endl;
+  
   if (m_Strict)
   {
     assert(returnval);

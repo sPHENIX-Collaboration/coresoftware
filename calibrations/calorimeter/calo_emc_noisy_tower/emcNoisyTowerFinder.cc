@@ -270,6 +270,16 @@ void emcNoisyTowerFinder::FindHot(const std::string &infilename, const std::stri
       }
       int val = h_hot->GetBinContent(i + 1, j + 1);
       float sigma = h_heatSigma->GetBinContent(i + 1, j + 1);
+      // For HCal only flag DEAD towers
+      if (Neta == 24 && val > 1)
+      {
+        if (Verbosity() > 0)
+        {
+          std::cout << "WARNING: Skipping Flagging for " << m_caloName << " Tower (" << j << ", " << i << ") with status = " << val << " and sigma = " << sigma << std::endl;
+        }
+        val = 0;
+        sigma = 0;
+      }
       cdbttree_out->SetIntValue(key, m_fieldname_out, val);
       cdbttree_out->SetFloatValue(key, m_caloName + "_sigma", sigma);
     }

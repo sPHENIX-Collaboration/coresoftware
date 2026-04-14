@@ -65,6 +65,16 @@ class EventPlaneReco : public SubsysReco
     m_sepd_min_channel_charge = sepd_min_channel_charge;
   }
 
+  void set_charge_threshold(double threshold)
+  {
+    m_sEPD_charge_threshold = std::max(0.0, threshold);
+  }
+
+  void set_skipRing0(bool skip)
+  {
+    m_skipRing0 = skip;
+  }
+
   void set_EventPlaneInfoNodeName(const std::string &name)
   {
     m_EventPlaneInfoNodeName = name;
@@ -91,9 +101,12 @@ class EventPlaneReco : public SubsysReco
  bool m_doNotCalib{false};
  bool m_doNotCalibEvent{false};
 
+ bool m_skipRing0{true};
+
  double m_cent{0.0};
  double m_globalEvent{0};
- double m_sepd_min_channel_charge{0.2};
+ double m_sepd_min_channel_charge{0.5};
+ double m_sEPD_charge_threshold{50};
 
  std::string m_calibName{"SEPD_EventPlaneCalib"};
  std::string m_inputNode{"TOWERINFO_CALIB_SEPD"};

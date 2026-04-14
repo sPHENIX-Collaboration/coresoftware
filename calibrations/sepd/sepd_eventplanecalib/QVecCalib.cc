@@ -111,13 +111,6 @@ int QVecCalib::process_QA_hist()
     return ret;
   }
 
-  // Get List of Bad Channels
-  ret = process_bad_channels(file);
-  if (ret)
-  {
-    return ret;
-  }
-
   // cleanup
   file->Close();
   delete file;
@@ -193,138 +186,6 @@ int QVecCalib::process_sEPD_event_thresholds(TFile* file)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QVecCalib::process_bad_channels(TFile* file)
-{
-  Fun4AllServer *se = Fun4AllServer::instance();
-
-  std::string sepd_charge_hist = "hSEPD_Charge";
-
-  TProfile *hSEPD_Charge{nullptr};
-  file->GetObject(sepd_charge_hist.c_str(), hSEPD_Charge);
-
-  // Check if the hist is stored in the file
-  if (hSEPD_Charge == nullptr)
-  {
-    std::cout << PHWHERE << "Error! Cannot find hist: " << sepd_charge_hist << ", in file: " << file->GetName() << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  int rbins = 16;
-  int bins_charge = 40;
-
-  h2SEPD_South_Charge_rbin = new TH2F("h2SEPD_South_Charge_rbin",
-                                      "sEPD South; r_{bin}; Avg Charge",
-                                      rbins, -0.5, rbins - 0.5,
-                                      bins_charge, 0, bins_charge);
-
-  h2SEPD_North_Charge_rbin = new TH2F("h2SEPD_North_Charge_rbin",
-                                      "sEPD North; r_{bin}; Avg Charge",
-                                      rbins, -0.5, rbins - 0.5,
-                                      bins_charge, 0, bins_charge);
-
-  h2SEPD_South_Charge_rbinv2 = new TH2F("h2SEPD_South_Charge_rbinv2",
-                                        "sEPD South; r_{bin}; Avg Charge",
-                                        rbins, -0.5, rbins - 0.5,
-                                        bins_charge, 0, bins_charge);
-
-  h2SEPD_North_Charge_rbinv2 = new TH2F("h2SEPD_North_Charge_rbinv2",
-                                        "sEPD North; r_{bin}; Avg Charge",
-                                        rbins, -0.5, rbins - 0.5,
-                                        bins_charge, 0, bins_charge);
-
-  hSEPD_Bad_Channels = new TProfile("h_sEPD_Bad_Channels", "sEPD Bad Channels; Channel; Status", QVecShared::SEPD_CHANNELS, -0.5, QVecShared::SEPD_CHANNELS-0.5);
-
-  se->registerHisto(h2SEPD_South_Charge_rbin);
-  se->registerHisto(h2SEPD_North_Charge_rbin);
-  se->registerHisto(h2SEPD_South_Charge_rbinv2);
-  se->registerHisto(h2SEPD_North_Charge_rbinv2);
-  se->registerHisto(hSEPD_Bad_Channels);
-
-  for (int channel = 0; channel < QVecShared::SEPD_CHANNELS; ++channel)
-  {
-    unsigned int key = TowerInfoDefs::encode_epd(channel);
-    int rbin = TowerInfoDefs::get_epd_rbin(key);
-    unsigned int arm = TowerInfoDefs::get_epd_arm(key);
-
-    double avg_charge = hSEPD_Charge->GetBinContent(channel + 1);
-
-    auto* h2 = (arm == 0) ? h2SEPD_South_Charge_rbin : h2SEPD_North_Charge_rbin;
-
-    h2->Fill(rbin, avg_charge);
-  }
-
-  auto* hSpx = h2SEPD_South_Charge_rbin->ProfileX("hSpx", 2, -1, "s");
-  auto* hNpx = h2SEPD_North_Charge_rbin->ProfileX("hNpx", 2, -1, "s");
-
-  int ctr_dead = 0;
-  int ctr_hot = 0;
-  int ctr_cold = 0;
-
-  for (int channel = 0; channel < QVecShared::SEPD_CHANNELS; ++channel)
-  {
-    unsigned int key = TowerInfoDefs::encode_epd(channel);
-    int rbin = TowerInfoDefs::get_epd_rbin(key);
-    unsigned int arm = TowerInfoDefs::get_epd_arm(key);
-
-    auto* h2 = (arm == 0) ? h2SEPD_South_Charge_rbinv2 : h2SEPD_North_Charge_rbinv2;
-    auto* hprof = (arm == 0) ? hSpx : hNpx;
-
-    double charge = hSEPD_Charge->GetBinContent(channel + 1);
-    double mean_charge = hprof->GetBinContent(rbin + 1);
-    double sigma = hprof->GetBinError(rbin + 1);
-    double zscore = 0.0;
-
-    if (sigma > 0)
-    {
-      zscore = (charge - mean_charge) / sigma;
-    }
-
-    if (charge < m_sEPD_min_avg_charge_threshold || std::abs(zscore) > m_sEPD_sigma_threshold)
-    {
-      m_bad_channels.insert(channel);
-
-      std::string type;
-      QVecShared::ChannelStatus status_fill;
-
-      // dead channel
-      if (charge == 0)
-      {
-        type = "Dead";
-        status_fill = QVecShared::ChannelStatus::Dead;
-        ++ctr_dead;
-      }
-      // hot channel
-      else if (zscore > m_sEPD_sigma_threshold)
-      {
-        type = "Hot";
-        status_fill = QVecShared::ChannelStatus::Hot;
-        ++ctr_hot;
-      }
-      // cold channel
-      else
-      {
-        type = "Cold";
-        status_fill = QVecShared::ChannelStatus::Cold;
-        ++ctr_cold;
-      }
-
-      hSEPD_Bad_Channels->Fill(channel, static_cast<int>(status_fill));
-      std::cout << std::format("{:4} Channel: {:3d}, arm: {}, rbin: {:2d}, Mean: {:5.2f}, Charge: {:5.2f}, Z-Score: {:5.2f}",
-                                type, channel, arm, rbin, mean_charge, charge, zscore) << std::endl;
-    }
-    else
-    {
-      h2->Fill(rbin, charge);
-    }
-  }
-
-  std::cout << "Total Bad Channels: " << m_bad_channels.size() << ", Dead: "
-	    << ctr_dead << ", Hot: " << ctr_hot << ", Cold: " << ctr_cold << std::endl;
-
-  std::cout << "Finished processing Hot sEPD channels" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 void QVecCalib::init_hists()
 {
   unsigned int bins_psi = 126;
@@ -360,6 +221,14 @@ void QVecCalib::init_hists()
     m_hists2D[name_S] = new TH2F(name_S.c_str(), title_S.c_str(), m_cent_bins, m_cent_low, m_cent_high, bins_psi, psi_low, psi_high);
     m_hists2D[name_N] = new TH2F(name_N.c_str(), title_N.c_str(), m_cent_bins, m_cent_low, m_cent_high, bins_psi, psi_low, psi_high);
     m_hists2D[name_NS] = new TH2F(name_NS.c_str(), title_NS.c_str(), m_cent_bins, m_cent_low, m_cent_high, bins_psi, psi_low, psi_high);
+
+    if (m_pass == Pass::ApplyFlattening)
+    {
+      std::string name_EP_res = std::format("hEP_res_{}", n);
+      std::string title_EP_res = std::format("; Centrality [%]; #LTRe(Q^{{S}}_{{{0}}} Q^{{N*}}_{{{0}}}) / (|Q^{{S}}_{{{0}}}||Q^{{N}}_{{{0}}}|)#GT", n);
+
+      m_profiles[name_EP_res] = new TProfile(name_EP_res.c_str(), title_EP_res.c_str(), m_cent_bins, m_cent_low, m_cent_high);
+    }
 
     // South, North
     for (auto det : m_subdetectors)
@@ -723,6 +592,8 @@ void QVecCalib::prepare_flattening_hists()
     std::string psi_N_name = std::format("h2_sEPD_Psi_N_{}_corr2", n);
     std::string psi_NS_name = std::format("h2_sEPD_Psi_NS_{}_corr2", n);
 
+    std::string EP_res_name = std::format("hEP_res_{}", n);
+
     FlatteningHists h;
 
     h.S_x_corr2_avg = m_profiles.at(S_x_corr2_avg_name);
@@ -746,6 +617,8 @@ void QVecCalib::prepare_flattening_hists()
     h.Psi_N_corr2 = m_hists2D.at(psi_N_name);
     h.Psi_NS_corr2 = m_hists2D.at(psi_NS_name);
 
+    h.EP_res = m_profiles.at(EP_res_name);
+
     se->registerHisto(h.S_x_corr2_avg);
     se->registerHisto(h.S_y_corr2_avg);
     se->registerHisto(h.N_x_corr2_avg);
@@ -766,6 +639,8 @@ void QVecCalib::prepare_flattening_hists()
     se->registerHisto(h.Psi_S_corr2);
     se->registerHisto(h.Psi_N_corr2);
     se->registerHisto(h.Psi_NS_corr2);
+
+    se->registerHisto(h.EP_res);
 
     m_flattening_hists.push_back(h);
   }
@@ -908,6 +783,11 @@ void QVecCalib::process_flattening(double cent, size_t h_idx, const QVecShared::
   double psi_N = std::atan2(q_N_corr2.y, q_N_corr2.x);
   double psi_NS = std::atan2(q_NS_corr2.y, q_NS_corr2.x);
 
+  double SP_QS_QN = q_S_corr2.x * q_N_corr2.x + q_S_corr2.y * q_N_corr2.y;
+  double norm_S = std::sqrt(q_S_corr2.x * q_S_corr2.x + q_S_corr2.y * q_S_corr2.y);
+  double norm_N = std::sqrt(q_N_corr2.x * q_N_corr2.x + q_N_corr2.y * q_N_corr2.y);
+  double EP_res = (norm_S && norm_N) ? SP_QS_QN / (norm_S * norm_N) : 0;
+
   h.S_x_corr2_avg->Fill(cent, q_S_corr2.x);
   h.S_y_corr2_avg->Fill(cent, q_S_corr2.y);
   h.N_x_corr2_avg->Fill(cent, q_N_corr2.x);
@@ -927,6 +807,8 @@ void QVecCalib::process_flattening(double cent, size_t h_idx, const QVecShared::
   h.Psi_S_corr2->Fill(cent, psi_S);
   h.Psi_N_corr2->Fill(cent, psi_N);
   h.Psi_NS_corr2->Fill(cent, psi_NS);
+
+  h.EP_res->Fill(cent, EP_res);
 }
 
 bool QVecCalib::process_sEPD()
@@ -939,14 +821,27 @@ bool QVecCalib::process_sEPD()
   {
     double charge = m_evtdata->get_sepd_charge(channel);
 
-    // Skip Bad Channels
-    if (m_bad_channels.contains(channel) || charge <= 0)
+    // Skip Noise
+    if (charge <= m_sEPD_noise_threshold)
     {
       continue;
     }
 
+    // Clamp on high charge threshold
+    if (m_sEPD_charge_threshold > 0 && charge > m_sEPD_charge_threshold)
+    {
+      charge = m_sEPD_charge_threshold;
+    }
+
     unsigned int key = TowerInfoDefs::encode_epd(channel);
     unsigned int arm = TowerInfoDefs::get_epd_arm(key);
+    int rbin = TowerInfoDefs::get_epd_rbin(key);
+
+    // Skip Innermost Ring
+    if (rbin == 0)
+    {
+      continue;
+    }
 
     // arm = 0: South
     // arm = 1: North
@@ -1273,48 +1168,7 @@ void QVecCalib::write_cdb()
     std::cout << "Info: Directory " << m_cdb_output_dir << " already exists." << std::endl;
   }
 
-  write_cdb_BadTowers();
   write_cdb_EventPlane();
-}
-
-void QVecCalib::write_cdb_BadTowers()
-{
-  std::cout << "Writing Bad Towers CDB" << std::endl;
-
-  std::string payload = "SEPD_HotMap";
-  std::string fieldname_status = "status";
-  std::string fieldname_sigma = "SEPD_sigma";
-  std::string output_file = std::format("{}/{}-{}-{}.root", m_cdb_output_dir, payload, m_dst_tag, m_runnumber);
-
-  CDBTTree cdbttree(output_file);
-
-  for (int channel = 0; channel < QVecShared::SEPD_CHANNELS; ++channel)
-  {
-    unsigned int key = TowerInfoDefs::encode_epd(channel);
-    int status = hSEPD_Bad_Channels->GetBinContent(channel+1);
-
-    float sigma = 0;
-
-    // Hot
-    if (status == static_cast<int>(QVecShared::ChannelStatus::Hot))
-    {
-      sigma = SIGMA_HOT;
-    }
-
-    // Cold
-    else if (status == static_cast<int>(QVecShared::ChannelStatus::Cold))
-    {
-      sigma = SIGMA_COLD;
-    }
-
-    cdbttree.SetIntValue(key, fieldname_status, status);
-    cdbttree.SetFloatValue(key, fieldname_sigma, sigma);
-  }
-
-  std::cout << "Saving CDB: " << payload << " to " << output_file << std::endl;
-
-  cdbttree.Commit();
-  cdbttree.WriteCDBTTree();
 }
 
 void QVecCalib::write_cdb_EventPlane()

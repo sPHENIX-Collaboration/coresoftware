@@ -57,6 +57,9 @@ class BaseTruthEval
   /// what was the primary particle that is associated with this shower?
   PHG4Particle* get_primary_particle(PHG4Shower* shower);
 
+  /// what was the parent particle of this particle?
+  PHG4Particle* get_parent_particle(PHG4Particle* particle);
+    
   /// which secondary showers are inside this shower?
   std::set<PHG4Shower*> all_secondary_showers(PHG4Shower* shower);
 
