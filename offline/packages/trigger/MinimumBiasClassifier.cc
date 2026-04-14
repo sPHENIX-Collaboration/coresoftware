@@ -125,28 +125,31 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   //   return Fun4AllReturnCodes::EVENT_OK;
   // }
 
+  
   if (m_global_vertex_map->empty())
   {
     m_mb_info->setIsAuAuMinimumBias(false);
-    return Fun4AllReturnCodes::EVENT_OK;
+    if (m_abortEvents) return 1;
+    return 0;
   }
 
   GlobalVertex *vtx = m_global_vertex_map->begin()->second;
   if (!vtx)
   {
     m_mb_info->setIsAuAuMinimumBias(false);
-    return Fun4AllReturnCodes::EVENT_OK;
+    if (m_abortEvents) return 1;
+    return 0;
   }
 
   if (!vtx->isValid())
   {
     m_mb_info->setIsAuAuMinimumBias(false);
-    return Fun4AllReturnCodes::EVENT_OK;
+    if (m_abortEvents) return 1;
+    return 0;
   }
 
   bool minbiascheck = true;
-  ;
-
+ 
   m_vertex = vtx->get_z();
 
   m_vertex_scale = getVertexScale();
@@ -160,7 +163,8 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     if (!m_zdcinfo)
     {
       m_mb_info->setIsAuAuMinimumBias(false);
-      return Fun4AllReturnCodes::EVENT_OK;
+      if (m_abortEvents) return 1;
+      return 0;
     }
   }
   //  Z vertex is within range
@@ -226,9 +230,13 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   }
 
   m_mb_info->setIsAuAuMinimumBias(minbiascheck);
-
-  return Fun4AllReturnCodes::EVENT_OK;
+  if (!minbiascheck && m_abortEvents)
+    {
+      return 1;
+    }
+  return 0;
 }
+
 int MinimumBiasClassifier::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity())
@@ -244,7 +252,11 @@ int MinimumBiasClassifier::process_event(PHCompositeNode *topNode)
 
   if (FillMinimumBiasInfo())
   {
-    return Fun4AllReturnCodes::EVENT_OK;
+    if (Verbosity())
+      {
+	std::cout << "MinimumBiasClassifier::process_event Aborting Event - not minbias" << std::endl;
+      }
+    return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -257,7 +269,7 @@ int MinimumBiasClassifier::GetNodes(PHCompositeNode *topNode)
     std::cout << __FILE__ << " :: " << __FUNCTION__ << " :: " << __LINE__ << std::endl;
   }
 
-  m_mb_info = findNode::getClass<MinimumBiasInfo>(topNode, "MinimumBiasInfo");
+  m_mb_info = findNode::getClass<MinimumBiasInfo>(topNode, m_mb_info_nodename);
 
   if (!m_mb_info)
   {
@@ -265,7 +277,7 @@ int MinimumBiasClassifier::GetNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_mbd_container = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
+  m_mbd_container = findNode::getClass<MbdPmtContainer>(topNode, m_mbd_pmt_nodename);
   if (Verbosity())
   {
     std::cout << "Getting MBD Tubes" << std::endl;
@@ -279,7 +291,7 @@ int MinimumBiasClassifier::GetNodes(PHCompositeNode *topNode)
 
   if (!m_issim && m_useZDC)
   {
-    m_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
+    m_zdcinfo = findNode::getClass<Zdcinfo>(topNode, m_zdc_info_nodename);
     if (Verbosity())
     {
       std::cout << "Getting ZDC Info" << std::endl;
@@ -296,7 +308,7 @@ int MinimumBiasClassifier::GetNodes(PHCompositeNode *topNode)
     std::cout << "Getting Vertex Map" << std::endl;
   }
 
-  m_global_vertex_map = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  m_global_vertex_map = findNode::getClass<GlobalVertexMap>(topNode, m_global_vertex_nodename);
 
   if (!m_global_vertex_map)
   {
@@ -325,9 +337,10 @@ void MinimumBiasClassifier::CreateNodes(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
+  std::string nodename = m_mb_info_nodename;
   MinimumBiasInfo *mb = new MinimumBiasInfov1();
 
-  PHIODataNode<PHObject> *mbNode = new PHIODataNode<PHObject>(mb, "MinimumBiasInfo", "PHObject");
+  PHIODataNode<PHObject> *mbNode = new PHIODataNode<PHObject>(mb, nodename, "PHObject");
   detNode->addNode(mbNode);
 
   return;

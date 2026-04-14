@@ -31,7 +31,7 @@ class MinimumBiasClassifier : public SubsysReco
   ~MinimumBiasClassifier() override = default;
 
   int InitRun(PHCompositeNode *) override;
-  static void CreateNodes(PHCompositeNode *);
+  void CreateNodes(PHCompositeNode *);
   int GetNodes(PHCompositeNode *);
 
   //! event processing method
@@ -60,8 +60,28 @@ class MinimumBiasClassifier : public SubsysReco
   void setIsSim(const bool sim) { m_issim = sim; }
 
   void setSpecies(MinimumBiasInfo::SPECIES spec) { m_species = spec; };
+
+  void abortEvents(const bool abort) { m_abortEvents = abort; };
+
+  void set_minbiasNodeName(const std::string &name)
+  {
+    m_mb_info_nodename = name;
+  }
+  void set_mbdPmtNodeName(const std::string &name)
+  {
+    m_mbd_pmt_nodename = name;
+  }
+  void set_zdcInfoNodeName(const std::string &name)
+  {
+    m_zdc_info_nodename = name;
+  }
+  void set_globalvertexNodeName(const std::string &name)
+  {
+    m_global_vertex_nodename = name;
+  }
   
  private:
+  bool m_abortEvents{false};
   bool m_issim{false};
   bool m_useZDC{true};
   bool m_box_cut{true};
@@ -73,6 +93,11 @@ class MinimumBiasClassifier : public SubsysReco
   float getVertexScale();
   std::string m_dbfilename;
 
+  std::string m_mb_info_nodename{"MinimumBiasInfo"};
+  std::string m_mbd_pmt_nodename{"MbdPmtContainer"};
+  std::string m_zdc_info_nodename{"Zdcinfo"};
+  std::string m_global_vertex_nodename{"GlobalVertexMap"};
+  
   bool m_overwrite_scale{false};
   bool m_overwrite_vtx{false};
   std::string m_overwrite_url_scale{""};

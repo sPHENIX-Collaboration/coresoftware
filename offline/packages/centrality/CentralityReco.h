@@ -8,6 +8,7 @@
 #include <string>  // for string, allocator
 
 // Forward declarations
+class TF1;
 class CentralityInfo;
 class MinimumBiasInfo;
 class PHCompositeNode;
@@ -51,11 +52,31 @@ class CentralityReco : public SubsysReco
     m_overwrite_url_scale = url;
     m_overwrite_scale = true;    
   }
+
   void setOverwriteVtx(const std::string &url)
   {
     m_overwrite_url_vtx = url;
     m_overwrite_vtx = true;    
   }
+
+  void set_minbiasNodeName(const std::string &name)
+  {
+    m_mb_info_nodename = name;
+  }
+  void set_mbdOutNodeName(const std::string &name)
+  {
+    m_mbd_out_nodename = name;
+  }
+  void set_centralityNodeName(const std::string &name)
+  {
+    m_centrality_nodename = name;
+  }
+  void set_mbdPmtNodeName(const std::string &name)
+  {
+    m_mbd_pmt_nodename = name;
+  }
+
+  
  private:
 
 
@@ -63,9 +84,20 @@ class CentralityReco : public SubsysReco
 
   std::string m_dbfilename;
 
+  std::string m_mb_info_nodename{"MinimumBiasInfo"};
+
+  std::string m_mbd_out_nodename{"MbdOut"};
+
+  std::string m_centrality_nodename{"CentralityInfo"};
+
+  std::string m_mbd_pmt_nodename{"MbdPmtContainer"};
+
+
+  bool m_use_vtx_function{true};
   bool m_overwrite_divs{false};
   bool m_overwrite_scale{false};
   bool m_overwrite_vtx{false};
+
   std::string m_overwrite_url_divs{""};
   std::string m_overwrite_url_scale{""};
   std::string m_overwrite_url_vtx{""};
