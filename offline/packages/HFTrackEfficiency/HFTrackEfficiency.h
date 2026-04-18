@@ -89,11 +89,14 @@ class HFTrackEfficiency : public SubsysReco
 
   static const int m_maxTracks{5};
   bool m_all_tracks_reconstructed{false};
+  bool m_is_primary{false};
   float m_true_mother_mass{std::numeric_limits<float>::quiet_NaN()};
   float m_reco_mother_mass{std::numeric_limits<float>::quiet_NaN()};
   float m_true_mother_pT{std::numeric_limits<float>::quiet_NaN()};
+  float m_reco_mother_pT{std::numeric_limits<float>::quiet_NaN()};
   float m_true_mother_p{std::numeric_limits<float>::quiet_NaN()};
   float m_true_mother_eta{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_mother_phi{std::numeric_limits<float>::quiet_NaN()};
   float m_min_true_track_pT{std::numeric_limits<float>::max()};
   float m_min_reco_track_pT{std::numeric_limits<float>::max()};
   float m_max_true_track_pT{std::numeric_limits<float>::min()};  // Apparently min() is still a +ve value
@@ -104,6 +107,8 @@ class HFTrackEfficiency : public SubsysReco
   float m_reco_track_pT[m_maxTracks]{std::numeric_limits<float>::quiet_NaN()};
   float m_true_track_eta[m_maxTracks]{std::numeric_limits<float>::quiet_NaN()};
   float m_reco_track_eta[m_maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_track_phi[m_maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_reco_track_phi[m_maxTracks]{std::numeric_limits<float>::quiet_NaN()};
   float m_true_track_PID[m_maxTracks]{std::numeric_limits<float>::quiet_NaN()};
   float m_reco_track_chi2nDoF[m_maxTracks]{std::numeric_limits<float>::quiet_NaN()};
   int m_reco_track_silicon_seeds[m_maxTracks]{0};

@@ -15,18 +15,22 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64 \
    `root-config --libs`
 
+# Headers installed for use in macros and by other packages
 pkginclude_HEADERS = \
-  genStatus.h \
-  filter-datasets.h \
-  geometry_constants.h \
+  GenStatus.h \
+  geometry_constants.h
+
+# Headers used only for building this library and its binaries
+noinst_HEADERS = \
+  FilterDatasets.h \
   myUtils.h
 
 lib_LTLIBRARIES = \
   libcalo_cdb.la
 
 libcalo_cdb_la_SOURCES = \
-  genStatus.cc \
-  filter-datasets.cc \
+  GenStatus.cc \
+  FilterDatasets.cc \
   myUtils.cc
 
 libcalo_cdb_la_LIBADD = \
@@ -35,6 +39,7 @@ libcalo_cdb_la_LIBADD = \
   -lcalo_io \
   -lcdbobjects \
   -lsphenixnpc \
+  -lffamodules \
   -lemcNoisyTowerFinder
 
 CaloCDB_GenStatus_SOURCES = CaloCDB-GenStatus.cc

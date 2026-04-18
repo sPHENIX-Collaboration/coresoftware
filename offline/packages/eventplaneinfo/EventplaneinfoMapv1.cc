@@ -3,7 +3,6 @@
 #include "Eventplaneinfo.h"
 #include "EventplaneinfoMap.h"
 
-#include <iterator>  // for reverse_iterator
 #include <utility>   // for pair, make_pair
 
 EventplaneinfoMapv1::~EventplaneinfoMapv1()

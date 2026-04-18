@@ -2,17 +2,18 @@
 #define CALOCDB_MYUTILS_H
 
 // ROOT includes --
+#include <RtypesCore.h>
 #include <TFitResultPtr.h>
-#include <TH1.h>
 
 // -- c++ includes --
 #include <concepts>
 #include <filesystem>
 #include <fstream>
-#include <functional>
 #include <iostream>
 #include <string>
 #include <vector>
+
+class TH1;
 
 template <typename Func>
 concept InvocableWithString = std::invocable<Func, const std::string&>;
@@ -39,7 +40,7 @@ class myUtils
    * @return true if the file was successfully opened and read, false otherwise.
    */
   template <InvocableWithString Callable>  // Using the more general concept for wider applicability
-  static Bool_t readCSV(const std::filesystem::path& filePath, Callable lineHandler, Bool_t skipHeader = true)
+  static bool readCSV(const std::filesystem::path& filePath, Callable lineHandler, bool skipHeader = true)
   {
     std::ifstream file(filePath);
 

@@ -44,6 +44,8 @@
 #include <string>
 #include <utility>  // for pair
 #include <vector>   // for vector
+#include <stdint.h> //include for new member added
+#include <cstdint>  // fixed width integer types used for BCO counters
 
 class PHCompositeNode;
 class TFile;
@@ -422,6 +424,12 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   bool m_save_dst;
   bool m_save_output;
   int candidateCounter = 0;
+  //Adding member variables for BCO matching
+  uint64_t m_this_event_bco{0};
+  uint64_t m_last_event_bco{0};
+  uint64_t m_prev_event_bco{0};
+  int64_t m_prev_runNumber{-1};
+  int64_t m_prev_eventNumber{-1}; //till here
   std::string m_outfile_name;
   TFile *m_outfile;
   std::string m_decayDescriptor;

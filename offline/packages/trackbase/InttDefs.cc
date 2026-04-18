@@ -22,7 +22,7 @@ namespace
   static constexpr unsigned int kBitShiftLadderPhiIdWidth = 4;
   static constexpr unsigned int kBitShiftLadderZIdOffset = 14;
   static constexpr unsigned int kBitShiftLadderZIdWidth = 2;
-  static constexpr int crossingOffset = 512;
+  static constexpr int crossingOffset = 200;
 
   // bit shift for hitkey
   static const unsigned int kBitShiftCol __attribute__((unused)) = 16;

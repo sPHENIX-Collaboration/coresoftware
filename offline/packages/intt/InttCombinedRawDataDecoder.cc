@@ -18,7 +18,12 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+#include <fun4all/DBInterface.h>
 
+#include <odbc++/resultset.h>
+#include <odbc++/statement.h>
+
+#include <phool/recoConsts.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>  // for PHIODataNode
 #include <phool/PHNodeIterator.h>
@@ -35,8 +40,9 @@
 
 InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   : SubsysReco(name)
-  , m_calibinfoDAC({"INTT_DACMAP", CDB})
+  // , m_calibinfoDAC({"INTT_DACMAP", CDB})
   , m_calibinfoBCO({"INTT_BCOMAP", CDB})
+  , m_intt_dac_values(0)
 {
   // Do nothing
   // Consider calling LoadHotChannelMapRemote()
@@ -128,16 +134,59 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   }
 
   ///////////////////////////////////////
-  std::cout << "calibinfo DAC : " << m_calibinfoDAC.first << " " << (m_calibinfoDAC.second == CDB ? "CDB" : "FILE") << std::endl;
-  m_dacmap.Verbosity(Verbosity());
-  if (m_calibinfoDAC.second == CDB)
+  recoConsts *rc = recoConsts::instance();
+  int run_number = rc->get_IntFlag("RUNNUMBER");
+
+  odbc::Statement* statement = DBInterface::instance()->getStatement("daq");
+  if (!statement)
   {
-    m_dacmap.LoadFromCDB(m_calibinfoDAC.first);
+    std::cerr << PHWHERE << "\n"
+              << "\tCould not get ODBC statement for 'daq' database\n"
+              << "\tExiting\n"
+              << std::flush;
+    exit(1);
+    gSystem->Exit(1);
   }
-  else
-  {
-    m_dacmap.LoadFromFile(m_calibinfoDAC.first);
-  }
+
+  if (DACValue_set_count == 0){
+    std::cout<< PHWHERE << ", " << "No manual setting for DAC values. Querying INTT DAC values from intt_setting table for run number " << run_number << std::endl;
+    int error_count = InttCombinedRawDataDecoder::QueryAllDACValues(statement, run_number);
+
+    int count_minus = 0;
+    for (const auto& dac_value : m_intt_dac_values)
+    {
+      if (dac_value <= 0) {count_minus++;}
+    }
+
+    if (error_count != 0 || m_intt_dac_values.size() != 8 || count_minus != 0)
+    {
+      std::cerr << PHWHERE << "\n"
+                << "\tError retrieving DAC values. error_count: " << error_count
+                << ", size of m_intt_dac_values: " << m_intt_dac_values.size() << std::endl;
+      std:: cout << "In the dac map: ";
+      for (size_t i = 0; i < m_intt_dac_values.size(); ++i)
+      {
+        std::cout << "dac" << i << ": " << m_intt_dac_values[i] << ", ";
+      }
+      std::cout << std::endl;
+      std::cout<< " The DAC values should be 8 integers and all should be positive. Exiting."<< std::endl;
+      std::cout<< " Please contact the INTT group if the run you analyzed doesn't appear in the intt_setting table."<< std::endl;
+      
+      exit(1);
+      gSystem->Exit(1);
+    }
+  }  
+
+  // std::cout << "calibinfo DAC : " << m_calibinfoDAC.first << " " << (m_calibinfoDAC.second == CDB ? "CDB" : "FILE") << std::endl;
+  // m_dacmap.Verbosity(Verbosity());
+  // if (m_calibinfoDAC.second == CDB)
+  // {
+  //   m_dacmap.LoadFromCDB(m_calibinfoDAC.first);
+  // }
+  // else
+  // {
+  //   m_dacmap.LoadFromFile(m_calibinfoDAC.first);
+  // }
 
   ///////////////////////////////////////
   std::cout << "calibinfo BCO : " << m_calibinfoBCO.first << " " << (m_calibinfoBCO.second == CDB ? "CDB" : "FILE") << std::endl;
@@ -302,6 +351,19 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
         continue;
       }
 
+      if (std::find(permanant_mask_chip.begin(), permanant_mask_chip.end(), std::format("{}_{}_{}", raw.felix_server, raw.felix_channel, raw.chip)) != permanant_mask_chip.end())
+      {
+        if (1 < Verbosity())
+        {
+          std::cout
+            << PHWHERE << "\n"
+            << "\tMasking permanant bad chip due to timing issues:\n"
+            << "\t" << raw.felix_server << " " << raw.felix_channel << " " << raw.chip << " " << raw.channel << "\n"
+            << std::endl;
+        }
+        continue;
+      }
+
       ////////////////////////
       // bco filter
       if (m_bcomap.IsBad(raw, bco_full, bco) && m_bcoFilter)
@@ -429,7 +491,13 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 
       ////////////////////////
       // dac conversion
-      int dac = m_dacmap.GetDAC(raw, adc);
+      // int dac = m_dacmap.GetDAC(raw, adc);
+      int dac = (adc >= 0 && adc <= 7) ? m_intt_dac_values[adc] : -1;
+
+      if (Verbosity() > 100000){
+        std::cout<< PHWHERE << "\n" << "ADC value: " << adc << ", converted DAC value: " << dac << std::endl;
+      }
+      
 
       hit = new TrkrHitv2;
       //--hit->setAdc(adc);
@@ -440,4 +508,71 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
   }
   
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+void InttCombinedRawDataDecoder::set_DACValues(const std::vector<int>& input_dac_vec) 
+{
+  m_intt_dac_values = input_dac_vec;
+  DACValue_set_count = 1;
+  int count_minus = 0;
+  std::cout<<PHWHERE<< ", DAC values are set by user input, the values are: ";
+  for (auto &dac_value : m_intt_dac_values)
+  {
+    std::cout << dac_value << ", ";
+
+    if (dac_value <= 0) {count_minus++;}
+  }
+  std::cout << std::endl;
+
+  if (m_intt_dac_values.size() != 8 || count_minus != 0){
+    std::cerr << PHWHERE << "\n"
+              << "\tError: DAC values were set by user, but it should be 8 integers and all should be positive. Please check your input. Exiting. \n"
+              << "\tThe current input DAC values are: ";
+    for (size_t i = 0; i < m_intt_dac_values.size(); ++i)
+    {
+      std::cout << "dac" << i << ": " << m_intt_dac_values[i] << ", ";
+    }
+    std::cout << std::endl;
+
+    exit(1);
+    gSystem->Exit(1);
+  }
+}
+
+int InttCombinedRawDataDecoder::QueryAllDACValues(odbc::Statement *statement, int runnumber)
+{
+
+  std::unique_ptr<odbc::ResultSet> result_set;
+  m_intt_dac_values.clear();
+
+  try
+  {
+    std::string sql = "SELECT dac0, dac1, dac2, dac3, dac4, dac5, dac6, dac7 From intt_setting WHERE runnumber = " + std::to_string(runnumber) + ";";
+    result_set = std::unique_ptr<odbc::ResultSet>(statement->executeQuery(sql));
+    
+    if (!(result_set && result_set->next()))
+    {
+      std::cerr << PHWHERE << "\n"
+                << "\tNo DAC row found in intt_setting for run " << runnumber << std::endl;
+      return 1;
+    }
+    for (int i = 0; i < 8; i++)
+    {
+      std::string column_name = "dac" + std::to_string(i);
+      int DAC_value = -1;
+      DAC_value = result_set->getInt(column_name);
+      m_intt_dac_values.push_back(DAC_value);
+      std::cout << PHWHERE << ", retrieved DAC value for " << column_name << ": " << DAC_value << std::endl;
+    }
+  }
+  catch (odbc::SQLException& e)
+  {
+    std::cerr << PHWHERE << "\n"
+              << "\tSQL Exception:\n"
+              << "\t" << e.getMessage() << std::endl;
+    return 1;
+  }
+
+  return 0;
 }

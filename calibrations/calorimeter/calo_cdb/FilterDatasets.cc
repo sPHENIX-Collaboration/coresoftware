@@ -1,14 +1,18 @@
 
-#include "filter-datasets.h"
+#include "FilterDatasets.h"
 
 // -- My Utils --
 #include "myUtils.h"
 
-// c++ includes --
+// sPHENIX includes --
+#include <ffamodules/CDBInterface.h>
+#include <phool/recoConsts.h>
+
+#include <RtypesCore.h>
 #include <filesystem>
 #include <fstream>
-#include <iomanip>
 #include <iostream>
+#include <sstream>
 
 FilterDatasets::FilterDatasets(Bool_t debug)
   : m_debug(debug)
@@ -30,21 +34,12 @@ void FilterDatasets::readRunInfo(const std::string &line)
 
 std::string FilterDatasets::getCalibration(const std::string &pl_type, uint64_t iov)
 {
-  if (!uti)
-  {
-    uti = std::make_unique<CDBUtils>();
-  }
-  return uti->getUrl(pl_type, iov);
-}
+  recoConsts *rc = recoConsts::instance();
+  // Update the global timestamp flag for the current run in the loop
+  rc->set_uint64Flag("TIMESTAMP", iov);
 
-int FilterDatasets::setGlobalTag(const std::string &tagname)
-{
-  if (!uti)
-  {
-    uti = std::make_unique<CDBUtils>();
-  }
-  int iret = uti->setGlobalTag(tagname);
-  return iret;
+  // Fetch the calibration URL via CDBInterface
+  return CDBInterface::instance()->getUrl(pl_type);
 }
 
 void FilterDatasets::analyze(const std::string &input, const std::string &outputDir)
@@ -141,8 +136,6 @@ void FilterDatasets::process(const std::string &input, const std::string &output
   std::cout << "output: " << output << std::endl;
   std::cout << "Debug: " << ((m_debug) ? "True" : "False") << std::endl;
   std::cout << "#############################" << std::endl;
-
-  setGlobalTag("newcdbtag");
 
   std::filesystem::path input_filepath_obj(input);
   if (!myUtils::readCSV(input_filepath_obj, [this](const std::string &line)

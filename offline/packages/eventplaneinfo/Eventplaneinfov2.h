@@ -28,15 +28,15 @@ class Eventplaneinfov2 : public Eventplaneinfo
   void Reset() override { *this = Eventplaneinfov2(); }
   PHObject* CloneMe() const override { return new Eventplaneinfov2(*this); }
 
-  void set_qvector(std::vector<std::pair<double, double>> Qvec) override { mQvec = Qvec; }
+  void set_qvector(const std::vector<std::pair<double, double>>& Qvec) override { mQvec = Qvec; }
   void set_qvector_raw(const std::vector<std::pair<double, double>>& Qvec) override { mQvec_raw = Qvec; }
   void set_qvector_recentered(const std::vector<std::pair<double, double>>& Qvec) override { mQvec_recentered = Qvec; }
-  void set_shifted_psi(std::vector<double> Psi_Shifted) override { mPsi_Shifted = Psi_Shifted; }
-  std::pair<double, double> get_qvector(int order) const override { return safe_qvec(mQvec, order); }
-  std::pair<double, double> get_qvector_raw(int order) const override { return safe_qvec(mQvec_raw, order); }
-  std::pair<double, double> get_qvector_recentered(int order) const override { return safe_qvec(mQvec_recentered, order); }
-  void set_ring_qvector(std::vector<std::vector<std::pair<double, double>>> Qvec) override { ring_Qvec = Qvec; }
-  std::pair<double, double> get_ring_qvector(int ring_index, int order) const override
+  void set_shifted_psi(const std::vector<double>& Psi_Shifted) override { mPsi_Shifted = Psi_Shifted; }
+  std::pair<double, double> get_qvector(unsigned int order) const override { return safe_qvec(mQvec, order); }
+  std::pair<double, double> get_qvector_raw(unsigned int order) const override { return safe_qvec(mQvec_raw, order); }
+  std::pair<double, double> get_qvector_recentered(unsigned int order) const override { return safe_qvec(mQvec_recentered, order); }
+  void set_ring_qvector(const std::vector<std::vector<std::pair<double, double>>>& Qvec) override { ring_Qvec = Qvec; }
+  std::pair<double, double> get_ring_qvector(int ring_index, unsigned int order) const override
   {
     if (ring_index < 0 || static_cast<size_t>(ring_index) >= ring_Qvec.size())
     {
@@ -44,21 +44,21 @@ class Eventplaneinfov2 : public Eventplaneinfo
     }
     return safe_qvec(ring_Qvec[ring_index], order);
   }
-  double get_ring_psi(int ring_index, int order) const override
+  double get_ring_psi(int ring_index, unsigned int order) const override
   {
     auto q = get_ring_qvector(ring_index, order);
-    return GetPsi(q.first, q.second, static_cast<unsigned int>(order));
+    return GetPsi(q.first, q.second, order);
   }
 
   double GetPsi(double Qx, double Qy, unsigned int order) const override;
-  double get_psi(int order) const override
+  double get_psi(unsigned int order) const override
   {
     auto q = get_qvector(order);
-    return GetPsi(q.first, q.second, static_cast<unsigned int>(order));
+    return GetPsi(q.first, q.second, order);
   }
-  double get_shifted_psi(int order) const override
+  double get_shifted_psi(unsigned int order) const override
   {
-    if (order <= 0 || static_cast<size_t>(order) > mPsi_Shifted.size())
+    if (order <= 0 || order > mPsi_Shifted.size())
     {
       return std::numeric_limits<double>::quiet_NaN();
     }
@@ -66,9 +66,9 @@ class Eventplaneinfov2 : public Eventplaneinfo
   }
 
  private:
-  static std::pair<double, double> safe_qvec(const std::vector<std::pair<double, double>>& v, int order)
+  static std::pair<double, double> safe_qvec(const std::vector<std::pair<double, double>>& v, unsigned int order)
   {
-    if (order <= 0 || static_cast<size_t>(order) > v.size())
+    if (order <= 0 || order > v.size())
     {
       return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
     }

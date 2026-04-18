@@ -9,6 +9,7 @@
 #include <limits>
 #include <string>  // for string
 #include <vector>
+#include <cstdint>  // fixed width integer types used for BCO counters
 
 class PHCompositeNode;
 class TTree;
@@ -34,6 +35,13 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
                   const KFParticle &vertex,
                   std::vector<KFParticle> daughters,
                   std::vector<KFParticle> intermediates);
+
+  // pass event-level BCO values from KFParticle_sPHENIX
+  void set_event_bcos(const int64_t this_bco, const int64_t last_bco)
+  {
+    m_event_bco = this_bco;
+    m_last_event_bco = last_bco;
+  }
 
   float calc_secondary_vertex_mass_noPID(std::vector<KFParticle> kfp_daughters);
 
@@ -219,6 +227,8 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   int m_runNumber{-1};
   int m_evtNumber{-1};
   int64_t m_bco{-1};
+  uint64_t m_event_bco{0};//current event BCO
+  uint64_t m_last_event_bco{0}; //only keeping this, BCO for the last event
 
   bool m_trigger_info_available{false};
 };

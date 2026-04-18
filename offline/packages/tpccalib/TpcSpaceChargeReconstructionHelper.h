@@ -71,11 +71,16 @@ class TpcSpaceChargeReconstructionHelper
 
   /**
    * copy input histogram into output, with new name, while adding two "guarding bins" on
-   * each axis, with identical content and error as the first and last bin of the original histogram
-   * this is necessary for being able to call TH3->Interpolate() when using these histograms
-   * to correct for the space charge distortions.
+   * each axis. Uses fill_guarding_bins to set guarding bin content
    */
   static TH3* add_guarding_bins(const TH3* /*source*/, const TString& /*name*/);
+
+  /**
+   * fill first and last bins (along all axis) of provided histogram with
+   * either copy of the previous/next (physical) bin, (for r and z)
+   * or using 2pi invariance for the phi axis.
+   */
+  static void fill_guarding_bins(TH3* /*source*/);
 
   /// shortcut to angular window, needed to define TPOT acceptance
   using range_t = std::pair<double, double>;

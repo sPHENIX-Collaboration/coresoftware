@@ -29,6 +29,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/getClass.h>
+#include <ffaobjects/EventHeader.h>
+#include <ffarawobjects/Gl1Packet.h>
 
 #include <TEntryList.h>
 #include <TFile.h>
@@ -135,14 +137,17 @@ int KFParticle_sPHENIX::InitRun(PHCompositeNode *topNode)
 int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 {
   
-  std::vector<KFParticle> mother, vertex_kfparticle;
-  std::vector<std::vector<KFParticle>> daughters, intermediates;
-  int nPVs, multiplicity;
+  std::vector<KFParticle> mother;
+  std::vector<KFParticle> vertex_kfparticle;
+  std::vector<std::vector<KFParticle>> daughters;
+  std::vector<std::vector<KFParticle>> intermediates;
+  int nPVs;
+  int multiplicity;
 
   SvtxTrackMap *check_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
   multiplicity = check_trackmap->size();
 
-  if (check_trackmap->size() == 0)
+  if (check_trackmap->empty())
   {
     if (Verbosity() >= VERBOSITY_SOME)
     {
@@ -150,13 +155,70 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     }
     return Fun4AllReturnCodes::EVENT_OK;
   }
+ 
+  // Adding BCO Matching  
+  auto* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader"); // event header node
+  auto* gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");     // gl1 packet node
 
+  if (!gl1packet)
+  {
+  gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+  }
+
+  if (evtHeader && gl1packet)
+  {
+  const int64_t run = evtHeader->get_RunNumber();
+  const int64_t evn = evtHeader->get_EvtSequence();
+  m_this_event_bco = static_cast<uint64_t>(gl1packet->lValue(0, "BCO"));
+
+    if (Verbosity() >= VERBOSITY_SOME)
+  	{
+	std::cout << "Event start | run: " << run << " event: " << evn << " this_event_bco: " << m_this_event_bco << std::endl;
+	}
+
+  if (run != m_prev_runNumber || evn != m_prev_eventNumber)
+  {
+
+    if (Verbosity() >= VERBOSITY_SOME)
+    {
+	std::cout << "New event detected" << std::endl;
+    	std::cout << "Previous event BCO: " << m_prev_event_bco << std::endl;
+	}
+    //m_last_event_bco = m_prev_event_bco;
+     m_last_event_bco = (run == m_prev_runNumber) ? m_prev_event_bco : -1;
+	m_prev_event_bco = m_this_event_bco;
+
+    m_prev_runNumber = run;
+    m_prev_eventNumber = evn;
+
+    if (Verbosity() >= VERBOSITY_SOME)
+    {
+	std::cout << "Updated values | last_event_bco: " << m_last_event_bco
+              << " stored_prev_event_bco: " << m_prev_event_bco
+              << std::endl;
+	}
+  }
+ }
+  else
+  {
+	
+    if (Verbosity() >= VERBOSITY_SOME)
+  {
+	std::cout << "EventHeader or GL1 packet not found" << std::endl;
+	}
+  m_this_event_bco = -1;
+  m_last_event_bco = -1;
+  m_prev_event_bco = -1;
+  m_prev_runNumber = -1;
+  m_prev_eventNumber = -1;
+  }
+// End BCO matching here
   if (!m_use_fake_pv)
   {
     if (m_use_mbd_vertex)
     {
       MbdVertexMap* check_vertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
-      if (check_vertexmap->size() == 0)
+      if (check_vertexmap->empty())
       {
         if (Verbosity() >= VERBOSITY_SOME)
         {
@@ -168,7 +230,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     else
     {
       SvtxVertexMap* check_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name);
-      if (check_vertexmap->size() == 0)
+      if (check_vertexmap->empty())
       {
         if (Verbosity() >= VERBOSITY_SOME)
         {
@@ -189,7 +251,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     vertex_kfparticle = mother;
   }
 
-  if (mother.size() != 0)
+  if (!mother.empty())
   {
     for (unsigned int i = 0; i < mother.size(); ++i)
     {
@@ -205,6 +267,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 
       if (m_save_output)
       {
+	set_event_bcos(m_this_event_bco, m_last_event_bco); //filling nTuple for BCO Matching
         fillBranch(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i]);
       }
       if (m_save_dst)
@@ -478,7 +541,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   setNumberOfTracks(nTracks);
   setDaughters(daughter_list);
 
-  if (intermediates_name.size() > 0)
+  if (!intermediates_name.empty())
   {
     hasIntermediateStates();
     setIntermediateStates(intermediate_list);
@@ -494,15 +557,14 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     }
     return 0;
   }
-  else
+  
+  if (Verbosity() >= VERBOSITY_SOME)
   {
-    if (Verbosity() >= VERBOSITY_SOME)
-    {
-      std::cout << "KFParticle: Your decay descriptor, " << Name() << " cannot be parsed"
-                << "\nExiting!" << std::endl;
-    }
-    return Fun4AllReturnCodes::ABORTRUN;
+    std::cout << "KFParticle: Your decay descriptor, " << Name() << " cannot be parsed"
+	      << "\nExiting!" << std::endl;
   }
+  return Fun4AllReturnCodes::ABORTRUN;
+ 
 }
 
 void KFParticle_sPHENIX::getField()

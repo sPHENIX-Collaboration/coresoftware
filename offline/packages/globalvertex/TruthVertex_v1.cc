@@ -15,3 +15,21 @@ int TruthVertex_v1::isValid() const
 {
   return std::isfinite(_z) && std::isfinite(_t);
 }
+
+float TruthVertex_v1::get_position(unsigned int coor) const
+{
+  if (coor == 0)
+  {
+    return get_x();
+  }
+  if (coor == 1)
+  {
+    return get_y();
+  }
+  if (coor == 2)
+  {
+    return get_z();
+  }
+
+  return std::numeric_limits<float>::quiet_NaN();
+}

@@ -139,21 +139,21 @@ WeightedFitter::make_nodes (
 	m_track_map = findNode::getClass<SvtxTrackMap>(top_node, m_track_map_node_name);
 	if (!m_track_map) {
 		m_track_map = new SvtxTrackMap_v2;
-		PHIODataNode<PHObject>* track_map_node = new PHIODataNode<PHObject>(m_track_map, m_track_map_node_name, "PHObject");
+		auto* track_map_node = new PHIODataNode<PHObject>(m_track_map, m_track_map_node_name, "PHObject");
 		svtx_node->addNode(track_map_node);
 	}
 
 	m_alignment_map = findNode::getClass<SvtxAlignmentStateMap>(top_node, m_alignment_map_node_name);
 	if (!m_alignment_map) {
 		m_alignment_map = new SvtxAlignmentStateMap_v1;
-		PHIODataNode<PHObject>* alignment_map_node = new PHIODataNode<PHObject>(m_alignment_map, m_alignment_map_node_name, "PHObject");
+		auto* alignment_map_node = new PHIODataNode<PHObject>(m_alignment_map, m_alignment_map_node_name, "PHObject");
 		svtx_node->addNode(alignment_map_node);
 	}
 
 	m_weighted_track_map = findNode::getClass<WeightedTrackMap>(top_node, m_weighted_track_map_node_name);
 	if (!m_weighted_track_map) {
 		m_weighted_track_map = new WeightedTrackMap;
-		PHIODataNode<PHObject>* weighted_track_map_node = new PHIODataNode<PHObject>(m_weighted_track_map, m_weighted_track_map_node_name, "PHObject");
+		auto* weighted_track_map_node = new PHIODataNode<PHObject>(m_weighted_track_map, m_weighted_track_map_node_name, "PHObject");
 		svtx_node->addNode(weighted_track_map_node);
 	}
 }
@@ -350,12 +350,17 @@ WeightedFitter::get_cluster_keys (
 		m_silicon_seed = m_silicon_track_seed_container->get(track_seed->get_silicon_seed_index());
 		m_tpc_seed = m_tpc_track_seed_container->get(track_seed->get_tpc_seed_index());
 	}
-	m_crossing = m_silicon_seed ? m_silicon_seed->get_crossing() : SHRT_MAX;
+
+  /*
+   * for TPC only tracks (no associated silicon seed), use nominal crossing as default
+   * this is consistent with what is done in PHActsTrkFitter
+   */
+	m_crossing = m_silicon_seed ? m_silicon_seed->get_crossing() : 0;
 
 	m_cluster_keys.clear();
 	for (auto const* seed : {m_silicon_seed, m_tpc_seed}) {
 		if (!seed) { continue; }
-        std::copy(seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter(m_cluster_keys));
+    std::copy(seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter(m_cluster_keys));
 	}
 
 	return false;
@@ -384,7 +389,7 @@ WeightedFitter::get_points (
 
 		Surface const surf = m_geometry->maps().getSurface(cluster_key, cluster);
 		if (!surf) { continue; }
-	
+
 		auto local_to_global_transform = surf->transform(m_geometry->geometry().getGeoContext()); // in mm
 		local_to_global_transform.translation() /= Acts::UnitConstants::cm; // converted to cm
 		Eigen::Vector3d local_pos = Eigen::Vector3d { cluster->getLocalX(), cluster->getLocalY(), 0.0 }; // in cm
@@ -580,19 +585,25 @@ WeightedFitter::add_track (
 	fitted_track.set_pz(slope(2));
 
 	SvtxAlignmentStateMap::StateVec alignment_states;
-	for (auto const& point : m_output_cluster_fit_points) {
-		Acts::Vector3 intersection = m_weighted_track->get_intersection(point.sensor_local_to_global_transform);
+	for (auto const& point : m_output_cluster_fit_points)
+  {
+		const auto intersection = m_weighted_track->get_intersection(point.sensor_local_to_global_transform);
 		double path_length = m_weighted_track->get_path_length_of_intersection(point.sensor_local_to_global_transform);
 
 		SvtxTrackState_v3 svtx_track_state(path_length);
-		svtx_track_state.set_x(intersection(0));
-		svtx_track_state.set_y(intersection(1));
-		svtx_track_state.set_z(intersection(2));
-		svtx_track_state.set_px(slope(0));
-		svtx_track_state.set_py(slope(1));
-		svtx_track_state.set_pz(slope(2));
+		svtx_track_state.set_x(intersection.x());
+		svtx_track_state.set_y(intersection.y());
+		svtx_track_state.set_z(intersection.z());
+		svtx_track_state.set_px(slope.x());
+		svtx_track_state.set_py(slope.y());
+		svtx_track_state.set_pz(slope.z());
 		svtx_track_state.set_name(std::to_string(point.cluster_key));
 		svtx_track_state.set_cluskey(point.cluster_key);
+
+    // calculate corresponding local coordinate (in cluster surface reference frame)
+    const auto local = point.sensor_local_to_global_transform.inverse()*intersection;
+    svtx_track_state.set_localX(local.x() );
+    svtx_track_state.set_localY(local.y() );
 
 		Eigen::Matrix<double, 3, 4> Jacobian_fitpars_globpos;
 		for (int i = 0; i < 4; ++i) { Jacobian_fitpars_globpos.col(i) = m_weighted_track->get_partial_derivative(i, path_length); }

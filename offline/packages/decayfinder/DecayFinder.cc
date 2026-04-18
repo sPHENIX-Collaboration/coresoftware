@@ -361,6 +361,9 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
     exit(1);
   }
 
+  // correct mother PID to search for match
+  const int mother_id_to_match = m_getChargeConjugate ? std::abs(m_mother_ID) : m_mother_ID;
+
   if (m_truthinfo && !m_geneventmap)  // This should use the truth info container if we have no HepMC record
   {
     if (Verbosity() >= VERBOSITY_SOME)
@@ -374,7 +377,7 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
     {
       PHG4Particle* g4particle = iter->second;
       int this_pid = m_getChargeConjugate ? abs(g4particle->get_pid()) : g4particle->get_pid();
-      if (this_pid == m_mother_ID)
+      if (this_pid == mother_id_to_match)
       {
         if (Verbosity() >= VERBOSITY_MAX)
         {
@@ -455,7 +458,7 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
     for (HepMC::GenEvent::particle_const_iterator p = theEvent->particles_begin(); p != theEvent->particles_end(); ++p)
     {
       int this_pid = m_getChargeConjugate ? abs((*p)->pdg_id()) : (*p)->pdg_id();
-      if (this_pid == m_mother_ID)
+      if (this_pid == mother_id_to_match)
       {
         if (Verbosity() >= VERBOSITY_MAX)
         {

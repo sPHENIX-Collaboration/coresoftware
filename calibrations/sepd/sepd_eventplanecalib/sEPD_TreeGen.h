@@ -85,6 +85,11 @@ class sEPD_TreeGen : public SubsysReco
     m_cuts.m_cent_max = cent_max;
   }
 
+  void set_inputNode(const std::string &inputNode)
+  {
+    m_inputNode = inputNode;
+  }
+
  private:
  /**
    * @brief Validates event-level conditions (GlobalVertex, Minimum Bias).
@@ -107,6 +112,8 @@ class sEPD_TreeGen : public SubsysReco
    * @return Fun4All return code.
    */
   int process_centrality(PHCompositeNode *topNode);
+
+  std::string m_inputNode{"TOWERINFO_CALIB_SEPD"};
 
   int m_event{0};
 

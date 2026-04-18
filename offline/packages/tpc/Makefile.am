@@ -86,6 +86,7 @@ libtpc_la_SOURCES = \
   TpcClusterizer.cc \
   TpcCombinedRawDataUnpacker.cc \
   TpcCombinedRawDataUnpackerDebug.cc \
+  TpcDistortionCorrectionContainer.cc \
   TpcGlobalPositionWrapper.cc \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \

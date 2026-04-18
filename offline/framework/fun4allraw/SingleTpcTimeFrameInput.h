@@ -53,7 +53,7 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
   //! packet ID -> TimeFrame builder
   std::map<int, TpcTimeFrameBuilder *> m_TpcTimeFrameBuilderMap;
   std::set<int> m_SelectedPacketIDs;
-  
+
   TH1 *m_hNorm = nullptr;
 
   PHTimer *m_FillPoolTimer = nullptr;
@@ -63,14 +63,14 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
 
   // NOLINTNEXTLINE(hicpp-special-member-functions)
   class TimeTracker
-  {    
+  {
    public:
-    TimeTracker(PHTimer * timer, const std::string & name, TH1* hout) ;
-    virtual ~TimeTracker() ;
+    TimeTracker(PHTimer *timer, const std::string &name, TH1 *hout);
+    virtual ~TimeTracker();
     void stop();
 
    private:
-    PHTimer * m_timer = nullptr;
+    PHTimer *m_timer = nullptr;
     std::string m_name;
     TH1 *m_hNorm = nullptr;
     bool stopped = false;

@@ -1082,6 +1082,28 @@ bool SvtxTruthEval::is_primary(PHG4Particle* particle)
   return _basetrutheval.is_primary(particle);
 }
 
+PHG4Particle* SvtxTruthEval::get_parent_particle(PHG4Particle* particle)
+{
+  PHG4Particle* parent = _basetrutheval.get_parent_particle(particle);  
+  return parent;
+}
+
+int SvtxTruthEval::get_parent_particle_flavor(PHG4Particle* particle)
+{
+  PHG4Particle* parent = _basetrutheval.get_parent_particle(particle);
+  int parent_pid = parent->get_pid();
+    
+    return parent_pid;
+}
+
+int SvtxTruthEval::get_primary_particle_flavor(PHG4Particle* particle)
+{
+  PHG4Particle* primary = _basetrutheval.get_primary_particle(particle);
+  int primary_pid = primary->get_pid();
+    
+    return primary_pid;
+}
+
 PHG4Particle* SvtxTruthEval::get_primary_particle(PHG4Hit* g4hit)
 {
   if (!has_node_pointers())

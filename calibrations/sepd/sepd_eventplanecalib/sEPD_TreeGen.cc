@@ -177,10 +177,10 @@ int sEPD_TreeGen::process_centrality(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int sEPD_TreeGen::process_sEPD(PHCompositeNode *topNode)
 {
-  TowerInfoContainer *towerinfosEPD = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SEPD");
+  TowerInfoContainer *towerinfosEPD = findNode::getClass<TowerInfoContainer>(topNode, m_inputNode);
   if (!towerinfosEPD)
   {
-    std::cout << PHWHERE << "TOWERINFO_CALIB_SEPD Node missing, doing nothing." << std::endl;
+    std::cout << PHWHERE << m_inputNode << " Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 

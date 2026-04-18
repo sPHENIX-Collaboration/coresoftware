@@ -11,6 +11,7 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/alignmentTransformationContainer.h>
 
 #include <ffaobjects/EventHeader.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -443,6 +444,8 @@ namespace
 
     double maxAdc = 0.0;
     TrkrDefs::hitsetkey maxKey = 0;
+    double secondmaxAdc = 0.0;
+    TrkrDefs::hitsetkey secondmaxKey = 0;
 
     unsigned int nHits = clusHits.size();
 
@@ -554,9 +557,18 @@ namespace
 
       if (adc > maxAdc)
       {
+        secondmaxAdc = maxAdc;
+        secondmaxKey = maxKey;
         maxAdc = adc;
         maxKey = spechitkey.second;
       }
+      else if (adc > secondmaxAdc)
+      {
+        secondmaxAdc = adc;
+        secondmaxKey = spechitkey.second;
+      }
+
+
     }
 
     if (nHits == 0)
@@ -818,10 +830,68 @@ namespace
       clus->setSDWeightedIT(sqrt(sigmaWeightedIT / adcSum));
     }
 
+
+    pthread_mutex_lock(&mythreadlock);
+    // Get surface of max ADC hit
+    bool alignmentflag = alignmentTransformationContainer::use_alignment;
+    alignmentTransformationContainer::use_alignment = false;
+    Acts::Vector3 ideal(clus->getX(), clus->getY(), clus->getZ());
+    TrkrDefs::subsurfkey subsurfkey = 0;
+
+    Surface surface = my_data.tGeometry->get_tpc_surface_from_coords(
+        maxKey,
+        ideal,
+        subsurfkey);
+
+    if (!surface)
+    {
+      // try second maximum ADC hit
+      if (secondmaxKey != 0)
+      {
+        surface = my_data.tGeometry->get_tpc_surface_from_coords(
+            secondmaxKey,
+            ideal,
+            subsurfkey);
+      }
+
+      // if still no surface, skip this cluster
+      if (!surface)
+      {
+        // clean up
+        alignmentTransformationContainer::use_alignment = alignmentflag;
+        delete clus;
+        delete fit3D;
+        if (my_data.hitHist)
+        {
+          delete my_data.hitHist;
+          my_data.hitHist = nullptr;
+        }
+        pthread_mutex_unlock(&mythreadlock);
+        return;
+      }
+    }
+
+    // Convert from ideal TPC coordinates to surface coordinates 
+    Acts::Vector3 local = surface->transform(my_data.tGeometry->geometry().getGeoContext()).inverse() * (ideal * Acts::UnitConstants::cm);
+    local /= Acts::UnitConstants::cm;
+
+    // Convert back to TPC coordinates with alignment applied 
+    alignmentTransformationContainer::use_alignment = true;
+    Acts::Vector3 global = surface->transform(my_data.tGeometry->geometry().getGeoContext()) * (local * Acts::UnitConstants::cm);
+    global /= Acts::UnitConstants::cm;
+    clus->setX(global(0));
+    clus->setY(global(1));
+    clus->setZ(global(2));
+
+    alignmentTransformationContainer::use_alignment = alignmentflag;
+    pthread_mutex_unlock(&mythreadlock);
+
+
     const auto ckey = TrkrDefs::genClusKey(maxKey, my_data.cluster_vector.size());
     my_data.cluster_vector.push_back(clus);
     my_data.cluster_key_vector.push_back(ckey);
 
+    
     delete fit3D;
 
     if (my_data.hitHist)
@@ -995,6 +1065,7 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   // get the first layer to get the clock freq
   AdcClockPeriod = m_geom_container->GetFirstLayerCellGeom()->get_zstep();
   m_tdriftmax = AdcClockPeriod * NZBinsSide;
+  
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

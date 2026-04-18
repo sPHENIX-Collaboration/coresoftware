@@ -155,7 +155,7 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   {
     std::cout << "Getting ZDC" << std::endl;
   }
-  if (!m_issim && !m_useZDC)
+  if (!m_issim && m_useZDC)
   {
     if (!m_zdcinfo)
     {
@@ -277,7 +277,7 @@ int MinimumBiasClassifier::GetNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if (!m_issim)
+  if (!m_issim && m_useZDC)
   {
     m_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
     if (Verbosity())

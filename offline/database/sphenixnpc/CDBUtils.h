@@ -2,6 +2,8 @@
 #define SPHENIXNPC_CDBUTILS_H
 
 #include <cstdint>  // for uint64_t
+#include <map>
+#include <memory>
 #include <set>
 #include <string>
 
@@ -27,11 +29,9 @@ class CDBUtils
   int insertPayload(const std::string &pl_type, const std::string &file_url, uint64_t iov_start);
   int insertPayload(const std::string &pl_type, const std::string &file_url, uint64_t iov_start, uint64_t iov_end);
   int cloneGlobalTag(const std::string &source, const std::string &target);
-
   int deleteGlobalTag(const std::string &);
   void listGlobalTags();
   void listPayloadTypes();
-  void listPayloadIOVs(uint64_t iov);
   void clearCache();
   bool isGlobalTagSet();
   void Verbosity(int i);
@@ -39,9 +39,12 @@ class CDBUtils
   int deletePayloadIOV(const std::string &pl_type, uint64_t iov_start);
   int deletePayloadIOV(const std::string &pl_type, uint64_t iov_start, uint64_t iov_end);
 
- private:
-  int m_Verbosity = 0;
-  SphenixClient *cdbclient = nullptr;
+  std::map<std::string, std::tuple<std::string, uint64_t, uint64_t>> PayloadIOVs(uint64_t iov, const std::string &ptype = "");
+  void listPayloadIOVs(uint64_t iov, const std::string &ptype = "");
+
+private:
+  int m_Verbosity {0};
+  std::unique_ptr<SphenixClient> cdbclient;
   std::string m_CachedGlobalTag;
   std::set<std::string> m_PayloadTypeCache;
 };

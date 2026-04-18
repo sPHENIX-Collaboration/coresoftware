@@ -303,7 +303,9 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 
   m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
   m_tree->Branch("eventNumber", &m_evtNumber, "eventNumber/I");
-  m_tree->Branch("BCO", &m_bco, "BCO/L");
+  m_tree->Branch("event_bco", &m_event_bco, "event_bco/L"); //adding for the current event BCO, not shifted
+  m_tree->Branch("BCO", &m_bco, "BCO/L"); //already there, this is shifted BCO
+  m_tree->Branch("last_event_bco", &m_last_event_bco, "last_event_bco/L"); //BCO for the last event 
 
   if (m_get_trigger_info)
   {
@@ -663,21 +665,38 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   if (evtNode)
   {
-    EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
-    m_runNumber = evtHeader->get_RunNumber();
-    m_evtNumber = evtHeader->get_EvtSequence();
+	  EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+	  if (evtHeader)
+	  {
+		  m_runNumber = evtHeader->get_RunNumber();
+		  m_evtNumber = evtHeader->get_EvtSequence();
+	  }
+	  else
+	  {
+		  m_runNumber = -1;
+		  m_evtNumber = -1;
+	  }
 
-    auto* gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
-    if (!gl1packet)
-    {
-      gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-    }
-    m_bco = gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0];
-    //m_bco = m_trigger_info_available ? gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0] : 0;
+	  auto* gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+	  if (!gl1packet)
+	  {
+		  gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+	  }
+
+	  if (gl1packet)
+	  {
+		  m_bco = gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0];
+	  }
+	  else
+	  {
+		  m_bco = -1;
+	  }
   }
   else
   {
-    m_runNumber = m_evtNumber = m_bco = -1;
+	  m_runNumber = -1;
+	  m_evtNumber = -1;
+	  m_bco = -1;
   }
 
   if (m_trigger_info_available)

@@ -5,6 +5,7 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <algorithm>
 #include <array>
 #include <map>
 #include <stdexcept>
@@ -94,6 +95,16 @@ class QVecCalib : public SubsysReco
   void set_cdb_output_dir(std::string_view cdb_dir)
   {
     m_cdb_output_dir = cdb_dir;
+  }
+
+  void set_charge_threshold(double threshold)
+  {
+    m_sEPD_charge_threshold = std::max(0.0, threshold);
+  }
+
+  void set_noise_threshold(double threshold)
+  {
+    m_sEPD_noise_threshold = threshold;
   }
 
  private:
@@ -222,16 +233,17 @@ class QVecCalib : public SubsysReco
     TProfile* NS_yy_corr_avg{nullptr};
     TProfile* NS_xy_corr_avg{nullptr};
 
+    TProfile* EP_res{nullptr};
+
     TH2* Psi_S_corr2{nullptr};
     TH2* Psi_N_corr2{nullptr};
     TH2* Psi_NS_corr2{nullptr};
   };
 
-  // sEPD Bad Channels
-  std::unordered_set<int> m_bad_channels;
-
-  double m_sEPD_min_avg_charge_threshold{1};
   double m_sEPD_sigma_threshold{3};
+
+  double m_sEPD_charge_threshold{50};
+  double m_sEPD_noise_threshold{0.5};
 
   // Hists
   TH1* hCentrality{nullptr};
@@ -239,16 +251,8 @@ class QVecCalib : public SubsysReco
   TH2* h2SEPD_Charge{nullptr};
   TH2* h2SEPD_Chargev2{nullptr};
 
-  TH2* h2SEPD_South_Charge_rbin{nullptr};
-  TH2* h2SEPD_North_Charge_rbin{nullptr};
-
-  TH2* h2SEPD_South_Charge_rbinv2{nullptr};
-  TH2* h2SEPD_North_Charge_rbinv2{nullptr};
-
   TProfile* hSEPD_Charge_Min{nullptr};
   TProfile* hSEPD_Charge_Max{nullptr};
-
-  TProfile* hSEPD_Bad_Channels{nullptr};
 
   std::map<std::string, TH2*> m_hists2D;
   std::map<std::string, TProfile*> m_profiles;
@@ -398,14 +402,6 @@ class QVecCalib : public SubsysReco
   int process_QA_hist();
 
   /**
-   * @brief Identifies and catalogs "Bad" (Hot, Cold, or Dead) sEPD channels.
-   * * Uses a reference charge histogram to compute Z-scores based on mean charge
-   * per radial bin. Channels exceeding the sigma threshold are added to the internal exclusion set.
-   * * @param file Pointer to the open TFile containing QA histograms.
-   */
-  int process_bad_channels(TFile* file);
-
-  /**
    * @brief Establishes sEPD charge-cut thresholds for event selection.
    * * Uses the 2D total charge vs. centrality distribution to derive mean and
    * sigma values, generating a 1D profile of the selection window.
@@ -422,14 +418,6 @@ class QVecCalib : public SubsysReco
    * * @param output_dir The filesystem directory where the .root payload will be saved.
    */
   void write_cdb_EventPlane();
-
-  /**
-   * @brief Writes the Hot/Cold tower status map to a CDB-formatted TTree.
-   * * Encodes sEPD channel indices into TowerInfo keys and maps status codes (1=Dead,
-   * 2=Hot, 3=Cold) to the final database payload.
-   * * @param output_dir The filesystem directory where the .root payload will be saved.
-   */
-  void write_cdb_BadTowers();
 };
 
 #endif  // SEPDEVENTPLANECALIB_QVECCALIB_H

@@ -1,6 +1,10 @@
-#include "filter-datasets.h"
+#include "FilterDatasets.h"
+
+#include <phool/recoConsts.h>
 
 #include <iostream>
+#include <string>
+#include <vector>
 
 int main(int argc, const char* const argv[])
 {
@@ -17,7 +21,7 @@ int main(int argc, const char* const argv[])
 
   const std::string& input_csv = args[1];
   std::string output_dir_path = ".";
-  Bool_t debug = false;
+  bool debug = false;
 
   if (args.size() >= 3)
   {
@@ -27,6 +31,9 @@ int main(int argc, const char* const argv[])
   {
     debug = std::stoi(args[3]);
   }
+
+  recoConsts* rc = recoConsts::instance();
+  rc->set_StringFlag("CDB_GLOBALTAG", "newcdbtag");
 
   FilterDatasets filter(debug);
   filter.process(input_csv, output_dir_path);
