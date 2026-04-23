@@ -273,7 +273,31 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
       m_HotChannelSet.insert(rawHotChannel);
     }
   }
+  // if there are multiple hot map files from e.g. the InttCalib module, run
+  // on a felix by felix basis
+  if (!m_localHotStripFiles.empty())
+  {
+    m_HotChannelSet.clear();
+    for (const auto &localHotStripFile : m_localHotStripFiles)
+    {
+      if (std::filesystem::exists(localHotStripFile))
+      {
+        CDBTTree cdbttree(localHotStripFile);
+        cdbttree.LoadCalibrations();
 
+        uint64_t N = cdbttree.GetSingleIntValue("size");
+        for (uint64_t n = 0; n < N; ++n)
+        {
+          InttNameSpace::RawData_s rawHotChannel;
+          rawHotChannel.felix_server = cdbttree.GetIntValue(n, "felix_server");
+          rawHotChannel.felix_channel = cdbttree.GetIntValue(n, "felix_channel");
+          rawHotChannel.chip = cdbttree.GetIntValue(n, "chip");
+          rawHotChannel.channel = cdbttree.GetIntValue(n, "channel");
+          m_HotChannelSet.insert(rawHotChannel);
+        }
+      }
+    }
+  }
   if (Verbosity() > 0)
   {
     std::cout<<"INTT simulation BadChannelMap : size = "<<m_HotChannelSet.size()<<"  ";
