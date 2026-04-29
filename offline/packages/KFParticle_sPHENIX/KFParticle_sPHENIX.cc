@@ -213,7 +213,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   m_prev_eventNumber = -1;
   }
 // End BCO matching here
-  if (!m_use_fake_pv)
+  if (!m_use_fake_pv && !m_use_truth_pv)
   {
     if (m_use_mbd_vertex)
     {
@@ -242,6 +242,14 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   }
   
   createDecay(topNode, mother, vertex_kfparticle, daughters, intermediates, nPVs);
+  if (m_use_truth_pv && nPVs == 0)
+  {
+    if (Verbosity() >= VERBOSITY_SOME)
+    {
+      std::cout << "No Truth Vertices Found For This Event, Skipping" << std::endl;
+    }
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
   if (!m_has_intermediates_sPHENIX)
   {
     intermediates = daughters;

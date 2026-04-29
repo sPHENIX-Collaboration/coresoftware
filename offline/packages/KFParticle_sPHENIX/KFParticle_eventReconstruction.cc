@@ -31,9 +31,16 @@
 
 //sPHENIX stuff
 #include <trackbase_historic/SvtxTrack.h>
+#include <fun4all/Fun4AllBase.h>
+#include <fun4all/SubsysReco.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <phool/getClass.h>
 
 // KFParticle stuff
 #include <KFParticle.h>
+
+#include <g4main/PHG4InEvent.h>
+#include <g4main/PHG4VtxPoint.h>
 
 #include <algorithm>
 #include <cassert>
@@ -52,6 +59,7 @@ KFParticle_eventReconstruction::KFParticle_eventReconstruction()
   : m_constrain_to_vertex(false)
   , m_constrain_int_mass(false)
   , m_use_fake_pv(false)
+  , m_use_truth_pv(false)
 {
 }
 
@@ -65,6 +73,14 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
   {
     primaryVertices.push_back(createFakePV());
   }
+  else if (m_use_truth_pv)
+  {
+    std::vector<KFParticle> KFP_PVs = createTruthPV(topNode);
+    for (const auto& pv: KFP_PVs)
+    { 
+      primaryVertices.push_back(pv);
+    } 
+  }
   else
   {
     primaryVertices = makeAllPrimaryVertices(topNode, m_vtx_map_node_name);
@@ -74,15 +90,19 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
 
   nPVs = primaryVertices.size();
 
-  std::vector<int> goodTrackIndex = findAllGoodTracks(daughterParticles, primaryVertices);
+  if (!m_use_truth_pv || nPVs != 0)
+  {
+    std::vector<int> goodTrackIndex = findAllGoodTracks(daughterParticles, primaryVertices);
 
-  if (!m_has_intermediates)
-  {
-    buildBasicChain(selectedMother, selectedVertex, selectedDaughters, daughterParticles, goodTrackIndex, primaryVertices, topNode);
-  }
-  else
-  {
-    buildChain(selectedMother, selectedVertex, selectedDaughters, selectedIntermediates, daughterParticles, goodTrackIndex, primaryVertices, topNode);
+    if (!m_has_intermediates)
+    {
+      buildBasicChain(selectedMother, selectedVertex, selectedDaughters, daughterParticles, goodTrackIndex, primaryVertices, topNode);
+    }
+    else
+    {
+      std::cout << "Gets to buildChain" << std::endl;
+      buildChain(selectedMother, selectedVertex, selectedDaughters, selectedIntermediates, daughterParticles, goodTrackIndex, primaryVertices, topNode);
+    }
   }
 }
 
@@ -588,5 +608,55 @@ KFParticle KFParticle_eventReconstruction::createFakePV()
   kfp_vertex.NDF() = 0;
   kfp_vertex.Chi2() = 0;
   kfp_vertex.SetId(0);
+  return kfp_vertex;
+}
+
+std::vector<KFParticle> KFParticle_eventReconstruction::createTruthPV(PHCompositeNode* topNode)
+{
+  std::vector<KFParticle> kfp_vertex = {};
+  
+  PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
+  if (!ineve)
+  {
+    std::cout << PHWHERE << "no PHG4INEVENT node" << std::endl;
+    return kfp_vertex;
+  }
+
+  auto vtxRange = ineve->GetVertices();
+  // find the PV
+  std::vector<PHG4VtxPoint*> primaryVtx = {};
+  for (auto it = vtxRange.first; it != vtxRange.second; ++it)
+  {
+    if (it->first == 1)
+    {
+      primaryVtx.push_back(it->second);
+    }
+  }
+
+  if (primaryVtx.size() == 0)
+  {
+    std::cerr << "getPrimaryVertex: No primary vertex found!" << std::endl;
+    return kfp_vertex;  // return default empty vertex
+  }
+
+  for (const auto& v : primaryVtx)
+  {
+    float pos[3] = {
+        static_cast<float>(v->get_x()),
+        static_cast<float>(v->get_y()),
+        static_cast<float>(v->get_z())
+    };
+    float f_vertexParameters[6] = {pos[0], pos[1], pos[2], 0, 0, 0};
+
+    float f_vertexCovariance[21] = {0};
+
+    KFParticle kfp_v;
+    kfp_v.Create(f_vertexParameters, f_vertexCovariance, 0, -1);
+    kfp_v.NDF() = 0;
+    kfp_v.Chi2() = 0;
+    kfp_v.SetId(0);
+    kfp_vertex.push_back(kfp_v);
+  }
+  
   return kfp_vertex;
 }

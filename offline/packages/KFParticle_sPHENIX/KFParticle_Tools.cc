@@ -986,7 +986,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaught
       isGoodCandidate = checkTrackAndVertexMatch(vDaughters, nTracks, vertex);
     }
 
-    if (isGoodCandidate)
+    if (isGoodCandidate || m_use_truth_pv)
     {
       constrainToVertex(candidate, isGoodCandidate, vertex);
     }
@@ -1256,6 +1256,10 @@ bool KFParticle_Tools::checkTrackAndVertexMatch(KFParticle vDaughters[], int nTr
     {
       m_dst_mbdvertex = m_dst_mbdvertexmap->get(vertex.Id());
       vertexCrossing = m_dst_mbdvertex->get_beam_crossing();
+    }
+    else if (m_use_truth_pv)
+    {
+      vertexCrossing = ; 
     }
     else
     {

@@ -232,6 +232,13 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
 
   int index = -1;
 
+  std::cout << "Particle truth barcodes and PIDs" << std::endl;
+  std::cout << "decay[0].first.second: " << decay[0].first.second << ", decay[0].second: " << decay[0].second << std::endl;
+  std::cout << "decay[1].first.second: " << decay[1].first.second << ", decay[1].second: " << decay[1].second << std::endl;
+  std::cout << "decay[2].first.second: " << decay[2].first.second << ", decay[2].second: " << decay[2].second << std::endl;
+  std::cout << "decay[3].first.second: " << decay[3].first.second << ", decay[3].second: " << decay[3].second << std::endl;
+  std::cout << "decay[4].first.second: " << decay[4].first.second << ", decay[4].second: " << decay[4].second << std::endl;
+
   for (unsigned int i = 1; i < decay.size(); ++i)
   {
     m_dst_track = nullptr;
@@ -241,6 +248,7 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
                   std::abs(decay[i].second)) != std::end(trackableParticles))
     {
       ++index;
+
       if (theEvent && decay[i].first.second > -1)
       {
         HepMC::GenParticle *daughterHepMC = theEvent->barcode_to_particle(decay[i].first.second);
@@ -297,8 +305,74 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
             continue;
           }
 
-          if (motherG4->get_pid() == decay[0].second && motherG4->get_barcode() == decay[0].first.second && daughterG4->get_pid() == decay[i].second && daughterG4->get_barcode() == decay[i].first.second)
+          if (motherG4->get_pid() == decay[0].second && motherG4->get_barcode() == decay[0].first.second && daughterG4->get_pid() == decay[i].second && daughterG4->get_barcode() == decay[i].first.second && m_nDaughters == 2)
           {
+            if (Verbosity() >= VERBOSITY_MORE || true) // fix later
+            {
+              daughterG4->identify();
+            }
+
+            m_is_primary = m_truthInfo->is_sPHENIX_primary(motherG4);
+
+            CLHEP::Hep3Vector *mother3Vector = new CLHEP::Hep3Vector(motherG4->get_px(), motherG4->get_py(), motherG4->get_pz());
+            motherTrueLV->setVectM((*mother3Vector), getParticleMass(decay[0].second));
+            m_true_mother_pT = motherTrueLV->perp();
+            m_true_mother_p = mother3Vector->mag();
+            m_true_mother_eta = motherTrueLV->pseudoRapidity();
+            m_true_mother_phi = motherTrueLV->phi();
+
+            PHG4VtxPoint *thisVtx = m_truthInfo->GetVtx(motherG4->get_vtx_id());
+            m_primary_vtx_x = thisVtx->get_x();
+            m_primary_vtx_y = thisVtx->get_y();
+            m_primary_vtx_z = thisVtx->get_z();
+
+            daughterTrueLV->setVectM(CLHEP::Hep3Vector(daughterG4->get_px(), daughterG4->get_py(), daughterG4->get_pz()), getParticleMass(decay[i].second));
+            daughterSumTrueLV += *daughterTrueLV;
+
+            // Now get the decay vertex position
+            thisVtx = m_truthInfo->GetVtx(daughterG4->get_vtx_id());
+            m_secondary_vtx_x = thisVtx->get_x();
+            m_secondary_vtx_y = thisVtx->get_y();
+            m_secondary_vtx_z = thisVtx->get_z();
+
+            m_true_track_PID[index] = daughterG4->get_pid();    
+            truth_ID = daughterG4->get_track_id();
+
+            delete mother3Vector;
+          }
+          else if (m_nDaughters == 3)
+          {
+            if (i != 4 && motherG4->get_pid() == decay[3].second && motherG4->get_barcode() == decay[3].first.second && daughterG4->get_pid() == decay[i].second && daughterG4->get_barcode() == decay[i].first.second)
+            {
+              PHG4Particle *motherG4_temp = nullptr;
+              if (motherG4->get_parent_id() != 0)
+              {
+                motherG4_temp = m_truthInfo->GetParticle(motherG4->get_parent_id());
+              }
+              else
+              {
+                continue;
+              }
+
+              if (motherG4_temp->get_pid() == decay[0].second && motherG4_temp->get_barcode() == decay[0].first.second)
+              {
+                motherG4 = motherG4_temp;
+              }
+              else
+              {
+                continue;
+              }
+            }
+            else if (i != 4)
+            {
+              continue;
+            } 
+
+            if (i==4 && !(motherG4->get_pid() == decay[0].second && motherG4->get_barcode() == decay[0].first.second && daughterG4->get_pid() == decay[i].second && daughterG4->get_barcode() == decay[i].first.second))
+            {
+              continue;
+            }
+
             if (Verbosity() >= VERBOSITY_MORE)
             {
               daughterG4->identify();
@@ -327,10 +401,11 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
             m_secondary_vtx_y = thisVtx->get_y();
             m_secondary_vtx_z = thisVtx->get_z();
 
-            m_true_track_PID[index] = daughterG4->get_pid();
+            m_true_track_PID[index] = daughterG4->get_pid();    
             truth_ID = daughterG4->get_track_id();
 
             delete mother3Vector;
+            break;
           }
         }
       }

@@ -270,6 +270,14 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
         std::string dca_branch_name_xy = dca_branch_name + "_xy";
         std::string dca_leaf_name_xy = dca_branch_name_xy + "/F";
         m_tree->Branch(dca_branch_name_xy.c_str(), &m_daughter_dca_xy[iter], dca_leaf_name_xy.c_str());
+        
+        std::string dca_sig_branch_name = "track_" + std::to_string(i + 1) + "_track_" + std::to_string(j + 1) + "_DCA_sig";
+        std::string dca_sig_leaf_name = dca_sig_branch_name + "/F";
+        m_tree->Branch(dca_sig_branch_name.c_str(), &m_daughter_dca_sig[iter], dca_sig_leaf_name.c_str());
+
+        std::string dca_sig_branch_name_xy = dca_sig_branch_name + "_xy";
+        std::string dca_sig_leaf_name_xy = dca_sig_branch_name_xy + "/F";
+        m_tree->Branch(dca_sig_branch_name_xy.c_str(), &m_daughter_dca_sig_xy[iter], dca_sig_leaf_name_xy.c_str());
 
         ++iter;
       }
@@ -496,6 +504,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_calculated_daughter_ipchi2[i] = daughterArray[i].GetDeviationFromVertex(vertex_fillbranch);
       m_calculated_daughter_ip_err[i] = m_calculated_daughter_ip[i] / std::sqrt(m_calculated_daughter_ipchi2[i]);
       m_calculated_daughter_ip_xy[i] = daughterArray[i].GetDistanceFromVertexXY(vertex_fillbranch);
+      m_calculated_daughter_PV_dca_sig[i] = daughterArray[i].GetDeviationFromVertex(vertex_fillbranch);
+      m_calculated_daughter_PV_dca_xy_sig[i] = daughterArray[i].GetDeviationFromVertexXY(vertex_fillbranch);
     }
     m_calculated_daughter_x[i] = daughterArray[i].GetX();
     m_calculated_daughter_y[i] = daughterArray[i].GetY();
@@ -596,6 +606,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       {
         m_daughter_dca[iter] = daughterArray[i].GetDistanceFromParticle(daughterArray[j]);
         m_daughter_dca_xy[iter] = daughterArray[i].GetDistanceFromParticleXY(daughterArray[j]);
+        m_daughter_dca_sig[iter] = daughterArray[i].GetDeviationFromParticle(daughterArray[j]);
+        m_daughter_dca_sig_xy[iter] = daughterArray[i].GetDeviationFromParticleXY(daughterArray[j]);
         ++iter;
       }
     }
@@ -631,7 +643,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
     // it only makes sense to calculate PVID for non-fake vertex
     // (this otherwise crashes if m_use_fake_pv_nTuple is true in an event with no real vertices)
-    if (m_use_fake_pv_nTuple)
+    if (m_use_fake_pv_nTuple || m_use_truth_pv_nTuple)
     {
       m_calculated_vertex_ID = -100;  // error value returned by getPVID
     }
@@ -650,7 +662,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   kfpTupleTools.getTracksFromBC(topNode, m_calculated_daughter_bunch_crossing[0], m_vtx_map_node_name_nTuple, m_multiplicity, m_nPVs);
   // cannot retrieve vertex map info from fake PV, hence the second condition
-  if (m_constrain_to_vertex_nTuple && !m_use_fake_pv_nTuple)
+  if (m_constrain_to_vertex_nTuple && !m_use_fake_pv_nTuple && !m_use_truth_pv_nTuple)
   {
     m_nTracksOfVertex = kfpTupleTools.getTracksFromVertex(topNode, vertex_fillbranch, m_vtx_map_node_name_nTuple);
   }
