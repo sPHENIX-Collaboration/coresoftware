@@ -1,0 +1,142 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+tone_instructions: >-
+  Be respectful, concise, and educational. Assume physicist contributors. Prioritize correctness and
+  safety. Ignore purely stylistic issues and Minor/Trivial/Info items.
+reviews:
+  high_level_summary_instructions: >-
+    Write a concise PR summary for a scientific collaboration.
+
+    Include:
+
+    - Motivation / context
+
+    - Key changes (bullets)
+
+    - Potential risk areas (IO format changes, reconstruction behavior changes, thread-safety,
+    performance)
+
+    - Possible future improvements 
+
+
+    Add an emphasis that AI can make mistakes and use best judgment when reading 
+  estimate_code_review_effort: false
+  suggested_labels: false
+  suggested_reviewers: false
+  in_progress_fortune: false
+  poem: false
+  enable_prompt_for_ai_agents: false
+  path_filters:
+    - '!**/build/**'
+    - '!**/install/**'
+    - '!**/*.root'
+    - '!**/*.pdf'
+    - '!**/*.png'
+    - '!**/*.jpg'
+    - '!**/*.gif'
+    - '!**/*.zip'
+    - '!**/*.tar.gz'
+    - '!**/*.so'
+    - '!**/*.dylib'
+    - '!**/*.a'
+    - '!**/*.o'
+  path_instructions:
+    - path: '**/*.{h,hpp,hxx,hh}'
+      instructions: >-
+        Focus on API clarity/stability, ownership semantics (RAII), and avoiding raw new/delete.
+
+        If interfaces change, ask for compatibility notes and any needed downstream updates.
+
+
+        Only raise Critical or Major findings.  Do not post minor style, formatting, naming, or
+        “nice-to-have” refactors.
+    - path: '**/*.{cc,cpp,cxx,c}'
+      instructions: >-
+        Prioritize correctness, memory safety, error handling, and thread-safety.
+
+        Flag hidden global state, non-const singletons, and unclear lifetime assumptions.
+
+
+        Only raise Critical or Major findings.  Do not post minor style, formatting, naming, or
+        “nice-to-have” refactors.
+    - path: '**/*.C'
+      instructions: Do NOT review these files
+    - path: '**/CMakeLists.txt'
+      instructions: |
+        Check for modern CMake target usage, correct scoping, and avoiding global flags.
+  auto_review:
+    ignore_title_keywords:
+      - WIP
+      - DRAFT
+      - DO NOT MERGE
+      - RFC
+  finishing_touches:
+    unit_tests:
+      enabled: false
+  pre_merge_checks:
+    docstrings:
+      mode: 'off'
+    title:
+      mode: 'off'
+    description:
+      mode: 'off'
+    issue_assessment:
+      mode: 'off'
+    custom_checks:
+      - mode: 'off'
+        name: Test plan present
+        instructions: >
+          Check that the PR description includes a "Testing" or "Test Plan" section with at least
+          one bullet.
+
+          Accept: unit test, integration test, or example macro/validation command.
+      - mode: 'off'
+        name: Physics/reco impact noted (if applicable)
+        instructions: >
+          If the PR changes reconstruction outputs, calibration constants, or simulation behavior,
+
+          ensure the description states expected analysis impact and whether reprocessing is
+          required.
+  tools:
+    swiftlint:
+      enabled: false
+    phpstan:
+      enabled: false
+    phpmd:
+      enabled: false
+    golangci-lint:
+      enabled: false
+    detekt:
+      enabled: false
+    pmd:
+      enabled: false
+chat:
+  art: false
+  integrations:
+    jira:
+      usage: disabled
+    linear:
+      usage: disabled
+knowledge_base:
+  code_guidelines:
+    filePatterns:
+      - CONTRIBUTING.md
+      - docs/**
+      - .github/*.md
+  learnings:
+    scope: global
+  jira:
+    usage: disabled
+code_generation:
+  docstrings:
+    path_instructions:
+      - path: '**/*.{h,hpp,hh,hxx,cc,cpp,cxx,C}'
+        instructions: >-
+          Use Doxygen-style documentation, Link to example caller function if available. ONLY add
+          docstrings where none exist. Do NOT modify, rewrite, or reformat any existing
+          docstrings/comments. If a function already has a docstring (even if incomplete), leave it
+          unchanged.
+issue_enrichment:
+  planning:
+    enabled: false
+    auto_planning:
+      enabled: false

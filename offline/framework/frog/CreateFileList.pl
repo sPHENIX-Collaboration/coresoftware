@@ -91,7 +91,7 @@ my %proddesc = (
     );
 
 my %pileupdesc = (
-    "1" => "50kHz for Au+Au, 3MHz for p+p (default)",
+    "1" => "50kHz for Au+Au, 3MHz for p+p, 220kHz for O+O (default)",
     "2" => "25kHz for Au+Au",
     "3" => "10kHz for Au+Au",
     "4" => "1MHz for pp 100us streaming",
@@ -188,6 +188,7 @@ if ($pileup == 1)
     $AuAu_pileupstring = sprintf("_50kHz%s",$AuAu_bkgpileup);
     $pp_pileupstring = sprintf("_3MHz");
     $pAu_pileupstring = sprintf("_500kHz%s",$pAu_bkgpileup);
+    $OO_pileupstring = sprintf("_220kHz%s",$OO_bkgpileup);
 }
 elsif ($pileup == 2)
 {
@@ -661,6 +662,11 @@ if (defined $prodtype)
     {
         $embedok = 1;
 	$filenamestring = "pythia8_Detroit";
+	if (defined $double)
+	{
+	    $doubleok = 1;
+	    $filenamestring = sprintf("%s_pythia8_Detroit",$filenamestring);
+	}
 	if (! defined $nopileup)
 	{
 	    if (defined $embed)
@@ -995,6 +1001,11 @@ if (defined $prodtype)
     {
         $embedok = 1;
 	$filenamestring = "pythia8_Jet5";
+	if (defined $double)
+	{
+	    $doubleok = 1;
+	    $filenamestring = sprintf("%s_pythia8_Detroit",$filenamestring);
+	}
 	if (! defined $nopileup)
 	{
 	    if (defined $embed)
@@ -1042,6 +1053,11 @@ if (defined $prodtype)
     {
         $embedok = 1;
 	$filenamestring = "pythia8_Jet60";
+	if (defined $double)
+	{
+	    $doubleok = 1;
+	    $filenamestring = sprintf("%s_pythia8_Detroit",$filenamestring);
+	}
 	if (! defined $nopileup)
 	{
 	    if (defined $embed)
@@ -1408,10 +1424,15 @@ if (defined $prodtype)
         $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
-        elsif ($prodtype == 49)
+    elsif ($prodtype == 49)
     {
         $embedok = 1;
 	$filenamestring = "pythia8_Jet80";
+	if (defined $double)
+	{
+	    $doubleok = 1;
+	    $filenamestring = sprintf("%s_pythia8_Detroit",$filenamestring);
+	}
 	if (! defined $nopileup)
 	{
 	    if (defined $embed)

@@ -174,6 +174,8 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   float m_calculated_daughter_mass[max_tracks]{0};
   float m_calculated_daughter_ip[max_tracks]{0};
   float m_calculated_daughter_ip_xy[max_tracks]{0};
+  float m_calculated_daughter_PV_dca_sig[max_tracks]{0};
+  float m_calculated_daughter_PV_dca_xy_sig[max_tracks]{0};
   float m_calculated_daughter_ipchi2[max_tracks]{0};
   float m_calculated_daughter_ip_err[max_tracks]{0};
   float m_calculated_daughter_x[max_tracks]{0};
@@ -207,6 +209,8 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
 
   float m_daughter_dca[99]{0};
   float m_daughter_dca_xy[99]{0};
+  float m_daughter_dca_sig[99]{0};
+  float m_daughter_dca_sig_xy[99]{0};
 
   float m_calculated_vertex_x{-1};
   float m_calculated_vertex_y{-1};

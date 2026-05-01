@@ -215,6 +215,14 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
     m_true_mother_p = std::sqrt(std::pow(mother->momentum().px(), 2) + std::pow(mother->momentum().py(), 2) + std::pow(mother->momentum().pz(), 2));  // Must have an old HepMC build, no mag function
     m_true_mother_eta = mother->momentum().eta();
     m_true_mother_phi = mother->momentum().phi();
+    if (mother->momentum().e() > abs(mother->momentum().pz()))
+    {
+      m_true_mother_rapidity = 0.5 * log((mother->momentum().e() + mother->momentum().pz())/(mother->momentum().e() - mother->momentum().pz()));
+    }
+    else
+    {
+      m_true_mother_rapidity = -999.;
+    }
 
     HepMC::GenVertex *thisVtx = mother->production_vertex();
     m_primary_vtx_x = thisVtx->point3d().x();
@@ -231,13 +239,6 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
   }
 
   int index = -1;
-
-  std::cout << "Particle truth barcodes and PIDs" << std::endl;
-  std::cout << "decay[0].first.second: " << decay[0].first.second << ", decay[0].second: " << decay[0].second << std::endl;
-  std::cout << "decay[1].first.second: " << decay[1].first.second << ", decay[1].second: " << decay[1].second << std::endl;
-  std::cout << "decay[2].first.second: " << decay[2].first.second << ", decay[2].second: " << decay[2].second << std::endl;
-  std::cout << "decay[3].first.second: " << decay[3].first.second << ", decay[3].second: " << decay[3].second << std::endl;
-  std::cout << "decay[4].first.second: " << decay[4].first.second << ", decay[4].second: " << decay[4].second << std::endl;
 
   for (unsigned int i = 1; i < decay.size(); ++i)
   {
@@ -320,6 +321,7 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
             m_true_mother_p = mother3Vector->mag();
             m_true_mother_eta = motherTrueLV->pseudoRapidity();
             m_true_mother_phi = motherTrueLV->phi();
+            m_true_mother_rapidity = motherTrueLV->rapidity();
 
             PHG4VtxPoint *thisVtx = m_truthInfo->GetVtx(motherG4->get_vtx_id());
             m_primary_vtx_x = thisVtx->get_x();
@@ -386,6 +388,7 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
             m_true_mother_p = mother3Vector->mag();
             m_true_mother_eta = motherTrueLV->pseudoRapidity();
             m_true_mother_phi = motherTrueLV->phi();
+            m_true_mother_rapidity = motherTrueLV->rapidity();
 
             PHG4VtxPoint *thisVtx = m_truthInfo->GetVtx(motherG4->get_vtx_id());
             m_primary_vtx_x = thisVtx->get_x();
@@ -412,6 +415,7 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
 
       m_true_track_pT[index] = (float) daughterTrueLV->perp();
       m_true_track_eta[index] = (float) daughterTrueLV->pseudoRapidity();
+      m_true_track_rapidity[index] = (float) daughterTrueLV->rapidity();
       m_true_track_phi[index] = (float) daughterTrueLV->phi();
       m_min_true_track_pT = std::min(m_true_track_pT[index], m_min_true_track_pT);
       m_max_true_track_pT = std::max(m_true_track_pT[index], m_max_true_track_pT);
@@ -465,15 +469,39 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
         m_reco_track_eta[index] = m_dst_track->get_eta();
         m_reco_track_phi[index] = m_dst_track->get_phi();
         m_reco_track_chi2nDoF[index] = m_dst_track->get_chisq() / m_dst_track->get_ndf();
-        if (m_dst_track->get_silicon_seed())
+        m_reco_track_silicon_seeds[index] = 0;
+        m_reco_track_tpc_seeds[index] = 0;
+
+        for (auto state_iter = m_dst_track->begin_states();
+        state_iter != m_dst_track->end_states();
+        ++state_iter)
         {
-          m_reco_track_silicon_seeds[index] = static_cast<int>(m_dst_track->get_silicon_seed()->size_cluster_keys());
+          SvtxTrackState *tstate = state_iter->second;
+          if (tstate->get_pathlength() != 0)  // The first track state is an extrapolation so has no cluster
+          {
+            auto stateckey = tstate->get_cluskey();
+            if (stateckey == TrkrDefs::CLUSKEYMAX)
+            {
+              continue;
+            }
+            uint8_t id = TrkrDefs::getTrkrId(stateckey);
+
+            switch (id)
+            {
+            case TrkrDefs::mvtxId:
+              [[fallthrough]];
+            case TrkrDefs::inttId:
+              ++m_reco_track_silicon_seeds[index];
+              break;
+            case TrkrDefs::tpcId:
+              ++m_reco_track_tpc_seeds[index];
+              break;
+            default:
+              break;
+            }
+          }
         }
-        else
-        {
-          m_reco_track_silicon_seeds[index] = 0;
-        }
-        m_reco_track_tpc_seeds[index] = static_cast<int>(m_dst_track->get_tpc_seed()->size_cluster_keys());
+
         m_min_reco_track_pT = std::min(m_reco_track_pT[index], m_min_reco_track_pT);
         m_max_reco_track_pT = std::max(m_reco_track_pT[index], m_max_reco_track_pT);
 
@@ -531,6 +559,7 @@ void HFTrackEfficiency::initializeBranches()
   m_tree->Branch("reco_mother_pT", &m_reco_mother_pT, "reco_mother_pT/F");
   m_tree->Branch("true_mother_p", &m_true_mother_p, "true_mother_p/F");
   m_tree->Branch("true_mother_eta", &m_true_mother_eta, "true_mother_eta/F");
+  m_tree->Branch("true_mother_rapidity", &m_true_mother_rapidity, "true_mother_rapidity/F");
   m_tree->Branch("true_mother_phi", &m_true_mother_phi, "true_mother_phi/F");
   m_tree->Branch("min_true_track_pT", &m_min_true_track_pT, "min_true_track_pT/F");
   m_tree->Branch("min_reco_track_pT", &m_min_reco_track_pT, "min_reco_track_pT/F");
@@ -546,6 +575,7 @@ void HFTrackEfficiency::initializeBranches()
     m_tree->Branch("reco_" + TString(daughter_number) + "_pT", &m_reco_track_pT[iTrack], "reco_" + TString(daughter_number) + "_pT/F");
     m_tree->Branch("true_" + TString(daughter_number) + "_eta", &m_true_track_eta[iTrack], "true_" + TString(daughter_number) + "_eta/F");
     m_tree->Branch("reco_" + TString(daughter_number) + "_eta", &m_reco_track_eta[iTrack], "reco_" + TString(daughter_number) + "_eta/F");
+    m_tree->Branch("true_" + TString(daughter_number) + "_rapidity", &m_true_track_rapidity[iTrack], "true_" + TString(daughter_number) + "_rapidity/F");
     m_tree->Branch("true_" + TString(daughter_number) + "_phi", &m_true_track_phi[iTrack], "true_" + TString(daughter_number) + "_phi/F");
     m_tree->Branch("reco_" + TString(daughter_number) + "_phi", &m_reco_track_phi[iTrack], "reco_" + TString(daughter_number) + "_phi/F");
     m_tree->Branch("true_" + TString(daughter_number) + "_PID", &m_true_track_PID[iTrack], "true_" + TString(daughter_number) + "_PID/F");
@@ -572,6 +602,7 @@ void HFTrackEfficiency::resetBranches()
   m_reco_mother_pT = std::numeric_limits<float>::quiet_NaN();
   m_true_mother_p = std::numeric_limits<float>::quiet_NaN();
   m_true_mother_eta = std::numeric_limits<float>::quiet_NaN();
+  m_true_mother_rapidity = std::numeric_limits<float>::quiet_NaN();
   m_min_true_track_pT = std::numeric_limits<float>::max();
   m_min_reco_track_pT = std::numeric_limits<float>::max();
   m_max_true_track_pT = -1 * std::numeric_limits<float>::max();
@@ -584,12 +615,13 @@ void HFTrackEfficiency::resetBranches()
     m_reco_track_pT[iTrack] = std::numeric_limits<float>::quiet_NaN();
     m_true_track_eta[iTrack] = std::numeric_limits<float>::quiet_NaN();
     m_reco_track_eta[iTrack] = std::numeric_limits<float>::quiet_NaN();
+    m_true_track_rapidity[iTrack] = std::numeric_limits<float>::quiet_NaN();
     m_true_track_phi[iTrack] = std::numeric_limits<float>::quiet_NaN();
     m_reco_track_phi[iTrack] = std::numeric_limits<float>::quiet_NaN();
     m_true_track_PID[iTrack] = std::numeric_limits<float>::quiet_NaN();
     m_reco_track_chi2nDoF[iTrack] = std::numeric_limits<float>::quiet_NaN();
-    m_reco_track_silicon_seeds[iTrack] = 0;
-    m_reco_track_tpc_seeds[iTrack] = 0;
+    m_reco_track_silicon_seeds[iTrack] = -1;
+    m_reco_track_tpc_seeds[iTrack] = -1;
   }
 
   m_primary_vtx_x = std::numeric_limits<float>::quiet_NaN();

@@ -59,7 +59,6 @@ KFParticle_eventReconstruction::KFParticle_eventReconstruction()
   : m_constrain_to_vertex(false)
   , m_constrain_int_mass(false)
   , m_use_fake_pv(false)
-  , m_use_truth_pv(false)
 {
 }
 
@@ -73,14 +72,6 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
   {
     primaryVertices.push_back(createFakePV());
   }
-  else if (m_use_truth_pv)
-  {
-    std::vector<KFParticle> KFP_PVs = createTruthPV(topNode);
-    for (const auto& pv: KFP_PVs)
-    { 
-      primaryVertices.push_back(pv);
-    } 
-  }
   else
   {
     primaryVertices = makeAllPrimaryVertices(topNode, m_vtx_map_node_name);
@@ -90,19 +81,22 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
 
   nPVs = primaryVertices.size();
 
-  if (!m_use_truth_pv || nPVs != 0)
-  {
-    std::vector<int> goodTrackIndex = findAllGoodTracks(daughterParticles, primaryVertices);
+  std::vector<int> goodTrackIndex = findAllGoodTracks(daughterParticles, primaryVertices);
 
-    if (!m_has_intermediates)
-    {
-      buildBasicChain(selectedMother, selectedVertex, selectedDaughters, daughterParticles, goodTrackIndex, primaryVertices, topNode);
-    }
-    else
-    {
-      std::cout << "Gets to buildChain" << std::endl;
-      buildChain(selectedMother, selectedVertex, selectedDaughters, selectedIntermediates, daughterParticles, goodTrackIndex, primaryVertices, topNode);
-    }
+  if (m_verbosity >= 10)
+  {
+    printSelectionCheck("Number of daughters passing state selection", daughterParticles.size());
+    printSelectionCheck("Number of daughters passing track selection", goodTrackIndex.size());
+    printSelectionCheck("Number of PVs passing selection", primaryVertices.size());
+  }
+
+  if (!m_has_intermediates)
+  {
+    buildBasicChain(selectedMother, selectedVertex, selectedDaughters, daughterParticles, goodTrackIndex, primaryVertices, topNode);
+  }
+  else
+  {
+    buildChain(selectedMother, selectedVertex, selectedDaughters, selectedIntermediates, daughterParticles, goodTrackIndex, primaryVertices, topNode);
   }
 }
 
@@ -120,6 +114,11 @@ void KFParticle_eventReconstruction::buildBasicChain(std::vector<KFParticle>& se
   for (int p = 3; p < m_num_tracks + 1; ++p)
   {
     goodTracksThatMeet = findNProngs(daughterParticlesBasic, goodTrackIndexBasic, goodTracksThatMeet, m_num_tracks, p);
+  }
+
+  if (m_verbosity >= 10)
+  { 
+    printSelectionCheck("Number of SVs passing selection", goodTracksThatMeet.size());
   }
 
   getCandidateDecay(selectedMotherBasic, selectedVertexBasic, selectedDaughtersBasic, daughterParticlesBasic,
@@ -156,6 +155,12 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                                        goodTracksThatMeet,
                                        m_num_tracks_from_intermediate[i], p);
     }
+
+    if (m_verbosity >= 10)
+    { 
+      printSelectionCheck("Number of SVs passing selection", goodTracksThatMeet.size());
+    }
+
     getCandidateDecay(potentialIntermediates[i], vertices, potentialDaughters[i], daughterParticlesAdv,
                       goodTracksThatMeet, primaryVerticesAdv, track_start, track_stop, true, i, m_constrain_int_mass, topNode);
     track_start += track_stop;

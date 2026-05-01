@@ -83,6 +83,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                             std::vector<KFParticle> possibleVertex);
 
   KFParticle createFakePV();
+  std::vector<KFParticle> createTruthPV(PHCompositeNode* topNode);
 
  protected:
   bool m_constrain_to_vertex;

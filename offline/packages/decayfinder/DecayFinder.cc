@@ -392,8 +392,6 @@ int DecayFinder::findDecay(PHCompositeNode* topNode)
         bool breakOut = false;
         correctMotherProducts.clear();
         decayChain.clear();
-        std::cout << __LINE__ << std::endl;
-        std::cout << "g4particle->get_barcode()" << g4particle->get_barcode() << std::endl;
         decayChain.emplace_back(std::make_pair(g4particle->get_primary_id(), g4particle->get_barcode()), g4particle->get_pid());
 
         searchGeant4Record(g4particle->get_barcode(), g4particle->get_pid(), positive_motherDecayProducts, breakOut, aMotherHasPhoton, aMotherHasPi0, aTrackFailedPT, aTrackFailedETA, correctMotherProducts);
@@ -457,7 +455,7 @@ int DecayFinder::findDecay(PHCompositeNode* topNode)
     if (!m_genevt)
     {
       std::cout << "DecayFinder: Missing node PHHepMCGenEvent" << std::endl;
-      return false;
+      continue;
     }
 
     HepMC::GenEvent* theEvent = m_genevt->getEvent();
@@ -476,12 +474,10 @@ int DecayFinder::findDecay(PHCompositeNode* topNode)
         aTrackFailedETA = false;
         aMotherHasPhoton = false;
         aMotherHasPi0 = false;
-        
+
         bool breakOut = false;
         correctMotherProducts.clear();
         decayChain.clear();
-        std::cout << __LINE__ << std::endl;
-        std::cout << "(*p)->barcode()" << (*p)->barcode() << std::endl;
         decayChain.emplace_back(std::make_pair(m_genevt->get_embedding_id(), (*p)->barcode()), (*p)->pdg_id());
 
         // Make sure that the mother has a decay in our record
@@ -627,8 +623,6 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
           positive_requiredIntermediateDecayProducts.push_back(abs(m_daughters_ID[i]));
         }
 
-        std::cout << __LINE__ << std::endl; 
-        std::cout << "(*children)->barcode()" << (*children)->barcode() << std::endl; 
         searchGeant4Record((*children)->barcode(), (*children)->pdg_id(), positive_requiredIntermediateDecayProducts,
                            breakLoop, hasPhoton, hasPi0, failedPT, failedETA, actualIntermediateDecayProducts);
 
@@ -665,8 +659,6 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
       }
       if (!(*children)->end_vertex())
       {
-        std::cout << __LINE__ << std::endl; 
-        std::cout << "(*children)->barcode()" << (*children)->barcode() << std::endl;  
         searchGeant4Record((*children)->barcode(), (*children)->pdg_id(), decayProducts,
                            breakLoop, hasPhoton, hasPi0, failedPT, failedETA, actualDecayProducts);
       }
@@ -679,8 +671,6 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
           if (needThisParticle)
           {
             actualDecayProducts.push_back((*grandchildren)->pdg_id());
-        std::cout << __LINE__ << std::endl; 
-        std::cout << "(*grandchildren)->barcode()" << (*grandchildren)->barcode() << std::endl; 
             decayChain.emplace_back(std::make_pair(m_genevt->get_embedding_id(), (*grandchildren)->barcode()), (*grandchildren)->pdg_id());
           }
         }
@@ -722,8 +712,6 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, std::vector<int> deca
     }
     if (mother->get_barcode() == barcode && abs(mother->get_pid()) == abs(pid))
     {
-        std::cout << __LINE__ << std::endl; 
-        std::cout << "mother->get_barcode()" << mother->get_barcode() << std::endl; 
       int particleID = g4particle->get_pid();
       if (Verbosity() >= VERBOSITY_MAX)
       {
@@ -756,8 +744,6 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, std::vector<int> deca
           }
           actualDecayProducts.push_back(particleID);
           int embedding_id = m_geneventmap ? m_genevt->get_embedding_id() : g4particle->get_primary_id();
-        std::cout << __LINE__ << std::endl; 
-        std::cout << "g4particle->get_barcode()" << g4particle->get_barcode() << std::endl; 
           decayChain.emplace_back(std::make_pair(embedding_id, g4particle->get_barcode()), particleID);
         }
       }  // Now check if it's part of the other resonance list
@@ -772,8 +758,6 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, std::vector<int> deca
         {
           std::cout << "This is a resonance to investigate further" << std::endl;
         }
-        std::cout << __LINE__ << std::endl; 
-        std::cout << "g4particle->get_barcode()" << g4particle->get_barcode() << std::endl; 
         searchGeant4Record(g4particle->get_barcode(), g4particle->get_pid(), decayProducts,
                            breakLoop, hasPhoton, hasPi0, failedPT, failedETA, actualDecayProducts);
       }
@@ -859,8 +843,6 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
           }
 
           actualIntermediateDecayProducts.push_back((*greatgrandchildren)->pdg_id());
-        std::cout << __LINE__ << std::endl; 
-        std::cout << "(*greatgrandchildren)->barcode()" << (*greatgrandchildren)->barcode() << std::endl; 
           decayChain.emplace_back(std::make_pair(m_genevt->get_embedding_id(), (*greatgrandchildren)->barcode()), (*greatgrandchildren)->pdg_id());
           ++m_intermediate_product_counter;
 
@@ -901,8 +883,6 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
       else
       {
         actualIntermediateDecayProducts.push_back((*grandchildren)->pdg_id());
-        std::cout << __LINE__ << std::endl; 
-        std::cout << "(*grandchildren)->barcode()" << (*grandchildren)->barcode() << std::endl; 
         decayChain.emplace_back(std::make_pair(m_genevt->get_embedding_id(), (*grandchildren)->barcode()), (*grandchildren)->pdg_id());
         ++m_intermediate_product_counter;
 
@@ -1021,8 +1001,6 @@ bool DecayFinder::checkIfCorrectGeant4Particle(PHG4Particle* particle, bool& has
     }
 
     bool fakeBreak = false;
-        std::cout << __LINE__ << std::endl; 
-        std::cout << "particle->get_barcode()" << particle->get_barcode() << std::endl; 
     searchGeant4Record(particle->get_barcode(), particle->get_pid(), positive_intermediateDecayProducts, fakeBreak,
                        hasPhoton, hasPi0, trackFailedPT, trackFailedETA, actualIntermediateDecayProducts);
 

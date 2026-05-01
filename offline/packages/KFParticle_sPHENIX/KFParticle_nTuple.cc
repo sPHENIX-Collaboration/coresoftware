@@ -205,6 +205,8 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
       m_tree->Branch(TString(daughter_number) + "_IPchi2", &m_calculated_daughter_ipchi2[i], TString(daughter_number) + "_IPchi2/F");
       m_tree->Branch(TString(daughter_number) + "_IPErr", &m_calculated_daughter_ip_err[i], TString(daughter_number) + "_IPErr/F");
       m_tree->Branch(TString(daughter_number) + "_IP_xy", &m_calculated_daughter_ip_xy[i], TString(daughter_number) + "_IP_xy/F");
+      m_tree->Branch(TString(daughter_number) + "_DCA_sig", &m_calculated_daughter_PV_dca_sig[i], TString(daughter_number) + "_DCA_sig/F");
+      m_tree->Branch(TString(daughter_number) + "_DCA_sig_xy", &m_calculated_daughter_PV_dca_xy_sig[i], TString(daughter_number) + "_DCA_sig_xy/F");
     }
     if (m_get_all_PVs)
     {
@@ -311,9 +313,9 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 
   m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
   m_tree->Branch("eventNumber", &m_evtNumber, "eventNumber/I");
-  m_tree->Branch("event_bco", &m_event_bco, "event_bco/L"); //adding for the current event BCO, not shifted
-  m_tree->Branch("BCO", &m_bco, "BCO/L"); //already there, this is shifted BCO
-  m_tree->Branch("last_event_bco", &m_last_event_bco, "last_event_bco/L"); //BCO for the last event 
+  m_tree->Branch("Collision_BCO", &m_bco, "Collision_BCO/L"); //already there, this is shifted BCO
+  m_tree->Branch("GL1_BCO", &m_event_bco, "GL1_BCO/L"); //adding for the current event BCO, not shifted
+  m_tree->Branch("last_GL1_BCO", &m_last_event_bco, "last_GL1_BCO/L"); //BCO for the last event 
 
   if (m_get_trigger_info)
   {
@@ -643,7 +645,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
     // it only makes sense to calculate PVID for non-fake vertex
     // (this otherwise crashes if m_use_fake_pv_nTuple is true in an event with no real vertices)
-    if (m_use_fake_pv_nTuple || m_use_truth_pv_nTuple)
+    if (m_use_fake_pv_nTuple)
     {
       m_calculated_vertex_ID = -100;  // error value returned by getPVID
     }
@@ -662,7 +664,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   kfpTupleTools.getTracksFromBC(topNode, m_calculated_daughter_bunch_crossing[0], m_vtx_map_node_name_nTuple, m_multiplicity, m_nPVs);
   // cannot retrieve vertex map info from fake PV, hence the second condition
-  if (m_constrain_to_vertex_nTuple && !m_use_fake_pv_nTuple && !m_use_truth_pv_nTuple)
+  if (m_constrain_to_vertex_nTuple && !m_use_fake_pv_nTuple)
   {
     m_nTracksOfVertex = kfpTupleTools.getTracksFromVertex(topNode, vertex_fillbranch, m_vtx_map_node_name_nTuple);
   }

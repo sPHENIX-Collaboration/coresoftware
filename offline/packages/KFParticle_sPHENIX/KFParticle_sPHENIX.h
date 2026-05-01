@@ -254,7 +254,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_use_fake_pv = use_fake;
     m_use_fake_pv_nTuple = use_fake;
   }
-
+  
   void allowZeroMassTracks(bool allow = true) { m_allowZeroMassTracks = allow; }
 
   void extraolateTracksToSV(bool extrapolate = true)
