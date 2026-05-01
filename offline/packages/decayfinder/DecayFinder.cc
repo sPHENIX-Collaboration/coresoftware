@@ -483,12 +483,10 @@ int DecayFinder::findDecay(PHCompositeNode* topNode)
         // Make sure that the mother has a decay in our record
         if (!(*p)->end_vertex())  // Mother has no end vertex, decay volume was limited
         {
-          std::cout << "Searching G4 Record" << std::endl;
           searchGeant4Record((*p)->barcode(), (*p)->pdg_id(), positive_motherDecayProducts, breakOut, aMotherHasPhoton, aMotherHasPi0, aTrackFailedPT, aTrackFailedETA, correctMotherProducts);
         }
         else
         {
-          std::cout << "Searching HepMC Record" << std::endl;
           searchHepMCRecord((*p), positive_motherDecayProducts, breakOut, aMotherHasPhoton, aMotherHasPi0, aTrackFailedPT, aTrackFailedETA, correctMotherProducts);
         }
 
@@ -690,7 +688,6 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
  */
 void DecayFinder::searchGeant4Record(int barcode, int pid, std::vector<int> decayProducts, bool& breakLoop, bool& hasPhoton, bool& hasPi0, bool& failedPT, bool& failedETA, std::vector<int>& actualDecayProducts)
 {
-  std::cout << "searchGeant4Record barcode: " << barcode << std::endl;
   PHG4TruthInfoContainer::ConstRange range = m_truthinfo->GetParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
   {

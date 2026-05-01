@@ -31,16 +31,9 @@
 
 //sPHENIX stuff
 #include <trackbase_historic/SvtxTrack.h>
-#include <fun4all/Fun4AllBase.h>
-#include <fun4all/SubsysReco.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
 
 // KFParticle stuff
 #include <KFParticle.h>
-
-#include <g4main/PHG4InEvent.h>
-#include <g4main/PHG4VtxPoint.h>
 
 #include <algorithm>
 #include <cassert>
@@ -613,55 +606,5 @@ KFParticle KFParticle_eventReconstruction::createFakePV()
   kfp_vertex.NDF() = 0;
   kfp_vertex.Chi2() = 0;
   kfp_vertex.SetId(0);
-  return kfp_vertex;
-}
-
-std::vector<KFParticle> KFParticle_eventReconstruction::createTruthPV(PHCompositeNode* topNode)
-{
-  std::vector<KFParticle> kfp_vertex = {};
-  
-  PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
-  if (!ineve)
-  {
-    std::cout << PHWHERE << "no PHG4INEVENT node" << std::endl;
-    return kfp_vertex;
-  }
-
-  auto vtxRange = ineve->GetVertices();
-  // find the PV
-  std::vector<PHG4VtxPoint*> primaryVtx = {};
-  for (auto it = vtxRange.first; it != vtxRange.second; ++it)
-  {
-    if (it->first == 1)
-    {
-      primaryVtx.push_back(it->second);
-    }
-  }
-
-  if (primaryVtx.size() == 0)
-  {
-    std::cerr << "getPrimaryVertex: No primary vertex found!" << std::endl;
-    return kfp_vertex;  // return default empty vertex
-  }
-
-  for (const auto& v : primaryVtx)
-  {
-    float pos[3] = {
-        static_cast<float>(v->get_x()),
-        static_cast<float>(v->get_y()),
-        static_cast<float>(v->get_z())
-    };
-    float f_vertexParameters[6] = {pos[0], pos[1], pos[2], 0, 0, 0};
-
-    float f_vertexCovariance[21] = {0};
-
-    KFParticle kfp_v;
-    kfp_v.Create(f_vertexParameters, f_vertexCovariance, 0, -1);
-    kfp_v.NDF() = 0;
-    kfp_v.Chi2() = 0;
-    kfp_v.SetId(0);
-    kfp_vertex.push_back(kfp_v);
-  }
-  
   return kfp_vertex;
 }
