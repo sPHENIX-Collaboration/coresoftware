@@ -37,6 +37,9 @@ struct ActsSurfaceMaps
   //! true if given surface corresponds to TPC
   bool isTpcSurface(const Acts::Surface* surface) const;
 
+  //! true if given surface corresponds to the silicon
+  bool isSiSurface(const Acts::Surface* surface) const;
+
   //! true if given surface corresponds to Micromegas
   bool isMicromegasSurface(const Acts::Surface* surface) const;
 
@@ -64,6 +67,10 @@ struct ActsSurfaceMaps
   //! stores all acts volume ids relevant to the TPC
   /** it is used to quickly tell if a given Acts Surface belongs to the TPC */
   std::set<int> m_tpcVolumeIds;
+
+  //! stores all acts volume ids relevant to the Silicon
+  /** it is used to quickly tell if a given Acts Surface belongs to the Silicon */
+  std::set<int> m_siVolumeIds;
 
   //! stores all acts volume ids relevant to the micromegas
   /** it is used to quickly tell if a given Acts Surface belongs to micromegas */

@@ -34,6 +34,11 @@ bool ActsSurfaceMaps::isTpcSurface(const Acts::Surface* surface) const
   return m_tpcVolumeIds.find(surface->geometryId().volume()) != m_tpcVolumeIds.end();
 }
 
+bool ActsSurfaceMaps::isSiSurface(const Acts::Surface* surface) const
+{
+  return m_siVolumeIds.find(surface->geometryId().volume()) != m_siVolumeIds.end();
+}
+
 bool ActsSurfaceMaps::isMicromegasSurface(const Acts::Surface* surface) const
 {
   return m_micromegasVolumeIds.find(surface->geometryId().volume()) != m_micromegasVolumeIds.end();

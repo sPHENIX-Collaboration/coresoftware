@@ -83,6 +83,11 @@ class PHActsTrkFitter : public SubsysReco
     m_forceSiOnlyFit = forceSiOnlyFit;
   }
 
+  void forceTpcOnlyFit(bool forceTpcOnlyFit)
+  {
+    m_forceTpcOnlyFit = forceTpcOnlyFit;
+  }
+
   /// require micromegas in SiliconMM fits
   void setUseMicromegas(bool value)
   {
@@ -216,6 +221,7 @@ class PHActsTrkFitter : public SubsysReco
   bool m_fitSiliconMMs = false;
 
   bool m_forceSiOnlyFit = false;
+  bool m_forceTpcOnlyFit = false;
 
   /// requires micromegas present when fitting silicon-MM surfaces
   bool m_useMicromegas = true;
