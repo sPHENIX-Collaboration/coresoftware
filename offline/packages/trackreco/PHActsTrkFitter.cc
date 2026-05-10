@@ -128,7 +128,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
 
   m_fitCfg.dFit = ActsTrackFittingAlgorithm::makeDirectedKalmanFitterFunction(
       m_tGeometry->geometry().tGeometry,
-      m_tGeometry->geometry().magField);
+      m_tGeometry->geometry().magField, true, true, 0.0, Acts::FreeToBoundCorrection(), *Acts::getDefaultLogger("DirectedKalman", level));
 
   MaterialSurfaceSelector selector;
   if (m_fitSiliconMMs || m_directNavigation)
@@ -735,6 +735,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       if (Verbosity() > 1)
       {
         std::cout << "Calling fitTrack for track with siid " << siid << " tpcid " << tpcid << " crossing " << crossing << std::endl;
+        std::cout << "surfaces size " << surfaces.size() << " and source links size " << sourceLinks.size() << std::endl;
       }
 
       auto result = fitTrack(sourceLinks, seed, kfOptions, surfaces, calibrator, tracks);
