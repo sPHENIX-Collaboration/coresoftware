@@ -241,8 +241,8 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
 //______________________________________
 int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
 {
-  //m_correctedCMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LAMINATION_CLUSTER");
-  m_correctedCMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LASER_CLUSTER");
+  m_correctedCMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LAMINATION_CLUSTER");
+  //  m_correctedCMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LASER_CLUSTER");
   if (!m_correctedCMcluster_map)
   {
     std::cout << PHWHERE << "CORRECTED_CM_CLUSTER Node missing, abort." << std::endl;
@@ -407,8 +407,8 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
     }
 
     TVector3 tmp_pos(pos[0], pos[1], pos[2]);
-
-    if(cmclus->getNLayers() > m_nLayerCut && cmclus->getSDWeightedLayer() > 0.5)
+    if(cmclus->getNLayers() > m_nLayerCut)
+      //    if(cmclus->getNLayers() > m_nLayerCut && cmclus->getSDWeightedLayer() > 0.5)
     {
       for (int l = 0; l < 18; l++)
       {
@@ -713,6 +713,7 @@ int TpcLaminationFitting::fitLaminations()
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
 
 int TpcLaminationFitting::InterpolatePhiDistortions()
 {
