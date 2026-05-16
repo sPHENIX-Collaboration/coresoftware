@@ -40,7 +40,6 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   ActsAborter.h \
   ActsGeometry.h \
-  ActsGsfTrackFittingAlgorithm.h \
   ActsSourceLink.h \
   ActsSurfaceMaps.h \
   ActsTrackFittingAlgorithm.h \
@@ -219,7 +218,6 @@ libtrack_la_SOURCES = \
   MagneticFieldOptions.cc \
   sPHENIXActsDetectorElement.cc \
   TGeoDetectorWithOptions.cc \
-  TrackFittingAlgorithmFunctionsGsf.cc \
   TrackFittingAlgorithmFunctionsKalman.cc \
   TrackFitUtils.cc
 
