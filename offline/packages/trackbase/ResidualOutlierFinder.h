@@ -82,7 +82,7 @@ struct ResidualOutlierFinder
     }
     const auto predicted = state.predicted();
     auto fullCalibrated = state
-                              .template calibrated<Acts::MultiTrajectoryTraits::MeasurementSizeMax>()
+                              .template calibrated<Acts::kMeasurementSizeMax>()
                               .data();
     Acts::FreeVector freeParams =
         Acts::transformBoundToFreeParameters(state.referenceSurface(),
