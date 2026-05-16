@@ -52,7 +52,7 @@ class sPHENIXActsDetectorElement : public ActsPlugins::TGeoDetectorElement
 
   ~sPHENIXActsDetectorElement() override;
 
-  const Acts::Transform3& transform(const Acts::GeometryContext& ctxt) const override;
+  const Acts::Transform3& localToGlobalTransform(const Acts::GeometryContext& ctxt) const override;
 
  private:
   std::map<unsigned int, unsigned int> base_layer_map = {{10, 0}, {12, 3}, {14, 7}, {16, 55}};

@@ -6,7 +6,7 @@
 
 sPHENIXActsDetectorElement::~sPHENIXActsDetectorElement() = default;
 
-const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::GeometryContext& ctxt) const
+const Acts::Transform3& sPHENIXActsDetectorElement::localToGlobalTransform(const Acts::GeometryContext& ctxt) const
 {
   if (alignmentTransformationContainer::use_alignment)
   {
@@ -35,7 +35,7 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
   else
   {
     // return the construction transform
-    const Acts::Transform3& transform = TGeoDetectorElement::transform(ctxt);  // ctxt is unused here
+    const Acts::Transform3& transform = TGeoDetectorElement::nominalTransform();  // ctxt is unused here
     return transform;
   }
 }
