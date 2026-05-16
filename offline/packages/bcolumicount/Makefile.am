@@ -21,11 +21,16 @@ libbcolumicount_la_LIBADD = \
   libbcolumicount_io.la \
   -lffaobjects \
   -lffarawobjects \
-  -lSubsysReco
+  -lSubsysReco \
+  -lfun4all
 
 ROOTDICTS = \
   BcoInfo_Dict.cc \
-  BcoInfov1_Dict.cc
+  BcoInfov1_Dict.cc \
+  StreamingBcoInfo_Dict.cc \
+  StreamingBcoInfov1_Dict.cc \
+  StreamingLumiInfo_Dict.cc \
+  StreamingLumiInfov1_Dict.cc
 
 pcmdir = $(libdir)
 # more elegant way to create pcm files (without listing them)
@@ -34,18 +39,28 @@ nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 pkginclude_HEADERS = \
   BcoInfo.h \
   BcoInfov1.h \
-  BcoLumiCheck.h \
-  BcoLumiReco.h
+  BcoLumiReco.h \
+  StreamingBcoInfo.h \
+  StreamingBcoInfov1.h \
+  StreamingLumiInfo.h \
+  StreamingLumiInfov1.h \
+  StreamingBcoLumiReco.h \
+  StreamingBcoLumiCheck.h
 
 
 libbcolumicount_io_la_SOURCES = \
   $(ROOTDICTS) \
   BcoInfo.cc \
-  BcoInfov1.cc
+  BcoInfov1.cc \
+  StreamingBcoInfo.cc \
+  StreamingBcoInfov1.cc \
+  StreamingLumiInfo.cc \
+  StreamingLumiInfov1.cc
 
 libbcolumicount_la_SOURCES = \
-  BcoLumiCheck.cc \
-  BcoLumiReco.cc
+  BcoLumiReco.cc \
+  StreamingBcoLumiReco.cc \
+  StreamingBcoLumiCheck.cc
 
 BUILT_SOURCES = testexternals.cc
 
