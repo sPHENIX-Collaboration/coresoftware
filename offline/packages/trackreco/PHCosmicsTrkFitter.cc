@@ -324,8 +324,9 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     getCharge(tpcseed, charge, cosmicslope);
 
+    Acts::GeometryContext geoContext{m_alignmentTransformationMapTransient};
     // copy transient map for this track into transient geoContext
-    m_transient_geocontext = m_alignmentTransformationMapTransient;
+    m_transient_geocontext = geoContext;
 
     {
       // get positions from cluster keys
@@ -581,7 +582,7 @@ bool PHCosmicsTrkFitter::getTrackFitResult(FitResult& fitOutput,
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
   auto& outtrack = fitOutput.value();
-  std::vector<Acts::MultiTrajectoryTraits::IndexType> trackTips;
+  std::vector<Acts::TrackIndexType> trackTips;
   trackTips.reserve(1);
   trackTips.emplace_back(outtrack.tipIndex());
   Trajectory::IndexedParameters indexedParams;
@@ -637,7 +638,7 @@ inline ActsTrackFittingAlgorithm::TrackFitterResult PHCosmicsTrkFitter::fitTrack
 }
 
 void PHCosmicsTrkFitter::updateSvtxTrack(
-    std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+    std::vector<Acts::TrackIndexType>& tips,
     Trajectory::IndexedParameters& paramsMap,
     ActsTrackFittingAlgorithm::TrackContainer& tracks,
     SvtxTrack* track)
@@ -989,8 +990,7 @@ void PHCosmicsTrkFitter::getCharge(
     int& charge,
     float& cosmicslope)
 {
-  Acts::GeometryContext transient_geocontext;
-  transient_geocontext = m_alignmentTransformationMapTransient;  // set local/global transforms to distortion corrected ones for this track
+  Acts::GeometryContext transient_geocontext{m_alignmentTransformationMapTransient};
 
   std::vector<Acts::Vector3> global_vec;
 

@@ -84,7 +84,6 @@ PHActsSiliconSeeding::~PHActsSiliconSeeding()
 int PHActsSiliconSeeding::Init(PHCompositeNode* /*topNode*/)
 {
   Acts::SeedFilterConfig sfCfg = configureSeedFilter();
-  sfCfg = sfCfg.toInternalUnits();
 
   m_seedFinderCfg.seedFilter = std::make_unique<Acts::SeedFilter<SpacePointProxy_type>>(
       sfCfg);
@@ -957,7 +956,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
           {
             intersection = TrackFitUtils::get_helix_surface_intersection(surf, dummypars, glob, m_tGeometry);
           }
-          auto local = (surf->transform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
+          auto local = (surf->localToGlobalTransform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
           local /= Acts::UnitConstants::cm;
           m_projgx = intersection.x();
           m_projgy = intersection.y();
@@ -1260,7 +1259,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
         auto glob = m_tGeometry->getGlobalPosition(
             cluskey, cluster);
         auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, m_tGeometry);
-        auto local = (surf->transform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
+        auto local = (surf->localToGlobalTransform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
         local /= Acts::UnitConstants::cm;
         m_projgx = intersection.x();
         m_projgy = intersection.y();
@@ -1489,8 +1488,6 @@ void PHActsSiliconSeeding::configureSPGrid()
   m_gridCfg.phiBinDeflectionCoverage = m_numPhiNeighbors;
 
   m_gridOptions.bFieldInZ = m_bField;
-  m_gridCfg = m_gridCfg.toInternalUnits();
-  m_gridOptions = m_gridOptions.toInternalUnits();
 }
 
 Acts::SeedFilterConfig PHActsSiliconSeeding::configureSeedFilter() const
@@ -1544,9 +1541,6 @@ void PHActsSiliconSeeding::configureSeeder()
   m_seedFinderCfg.sigmaError = m_sigmaError;
   m_seedFinderCfg.helixCutTolerance = m_helixcut;
 
-  m_seedFinderCfg =
-      m_seedFinderCfg.toInternalUnits().calculateDerivedQuantities();
-  m_seedFinderOptions = m_seedFinderOptions.toInternalUnits().calculateDerivedQuantities(m_seedFinderCfg);
 }
 
 int PHActsSiliconSeeding::getNodes(PHCompositeNode* topNode)

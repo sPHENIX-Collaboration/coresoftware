@@ -106,7 +106,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   void getCharge(TrackSeed* track, int& charge, float& cosmicslope);
 
   /// Convert the acts track fit result to an svtx track
-  void updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+  void updateSvtxTrack(std::vector<Acts::TrackIndexType>& tips,
                        Trajectory::IndexedParameters& paramsMap,
                        ActsTrackFittingAlgorithm::TrackContainer& tracks,
                        SvtxTrack* track);
@@ -150,7 +150,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   // Used for distortion correction transformations
   alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;
   std::set<Acts::GeometryIdentifier> m_transient_id_set;
-  Acts::GeometryContext m_transient_geocontext;
+  Acts::GeometryContext m_transient_geocontext = Acts::GeometryContext::dangerouslyDefaultConstruct();
 
   /// Number of acts fits that returned an error
   int m_nBadFits = 0;

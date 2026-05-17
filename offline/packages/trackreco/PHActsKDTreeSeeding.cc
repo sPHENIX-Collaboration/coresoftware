@@ -554,8 +554,4 @@ void PHActsKDTreeSeeding::configureSeedFinder()
   m_seedFinderConfig.rMinMiddle = m_rMinMiddle;
   m_seedFinderConfig.rMaxMiddle = m_rMaxMiddle;
 
-  m_seedFinderConfig =
-      m_seedFinderConfig.toInternalUnits().calculateDerivedQuantities();
-  m_seedFinderOptions =
-      m_seedFinderOptions.toInternalUnits().calculateDerivedQuantities(m_seedFinderConfig);
 }

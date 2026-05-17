@@ -155,7 +155,7 @@ class PHActsTrkFitter : public SubsysReco
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(
-      const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+      const std::vector<Acts::TrackIndexType>& tips,
       const Trajectory::IndexedParameters& paramsMap,
       const ActsTrackFittingAlgorithm::TrackContainer& tracks,
       SvtxTrack* track);
@@ -200,7 +200,7 @@ class PHActsTrkFitter : public SubsysReco
   alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
   alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;
   std::set<Acts::GeometryIdentifier> m_transient_id_set;
-  Acts::GeometryContext m_transient_geocontext;
+  Acts::GeometryContext m_transient_geocontext = Acts::GeometryContext::dangerouslyDefaultConstruct();
   SvtxTrackMap* m_trackMap = nullptr;
   SvtxTrackMap* m_directedTrackMap = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;

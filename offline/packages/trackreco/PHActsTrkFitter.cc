@@ -519,9 +519,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         // add tpc sourcelinks to silicon source links
         sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
       }
-
+      Acts::GeometryContext geoContext{m_alignmentTransformationMapTransient};
       // copy transient map for this track into transient geoContext
-      m_transient_geocontext = m_alignmentTransformationMapTransient;
+      m_transient_geocontext = geoContext;
 
       // position comes from the silicon seed, unless there is no silicon seed
       Acts::Vector3 position(0, 0, 0);
@@ -868,7 +868,7 @@ bool PHActsTrkFitter::getTrackFitResult(
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
-  std::vector<Acts::MultiTrajectoryTraits::IndexType> trackTips;
+  std::vector<Acts::TrackIndexType> trackTips;
   trackTips.reserve(1);
   const auto& outtrack = fitOutput.value();
   if (outtrack.hasReferenceSurface())
@@ -1050,7 +1050,7 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
 }
 
 void PHActsTrkFitter::updateSvtxTrack(
-    const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+    const std::vector<Acts::TrackIndexType>& tips,
     const Trajectory::IndexedParameters& paramsMap,
     const ActsTrackFittingAlgorithm::TrackContainer& tracks,
     SvtxTrack* track)
