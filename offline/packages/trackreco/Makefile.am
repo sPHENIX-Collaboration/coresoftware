@@ -34,7 +34,6 @@ pkginclude_HEADERS = \
   MakeActsGeometry.h \
   MakeSourceLinks.h \
   nanoflann.hpp \
-  PHActsGSF.h \
   PHActsKDTreeSeeding.h \
   PHActsSiliconSeeding.h \
   PHActsVertexPropagator.h \
@@ -101,7 +100,6 @@ ACTS_SOURCES = \
   ActsPropagator.cc \
   MakeActsGeometry.cc \
   MakeSourceLinks.cc \
-  PHActsGSF.cc \
   PHActsKDTreeSeeding.cc \
   PHActsSiliconSeeding.cc \
   PHActsTrkFitter.cc \
