@@ -268,7 +268,7 @@ private:
   /// Acts geometry objects that are needed to create (for example) the fitter
   TrackingGeometry m_tGeometry;
   std::shared_ptr<Acts::MagneticFieldProvider> m_magneticField;
-  Acts::GeometryContext m_geoCtxt;
+  Acts::GeometryContext m_geoCtxt = Acts::GeometryContext::dangerouslyDefaultConstruct();
 
   /// Structs to put on the node tree which carry around ActsGeom info
   ActsGeometry *m_actsGeometry = nullptr;

@@ -168,8 +168,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
       auto* check_cluster = clusterContainer->findCluster(key);
       Acts::Vector2 check_local2d = tGeometry->getLocalCoords(key, check_cluster) * Acts::UnitConstants::cm;  // need mm
       Acts::Vector3 check_local3d(check_local2d(0), check_local2d(1), 0);
-      Acts::GeometryContext temp_transient_geocontext;
-      temp_transient_geocontext = transformMapTransient;
+      Acts::GeometryContext temp_transient_geocontext{transformMapTransient};
       Acts::Vector3 check_before_pos_surf = this_surf->localToGlobal(temp_transient_geocontext,
                                                                      check_local2d,
                                                                      Acts::Vector3(1, 1, 1));
@@ -209,8 +208,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
 
   }  // end loop over clusters here
 
-  Acts::GeometryContext transient_geocontext;
-  transient_geocontext = transformMapTransient;
+  Acts::GeometryContext transient_geocontext{transformMapTransient};
 
   // loop over cluster_vec and make source links
   for (auto& cluskey : cluster_vec)
@@ -503,7 +501,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 
       /// otherwise take the manual calculation for the TPC
       // doing it this way just avoids the bounds check that occurs in the surface class method
-      Acts::Vector3 loct = surf->transform(tGeometry->geometry().getGeoContext()).inverse() * global;  // global is in mm
+      Acts::Vector3 loct = surf->localToGlobalTransform(tGeometry->geometry().getGeoContext()).inverse() * global;  // global is in mm
       loct /= Acts::UnitConstants::cm;
 
       localPos(0) = loct(0);

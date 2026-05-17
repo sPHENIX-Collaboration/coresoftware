@@ -758,8 +758,6 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[], const std::string& r
     m_magneticField = nullptr;
   }
 
-  m_geoCtxt = Acts::GeometryContext();
-
   unpackVolumes();
 
   return;
@@ -1045,14 +1043,14 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
         std::cout << std::endl
                   << " Layer type " << assoc_layer->layerType() << std::endl;
 
-        auto assoc_det_element = surf->associatedDetectorElement();
+        auto assoc_det_element = surf->surfacePlacement();
         if (assoc_det_element != nullptr)
         {
           std::cout << " Associated detElement has non-null pointer "
                     << assoc_det_element << std::endl;
           std::cout << std::endl
                     << " Associated detElement found, thickness = "
-                    << assoc_det_element->thickness() << std::endl;
+                    << surf->thickness() << std::endl;
         }
         else
         {
@@ -1118,10 +1116,10 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
         std::cout << "[DEBUG] MVTX surface center: (x,y,z)=(" << world_center[0] << "," << world_center[1] << "," << world_center[2] << "), layer_rad=" << layer_rad << std::endl;
       }
 
-      auto detelement = surf->associatedDetectorElement();
+      auto detelement = surf->surfacePlacement();
       if(!detelement)
 	{
-	  std::cout << PHWHERE << " Did not find associatedDetectorElement, have to quit! " << std::endl;
+	  std::cout << PHWHERE << " Did not find surfacePlacement, have to quit! " << std::endl;
 	  exit(1);
 	}
 
@@ -1191,14 +1189,14 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
                   << " Layer type "
                   << assoc_layer->layerType() << std::endl;
 
-        auto assoc_det_element = surf->associatedDetectorElement();
+        auto assoc_det_element = surf->surfacePlacement();
         if (assoc_det_element != nullptr)
         {
           std::cout << " Associated detElement has non-null pointer "
                     << assoc_det_element << std::endl;
           std::cout << std::endl
                     << " Associated detElement found, thickness = "
-                    << assoc_det_element->thickness() << std::endl;
+                    << surf->thickness() << std::endl;
         }
         else
         {

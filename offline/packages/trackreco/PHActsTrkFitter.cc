@@ -134,7 +134,6 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   if (m_fitSiliconMMs || m_directNavigation)
   {
     m_tGeometry->geometry().tGeometry->visitSurfaces(selector, false);
-    // std::cout<<"selector.surfaces.size() "<<selector.surfaces.size()<<std::endl;
     m_materialSurfaces = selector.surfaces;
   }
 

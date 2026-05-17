@@ -51,7 +51,7 @@ class ActsEvaluator
 
   void Init(PHCompositeNode* topNode);
   void process_track(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
-		     std::vector<Acts::MultiTrajectoryTraits::IndexType>& trackTips,
+		     std::vector<Acts::TrackIndexType>& trackTips,
 		     Trajectory::IndexedParameters& paramsMap,
                      SvtxTrack* track,
                      const TrackSeed* seed,
@@ -64,7 +64,7 @@ class ActsEvaluator
 
   /// Function to evaluate Trajectories fit results from the KF
   void evaluateTrackFit(const ActsTrackFittingAlgorithm::TrackContainer& trackContainer,
-			std::vector<Acts::MultiTrajectoryTraits::IndexType>& trackTips,
+			std::vector<Acts::TrackIndexType>& trackTips,
 			Trajectory::IndexedParameters& paramsMap,
                         SvtxTrack* track,
                         const TrackSeed* seed,

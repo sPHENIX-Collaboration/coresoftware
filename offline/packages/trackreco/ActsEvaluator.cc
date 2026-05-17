@@ -83,7 +83,7 @@ void ActsEvaluator::next_event(PHCompositeNode* topNode)
 
 }
 void ActsEvaluator::process_track(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
-				  std::vector<Acts::MultiTrajectoryTraits::IndexType>& trackTips,
+				  std::vector<Acts::TrackIndexType>& trackTips,
 				  Trajectory::IndexedParameters& paramsMap,
                                   SvtxTrack* track,
                                   const TrackSeed* seed,
@@ -105,7 +105,7 @@ void ActsEvaluator::process_track(const ActsTrackFittingAlgorithm::TrackContaine
 }
 
 void ActsEvaluator::evaluateTrackFit(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
-				     std::vector<Acts::MultiTrajectoryTraits::IndexType>& trackTips,
+				     std::vector<Acts::TrackIndexType>& trackTips,
 				     Trajectory::IndexedParameters& paramsMap,
                                      SvtxTrack* track,
                                      const TrackSeed* seed,
@@ -251,7 +251,7 @@ void ActsEvaluator::visitTrackStates(const Acts::VectorMultiTrajectory& traj,
                       {
     /// Only fill the track states with non-outlier measurement
     auto typeFlags = state.typeFlags();
-    if (! typeFlags.test(Acts::TrackStateFlag::MeasurementFlag))
+    if (! typeFlags.isMeasurement())
     {
       return true;
     }
@@ -907,7 +907,7 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
       }
       else
       {
-        Acts::Vector3 loct = (*surf).transform(m_tGeometry->geometry().getGeoContext()).inverse() * globalTruthPos;
+        Acts::Vector3 loct = (*surf).localToGlobalTransform(m_tGeometry->geometry().getGeoContext()).inverse() * globalTruthPos;
 
         m_t_SL_lx.push_back(loct(0));
         m_t_SL_ly.push_back(loct(1));

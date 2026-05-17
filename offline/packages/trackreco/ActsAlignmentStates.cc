@@ -56,7 +56,7 @@ void ActsAlignmentStates::loadNodes( PHCompositeNode* topNode )
 //_________________________________________________________________
 void ActsAlignmentStates::fillAlignmentStateMap(
   const ActsTrackFittingAlgorithm::TrackContainer& tracks,
-  const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+  const std::vector<Acts::TrackIndexType>& tips,
   SvtxTrack* track,
   const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
@@ -117,7 +117,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(
                     {
     /// Collect only track states which were used in smoothing of KF and are measurements
     if (! state.hasSmoothed() ||
-        ! state.typeFlags().test(Acts::TrackStateFlag::MeasurementFlag))
+        ! state.typeFlags().isMeasurement())
     {
       return true;
     }
@@ -276,10 +276,10 @@ std::pair<Acts::Vector3, Acts::Vector3> ActsAlignmentStates::get_projectionXY(co
   // get surface X and Y unit vectors in global frame
   // transform Xlocal = 1.0 to global, subtract the surface center, normalize to 1
   Acts::Vector3 xloc(1.0, 0.0, 0.0);
-  Acts::Vector3 xglob = surface.transform(m_tGeometry->geometry().getGeoContext()) * xloc;
+  Acts::Vector3 xglob = surface.localToGlobalTransform(m_tGeometry->geometry().getGeoContext()) * xloc;
 
   Acts::Vector3 yloc(0.0, 1.0, 0.0);
-  Acts::Vector3 yglob = surface.transform(m_tGeometry->geometry().getGeoContext()) * yloc;
+  Acts::Vector3 yglob = surface.localToGlobalTransform(m_tGeometry->geometry().getGeoContext()) * yloc;
 
   Acts::Vector3 X = (xglob - sensorCenter) / (xglob - sensorCenter).norm();
   Acts::Vector3 Y = (yglob - sensorCenter) / (yglob - sensorCenter).norm();
