@@ -234,7 +234,7 @@ G4Transform3D PHG4GDMLWrite::Write(const G4String& fname,
 #if XERCES_VERSION_MAJOR >= 3
   // DOM L3 as per Xerces 3.0 API
   xercesc::DOMLSSerializer* writer =
-      ((xercesc::DOMImplementationLS*) impl)->createLSSerializer();
+    static_cast<xercesc::DOMImplementationLS*>(impl)->createLSSerializer();
 
   xercesc::DOMConfiguration* dc = writer->getDomConfig();
   dc->setParameter(xercesc::XMLUni::fgDOMWRTFormatPrettyPrint, true);
@@ -242,8 +242,7 @@ G4Transform3D PHG4GDMLWrite::Write(const G4String& fname,
 #else
 
   xercesc::DOMWriter* writer =
-      ((xercesc::DOMImplementationLS*) impl)->createDOMWriter();
-
+    static_cast<xercesc::DOMImplementationLS*>(impl)->createDOMWriter();
   if (writer->canSetFeature(xercesc::XMLUni::fgDOMWRTFormatPrettyPrint, true))
     writer->setFeature(xercesc::XMLUni::fgDOMWRTFormatPrettyPrint, true);
 
@@ -273,7 +272,7 @@ G4Transform3D PHG4GDMLWrite::Write(const G4String& fname,
 #if XERCES_VERSION_MAJOR >= 3
     // DOM L3 as per Xerces 3.0 API
     xercesc::DOMLSOutput* theOutput =
-        ((xercesc::DOMImplementationLS*) impl)->createLSOutput();
+      static_cast<xercesc::DOMImplementationLS*>(impl)->createLSOutput();
     theOutput->setByteStream(myFormTarget);
     writer->write(doc, theOutput);
 #else
