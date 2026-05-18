@@ -17,7 +17,7 @@
 
 #include <pdbcalbase/RunToTime.h>
 
-#include <RtypesCore.h>  // for Stat_t
+#include <Rtypes.h>  // for Stat_t
 #include <TDirectory.h>  // for TDirectoryAtomicAdapter
 #include <TFile.h>
 #include <TH1.h>
