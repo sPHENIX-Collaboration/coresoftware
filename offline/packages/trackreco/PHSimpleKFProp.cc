@@ -912,7 +912,8 @@ bool PHSimpleKFProp::PropagateStep(
     return true;
   }
   const std::vector<double>& point = _ptclouds[next_layer]->pts[index_out[0]];
-  TrkrDefs::cluskey closest_ckey = (*((int64_t*) &point[3]));
+  //TrkrDefs::cluskey closest_ckey = (*(int64_t*) &point[3]);
+  TrkrDefs::cluskey closest_ckey = std::bit_cast<int64_t>(point[3]);
   TrkrCluster* clusterCandidate = _cluster_map->findCluster(closest_ckey);
   const auto candidate_globalpos = globalPositions.at(closest_ckey);
   const double cand_x = candidate_globalpos(0);
