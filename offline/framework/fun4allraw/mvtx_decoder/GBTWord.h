@@ -107,7 +107,7 @@ struct GBTWord {
     uint8_t data8[GBTWordLength]; // 80 bits GBT word
   };
 #pragma GCC diagnostic pop
-
+// cppcheck-suppress uninitMemberVar
   GBTWord() = default;
 
   /// check if the GBT Header corresponds to GBT payload header
