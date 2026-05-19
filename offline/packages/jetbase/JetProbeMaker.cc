@@ -5,6 +5,7 @@
 #include "Jetv2.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>  // for PHNode
@@ -15,6 +16,7 @@
 #include <phool/phool.h>  // for PHWHERE
 
 #include <TRandom3.h>
+
 #include <fastjet/PseudoJet.hh>
 
 int JetProbeMaker::process_event(PHCompositeNode * /*topNode*/)
@@ -29,7 +31,7 @@ int JetProbeMaker::process_event(PHCompositeNode * /*topNode*/)
   fastjet::PseudoJet fjet{};
   fjet.reset_PtYPhiM(pt, eta, phi);
 
-  Jetv2 *jet = (Jetv2 *) _jets->add_jet();
+  Jetv2 *jet = static_cast<Jetv2 *> (_jets->add_jet());
   jet->set_px(fjet.px());
   jet->set_py(fjet.py());
   jet->set_pz(fjet.pz());

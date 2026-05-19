@@ -77,7 +77,7 @@ PHG4ProcessMap::GetMCProcess(const G4VProcess* process) const
   {
     std::string text = "Unknown process code for ";
     text += process->GetProcessName();
-    std::cerr << "PHG4ProcessMap::GetCodes " << text.c_str() << std::endl;
+    std::cerr << "PHG4ProcessMap::GetCodes " << text << std::endl;
     return kPNoProcess;
   }
 

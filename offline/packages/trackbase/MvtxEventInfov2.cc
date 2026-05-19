@@ -140,12 +140,6 @@ unsigned int MvtxEventInfov2::get_number_L1s() const
   return mySet.size();
 }
 
-std::set<uint64_t> MvtxEventInfov2::get_strobe_BCOs() const
-{
-  std::set<uint64_t> mySet = m_strobe_BCOs;
-  return mySet;
-}
-
 std::set<uint64_t> MvtxEventInfov2::get_L1_BCOs() const
 {
   std::set<uint64_t> mySet;

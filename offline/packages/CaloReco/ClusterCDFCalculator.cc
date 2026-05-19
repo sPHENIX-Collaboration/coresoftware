@@ -5,9 +5,8 @@
 #include <TMatrixD.h>
 #include <TVectorD.h>
 
-#include <boost/format.hpp>
-
 #include <iostream>
+#include <format>
 
 ClusterCDFCalculator::~ClusterCDFCalculator()
 {
@@ -94,9 +93,9 @@ void ClusterCDFCalculator::LoadHistogramsAndMatrices()
   for (int binidx = 0; binidx < nBins; ++binidx)
   {
     // photon hist
-    std::string hD2_3x3_name_photon = (boost::format("h_photon_hD2_3x3_en%d") % binidx).str();
-    std::string hD2_5x5_name_photon = (boost::format("h_photon_hD2_5x5_en%d") % binidx).str();
-    std::string hD2_7x7_name_photon = (boost::format("h_photon_hD2_7x7_en%d") % binidx).str();
+    std::string hD2_3x3_name_photon = std::format("h_photon_hD2_3x3_en{}", binidx);
+    std::string hD2_5x5_name_photon = std::format("h_photon_hD2_5x5_en{}", binidx);
+    std::string hD2_7x7_name_photon = std::format("h_photon_hD2_7x7_en{}", binidx);
 
     file->GetObject(hD2_3x3_name_photon.c_str(), hD2_3x3_photon[binidx]);
     file->GetObject(hD2_5x5_name_photon.c_str(), hD2_5x5_photon[binidx]);
@@ -109,11 +108,11 @@ void ClusterCDFCalculator::LoadHistogramsAndMatrices()
     }
 
     TH1 *hD2mean3_photon{nullptr};
-    file->GetObject((boost::format("h_photon_hD2mean3_en%d") % binidx).str().c_str(), hD2mean3_photon);
+    file->GetObject(std::format("h_photon_hD2mean3_en{}", binidx).c_str(), hD2mean3_photon);
     TH1 *hD2mean5_photon{nullptr};
-    file->GetObject((boost::format("h_photon_hD2mean5_en%d") % binidx).str().c_str(), hD2mean5_photon);
+    file->GetObject(std::format("h_photon_hD2mean5_en{}", binidx).c_str(), hD2mean5_photon);
     TH1 *hD2mean7_photon{nullptr};
-    file->GetObject((boost::format("h_photon_hD2mean7_en%d") % binidx).str().c_str(), hD2mean7_photon);
+    file->GetObject(std::format("h_photon_hD2mean7_en{}", binidx).c_str(), hD2mean7_photon);
 
     if (!hD2mean3_photon || !hD2mean5_photon || !hD2mean7_photon)
     {
@@ -126,40 +125,40 @@ void ClusterCDFCalculator::LoadHistogramsAndMatrices()
 
     for (int i = 0; i < NMATRIX_3x3; ++i)
     {
-      std::string histName = (boost::format("h_photon_heratio_3x3_en%d_%d") % binidx % i).str();
+      std::string histName = std::format("h_photon_heratio_3x3_en{}_{}", binidx, i);
       file->GetObject(histName.c_str(), ratioHistograms_3x3_photon[binidx][i]);
       if (!ratioHistograms_3x3_photon[binidx][i])
       {
-        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: photon hist " << histName.c_str() << " is missing." << std::endl;
+        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: photon hist " << histName << " is missing." << std::endl;
         return;
       }
     }
     for (int i = 0; i < NMATRIX_5x5; ++i)
     {
-      std::string histName = (boost::format("h_photon_heratio_5x5_en%d_%d") % binidx % i).str();
+      std::string histName = std::format("h_photon_heratio_5x5_en{}_{}", binidx, i);
       file->GetObject(histName.c_str(), ratioHistograms_5x5_photon[binidx][i]);
       if (!ratioHistograms_5x5_photon[binidx][i])
       {
-        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: photon hist " << histName.c_str() << " is missing." << std::endl;
+        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: photon hist " << histName << " is missing." << std::endl;
         return;
       }
     }
     for (int i = 0; i < NMATRIX_7x7; ++i)
     {
-      std::string histName = (boost::format("h_photon_heratio_7x7_en%d_%d") % binidx % i).str();
+      std::string histName = std::format("h_photon_heratio_7x7_en{}_{}", binidx, i);
       file->GetObject(histName.c_str(), ratioHistograms_7x7_photon[binidx][i]);
       if (!ratioHistograms_7x7_photon[binidx][i])
       {
-        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: photon hist " << histName.c_str() << " is missing." << std::endl;
+        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: photon hist " << histName << " is missing." << std::endl;
         return;
       }
     }
     TH2 *hCovMatrix3x3_photon{nullptr};
-    file->GetObject((boost::format("h_photon_hCovMatrix3_en%d") % binidx).str().c_str(), hCovMatrix3x3_photon);
+    file->GetObject(std::format("h_photon_hCovMatrix3_en{}", binidx).c_str(), hCovMatrix3x3_photon);
     TH2 *hCovMatrix5x5_photon{nullptr};
-    file->GetObject((boost::format("h_photon_hCovMatrix5_en%d") % binidx).str().c_str(), hCovMatrix5x5_photon);
+    file->GetObject(std::format("h_photon_hCovMatrix5_en{}", binidx).c_str(), hCovMatrix5x5_photon);
     TH2 *hCovMatrix7x7_photon{nullptr};
-    file->GetObject((boost::format("h_photon_hCovMatrix7_en%d") % binidx).str().c_str(), hCovMatrix7x7_photon);
+    file->GetObject(std::format("h_photon_hCovMatrix7_en{}", binidx).c_str(), hCovMatrix7x7_photon);
 
     if (!hCovMatrix3x3_photon || !hCovMatrix5x5_photon || !hCovMatrix7x7_photon)
     {
@@ -200,9 +199,9 @@ void ClusterCDFCalculator::LoadHistogramsAndMatrices()
     }
 
     // pi0 hist
-    std::string hD2_3x3_name_pi0 = (boost::format("h_pi0_hD2_3x3_en%d") % binidx).str();
-    std::string hD2_5x5_name_pi0 = (boost::format("h_pi0_hD2_5x5_en%d") % binidx).str();
-    std::string hD2_7x7_name_pi0 = (boost::format("h_pi0_hD2_7x7_en%d") % binidx).str();
+    std::string hD2_3x3_name_pi0 = std::format("h_pi0_hD2_3x3_en{}", binidx);
+    std::string hD2_5x5_name_pi0 = std::format("h_pi0_hD2_5x5_en{}", binidx);
+    std::string hD2_7x7_name_pi0 = std::format("h_pi0_hD2_7x7_en{}", binidx);
 
     file->GetObject(hD2_3x3_name_pi0.c_str(), hD2_3x3_pi0[binidx]);
     file->GetObject(hD2_5x5_name_pi0.c_str(), hD2_5x5_pi0[binidx]);
@@ -215,11 +214,11 @@ void ClusterCDFCalculator::LoadHistogramsAndMatrices()
     }
 
     TH1 *hD2mean3_pi0{nullptr};
-    file->GetObject((boost::format("h_pi0_hD2mean3_en%d") % binidx).str().c_str(), hD2mean3_pi0);
+    file->GetObject(std::format("h_pi0_hD2mean3_en{}", binidx).c_str(), hD2mean3_pi0);
     TH1 *hD2mean5_pi0{nullptr};
-    file->GetObject((boost::format("h_pi0_hD2mean5_en%d") % binidx).str().c_str(), hD2mean5_pi0);
+    file->GetObject(std::format("h_pi0_hD2mean5_en{}", binidx).c_str(), hD2mean5_pi0);
     TH1 *hD2mean7_pi0{nullptr};
-    file->GetObject((boost::format("h_pi0_hD2mean7_en%d") % binidx).str().c_str(), hD2mean7_pi0);
+    file->GetObject(std::format("h_pi0_hD2mean7_en{}", binidx).c_str(), hD2mean7_pi0);
 
     if (!hD2mean3_pi0 || !hD2mean5_pi0 || !hD2mean7_pi0)
     {
@@ -232,40 +231,40 @@ void ClusterCDFCalculator::LoadHistogramsAndMatrices()
 
     for (int i = 0; i < NMATRIX_3x3; ++i)
     {
-      std::string histName = (boost::format("h_pi0_heratio_3x3_en%d_%d") % binidx % i).str();
+      std::string histName = std::format("h_pi0_heratio_3x3_en{}_{}", binidx, i);
       file->GetObject(histName.c_str(), ratioHistograms_3x3_pi0[binidx][i]);
       if (!ratioHistograms_3x3_pi0[binidx][i])
       {
-        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: pi0 hist " << histName.c_str() << " is missing." << std::endl;
+        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: pi0 hist " << histName << " is missing." << std::endl;
         return;
       }
     }
     for (int i = 0; i < NMATRIX_5x5; ++i)
     {
-      std::string histName = (boost::format("h_pi0_heratio_5x5_en%d_%d") % binidx % i).str();
+      std::string histName = std::format("h_pi0_heratio_5x5_en{}_{}", binidx, i);
       file->GetObject(histName.c_str(), ratioHistograms_5x5_pi0[binidx][i]);
       if (!ratioHistograms_5x5_pi0[binidx][i])
       {
-        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: pi0 hist " << histName.c_str() << " is missing." << std::endl;
+        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: pi0 hist " << histName << " is missing." << std::endl;
         return;
       }
     }
     for (int i = 0; i < NMATRIX_7x7; ++i)
     {
-      std::string histName = (boost::format("h_pi0_heratio_7x7_en%d_%d") % binidx % i).str();
+      std::string histName = std::format("h_pi0_heratio_7x7_en{}_{}", binidx, i);
       file->GetObject(histName.c_str(), ratioHistograms_7x7_pi0[binidx][i]);
       if (!ratioHistograms_7x7_pi0[binidx][i])
       {
-        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: pi0 hist " << histName.c_str() << " is missing." << std::endl;
+        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: pi0 hist " << histName << " is missing." << std::endl;
         return;
       }
     }
     TH2 *hCovMatrix3x3_pi0{nullptr};
-    file->GetObject((boost::format("h_pi0_hCovMatrix3_en%d") % binidx).str().c_str(), hCovMatrix3x3_pi0);
+    file->GetObject(std::format("h_pi0_hCovMatrix3_en{}", binidx).c_str(), hCovMatrix3x3_pi0);
     TH2 *hCovMatrix5x5_pi0{nullptr};
-    file->GetObject((boost::format("h_pi0_hCovMatrix5_en%d") % binidx).str().c_str(), hCovMatrix5x5_pi0);
+    file->GetObject(std::format("h_pi0_hCovMatrix5_en{}", binidx).c_str(), hCovMatrix5x5_pi0);
     TH2 *hCovMatrix7x7_pi0{nullptr};
-    file->GetObject((boost::format("h_pi0_hCovMatrix7_en%d") % binidx).str().c_str(), hCovMatrix7x7_pi0);
+    file->GetObject(std::format("h_pi0_hCovMatrix7_en{}", binidx).c_str(), hCovMatrix7x7_pi0);
 
     if (!hCovMatrix3x3_pi0 || !hCovMatrix5x5_pi0 || !hCovMatrix7x7_pi0)
     {
