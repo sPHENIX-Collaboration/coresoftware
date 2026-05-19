@@ -41,9 +41,9 @@ class StreamingLumiInfov1 : public StreamingLumiInfo
 
 
  private:
-  double m_lumi_raw;
-  double m_lumi_live;
-  double m_lumi_scaled;
+  double m_lumi_raw{0.};
+  double m_lumi_live{0.};
+  double m_lumi_scaled{0.};
 
 
 

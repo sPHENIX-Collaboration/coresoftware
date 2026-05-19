@@ -43,12 +43,14 @@ int StreamingBcoLumiReco::Init(PHCompositeNode *topNode)
 {
   int iret = CreateNodeTree(topNode);
   h_bco_diff = new TH1I("h_bco_diff", ";bco diff;", 3500, 0, 3500);
+  std::string hist_name = "h_bco_diff_bit";
   for (int bit=0; bit<trigbits; ++bit)
   {
-    h_bco_diff_trigbits[bit] = new TH1I(Form("h_bco_diff_bit%d",bit), ";bco diff;", 3500, 0, 3500);
+    hist_name += std::to_string(bit);
+    h_bco_diff_trigbits[bit] = new TH1I(hist_name.c_str(), ";bco diff;", 3500, 0, 3500);
     hm->registerHisto(h_bco_diff_trigbits[bit]);
   }
-  h_bco_tag = new TH1I("h_bco_tag", "run 81100;usable bco tag;", 2, -0.5, 1.5);
+  h_bco_tag = new TH1I("h_bco_tag", ";usable bco tag;", 2, -0.5, 1.5);
   hm->registerHisto(h_bco_diff);
   hm->registerHisto(h_bco_tag);
 
@@ -196,7 +198,7 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
       h_bco_tag->Fill(m_usable_bco_tag);
       for (int bit=0; bit<trigbits; ++bit)
       {
-        bool trigger_fired = ((gl1_scaledvec >> bit) & 0x1U) == 0x1U;
+        bool trigger_fired = ((gl1_scaledvec >> static_cast<uint64_t>(bit)) & 0x1U) == 0x1U;
         //bool scaled_trigger_fired = ((gl1_scaledvec >> bit) & 0x1U) == 0x1U;
 
         if (trigger_fired) 
@@ -222,14 +224,14 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
           if (adjusted_bunch>110) { continue; }
 
           // Make sure this is the correct way to count crossings! Need to zero out for each run!
-          if(i!=0) 
+          if(i!=0 || m_usable_bco_tag) 
           {
             m_bunchnumber_crossings[adjusted_bunch] += 1;
           }
-          else if (m_usable_bco_tag)
-          {
-            m_bunchnumber_crossings[adjusted_bunch] += 1;
-          }
+          //else if (m_usable_bco_tag)
+          //{
+          //  m_bunchnumber_crossings[adjusted_bunch] += 1;
+          //}
       }
 
       streaming_bco_info->set_bco(get_bco());

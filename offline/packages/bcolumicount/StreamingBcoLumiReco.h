@@ -44,12 +44,12 @@ class StreamingBcoLumiReco : public SubsysReco
   const int trigbits = 40;
   Fun4AllHistoManager *hm = nullptr; 
   TH1I *h_bco_diff = nullptr;
-  TH1I *h_bco_diff_trigbits[40];
+  TH1I *h_bco_diff_trigbits[40] = {nullptr};
   TH1I *h_bco_tag = nullptr;
 
-  uint64_t m_bco;
+  uint64_t m_bco{0};
   int m_bunches = 120;
-  int m_evtno;
+  int m_evtno{0};
   bool m_usable_bco_tag = false;
   std::pair<uint64_t, uint64_t> m_bco_streaming_window;
 
@@ -63,9 +63,9 @@ class StreamingBcoLumiReco : public SubsysReco
 
   std::array<long, 120> m_bunchnumber_crossings{0};
 
-  std::array<double, 120> m_bunchnumber_lumi_raw{0};
-  std::array<double, 120> m_bunchnumber_lumi_live{0};
-  std::array<double, 120> m_bunchnumber_lumi_scaled{0};
+  std::array<double, 120> m_bunchnumber_lumi_raw{0.};
+  std::array<double, 120> m_bunchnumber_lumi_live{0.};
+  std::array<double, 120> m_bunchnumber_lumi_scaled{0.};
 
   double m_lumi_raw{0.};
   double m_lumi_live{0.};

@@ -44,9 +44,9 @@ class StreamingBcoInfov1 : public StreamingBcoInfo
 
 
  private:
-  uint64_t m_bco;
-  int m_evtno;
-  bool m_usable_bco_tag;
+  uint64_t m_bco{0};
+  int m_evtno{0};
+  bool m_usable_bco_tag{false};
   std::pair<uint64_t, uint64_t> m_bco_streaming_window;
 
   ClassDefOverride(StreamingBcoInfov1, 1)
