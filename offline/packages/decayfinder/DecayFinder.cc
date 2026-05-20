@@ -93,14 +93,14 @@ int DecayFinder::Init(PHCompositeNode* topNode)
 
 int DecayFinder::process_event(PHCompositeNode* topNode)
 {
-  bool decayFound = findDecay(topNode);
+  int decayFound = findDecay(topNode);
 
-  if (decayFound && m_save_dst && Verbosity() >= VERBOSITY_MORE)
+  if (decayFound > 0 && m_save_dst && Verbosity() >= VERBOSITY_MORE)
   {
     printNode(topNode);
   }
 
-  if (m_triggerOnDecay && !decayFound)
+  if (m_triggerOnDecay && decayFound < 1)
   {
     if (Verbosity() >= VERBOSITY_MORE)
     {
@@ -317,10 +317,10 @@ int DecayFinder::parseDecayDescriptor()
  * as decays wont enter the HepMC record
  * need a switch to go to Geant4 record
  */
-bool DecayFinder::findDecay(PHCompositeNode* topNode)
+int DecayFinder::findDecay(PHCompositeNode* topNode)
 {
   bool decayWasFound = false;
-  bool reconstructableDecayWasFound = false;
+  int reconstructableDecayWasFound = 0;
   bool aTrackFailedPT = false;
   bool aTrackFailedETA = false;
   bool aMotherHasPhoton = false;
@@ -384,6 +384,11 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
           std::cout << "parent->pdg_id(): " << g4particle->get_pid() << std::endl;
         }
 
+        aTrackFailedPT = false;
+        aTrackFailedETA = false;
+        aMotherHasPhoton = false;
+        aMotherHasPi0 = false;
+
         bool breakOut = false;
         correctMotherProducts.clear();
         decayChain.clear();
@@ -416,7 +421,7 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
           else
           {
             m_nCandReconstructable += 1;
-            reconstructableDecayWasFound = true;
+            ++reconstructableDecayWasFound;
             if (m_save_dst)
             {
               fillDecayNode(topNode, decayChain);
@@ -450,7 +455,7 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
     if (!m_genevt)
     {
       std::cout << "DecayFinder: Missing node PHHepMCGenEvent" << std::endl;
-      return false;
+      continue;
     }
 
     HepMC::GenEvent* theEvent = m_genevt->getEvent();
@@ -464,6 +469,11 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
         {
           std::cout << "parent->pdg_id(): " << (*p)->pdg_id() << std::endl;
         }
+
+        aTrackFailedPT = false;
+        aTrackFailedETA = false;
+        aMotherHasPhoton = false;
+        aMotherHasPi0 = false;
 
         bool breakOut = false;
         correctMotherProducts.clear();
@@ -505,7 +515,7 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
           else
           {
             m_nCandReconstructable += 1;
-            reconstructableDecayWasFound = true;
+            ++reconstructableDecayWasFound;
             if (m_save_dst)
             {
               fillDecayNode(topNode, decayChain);

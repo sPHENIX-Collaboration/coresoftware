@@ -60,6 +60,12 @@ class TpcLaminationFitting : public SubsysReco
 
   void set_nLayerCut(unsigned int cut) { m_nLayerCut = cut; }
 
+  void set_useSDLayerCut(bool useCut) { m_useSDLayerCut = useCut; }
+
+  void set_adcWeight(bool useADC) { m_adcWeight = useADC; }
+
+  void set_lam_grid_dimensions(int phibins, int rbins);
+
   int InitRun(PHCompositeNode *topNode) override;
 
   int process_event(PHCompositeNode *topNode) override;
@@ -110,6 +116,8 @@ class TpcLaminationFitting : public SubsysReco
   //TH2 *scaleFactorMap[2]{nullptr};
 
   unsigned int m_nLayerCut{1};
+  bool m_useSDLayerCut{true};
+  bool m_adcWeight{false};
   
   bool m_useHeader{true};
 
@@ -147,6 +155,9 @@ class TpcLaminationFitting : public SubsysReco
   double m_dist{0};
   double m_rmse{};
   int m_nBins{0};
+
+  int m_lamPhiBins{200};
+  int m_lamRBins{200};
 
   int m_phibins{80};
   static constexpr float m_phiMin{0};

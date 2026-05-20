@@ -8,27 +8,17 @@
 
 #include <ffamodules/CDBInterface.h>
 
-#include <ffaobjects/EventHeader.h>
-
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>    // for PHIODataNode
-#include <phool/PHNode.h>          // for PHNode
-#include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>
-#include <phool/recoConsts.h>
 
 #include <TSystem.h>
 
+#include <algorithm>
 #include <cmath>
-#include <cstdlib>    // for exit
-#include <exception>  // for exception
-#include <iostream>   // for operator<<, basic_ostream
-#include <stdexcept>  // for runtime_error
+#include <iostream>  // for operator<<, basic_ostream
 
 //____________________________________________________________________________..
 CaloTowerStatus::CaloTowerStatus(const std::string &name)
@@ -41,21 +31,8 @@ CaloTowerStatus::CaloTowerStatus(const std::string &name)
 }
 
 //____________________________________________________________________________..
-CaloTowerStatus::~CaloTowerStatus()
-{
-  if (Verbosity() > 0)
-  {
-    std::cout << "CaloTowerStatus::~CaloTowerStatus() Calling dtor" << std::endl;
-  }
-  delete m_cdbttree_chi2;
-  delete m_cdbttree_hotMap;
-}
-
-//____________________________________________________________________________..
 int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
 {
-  PHNodeIterator nodeIter(topNode);
-
   if (m_dettype == CaloTowerDefs::CEMC)
   {
     m_detector = "CEMC";
@@ -78,27 +55,30 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     m_detector = "SEPD";
   }
 
+  CreateNodeTree(topNode);
+
+  CDBTTree *cdbttree_chi2{nullptr};
+
   m_calibName_chi2 = m_detector + "_hotTowers_fracBadChi2";
   m_fieldname_chi2 = "fraction";
 
-  std::string calibdir = CDBInterface::instance()->getUrl(m_calibName_chi2);
-  if (!calibdir.empty())
+  if (!m_directURL_chi2.empty())
   {
-     m_cdbttree_chi2 = new CDBTTree(calibdir);
-    if (Verbosity() > 0)
-    {
-       std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_chi2 << "  Doing isHot for frac bad chi2" << std::endl;
-    }
+    std::cout << "CaloTowerStatus::InitRun: Using direct URL override for chi2: " << m_directURL_chi2 << std::endl;
+    cdbttree_chi2 = new CDBTTree(m_directURL_chi2);
   }
   else
   {
-    if (use_directURL_chi2)
+    std::string calibdir_chi2 = CDBInterface::instance()->getUrl(m_calibName_chi2);
+    if (!calibdir_chi2.empty())
     {
-      calibdir = m_directURL_chi2;
-      std::cout << "CaloTowerStatus::InitRun: Using default hotBadChi2" << calibdir << std::endl;
-      m_cdbttree_chi2 = new CDBTTree(calibdir);
+      cdbttree_chi2 = new CDBTTree(calibdir_chi2);
+      if (Verbosity() > 0)
+      {
+        std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_chi2 << "  Doing isHot for frac bad chi2" << std::endl;
+      }
     }
-    else 
+    else
     {
       if (m_doAbortNoChi2)
       {
@@ -113,68 +93,55 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     }
   }
 
+  CDBTTree *cdbttree_hotMap = nullptr;
+
   m_calibName_hotMap = m_detector + "_BadTowerMap";
   m_fieldname_hotMap = "status";
   m_fieldname_z_score = m_detector + "_sigma";
 
-  calibdir = CDBInterface::instance()->getUrl(m_calibName_hotMap);
-  if (!calibdir.empty())
+  std::string calibdir_hotMap;
+  if (!m_directURL_hotMap.empty())
   {
-    m_cdbttree_hotMap = new CDBTTree(calibdir);
-    if (Verbosity() > 1)
-    {
-      std::cout << "CaloTowerStatus::Init " << m_detector << "  hot map found " << m_calibName_hotMap << " Ddoing isHot" << std::endl;
-    }
+    calibdir_hotMap = m_directURL_hotMap;
+    std::cout << "CaloTowerStatus::InitRun: Using direct URL override for hot map: " << calibdir_hotMap << std::endl;
+    cdbttree_hotMap = new CDBTTree(calibdir_hotMap);
   }
   else
   {
-    if (m_doAbortNoHotMap)
+    calibdir_hotMap = CDBInterface::instance()->getUrl(m_calibName_hotMap);
+    if (!calibdir_hotMap.empty())
     {
-      std::cout << "CaloTowerStatus::InitRun: No hot map found for " << m_calibName_hotMap << " and abort mode is set. Exiting." << std::endl;
-      gSystem->Exit(1);
-    }
-    if (use_directURL_hotMap)
-    {
-      calibdir = m_directURL_hotMap;
-      std::cout << "CaloTowerStatus::InitRun: Using default map " << calibdir << std::endl;
-      m_cdbttree_hotMap = new CDBTTree(calibdir);
+      cdbttree_hotMap = new CDBTTree(calibdir_hotMap);
+      if (Verbosity() > 1)
+      {
+        std::cout << "CaloTowerStatus::Init " << m_detector << "  hot map found " << m_calibName_hotMap << " Doing isHot" << std::endl;
+      }
     }
     else
     {
+      if (m_doAbortNoHotMap)
+      {
+        std::cout << "CaloTowerStatus::InitRun: No hot map found for " << m_calibName_hotMap << " and abort mode is set. Exiting." << std::endl;
+        gSystem->Exit(1);
+      }
       m_doHotMap = false;
       if (Verbosity() > 1)
       {
         std::cout << "CaloTowerStatus::InitRun hot map info, " << m_calibName_hotMap << " not found, not doing isHot" << std::endl;
       }
-    }  
+    }
   }
 
   if (Verbosity() > 0)
   {
-    std::cout << "CaloTowerStatus::Init " << m_detector << "  doing hotBadChi2=" <<  std::boolalpha << m_doHotChi2 << " doing hot map=" << std::boolalpha << m_doHotMap << std::endl;
+    std::cout << "CaloTowerStatus::Init " << m_detector << "  doing hotBadChi2=" << std::boolalpha << m_doHotChi2 << " doing hot map=" << std::boolalpha << m_doHotMap << std::endl;
   }
 
-  PHNodeIterator iter(topNode);
+  LoadCalib(cdbttree_chi2, cdbttree_hotMap);
 
-  // Looking for the DST node
-  PHCompositeNode *dstNode;
-  dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode)
-  {
-    std::cout << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
-              << "DST Node missing, doing nothing." << std::endl;
-    exit(1);
-  }
-  try
-  {
-    CreateNodeTree(topNode);
-    LoadCalib();
-  }
-  catch (std::exception &e)
-  {
-    std::cout << e.what() << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
+  delete cdbttree_chi2;
+  delete cdbttree_hotMap;
+
   if (Verbosity() > 0)
   {
     topNode->print();
@@ -182,7 +149,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void CaloTowerStatus::LoadCalib()
+void CaloTowerStatus::LoadCalib(CDBTTree *cdbttree_chi2, CDBTTree *cdbttree_hotMap)
 {
   unsigned int ntowers = m_raw_towers->size();
   m_cdbInfo_vec.resize(ntowers);
@@ -191,14 +158,14 @@ void CaloTowerStatus::LoadCalib()
   {
     unsigned int key = m_raw_towers->encode_key(channel);
 
-    if (m_doHotChi2)
+    if (m_doHotChi2 && cdbttree_chi2)
     {
-      m_cdbInfo_vec[channel].fraction_badChi2 = m_cdbttree_chi2->GetFloatValue(key, m_fieldname_chi2);
+      m_cdbInfo_vec[channel].fraction_badChi2 = cdbttree_chi2->GetFloatValue(key, m_fieldname_chi2);
     }
-    if (m_doHotMap)
+    if (m_doHotMap && cdbttree_hotMap)
     {
-      m_cdbInfo_vec[channel].hotMap_val = m_cdbttree_hotMap->GetIntValue(key, m_fieldname_hotMap);
-      m_cdbInfo_vec[channel].z_score = m_cdbttree_hotMap->GetFloatValue(key, m_fieldname_z_score);
+      m_cdbInfo_vec[channel].hotMap_val = cdbttree_hotMap->GetIntValue(key, m_fieldname_hotMap);
+      m_cdbInfo_vec[channel].z_score = cdbttree_hotMap->GetFloatValue(key, m_fieldname_z_score);
     }
   }
 }
@@ -232,14 +199,32 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
-    if (( hotMap_val == 1 || // dead
-          std::fabs(z_score) > z_score_threshold || // hot or cold
-          (hotMap_val == 3 && z_score >= -1 * z_score_threshold_default)) // cold part 2
-          && m_doHotMap)
+    if (m_doHotMap)
     {
-      m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
+      bool is_hot_tower = false;
+
+      // 1. Default behavior: rely on valid positive hotMap status codes only
+      if (z_score_threshold == z_score_threshold_default)
+      {
+        is_hot_tower = (hotMap_val > 0);
+      }
+      // 2. Custom behavior: evaluate based on the custom z_score threshold
+      else
+      {
+        bool is_dead = (hotMap_val == 1);
+        bool exceeds_zscore_limit = (std::abs(z_score) > z_score_threshold);                      // Captures both hot and cold by sigma
+        bool is_low_yield_cold = (hotMap_val == 3 && z_score >= -1 * z_score_threshold_default);  // Captures the mean-based cold towers
+
+        is_hot_tower = (is_dead || exceeds_zscore_limit || is_low_yield_cold);
+      }
+
+      // Apply the result
+      if (is_hot_tower)
+      {
+        m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
+      }
     }
-    if (chi2 > std::min(std::max(badChi2_treshold_const, adc * adc * badChi2_treshold_quadratic),badChi2_treshold_max))
+    if (chi2 > std::min(std::max(badChi2_treshold_const, adc * adc * badChi2_treshold_quadratic), badChi2_treshold_max))
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(true);
     }
@@ -257,11 +242,10 @@ void CaloTowerStatus::CreateNodeTree(PHCompositeNode *topNode)
   m_raw_towers = findNode::getClass<TowerInfoContainer>(topNode, RawTowerNodeName);
   if (!m_raw_towers)
   {
-    std::cout << Name() << "::" << m_detector.c_str() << "::" << __PRETTY_FUNCTION__
-              << " " << RawTowerNodeName << " Node missing, doing bail out!"
+    std::cout << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
+              << " " << RawTowerNodeName << " Node missing, exiting!"
               << std::endl;
-    throw std::runtime_error(
-        "Failed to find " + RawTowerNodeName + " node in CaloTowerStatus::CreateNodes");
+    gSystem->Exit(1);
   }
 
   return;

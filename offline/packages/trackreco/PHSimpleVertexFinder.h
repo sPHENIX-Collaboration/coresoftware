@@ -46,16 +46,18 @@ class PHSimpleVertexFinder : public SubsysReco
   void setBeamSpotCutY(const double cutlo, const double cuthi) { _beamline_y_cut_lo = cutlo; _beamline_y_cut_hi = cuthi; }
   void setDcaCut(const double cut) { _base_dcacut = cut; }
   void setTrackQualityCut(double cut) { _qual_cut = cut; }
-  void setRequireMVTX(bool set) { _require_mvtx = set; }
+  void setRequireMVTX(bool set = true) { _require_mvtx = set; }
   void setNmvtxRequired(unsigned int n) { _nmvtx_required = n; }
+  void setRequireINTT(bool set = true) { _require_intt = set; }
+  void setNinttRequired(unsigned int n) { _nintt_required = n; }
   void setTrackPtCut(const double cut) { _track_pt_cut = cut; }
   // void setUseTrackCovariance(bool set) {_use_track_covariance = set;}
   void setOutlierPairCut(const double cut) { _outlier_cut = cut; }
   void setTrackMapName(const std::string &name) { _track_map_name = name; }
   void setVertexMapName(const std::string &name) { _vertex_map_name = name; }
-  void zeroField(const bool flag) { _zero_field = flag; }
+  void zeroField(const bool flag = true) { _zero_field = flag; }
   void setTrkrClusterContainerName(const std::string &name){ m_clusterContainerName = name; }
-  void set_pp_mode(bool mode) { _pp_mode = mode; }
+  void set_pp_mode(bool mode = true) { _pp_mode = mode; }
 
  private:
   int GetNodes(PHCompositeNode *topNode);
@@ -75,6 +77,7 @@ class PHSimpleVertexFinder : public SubsysReco
   void removeOutlierTrackPairs();
   double getMedian(std::vector<double> &v);
   double getAverage(std::vector<double> &v);
+  bool passClusterRequirement(SvtxTrack *track, const std::string &type = "MVTX");
 
   SvtxTrackMap *_track_map{nullptr};
   TrkrClusterContainer* _cluster_map{nullptr};
@@ -91,7 +94,9 @@ class PHSimpleVertexFinder : public SubsysReco
   double _beamline_y_cut_hi = 0.2; 
   double _qual_cut = 10.0;
   bool _require_mvtx = true;
+  bool _require_intt = false;
   unsigned int _nmvtx_required = 2;
+  unsigned int _nintt_required = 1;
   double _track_pt_cut = 0.0;
   double _outlier_cut = 0.015;
 

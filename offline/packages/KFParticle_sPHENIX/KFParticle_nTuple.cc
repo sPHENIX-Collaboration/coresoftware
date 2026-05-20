@@ -303,9 +303,9 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 
   m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
   m_tree->Branch("eventNumber", &m_evtNumber, "eventNumber/I");
-  m_tree->Branch("event_bco", &m_event_bco, "event_bco/L"); //adding for the current event BCO, not shifted
-  m_tree->Branch("BCO", &m_bco, "BCO/L"); //already there, this is shifted BCO
-  m_tree->Branch("last_event_bco", &m_last_event_bco, "last_event_bco/L"); //BCO for the last event 
+  m_tree->Branch("Collision_BCO", &m_bco, "Collision_BCO/L"); //already there, this is shifted BCO
+  m_tree->Branch("GL1_BCO", &m_event_bco, "GL1_BCO/L"); //adding for the current event BCO, not shifted
+  m_tree->Branch("last_GL1_BCO", &m_last_event_bco, "last_GL1_BCO/L"); //BCO for the last event 
 
   if (m_get_trigger_info)
   {

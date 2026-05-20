@@ -57,6 +57,13 @@ void TpcLaminationFitting::set_grid_dimensions(int phibins, int rbins)
   m_rbins = rbins;
 }
 
+//___________________________________________________________
+void TpcLaminationFitting::set_lam_grid_dimensions(int phibins, int rbins)
+{
+  m_lamPhiBins = phibins;
+  m_lamRBins = rbins;
+}
+
 //____________________________________________
 int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
 {
@@ -91,7 +98,7 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
 
       if(m_fieldOff)
       {
-        m_hLamination[l][s] = new TH2D((boost::format("hLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("Lamination %d %s, #phi_{ideal}=%.2f;R [cm];#phi") %l %(s == 1 ? "North" : "South") %m_laminationIdeal[l][s]).str().c_str(), 200, 30, 80, 200, m_laminationIdeal[l][s] - 0.2, m_laminationIdeal[l][s] + 0.2);
+        m_hLamination[l][s] = new TH2D((boost::format("hLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("Lamination %d %s, #phi_{ideal}=%.2f;R [cm];#phi") %l %(s == 1 ? "North" : "South") %m_laminationIdeal[l][s]).str().c_str(), m_lamRBins, 30, 80, m_lamPhiBins, m_laminationIdeal[l][s] - 0.2, m_laminationIdeal[l][s] + 0.2);
         m_fLamination[l][s] = new TF1((boost::format("fLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), "[0]+[1]", 30, 80);
         m_fLamination[l][s]->SetParameters(m_laminationOffset[l][s], m_laminationIdeal[l][s]);
         m_fLamination[l][s]->SetParLimits(0, -0.05, 0.05);
@@ -99,7 +106,7 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
       }
       else
       {
-        m_hLamination[l][s] = new TH2D((boost::format("hLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("Lamination %d %s, #phi_{nominal}=%.2f;R [cm];#phi") %l %(s == 1 ? "North" : "South") %(m_laminationIdeal[l][s]+m_laminationOffset[l][s])).str().c_str(), 200, 30, 80, 200, m_laminationIdeal[l][s]+m_laminationOffset[l][s] - 0.2, m_laminationIdeal[l][s]+m_laminationOffset[l][s] + 0.2);
+        m_hLamination[l][s] = new TH2D((boost::format("hLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("Lamination %d %s, #phi_{nominal}=%.2f;R [cm];#phi") %l %(s == 1 ? "North" : "South") %(m_laminationIdeal[l][s]+m_laminationOffset[l][s])).str().c_str(), m_lamRBins, 30, 80, m_lamPhiBins, m_laminationIdeal[l][s]+m_laminationOffset[l][s] - 0.2, m_laminationIdeal[l][s]+m_laminationOffset[l][s] + 0.2);
         m_fLamination[l][s] = new TF1((boost::format("fLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), "[3]+[0]*(1-exp(-[2]*(x-[1])))", 30, 80);
         m_fLamination[l][s]->SetParameters(-0.08, 38, 0.16, 0.0);
         m_fLamination[l][s]->SetParLimits(0, -0.02, 0.0);
@@ -394,6 +401,12 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
       continue;
     }
 
+    double weight = 1.0;
+    if(m_adcWeight)
+    {
+      weight = 1.0*cmclus->getAdc();
+    }
+
     
     //Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
     Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), (side ? 1.0 : -1.0));
@@ -408,7 +421,7 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
 
     TVector3 tmp_pos(pos[0], pos[1], pos[2]);
 
-    if(cmclus->getNLayers() > m_nLayerCut && cmclus->getSDWeightedLayer() > 0.5)
+    if(cmclus->getNLayers() > m_nLayerCut && (!m_useSDLayerCut || cmclus->getSDWeightedLayer() > 0.5))
     {
       for (int l = 0; l < 18; l++)
       {
@@ -426,12 +439,12 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
 	
       	if (phi2pi > shift - 0.2 && phi2pi < shift + 0.2)
 	      {
-	        m_hLamination[l][side]->Fill(tmp_pos.Perp(), phi2pi);
+	        m_hLamination[l][side]->Fill(tmp_pos.Perp(), phi2pi, weight);
 	      }
       }
     }
 
-    if(cmclus->getSDWeightedLayer() > 0.5)
+    if(m_useSDLayerCut && cmclus->getSDWeightedLayer() > 0.5)
     {
       continue;
     }
@@ -450,7 +463,7 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
       phi2pimod -= M_PI / 9;
     }
 
-    m_hPetal[side]->Fill(phi2pimod, tmp_pos.Perp());
+    m_hPetal[side]->Fill(phi2pimod, tmp_pos.Perp(), weight);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

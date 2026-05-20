@@ -292,7 +292,7 @@ int PHTrackPruner::GetNodes(PHCompositeNode *topNode)
   _pruned_svtx_seed_map = findNode::getClass<TrackSeedContainer>(topNode, _pruned_svtx_seed_map_name);
   if (!_pruned_svtx_seed_map)
   {
-    std::cout << "Creating node " << _pruned_svtx_seed_map_name.c_str() << std::endl;
+    std::cout << "Creating node " << _pruned_svtx_seed_map_name << std::endl;
     /// Get the DST Node
     PHNodeIterator iter(topNode);
     PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));

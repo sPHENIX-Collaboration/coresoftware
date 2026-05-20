@@ -390,15 +390,39 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
         m_reco_track_eta[index] = m_dst_track->get_eta();
         m_reco_track_phi[index] = m_dst_track->get_phi();
         m_reco_track_chi2nDoF[index] = m_dst_track->get_chisq() / m_dst_track->get_ndf();
-        if (m_dst_track->get_silicon_seed())
+        m_reco_track_silicon_seeds[index] = 0;
+        m_reco_track_tpc_seeds[index] = 0;
+
+        for (auto state_iter = m_dst_track->begin_states();
+        state_iter != m_dst_track->end_states();
+        ++state_iter)
         {
-          m_reco_track_silicon_seeds[index] = static_cast<int>(m_dst_track->get_silicon_seed()->size_cluster_keys());
+          SvtxTrackState *tstate = state_iter->second;
+          if (tstate->get_pathlength() != 0)  // The first track state is an extrapolation so has no cluster
+          {
+            auto stateckey = tstate->get_cluskey();
+            if (stateckey == TrkrDefs::CLUSKEYMAX)
+            {
+              continue;
+            }
+            uint8_t id = TrkrDefs::getTrkrId(stateckey);
+
+            switch (id)
+            {
+            case TrkrDefs::mvtxId:
+              [[fallthrough]];
+            case TrkrDefs::inttId:
+              ++m_reco_track_silicon_seeds[index];
+              break;
+            case TrkrDefs::tpcId:
+              ++m_reco_track_tpc_seeds[index];
+              break;
+            default:
+              break;
+            }
+          }
         }
-        else
-        {
-          m_reco_track_silicon_seeds[index] = 0;
-        }
-        m_reco_track_tpc_seeds[index] = static_cast<int>(m_dst_track->get_tpc_seed()->size_cluster_keys());
+
         m_min_reco_track_pT = std::min(m_reco_track_pT[index], m_min_reco_track_pT);
         m_max_reco_track_pT = std::max(m_reco_track_pT[index], m_max_reco_track_pT);
 
@@ -513,8 +537,8 @@ void HFTrackEfficiency::resetBranches()
     m_reco_track_phi[iTrack] = std::numeric_limits<float>::quiet_NaN();
     m_true_track_PID[iTrack] = std::numeric_limits<float>::quiet_NaN();
     m_reco_track_chi2nDoF[iTrack] = std::numeric_limits<float>::quiet_NaN();
-    m_reco_track_silicon_seeds[iTrack] = 0;
-    m_reco_track_tpc_seeds[iTrack] = 0;
+    m_reco_track_silicon_seeds[iTrack] = -1;
+    m_reco_track_tpc_seeds[iTrack] = -1;
   }
 
   m_primary_vtx_x = std::numeric_limits<float>::quiet_NaN();
