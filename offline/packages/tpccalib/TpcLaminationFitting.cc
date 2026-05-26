@@ -345,6 +345,11 @@ int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
   m_laminationTree->Branch("RMSE",&m_rmse);
 
 
+  m_ZDCParameterValuesTree = new TTree("ZDCParameterValuesTree","ZDCParameterValuesTree");
+  m_laminationTree->Branch("A_zdc",&m_A_zdc);
+  m_laminationTree->Branch("B_zdc",&m_B_zdc);
+  m_laminationTree->Branch("C_zdc",&m_C_zdc);
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -387,7 +392,7 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
   {
     const auto &[cmkey, cmclus_orig] = *cmitr;
     LaserCluster *cmclus = cmclus_orig;
-    // const unsigned int adc = cmclus->getAdc();
+    const unsigned int adc = cmclus->getAdc();
     bool side = (bool) TpcDefs::getSide(cmkey);
     if (cmclus->getNLayers() < m_nLayerCut)
     {
@@ -408,7 +413,7 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
 
     TVector3 tmp_pos(pos[0], pos[1], pos[2]);
     if(cmclus->getNLayers() > m_nLayerCut)
-      //    if(cmclus->getNLayers() > m_nLayerCut && cmclus->getSDWeightedLayer() > 0.5)
+	  //          if(cmclus->getNLayers() > m_nLayerCut && cmclus->getSDWeightedLayer() > 0.5)
     {
       for (int l = 0; l < 18; l++)
       {
@@ -426,7 +431,7 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
 	
       	if (phi2pi > shift - 0.2 && phi2pi < shift + 0.2)
 	      {
-	        m_hLamination[l][side]->Fill(tmp_pos.Perp(), phi2pi);
+	        m_hLamination[l][side]->Fill(tmp_pos.Perp(), phi2pi,adc);
 	      }
       }
     }
@@ -566,10 +571,13 @@ int TpcLaminationFitting::fitLaminations()
       }
       else
       {
+       	m_A_zdc = Af[s]->Eval(m_ZDC_coincidence);
+        m_B_zdc = Bf[s]->Eval(m_ZDC_coincidence);
+        m_C_zdc = Cseed[s];
         m_fLamination[l][s]->SetParameters(Af[s]->Eval(m_ZDC_coincidence), Bf[s]->Eval(m_ZDC_coincidence), Cseed[s], m_laminationIdeal[l][s] + m_laminationOffset[l][s]);
         m_fLamination[l][s]->FixParameter(3, m_laminationIdeal[l][s] + m_laminationOffset[l][s]);
       }
-      
+
       TF1 *fitSeed = (TF1 *) m_fLamination[l][s]->Clone();
       fitSeed->SetName(std::format("fitSeed{}_{}", l, (s == 1 ? "North" : "South")).c_str());
 
@@ -694,7 +702,7 @@ int TpcLaminationFitting::fitLaminations()
           }
         }
       }
-
+      m_ZDCParameterValuesTree->Fill();
       m_distanceToFit[l][s] = distToFunc / nBinsUsed;
       m_nBinsFit[l][s] = nBinsUsed;
       if(c>0) { m_fitRMSE[l][s] = sqrt(wc / c);
@@ -1090,7 +1098,7 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     }
     c1->SaveAs(std::format("{}]", m_QAFileName).c_str());
   }
-  
+
   //TFile *simDistortion = new TFile("/cvmfs/sphenix.sdcc.bnl.gov/gcc-12.1.0/release/release_new/new.10/share/calibrations/distortion_maps/average_minus_static_distortion_inverted_10-new.root", "READ");
   //TH3 *hIntDistortionP_posz = (TH3 *) simDistortion->Get("hIntDistortionP_posz");
   //hIntDistortionP_posz->GetZaxis()->SetRange(2, 2);
@@ -1211,7 +1219,8 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     m_parameterScan[s]->Write();
   }
   m_laminationTree->Write();
-  
+  m_ZDCParameterValuesTree->Write();
+  m_saveAllLaminationHistograms = true;
   if(m_saveAllLaminationHistograms)
   {
     for(auto &i : m_hLamination)
