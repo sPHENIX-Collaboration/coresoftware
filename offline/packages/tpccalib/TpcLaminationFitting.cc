@@ -711,7 +711,7 @@ int TpcLaminationFitting::fitLaminations()
           }
         }
       }
-      m_ZDCParameterValuesTree->Fill();
+
       m_distanceToFit[l][s] = distToFunc / nBinsUsed;
       m_nBinsFit[l][s] = nBinsUsed;
       if(c>0) { m_fitRMSE[l][s] = sqrt(wc / c);
@@ -1228,7 +1228,6 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     m_parameterScan[s]->Write();
   }
   m_laminationTree->Write();
-  m_ZDCParameterValuesTree->Write();
   m_saveAllLaminationHistograms = true;
   if(m_saveAllLaminationHistograms)
   {

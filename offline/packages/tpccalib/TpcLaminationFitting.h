@@ -141,7 +141,6 @@ class TpcLaminationFitting : public SubsysReco
   bool m_fieldOff{false};
 
   TTree *m_laminationTree{nullptr};
-  TTree *m_ZDCParameterValuesTree{nullptr};
   bool m_side{false};
   int m_lamIndex{0};
   double m_lamPhi{0};
