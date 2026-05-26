@@ -5,12 +5,14 @@
 #include <zdcinfo/Zdcinfo.h>
 
 #include <cdbobjects/CDBTTree.h>
-#include <ffamodules/CDBInterface.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
+
 #include <mbd/MbdPmtContainer.h>
 #include <mbd/MbdPmtHit.h>
+
+#include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -25,7 +27,6 @@
 #include <cmath>
 #include <filesystem>
 #include <iostream>
-#include <map>  // for _Rb_tree_iterator
 #include <string>
 #include <utility>  // for pair
 
@@ -33,6 +34,7 @@ MinimumBiasClassifier::MinimumBiasClassifier(const std::string &name)
   : SubsysReco(name)
 {
 }
+
 int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
 {
   if (Verbosity() > 1)
@@ -41,34 +43,38 @@ int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
   }
 
   if (m_species == MinimumBiasInfo::SPECIES::AUAU)
-    {
-      m_useZDC = true;
-      m_max_charge_cut = 2100;
-      m_box_cut = true;
-      m_hit_cut = 2;
-    }
+  {
+    m_useZDC = true;
+    m_max_charge_cut = 2100;
+    m_box_cut = true;
+    m_hit_cut = 2;
+  }
   if (m_species == MinimumBiasInfo::SPECIES::OO)
-    {
-      m_useZDC = false;
-      m_max_charge_cut = 300;
-      m_box_cut = false;
-      m_hit_cut = 1;
-    }
+  {
+    m_useZDC = false;
+    m_max_charge_cut = 300;
+    m_box_cut = false;
+    m_hit_cut = 1;
+  }
   if (m_species == MinimumBiasInfo::SPECIES::PP)
-    {
-      m_useZDC = false;
-      m_max_charge_cut = 300;
-      m_box_cut = false;
-      m_hit_cut = 1;
-    }
+  {
+    m_useZDC = false;
+    m_max_charge_cut = 300;
+    m_box_cut = false;
+    m_hit_cut = 1;
+  }
 
   CDBInterface *m_cdb = CDBInterface::instance();
 
-  std::string centscale_url = m_cdb->getUrl("CentralityScale");
-  if (m_overwrite_scale)
+  std::string centscale_url;
+  if (!m_overwrite_url_scale.empty())
   {
     centscale_url = m_overwrite_url_scale;
     std::cout << " Overwriting Scale to " << m_overwrite_url_scale << std::endl;
+  }
+  else
+  {
+    centscale_url = m_cdb->getUrl("CentralityScale");
   }
 
   if (Download_centralityScale(centscale_url))
@@ -76,11 +82,15 @@ int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  std::string vertexscale_url = m_cdb->getUrl("CentralityVertexScale");
-  if (m_overwrite_vtx)
+  std::string vertexscale_url;
+  if (!m_overwrite_url_vtx.empty())
   {
     vertexscale_url = m_overwrite_url_vtx;
     std::cout << " Overwriting Vtx to " << m_overwrite_url_vtx << std::endl;
+  }
+  else
+  {
+    vertexscale_url = m_cdb->getUrl("CentralityVertexScale");
   }
 
   if (Download_centralityVertexScales(vertexscale_url))
@@ -125,11 +135,13 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   //   return Fun4AllReturnCodes::EVENT_OK;
   // }
 
-  
   if (m_global_vertex_map->empty())
   {
     m_mb_info->setIsAuAuMinimumBias(false);
-    if (m_abortEvents) return 1;
+    if (m_abortEvents)
+    {
+      return 1;
+    }
     return 0;
   }
 
@@ -137,19 +149,25 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   if (!vtx)
   {
     m_mb_info->setIsAuAuMinimumBias(false);
-    if (m_abortEvents) return 1;
+    if (m_abortEvents)
+    {
+      return 1;
+    }
     return 0;
   }
 
   if (!vtx->isValid())
   {
     m_mb_info->setIsAuAuMinimumBias(false);
-    if (m_abortEvents) return 1;
+    if (m_abortEvents)
+    {
+      return 1;
+    }
     return 0;
   }
 
   bool minbiascheck = true;
- 
+
   m_vertex = vtx->get_z();
 
   m_vertex_scale = getVertexScale();
@@ -163,7 +181,10 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     if (!m_zdcinfo)
     {
       m_mb_info->setIsAuAuMinimumBias(false);
-      if (m_abortEvents) return 1;
+      if (m_abortEvents)
+      {
+        return 1;
+      }
       return 0;
     }
   }
@@ -231,9 +252,9 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
 
   m_mb_info->setIsAuAuMinimumBias(minbiascheck);
   if (!minbiascheck && m_abortEvents)
-    {
-      return 1;
-    }
+  {
+    return 1;
+  }
   return 0;
 }
 
@@ -253,9 +274,9 @@ int MinimumBiasClassifier::process_event(PHCompositeNode *topNode)
   if (FillMinimumBiasInfo())
   {
     if (Verbosity())
-      {
-	std::cout << "MinimumBiasClassifier::process_event Aborting Event - not minbias" << std::endl;
-      }
+    {
+      std::cout << "MinimumBiasClassifier::process_event Aborting Event - not minbias" << std::endl;
+    }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
