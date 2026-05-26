@@ -14,7 +14,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <RtypesCore.h>  // for Double_t
+#include <Rtypes.h>  // for Double_t
 #include <TCanvas.h>
 #include <TF1.h>
 #include <TFile.h>
@@ -548,7 +548,7 @@ void LiteCaloEval::Get_Histos(const std::string &infile, const std::string &outf
 
       if (!heta_tempp && i == 0)
       {
-        std::cout << " warning hist " << hist_name_p.c_str() << " not found" << std::endl;
+        std::cout << " warning hist " << hist_name_p << " not found" << std::endl;
       }
 
       /// assign heta_tempp to array of tower histos

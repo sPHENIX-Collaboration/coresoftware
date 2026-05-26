@@ -47,7 +47,6 @@ class PHSimpleKFProp : public SubsysReco
 
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
-  int End(PHCompositeNode* topNode) override;
 
   // noop
   void set_field_dir(const double)
@@ -141,8 +140,8 @@ class PHSimpleKFProp : public SubsysReco
   PositionMap PrepareKDTrees();
 
   bool TransportAndRotate(
-    double old_layer,
-    double new_layer,
+    double old_radius,
+    double new_radius,
     double& phi,
     GPUTPCTrackParam& kftrack,
     GPUTPCTrackParam::GPUTPCTrackFitParam& fp) const;
@@ -161,7 +160,7 @@ class PHSimpleKFProp : public SubsysReco
   // which means we have to have a way to directly pass a list of clusters in order to extend looping tracks
   std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, PropagationDirection direction, GPUTPCTrackParam& aliceSeed, const PositionMap& globalPositions) const;
   std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, std::vector<TrkrDefs::cluskey>& ckeys, PropagationDirection direction, GPUTPCTrackParam& aliceSeed, const PositionMap& globalPositions) const;
-  std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(const std::vector<std::vector<TrkrDefs::cluskey>>& seeds, const PositionMap& globalPositions) const;
+  std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, const PositionMap& globalPositions) const;
 
   template <typename T>
   struct KDPointCloud
