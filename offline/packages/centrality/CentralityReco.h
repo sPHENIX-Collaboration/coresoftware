@@ -2,13 +2,14 @@
 #define CENTRALITY_CENTRALITYRECO_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <array>
-#include <vector>
 #include <limits>
 #include <string>  // for string, allocator
+#include <vector>
 
 // Forward declarations
-class TF1;
+
 class CentralityInfo;
 class MinimumBiasInfo;
 class PHCompositeNode;
@@ -45,18 +46,15 @@ class CentralityReco : public SubsysReco
   void setOverwriteDivs(const std::string &url)
   {
     m_overwrite_url_divs = url;
-    m_overwrite_divs = true;    
   }
   void setOverwriteScale(const std::string &url)
   {
     m_overwrite_url_scale = url;
-    m_overwrite_scale = true;    
   }
 
   void setOverwriteVtx(const std::string &url)
   {
     m_overwrite_url_vtx = url;
-    m_overwrite_vtx = true;    
   }
 
   void set_minbiasNodeName(const std::string &name)
@@ -76,30 +74,8 @@ class CentralityReco : public SubsysReco
     m_mbd_pmt_nodename = name;
   }
 
-  
  private:
-
-
   float getVertexScale();
-
-  std::string m_dbfilename;
-
-  std::string m_mb_info_nodename{"MinimumBiasInfo"};
-
-  std::string m_mbd_out_nodename{"MbdOut"};
-
-  std::string m_centrality_nodename{"CentralityInfo"};
-
-  std::string m_mbd_pmt_nodename{"MbdPmtContainer"};
-
-
-  std::string m_overwrite_url_divs;
-  std::string m_overwrite_url_scale;
-  std::string m_overwrite_url_vtx;
-
-  const int NDIVS{100};
-  const float mbd_charge_cut{0.5};
-  const float mbd_time_cut{25};
 
   MbdOut *m_mbd_out{nullptr};
   MbdPmtContainer *m_mbd_container{nullptr};
@@ -107,16 +83,29 @@ class CentralityReco : public SubsysReco
   MinimumBiasInfo *m_mb_info{nullptr};
   CentralityInfo *m_central{nullptr};
 
-  unsigned int m_key{std::numeric_limits<unsigned int>::max()};
+  static constexpr int NDIVS{100};
 
-  float m_mbd_total_charge{0.}; // init to zero for use in first event
+  static constexpr float mbd_charge_cut{0.5};
+  static constexpr float mbd_time_cut{25};
+
+  unsigned int m_key{std::numeric_limits<unsigned int>::max()};
 
   double m_centrality_scale{std::numeric_limits<double>::quiet_NaN()};
 
-  std::vector<std::pair<std::pair<float, float>, float>>  m_vertex_scales{};
+  float m_mbd_total_charge{0.};  // init to zero for use in first event
+
+
+  std::string m_mb_info_nodename{"MinimumBiasInfo"};
+  std::string m_mbd_out_nodename{"MbdOut"};
+  std::string m_centrality_nodename{"CentralityInfo"};
+  std::string m_mbd_pmt_nodename{"MbdPmtContainer"};
+
+  std::string m_overwrite_url_divs;
+  std::string m_overwrite_url_scale;
+  std::string m_overwrite_url_vtx;
+
+  std::vector<std::pair<std::pair<float, float>, float>> m_vertex_scales{};
   std::array<float, 100> m_centrality_map{};
-
-
 };
 
 #endif
