@@ -350,9 +350,6 @@ int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
   m_laminationTree->Branch("distanceToFit",&m_dist);
   m_laminationTree->Branch("nBinsFit",&m_nBins);
   m_laminationTree->Branch("RMSE",&m_rmse);
-
-
-  m_ZDCParameterValuesTree = new TTree("ZDCParameterValuesTree","ZDCParameterValuesTree");
   m_laminationTree->Branch("A_zdc",&m_A_zdc);
   m_laminationTree->Branch("B_zdc",&m_B_zdc);
   m_laminationTree->Branch("C_zdc",&m_C_zdc);
