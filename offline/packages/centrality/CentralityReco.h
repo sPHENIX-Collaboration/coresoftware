@@ -6,6 +6,7 @@
 #include <array>
 #include <limits>
 #include <string>  // for string, allocator
+#include <utility>
 #include <vector>
 
 // Forward declarations
@@ -13,7 +14,6 @@
 class CentralityInfo;
 class MinimumBiasInfo;
 class PHCompositeNode;
-class GlobalVertexMap;
 class MbdOut;
 class MbdPmtContainer;
 class MbdPmtHit;
