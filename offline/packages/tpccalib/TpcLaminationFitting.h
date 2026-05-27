@@ -152,13 +152,12 @@ class TpcLaminationFitting : public SubsysReco
   double m_A_err{0};
   double m_B_err{0};
   double m_C_err{0};
-  double m_A_zdc{0};
-  double m_B_zdc{0};
-  double m_C_zdc{0};
   double m_dist{0};
   double m_rmse{};
   int m_nBins{0};
 
+  TVectorD m_A_zdc(2), m_B_zdc(2), m_C_zdc(2);
+  
   int m_lamPhiBins{200};
   int m_lamRBins{200};
 

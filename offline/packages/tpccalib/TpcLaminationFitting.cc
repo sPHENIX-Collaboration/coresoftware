@@ -350,9 +350,9 @@ int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
   m_laminationTree->Branch("distanceToFit",&m_dist);
   m_laminationTree->Branch("nBinsFit",&m_nBins);
   m_laminationTree->Branch("RMSE",&m_rmse);
-  m_laminationTree->Branch("A_zdc",&m_A_zdc);
-  m_laminationTree->Branch("B_zdc",&m_B_zdc);
-  m_laminationTree->Branch("C_zdc",&m_C_zdc);
+  //m_laminationTree->Branch("A_zdc",&m_A_zdc);
+  //m_laminationTree->Branch("B_zdc",&m_B_zdc);
+  //m_laminationTree->Branch("C_zdc",&m_C_zdc);
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -580,9 +580,9 @@ int TpcLaminationFitting::fitLaminations()
       }
       else
       {
-       	m_A_zdc = Af[s]->Eval(m_ZDC_coincidence);
-        m_B_zdc = Bf[s]->Eval(m_ZDC_coincidence);
-        m_C_zdc = Cseed[s];
+       	m_A_zdc[s] = Af[s]->Eval(m_ZDC_coincidence);
+        m_B_zdc[s] = Bf[s]->Eval(m_ZDC_coincidence);
+        m_C_zdc[s] = Cseed[s];
         m_fLamination[l][s]->SetParameters(Af[s]->Eval(m_ZDC_coincidence), Bf[s]->Eval(m_ZDC_coincidence), Cseed[s], m_laminationIdeal[l][s] + m_laminationOffset[l][s]);
         m_fLamination[l][s]->FixParameter(3, m_laminationIdeal[l][s] + m_laminationOffset[l][s]);
       }
@@ -1229,6 +1229,11 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
   }
   m_laminationTree->Write();
   m_saveAllLaminationHistograms = true;
+  for(int s=0; s<2; s++) {
+    m_A_zdc[s]->Write(std::format("A_zdc_{}",s).c_str());
+    m_B_zdc[s]->Write(std::format("B_zdc_{}",s).c_str());
+    m_C_zdc[s]->Write(std::format("C_zdc_{}",s).c_str());
+  }
   if(m_saveAllLaminationHistograms)
   {
     for(auto &i : m_hLamination)
