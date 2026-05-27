@@ -1228,7 +1228,6 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     m_parameterScan[s]->Write();
   }
   m_laminationTree->Write();
-  m_saveAllLaminationHistograms = true;
   if(m_saveAllLaminationHistograms)
   {
     for(auto &i : m_hLamination)
