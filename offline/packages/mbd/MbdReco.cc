@@ -176,7 +176,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
   m_mbdevent->Calculate(m_mbdpmts, m_mbdout, topNode);
 
   // For multiple global vertex
-  if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0 && _calpass==0 )
+  if ( m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0 && !_fitsonly && _calpass!=1 )
   {
     auto *vertex = new MbdVertexv3();
     vertex->set_t(m_mbdevent->get_bbct0());
@@ -185,10 +185,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     vertex->set_t_err(m_tres);
     vertex->set_beam_crossing(0);
 
-    if ( !_fitsonly )
-    {
-      m_mbdvtxmap->insert(vertex);
-    }
+    m_mbdvtxmap->insert(vertex);
   }
 
   if (Verbosity() > 0)

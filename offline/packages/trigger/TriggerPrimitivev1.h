@@ -6,7 +6,6 @@
 
 #include <cstddef>
 #include <iostream>
-#include <vector>
 
 ///
 class TriggerPrimitivev1 : public TriggerPrimitive
