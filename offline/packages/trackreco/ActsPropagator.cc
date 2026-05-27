@@ -150,13 +150,9 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   SphenixPropagatorOptions options(m_geometry->geometry().getGeoContext(),
                                     m_geometry->geometry().magFieldContext);
-  Acts::ForcedSurfaceReached aborter;
-  aborter.nearLimit = -10 * Acts::UnitConstants::mm;
-  aborter.surface = surface.get();
-  options.actorList.append(aborter);
+
   auto intersect = surface.get()->intersect(m_geometry->geometry().getGeoContext(), params.position(m_geometry->geometry().getGeoContext()), params.momentum(),
                                      Acts::BoundaryTolerance::None(), 0.1 * Acts::UnitConstants::mm).closest();
-  auto distance = intersect.pathLength();
   options.direction = Acts::Direction::fromScalarZeroAsPositive(intersect.pathLength());
   auto result = propagator.template propagate<Acts::BoundTrackParameters, SphenixPropagatorOptions, Acts::ForcedSurfaceReached, Acts::PathLimitReached>(params, *surface, options);
 
@@ -168,21 +164,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
     return Acts::Result<BoundTrackParamPair>::success(pair);
   }
-  /*
-  // try it the other direction
-  options.direction = options.direction.invert();
-
-  auto result2 = propagator.propagate(params, *surface, options);
-  if (result2.ok())
-  {
-    auto finalparams = *result2.value().endParameters; // NOLINT(bugprone-unchecked-optional-access)
-    auto pathlength = result2.value().pathLength;
-    auto pair = std::make_pair(pathlength, finalparams);
-
-    return Acts::Result<BoundTrackParamPair>::success(pair);
-  }
-  */
-  std::cout << "There was an error with both directions !" << options.direction << std::endl;
+  
   return result.error();
 }
 
