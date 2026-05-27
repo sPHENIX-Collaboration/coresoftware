@@ -396,7 +396,7 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
   {
     const auto &[cmkey, cmclus_orig] = *cmitr;
     LaserCluster *cmclus = cmclus_orig;
-    const unsigned int adc = cmclus->getAdc();
+    //const unsigned int adc = cmclus->getAdc();
     bool side = (bool) TpcDefs::getSide(cmkey);
     if (cmclus->getNLayers() < m_nLayerCut)
     {
@@ -1228,7 +1228,6 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     m_parameterScan[s]->Write();
   }
   m_laminationTree->Write();
-  m_saveAllLaminationHistograms = true;
   for(int s=0; s<2; s++) {
     m_A_zdc[s]->Write(std::format("A_zdc_{}",s).c_str());
     m_B_zdc[s]->Write(std::format("B_zdc_{}",s).c_str());
