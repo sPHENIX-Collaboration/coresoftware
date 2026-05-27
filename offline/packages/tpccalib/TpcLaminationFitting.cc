@@ -396,7 +396,7 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
   {
     const auto &[cmkey, cmclus_orig] = *cmitr;
     LaserCluster *cmclus = cmclus_orig;
-    const unsigned int adc = cmclus->getAdc();
+    //const unsigned int adc = cmclus->getAdc();
     bool side = (bool) TpcDefs::getSide(cmkey);
     if (cmclus->getNLayers() < m_nLayerCut)
     {
