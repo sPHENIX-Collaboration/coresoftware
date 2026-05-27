@@ -10,12 +10,14 @@
 
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
-#include <Acts/Propagator/VoidNavigator.hpp>
+
 #include <Acts/EventData/ParticleHypothesis.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
+#include <Acts/Propagator/VoidNavigator.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
+#include <Acts/Definitions/Units.hpp>
 
 ActsPropagator::SurfacePtr
 ActsPropagator::makeVertexSurface(const SvtxVertex* vertex)
@@ -146,11 +148,17 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   auto propagator = makePropagator();
 
-  SphenixPropagator::Options<Acts::ActorList<>> options(m_geometry->geometry().getGeoContext(),
+  SphenixPropagatorOptions options(m_geometry->geometry().getGeoContext(),
                                     m_geometry->geometry().magFieldContext);
-
-  auto result = propagator.propagate(params, *surface,
-                                     options);
+  Acts::ForcedSurfaceReached aborter;
+  aborter.nearLimit = -10 * Acts::UnitConstants::mm;
+  aborter.surface = surface.get();
+  options.actorList.append(aborter);
+  auto intersect = surface.get()->intersect(m_geometry->geometry().getGeoContext(), params.position(m_geometry->geometry().getGeoContext()), params.momentum(),
+                                     Acts::BoundaryTolerance::None(), 0.1 * Acts::UnitConstants::mm).closest();
+  auto distance = intersect.pathLength();
+  options.direction = Acts::Direction::fromScalarZeroAsPositive(intersect.pathLength());
+  auto result = propagator.template propagate<Acts::BoundTrackParameters, SphenixPropagatorOptions, Acts::ForcedSurfaceReached, Acts::PathLimitReached>(params, *surface, options);
 
   if (result.ok())
   {
@@ -160,7 +168,21 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
     return Acts::Result<BoundTrackParamPair>::success(pair);
   }
+  /*
+  // try it the other direction
+  options.direction = options.direction.invert();
 
+  auto result2 = propagator.propagate(params, *surface, options);
+  if (result2.ok())
+  {
+    auto finalparams = *result2.value().endParameters; // NOLINT(bugprone-unchecked-optional-access)
+    auto pathlength = result2.value().pathLength;
+    auto pair = std::make_pair(pathlength, finalparams);
+
+    return Acts::Result<BoundTrackParamPair>::success(pair);
+  }
+  */
+  std::cout << "There was an error with both directions !" << options.direction << std::endl;
   return result.error();
 }
 
@@ -230,19 +252,22 @@ ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
     field = std::make_shared<Acts::ConstantBField>(fieldVec);
   }
 
-  auto trackingGeometry = m_geometry->geometry().tGeometry;
-  Stepper stepper(field);
-  Acts::Navigator::Config cfg{trackingGeometry};
-  cfg.resolvePassive = false;
-  cfg.resolveMaterial = true;
-  cfg.resolveSensitive = true;
-  Acts::Navigator navigator(cfg);
-
   Acts::Logging::Level logLevel = Acts::Logging::FATAL;
   if (m_verbosity > 3)
   {
     logLevel = Acts::Logging::VERBOSE;
   }
+  auto trackingGeometry = m_geometry->geometry().tGeometry;
+  Stepper stepper(field);
+
+  std::shared_ptr<const Acts::Logger> navlogger = Acts::getDefaultLogger("ActsPropagator::NAVIGATION", logLevel);
+
+  Acts::Navigator::Config cfg{trackingGeometry};
+  cfg.resolvePassive = false;
+  cfg.resolveMaterial = true;
+  cfg.resolveSensitive = true;
+  Acts::Navigator navigator(cfg, navlogger);
+
 
   std::shared_ptr<const Acts::Logger> logger = Acts::getDefaultLogger("ActsPropagator", logLevel);
   return SphenixPropagator(stepper, navigator, logger);
