@@ -17,8 +17,8 @@
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
 
-GlobalVertex::VTXTYPE trkType = GlobalVertex::SVTX;
-GlobalVertex::VTXTYPE mbdType = GlobalVertex::MBD;
+constexpr GlobalVertex::VTXTYPE trkType = GlobalVertex::SVTX;
+constexpr GlobalVertex::VTXTYPE mbdType = GlobalVertex::MBD;
 //____________________________________________________________________________..
 MbdTrackVertex::MbdTrackVertex(const std::string &name):
  SubsysReco(name)
