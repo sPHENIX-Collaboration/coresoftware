@@ -162,7 +162,10 @@ int MbdTrackVertex::process_event(PHCompositeNode *topNode)
     h2_mbdtrkz->Fill(coords);
   }
 
-  if (_treeflag) outTree->Fill();
+  if (_treeflag)
+  {
+    outTree->Fill();
+  }
 
   ++_counter;
 
