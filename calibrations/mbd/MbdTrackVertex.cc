@@ -92,6 +92,11 @@ int MbdTrackVertex::process_event(PHCompositeNode *topNode)
   SvtxVertexMap *m_dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
 
   GlobalVertexMap *globalvertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  if (!m_dst_mbdvertexmap || !m_dst_vertexmap || !globalvertexmap)
+  {
+    std::cout << PHWHERE << " missing required vertex node(s)" << std::endl;
+    return Fun4AllReturnCodes::DISCARDEVENT;
+  }
 
   _mbdVertex = _trackerVertex = std::numeric_limits<float>::quiet_NaN();
   _nTracks = _nMBDVertex = _nTRKVertex = std::numeric_limits<unsigned int>::quiet_NaN();
