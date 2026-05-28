@@ -84,7 +84,8 @@ int MbdTrackVertex::process_event(PHCompositeNode *topNode)
     }
     else
     {
-      std::cout << PHWHERE << " GL1Packet node not found, skipping trigger mask check" << std::endl;
+      std::cout << PHWHERE << " GL1Packet node not found; discarding event because trigger masking was requested" << std::endl;
+      return Fun4AllReturnCodes::DISCARDEVENT;
     }
   }
 
