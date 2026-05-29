@@ -215,7 +215,7 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
     m_true_mother_p = std::sqrt(std::pow(mother->momentum().px(), 2) + std::pow(mother->momentum().py(), 2) + std::pow(mother->momentum().pz(), 2));  // Must have an old HepMC build, no mag function
     m_true_mother_eta = mother->momentum().eta();
     m_true_mother_phi = mother->momentum().phi();
-    if (mother->momentum().e() > abs(mother->momentum().pz()))
+    if (mother->momentum().e() > std::fabs(mother->momentum().pz()))
     {
       m_true_mother_rapidity = 0.5 * log((mother->momentum().e() + mother->momentum().pz())/(mother->momentum().e() - mother->momentum().pz()));
     }
