@@ -8,7 +8,7 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <fun4all/SubsysReco.h>
-
+#include <TVectorD.h>
 class PHCompositeNode;
 
 class LaserClusterContainer;
@@ -156,7 +156,9 @@ class TpcLaminationFitting : public SubsysReco
   double m_rmse{};
   int m_nBins{0};
 
-  TVectorD m_A_zdc(2), m_B_zdc(2), m_C_zdc(2);
+  TVectorD m_A_zdc{2};
+  TVectorD m_B_zdc{2};
+  TVectorD m_C_zdc{2};
   
   int m_lamPhiBins{200};
   int m_lamRBins{200};

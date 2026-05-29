@@ -32,7 +32,7 @@
 #include <TStyle.h>
 #include <TTree.h>
 #include <TVector3.h>
-
+#include <TVectorD.h>
 #include <boost/format.hpp>
 #include <boost/math/special_functions/lambert_w.hpp>
 
@@ -1228,11 +1228,14 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     m_parameterScan[s]->Write();
   }
   m_laminationTree->Write();
-  for(int s=0; s<2; s++) {
+  m_A_zdc.Write("A_zdc");   
+  m_B_zdc.Write("B_zdc");
+  m_C_zdc.Write("C_zdc");
+  /*  for(int s=0; s<2; s++) {
     m_A_zdc[s]->Write(std::format("A_zdc_{}",s).c_str());
     m_B_zdc[s]->Write(std::format("B_zdc_{}",s).c_str());
     m_C_zdc[s]->Write(std::format("C_zdc_{}",s).c_str());
-  }
+    }*/
   if(m_saveAllLaminationHistograms)
   {
     for(auto &i : m_hLamination)
