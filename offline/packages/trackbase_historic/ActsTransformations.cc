@@ -286,7 +286,7 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters& param,
 }
 
 void ActsTransformations::fillSvtxTrackStates(
-  const Acts::ConstVectorMultiTrajectory& traj,
+  const Acts::VectorMultiTrajectory& traj,
   const size_t& trackTip,
   SvtxTrack* svtxTrack,
   const Acts::GeometryContext& geoContext) const
@@ -295,8 +295,7 @@ void ActsTransformations::fillSvtxTrackStates(
   {
 
     /// Only fill the track states with non-outlier measurement
-    const auto typeFlags = state.typeFlags();
-    if( !typeFlags.test(Acts::TrackStateFlag::MeasurementFlag) )
+    if (!state.typeFlags().isMeasurement())
     { return true; }
 
     // only fill for state vectors with proper smoothed parameters

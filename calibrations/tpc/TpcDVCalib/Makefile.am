@@ -24,10 +24,6 @@ libTpcDVCalib_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libTpcDVCalib_la_LIBADD = \
-  -lActsCore \
-  -lActsPluginTGeo \
-  -lActsExamplesDetectorTGeo \
-  -lActsExamplesFramework \
   -lSubsysReco \
   -ltrackbase_historic_io \
   -ltrack_io \

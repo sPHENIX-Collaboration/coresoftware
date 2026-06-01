@@ -8,12 +8,20 @@
 
 #pragma once
 
-#include "ActsExamples/Utilities/OptionsFwd.hpp"
-
 #include <memory>
 #include <utility>
 #include <vector>
+namespace boost::program_options
+{
+  class options_description;
+  class variables_map;
+}  // namespace boost::program_options
 
+namespace ActsExamples::Options
+{
+  using Description = ::boost::program_options::options_description;
+  using Variables = ::boost::program_options::variables_map;
+}  // namespace ActsExamples::Options
 namespace Acts {
 class TrackingGeometry;
 class IMaterialDecorator;
@@ -34,8 +42,5 @@ class IBaseDetector {
   virtual void addOptions(
       boost::program_options::options_description& opt) const = 0;
 
-  virtual std::pair<TrackingGeometryPtr, ContextDecorators> finalize(
-      const boost::program_options::variables_map& vm,
-      std::shared_ptr<const Acts::IMaterialDecorator> mdecorator) = 0;
 };
 }  // namespace ActsExamples

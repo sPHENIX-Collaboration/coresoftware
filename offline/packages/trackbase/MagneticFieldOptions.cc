@@ -7,8 +7,8 @@
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 #include <Acts/MagneticField/SolenoidBField.hpp>
 #include <Acts/Utilities/Logger.hpp>
-#include <ActsExamples/MagneticField/FieldMapRootIo.hpp>
-#include <ActsExamples/MagneticField/FieldMapTextIo.hpp>
+#include <Acts/MagneticField/TextMagneticFieldIo.hpp>
+#include <ActsPlugins/Root/RootMagneticFieldIo.hpp>
 #include <ActsExamples/MagneticField/ScalableBFieldService.hpp>
 #include <ActsExamples/Utilities/Options.hpp>
 
@@ -129,13 +129,13 @@ ActsExamples::Options::readMagneticField(const Variables& vars) {
       };
 
       if (readRoot) {
-        auto map = makeMagneticFieldMapXyzFromRoot(
+        auto map = ActsPlugins::makeMagneticFieldMapXyzFromRoot(
             std::move(mapBins), file.native(), tree, lengthUnit, fieldUnit,
             useOctantOnly);
         return std::make_shared<InterpolatedMagneticField3>(std::move(map));
 
       } else {
-        auto map = makeMagneticFieldMapXyzFromText(std::move(mapBins),
+        auto map = Acts::makeMagneticFieldMapXyzFromText(std::move(mapBins),
                                                    file.native(), lengthUnit,
                                                    fieldUnit, useOctantOnly);
         return std::make_shared<InterpolatedMagneticField3>(std::move(map));
@@ -148,13 +148,13 @@ ActsExamples::Options::readMagneticField(const Variables& vars) {
       };
 
       if (readRoot) {
-        auto map = makeMagneticFieldMapRzFromRoot(
+        auto map = ActsPlugins::makeMagneticFieldMapRzFromRoot(
             std::move(mapBins), file.native(), tree, lengthUnit, fieldUnit,
             useOctantOnly);
         return std::make_shared<InterpolatedMagneticField2>(std::move(map));
 
       } else {
-        auto map = makeMagneticFieldMapRzFromText(std::move(mapBins),
+        auto map = Acts::makeMagneticFieldMapRzFromText(std::move(mapBins),
                                                   file.native(), lengthUnit,
                                                   fieldUnit, useOctantOnly);
         return std::make_shared<InterpolatedMagneticField2>(std::move(map));

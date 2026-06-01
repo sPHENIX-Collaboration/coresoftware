@@ -2,8 +2,8 @@
 #define TRACKBASE_SPHENIXACTSDETECTORELEMENT_H
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
-#include <Acts/Plugins/Identification/Identifier.hpp>
-#include <Acts/Plugins/TGeo/TGeoDetectorElement.hpp>
+#include <ActsPlugins/Root/ITGeoIdentifierProvider.hpp>
+#include <ActsPlugins/Root/TGeoDetectorElement.hpp>
 
 /**
  * This class implements an sphenix detector element to build
@@ -13,9 +13,10 @@
 
 class ActsGeometry;
 
-class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
+class sPHENIXActsDetectorElement : public ActsPlugins::TGeoDetectorElement
 {
  public:
+  using Identifier = ActsPlugins::TGeoDetectorElement::Identifier;
   sPHENIXActsDetectorElement() = delete;
 
   sPHENIXActsDetectorElement(const Identifier& identifier,
@@ -24,7 +25,7 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
                              const std::string& axes = "XYZ",
                              double scalor = 10.,
                              std::shared_ptr<const Acts::ISurfaceMaterial> material = nullptr)
-    : Acts::TGeoDetectorElement(identifier, tGeoNode, tGeoMatrix,
+    : ActsPlugins::TGeoDetectorElement(identifier, tGeoNode, tGeoMatrix,
                                 axes, scalor, material)
   {
   }
@@ -34,7 +35,7 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
                              Acts::Transform3& tgTransform,
                              std::shared_ptr<const Acts::PlanarBounds> tgBounds,
                              double tgThickness = 0.)
-    : Acts::TGeoDetectorElement(identifier, tGeoNode, tgTransform,
+    : ActsPlugins::TGeoDetectorElement(identifier, tGeoNode, tgTransform,
                                 tgBounds, tgThickness)
   {
   }
@@ -44,21 +45,21 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
                              Acts::Transform3& tgTransform,
                              std::shared_ptr<const Acts::DiscBounds> tgBounds,
                              double tgThickness = 0.)
-    : Acts::TGeoDetectorElement(identifier, tGeoNode, tgTransform, tgBounds,
+    : ActsPlugins::TGeoDetectorElement(identifier, tGeoNode, tgTransform, tgBounds,
                                 tgThickness)
   {
   }
 
   ~sPHENIXActsDetectorElement() override;
 
-  const Acts::Transform3& transform(const Acts::GeometryContext& ctxt) const override;
+  const Acts::Transform3& localToGlobalTransform(const Acts::GeometryContext& ctxt) const override;
 
  private:
   std::map<unsigned int, unsigned int> base_layer_map = {{10, 0}, {12, 3}, {14, 7}, {16, 55}};
 };
 
 std::shared_ptr<sPHENIXActsDetectorElement> sPHENIXElementFactory(
-    const Identifier& identifier, const TGeoNode& tGeoNode,
+    const sPHENIXActsDetectorElement::Identifier& identifier, const TGeoNode& tGeoNode,
     const TGeoMatrix& tGeoMatrix, const std::string& axes, double scalor,
     std::shared_ptr<const Acts::ISurfaceMaterial> material)
 {
