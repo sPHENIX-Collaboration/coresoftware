@@ -502,6 +502,8 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
       hit = new TrkrHitv2;
       //--hit->setAdc(adc);
       hit->setAdc(dac);
+      hit->setFPHXBCO(intthit->get_FPHX_BCO());
+      hit->setBCO(intthit->get_bco());
       hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
     }
 

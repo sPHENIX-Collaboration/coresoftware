@@ -33,7 +33,9 @@ class TrkrHitv2 : public TrkrHit
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override
   {
-    os << "TrkrHitv2 class with adc = " << m_adc << std::endl;
+    os << "TrkrHitv2 class with adc = " << m_adc
+       << " and FPHX_BCO = " << m_fphx_bco
+       << " and BCO = " << m_bco << std::endl;
   }
   void Reset() override {}
   int isValid() const override { return 0; }
@@ -57,10 +59,16 @@ class TrkrHitv2 : public TrkrHit
   // after digitization, these are the adc values
   void setAdc(const unsigned int adc) override;
   unsigned int getAdc() const override;
+  void setFPHXBCO(const uint16_t bco) override { m_fphx_bco = bco; }
+  uint16_t getFPHXBCO() const override { return m_fphx_bco; }
+  void setBCO(const uint64_t bco) override { m_bco = bco; }
+  uint64_t getBCO() const override { return m_bco; }
 
  protected:
   unsigned short m_adc = 0;
-  ClassDefOverride(TrkrHitv2, 1);
+  uint16_t m_fphx_bco = 0;
+  uint64_t m_bco = 0;
+  ClassDefOverride(TrkrHitv2, 3);
 };
 
 #endif  // TRACKBASE_TRKRHITV2_H
