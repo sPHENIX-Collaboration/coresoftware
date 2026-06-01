@@ -16,6 +16,7 @@
 #include <gsl/gsl_rng.h>
 
 class PHCompositeNode;
+class TrkrHit;
 
 class PHG4TpcDigitizer : public SubsysReco
 {
@@ -65,17 +66,24 @@ class PHG4TpcDigitizer : public SubsysReco
   bool skip_noise = false;
 
   std::vector<std::vector<TrkrHitSet::ConstIterator> > phi_sorted_hits;
-  std::vector<std::vector<TrkrHitSet::ConstIterator> > t_sorted_hits;
-
   std::vector<float> adc_input;
-  std::vector<TrkrDefs::hitkey> adc_hitid;
-  std::vector<int> is_populated;
+  std::vector<TrkrHit *> signal_hit_by_tbin;
 
   // settings
   std::map<int, unsigned int> _max_adc;
   std::map<int, float> _energy_scale;
 
   //! random generator that conform with sPHENIX standard
+  gsl_rng *RandomGenerator;
+};
+
+#endif
+th sPHENIX standard
+  gsl_rng *RandomGenerator;
+};
+
+#endif
+ard
   gsl_rng *RandomGenerator;
 };
 
