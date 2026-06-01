@@ -66,7 +66,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   {
     m_fillSvtxTrackStates = fillSvtxTrackStates;
   }
-
+  void directNavigator() { m_directNavigation = true; }
   void useActsEvaluator(bool actsEvaluator)
   {
     m_actsEvaluator = actsEvaluator;
@@ -162,6 +162,8 @@ class PHCosmicsTrkFitter : public SubsysReco
   /// A bool to update the SvtxTrackState information (or not)
   bool m_fillSvtxTrackStates = true;
 
+  bool m_directNavigation = false;
+
   // do we have a constant field
   bool m_ConstField = false;
   double fieldstrength{std::numeric_limits<double>::quiet_NaN()};
@@ -197,6 +199,8 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
   ActsAlignmentStates m_alignStates;
+
+  std::vector<const Acts::Surface*> m_materialSurfaces = {};
 
   bool m_zeroField = false;
   PHG4TpcGeomContainer* _tpccellgeo = nullptr;

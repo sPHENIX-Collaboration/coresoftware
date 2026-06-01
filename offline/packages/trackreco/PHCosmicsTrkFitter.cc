@@ -113,10 +113,27 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
   {
     m_ConstField = true;
   }
+  auto level = Acts::Logging::FATAL;
+  if (Verbosity() > 5)
+  {
+    level = Acts::Logging::VERBOSE;
+  }
 
   m_fitCfg.fit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
       m_tGeometry->geometry().tGeometry,
-      m_tGeometry->geometry().magField);
+      m_tGeometry->geometry().magField,
+      true, true, 0.0, Acts::FreeToBoundCorrection(), *Acts::getDefaultLogger("Kalman", level));
+
+  m_fitCfg.dFit = ActsTrackFittingAlgorithm::makeDirectedKalmanFitterFunction(
+      m_tGeometry->geometry().tGeometry,
+      m_tGeometry->geometry().magField, true, true, 0.0, Acts::FreeToBoundCorrection(), *Acts::getDefaultLogger("DirectedKalman", level));
+
+  MaterialSurfaceSelector selector;
+  if (m_directNavigation)
+  {
+    m_tGeometry->geometry().tGeometry->visitSurfaces(selector, false);
+    m_materialSurfaces = selector.surfaces;
+  }
 
   m_outlierFinder.verbosity = Verbosity();
   std::map<long unsigned int, float> chi2Cuts;
