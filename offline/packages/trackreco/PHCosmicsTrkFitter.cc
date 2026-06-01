@@ -983,6 +983,7 @@ void PHCosmicsTrkFitter::fillVectors(TrackSeed* tpcseed, TrackSeed* siseed)
 }
 void PHCosmicsTrkFitter::clearVectors()
 {
+  
   m_locx.clear();
   m_locy.clear();
   m_x.clear();
@@ -1000,10 +1001,6 @@ void PHCosmicsTrkFitter::clearVectors()
 
 void PHCosmicsTrkFitter::getCharge(
     TrackSeed* track,
-    // TrkrClusterContainer*  clusterContainer,
-    // ActsGeometry* tGeometry,
-    // alignmentTransformationContainer* transformMapTransient,
-    // float vertexRadius,
     int& charge,
     float& cosmicslope)
 {
@@ -1105,7 +1102,10 @@ void PHCosmicsTrkFitter::getCharge(
   {
     charge = 1;
   }
-
+  if(Verbosity() > 2)
+  {
+    std::cout << "charge is " << charge << std::endl;
+  }
   float r1 = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y()));
   float r2 = std::sqrt(square(globalSecondMostOuter.x()) + square(globalSecondMostOuter.y()));
   float z1 = globalMostOuter.z();
