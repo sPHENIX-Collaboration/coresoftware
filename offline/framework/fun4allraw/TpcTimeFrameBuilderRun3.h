@@ -1,5 +1,5 @@
-#ifndef Fun4All_TpcTimeFrameBuilder_H
-#define Fun4All_TpcTimeFrameBuilder_H
+#ifndef Fun4All_TpcTimeFrameBuilderRun3_H
+#define Fun4All_TpcTimeFrameBuilderRun3_H
 
 #include "TpcTimeFrameBuilderBase.h"
 
@@ -26,11 +26,11 @@ class TH2;
 class TTree;
 
 // NOLINTNEXTLINE(hicpp-special-member-functions)
-class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
+class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
 {
  public:
-  explicit TpcTimeFrameBuilder(const int packet_id);
-  ~TpcTimeFrameBuilder() override;
+  explicit TpcTimeFrameBuilderRun3(const int packet_id);
+  ~TpcTimeFrameBuilderRun3() override;
 
   int ProcessPacket(Packet *) override;
   bool isMoreDataRequired(const uint64_t &gtm_bco) const override;
@@ -113,6 +113,7 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
     uint16_t user_word = 0;
     uint32_t bx_timestamp = 0;
     uint64_t gtm_bco = 0;
+    bool has_clock_sync = false;
 
     uint16_t data_crc = 0;
     uint16_t calc_crc = 0;
@@ -228,6 +229,13 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
     void set_gtm_clock_multiplier(double value)
     {
       m_multiplier = value;
+    }
+
+    void set_gtm_clock_ratio(int64_t numerator, int64_t denominator)
+    {
+      m_clock_ratio_numerator = numerator;
+      m_clock_ratio_denominator = denominator;
+      m_multiplier = static_cast<double>(numerator) / static_cast<double>(denominator);
     }
 
     /// set gtm clock with rollover correction
@@ -361,6 +369,8 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
     static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
 
     double m_multiplier = 0;
+    int64_t m_clock_ratio_numerator = 0;
+    int64_t m_clock_ratio_denominator = 1;
 
     TH1 *m_hNorm = nullptr;
     TH1 *m_hFEEClockAdjustment_MatchedReference = nullptr;
@@ -383,9 +393,19 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
   //! common prefix for QA histograms
   std::string m_HistoPrefix;
 
-  //! GTM BCO -> TpcRawHit
-  //! Map to store TpcRawHit pointers indexed by GTM BCO values
-  //! This is used to organize hits into time frames based on their BCO values
+  static constexpr uint32_t kFEEClockMask = (1U << 20U) - 1U;
+  static constexpr uint32_t kRun3FeeMatchWindow = (GL1_BCO_MATCH_WINDOW * 30U + 7U) / 8U;
+
+  static int64_t get_signed_fee_bco_diff(uint32_t first, uint32_t second);
+  static uint32_t get_fee_bco_diff(uint32_t first, uint32_t second);
+  size_t move_time_hits(uint32_t fee_bco, uint16_t fee, std::vector<TpcRawHit *> &timeframe);
+  std::optional<uint32_t> find_fuzzy_fee_bco(uint32_t predicted_fee_bco, uint16_t fee) const;
+  void cleanup_time_hit_map(uint64_t bclk_rollover_corrected, uint32_t fee_clock_window);
+
+  //! FEE BCO -> cached TpcRawHit for Run3 exact-ratio matching
+  std::map<uint32_t, std::vector<TpcRawHit *>> m_timeHitMap;
+
+  //! rollover-corrected GTM BCO -> matched TpcRawHit returned to the input manager
   std::map<uint64_t, std::vector<TpcRawHit *>> m_timeFrameMap;
   static const size_t kMaxRawHitLimit = 10000;  // 10k hits per event > 256ch/fee * 26fee
   std::queue<uint64_t> m_UsedTimeFrameSet;
@@ -414,6 +434,7 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
   TH1 *h_GTMClockDiff_Unmatched = nullptr;
   TH1 *h_GTMClockDiff_Dropped = nullptr;
   TH1 *h_TimeFrame_Matched_Size = nullptr;
+  TH1 *h_Run3FEEClockDiff_FuzzyFallback = nullptr;
 
   TH2 *h_ProcessPacket_Time = nullptr;
 };
