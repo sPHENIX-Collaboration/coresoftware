@@ -6,7 +6,7 @@
 #include "TrkrDefs.h"
 #include "alignmentTransformationContainer.h"
 
-#include <Acts/EventData/Measurement.hpp>
+#include <ActsExamples/EventData/Measurement.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
 
@@ -14,13 +14,7 @@
 class Calibrator
 {
  public:
-  using Measurement = ::Acts::BoundVariantMeasurement;
-  /// Container of measurements.
-  ///
-  /// In contrast to the source links, the measurements themself must not be
-  /// orderable. The source links stored in the measurements are treated
-  /// as opaque here and no ordering is enforced on the stored measurements.
-  using MeasurementContainer = std::vector<Measurement>;
+  using MeasurementContainer = ActsExamples::MeasurementContainer;
 
   void calibrate(const MeasurementContainer& measurements,
                  const Acts::GeometryContext& gctx,

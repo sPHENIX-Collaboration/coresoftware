@@ -40,6 +40,7 @@
 #include <cmath>
 #include <cstdlib>  // for getenv
 #include <format>
+#include <fstream>
 #include <iostream>
 #include <map>      // for _Rb_tree_cons...
 #include <utility>  // for pair

@@ -23,7 +23,7 @@
  *
  * Association object holding transformations associated with given tracker hitset
  */
-class alignmentTransformationContainer : public Acts::GeometryContext
+class alignmentTransformationContainer
 {
  public:
   alignmentTransformationContainer();

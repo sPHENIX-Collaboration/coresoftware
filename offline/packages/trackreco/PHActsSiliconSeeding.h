@@ -14,6 +14,7 @@
 #include <Acts/Seeding/SpacePointGrid.hpp>
 #include <Acts/Utilities/GridBinFinder.hpp>
 
+#include <ActsExamples/EventData/SpacePointContainer.hpp>
 #include <trackbase/SpacePoint.h>
 
 #include <TFile.h>
@@ -33,7 +34,10 @@ class TrkrClusterIterationMap;
 class TrkrClusterCrossingAssoc;
 
 using GridSeeds = std::vector<std::vector<Acts::Seed<SpacePoint>>>;
-
+using SpacePointContainerRefHolder = Acts::SpacePointContainer<SpacePointContainerType, Acts::detail::RefHolder>;
+using SpacePointProxy_type = typename SpacePointContainerRefHolder::SpacePointProxyType;
+using value_type = SpacePointContainerRefHolder::SpacePointProxyType;
+using seed_type = Acts::Seed<value_type>;
 /**
  * This class runs the Acts seeder over the MVTX measurements
  * to create track stubs for the rest of the stub matching pattern
@@ -212,10 +216,10 @@ class PHActsSiliconSeeding : public SubsysReco
   Acts::SeedFilterConfig configureSeedFilter() const;
 
   /// Take final seeds and fill the TrackSeedContainer
-  void makeSvtxTracks(const GridSeeds &seedVector);
+  void makeSvtxTracks(const std::vector<seed_type>& seedVector);
 
   /// Take final seeds and fill the TrackSeedContainer
-  void makeSvtxTracksWithTime(const GridSeeds &seedVector, const int &strobe);
+  void makeSvtxTracksWithTime(const std::vector<seed_type>& seedVector, const int &strobe);
 
   /// Create a seeding space point out of an Acts::SourceLink
   SpacePointPtr makeSpacePoint(
@@ -225,8 +229,7 @@ class PHActsSiliconSeeding : public SubsysReco
       TrkrCluster *clus);
 
   /// Get all space points for the seeder
-  std::vector<const SpacePoint *> getSiliconSpacePoints(Acts::Extent &rRangeSPExtent,
-                                                        const int strobe);
+  std::vector<const SpacePoint *> getSiliconSpacePoints(const int strobe);
   void printSeedConfigs(Acts::SeedFilterConfig &sfconfig);
   bool isTimingMismatched(TrackSeed& seed) const;
   
@@ -288,7 +291,7 @@ class PHActsSiliconSeeding : public SubsysReco
   int m_lowStrobeIndex = 0;
   int m_highStrobeIndex = 1;
   /// Configuration classes for Acts seeding
-  Acts::SeedFinderConfig<SpacePoint> m_seedFinderCfg;
+  Acts::SeedFinderConfig<SpacePointProxy_type> m_seedFinderCfg;
   Acts::CylindricalSpacePointGridConfig m_gridCfg;
   Acts::CylindricalSpacePointGridOptions m_gridOptions;
   Acts::SeedFinderOptions m_seedFinderOptions;
@@ -353,8 +356,8 @@ class PHActsSiliconSeeding : public SubsysReco
   std::vector<std::pair<int, int>> zBinNeighborsTop;
   std::vector<std::pair<int, int>> zBinNeighborsBottom;
   int nphineighbors = 1;
-  std::unique_ptr<const Acts::GridBinFinder<2ul>> m_bottomBinFinder;
-  std::unique_ptr<const Acts::GridBinFinder<2ul>> m_topBinFinder;
+  std::unique_ptr<const Acts::GridBinFinder<3ul>> m_bottomBinFinder;
+  std::unique_ptr<const Acts::GridBinFinder<3ul>> m_topBinFinder;
 
   int m_event = 0;
 

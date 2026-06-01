@@ -38,14 +38,7 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackAnalysisUtils.h>
-#include <trackreco/ActsPropagator.h>
 
-#include <Acts/Geometry/GeometryIdentifier.hpp>
-#include <Acts/MagneticField/ConstantBField.hpp>
-#include <Acts/MagneticField/MagneticFieldProvider.hpp>
-#include <Acts/Surfaces/CylinderSurface.hpp>
-#include <Acts/Surfaces/PerigeeSurface.hpp>
-#include <Acts/Geometry/TrackingGeometry.hpp>
 
 #include <CLHEP/Vector/ThreeVector.h>
 #include <cmath>

@@ -5,8 +5,9 @@
 #include <optional>
 #include "trackbase/TrkrDefs.h"
 
+#include <ActsExamples/EventData/SpacePointContainer.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
-#include <Acts/Seeding/Seed.hpp>
+#include <Acts/EventData/Seed.hpp>
 
 /**
  * A struct for Acts to take cluster information for seeding
@@ -40,8 +41,11 @@ inline bool operator==(SpacePoint a, SpacePoint b)
 {
   return (a.m_clusKey == b.m_clusKey);
 }
+using SpacePointContainerType = ActsExamples::SpacePointContainer<std::vector<const SpacePoint *>>;
+using proxy_type = typename Acts::SpacePointContainer<SpacePointContainerType, Acts::detail::RefHolder>::SpacePointProxyType;
 
 using SpacePointPtr = std::unique_ptr<SpacePoint>;
-using SeedContainer = std::vector<Acts::Seed<SpacePoint>>;
+using SpacePointContainer = std::vector<SpacePoint>;
+using SeedContainer = std::vector<Acts::Seed<proxy_type>>;
 
 #endif

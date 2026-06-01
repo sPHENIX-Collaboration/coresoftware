@@ -392,7 +392,7 @@ namespace TrackAnalysisUtils
       {
         // otherwise take the manual calculation for the TPC
         // doing it this way just avoids the bounds check that occurs in the surface class method
-        Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * clusglob_moved;  // global is in mm
+        Acts::Vector3 loct = surf->localToGlobalTransform(geometry->geometry().getGeoContext()).inverse() * clusglob_moved;  // global is in mm
         loct /= Acts::UnitConstants::cm;
 
         loc(0) = loct(0);
