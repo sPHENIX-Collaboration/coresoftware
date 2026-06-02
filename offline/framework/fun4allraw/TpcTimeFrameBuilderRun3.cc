@@ -173,6 +173,18 @@ TpcTimeFrameBuilderRun3::TpcTimeFrameBuilderRun3(const int packet_id)
                                                    2048, -1024 - .5, 1024 - .5);
   hm->registerHisto(h_Run3FEEClockDiff_FuzzyFallback);
 
+  h_Run3TimeFrameExactHit_FEE = new TH1I(TString(m_HistoPrefix.c_str()) + "_Run3TimeFrameExactHit_FEE",  //
+                                          TString(m_HistoPrefix.c_str()) +
+                                              " Run3 exact matched hit sum by FEE;FEE;Exact matched hits",
+                                          MAX_FEECOUNT, -.5, MAX_FEECOUNT - .5);
+  hm->registerHisto(h_Run3TimeFrameExactHit_FEE);
+
+  h_Run3TimeFrameFuzzyHit_FEE = new TH1I(TString(m_HistoPrefix.c_str()) + "_Run3TimeFrameFuzzyHit_FEE",  //
+                                          TString(m_HistoPrefix.c_str()) +
+                                              " Run3 fuzzy fallback matched hit sum by FEE;FEE;Fuzzy fallback matched hits",
+                                          MAX_FEECOUNT, -.5, MAX_FEECOUNT - .5);
+  hm->registerHisto(h_Run3TimeFrameFuzzyHit_FEE);
+
   h_Run3WaveformStart_GL1Spacing = new TH2I(TString(m_HistoPrefix.c_str()) + "_Run3WaveformStart_GL1Spacing",  //
                                                TString(m_HistoPrefix.c_str()) +
                                                    " Run3 matched waveform start clock vs GL1 spacing;FEE ADC waveform start clock;Current - previous GL1 GTM BCO [BCO]",
@@ -508,6 +520,8 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
     exact_hit_count += exact_hits;
     if (exact_hits > 0)
     {
+      assert(h_Run3TimeFrameExactHit_FEE);
+      h_Run3TimeFrameExactHit_FEE->Fill(fee, exact_hits);
       continue;
     }
 
@@ -524,6 +538,8 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
     }
 
     fallback_hit_count += fuzzy_hits;
+    assert(h_Run3TimeFrameFuzzyHit_FEE);
+    h_Run3TimeFrameFuzzyHit_FEE->Fill(fee, fuzzy_hits);
     assert(h_Run3FEEClockDiff_FuzzyFallback);
     h_Run3FEEClockDiff_FuzzyFallback->Fill(get_signed_fee_bco_diff(*fuzzy_fee_bco, *predicted_fee_bco));
 
