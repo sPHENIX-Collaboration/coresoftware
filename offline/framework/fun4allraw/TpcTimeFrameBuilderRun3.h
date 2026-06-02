@@ -205,12 +205,6 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
     //! get predicted fee_bco from gtm_bco
     std::optional<uint32_t> get_predicted_fee_bco(uint64_t) const;
 
-    //! multiplier
-    double get_gtm_clock_multiplier()
-    {
-      return m_multiplier;
-    }
-
     //! print gtm bco information
     void print_gtm_bco_information() const;
 
@@ -225,17 +219,10 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
       m_verbosity = value;
     }
 
-    /// set gtm clock multiplier
-    void set_gtm_clock_multiplier(double value)
-    {
-      m_multiplier = value;
-    }
-
     void set_gtm_clock_ratio(int64_t numerator, int64_t denominator)
     {
       m_clock_ratio_numerator = numerator;
       m_clock_ratio_denominator = denominator;
-      m_multiplier = static_cast<double>(numerator) / static_cast<double>(denominator);
     }
 
     /// set gtm clock with rollover correction
@@ -368,7 +355,6 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
     static constexpr unsigned int m_FEE_CLOCK_BITS = 20;
     static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
 
-    double m_multiplier = 0;
     int64_t m_clock_ratio_numerator = 0;
     int64_t m_clock_ratio_denominator = 1;
 
