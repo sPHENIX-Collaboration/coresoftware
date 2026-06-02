@@ -38,7 +38,9 @@ class ActsPropagator
   using Stepper = Acts::EigenStepper<>;
   using FastPropagator = Acts::Propagator<Stepper>;
   using SphenixPropagator = Acts::Propagator<Stepper, Acts::Navigator>;
-
+  using Actors = Acts::ActorList<>;
+  using SphenixPropagatorOptions = SphenixPropagator::Options<Actors>;
+  
   ActsPropagator() {}
   ActsPropagator(ActsGeometry* geometry)
     : m_geometry(geometry)

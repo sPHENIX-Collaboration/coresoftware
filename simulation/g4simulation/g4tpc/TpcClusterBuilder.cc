@@ -15,7 +15,7 @@
 #include <g4tracking/TrkrTruthTrackContainer.h>
 
 
-
+#include <fstream>
 #include <algorithm>
 #include <cmath>  // for sqrt, cos, sin
 #include <format>
@@ -351,7 +351,7 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
 
     global *= Acts::UnitConstants::cm;
 
-    Acts::Vector3 local = surface->transform(m_tGeometry->geometry().getGeoContext()).inverse() * global;
+    Acts::Vector3 local = surface->localToGlobalTransform(m_tGeometry->geometry().getGeoContext()).inverse() * global;
     local /= Acts::UnitConstants::cm;
 
     auto* cluster = new TrkrClusterv4;  //

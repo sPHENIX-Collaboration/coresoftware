@@ -390,7 +390,7 @@ WeightedFitter::get_points (
 		Surface const surf = m_geometry->maps().getSurface(cluster_key, cluster);
 		if (!surf) { continue; }
 
-		auto local_to_global_transform = surf->transform(m_geometry->geometry().getGeoContext()); // in mm
+		auto local_to_global_transform = surf->localToGlobalTransform(m_geometry->geometry().getGeoContext()); // in mm
 		local_to_global_transform.translation() /= Acts::UnitConstants::cm; // converted to cm
 		Eigen::Vector3d local_pos = Eigen::Vector3d { cluster->getLocalX(), cluster->getLocalY(), 0.0 }; // in cm
 

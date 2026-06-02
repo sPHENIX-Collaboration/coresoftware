@@ -37,7 +37,6 @@ class SvtxTrack;
 using SourceLink = ActsSourceLink;
 using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
 using Trajectory = ActsExamples::Trajectories;
-using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
 using SourceLinkVec = std::vector<Acts::SourceLink>;
 

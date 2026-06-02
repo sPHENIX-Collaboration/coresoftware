@@ -149,7 +149,7 @@ int CosmicTrackQA::process_event(PHCompositeNode *topNode)
         }
         else
         {
-          Acts::Vector3 loc = surf->transform(geometry->geometry().getGeoContext()).inverse() * (intersection * Acts::UnitConstants::cm);
+          Acts::Vector3 loc = surf->localToGlobalTransform(geometry->geometry().getGeoContext()).inverse() * (intersection * Acts::UnitConstants::cm);
           loc /= Acts::UnitConstants::cm;
           statelx = loc(0);
           statelz = loc(1);
@@ -191,7 +191,7 @@ int CosmicTrackQA::process_event(PHCompositeNode *topNode)
       }
       else
       {
-        Acts::Vector3 loc = surf->transform(geometry->geometry().getGeoContext()).inverse() * (stateglob * Acts::UnitConstants::cm);
+        Acts::Vector3 loc = surf->localToGlobalTransform(geometry->geometry().getGeoContext()).inverse() * (stateglob * Acts::UnitConstants::cm);
         loc /= Acts::UnitConstants::cm;
         statelx = loc(0);
         statelz = loc(1);

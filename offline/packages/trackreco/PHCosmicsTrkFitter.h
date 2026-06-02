@@ -39,7 +39,6 @@ class TTree;
 using SourceLink = ActsSourceLink;
 using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
 using Trajectory = ActsExamples::Trajectories;
-using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
 using SourceLinkVec = std::vector<Acts::SourceLink>;
 
@@ -107,7 +106,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   void getCharge(TrackSeed* track, int& charge, float& cosmicslope);
 
   /// Convert the acts track fit result to an svtx track
-  void updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+  void updateSvtxTrack(std::vector<Acts::TrackIndexType>& tips,
                        Trajectory::IndexedParameters& paramsMap,
                        ActsTrackFittingAlgorithm::TrackContainer& tracks,
                        SvtxTrack* track);
@@ -151,7 +150,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   // Used for distortion correction transformations
   alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;
   std::set<Acts::GeometryIdentifier> m_transient_id_set;
-  Acts::GeometryContext m_transient_geocontext;
+  Acts::GeometryContext m_transient_geocontext = Acts::GeometryContext::dangerouslyDefaultConstruct();
 
   /// Number of acts fits that returned an error
   int m_nBadFits = 0;
@@ -177,7 +176,6 @@ class PHCosmicsTrkFitter : public SubsysReco
   std::unique_ptr<ActsEvaluator> m_evaluator = nullptr;
   std::string m_evalname = "ActsEvaluator.root";
 
-  std::map<const unsigned int, Trajectory>* m_trajectories = nullptr;
   SvtxTrackMap* m_seedTracks = nullptr;
 
   //! tpc global position wrapper

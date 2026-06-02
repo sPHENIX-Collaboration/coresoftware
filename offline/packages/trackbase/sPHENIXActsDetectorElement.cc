@@ -6,7 +6,7 @@
 
 sPHENIXActsDetectorElement::~sPHENIXActsDetectorElement() = default;
 
-const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::GeometryContext& ctxt) const
+const Acts::Transform3& sPHENIXActsDetectorElement::localToGlobalTransform(const Acts::GeometryContext& ctxt) const
 {
   if (alignmentTransformationContainer::use_alignment)
   {
@@ -23,16 +23,7 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
     auto& layerVec = transformVec[sphlayer];  // get the vector of transforms for this layer
 
     if (layerVec.size() > sensor)
-    {
-      /*
-      if(sphlayer > 7)
-	{
-	  std::cout << "sPHENIXActsDetectorElement:  volume " << volume <<" Acts  layer " << layer << " sensor " << sensor
-		    << " sphenix layer " << sphlayer << std::endl;
-	  std::cout << layerVec[sensor].matrix() << std::endl;
-	}
-      */
-      
+    { 
       return layerVec[sensor];
     }
 
@@ -44,7 +35,7 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
   else
   {
     // return the construction transform
-    const Acts::Transform3& transform = TGeoDetectorElement::transform(ctxt);  // ctxt is unused here
+    const Acts::Transform3& transform = TGeoDetectorElement::nominalTransform();  // ctxt is unused here
     return transform;
   }
 }

@@ -62,7 +62,7 @@ namespace
         MixtureReductionAlgorithm::KLDistance;
     Acts::ComponentMergeMethod mergeMethod =
         Acts::ComponentMergeMethod::eMaxWeight;
-
+    double reverseFilteringCovarianceScaling = 100.;
     ActsSourceLink::SurfaceAccessor m_slSurfaceAccessor;
 
     GsfFitterFunctionImpl(Fitter&& f,
@@ -83,17 +83,18 @@ namespace
       extensions.updater.connect<&Acts::GainMatrixUpdater::operator()<Acts::VectorMultiTrajectory>>(&updater);
 
       Acts::GsfOptions<Acts::VectorMultiTrajectory> gsfOptions{
-          options.geoContext,
-          options.magFieldContext,
-          options.calibrationContext,
-          extensions,
-          options.propOptions,
-          &(*options.referenceSurface),
-          maxComponents,
-          weightCutoff,
-          abortOnError,
-          disableAllMaterialHandling};
+          options.geoContext, options.magFieldContext,
+          options.calibrationContext};
+      gsfOptions.extensions = extensions;
+      gsfOptions.propagatorPlainOptions = options.propOptions;
+      gsfOptions.referenceSurface = options.referenceSurface;
+      gsfOptions.maxComponents = maxComponents;
+      gsfOptions.weightCutoff = weightCutoff;
+      gsfOptions.abortOnError = abortOnError;
+      gsfOptions.disableAllMaterialHandling = disableAllMaterialHandling;
       gsfOptions.componentMergeMethod = mergeMethod;
+      gsfOptions.reverseFilteringCovarianceScaling =
+          reverseFilteringCovarianceScaling;
       gsfOptions.extensions.calibrator.connect<&calibrator_t::calibrate>(
           &calibrator);
       gsfOptions.extensions.surfaceAccessor.connect<&ActsSourceLink::SurfaceAccessor::operator()>(&m_slSurfaceAccessor);
@@ -152,5 +153,6 @@ class ActsGsfTrackFittingAlgorithm
       BetheHeitlerApprox betheHeitlerApprox, std::size_t maxComponents,
       double weightCutoff,
       MixtureReductionAlgorithm finalReductionMethod, bool abortOnError,
-      bool disableAllMaterialHandling, const Acts::Logger& logger = *Acts::getDefaultLogger("GSF", Acts::Logging::FATAL));
+      bool disableAllMaterialHandling, double reverseFilteringCovarianceScaling,
+      const Acts::Logger& logger = *Acts::getDefaultLogger("GSF", Acts::Logging::FATAL));
 };
