@@ -33,14 +33,6 @@
 
 PHG4TpcDigitizer::PHG4TpcDigitizer(const std::string &name)
   : SubsysReco(name)
-  , TpcMinLayer(7)
-  , TpcNLayers(48)
-  , ADCThreshold(2700)                                                    // electrons
-  , TpcEnc(670)                                                           // electrons
-  , Pedestal(50000)                                                       // electrons
-  , ChargeToPeakVolts(20)                                                 // mV/fC
-  , ADCSignalConversionGain(std::numeric_limits<float>::quiet_NaN())  // will be assigned in PHG4TpcDigitizer::InitRun
-  , ADCNoiseConversionGain(std::numeric_limits<float>::quiet_NaN())
   , RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))  // will be assigned in PHG4TpcDigitizer::InitRun
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
@@ -685,112 +677,6 @@ float PHG4TpcDigitizer::add_noise_to_bin(float signal)
 float PHG4TpcDigitizer::added_noise()
 {
   float noise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
-n;  // mV - from definition of noise charge and pedestal charge
-  adc_input_voltage += noise_voltage;
-
-  return adc_input_voltage;
-}
-
-float PHG4TpcDigitizer::added_noise()
-{
-  float noise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
-ise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
-n;  // mV - from definition of noise charge and pedestal charge
-  adc_input_voltage += noise_voltage;
-
-  return adc_input_voltage;
-}
-
-float PHG4TpcDigitizer::added_noise()
-{
-  float noise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
-se()
-{
-  float noise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
- gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
-se()
-{
-  float noise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
-mV - from definition of noise charge and pedestal charge
-  adc_input_voltage += noise_voltage;
-
-  return adc_input_voltage;
-}
-
-float PHG4TpcDigitizer::added_noise()
-{
-  float noise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
-se()
-{
-  float noise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
- gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
-se()
-{
-  float noise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
-noise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
-se()
-{
-  float noise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
- gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
-se()
-{
-  float noise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
-or, TpcEnc);
-
-  return noise;
-}
-se()
-{
-  float noise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
-
-  return noise;
-}
-pcEnc);
 
   return noise;
 }
