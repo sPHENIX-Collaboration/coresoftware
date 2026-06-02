@@ -23,6 +23,8 @@
 #include <Acts/EventData/ParticleHypothesis.hpp>
 #include <Acts/EventData/SourceLink.hpp>
 
+#include <ActsExamples/EventData/Measurement.hpp>
+
 #include <phool/PHTimer.h>
 #include <phool/phool.h>
 
@@ -166,8 +168,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
       auto* check_cluster = clusterContainer->findCluster(key);
       Acts::Vector2 check_local2d = tGeometry->getLocalCoords(key, check_cluster) * Acts::UnitConstants::cm;  // need mm
       Acts::Vector3 check_local3d(check_local2d(0), check_local2d(1), 0);
-      Acts::GeometryContext temp_transient_geocontext;
-      temp_transient_geocontext = transformMapTransient;
+      Acts::GeometryContext temp_transient_geocontext{transformMapTransient};
       Acts::Vector3 check_before_pos_surf = this_surf->localToGlobal(temp_transient_geocontext,
                                                                      check_local2d,
                                                                      Acts::Vector3(1, 1, 1));
@@ -207,8 +208,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
 
   }  // end loop over clusters here
 
-  Acts::GeometryContext transient_geocontext;
-  transient_geocontext = transformMapTransient;
+  Acts::GeometryContext transient_geocontext{transformMapTransient};
 
   // loop over cluster_vec and make source links
   for (auto& cluskey : cluster_vec)
@@ -257,7 +257,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
 
     SourceLink sl(surf->geometryId(), index, cluskey);
     Acts::SourceLink actsSL{sl};
-    Acts::Measurement<Acts::BoundIndices, 2> meas(actsSL, indices, loc, cov);
+    measurements.emplaceMeasurement<2>(surf->geometryId(), indices, loc, cov);
     if (m_verbosity > 3)
     {
       unsigned int this_layer = TrkrDefs::getLayer(cluskey);
@@ -268,10 +268,10 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
                   << ", cov : " << cov.transpose() << std::endl
                   << " geo id " << sl.geometryId() << std::endl;
         std::cout << "Surface original transform: " << std::endl;
-        surf.get()->toStream(tGeometry->geometry().getGeoContext(), std::cout);
+        surf.get()->toStream(tGeometry->geometry().getGeoContext());
         std::cout << std::endl
                   << "Surface transient transform: " << std::endl;
-        surf.get()->toStream(transient_geocontext, std::cout);
+        surf.get()->toStream(transient_geocontext);
         std::cout << std::endl;
         std::cout << "Corrected surface transform:" << std::endl;
         std::cout << transformMapTransient->getTransform(surf->geometryId()).matrix() << std::endl;
@@ -284,7 +284,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
     }
 
     sourcelinks.push_back(actsSL);
-    measurements.emplace_back(meas);
   }
 
   SLTrackTimer.stop();
@@ -502,7 +501,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 
       /// otherwise take the manual calculation for the TPC
       // doing it this way just avoids the bounds check that occurs in the surface class method
-      Acts::Vector3 loct = surf->transform(tGeometry->geometry().getGeoContext()).inverse() * global;  // global is in mm
+      Acts::Vector3 loct = surf->localToGlobalTransform(tGeometry->geometry().getGeoContext()).inverse() * global;  // global is in mm
       loct /= Acts::UnitConstants::cm;
 
       localPos(0) = loct(0);
@@ -544,7 +543,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 
     SourceLink sl(surf->geometryId(), index, cluskey);
     Acts::SourceLink actsSL{sl};
-    Acts::Measurement<Acts::BoundIndices, 2> meas(actsSL, indices, loc, cov);
+    measurements.emplaceMeasurement<2>(surf->geometryId(), indices, loc, cov);
     if (m_verbosity > 3)
     {
       std::cout << "MakeSourceLinks::getSourceLinksClusterMover - source link " << sl.index() << ", loc : "
@@ -552,7 +551,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
                 << ", cov : " << cov.transpose() << std::endl
                 << " geo id " << sl.geometryId() << std::endl;
       std::cout << "Surface : " << std::endl;
-      surf.get()->toStream(tGeometry->geometry().getGeoContext(), std::cout);
+      surf.get()->toStream(tGeometry->geometry().getGeoContext());
       std::cout << std::endl;
       std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
       std::cout << "For key " << cluskey << " with local pos " << std::endl
@@ -561,7 +560,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     }
 
     sourcelinks.push_back(actsSL);
-    measurements.emplace_back(meas);
   }
 
   SLTrackTimer.stop();

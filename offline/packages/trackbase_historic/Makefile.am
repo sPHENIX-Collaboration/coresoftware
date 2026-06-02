@@ -16,9 +16,9 @@ AM_CPPFLAGS = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64
+  -L$(OFFLINE_MAIN)/lib64 \
+  -L$(ROOTSYS)/lib
 
 pkginclude_HEADERS = \
   ActsTransformations.h \
@@ -179,11 +179,6 @@ libtrackbase_historic_io_la_SOURCES = \
   WeightedTrack.cc \
   WeightedTrackZeroField.cc \
   WeightedTrackMap.cc
-
-AM_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64
 
 # dependency on libtrack.so breaks the io only library concept
 libtrackbase_historic_io_la_LIBADD = \

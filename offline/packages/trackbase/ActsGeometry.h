@@ -10,7 +10,6 @@ class TrkrCluster;
 class ActsGeometry
 {
  public:
-  ActsGeometry() = default;
   ~ActsGeometry() = default;
 
   void setGeometry(const ActsTrackingGeometry& tGeometry)

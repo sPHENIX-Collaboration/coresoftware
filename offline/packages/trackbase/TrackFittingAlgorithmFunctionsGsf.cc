@@ -9,7 +9,8 @@ ActsGsfTrackFittingAlgorithm::makeGsfFitterFunction(
     BetheHeitlerApprox betheHeitlerApprox, std::size_t maxComponents,
     double weightCutoff,
     MixtureReductionAlgorithm finalReductionMethod, bool abortOnError,
-    bool disableAllMaterialHandling, const Acts::Logger& logger)
+    bool disableAllMaterialHandling, double reverseFilteringCovarianceScaling,
+    const Acts::Logger& logger)
 {
   MultiStepper stepper(std::move(magneticField),
                        logger.cloneWithSuffix("GSFStep"));
@@ -35,6 +36,7 @@ ActsGsfTrackFittingAlgorithm::makeGsfFitterFunction(
   fitterFunction->abortOnError = abortOnError;
   fitterFunction->disableAllMaterialHandling = disableAllMaterialHandling;
   fitterFunction->reductionAlg = finalReductionMethod;
-
+  fitterFunction->reverseFilteringCovarianceScaling =
+      reverseFilteringCovarianceScaling;
   return fitterFunction;
 }

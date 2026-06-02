@@ -74,6 +74,7 @@ class MakeSourceLinks
       short int crossing);
 
  private:
+
   int m_verbosity = 0;
   bool m_pp_mode = false;
   std::set<int> m_ignoreLayer;
