@@ -453,8 +453,8 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     if (!m_zeroField)
     {
-      momentum.x() = charge < 0 ? tan.x() : tan.x() * -1;
-      momentum.y() = charge < 0 ? tan.y() : tan.y() * -1;
+      momentum.x() = tan.x() * -1; 
+      momentum.y() = tan.y() * -1;
     }
     else
     {
