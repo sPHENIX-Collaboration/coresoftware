@@ -328,13 +328,13 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<seed_type>& 
                                                   const int& strobe)
 
 {
-  int numSeeds = 0;
+  //  int numSeeds = 0;
   int numGoodSeeds = 0;
   m_seedid = -1;
 
   for (const auto& seed : seedVector)
   {
-      numSeeds++;
+    //      numSeeds++;
       if (m_seedAnalysis)
       {
         clearTreeVariables();
