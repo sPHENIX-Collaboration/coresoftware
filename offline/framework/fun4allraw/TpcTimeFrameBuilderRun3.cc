@@ -167,11 +167,11 @@ TpcTimeFrameBuilderRun3::TpcTimeFrameBuilderRun3(const int packet_id)
                                       3328, -.5, 3328 - .5);
   hm->registerHisto(h_TimeFrame_Matched_Size);
 
-  h_Run3FEEClockDiff_FuzzyFallback = new TH1I(TString(m_HistoPrefix.c_str()) + "_Run3FEEClockDiff_FuzzyFallback",  //
+  h_Run3_FEE_GTMMatching_ClockDiff = new TH1I(TString(m_HistoPrefix.c_str()) + "_Run3_FEE_GTMMatching_ClockDiff",  //
                                                    TString(m_HistoPrefix.c_str()) +
-                                                       " Run3 fuzzy fallback FEE clock diff;Clock Difference [FEE Clock Cycle];Count",
+                                                       " Run3 FEE GTM matching clock diff;Clock Difference [FEE Clock Cycle];Count",
                                                    2048, -1024 - .5, 1024 - .5);
-  hm->registerHisto(h_Run3FEEClockDiff_FuzzyFallback);
+  hm->registerHisto(h_Run3_FEE_GTMMatching_ClockDiff);
 
   h_Run3TimeFrameExactHit_FEE = new TH1I(TString(m_HistoPrefix.c_str()) + "_Run3TimeFrameExactHit_FEE",  //
                                           TString(m_HistoPrefix.c_str()) +
@@ -522,6 +522,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
     {
       assert(h_Run3TimeFrameExactHit_FEE);
       h_Run3TimeFrameExactHit_FEE->Fill(fee, exact_hits);
+      h_Run3_FEE_GTMMatching_ClockDiff->Fill(0., static_cast<double>(exact_hits));
       continue;
     }
 
@@ -540,8 +541,8 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
     fallback_hit_count += fuzzy_hits;
     assert(h_Run3TimeFrameFuzzyHit_FEE);
     h_Run3TimeFrameFuzzyHit_FEE->Fill(fee, fuzzy_hits);
-    assert(h_Run3FEEClockDiff_FuzzyFallback);
-    h_Run3FEEClockDiff_FuzzyFallback->Fill(get_signed_fee_bco_diff(*fuzzy_fee_bco, *predicted_fee_bco));
+    assert(h_Run3_FEE_GTMMatching_ClockDiff);
+    h_Run3_FEE_GTMMatching_ClockDiff->Fill(get_signed_fee_bco_diff(*fuzzy_fee_bco, *predicted_fee_bco), fuzzy_hits);
 
     if (m_verbosity >= 1)
     {
