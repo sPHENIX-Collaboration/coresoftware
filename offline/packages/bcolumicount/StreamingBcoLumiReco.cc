@@ -128,6 +128,15 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
     //uint64_t gl1_livevec = packet->lValue(0, "TriggerVector");   
 
     int bunchno = packet->lValue(0,"BunchNumber");
+    if (bunchno < 0 || bunchno >= m_bunches)
+    {
+      if (Verbosity() > 0)
+      {
+        std::cout << PHWHERE << " invalid bunch number: " << bunchno << std::endl;
+      }
+      delete packet;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
     // SYNTAX TAKEN FROM ZHIWANS CODE, why = and not +=? If this is correct it seems like a waste to call it for every event (would just need it for the last event in a particular crossing?)
     m_bunchnumber_MBDNS_raw[bunchno] = packet->lValue(0, "GL1PRAW");
@@ -144,6 +153,12 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() > 2)
     {
+      if (!syncobject)
+      {
+        std::cout << PHWHERE << " SyncObject missing" << std::endl;
+        delete packet;
+        return Fun4AllReturnCodes::ABORTEVENT;
+      }
       std::cout << "Event No: " << syncobject->EventNumber() /*<< std::hex*/
                 << " gl1  bco: " << gtm_bco <<std::dec << std::endl;
     }
@@ -160,6 +175,11 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
       }
 
       StreamingBcoInfo *streaming_bco_info = findNode::getClass<StreamingBcoInfo>(topNode, "STREAMINGBCOINFO");
+      if (!streaming_bco_info)
+      {
+        std::cout << PHWHERE << " STREAMINGBCOINFO node missing" << std::endl;
+        return Fun4AllReturnCodes::ABORTEVENT;
+      }
       m_bco = bcoinfo->get_current_bco();
       if (gtm_bco != m_bco) { std::cout << "BCO MISMATCH!!! : gtm_bco : " << gtm_bco << " m_bco " << m_bco << std::endl;}
       uint64_t bco_prev = bcoinfo->get_previous_bco();
@@ -167,12 +187,8 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
       uint64_t bco_diff_prev = m_bco - bco_prev;
       uint64_t bco_diff_futu = bco_futu - m_bco;
 
-      // TODO: Set BCO window length in the macro 
-      // TODO: Set BCO Negative window length in the macro
-      // window length: 360, negative window length: 20
-      // Therefore, should check if BCO is within 340
       // special case if BCO is within 20 of previous BCO?
-      if (bco_diff_prev < 340)
+      if (bco_diff_prev < m_default_positive_window_length)
       {
         m_usable_bco_tag = true;
       }
@@ -180,14 +196,14 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
       {
         m_usable_bco_tag = false;
       }
-      if (bco_diff_futu < 340)
+      if (bco_diff_futu < m_default_positive_window_length)
       {
         // double check boundaries for overlap!!
-        m_bco_streaming_window = std::make_pair(get_bco() - 20, bco_futu - 21);
+        m_bco_streaming_window = std::make_pair(get_bco() - m_default_negative_window_length, bco_futu - m_default_negative_window_length + 1);
       }
       else
       {
-        m_bco_streaming_window = std::make_pair(get_bco() - 20, get_bco() + 340);
+        m_bco_streaming_window = std::make_pair(get_bco() - m_default_negative_window_length, get_bco() + m_default_positive_window_length);
       }
       if (Verbosity() > 2)
       {
@@ -237,6 +253,10 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
       streaming_bco_info->set_bco(get_bco());
       streaming_bco_info->set_usable_bco_tag(get_usable_bco_tag());
       streaming_bco_info->set_bco_streaming_window(get_bco_streaming_window());
+      if (syncobject)
+      {
+        streaming_bco_info->set_evtno(syncobject->EventNumber());
+      }
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -260,6 +280,11 @@ int StreamingBcoLumiReco::EndRun(int /*runnumber*/)
      std::cout << "bunchno : " << i << " lumi_raw : " << m_bunchnumber_lumi_raw[i] << std::endl;
     }
   }
+  if (!m_streaming_lumi_info)
+  {
+    std::cout << PHWHERE << " STREAMINGLUMIINFO node missing in EndRun" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
   m_streaming_lumi_info->set_lumi_raw(get_lumi_raw());
   m_streaming_lumi_info->set_lumi_live(get_lumi_live());
   m_streaming_lumi_info->set_lumi_scaled(get_lumi_scaled());
@@ -276,6 +301,10 @@ int StreamingBcoLumiReco::EndRun(int /*runnumber*/)
   m_bunchnumber_MBDNS_raw.fill(0);
   m_bunchnumber_MBDNS_live.fill(0);
   m_bunchnumber_MBDNS_scaled.fill(0);
+  m_lumi_raw = 0.;
+  m_lumi_live = 0.;
+  m_lumi_scaled = 0.;
+  m_rawgl1scaler = 0;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

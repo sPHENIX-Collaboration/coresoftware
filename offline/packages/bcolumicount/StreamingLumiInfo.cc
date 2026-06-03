@@ -4,12 +4,6 @@
 
 #include <iostream>
 
-void StreamingLumiInfo::Reset()
-{
-  std::cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << std::endl;
-  return;
-}
-
 void StreamingLumiInfo::identify(std::ostream& os) const
 {
   os << "identify yourself: virtual StreamingLumiInfo Object" << std::endl;

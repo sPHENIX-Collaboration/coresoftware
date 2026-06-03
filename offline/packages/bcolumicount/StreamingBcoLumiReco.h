@@ -15,7 +15,7 @@
 class StreamingBcoLumiReco : public SubsysReco
 {
  public:
-  StreamingBcoLumiReco(const std::string &name = "BCOLUMICHECK");
+  StreamingBcoLumiReco(const std::string &name = "STREAMINGBCOLUMIRECO");
   ~StreamingBcoLumiReco() override = default;
 
   int Init(PHCompositeNode *topNode) override;
@@ -35,7 +35,8 @@ class StreamingBcoLumiReco : public SubsysReco
   virtual double get_lumi_live() const { return m_lumi_live; }
   virtual double get_lumi_scaled() const { return m_lumi_scaled; }
 
-
+  virtual void set_default_positive_window_length(int val) { m_default_positive_window_length = val; }
+  virtual void set_default_negative_window_length(int val) { m_default_negative_window_length = val; }
 
 
 
@@ -52,6 +53,8 @@ class StreamingBcoLumiReco : public SubsysReco
   int m_evtno{0};
   bool m_usable_bco_tag = false;
   std::pair<uint64_t, uint64_t> m_bco_streaming_window;
+  unsigned int m_default_positive_window_length{340};
+  unsigned int m_default_negative_window_length{20};
 
   double m_xsec_MBDNS = 24.07*1e9; //convert to pb from Vernier scan DOUBLE CHECK VALUE!
 

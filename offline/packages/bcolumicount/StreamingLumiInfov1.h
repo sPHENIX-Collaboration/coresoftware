@@ -19,8 +19,6 @@ class StreamingLumiInfov1 : public StreamingLumiInfo
   StreamingLumiInfov1() = default;
   /// dtor
   ~StreamingLumiInfov1() override = default;
-  /// Clear Sync
-  void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream
