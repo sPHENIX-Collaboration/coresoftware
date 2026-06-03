@@ -62,6 +62,8 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   int ResetEvent(PHCompositeNode* topNode) override;
 
+  void convertSeeds() { m_dumpSeeds = true; }
+
   void setUpdateSvtxTrackStates(bool fillSvtxTrackStates)
   {
     m_fillSvtxTrackStates = fillSvtxTrackStates;
@@ -103,7 +105,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   int createNodes(PHCompositeNode* topNode);
 
   void loopTracks(Acts::Logging::Level logLevel);
-  void getCharge(TrackSeed* track, int& charge, float& cosmicslope);
+  int getCharge(const std::vector<Acts::Vector3>& positions, const std::vector<float>& tpcparams);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(std::vector<Acts::TrackIndexType>& tips,
@@ -204,6 +206,8 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   bool m_zeroField = false;
   PHG4TpcGeomContainer* _tpccellgeo = nullptr;
+
+  bool m_dumpSeeds = false;
 
   //! for diagnosing seed param + clusters
   bool m_seedClusAnalysis = false;

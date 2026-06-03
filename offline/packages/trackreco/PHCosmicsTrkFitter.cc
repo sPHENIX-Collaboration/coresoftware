@@ -336,10 +336,6 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     {
       continue;
     }
-    int charge = 0;
-    float cosmicslope = 0;
-
-    getCharge(tpcseed, charge, cosmicslope);
 
     Acts::GeometryContext geoContext{m_alignmentTransformationMapTransient};
     // copy transient map for this track into transient geoContext
@@ -377,6 +373,11 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       intx = std::get<2>(intersect);
       inty = std::get<3>(intersect);
     }
+    if(Verbosity() > 2)
+    {
+      std::cout << "XY intersection options " << std::get<0>(intersect) << ", " << std::get<1>(intersect) << " and " << std::get<2>(intersect) << ", " << std::get<3>(intersect) << std::endl;
+    }
+
     std::vector<TrkrDefs::cluskey> keys;
     std::vector<Acts::Vector3> clusPos;
     std::copy(tpcseed->begin_cluster_keys(), tpcseed->end_cluster_keys(), std::back_inserter(keys));
@@ -406,6 +407,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     float slope = tpcseed->get_slope();
     float intz = m_vertexRadius * slope + tpcseed->get_Z0();
+
 
     Acts::Vector3 inter(intx, inty, intz);
 
@@ -453,7 +455,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     if (!m_zeroField)
     {
-      momentum.x() = tan.x() * -1; 
+      momentum.x() = tan.x() * -1;
       momentum.y() = tan.y() * -1;
     }
     else
@@ -480,6 +482,8 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     {
       continue;
     }
+
+    int charge = getCharge(clusPos, tpcparams);
 
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
         position);
@@ -510,6 +514,25 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       m_charge = charge;
       fillVectors(siseed, tpcseed);
       m_tree->Fill();
+    }
+    if(m_dumpSeeds)
+    {
+      SvtxTrack_v4 newTrack;
+      newTrack.set_tpc_seed(tpcseed);
+      newTrack.set_crossing(crossing);
+      newTrack.set_silicon_seed(siseed);
+
+      unsigned int trid = m_trackMap->size();
+      newTrack.set_id(trid);
+      newTrack.set_px(momentum.x());
+      newTrack.set_py(momentum.y());
+      newTrack.set_pz(momentum.z());
+      newTrack.set_x(position.x()/Acts::UnitConstants::cm);
+      newTrack.set_y(position.y()/Acts::UnitConstants::cm);
+      newTrack.set_z(position.z()/Acts::UnitConstants::cm);
+      newTrack.set_charge(charge);
+      m_trackMap->insertWithKey(&newTrack, trid);
+      continue;
     }
     //! Reset the track seed with the dummy covariance
     auto seed = ActsTrackFittingAlgorithm::TrackParameters::create(
@@ -999,117 +1022,51 @@ void PHCosmicsTrkFitter::clearVectors()
   m_ez.clear();
 }
 
-void PHCosmicsTrkFitter::getCharge(
-    TrackSeed* track,
-    int& charge,
-    float& cosmicslope)
+int PHCosmicsTrkFitter::getCharge(
+    const std::vector<Acts::Vector3>& positions,
+    const std::vector<float>& tpccparams)
 {
   Acts::GeometryContext transient_geocontext{m_alignmentTransformationMapTransient};
-
-  std::vector<Acts::Vector3> global_vec;
-
-  for (auto clusIter = track->begin_cluster_keys();
-       clusIter != track->end_cluster_keys();
-       ++clusIter)
-  {
-    auto key = *clusIter;
-    auto cluster = m_clusterContainer->findCluster(key);
-    if (!cluster)
+  std::vector<Acts::Vector3> sorted_positions = positions;
+  // sort the clusters in order of outermost radius to innermost radius
+  std::sort(sorted_positions.begin(), sorted_positions.end(), [](const Acts::Vector3& a, const Acts::Vector3& b)
+            {
+    float aradius = std::sqrt(a.x()*a.x()+a.y()*a.y());
+    if(a.y() < 0)
     {
-      std::cout << "MakeSourceLinks::getCharge: Failed to get cluster with key " << key << " for track seed" << std::endl;
-      continue;
+      aradius *= -1;
     }
-
-    auto surf = m_tGeometry->maps().getSurface(key, cluster);
-    if (!surf)
+    float bradius = std::sqrt(b.x()*b.x()+b.y()*b.y());
+    if(b.y() < 0)
     {
-      continue;
+      bradius *= -1;
     }
+    return aradius > bradius; });
 
-    // get cluster global positions
-    Acts::Vector2 local = m_tGeometry->getLocalCoords(key, cluster);  // converts TPC time to z
-    Acts::Vector3 glob = surf->localToGlobal(transient_geocontext,
-                                             local * Acts::UnitConstants::cm,
-                                             Acts::Vector3(1, 1, 1));
-    glob /= Acts::UnitConstants::cm;
-
-    global_vec.push_back(glob);
-  }
-
-  Acts::Vector3 globalMostOuter(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN());
-  Acts::Vector3 globalSecondMostOuter(0, 999999, 0);
-  float largestR = 0;
-  // loop over global positions
-  for (auto& i : global_vec)
+  float phi0 = std::atan2(sorted_positions[0].y() - tpccparams[2], sorted_positions[0].x() - tpccparams[1]);
+  int posphi = 0;
+  int negphi = 0;
+  // just take the first 4 outermost clusters as a test to determine the bend angle
+  // from the outermost radial cluster
+  for (size_t i = 1; i < 5; i++)
   {
-    Acts::Vector3 global = i;
-    // float r = std::sqrt(square(global.x()) + square(global.y()));
-    float r = radius(global.x(), global.y());
+    auto cluspos = sorted_positions[i];
 
-    /// use the top hemisphere to determine the charge
-    if (r > largestR && global.y() > 0)
+    float phi = std::atan2(cluspos.y() - tpccparams[2], cluspos.x() - tpccparams[1]);
+    if(phi > phi0)
     {
-      globalMostOuter = i;
-      largestR = r;
+      posphi++;
+    }
+    else
+    {
+      negphi++;
     }
   }
-
-  //! find the closest cluster to the outermost cluster
-  float maxdr = std::numeric_limits<float>::max();
-  for (auto& i : global_vec)
-  {
-    if (i.y() < 0)
-    {
-      continue;
-    }
-
-    float dr = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y())) - std::sqrt(square(i.x()) + square(i.y()));
-    //! Place a dr cut to get maximum bend due to TPC clusters having
-    //! larger fluctuations
-    if (dr < maxdr && dr > 10)
-    {
-      maxdr = dr;
-      globalSecondMostOuter = i;
-    }
-  }
-
-  //! we have to calculate phi WRT the vertex position outside the detector,
-  //! not at (0,0)
-  Acts::Vector3 vertex(0, m_vertexRadius, 0);
-  globalMostOuter -= vertex;
-  globalSecondMostOuter -= vertex;
-
-  const auto firstphi = atan2(globalMostOuter.y(), globalMostOuter.x());
-  const auto secondphi = atan2(globalSecondMostOuter.y(),
-                               globalSecondMostOuter.x());
-  auto dphi = secondphi - firstphi;
-
-  if (dphi > M_PI)
-  {
-    dphi = 2. * M_PI - dphi;
-  }
-  if (dphi < -M_PI)
-  {
-    dphi = 2 * M_PI + dphi;
-  }
-
-  if (dphi > 0)
-  {
-    charge = -1;
-  }
-  else
-  {
-    charge = 1;
-  }
-  if(Verbosity() > 2)
+  int charge = posphi > negphi ? -1 : 1;
+  if (Verbosity() > 2)
   {
     std::cout << "charge is " << charge << std::endl;
   }
-  float r1 = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y()));
-  float r2 = std::sqrt(square(globalSecondMostOuter.x()) + square(globalSecondMostOuter.y()));
-  float z1 = globalMostOuter.z();
-  float z2 = globalSecondMostOuter.z();
-  cosmicslope = (r2 - r1) / (z2 - z1);
 
-  return;
+  return charge;
 }
