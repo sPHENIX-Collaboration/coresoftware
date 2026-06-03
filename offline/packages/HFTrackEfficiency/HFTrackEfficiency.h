@@ -4,6 +4,8 @@
 #define HFTRACKEFFICIENCY_H
 
 #include <fun4all/SubsysReco.h>
+#include <g4eval/SvtxEvalStack.h>
+#include <g4eval/SvtxTrackEval.h>
 
 #include <limits>
 #include <string>
@@ -54,7 +56,9 @@ class HFTrackEfficiency : public SubsysReco
   PHHepMCGenEventMap *m_geneventmap{nullptr};
   PHHepMCGenEvent *m_genevt{nullptr};
 
-  PHG4ParticleSvtxMap *m_dst_truth_reco_map{nullptr};
+  SvtxEvalStack *m_svtx_evalstack{nullptr};
+  SvtxTrackEval *trackeval{nullptr};
+  //PHG4ParticleSvtxMap *m_dst_truth_reco_map{nullptr};
 
   DecayFinderContainerBase *m_decayMap{nullptr};
   std::string m_df_module_name;

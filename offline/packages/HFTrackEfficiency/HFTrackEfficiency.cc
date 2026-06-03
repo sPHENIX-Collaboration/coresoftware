@@ -114,6 +114,13 @@ int HFTrackEfficiency::process_event(PHCompositeNode *topNode)
     }
   }
 
+  if (!m_svtx_evalstack)
+  {
+    m_svtx_evalstack = new SvtxEvalStack(topNode);
+    trackeval = m_svtx_evalstack->get_track_eval();
+  }
+  m_svtx_evalstack->next_event(topNode);
+/*
   m_dst_truth_reco_map = findNode::getClass<PHG4ParticleSvtxMap>(topNode, "PHG4ParticleSvtxMap");
   if (m_dst_truth_reco_map)
   {
@@ -129,7 +136,7 @@ int HFTrackEfficiency::process_event(PHCompositeNode *topNode)
       std::cout << __FILE__ << ": PHG4ParticleSvtxMap not found, reverting to true matching by momentum relations. Truth matching will be less accurate" << std::endl;
     }
   }
-
+*/
   if (m_decay_descriptor.empty() && !m_decayMap->empty())
   {
     getDecayDescriptor();
@@ -231,11 +238,12 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
   }
 
   int index = -1;
+  PHG4Particle *daughterG4 {nullptr};
 
   for (unsigned int i = 1; i < decay.size(); ++i)
   {
     m_dst_track = nullptr;
-    int truth_ID = -1;
+    //int truth_ID = -1;
 
     if (std::find(std::begin(trackableParticles), std::end(trackableParticles),
                   std::abs(decay[i].second)) != std::end(trackableParticles))
@@ -261,23 +269,24 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
         m_secondary_vtx_z = thisVtx->point3d().z();
 
         // We need the G4 ID, not the HepMC ID to use the truth/reco map
-        if (m_dst_truth_reco_map)
+        //if (m_dst_truth_reco_map)
+        //{
+        PHG4TruthInfoContainer::ConstRange range = m_truthInfo->GetParticleRange();
+
+        for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
         {
-          PHG4TruthInfoContainer::ConstRange range = m_truthInfo->GetParticleRange();
+          //PHG4Particle *daughterG4 = iter->second;
+          daughterG4 = iter->second;
 
-          for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
+          if (std::abs(daughterG4->get_px() - daughterTrueLV->x()) <= 5e-3 &&
+              std::abs(daughterG4->get_py() - daughterTrueLV->y()) <= 5e-3 &&
+              std::abs(daughterG4->get_pz() - daughterTrueLV->z()) <= 5e-3 && daughterG4->get_pid() == decay[i].second)
           {
-            PHG4Particle *daughterG4 = iter->second;
-
-            if (std::abs(daughterG4->get_px() - daughterTrueLV->x()) <= 5e-3 &&
-                std::abs(daughterG4->get_py() - daughterTrueLV->y()) <= 5e-3 &&
-                std::abs(daughterG4->get_pz() - daughterTrueLV->z()) <= 5e-3 && daughterG4->get_pid() == decay[i].second)
-            {
-              truth_ID = daughterG4->get_track_id();
-              break;
-            }
+            //truth_ID = daughterG4->get_track_id();
+            break;
           }
         }
+        //}
       }
       else
       {
@@ -285,7 +294,8 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
 
         for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
         {
-          PHG4Particle *daughterG4 = iter->second;
+          //PHG4Particle *daughterG4 = iter->second;
+          daughterG4 = iter->second;
 
           PHG4Particle *motherG4 = nullptr;
           if (daughterG4->get_parent_id() != 0)
@@ -328,7 +338,7 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
             m_secondary_vtx_z = thisVtx->get_z();
 
             m_true_track_PID[index] = daughterG4->get_pid();
-            truth_ID = daughterG4->get_track_id();
+            //truth_ID = daughterG4->get_track_id();
 
             delete mother3Vector;
           }
@@ -341,20 +351,21 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
       m_min_true_track_pT = std::min(m_true_track_pT[index], m_min_true_track_pT);
       m_max_true_track_pT = std::max(m_true_track_pT[index], m_max_true_track_pT);
 
-      if (m_dst_truth_reco_map && truth_ID >= 0)
+      //if (m_dst_truth_reco_map && truth_ID >= 0)
+      if (trackeval && daughterG4)
       {
-        std::map<float, std::set<unsigned int>> reco_set = m_dst_truth_reco_map->get(truth_ID);
-        if (reco_set.empty())
-        {
-          continue;
-        }
-        const auto &best_weight = reco_set.rbegin();
-        if (best_weight->second.empty())
-        {
-          continue;
-        }
-        unsigned int best_reco_id = *best_weight->second.rbegin();
-        m_dst_track = m_input_trackMap->get(best_reco_id);
+        //std::map<float, std::set<unsigned int>> reco_set = m_dst_truth_reco_map->get(truth_ID);
+        //if (reco_set.empty())
+        //{
+        //  continue;
+        //}
+        //const auto &best_weight = reco_set.rbegin();
+        //if (best_weight->second.empty())
+        //{
+        //  continue;
+        //}
+        //unsigned int best_reco_id = *best_weight->second.rbegin();
+        m_dst_track = trackeval->best_track_from(daughterG4);//m_input_trackMap->get(best_reco_id);
         if (m_dst_track)
         {
           m_used_truth_reco_map[index] = true;
