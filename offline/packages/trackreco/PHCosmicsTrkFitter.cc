@@ -402,18 +402,18 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       m_Y0 = tpcseed->get_Y0();
       m_Z0 = tpcseed->get_Z0();
       m_slope = tpcseed->get_slope();
-      m_pcax = position(0);
-      m_pcay = position(1);
-      m_pcaz = position(2);
+      m_pcax = position(0) / Acts::UnitConstants::cm;
+      m_pcay = position(1) / Acts::UnitConstants::cm;
+      m_pcaz = position(2) / Acts::UnitConstants::cm;
       m_px = momentum(0);
       m_py = momentum(1);
       m_pz = momentum(2);
       m_charge = charge;
       fillVectors(siseed, tpcseed);
-      m_x.push_back(position.x());
-      m_y.push_back(position.y());
-      m_z.push_back(position.z());
-      m_r.push_back(radius(position.x(), position.y()));
+      m_x.push_back(position.x() / Acts::UnitConstants::cm);
+      m_y.push_back(position.y() / Acts::UnitConstants::cm);
+      m_z.push_back(position.z() / Acts::UnitConstants::cm);
+      m_r.push_back(radius(position.x(), position.y()) / Acts::UnitConstants::cm);
       m_tree->Fill();
     }
     if (m_dumpSeeds)
