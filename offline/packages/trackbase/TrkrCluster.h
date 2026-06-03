@@ -79,6 +79,30 @@ class TrkrCluster : public PHObject
   virtual float getPhiError() const { return NAN; }
   virtual float getRPhiError() const { return NAN; }
   virtual float getZError() const { return NAN; }
+  virtual unsigned int getCenAdc() const { return UINT_MAX; }
+  virtual float getPadCen() const { return NAN; }
+  virtual float getTBinCen() const { return NAN; }
+  virtual float getPadMax() const { return NAN; }
+  virtual float getTBinMax() const { return NAN; }
+  virtual char getSLEdge() const { return std::numeric_limits<char>::max(); }
+  virtual char getSREdge() const { return std::numeric_limits<char>::max(); }
+  virtual char getTLEdge() const { return std::numeric_limits<char>::max(); }
+  virtual char getTREdge() const { return std::numeric_limits<char>::max(); }
+  virtual char getDLEdge() const { return std::numeric_limits<char>::max(); }
+  virtual char getDREdge() const { return std::numeric_limits<char>::max(); }
+  virtual char getHLEdge() const { return std::numeric_limits<char>::max(); }
+  virtual char getHREdge() const { return std::numeric_limits<char>::max(); }
+  virtual int getSLMix() const { return std::numeric_limits<int>::max(); }
+  virtual int getSRMix() const { return std::numeric_limits<int>::max(); }
+  virtual int getTLMix() const { return std::numeric_limits<int>::max(); }
+  virtual int getTRMix() const { return std::numeric_limits<int>::max(); }
+  virtual float getPhiBinLo() const { return NAN; }
+  virtual float getPhiBinHi() const { return NAN; }
+  virtual float getTBinLo() const { return NAN; }
+  virtual float getTBinHi() const { return NAN; }
+  virtual float getPadPhase() const { return NAN; }
+  virtual float getTBinPhase() const { return NAN; }
+  virtual float getRSize() const { return NAN; }
 
   /// Acts functions, for Acts modules use only
   virtual void setActsLocalError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
