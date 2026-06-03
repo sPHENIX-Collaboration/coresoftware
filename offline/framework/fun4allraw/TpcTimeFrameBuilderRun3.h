@@ -429,7 +429,7 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
   TH1 *h_GTMClockDiff_Unmatched = nullptr;
   TH1 *h_GTMClockDiff_Dropped = nullptr;
   TH1 *h_TimeFrame_Matched_Size = nullptr;
-  TH1 *h_Run3_FEE_GTMMatching_ClockDiff = nullptr;
+  TH2 *h_Run3_FEE_GTMMatching_ClockDiff = nullptr;
   TH1 *h_Run3TimeFrameExactHit_FEE = nullptr;
   TH1 *h_Run3TimeFrameFuzzyHit_FEE = nullptr;
   TH1 *h_Run3PreviousTimeFrameWaveformStart = nullptr;

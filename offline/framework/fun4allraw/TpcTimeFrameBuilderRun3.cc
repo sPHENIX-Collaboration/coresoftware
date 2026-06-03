@@ -167,10 +167,11 @@ TpcTimeFrameBuilderRun3::TpcTimeFrameBuilderRun3(const int packet_id)
                                       3328, -.5, 3328 - .5);
   hm->registerHisto(h_TimeFrame_Matched_Size);
 
-  h_Run3_FEE_GTMMatching_ClockDiff = new TH1I(TString(m_HistoPrefix.c_str()) + "_Run3_FEE_GTMMatching_ClockDiff",  //
+  h_Run3_FEE_GTMMatching_ClockDiff = new TH2I(TString(m_HistoPrefix.c_str()) + "_Run3_FEE_GTMMatching_ClockDiff",  //
                                                    TString(m_HistoPrefix.c_str()) +
-                                                       " Run3 FEE GTM matching clock diff;Clock Difference [FEE Clock Cycle];Count",
-                                                   2048, -1024 - .5, 1024 - .5);
+                                                       " Run3 FEE GTM matching clock diff by FEE;Clock Difference [FEE Clock Cycle];FEE;Matched hits",
+                                                   2048, -1024 - .5, 1024 - .5,
+                                                   MAX_FEECOUNT, -.5, MAX_FEECOUNT - .5);
   hm->registerHisto(h_Run3_FEE_GTMMatching_ClockDiff);
 
   h_Run3TimeFrameExactHit_FEE = new TH1I(TString(m_HistoPrefix.c_str()) + "_Run3TimeFrameExactHit_FEE",  //
@@ -522,7 +523,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
     {
       assert(h_Run3TimeFrameExactHit_FEE);
       h_Run3TimeFrameExactHit_FEE->Fill(fee, exact_hits);
-      h_Run3_FEE_GTMMatching_ClockDiff->Fill(0., static_cast<double>(exact_hits));
+      h_Run3_FEE_GTMMatching_ClockDiff->Fill(0., static_cast<double>(fee), static_cast<double>(exact_hits));
       continue;
     }
 
@@ -542,7 +543,9 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
     assert(h_Run3TimeFrameFuzzyHit_FEE);
     h_Run3TimeFrameFuzzyHit_FEE->Fill(fee, fuzzy_hits);
     assert(h_Run3_FEE_GTMMatching_ClockDiff);
-    h_Run3_FEE_GTMMatching_ClockDiff->Fill(get_signed_fee_bco_diff(*fuzzy_fee_bco, *predicted_fee_bco), fuzzy_hits);
+    h_Run3_FEE_GTMMatching_ClockDiff->Fill(static_cast<double>(get_signed_fee_bco_diff(*fuzzy_fee_bco, *predicted_fee_bco)),
+                                           static_cast<double>(fee),
+                                           static_cast<double>(fuzzy_hits));
 
     if (m_verbosity >= 1)
     {
