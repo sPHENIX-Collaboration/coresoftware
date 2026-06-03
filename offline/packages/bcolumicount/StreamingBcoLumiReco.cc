@@ -156,7 +156,6 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
       if (!syncobject)
       {
         std::cout << PHWHERE << " SyncObject missing" << std::endl;
-        delete packet;
         return Fun4AllReturnCodes::ABORTEVENT;
       }
       std::cout << "Event No: " << syncobject->EventNumber() /*<< std::hex*/
