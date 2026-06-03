@@ -159,8 +159,8 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
           {
             towerinfo->set_time((retower_time_temp / retower_e_temp));
           }
-          towerinfo->set_chi2(scalefactor);
         }
+	towerinfo->set_chi2(scalefactor); //store the fraction of bad towers as the chi2
       }
     }
   }
