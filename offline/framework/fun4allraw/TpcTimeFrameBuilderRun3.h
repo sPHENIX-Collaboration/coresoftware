@@ -234,8 +234,8 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
     //! save all GTM BCO clocks from packet data
     void save_gtm_bco_information(const gtm_payload &gtm_tagger);
 
-    //! find gtm bco matching a given fee
-    std::optional<uint64_t> find_gtm_bco(uint32_t /*fee_gtm*/);
+    // //! find gtm bco matching a given fee
+    // std::optional<uint64_t> find_gtm_bco(uint32_t /*fee_gtm*/);
 
     //! cleanup
     void cleanup();
@@ -353,7 +353,9 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
     static constexpr unsigned int m_max_fee_sync_time = 1024 * 8;
 
     //! fixed GTM BCO offset applied when BX_COUNTER_SYNC_T defines the reference clock
-    static constexpr uint64_t kBXCounterSyncGtmBcoOffset = 4;
+    static constexpr uint64_t kBXCounterSyncGtmBcoOffset = 0;
+    //! fixed FEE BCO offset applied when BX_COUNTER_SYNC_T defines the reference clock
+    static constexpr uint64_t kBXCounterSyncFEEBcoOffset = 15;
 
     static constexpr unsigned int m_FEE_CLOCK_BITS = 20;
     static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
@@ -366,8 +368,8 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
     TH1 *m_hFEEClockAdjustment_MatchedNew = nullptr;
     TH1 *m_hFEEClockAdjustment_Unmatched = nullptr;
     TH1 *m_hGTMNewEventSpacing = nullptr;
-    TH1 *m_hFindGTMBCO_MatchedExisting_BCODiff = nullptr;
-    TH1 *m_hFindGTMBCO_MatchedNew_BCODiff = nullptr;
+    // TH1 *m_hFindGTMBCO_MatchedExisting_BCODiff = nullptr;
+    // TH1 *m_hFindGTMBCO_MatchedNew_BCODiff = nullptr;
 
   };  //   class BcoMatchingInformation
 
