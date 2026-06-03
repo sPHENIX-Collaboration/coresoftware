@@ -353,58 +353,27 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     }
     sorted_positions = pos;
 
-    TrackSeedHelper::circleFitByTaubin(tpcseed, positions, 0, 58);
-
-    float tpcR = fabs(1. / tpcseed->get_qOverR());
-    float tpcx = tpcseed->get_X0();
-    float tpcy = tpcseed->get_Y0();
-
-    float dx = -tpcx;
-    float dy = m_vertexRadius - tpcy;
-
-    float dist = std::sqrt(dx * dx + dy * dy);
-    float pcaxclaude = tpcx + tpcR * (dx / dist);
-    float pcayclaude = tpcy + tpcR * (dy / dist);
-
     std::sort(sorted_positions.begin(), sorted_positions.end(), [](const Acts::Vector3& a, const Acts::Vector3& b)
               {
-    float aradius = std::sqrt(a.x()*a.x()+a.y()*a.y());
-    if(a.y() < 0)
-    {
-      aradius *= -1;
-    }
-    float bradius = std::sqrt(b.x()*b.x()+b.y()*b.y());
-    if(b.y() < 0)
-    {
-      bradius *= -1;
-    }
-    return aradius > bradius; });
+                float aradius = std::sqrt(a.x()*a.x()+a.y()*a.y());
+                if(a.y() < 0)
+                {
+                  aradius *= -1;
+                }
+                float bradius = std::sqrt(b.x()*b.x()+b.y()*b.y());
+                if(b.y() < 0)
+                {
+                  bradius *= -1;
+                }
+                return aradius > bradius; });
 
-    auto arcLength = [&](float x, float y)
-    {
-      float angle = std::atan2(y - tpcy, x - tpcx);
-      return tpcR * angle;
-    };
-    float sum_s = 0, sum_z = 0, sum_ss = 0, sum_sz = 0;
-    int n = sorted_positions.size();
-    for (auto& p : sorted_positions)
-    {
-      float s = arcLength(p.x(), p.y());
-      sum_s += s;
-      sum_z += p.z();
-      sum_ss += s * s;
-      sum_sz += s * p.z();
-    }
-    float denom = n * sum_ss - sum_s * sum_s;
-    float b = (n * sum_sz - sum_s * sum_z) / denom;
-    float a = (sum_z - b * sum_s) / n;
+    TrackSeedHelper::circleFitByTaubin(tpcseed, positions, 0, 58);
 
-    float s_ca = arcLength(pcaxclaude, pcayclaude);
-    float z_ca = a + b * s_ca;
+    Acts::Vector3 pca = calculatePCA(tpcseed, sorted_positions);
 
-    Acts::Vector3 claudepca(pcaxclaude, pcayclaude, z_ca);
 
-    const auto intersect = TrackFitUtils::circle_circle_intersection(m_vertexRadius, tpcR, tpcx, tpcy);
+    // now calculate the momentum vector
+    const auto intersect = TrackFitUtils::circle_circle_intersection(m_vertexRadius, std::abs(1./tpcseed->get_qOverR()), tpcseed->get_X0(), tpcseed->get_Y0());
     float intx, inty;
 
     if (std::get<1>(intersect) > std::get<3>(intersect))
@@ -454,7 +423,10 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     Acts::Vector3 inter(intx, inty, intz);
 
-    std::vector<float> tpcparams{tpcR, tpcx, tpcy, tpcseed->get_slope(),
+    std::vector<float> tpcparams{(float) std::abs(1./tpcseed->get_qOverR()), 
+                                 tpcseed->get_X0(), 
+                                 tpcseed->get_Y0(), 
+                                 tpcseed->get_slope(),
                                  tpcseed->get_Z0()};
     auto tangent = TrackFitUtils::get_helix_tangent(tpcparams,
                                                     inter);
@@ -516,7 +488,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     }
 
     momentum.z() = pz;
-    Acts::Vector3 position = claudepca;
+    Acts::Vector3 position = pca;
 
     position *= Acts::UnitConstants::cm;
     if (!is_valid(momentum))
@@ -541,9 +513,9 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     {
       clearVectors();
       m_seed = tpcid;
-      m_R = tpcR;
-      m_X0 = tpcx;
-      m_Y0 = tpcy;
+      m_R = std::abs(1./tpcseed->get_qOverR());
+      m_X0 = tpcseed->get_X0();
+      m_Y0 = tpcseed->get_Y0();
       m_Z0 = fulllineintz;
       m_slope = fulllineslope;
       m_pcax = position(0);
@@ -554,10 +526,10 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       m_pz = momentum(2);
       m_charge = charge;
       fillVectors(siseed, tpcseed);
-      m_x.push_back(claudepca.x());
-      m_y.push_back(claudepca.y());
-      m_z.push_back(claudepca.z());
-      m_r.push_back(radius(claudepca.x(), claudepca.y()));
+      m_x.push_back(position.x());
+      m_y.push_back(position.y());
+      m_z.push_back(position.z());
+      m_r.push_back(radius(position.x(), position.y()));
       m_tree->Fill();
     }
     if (m_dumpSeeds)
@@ -572,9 +544,9 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       newTrack.set_px(momentum.x());
       newTrack.set_py(momentum.y());
       newTrack.set_pz(momentum.z());
-      newTrack.set_x(claudepca.x());
-      newTrack.set_y(claudepca.y());
-      newTrack.set_z(claudepca.z());
+      newTrack.set_x(position.x());
+      newTrack.set_y(position.y());
+      newTrack.set_z(position.z());
       newTrack.set_charge(charge);
       m_trackMap->insertWithKey(&newTrack, trid);
       continue;
@@ -1103,4 +1075,47 @@ int PHCosmicsTrkFitter::getCharge(
   }
 
   return charge;
+}
+
+Acts::Vector3 PHCosmicsTrkFitter::calculatePCA(TrackSeed* seed, const std::vector<Acts::Vector3>& sorted_positions)
+{
+  float tpcR = fabs(1. / seed->get_qOverR());
+  float tpcx = seed->get_X0();
+  float tpcy = seed->get_Y0();
+
+  // calculate the pcaxy for the seed wrt a line surface located at (0,m_vertexRadius) in x-y plane
+  float dx = -tpcx;
+  float dy = m_vertexRadius - tpcy;
+  float dist = std::sqrt(dx * dx + dy * dy);
+  float pcax = tpcx + tpcR * (dx / dist);
+  float pcay = tpcy + tpcR * (dy / dist);
+
+  auto arcLength = [&](float x, float y)
+  {
+    float angle = std::atan2(y - tpcy, x - tpcx);
+    return tpcR * angle;
+  };
+
+  float sum_s = 0, sum_z = 0, sum_ss = 0, sum_sz = 0;
+  int n = sorted_positions.size();
+  // Compute the arc-length parameter for each cluster, then fit to a line
+  // Fit z = a + b*s using simple linear regression
+  for (auto& p : sorted_positions)
+  {
+    float s = arcLength(p.x(), p.y());
+    sum_s += s;
+    sum_z += p.z();
+    sum_ss += s * s;
+    sum_sz += s * p.z();
+  }
+
+  float denom = n * sum_ss - sum_s * sum_s;
+  float b = (n * sum_sz - sum_s * sum_z) / denom;
+  float a = (sum_z - b * sum_s) / n;
+
+  // Then evaluate at the arc length of the PCA to get the z position of the PCA
+  float s_ca = arcLength(pcax, pcay);
+  float z_ca = a + b * s_ca;
+
+  return Acts::Vector3(pcax, pcay, z_ca);
 }

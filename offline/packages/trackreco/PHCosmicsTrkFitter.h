@@ -112,6 +112,7 @@ class PHCosmicsTrkFitter : public SubsysReco
                        Trajectory::IndexedParameters& paramsMap,
                        ActsTrackFittingAlgorithm::TrackContainer& tracks,
                        SvtxTrack* track);
+  Acts::Vector3 calculatePCA(TrackSeed* seed, const std::vector<Acts::Vector3>& sorted_positions);
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
