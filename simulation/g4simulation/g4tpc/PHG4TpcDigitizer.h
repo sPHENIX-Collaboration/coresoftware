@@ -53,7 +53,7 @@ class PHG4TpcDigitizer : public SubsysReco
   float ADCThreshold_mV {0};
   float TpcEnc {670};
   float Pedestal {50000};
-  float ChargeToPeakVolts {50};
+  float ChargeToPeakVolts {20};
   float ADCSignalConversionGain {std::numeric_limits<float>::quiet_NaN()};
   float ADCNoiseConversionGain {std::numeric_limits<float>::quiet_NaN()};
 
