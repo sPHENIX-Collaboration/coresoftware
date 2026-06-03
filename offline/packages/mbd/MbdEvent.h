@@ -124,7 +124,7 @@ class MbdEvent
   int _verbose{0};
   int _runnum{0};
   int _simflag{0};
-  int _rawdstflag{0};  // dst with raw container
+  int _rawdstflag{0};  // reading from dst with raw container
   int _fitsonly{0};    // stop reco after waveform fits (for DST_CALOFIT pass)
   int _nsamples{31};
   int _calib_done{0}; 

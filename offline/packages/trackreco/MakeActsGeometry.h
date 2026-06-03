@@ -41,7 +41,7 @@ class TGeoVolume;
 namespace Acts
 {
   class Surface;
-}
+}  // namespace Acts
 
 using Surface = std::shared_ptr<const Acts::Surface>;
 using TrackingGeometry = std::shared_ptr<const Acts::TrackingGeometry>;
@@ -174,16 +174,7 @@ private:
   void buildActsSurfaces();
 
   /// Function that mimics ActsExamples::GeometryExampleBase
-  void makeGeometry(int argc, char *argv[],
-                    ActsExamples::TGeoDetectorWithOptions &detector);
-#ifndef __CLING__
-  std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
-            std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
-  build(const boost::program_options::variables_map &vm,
-        ActsExamples::TGeoDetectorWithOptions &detector);
-#endif
-  void readTGeoLayerBuilderConfigsFile(const std::string &path,
-                                       ActsExamples::TGeoDetector::Config &config);
+  void makeGeometry(int argc, char *argv[], const std::string& responseFile, const std::string& materialFile);
 
   void setMaterialResponseFile(std::string &responseFile,
                                std::string &materialFile);
@@ -216,6 +207,7 @@ private:
   //   void makeTGeoNodeMap(PHCompositeNode *topNode);
 
   void unpackVolumes();
+  std::unique_ptr<ActsExamples::TGeoDetectorWithOptions> m_TGeoDetector = nullptr;
 
   /// Subdetector geometry containers for getting layer information
   PHG4CylinderGeomContainer *m_geomContainerMvtx = nullptr;
@@ -273,13 +265,10 @@ private:
   /// z does not need spacing as the boxes are rotated around the z axis
   const double half_width_clearance_z = 0.5;
 
-  /// The acts geometry object
-  ActsExamples::TGeoDetectorWithOptions m_detector;
-
   /// Acts geometry objects that are needed to create (for example) the fitter
   TrackingGeometry m_tGeometry;
   std::shared_ptr<Acts::MagneticFieldProvider> m_magneticField;
-  Acts::GeometryContext m_geoCtxt;
+  Acts::GeometryContext m_geoCtxt = Acts::GeometryContext::dangerouslyDefaultConstruct();
 
   /// Structs to put on the node tree which carry around ActsGeom info
   ActsGeometry *m_actsGeometry = nullptr;

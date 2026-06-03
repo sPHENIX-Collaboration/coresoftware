@@ -104,10 +104,9 @@ struct GBTWord {
     }; // DIAGNOSTIC IB LANE
 
 
-    uint8_t data8[GBTWordLength]; // 80 bits GBT word
+    uint8_t data8[GBTWordLength]{}; // 80 bits GBT word
   };
 #pragma GCC diagnostic pop
-
   GBTWord() = default;
 
   /// check if the GBT Header corresponds to GBT payload header

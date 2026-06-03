@@ -50,7 +50,7 @@ TVector3 CylinderGeomMicromegas::get_local_from_world_coords( uint tileid, ActsG
 
   // convert to local
   /* this is equivalent to calling surface->globalToLocal but without the "on surface" check, and while returning a full Acts::Vector3 */
-  const auto local = surface->transform(geometry->geometry().getGeoContext()).inverse()*global;
+  const auto local = surface->localToGlobalTransform(geometry->geometry().getGeoContext()).inverse()*global;
   return TVector3(
     local.x()/Acts::UnitConstants::cm,
     local.y()/Acts::UnitConstants::cm,
@@ -109,7 +109,7 @@ TVector3 CylinderGeomMicromegas::get_world_from_local_coords( uint tileid, ActsG
 
   // convert to global
   /* this is equivalent to calling surface->localToGlobal but without assuming that the local point is on surface */
-  const auto global =  surface->transform(geometry->geometry().getGeoContext())*local;
+  const auto global =  surface->localToGlobalTransform(geometry->geometry().getGeoContext())*local;
   return TVector3(
     global.x()/Acts::UnitConstants::cm,
     global.y()/Acts::UnitConstants::cm,

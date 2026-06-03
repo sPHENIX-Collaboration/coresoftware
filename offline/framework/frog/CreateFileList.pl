@@ -87,7 +87,9 @@ my %proddesc = (
     "46" => "Herwig Photonjet ptmin = 10 GeV",
     "47" => "Herwig Photonjet ptmin = 20 GeV",
     "48" => "JS pythia8 Jet ptmin = 8 GeV",
-    "49" => "JS pythia8 Jet ptmin = 80 GeV"
+    "49" => "JS pythia8 Jet ptmin = 80 GeV",
+    "50" => "JS pythia8 Detroit eta ptmin = 3 GeV",
+    "51" => "JS pythia8 Detroit eta ptmin = 8 GeV"
     );
 
 my %pileupdesc = (
@@ -1433,6 +1435,72 @@ if (defined $prodtype)
 	    $doubleok = 1;
 	    $filenamestring = sprintf("%s_pythia8_Detroit",$filenamestring);
 	}
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm%s",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 50)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_Eta3";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm%s",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+		elsif ($embed eq "oo")
+		{
+		    $filenamestring = sprintf("%s_sHijing_OO_0_15fm%s",$filenamestring, $OO_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 51)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_Eta8";
 	if (! defined $nopileup)
 	{
 	    if (defined $embed)

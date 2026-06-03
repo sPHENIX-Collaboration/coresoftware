@@ -7,6 +7,7 @@
 #ifndef ONLINE
 #include <ffamodules/CDBInterface.h>
 #include <cdbobjects/CDBTTree.h>
+#include <TNamed.h>
 #endif
 
 #include <phool/phool.h>
@@ -80,112 +81,112 @@ int MbdCalib::Download_All()
   if (!_rc->FlagExist("MBD_CALDIR"))
   {
     // Always load Status
-    std::string status_url = _cdb->getUrl("MBD_STATUS");
-    if ( ! status_url.empty() )
+    _cdb_urls["MBD_STATUS"] = _cdb->getUrl("MBD_STATUS");
+    if ( !_cdb_urls["MBD_STATUS"].empty() )
     {
       // if this doesn't exist, the status is assumed to be all good
-      Download_Status(status_url);
+      Download_Status(_cdb_urls["MBD_STATUS"]);
     }
     if (Verbosity() > 0)
     {
-      std::cout << "status_url " << status_url << std::endl;
+      std::cout << "MBD_STATUS url " << _cdb_urls["MBD_STATUS"] << std::endl;
     }
+
+    // note: sampmax and ped will be calculated on the fly if calibs don't exist
+    _cdb_urls["MBD_SAMPMAX"] = _cdb->getUrl("MBD_SAMPMAX");
+    if (Verbosity() > 0)
+    {
+      std::cout << "MBD_SAMPMAX url " << _cdb_urls["MBD_SAMPMAX"] << std::endl;
+    }
+    Download_SampMax(_cdb_urls["MBD_SAMPMAX"]);
 
     if ( !_rawdstflag )
     {
-      // sampmax and ped will be calculated on the fly if calibs don't exist
-      std::string sampmax_url = _cdb->getUrl("MBD_SAMPMAX");
+      _cdb_urls["MBD_PED"] = _cdb->getUrl("MBD_PED");
       if (Verbosity() > 0)
       {
-        std::cout << "sampmax_url " << sampmax_url << std::endl;
+        std::cout << "MBD_PED url " << _cdb_urls["MBD_PED"] << std::endl;
       }
-      Download_SampMax(sampmax_url);
+      Download_Ped(_cdb_urls["MBD_PED"]);
 
-      std::string ped_url = _cdb->getUrl("MBD_PED");
-      if (Verbosity() > 0)
-      {
-        std::cout << "ped_url " << ped_url << std::endl;
-      }
-      Download_Ped(ped_url);
-
-      std::string pileup_url = _cdb->getUrl("MBD_PILEUP");
-      if ( pileup_url.empty() )
+      _cdb_urls["MBD_PILEUP"] = _cdb->getUrl("MBD_PILEUP");
+      if ( _cdb_urls["MBD_PILEUP"].empty() )
       {
         std::cerr << "ERROR, MBD_PILEUP missing" << std::endl;
         return -1;
       }
       if (Verbosity() > 0)
       {
-        std::cout << "pileup_url " << pileup_url << std::endl;
+        std::cout << "MBD_PILEUP url " << _cdb_urls["MBD_PILEUP"] << std::endl;
       }
-      Download_Pileup(pileup_url);
+      Download_Pileup(_cdb_urls["MBD_PILEUP"]);
 
       if (do_templatefit)
       {
-        std::string shape_url = _cdb->getUrl("MBD_SHAPES");
-        if ( shape_url.empty() )
+        _cdb_urls["MBD_SHAPES"] = _cdb->getUrl("MBD_SHAPES");
+        if ( _cdb_urls["MBD_SHAPES"].empty() )
         {
           std::cerr << "ERROR, MBD_SHAPES missing" << std::endl;
           return -1;
         }
         if (Verbosity() > 0)
         {
-          std::cout << "shape_url " << shape_url << std::endl;
+          std::cout << "MBD_SHAPES url " << _cdb_urls["MBD_SHAPES"] << std::endl;
         }
-        Download_Shapes(shape_url);
+        Download_Shapes(_cdb_urls["MBD_SHAPES"]);
       }
     }
 
     if ( !_fitsonly )
     {
-      std::string qfit_url = _cdb->getUrl("MBD_QFIT");
+      _cdb_urls["MBD_QFIT"] = _cdb->getUrl("MBD_QFIT");
       if (Verbosity() > 0)
       {
-        std::cout << "qfit_url " << qfit_url << std::endl;
+        std::cout << "MBD_QFIT url " << _cdb_urls["MBD_QFIT"] << std::endl;
       }
-      Download_Gains(qfit_url);
+      Download_Gains(_cdb_urls["MBD_QFIT"]);
 
-      std::string tt_t0_url = _cdb->getUrl("MBD_TT_T0");
+      _cdb_urls["MBD_TT_T0"] = _cdb->getUrl("MBD_TT_T0");
       if ( Verbosity() > 0 )
       {
-        std::cout << "tt_t0_url " << tt_t0_url << std::endl;
+        std::cout << "MBD_TT_T0 url " << _cdb_urls["MBD_TT_T0"] << std::endl;
       }
-      Download_TTT0(tt_t0_url);
+      Download_TTT0(_cdb_urls["MBD_TT_T0"]);
 
-      std::string tq_t0_url = _cdb->getUrl("MBD_TQ_T0");
+      _cdb_urls["MBD_TQ_T0"] = _cdb->getUrl("MBD_TQ_T0");
       if (Verbosity() > 0)
       {
-        std::cout << "tq_t0_url " << tq_t0_url << std::endl;
+        std::cout << "MBD_TQ_T0 url " << _cdb_urls["MBD_TQ_T0"] << std::endl;
       }
-      Download_TQT0(tq_t0_url);
+      Download_TQT0(_cdb_urls["MBD_TQ_T0"]);
 
-      std::string t0corr_url = _cdb->getUrl("MBD_T0CORR");
+      _cdb_urls["MBD_T0CORR"] = _cdb->getUrl("MBD_T0CORR");
       if ( Verbosity() > 0 )
       {
-        std::cout << "t0corr_url " << t0corr_url << std::endl;
+        std::cout << "MBD_T0CORR url " << _cdb_urls["MBD_T0CORR"] << std::endl;
       }
-      Download_T0Corr(t0corr_url);
+      Download_T0Corr(_cdb_urls["MBD_T0CORR"]);
 
-      std::string timecorr_url = _cdb->getUrl("MBD_TIMECORR");
+      _cdb_urls["MBD_TIMECORR"] = _cdb->getUrl("MBD_TIMECORR");
       if ( Verbosity() > 0 )
       {
-        std::cout << "timecorr_url " << timecorr_url << std::endl;
+        std::cout << "MBD_TIMECORR url " << _cdb_urls["MBD_TIMECORR"] << std::endl;
       }
-      Download_TimeCorr(timecorr_url);
+      Download_TimeCorr(_cdb_urls["MBD_TIMECORR"]);
 
-      std::string slew_url = _cdb->getUrl("MBD_SLEWCORR");
+      _cdb_urls["MBD_SLEWCORR"] = _cdb->getUrl("MBD_SLEWCORR");
       if ( Verbosity() > 0 )
       {
-        std::cout << "slew_url " << slew_url << std::endl;
+        std::cout << "MBD_SLEWCORR url " << _cdb_urls["MBD_SLEWCORR"] << std::endl;
       }
-      Download_SlewCorr(slew_url);
+      Download_SlewCorr(_cdb_urls["MBD_SLEWCORR"]);
 
-      std::string trms_url = _cdb->getUrl("MBD_TIMERMS");
+      _cdb_urls["MBD_TIMERMS"] = _cdb->getUrl("MBD_TIMERMS");
       if ( Verbosity() > 0 )
       {
-        std::cout << "trms_url " << trms_url << std::endl;
+        std::cout << "MBD_TIMERMS url " << _cdb_urls["MBD_TIMERMS"] << std::endl;
       }
-      Download_TimeRMS(trms_url);
+      Download_TimeRMS(_cdb_urls["MBD_TIMERMS"]);
     }
 
     Verbosity(0);
@@ -2162,6 +2163,40 @@ int MbdCalib::Write_CDB_SlewCorr(const std::string& dbfile)
 }
 #endif
 
+int MbdCalib::Write_SlewCorr(const std::string& dbfile)
+{
+  std::ofstream cal_slewcorr_file;
+  cal_slewcorr_file.open(dbfile);
+  if (!cal_slewcorr_file.is_open())
+  {
+    std::cout << PHWHERE << "unable to open " << dbfile << std::endl;
+    return -1;
+  }
+  for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
+  {
+    if ( _mbdgeom->get_type(ifeech) == 1 )
+    {
+      continue;  // skip q-channels
+    }
+    cal_slewcorr_file << ifeech << "\t" << _scorr_npts[ifeech] << "\t" << _scorr_minrange[ifeech] << "\t" << _scorr_maxrange[ifeech] << std::endl;
+    for (int ipt=0; ipt<_scorr_npts[ifeech]; ipt++)
+    {
+      cal_slewcorr_file << _scorr_y[ifeech][ipt];
+      if ( ipt%10 == 9 )
+      {
+        cal_slewcorr_file << std::endl;
+      }
+      else
+      {
+        cal_slewcorr_file << " ";
+      }
+    }
+  }
+  cal_slewcorr_file.close();
+
+  return 1;
+}
+
 #ifndef ONLINE
 int MbdCalib::Write_CDB_TimeRMS(const std::string& dbfile)
 {
@@ -2512,6 +2547,17 @@ void MbdCalib::Reset_Thresholds()
   _thresh_efferr.fill(std::numeric_limits<float>::quiet_NaN());
   _thresh_chi2ndf.fill(std::numeric_limits<float>::quiet_NaN());
 }
+
+#ifndef ONLINE
+void MbdCalib::Save_CDB_URL()
+{
+  for (const auto &kv : _cdb_urls)
+  {
+    auto named = std::make_unique<TNamed>(kv.first.c_str(), kv.second.c_str());
+    named->Write();
+  }
+}
+#endif
 
 void MbdCalib::Reset()
 {

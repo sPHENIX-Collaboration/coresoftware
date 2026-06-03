@@ -76,8 +76,8 @@ void PHG4TruthTrackingAction::PreUserTrackingAction(const G4Track* track)
   int vtxindex = ti->get_vtx_id();
 
   // maybe we should do the sPHENIX primary tracking here as here is the place where the parent id etc. are finally set
-
-  if (issPHENIXPrimary(*m_TruthInfoList, ti))
+// Old-- for only keeping sPHENIX primary 
+/* if (issPHENIXPrimary(*m_TruthInfoList, ti))
   {
     // we also want to set keep this track
     PHG4TrackUserInfoV1* userinfo = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation());
@@ -89,7 +89,30 @@ void PHG4TruthTrackingAction::PreUserTrackingAction(const G4Track* track)
     PHG4Particle* newparticle = dynamic_cast<PHG4Particle*>(ti->CloneMe());
 
     m_TruthInfoList->AddsPHENIXPrimaryParticle(trackid, newparticle);
+  }*/
+
+
+// Now keeping sPHENIX primary as well as decay history 
+  const bool keep_as_sphenix_primary = issPHENIXPrimary(*m_TruthInfoList, ti);
+  const bool keep_as_decay_history = keepDecayHistory(*m_TruthInfoList, ti);
+
+  if (keep_as_sphenix_primary || keep_as_decay_history)
+  {
+    PHG4TrackUserInfoV1* userinfo =
+        dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation());
+
+    if (userinfo)
+    {
+      userinfo->SetKeep(true);
+    }
   }
+
+  if (keep_as_sphenix_primary)
+  {
+    PHG4Particle* newparticle = dynamic_cast<PHG4Particle*>(ti->CloneMe());
+
+    m_TruthInfoList->AddsPHENIXPrimaryParticle(trackid, newparticle);
+  }//end keeping sPHENIX primary & decay History
 
   m_CurrG4Particle = {track_id_g4, trackid, vtxindex};
 
@@ -232,10 +255,11 @@ int PHG4TruthTrackingAction::ResetEvent(PHCompositeNode* /*unused*/)
   }
 
   return 0;
-}
+} 
 
 PHG4Particle* PHG4TruthTrackingAction::AddParticle(PHG4TruthInfoContainer& truth, G4Track& track)
 {
+
   int trackid = 0;
   if (track.GetParentID())
   {
@@ -357,6 +381,28 @@ PHG4VtxPoint* PHG4TruthTrackingAction::AddVertex(PHG4TruthInfoContainer& truth, 
  * @return true if the particle is classified as an sPHENIX primary, `false` otherwise.
  *
  */
+
+//For keeping all decay truth info 
+bool PHG4TruthTrackingAction::keepDecayHistory(
+    PHG4TruthInfoContainer& truth,
+    PHG4Particle* particle) const
+{
+  if (!particle)
+  {
+    return false;
+  }
+
+  PHG4VtxPoint* vtx = truth.GetVtx(particle->get_vtx_id());
+  if (!vtx)
+  {
+    return false;
+  }
+
+  const bool from_decay = (vtx->get_process() == PHG4MCProcess::kPDecay);
+
+  return from_decay; 
+}//End keep decay History
+
 bool PHG4TruthTrackingAction::issPHENIXPrimary(PHG4TruthInfoContainer& truth, PHG4Particle* particle) const
 {
   PHG4VtxPoint* vtx = truth.GetVtx(particle->get_vtx_id());

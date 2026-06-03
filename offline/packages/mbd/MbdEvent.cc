@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <format>
@@ -165,18 +166,32 @@ int MbdEvent::InitRun()
     if ( _calpass>1 )
     {
       std::string calfname = "results/"; calfname += std::to_string(_runnum); calfname += "/mbd_sampmax.calib";
-      std::cout << "Loading local sampmax, " << calfname << std::endl;
-      _mbdcal->Download_SampMax( calfname );
+      if ( std::filesystem::exists(calfname) )
+      {
+        std::cout << "Loading local sampmax, " << calfname << std::endl;
+        _mbdcal->Download_SampMax( calfname );
+      }
+      else
+      {
+        std::cout << PHWHERE << "local sampmax not found, skipping: " << calfname << std::endl;
+      }
 
       calfname = "results/"; calfname += std::to_string(_runnum); calfname += "/mbd_ped.calib";
-      std::cout << "Loading local ped, " << calfname << std::endl;
-      _mbdcal->Download_Ped( calfname );
+      if ( std::filesystem::exists(calfname) )
+      {
+        std::cout << "Loading local ped, " << calfname << std::endl;
+        _mbdcal->Download_Ped( calfname );
+      }
+      else
+      {
+        std::cout << PHWHERE << "local ped not found, skipping: " << calfname << std::endl;
+      }
     }
 
     // check if sampmax and ped calibs exist
     int scheck = _mbdcal->get_sampmax(0);
 
-    if ( (scheck<0 || _is_online) && _calpass!=1 )
+    if ( (scheck<0 || _is_online) && _calpass==0 )
     {
       _no_sampmax = 1000;    // num events for on the fly calculation
       _calib_done = 0;
@@ -281,11 +296,46 @@ int MbdEvent::InitRun()
 
   if ( _calpass == 2 )
   {
-    // zero out the tt_t0, tq_t0, and gains to produce uncalibrated time and charge
     std::cout << "MBD Cal Pass 2" << std::endl;
-    _mbdcal->Reset_TTT0();
-    _mbdcal->Reset_TQT0();
-    _mbdcal->Reset_Gains();
+
+    // zero out the tt_t0, tq_t0, and gains to produce uncalibrated time and charge
+    // or load pass2 calibs from local file for calpass2+, if local files exist
+    std::string calfname = "results/"; calfname += std::to_string(_runnum); calfname += "/mbd_tt_t0.calib";
+    if ( std::filesystem::exists(calfname) )
+    {
+      std::cout << "Loading local mbd_tt_t0, " << calfname << std::endl;
+      _mbdcal->Download_TTT0( calfname );
+    }
+    else
+    {
+      _mbdcal->Reset_TTT0();
+      std::cout << PHWHERE << "local mbd_tt_t0 not found, reset to 0: " << calfname << std::endl;
+    }
+
+    calfname = "results/"; calfname += std::to_string(_runnum); calfname += "/mbd_tq_t0.calib";
+    if ( std::filesystem::exists(calfname) )
+    {
+      std::cout << "Loading local mbd_tq_t0, " << calfname << std::endl;
+      _mbdcal->Download_TQT0( calfname );
+    }
+    else
+    {
+      _mbdcal->Reset_TQT0();
+      std::cout << PHWHERE << "local mbd_tq_t0 not found, reset to 0: " << calfname << std::endl;
+    }
+
+    calfname = "results/"; calfname += std::to_string(_runnum); calfname += "/mbd_qfit.calib";
+    if ( std::filesystem::exists(calfname) )
+    {
+      std::cout << "Loading local mbd_qfit, " << calfname << std::endl;
+      _mbdcal->Download_Gains( calfname );
+    }
+    else
+    {
+      _mbdcal->Reset_Gains();
+      std::cout << PHWHERE << "local mbd_gains not found, reset to 1: " << calfname << std::endl;
+    }
+
 
     TDirectory *orig_dir = gDirectory;
 
@@ -1381,7 +1431,7 @@ int MbdEvent::FillSampMaxCalib()
   // _no_sampmax keeps track of how many events to use for on-the-fly calibration
   _no_sampmax--;
 
-  if ( _no_sampmax==0 && _calpass != 1 )
+  if ( _no_sampmax==0 && _calpass==0 )
   {
     CalcSampMaxCalib();
     _calib_done = 1;

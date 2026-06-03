@@ -23,6 +23,7 @@
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 
+#include <fstream>
 #include <string>
 #include <vector>
 

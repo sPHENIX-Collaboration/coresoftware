@@ -872,12 +872,12 @@ namespace
     }
 
     // Convert from ideal TPC coordinates to surface coordinates 
-    Acts::Vector3 local = surface->transform(my_data.tGeometry->geometry().getGeoContext()).inverse() * (ideal * Acts::UnitConstants::cm);
+    Acts::Vector3 local = surface->localToGlobalTransform(my_data.tGeometry->geometry().getGeoContext()).inverse() * (ideal * Acts::UnitConstants::cm);
     local /= Acts::UnitConstants::cm;
 
     // Convert back to TPC coordinates with alignment applied 
     alignmentTransformationContainer::use_alignment = true;
-    Acts::Vector3 global = surface->transform(my_data.tGeometry->geometry().getGeoContext()) * (local * Acts::UnitConstants::cm);
+    Acts::Vector3 global = surface->localToGlobalTransform(my_data.tGeometry->geometry().getGeoContext()) * (local * Acts::UnitConstants::cm);
     global /= Acts::UnitConstants::cm;
     clus->setX(global(0));
     clus->setY(global(1));

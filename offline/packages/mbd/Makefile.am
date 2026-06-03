@@ -70,6 +70,7 @@ pkginclude_HEADERS = \
   MbdPmtHit.h \
   MbdPmtHitV1.h \
   MbdPmtSimHitV1.h \
+  MbdCalibReco.h \
   MbdRawContainer.h \
   MbdRawContainerV1.h \
   MbdRawContainerV2.h \
@@ -178,6 +179,7 @@ libmbd_io_la_SOURCES = \
   MbdSig.cc
 
 libmbd_la_SOURCES = \
+  MbdCalibReco.cc \
   MbdEvent.cc \
   MbdCalib.cc \
   MbdReco.cc \
