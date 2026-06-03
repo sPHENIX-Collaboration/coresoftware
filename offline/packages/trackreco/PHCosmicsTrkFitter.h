@@ -105,7 +105,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   int createNodes(PHCompositeNode* topNode);
 
   void loopTracks(Acts::Logging::Level logLevel);
-  int getCharge(const std::vector<Acts::Vector3>& positions, const std::vector<float>& tpcparams);
+  int getCharge(TrackSeed *tpcseed, const std::vector<Acts::Vector3>& sorted_positions);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(std::vector<Acts::TrackIndexType>& tips,
@@ -113,7 +113,7 @@ class PHCosmicsTrkFitter : public SubsysReco
                        ActsTrackFittingAlgorithm::TrackContainer& tracks,
                        SvtxTrack* track);
   Acts::Vector3 calculatePCA(TrackSeed* seed, const std::vector<Acts::Vector3>& sorted_positions);
-
+  Acts::Vector3 calculateMomentum(TrackSeed* tpcseed, const std::vector<Acts::Vector3>& sorted_positions);
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
   inline ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
