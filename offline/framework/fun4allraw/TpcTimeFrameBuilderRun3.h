@@ -352,6 +352,9 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
     //! max time in GTM BCO for FEE data to sync over to datastream
     static constexpr unsigned int m_max_fee_sync_time = 1024 * 8;
 
+    //! fixed GTM BCO offset applied when BX_COUNTER_SYNC_T defines the reference clock
+    static constexpr uint64_t kBXCounterSyncGtmBcoOffset = 4;
+
     static constexpr unsigned int m_FEE_CLOCK_BITS = 20;
     static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
 
@@ -381,6 +384,7 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
 
   static constexpr uint32_t kFEEClockMask = (1U << 20U) - 1U;
   static constexpr uint32_t kRun3FeeMatchWindow = (GL1_BCO_MATCH_WINDOW * 30U + 7U) / 8U;
+  static constexpr int32_t kRun3ExactMatchWindow = 2;
 
   static int64_t get_signed_fee_bco_diff(uint32_t first, uint32_t second);
   static uint32_t get_fee_bco_diff(uint32_t first, uint32_t second);

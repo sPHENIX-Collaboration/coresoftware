@@ -517,13 +517,28 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
       continue;
     }
 
-    const size_t exact_hits = move_time_hits(*predicted_fee_bco, fee, timeframe);
+    size_t exact_hits = 0;
+    for (int32_t fee_clock_offset = -kRun3ExactMatchWindow; fee_clock_offset <= kRun3ExactMatchWindow; ++fee_clock_offset)
+    {
+      const uint32_t exact_fee_bco = static_cast<uint32_t>(static_cast<uint64_t>(static_cast<int64_t>(*predicted_fee_bco) + fee_clock_offset) & kFEEClockMask);
+      const size_t exact_hits_for_bco = move_time_hits(exact_fee_bco, fee, timeframe);
+      if (exact_hits_for_bco == 0)
+      {
+        continue;
+      }
+
+      exact_hits += exact_hits_for_bco;
+      assert(h_Run3_FEE_GTMMatching_ClockDiff);
+      h_Run3_FEE_GTMMatching_ClockDiff->Fill(static_cast<double>(get_signed_fee_bco_diff(exact_fee_bco, *predicted_fee_bco)),
+                                             static_cast<double>(fee),
+                                             static_cast<double>(exact_hits_for_bco));
+    }
+
     exact_hit_count += exact_hits;
     if (exact_hits > 0)
     {
       assert(h_Run3TimeFrameExactHit_FEE);
       h_Run3TimeFrameExactHit_FEE->Fill(fee, exact_hits);
-      h_Run3_FEE_GTMMatching_ClockDiff->Fill(0., static_cast<double>(fee), static_cast<double>(exact_hits));
       continue;
     }
 
@@ -1901,15 +1916,18 @@ void TpcTimeFrameBuilderRun3::BcoMatchingInformation::save_gtm_bco_information(c
       m_hNorm->Fill("SyncGTM", 1);
 
       // get BCO and assign
+      const uint64_t bco_reference_gtm_bco = gtm_bco + kBXCounterSyncGtmBcoOffset;
       m_verified_from_modebits = true;
-      m_bco_reference = std::make_pair(gtm_bco, 0);
+      m_bco_reference = std::make_pair(bco_reference_gtm_bco, 0);
       m_bco_reference_candidate_list.clear();
 
       if (m_verbosity)
       {
         std::cout << "TpcTimeFrameBuilderRun3[" << m_name << "]::BcoMatchingInformation::find_reference_from_modebits"
                   << "\t- found reference from modebits BX_COUNTER_SYNC_T "
-                  << "at gtm_bco = 0x" << std::hex << gtm_bco << std::dec
+                  << "at gtm_bco = 0x" << std::hex << gtm_bco
+                  << " reference gtm_bco = 0x" << bco_reference_gtm_bco << std::dec
+                  << " sync offset = " << kBXCounterSyncGtmBcoOffset
                   << std::endl;
       }
     }  //     if (modebits == BX_COUNTER_SYNC_T)  // initiate synchronization of clock sync
