@@ -366,6 +366,25 @@ size_t TpcTimeFrameBuilderRun3::move_time_hits(uint32_t fee_bco, uint16_t fee, s
   return moved;
 }
 
+size_t TpcTimeFrameBuilderRun3::count_time_hits(uint32_t fee_bco, uint16_t fee) const
+{
+  auto it = m_timeHitMap.find(fee_bco & kFEEClockMask);
+  if (it == m_timeHitMap.end())
+  {
+    return 0;
+  }
+
+  size_t count = 0;
+  for (const TpcRawHit* hit : it->second)
+  {
+    if (hit->get_fee() == fee)
+    {
+      ++count;
+    }
+  }
+  return count;
+}
+
 std::optional<uint32_t> TpcTimeFrameBuilderRun3::find_fuzzy_fee_bco(uint32_t predicted_fee_bco, uint16_t fee) const
 {
   uint32_t best_fee_bco = 0;
@@ -548,7 +567,8 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
       continue;
     }
 
-    const size_t fuzzy_hits = move_time_hits(*fuzzy_fee_bco, fee, timeframe);
+
+    const size_t fuzzy_hits = count_time_hits(*fuzzy_fee_bco, fee);
     if (fuzzy_hits == 0)
     {
       continue;
@@ -573,6 +593,12 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
     }
   }
 
+  if (fallback_hit_count > 0)
+  {
+    m_hNorm->Fill("Run3_TimeFrame_FuzzyFallback", 1);
+    m_hNorm->Fill("Run3_TimeFrame_FuzzyFallback_Hit_Sum", fallback_hit_count);
+  }
+
   if (timeframe.empty())
   {
     if (m_verbosity >= 1)
@@ -594,12 +620,6 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
   {
     m_hNorm->Fill("Run3_TimeFrame_Exact_Matched", 1);
   }
-  if (fallback_hit_count > 0)
-  {
-    m_hNorm->Fill("Run3_TimeFrame_FuzzyFallback", 1);
-    m_hNorm->Fill("Run3_TimeFrame_FuzzyFallback_Hit_Sum", fallback_hit_count);
-  }
-
   m_hNorm->Fill("GTM_TimeFrame_Matched", 1);
   assert(h_TimeFrame_Matched_Size);
   h_TimeFrame_Matched_Size->Fill(timeframe.size());

@@ -355,7 +355,7 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
     //! fixed GTM BCO offset applied when BX_COUNTER_SYNC_T defines the reference clock
     static constexpr uint64_t kBXCounterSyncGtmBcoOffset = 0;
     //! fixed FEE BCO offset applied when BX_COUNTER_SYNC_T defines the reference clock
-    static constexpr uint64_t kBXCounterSyncFEEBcoOffset = 15;
+    static constexpr uint64_t kBXCounterSyncFEEBcoOffset = 12;
 
     static constexpr unsigned int m_FEE_CLOCK_BITS = 20;
     static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
@@ -391,6 +391,7 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
   static int64_t get_signed_fee_bco_diff(uint32_t first, uint32_t second);
   static uint32_t get_fee_bco_diff(uint32_t first, uint32_t second);
   size_t move_time_hits(uint32_t fee_bco, uint16_t fee, std::vector<TpcRawHit *> &timeframe);
+  size_t count_time_hits(uint32_t fee_bco, uint16_t fee) const;
   std::optional<uint32_t> find_fuzzy_fee_bco(uint32_t predicted_fee_bco, uint16_t fee) const;
   void cleanup_time_hit_map(uint64_t bclk_rollover_corrected, uint32_t fee_clock_window);
   void flush_previous_timeframe_waveform_start_cache(uint64_t current_gtm_bco);
