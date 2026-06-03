@@ -145,8 +145,13 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
         }
         else
         {
-          towerinfo->set_energy(retower_e_temp / (double) (1 - scalefactor));
-          if (retower_e_temp == 0)
+          if(_do_rescale)
+	  {
+	    towerinfo->set_energy(retower_e_temp / (double) (1 - scalefactor));
+	  }
+	  else towerinfo->set_energy(retower_e_temp);
+
+	  if (retower_e_temp == 0)
           {
             towerinfo->set_time(0);
           }
