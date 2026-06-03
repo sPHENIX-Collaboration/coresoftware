@@ -105,7 +105,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   int createNodes(PHCompositeNode* topNode);
 
   void loopTracks(Acts::Logging::Level logLevel);
-  int getCharge(TrackSeed *tpcseed, const std::vector<Acts::Vector3>& sorted_positions);
+  int getCharge(TrackSeed* tpcseed, const std::vector<Acts::Vector3>& sorted_positions);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(std::vector<Acts::TrackIndexType>& tips,

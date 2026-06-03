@@ -397,7 +397,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     {
       clearVectors();
       m_seed = tpcid;
-      m_R = std::abs(1./tpcseed->get_qOverR());
+      m_R = std::abs(1. / tpcseed->get_qOverR());
       m_X0 = tpcseed->get_X0();
       m_Y0 = tpcseed->get_Y0();
       m_Z0 = tpcseed->get_Z0();
@@ -912,8 +912,8 @@ void PHCosmicsTrkFitter::clearVectors()
   m_ez.clear();
 }
 
-int PHCosmicsTrkFitter::getCharge(TrackSeed *tpcseed,
-    const std::vector<Acts::Vector3>& sorted_positions)
+int PHCosmicsTrkFitter::getCharge(TrackSeed* tpcseed,
+                                  const std::vector<Acts::Vector3>& sorted_positions)
 {
   Acts::GeometryContext transient_geocontext{m_alignmentTransformationMapTransient};
 
@@ -993,7 +993,6 @@ Acts::Vector3 PHCosmicsTrkFitter::calculatePCA(TrackSeed* seed, const std::vecto
 
   return Acts::Vector3(pcax, pcay, z_ca);
 }
-
 
 Acts::Vector3 PHCosmicsTrkFitter::calculateMomentum(TrackSeed* tpcseed, const std::vector<Acts::Vector3>& sorted_positions)
 {
