@@ -43,9 +43,7 @@
 #ifndef __clang__
 #pragma GCC diagnostic pop
 #endif
-#include <Acts/Seeding/InternalSeed.hpp>
-#include <Acts/Seeding/InternalSpacePoint.hpp>
-#include <Acts/Seeding/Seed.hpp>
+#include <Acts/EventData/Seed.hpp>
 #include <Acts/Seeding/SeedFilter.hpp>
 #include <cmath>
 
@@ -86,10 +84,9 @@ PHActsSiliconSeeding::~PHActsSiliconSeeding()
 int PHActsSiliconSeeding::Init(PHCompositeNode* /*topNode*/)
 {
   Acts::SeedFilterConfig sfCfg = configureSeedFilter();
-  sfCfg = sfCfg.toInternalUnits();
 
-  m_seedFinderCfg.seedFilter = std::make_unique<Acts::SeedFilter<SpacePoint>>(
-      Acts::SeedFilter<SpacePoint>(sfCfg));
+  m_seedFinderCfg.seedFilter = std::make_unique<Acts::SeedFilter<SpacePointProxy_type>>(
+      sfCfg);
 
   configureSeeder();
   configureSPGrid();
@@ -100,10 +97,10 @@ int PHActsSiliconSeeding::Init(PHCompositeNode* /*topNode*/)
   }
   // vector containing the map of z bins in the top and bottom layers
 
-  m_bottomBinFinder = std::make_unique<const Acts::GridBinFinder<2UL>>(
-      nphineighbors, zBinNeighborsBottom);
-  m_topBinFinder = std::make_unique<const Acts::GridBinFinder<2UL>>(
-      nphineighbors, zBinNeighborsTop);
+  m_bottomBinFinder = std::make_unique<const Acts::GridBinFinder<3ul>>(
+      nphineighbors, zBinNeighborsBottom, 0);
+  m_topBinFinder = std::make_unique<const Acts::GridBinFinder<3ul>>(
+      nphineighbors, zBinNeighborsTop, 0);
 
   if (m_seedAnalysis)
   {
@@ -196,7 +193,8 @@ int PHActsSiliconSeeding::End(PHCompositeNode* /*topNode*/)
 
 void PHActsSiliconSeeding::runSeeder()
 {
-  Acts::SeedFinder<SpacePoint, Acts::CylindricalSpacePointGrid<SpacePoint>> seedFinder(m_seedFinderCfg);
+  Acts::SeedFinder<SpacePointProxy_type, 
+                   Acts::CylindricalSpacePointGrid<SpacePointProxy_type>> seedFinder(m_seedFinderCfg);
 
   auto eventTimer = std::make_unique<PHTimer>("eventTimer");
   eventTimer->stop();
@@ -210,20 +208,9 @@ void PHActsSiliconSeeding::runSeeder()
       std::cout << "Seeding for strobe " << strobe << std::endl;
     }
     GridSeeds seedVector;
-    /// Covariance converter functor needed by seed finder
-    auto covConverter = [=](const SpacePoint& sp, float zAlign, float rAlign,
-                            float sigmaError)
-    {
-      Acts::Vector3 position{sp.x(), sp.y(), sp.z()};
-      Acts::Vector2 cov;
-      cov[0] = (sp.m_varianceR + rAlign * rAlign) * sigmaError;
-      cov[1] = (sp.m_varianceZ + zAlign * zAlign) * sigmaError;
-      return std::make_tuple(position, cov, sp.t());
-    };
 
-    Acts::Extent rRangeSPExtent;
     eventTimer->restart();
-    auto spVec = getSiliconSpacePoints(rRangeSPExtent, strobe);
+    auto spVec = getSiliconSpacePoints(strobe);
     eventTimer->stop();
     spTime += eventTimer->get_accumulated_time();
     if (m_seedAnalysis)
@@ -231,37 +218,70 @@ void PHActsSiliconSeeding::runSeeder()
       h_nInputMeas->Fill(spVec.size());
     }
 
-    Acts::CylindricalSpacePointGrid<SpacePoint> grid =
-        Acts::CylindricalSpacePointGridCreator::createGrid<SpacePoint>(
+    Acts::SpacePointContainerConfig spConfig;
+    spConfig.useDetailedDoubleMeasurementInfo =
+        m_seedFinderCfg.useDetailedDoubleMeasurementInfo;
+    // Options
+    // TODO - check beam pos information
+    Acts::SpacePointContainerOptions spOptions;
+    spOptions.beamPos = {0., 0.};
+
+    // Prepare interface SpacePoint backend-ACTS
+    ActsExamples::SpacePointContainer container(spVec);
+    // Prepare Acts API
+    SpacePointContainerRefHolder
+        spContainer(spConfig, spOptions, container);
+
+    
+
+    Acts::CylindricalSpacePointGrid<value_type> grid =
+        Acts::CylindricalSpacePointGridCreator::createGrid<value_type>(
             m_gridCfg, m_gridOptions);
-    Acts::CylindricalSpacePointGridCreator::fillGrid(
+    Acts::CylindricalSpacePointGridCreator::fillGrid<value_type>(
         m_seedFinderCfg, m_seedFinderOptions, grid,
-        spVec.begin(), spVec.end(), covConverter,
-        rRangeSPExtent);
+        spContainer);
 
-    std::array<std::vector<std::size_t>, 2UL> navigation;
-    navigation[1UL] = m_seedFinderCfg.zBinsCustomLooping;
+    // Compute radius Range
+    // we rely on the fact the grid is storing the proxies
+    // with a sorting in the radius
+    float minRange = std::numeric_limits<float>::max();
+    float maxRange = std::numeric_limits<float>::lowest();
+    for (const auto& coll : grid)
+    {
+      if (coll.empty())
+      {
+        continue;
+      }
+      const auto* firstEl = coll.front();
+      const auto* lastEl = coll.back();
+      minRange = std::min(firstEl->radius(), minRange);
+      maxRange = std::max(lastEl->radius(), maxRange);
+    }
 
-    auto spacePointsGrouping = Acts::CylindricalBinnedGroup<SpacePoint>(
+    std::array<std::vector<std::size_t>, 3ul> navigation;
+    navigation[1ul] = m_seedFinderCfg.zBinsCustomLooping;
+
+    auto spacePointsGrouping = Acts::CylindricalBinnedGroup<value_type>(
         std::move(grid), *m_bottomBinFinder, *m_topBinFinder,
         std::move(navigation));
 
     /// variable middle SP radial region of interest
     const Acts::Range1D<float> rMiddleSPRange(
-        std::floor(rRangeSPExtent.min(Acts::binR) / 2) * 2 + 1.5,
-        std::floor(rRangeSPExtent.max(Acts::binR) / 2) * 2 - 1.5);
+        // TODO check these values in current code with Acts::Extent
+        std::floor(minRange / 2) * 2 + 1.5,
+        std::floor(maxRange / 2) * 2 - 1.5);
 
     eventTimer->restart();
-    SeedContainer seeds;
+    static thread_local std::vector<seed_type> seeds;
     seeds.clear();
+
     decltype(seedFinder)::SeedingState state;
-    state.spacePointData.resize(spVec.size(),
-                                m_seedFinderCfg.useDetailedDoubleMeasurementInfo);
+    state.spacePointMutableData.resize(spContainer.size());
     for (const auto [bottom, middle, top] : spacePointsGrouping)
     {
       seedFinder.createSeedsForGroup(m_seedFinderOptions,
                                      state, spacePointsGrouping.grid(),
-                                     std::back_inserter(seeds),
+                                     seeds,
                                      bottom,
                                      middle,
                                      top,
@@ -271,15 +291,13 @@ void PHActsSiliconSeeding::runSeeder()
     seederTime += eventTimer->get_accumulated_time();
     eventTimer->restart();
 
-    seedVector.push_back(seeds);
-
     if (m_streaming)
     {
-      makeSvtxTracksWithTime(seedVector, strobe);
+      makeSvtxTracksWithTime(seeds, strobe);
     }
     else
     {
-      makeSvtxTracks(seedVector);
+      makeSvtxTracks(seeds);
     }
 
     eventTimer->stop();
@@ -306,26 +324,17 @@ void PHActsSiliconSeeding::runSeeder()
   return;
 }
 
-void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
+void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<seed_type>& seedVector,
                                                   const int& strobe)
 
 {
-  int numSeeds = 0;
+  //  int numSeeds = 0;
   int numGoodSeeds = 0;
   m_seedid = -1;
 
-  for (const auto& seeds : seedVector)
+  for (const auto& seed : seedVector)
   {
-    /// loop over acts triplets
-    for (const auto& seed : seeds)
-    {
-      if (Verbosity() > 1)
-      {
-        std::cout << "Seed " << numSeeds << " has "
-                  << seed.sp().size() << " measurements "
-                  << std::endl;
-      }
-      numSeeds++;
+    //      numSeeds++;
       if (m_seedAnalysis)
       {
         clearTreeVariables();
@@ -334,10 +343,10 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
 
       std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
       std::vector<Acts::Vector3> clus_positions;
-
-      for (const auto& spacePoint : seed.sp())
+      const auto& sps = seed.sp();
+      for (int spid = 0; spid < 3; spid++)
       {
-        const auto& cluskey = spacePoint->Id();
+        const auto& cluskey = sps[spid]->externalSpacePoint()->Id();
 
         auto globalPosition = m_tGeometry->getGlobalPosition(
             cluskey,
@@ -380,9 +389,10 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
         {
           // make the svtxtrack seed with both mvtx + intt clusters
           auto trackSeed = std::make_unique<TrackSeed_v2>();
-          for (const auto& mvtx_clus : seed.sp())
+          
+          for (int spid = 0; spid < 3; spid++)
           {
-            const auto& cluskey = mvtx_clus->Id();
+            const auto& cluskey = sps[spid]->externalSpacePoint()->Id();
             trackSeed->insert_cluster_key(cluskey);
           }
           for (auto& intt_clus : intt_clus_vec)
@@ -405,9 +415,9 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
       {
         /// make a single mvtx only seed
         auto trackSeed = std::make_unique<TrackSeed_v2>();
-        for (const auto& mvtx_clus : seed.sp())
+        for (int spid = 0; spid < 3; spid++)
         {
-          const auto& cluskey = mvtx_clus->Id();
+          const auto& cluskey = sps[spid]->externalSpacePoint()->Id();
           trackSeed->insert_cluster_key(cluskey);
         }
         TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 7);
@@ -418,34 +428,22 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
         m_seedContainer->insert(trackSeed.get());
         numGoodSeeds++;
       }
-    }
+    
   }
   if (Verbosity() > 4)
   {
     std::cout << "num good seeds : " << numGoodSeeds << std::endl;
   }
 }
-void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
+void PHActsSiliconSeeding::makeSvtxTracks(const std::vector<seed_type>& seedVector)
 {
   int numSeeds = 0;
   int numGoodSeeds = 0;
   m_seedid = -1;
 
-  int strobe = m_lowStrobeIndex;
-  /// Loop over grid volumes. In our case this will be strobe
-  for (const auto& seeds : seedVector)
+  for (const auto& seed : seedVector)
   {
-    /// Loop over actual seeds in this grid volume
-    for (const auto& seed : seeds)
-    {
-      if (Verbosity() > 1)
-      {
-        std::cout << "Seed " << numSeeds << " has "
-                  << seed.sp().size() << " measurements "
-                  << std::endl;
-      }
-
-      if (m_seedAnalysis)
+         if (m_seedAnalysis)
       {
         clearTreeVariables();
         m_seedid++;
@@ -458,9 +456,10 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
       std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
       auto trackSeed = std::make_unique<TrackSeed_v2>();
 
-      for (const auto& spacePoint : seed.sp())
+      const auto& sps = seed.sp();
+      for (int spid = 0; spid < 3; spid++)
       {
-        const auto& cluskey = spacePoint->Id();
+        const auto& cluskey = sps[spid]->externalSpacePoint()->Id();
         cluster_keys.push_back(cluskey);
 
         trackSeed->insert_cluster_key(cluskey);
@@ -478,7 +477,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
         if (Verbosity() > 1)
         {
           std::cout << "Adding cluster with x,y "
-                    << spacePoint->x() << ", " << spacePoint->y()
+                    << sps[spid]->externalSpacePoint()->x() << ", " << sps[spid]->externalSpacePoint()->y()
                     << " mm in detector "
                     << (unsigned int) TrkrDefs::getTrkrId(cluskey)
                     << " with cluskey " << cluskey
@@ -599,12 +598,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
         std::cout << "Intt fit time " << circlefittime << " and svtx time "
                   << svtxtracktime << std::endl;
       }
-    }
-    strobe++;
-    if (strobe > m_highStrobeIndex)
-    {
-      std::cout << PHWHERE << "Error: some how grid seed vector is not the same as the number of strobes" << std::endl;
-    }
+    
   }
 
   if (m_seedAnalysis)
@@ -962,7 +956,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
           {
             intersection = TrackFitUtils::get_helix_surface_intersection(surf, dummypars, glob, m_tGeometry);
           }
-          auto local = (surf->transform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
+          auto local = (surf->localToGlobalTransform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
           local /= Acts::UnitConstants::cm;
           m_projgx = intersection.x();
           m_projgy = intersection.y();
@@ -1265,7 +1259,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
         auto glob = m_tGeometry->getGlobalPosition(
             cluskey, cluster);
         auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, m_tGeometry);
-        auto local = (surf->transform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
+        auto local = (surf->localToGlobalTransform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
         local /= Acts::UnitConstants::cm;
         m_projgx = intersection.x();
         m_projgy = intersection.y();
@@ -1418,8 +1412,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   return spPtr;
 }
 
-std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts::Extent& rRangeSPExtent,
-                                                                           const int strobe)
+std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(const int strobe)
 {
   std::vector<const SpacePoint*> spVec;
   unsigned int numSiliconHits = 0;
@@ -1465,7 +1458,6 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts:
 
         auto* sp = makeSpacePoint(surface, cluskey, cluster).release();
         spVec.push_back(sp);
-        rRangeSPExtent.extend({sp->x(), sp->y(), sp->z()});
         numSiliconHits++;
       }
     }
@@ -1496,8 +1488,6 @@ void PHActsSiliconSeeding::configureSPGrid()
   m_gridCfg.phiBinDeflectionCoverage = m_numPhiNeighbors;
 
   m_gridOptions.bFieldInZ = m_bField;
-  m_gridCfg = m_gridCfg.toInternalUnits();
-  m_gridOptions = m_gridOptions.toInternalUnits();
 }
 
 Acts::SeedFilterConfig PHActsSiliconSeeding::configureSeedFilter() const
@@ -1551,9 +1541,6 @@ void PHActsSiliconSeeding::configureSeeder()
   m_seedFinderCfg.sigmaError = m_sigmaError;
   m_seedFinderCfg.helixCutTolerance = m_helixcut;
 
-  m_seedFinderCfg =
-      m_seedFinderCfg.toInternalUnits().calculateDerivedQuantities();
-  m_seedFinderOptions = m_seedFinderOptions.toInternalUnits().calculateDerivedQuantities(m_seedFinderCfg);
 }
 
 int PHActsSiliconSeeding::getNodes(PHCompositeNode* topNode)

@@ -56,7 +56,7 @@ void ActsAlignmentStates::loadNodes( PHCompositeNode* topNode )
 //_________________________________________________________________
 void ActsAlignmentStates::fillAlignmentStateMap(
   const ActsTrackFittingAlgorithm::TrackContainer& tracks,
-  const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+  const std::vector<Acts::TrackIndexType>& tips,
   SvtxTrack* track,
   const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
@@ -117,7 +117,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(
                     {
     /// Collect only track states which were used in smoothing of KF and are measurements
     if (! state.hasSmoothed() ||
-        ! state.typeFlags().test(Acts::TrackStateFlag::MeasurementFlag))
+        ! state.typeFlags().isMeasurement())
     {
       return true;
     }
@@ -127,10 +127,9 @@ void ActsAlignmentStates::fillAlignmentStateMap(
     auto ckey = sl.cluskey();
     Acts::Vector2 localMeas = Acts::Vector2::Zero();
     /// get the local measurement that acts used
-    std::visit([&](const auto& meas) {
-	localMeas(0) = meas.parameters()[0];
-	localMeas(1) = meas.parameters()[1];
-      }, measurements[sl.index()]);
+    const auto measurement = measurements.getMeasurement(sl.index());
+    localMeas(0) = measurement.parameters()[0];
+    localMeas(1) = measurement.parameters()[1];
 
     if (m_verbosity > 2)
     {
@@ -142,7 +141,9 @@ void ActsAlignmentStates::fillAlignmentStateMap(
     auto clus = m_clusterMap->findCluster(ckey);
 
     // local state vector
-    const Acts::Vector2 localState = state.effectiveProjector() * state.smoothed();
+    const auto H = state.projectorSubspaceHelper().fullProjector().topLeftCorner(
+        state.calibratedSize(), Acts::eBoundSize);
+    const Acts::Vector2 localState = H * state.smoothed();
 
     // Local residual between measurement and smoothed Acts state
     const Acts::Vector2 localResidual = localMeas - localState;
@@ -205,8 +206,8 @@ void ActsAlignmentStates::fillAlignmentStateMap(
 
     //! this is the derivative of the state wrt to Acts track parameters
     //! e.g. (d_0, z_0, phi, theta, q/p, t)
-    auto localDeriv = state.effectiveProjector() * state.jacobian();
-    if(m_verbosity > 2)
+      auto localDeriv = H * state.jacobian();
+      if (m_verbosity > 2)
       {
 	std::cout << "local deriv " << std::endl << localDeriv << std::endl;
       }
@@ -275,10 +276,10 @@ std::pair<Acts::Vector3, Acts::Vector3> ActsAlignmentStates::get_projectionXY(co
   // get surface X and Y unit vectors in global frame
   // transform Xlocal = 1.0 to global, subtract the surface center, normalize to 1
   Acts::Vector3 xloc(1.0, 0.0, 0.0);
-  Acts::Vector3 xglob = surface.transform(m_tGeometry->geometry().getGeoContext()) * xloc;
+  Acts::Vector3 xglob = surface.localToGlobalTransform(m_tGeometry->geometry().getGeoContext()) * xloc;
 
   Acts::Vector3 yloc(0.0, 1.0, 0.0);
-  Acts::Vector3 yglob = surface.transform(m_tGeometry->geometry().getGeoContext()) * yloc;
+  Acts::Vector3 yglob = surface.localToGlobalTransform(m_tGeometry->geometry().getGeoContext()) * yloc;
 
   Acts::Vector3 X = (xglob - sensorCenter) / (xglob - sensorCenter).norm();
   Acts::Vector3 Y = (yglob - sensorCenter) / (yglob - sensorCenter).norm();

@@ -14,6 +14,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/alignmentTransformationContainer.h>
 #include <trackbase/sPHENIXActsDetectorElement.h>
+#include <trackbase/MagneticFieldOptions.h>
 
 #include <intt/CylinderGeomIntt.h>
 
@@ -59,9 +60,13 @@
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
+#include <Acts/Surfaces/SurfaceArray.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
 #include <ActsExamples/Framework/IContextDecorator.hpp>
+
+#include <ActsPlugins/Json/JsonMaterialDecorator.hpp>
+#include <ActsPlugins/Json/MaterialMapJsonConverter.hpp>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -69,14 +74,11 @@
 #include <trackbase/CommonOptions.h>
 #pragma GCC diagnostic pop
 
-#include <trackbase/MagneticFieldOptions.h>
 #include <ActsExamples/Utilities/Options.hpp>
 
 #include <ActsExamples/TGeoDetector/JsonTGeoDetectorConfig.hpp>
 
 #include <Acts/Material/IMaterialDecorator.hpp>
-#include <Acts/Plugins/Json/JsonMaterialDecorator.hpp>
-#include <Acts/Plugins/Json/MaterialMapJsonConverter.hpp>
 #include <trackbase/MaterialWiper.h>
 
 #include <TGeoManager.h>
@@ -297,19 +299,18 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->set_tpc_tzero(m_tpc_tzero);
   m_actsGeometry->set_sampa_tzero_bias(m_sampa_tzero_bias);
   // alignment_transformation.useInttSurveyGeometry(m_inttSurvey);
+
   if (Verbosity() > 1)
   {
     alignment_transformation.verbosity();
   }
   alignment_transformation.createMap(topNode);
-
   for (auto &[layer, factor] : m_misalignmentFactor)
   {
     alignment_transformation.misalignmentFactor(layer, factor);
   }
-
   // print
-  if (Verbosity())
+  if (Verbosity() > 3)
   {
     for (const auto &id : surfMaps.m_tpcVolumeIds)
     {
@@ -664,7 +665,7 @@ void MakeActsGeometry::buildActsSurfaces()
   // acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
 
-  makeGeometry(argstr.size(), argv, m_detector);
+  makeGeometry(argstr.size(), argv, responseFile, materialFile);
 
   for (size_t i = 0; i < argstr.size(); ++i)
   {
@@ -707,24 +708,47 @@ void MakeActsGeometry::setMaterialResponseFile(std::string &responseFile,
 
   return;
 }
-void MakeActsGeometry::makeGeometry(int argc, char *argv[],
-                                    ActsExamples::TGeoDetectorWithOptions &detector)
+void MakeActsGeometry::makeGeometry(int argc, char *argv[], const std::string& responseFile, const std::string& materialFile)
 {
+
   // setup and parse options
   boost::program_options::options_description desc;
   ActsExamples::Options::addGeometryOptions(desc);
   ActsExamples::Options::addMaterialOptions(desc);
   ActsExamples::Options::addMagneticFieldOptions(desc);
 
+  ActsExamples::TGeoDetector::Config config;
+  config.surfaceLogLevel = Acts::Logging::FATAL;
+  config.layerLogLevel = Acts::Logging::FATAL;
+  config.volumeLogLevel = Acts::Logging::FATAL;
+  config.logLevel = Acts::Logging::FATAL;
+  config.detectorElementFactory = sPHENIXElementFactory;
+  config.readJson(responseFile);
+
+  std::shared_ptr<Acts::IMaterialDecorator> matDeco = nullptr;
+  if (materialFile.find(".json") != std::string::npos ||
+      materialFile.find(".cbor") != std::string::npos)
+  {
+    // Set up the converter first
+    Acts::MaterialMapJsonConverter::Config jsonGeoConvConfig;
+    // Set up the json-based decorator
+    matDeco = std::make_shared<Acts::JsonMaterialDecorator>(
+        jsonGeoConvConfig, materialFile, Acts::Logging::FATAL);
+  }
+  else
+  {
+    matDeco = std::make_shared<Acts::MaterialWiper>();
+  }
+  config.materialDecorator = matDeco;
+  // this does the building now. The TGeoDetector owns the 
+  // tracking geometry
+  m_TGeoDetector = std::make_unique<ActsExamples::TGeoDetectorWithOptions>(config);
+
   // Add specific options for this geometry
-  detector.addOptions(desc);
+  m_TGeoDetector->addOptions(desc);
   auto vm = ActsExamples::Options::parse(desc, argc, argv);
 
-  // The geometry, material and decoration
-  auto geometry = build(vm, detector);
-  // Geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
-
-  m_tGeometry = geometry.first;
+  m_tGeometry = m_TGeoDetector->m_detector.trackingGeometry();
   if (m_useField)
   {
     m_magneticField = ActsExamples::Options::readMagneticField(vm);
@@ -734,88 +758,9 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
     m_magneticField = nullptr;
   }
 
-  m_geoCtxt = Acts::GeometryContext();
-
   unpackVolumes();
 
   return;
-}
-
-std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
-          std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
-MakeActsGeometry::build(const boost::program_options::variables_map &vm,
-                        ActsExamples::TGeoDetectorWithOptions &detector)
-{
-  // Material decoration
-  std::shared_ptr<const Acts::IMaterialDecorator> matDeco = nullptr;
-
-  // Retrieve the filename
-  auto fileName = vm["mat-input-file"].template as<std::string>();
-  // json or root based decorator
-  if (fileName.find(".json") != std::string::npos ||
-      fileName.find(".cbor") != std::string::npos)
-  {
-    // Set up the converter first
-    Acts::MaterialMapJsonConverter::Config jsonGeoConvConfig;
-    // Set up the json-based decorator
-    matDeco = std::make_shared<const Acts::JsonMaterialDecorator>(
-        jsonGeoConvConfig, fileName, Acts::Logging::FATAL);
-  }
-  else
-  {
-    matDeco = std::make_shared<const Acts::MaterialWiper>();
-  }
-
-  ActsExamples::TGeoDetector::Config config;
-
-  config.elementFactory = sPHENIXElementFactory;
-
-  config.fileName = vm["geo-tgeo-filename"].as<std::string>();
-
-  config.surfaceLogLevel = Acts::Logging::FATAL;
-  config.layerLogLevel = Acts::Logging::FATAL;
-  config.volumeLogLevel = Acts::Logging::FATAL;
-
-  const auto path = vm["geo-tgeo-jsonconfig"].template as<std::string>();
-
-  readTGeoLayerBuilderConfigsFile(path, config);
-
-  // Return the geometry and context decorators
-  return detector.m_detector.finalize(config, matDeco);
-}
-
-void MakeActsGeometry::readTGeoLayerBuilderConfigsFile(const std::string &path,
-                                                       ActsExamples::TGeoDetector::Config &config)
-{
-  if (path.empty())
-  {
-    std::cout << "There is no acts geometry response file loaded. Cannot build, exiting"
-              << std::endl;
-    exit(1);
-  }
-
-  nlohmann::json djson;
-  std::ifstream infile(path, std::ifstream::in | std::ifstream::binary);
-  infile >> djson;
-
-  config.unitScalor = djson["geo-tgeo-unit-scalor"];
-
-  config.buildBeamPipe = djson["geo-tgeo-build-beampipe"];
-  if (config.buildBeamPipe)
-  {
-    const auto beamPipeParameters =
-        djson["geo-tgeo-beampipe-parameters"].get<std::array<double, 3>>();
-    config.beamPipeRadius = beamPipeParameters[0];
-    config.beamPipeHalflengthZ = beamPipeParameters[1];
-    config.beamPipeLayerThickness = beamPipeParameters[2];
-  }
-
-  // Fill nested volume configs
-  for (const auto &volume : djson["Volumes"])
-  {
-    auto &vol = config.volumes.emplace_back();
-    vol = volume;
-  }
 }
 
 void MakeActsGeometry::unpackVolumes()
@@ -1082,7 +1027,7 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
       TrkrDefs::hitsetkey hitsetkey = getInttHitSetKeyFromCoords(layer, world_center);
 
       // Add this surface to the map
-      std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
+      std::pair<TrkrDefs::hitsetkey, Surface> tmp = std::make_pair(hitsetkey, surf);
       m_clusterSurfaceMapSilicon.insert(tmp);
 
       if (Verbosity() > 10)
@@ -1098,14 +1043,14 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
         std::cout << std::endl
                   << " Layer type " << assoc_layer->layerType() << std::endl;
 
-        auto assoc_det_element = surf->associatedDetectorElement();
+        auto assoc_det_element = surf->surfacePlacement();
         if (assoc_det_element != nullptr)
         {
           std::cout << " Associated detElement has non-null pointer "
                     << assoc_det_element << std::endl;
           std::cout << std::endl
                     << " Associated detElement found, thickness = "
-                    << assoc_det_element->thickness() << std::endl;
+                    << surf->thickness() << std::endl;
         }
         else
         {
@@ -1171,10 +1116,10 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
         std::cout << "[DEBUG] MVTX surface center: (x,y,z)=(" << world_center[0] << "," << world_center[1] << "," << world_center[2] << "), layer_rad=" << layer_rad << std::endl;
       }
 
-      auto detelement = surf->associatedDetectorElement();
+      auto detelement = surf->surfacePlacement();
       if(!detelement)
 	{
-	  std::cout << PHWHERE << " Did not find associatedDetectorElement, have to quit! " << std::endl;
+	  std::cout << PHWHERE << " Did not find surfacePlacement, have to quit! " << std::endl;
 	  exit(1);
 	}
 
@@ -1219,7 +1164,7 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
 	}
 
       // Add this surface to the map
-      std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
+      std::pair<TrkrDefs::hitsetkey, Surface> tmp = std::make_pair(hitsetkey, surf);
       m_clusterSurfaceMapSilicon.insert(tmp);
 
       if (Verbosity() > 10)
@@ -1244,14 +1189,14 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
                   << " Layer type "
                   << assoc_layer->layerType() << std::endl;
 
-        auto assoc_det_element = surf->associatedDetectorElement();
+        auto assoc_det_element = surf->surfacePlacement();
         if (assoc_det_element != nullptr)
         {
           std::cout << " Associated detElement has non-null pointer "
                     << assoc_det_element << std::endl;
           std::cout << std::endl
                     << " Associated detElement found, thickness = "
-                    << assoc_det_element->thickness() << std::endl;
+                    << surf->thickness() << std::endl;
         }
         else
         {

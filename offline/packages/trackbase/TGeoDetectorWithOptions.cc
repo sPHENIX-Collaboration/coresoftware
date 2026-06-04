@@ -10,9 +10,9 @@
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/Geometry/TrackingGeometryBuilder.hpp>
 #include <Acts/Geometry/TrackingVolumeArrayCreator.hpp>
-#include <Acts/Plugins/TGeo/TGeoCylinderDiscSplitter.hpp>
-#include <Acts/Plugins/TGeo/TGeoDetectorElement.hpp>
-#include <Acts/Plugins/TGeo/TGeoLayerBuilder.hpp>
+#include <ActsPlugins/Root/TGeoCylinderDiscSplitter.hpp>
+#include <ActsPlugins/Root/TGeoDetectorElement.hpp>
+#include <ActsPlugins/Root/TGeoLayerBuilder.hpp>
 #include <Acts/Utilities/Logger.hpp>
 #include <ActsExamples/Framework/IContextDecorator.hpp>
 #include <ActsExamples/TGeoDetector/JsonTGeoDetectorConfig.hpp>
@@ -77,38 +77,6 @@ void TGeoDetectorWithOptions::addOptions(
   tmp("geo-tgeo-dump-jsonconfig",
       value<std::string>()->default_value("tgeo_empty_config.json"),
       "Json file to dump empty config into.");
-}
-
-auto TGeoDetectorWithOptions::finalize(
-    const boost::program_options::variables_map& vm,
-    std::shared_ptr<const Acts::IMaterialDecorator> mdecorator)
-    -> std::pair<TrackingGeometryPtr, ContextDecorators> {
-  TGeoDetector::Config config;
-
-  config.fileName = vm["geo-tgeo-filename"].as<std::string>();
-
-  config.surfaceLogLevel =
-      Acts::Logging::Level(vm["geo-surface-loglevel"].template as<size_t>());
-  config.layerLogLevel =
-      Acts::Logging::Level(vm["geo-layer-loglevel"].template as<size_t>());
-  config.volumeLogLevel =
-      Acts::Logging::Level(vm["geo-volume-loglevel"].template as<size_t>());
-
-  // No valid geometry configuration. Stop
-  if (vm["geo-tgeo-jsonconfig"].as<std::string>().empty()) {
-    writeTGeoDetectorConfig(vm, config);
-    std::exit(EXIT_SUCCESS);
-  }
-  // Enable dump from full config
-  else if (!(vm["geo-tgeo-dump-jsonconfig"].as<std::string>().compare(
-                   "tgeo_empty_cofig.json") == 0)) {
-    readTGeoLayerBuilderConfigs(vm, config);
-    writeTGeoDetectorConfig(vm, config);
-  } else {
-    readTGeoLayerBuilderConfigs(vm, config);
-  }
-
-  return m_detector.finalize(config, std::move(mdecorator));
 }
 
 }  // namespace ActsExamples

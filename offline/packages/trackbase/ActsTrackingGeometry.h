@@ -26,7 +26,7 @@
  */
 struct ActsTrackingGeometry
 {
-  ActsTrackingGeometry() {}
+  ActsTrackingGeometry() { }
   ActsTrackingGeometry(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
                        // ActsTrackingGeometry(std::shared_ptr<Acts::TrackingGeometry> tGeo,
                        std::shared_ptr<Acts::MagneticFieldProvider> mag,
@@ -49,7 +49,7 @@ struct ActsTrackingGeometry
 
   /// Acts context, for Kalman options
   Acts::CalibrationContext calibContext;
-  Acts::GeometryContext geoContext;
+  Acts::GeometryContext geoContext = Acts::GeometryContext::dangerouslyDefaultConstruct();
   Acts::MagneticFieldContext magFieldContext;
 
   const Acts::GeometryContext& getGeoContext() const

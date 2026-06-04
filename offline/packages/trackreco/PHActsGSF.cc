@@ -102,7 +102,7 @@ int PHActsGSF::InitRun(PHCompositeNode* topNode)
       m_tGeometry->geometry().magField,
       bha,
       12, 1e-4, 
-      MixtureReductionAlgorithm::KLDistance, false, false);
+      MixtureReductionAlgorithm::KLDistance, false, false,100.);
 
   if (m_actsEvaluator)
   {
@@ -233,7 +233,7 @@ int PHActsGSF::process_event(PHCompositeNode* topNode)
     auto magcontext = m_tGeometry->geometry().magFieldContext;
     auto calcontext = m_tGeometry->geometry().calibContext;
 
-    auto ppoptions = Acts::PropagatorPlainOptions();
+    auto ppoptions = Acts::PropagatorPlainOptions(m_transient_geocontext, magcontext);
 
     ActsTrackFittingAlgorithm::GeneralFitterOptions options{
         m_transient_geocontext,
@@ -294,8 +294,8 @@ ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
   ActsTransformations transformer;
   auto cov = transformer.rotateSvtxTrackCovToActs(track);
 
-  return ActsTrackFittingAlgorithm::TrackParameters::create(psurf,
-                                                            m_tGeometry->geometry().getGeoContext(),
+  return ActsTrackFittingAlgorithm::TrackParameters::create(m_tGeometry->geometry().getGeoContext(), 
+                                                            psurf,
                                                             fourpos,
                                                             momentum,
                                                             charge / momentum.norm(),

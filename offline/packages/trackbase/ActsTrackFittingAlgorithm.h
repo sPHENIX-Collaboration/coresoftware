@@ -11,7 +11,7 @@
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/EventData/VectorTrackContainer.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
-
+#include <ActsExamples/EventData/Measurement.hpp>
 #pragma GCC diagnostic push // needed for local Act compilation
 #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #include <Acts/Propagator/MultiEigenStepperLoop.hpp>
@@ -32,8 +32,7 @@ class ActsTrackFittingAlgorithm final
 {
  public:
   using TrackParameters = ::Acts::BoundTrackParameters;
-  using Measurement = ::Acts::BoundVariantMeasurement;
-  using MeasurementContainer = std::vector<Measurement>;
+  using MeasurementContainer = ActsExamples::MeasurementContainer;
 
   using TrackContainer =
       Acts::TrackContainer<Acts::VectorTrackContainer,

@@ -242,7 +242,7 @@ void CaloTowerStatus::CreateNodeTree(PHCompositeNode *topNode)
   m_raw_towers = findNode::getClass<TowerInfoContainer>(topNode, RawTowerNodeName);
   if (!m_raw_towers)
   {
-    std::cout << Name() << "::" << m_detector.c_str() << "::" << __PRETTY_FUNCTION__
+    std::cout << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
               << " " << RawTowerNodeName << " Node missing, exiting!"
               << std::endl;
     gSystem->Exit(1);

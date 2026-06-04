@@ -18,7 +18,7 @@ TVector3 CylinderGeomInttHelper::get_world_from_local_coords(const Surface& surf
   Acts::Vector3 loc(local.x(), local.y(), local.z());
   loc *= Acts::UnitConstants::cm;
 
-  Acts::Vector3 glob = surface->transform(tGeometry->geometry().getGeoContext()) * loc;
+  Acts::Vector3 glob = surface->localToGlobalTransform(tGeometry->geometry().getGeoContext()) * loc;
   glob /= Acts::UnitConstants::cm;
   return TVector3(glob(0), glob(1), glob(2));
 }
@@ -53,7 +53,7 @@ TVector3 CylinderGeomInttHelper::get_local_from_world_coords(const Surface& surf
   global(2) = world[2];
   global *= Acts::UnitConstants::cm;
 
-  Acts::Vector3 local = surface->transform(tGeometry->geometry().getGeoContext()).inverse() * global;
+  Acts::Vector3 local = surface->localToGlobalTransform(tGeometry->geometry().getGeoContext()).inverse() * global;
 
   local /= Acts::UnitConstants::cm;
 

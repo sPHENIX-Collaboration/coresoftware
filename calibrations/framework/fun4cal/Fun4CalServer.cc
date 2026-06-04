@@ -17,7 +17,7 @@
 
 #include <pdbcalbase/RunToTime.h>
 
-#include <RtypesCore.h>  // for Stat_t
+#include <Rtypes.h>  // for Stat_t
 #include <TDirectory.h>  // for TDirectoryAtomicAdapter
 #include <TFile.h>
 #include <TH1.h>
@@ -660,7 +660,7 @@ bool Fun4CalServer::connectDB()
     }
     catch (odbc::SQLException &e)
     {
-      std::cout << "Cannot connect to " << database.c_str() << std::endl;
+      std::cout << "Cannot connect to " << database << std::endl;
       std::cout << e.getMessage() << std::endl;
       std::cout << "countdown: " << countdown << std::endl;
       countdown--;
@@ -673,7 +673,7 @@ bool Fun4CalServer::connectDB()
     std::cout << "could not connect to DB after 10 tries in 1000 secs, giving up" << std::endl;
     exit(-1);
   }
-  std::cout << "connected to " << database.c_str() << " database." << std::endl;
+  std::cout << "connected to " << database << " database." << std::endl;
   return true;
 }
 //---------------------------------------------------------------------
@@ -1349,7 +1349,7 @@ int Fun4CalServer::SyncCalibTimeStampsToOnCal(const CalReco *calibrator, const s
   }
   catch (odbc::SQLException &e)
   {
-    std::cout << "Cannot connect to " << database.c_str() << std::endl;
+    std::cout << "Cannot connect to " << database << std::endl;
     std::cout << e.getMessage() << std::endl;
     return -1;
   }
@@ -1511,7 +1511,7 @@ int Fun4CalServer::SyncOncalTimeStampsToRunDB(const int commit)
   }
   catch (odbc::SQLException &e)
   {
-    std::cout << "Cannot connect to " << database.c_str() << std::endl;
+    std::cout << "Cannot connect to " << database << std::endl;
     std::cout << e.getMessage() << std::endl;
     return -1;
   }
@@ -2322,7 +2322,7 @@ int Fun4CalServer::AdjustRichTimeStampForMultipleRuns()
     }
     catch (odbc::SQLException& e)
     {
-    std::cout << "Cannot connect to " << database.c_str() << std::endl;
+    std::cout << "Cannot connect to " << database << std::endl;
     std::cout << e.getMessage() << std::endl;
     return -1;
     }

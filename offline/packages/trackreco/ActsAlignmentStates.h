@@ -33,7 +33,7 @@ class ActsAlignmentStates
   explicit ActsAlignmentStates() = default;
 
   void fillAlignmentStateMap(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
-    const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+    const std::vector<Acts::TrackIndexType>& tips,
     SvtxTrack* track,
     const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 

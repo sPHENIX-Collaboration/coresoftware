@@ -1128,7 +1128,7 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
     {
       // otherwise take the manual calculation for the TPC
       // doing it this way just avoids the bounds check that occurs in the surface class method
-      Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * clusglob_moved;  // global is in mm
+      Acts::Vector3 loct = surf->localToGlobalTransform(geometry->geometry().getGeoContext()).inverse() * clusglob_moved;  // global is in mm
       loct /= Acts::UnitConstants::cm;
 
       loc(0) = loct(0);
@@ -1166,7 +1166,7 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
 
   auto misaligncenter = surf->center(geometry->geometry().getGeoContext());
   auto misalignnorm = -1 * surf->normal(geometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
-  auto misrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
+  auto misrot = surf->localToGlobalTransform(geometry->geometry().getGeoContext()).rotation();
 
   float mgamma = atan2(-misrot(1, 0), misrot(0, 0));
   float mbeta = -asin(misrot(0, 1));
@@ -1183,11 +1183,11 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
       std::cout << "resids: layer " << layer << " ideal center z " << idealcenter.z() << " mm " << std::endl;
       std::cout << " surface bounds " << surfbounds[0] << "  " << surfbounds[1] << " mm " << std::endl;
       alignmentTransformationContainer::use_alignment = false;
-      Acts::Transform3 transform = surf_ideal->transform(geometry->geometry().getGeoContext());
+      Acts::Transform3 transform = surf_ideal->localToGlobalTransform(geometry->geometry().getGeoContext());
       std::cout << "Ideal transform is:" << std::endl;
       std::cout << transform.matrix() << std::endl;
       alignmentTransformationContainer::use_alignment = true;
-      Acts::Transform3 transform1 = surf_ideal->transform(geometry->geometry().getGeoContext());
+      Acts::Transform3 transform1 = surf_ideal->localToGlobalTransform(geometry->geometry().getGeoContext());
       std::cout << "Alignment transform is:" << std::endl;
       std::cout << transform1.matrix() << std::endl;
 
@@ -1199,8 +1199,8 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   //  Acts::Vector3 ideal_local(loc.x(), loc.y(), 0.0);
   auto nominal_loc = geometry->getLocalCoords(ckey, cluster);
   Acts::Vector3 ideal_local(nominal_loc.x(), nominal_loc.y(), 0.0);
-  Acts::Vector3 ideal_glob = surf_ideal->transform(geometry->geometry().getGeoContext()) * (ideal_local * Acts::UnitConstants::cm);
-  auto idealrot = surf_ideal->transform(geometry->geometry().getGeoContext()).rotation();
+  Acts::Vector3 ideal_glob = surf_ideal->localToGlobalTransform(geometry->geometry().getGeoContext()) * (ideal_local * Acts::UnitConstants::cm);
+  auto idealrot = surf_ideal->localToGlobalTransform(geometry->geometry().getGeoContext()).rotation();
 
   //! These calculations are taken from the wikipedia page for Euler angles,
   //! under the Tait-Bryan angle explanation. Formulas for the angles
@@ -1453,7 +1453,7 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
 
   auto misaligncenter = surf->center(geometry->geometry().getGeoContext());
   auto misalignnorm = -1 * surf->normal(geometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
-  auto misrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
+  auto misrot = surf->localToGlobalTransform(geometry->geometry().getGeoContext()).rotation();
 
   float mgamma = atan2(-misrot(1, 0), misrot(0, 0));
   float mbeta = -asin(misrot(0, 1));
@@ -1464,8 +1464,8 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   auto idealcenter = surf->center(geometry->geometry().getGeoContext());
   auto idealnorm = -1 * surf->normal(geometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
   Acts::Vector3 ideal_local(loc.x(), loc.y(), 0.0);
-  Acts::Vector3 ideal_glob = surf->transform(geometry->geometry().getGeoContext()) * (ideal_local * Acts::UnitConstants::cm);
-  auto idealrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
+  Acts::Vector3 ideal_glob = surf->localToGlobalTransform(geometry->geometry().getGeoContext()) * (ideal_local * Acts::UnitConstants::cm);
+  auto idealrot = surf->localToGlobalTransform(geometry->geometry().getGeoContext()).rotation();
 
   //! These calculations are taken from the wikipedia page for Euler angles,
   //! under the Tait-Bryan angle explanation. Formulas for the angles
@@ -1552,7 +1552,7 @@ void TrackResiduals::fillStatesWithCircleFit(const TrkrDefs::cluskey& key,
   }
   else
   {
-    auto local = (surf->transform(geometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
+    auto local = (surf->localToGlobalTransform(geometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
     local /= Acts::UnitConstants::cm;
     m_statelx.push_back(local.x());
     m_statelz.push_back(local.y());
@@ -1579,7 +1579,7 @@ void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
     }
     else
     {
-      Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * (intersection * Acts::UnitConstants::cm);
+      Acts::Vector3 loct = surf->localToGlobalTransform(geometry->geometry().getGeoContext()).inverse() * (intersection * Acts::UnitConstants::cm);
       loct /= Acts::UnitConstants::cm;
       m_statelx.push_back(loct(0));
       m_statelz.push_back(loct(1));

@@ -8,11 +8,9 @@
 
 #include <calotrigger/MinimumBiasInfo.h>
 
-#include <globalvertex/GlobalVertexMap.h>
-#include <globalvertex/GlobalVertex.h>
+#include <cdbobjects/CDBTTree.h>
 
 #include <ffamodules/CDBInterface.h>
-#include <cdbobjects/CDBTTree.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -32,43 +30,54 @@
 CentralityReco::CentralityReco(const std::string &name)
   : SubsysReco(name)
 {
-
 }
 
 int CentralityReco::InitRun(PHCompositeNode *topNode)
 {
   CDBInterface *m_cdb = CDBInterface::instance();
 
-  std::string centdiv_url = m_cdb->getUrl("Centrality");
-  if (m_overwrite_divs)
-    {
-      centdiv_url = m_overwrite_url_divs;
-      std::cout << " Overwriting Divs to " << m_overwrite_url_divs << std::endl;
-    }
+  std::string centdiv_url;
+  if (!m_overwrite_url_divs.empty())
+  {
+    centdiv_url = m_overwrite_url_divs;
+    std::cout << " Overwriting Divs to " << m_overwrite_url_divs << std::endl;
+  }
+  else
+  {
+    centdiv_url = m_cdb->getUrl("Centrality");
+  }
 
   if (Download_centralityDivisions(centdiv_url))
   {
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  std::string centscale_url = m_cdb->getUrl("CentralityScale");
-  if (m_overwrite_scale)
-    {
-      centscale_url = m_overwrite_url_scale;
-      std::cout << " Overwriting Scale to " << m_overwrite_url_scale << std::endl;
-    }
+  std::string centscale_url;
+  if (!m_overwrite_url_scale.empty())
+  {
+    centscale_url = m_overwrite_url_scale;
+    std::cout << " Overwriting Scale to " << m_overwrite_url_scale << std::endl;
+  }
+  else
+  {
+    centscale_url = m_cdb->getUrl("CentralityScale");
+  }
 
   if (Download_centralityScale(centscale_url))
   {
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  std::string vertexscale_url = m_cdb->getUrl("CentralityVertexScale");
-  if (m_overwrite_vtx)
-    {
-      vertexscale_url = m_overwrite_url_vtx;
-      std::cout << " Overwriting Vtx to " << m_overwrite_url_vtx << std::endl;
-    }
+  std::string vertexscale_url;
+  if (!m_overwrite_url_vtx.empty())
+  {
+    vertexscale_url = m_overwrite_url_vtx;
+    std::cout << " Overwriting Vtx to " << m_overwrite_url_vtx << std::endl;
+  }
+  else
+  {
+    vertexscale_url = m_cdb->getUrl("CentralityVertexScale");
+  }
 
   if (Download_centralityVertexScales(vertexscale_url))
   {
@@ -115,9 +124,9 @@ int CentralityReco::Download_centralityDivisions(const std::string &dbfile)
     CDBTTree *cdbttree = new CDBTTree(dbase_file);
     cdbttree->LoadCalibrations();
     if (Verbosity())
-      {
-	cdbttree->Print();
-      }
+    {
+      cdbttree->Print();
+    }
     for (int idiv = 0; idiv < NDIVS; idiv++)
     {
       m_centrality_map[idiv] = cdbttree->GetFloatValue(idiv, "centralitydiv");
@@ -138,7 +147,6 @@ int CentralityReco::Download_centralityDivisions(const std::string &dbfile)
 }
 int CentralityReco::Download_centralityVertexScales(const std::string &dbfile)
 {
-
   std::filesystem::path dbase_file = dbfile;
 
   if (dbase_file.extension() == ".root")
@@ -146,18 +154,17 @@ int CentralityReco::Download_centralityVertexScales(const std::string &dbfile)
     CDBTTree *cdbttree = new CDBTTree(dbase_file);
     cdbttree->LoadCalibrations();
     if (Verbosity())
-      {
-	cdbttree->Print();
-      }
+    {
+      cdbttree->Print();
+    }
 
     int nvertexbins = cdbttree->GetIntValue(0, "nvertexbins");
-    
 
     for (int iv = 0; iv < nvertexbins; iv++)
     {
       float scale = cdbttree->GetDoubleValue(iv, "scale");
       float lowvertex = cdbttree->GetDoubleValue(iv, "low_vertex");
-      float highvertex = cdbttree->GetDoubleValue(iv, "high_vertex");      
+      float highvertex = cdbttree->GetDoubleValue(iv, "high_vertex");
       m_vertex_scales.emplace_back(std::make_pair(lowvertex, highvertex), scale);
     }
 
@@ -186,30 +193,27 @@ int CentralityReco::FillVars()
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
 
-
   float scale_factor = getVertexScale();
 
   if (Verbosity())
-    {
-      std::cout << scale_factor << "*" << m_centrality_scale << std::endl;
-    }
+  {
+    std::cout << scale_factor << "*" << m_centrality_scale << std::endl;
+  }
 
   for (int i = 0; i < 128; i++)
+  {
+    m_mbd_hit = m_mbd_container->get_pmt(i);
+
+    if ((m_mbd_hit->get_q()) < mbd_charge_cut)
     {
-      
-      m_mbd_hit = m_mbd_container->get_pmt(i);
-
-      if ((m_mbd_hit->get_q()) < mbd_charge_cut)
-	{
-	  continue;
-	}
-      if (fabs(m_mbd_hit->get_time()) > mbd_time_cut) 
-	{
-	  continue;
-	}
-      m_mbd_total_charge += m_mbd_hit->get_q()*scale_factor*m_centrality_scale;
+      continue;
     }
-
+    if (fabs(m_mbd_hit->get_time()) > mbd_time_cut)
+    {
+      continue;
+    }
+    m_mbd_total_charge += m_mbd_hit->get_q() * scale_factor * m_centrality_scale;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -230,15 +234,15 @@ int CentralityReco::FillCentralityInfo()
     if (m_centrality_map[i] < m_mbd_total_charge)
     {
       binvalue = i + 1;
-      value =  static_cast<float>(i + 1)/static_cast<float>(NDIVS);
+      value = static_cast<float>(i + 1) / static_cast<float>(NDIVS);
       break;
     }
   }
-  if (Verbosity()) 
-    {
-      std::cout << " Centile : " << value << std::endl;      
-      std::cout << " Charge : " << m_mbd_total_charge << std::endl;
-    }
+  if (Verbosity())
+  {
+    std::cout << " Centile : " << value << std::endl;
+    std::cout << " Charge : " << m_mbd_total_charge << std::endl;
+  }
 
   m_central->set_centile(CentralityInfo::PROP::mbd_NS, value);
   m_central->set_centrality_bin(CentralityInfo::PROP::mbd_NS, binvalue);
@@ -260,10 +264,9 @@ int CentralityReco::process_event(PHCompositeNode *topNode)
   }
 
   if (!m_mb_info->isAuAuMinimumBias())
-    {
-      return Fun4AllReturnCodes::EVENT_OK;
-    }
-
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   // Fill Arrays
   if (FillVars())
@@ -291,7 +294,7 @@ int CentralityReco::GetNodes(PHCompositeNode *topNode)
     std::cout << __FILE__ << " :: " << __FUNCTION__ << " :: " << __LINE__ << std::endl;
   }
 
-  m_mb_info = findNode::getClass<MinimumBiasInfo>(topNode, "MinimumBiasInfo");
+  m_mb_info = findNode::getClass<MinimumBiasInfo>(topNode, m_mb_info_nodename);
 
   if (!m_mb_info)
   {
@@ -299,15 +302,7 @@ int CentralityReco::GetNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_global_vertex_map = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
-  
-  if (!m_global_vertex_map)
-    {
-    std::cout << "no vertex map node " << std::endl;
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-
-  m_central = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
+  m_central = findNode::getClass<CentralityInfo>(topNode, m_centrality_nodename);
 
   if (!m_central)
   {
@@ -315,7 +310,7 @@ int CentralityReco::GetNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_mbd_container = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
+  m_mbd_container = findNode::getClass<MbdPmtContainer>(topNode, m_mbd_pmt_nodename);
 
   if (!m_mbd_container)
   {
@@ -323,18 +318,17 @@ int CentralityReco::GetNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-
-  m_mbd_out = findNode::getClass<MbdOut>(topNode, "MbdOut");
+  m_mbd_out = findNode::getClass<MbdOut>(topNode, m_mbd_out_nodename);
   if (Verbosity())
-    {
-      std::cout << "Getting MBD Out" << std::endl;
-    }
+  {
+    std::cout << "Getting MBD Out" << std::endl;
+  }
 
   if (!m_mbd_out)
-    {
-      std::cout << "no MBD out node " << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
+  {
+    std::cout << "no MBD out node " << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -365,7 +359,7 @@ void CentralityReco::CreateNodes(PHCompositeNode *topNode)
 
   CentralityInfo *central = new CentralityInfov2();
 
-  PHIODataNode<PHObject> *centralityNode = new PHIODataNode<PHObject>(central, "CentralityInfo", "PHObject");
+  PHIODataNode<PHObject> *centralityNode = new PHIODataNode<PHObject>(central, m_centrality_nodename, "PHObject");
   detNode->addNode(centralityNode);
 
   return;
@@ -373,23 +367,19 @@ void CentralityReco::CreateNodes(PHCompositeNode *topNode)
 
 float CentralityReco::getVertexScale()
 {
-
-
   float mbd_vertex = m_mbd_out->get_zvtx();
-
   for (auto v_range_scale : m_vertex_scales)
+  {
+    auto v_range = v_range_scale.first;
+    if (Verbosity())
     {
-      auto v_range = v_range_scale.first;
-      if (Verbosity())
-	{
-	  std::cout << "vertexrange : "<<v_range.first<<"-"<<v_range.second << std::endl;
-	}
-
-      if (mbd_vertex > v_range.first && mbd_vertex <= v_range.second)
-	{
-	  return v_range_scale.second;
-	}
+      std::cout << "vertexrange : " << v_range.first << "-" << v_range.second << std::endl;
     }
+
+    if (mbd_vertex > v_range.first && mbd_vertex <= v_range.second)
+    {
+      return v_range_scale.second;
+    }
+  }
   return 0;
 }
-

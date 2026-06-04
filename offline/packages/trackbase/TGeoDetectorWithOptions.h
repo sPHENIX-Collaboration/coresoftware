@@ -4,20 +4,17 @@
 
 #include "IBaseDetector.h"
 #include <ActsExamples/TGeoDetector/TGeoDetector.hpp>
-#include <ActsExamples/Utilities/OptionsFwd.hpp>
 
 namespace ActsExamples {
 
 class TGeoDetectorWithOptions : public IBaseDetector {
  public:
+  TGeoDetectorWithOptions(TGeoDetector::Config config) : m_detector(config) {}
   TGeoDetector m_detector;
 
   void addOptions(
       boost::program_options::options_description& opt) const override;
-
-  auto finalize(const boost::program_options::variables_map& vm,
-                std::shared_ptr<const Acts::IMaterialDecorator> mdecorator)
-      -> std::pair<TrackingGeometryPtr, ContextDecorators> override;
+       
 };
 }  // namespace ActsExamples
 
