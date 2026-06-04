@@ -377,13 +377,13 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     Acts::Vector3 position = pca * Acts::UnitConstants::cm;
 
-    if (!is_valid(momentum))
+    if (!is_valid(momentum) || !is_valid(position))
     {
       continue;
     }
 
     int charge = getCharge(tpcseed, sorted_positions);
-
+    
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
         position);
     auto actsFourPos = Acts::Vector4(position(0), position(1),
@@ -410,8 +410,9 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       m_px = momentum(0);
       m_py = momentum(1);
       m_pz = momentum(2);
+      
       m_charge = charge;
-      fillVectors(siseed, tpcseed);
+      fillVectors(tpcseed, siseed);
       m_x.push_back(position.x() / Acts::UnitConstants::cm);
       m_y.push_back(position.y() / Acts::UnitConstants::cm);
       m_z.push_back(position.z() / Acts::UnitConstants::cm);
