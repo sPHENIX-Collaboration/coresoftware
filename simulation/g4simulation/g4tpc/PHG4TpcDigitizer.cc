@@ -25,6 +25,7 @@
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdlib>  // for exit
 #include <iostream>
 #include <limits>
@@ -32,14 +33,6 @@
 
 PHG4TpcDigitizer::PHG4TpcDigitizer(const std::string &name)
   : SubsysReco(name)
-  , TpcMinLayer(7)
-  , TpcNLayers(48)
-  , ADCThreshold(2700)                                                    // electrons
-  , TpcEnc(670)                                                           // electrons
-  , Pedestal(50000)                                                       // electrons
-  , ChargeToPeakVolts(20)                                                 // mV/fC
-  , ADCSignalConversionGain(std::numeric_limits<float>::quiet_NaN())  // will be assigned in PHG4TpcDigitizer::InitRun
-  , ADCNoiseConversionGain(std::numeric_limits<float>::quiet_NaN())
   , RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))  // will be assigned in PHG4TpcDigitizer::InitRun
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
@@ -273,10 +266,17 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
       }
 
       // for this layer and side, use a vector of a vector of cells for each phibin
-      phi_sorted_hits.clear();
-      for (int iphi = 0; iphi < nphibins; iphi++)
+      if (phi_sorted_hits.size() != static_cast<std::size_t>(nphibins))
       {
-        phi_sorted_hits.emplace_back();
+        phi_sorted_hits.clear();
+        phi_sorted_hits.resize(nphibins);
+      }
+      else
+      {
+        for (auto &hits : phi_sorted_hits)
+        {
+          hits.clear();
+        }
       }
 
       // Loop over all hitsets containing signals for this layer and add them to phi_sorted_hits for their phibin
@@ -326,31 +326,24 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 
       for (unsigned int iphi = 0; iphi < phi_sorted_hits.size(); iphi++)
       {
-        // Make a fixed length vector to indicate whether each time bin is signal or noise
         int ntbins = layergeom->get_zbins();
-        is_populated.clear();
-        is_populated.assign(ntbins, 2);  // mark all as noise only, for now
-
-        // add an empty vector of hits for each t bin
-        t_sorted_hits.clear();
-        for (int it = 0; it < ntbins; it++)
-        {
-          t_sorted_hits.emplace_back();
-        }
+        signal_hit_by_tbin.assign(ntbins, nullptr);
 
         // add a signal hit from phi_sorted_hits for each t bin that has one
         for (unsigned int it = 0; it < phi_sorted_hits[iphi].size(); it++)
         {
           int tbin = TpcDefs::getTBin(phi_sorted_hits[iphi][it]->first);
-          is_populated[tbin] = 1;  // this bin is a associated with a hit
-          t_sorted_hits[tbin].push_back(phi_sorted_hits[iphi][it]);
+          if (!signal_hit_by_tbin[tbin])
+          {
+            signal_hit_by_tbin[tbin] = phi_sorted_hits[iphi][it]->second;
+          }
 
           if (Verbosity() > 2)
           {
             if (layer == print_layer)
             {
               TrkrDefs::hitkey hitkey = phi_sorted_hits[iphi][it]->first;
-              std::cout << "iphi " << iphi << " adding existing signal hit to t vector for layer " << layer
+              std::cout << "iphi " << iphi << " adding existing signal hit for layer " << layer
                         << " side " << side
                         << " tbin " << tbin << "  hitkey " << hitkey
                         << " pad " << TpcDefs::getPad(hitkey)
@@ -361,11 +354,8 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
           }
         }
 
-        adc_input.clear();
-        adc_hitid.clear();
         // initialize entries to zero for each t bin
         adc_input.assign(ntbins, 0.0);
-        adc_hitid.assign(ntbins, 0);
 
         // Now for this phibin we process all bins ordered by t into hits with noise
         //======================================================
@@ -374,33 +364,32 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 
         for (int it = 0; it < ntbins; it++)
         {
-          if (is_populated[it] == 1)
+          TrkrHit *signal_hit = signal_hit_by_tbin[it];
+          if (signal_hit)
           {
             // This tbin has a hit, add noise
-            float signal_with_noise = add_noise_to_bin((t_sorted_hits[it][0]->second)->getEnergy());
+            float signal_with_noise = add_noise_to_bin(signal_hit->getEnergy());
             adc_input[it] = signal_with_noise;
-            adc_hitid[it] = t_sorted_hits[it][0]->first;
 
             if (Verbosity() > 2)
             {
               if (layer == print_layer)
               {
                 std::cout << "existing signal hit: layer " << layer << " iphi " << iphi << " it " << it
-                          << " edep " << (t_sorted_hits[it][0]->second)->getEnergy()
+                          << " edep " << signal_hit->getEnergy()
                           << " adc gain " << ADCSignalConversionGain
                           << " signal with noise " << signal_with_noise
                           << " adc_input " << adc_input[it] << std::endl;
               }
             }
           }
-          else if (is_populated[it] == 2)
+          else
           {
             if (!skip_noise)
             {
               // This t bin does not have a filled cell, add noise
               float noise = add_noise_to_bin(0.0);
               adc_input[it] = noise;
-              adc_hitid[it] = 0;  // there is no hit, just add a placeholder in the vector for now, replace it later
 
               if (Verbosity() > 2)
               {
@@ -413,13 +402,6 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
                 }
               }
             }
-          }
-          else
-          {
-            // Cannot happen
-            std::cout << "Impossible value of is_populated, it = " << it
-                      << " is_populated = " << is_populated[it] << std::endl;
-            exit(-1);
           }
         }
 
@@ -438,7 +420,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
           }
 
           // optionally do not trigger on bins with no signal
-          if ((is_populated[it] == 2) && skip_noise)
+          if (!signal_hit_by_tbin[it] && skip_noise)
           {
             binpointer++;
             continue;
@@ -466,7 +448,8 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
               if (it + itup < ntbins && it + itup >= 0)  // stay within the bin limits
               {
                 float input = 0;
-                if ((is_populated[it + itup] == 2) && skip_noise)
+                TrkrHit *signal_hit = signal_hit_by_tbin[it + itup];
+                if (!signal_hit && skip_noise)
                 {
                   input = add_noise_to_bin(0.0);  // no noise added to this bin previously because skip_noise is true
                 }
@@ -492,8 +475,8 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
                   if (layer == print_layer)
                   {
                     std::cout << "    Digitizing:  iphi " << iphi << "  it+itup " << it + itup
-                              << " adc_hitid " << adc_hitid[it + itup]
-                              << " is_populated " << is_populated[it + itup]
+                              << " adc_hitid " << (signal_hit ? hitkey : 0)
+                              << " is_populated " << (signal_hit ? 1 : 2)
                               << "  adc_input " << adc_input[it + itup]
                               << " ADCThreshold " << ADCThreshold * ADCNoiseConversionGain
                               << " adc_output " << adc_output
@@ -504,10 +487,10 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
                   }
                 }
 
-                if (is_populated[it + itup] == 1)
+                if (signal_hit)
                 {
                   // this is a signal hit, it already exists
-                  hit = t_sorted_hits[it + itup][0]->second;  // pointer valid only for signal hits
+                  hit = signal_hit;
                 }
                 else
                 {
@@ -545,20 +528,10 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
           else
           {
             // set adc value to zero if there is a hit
-            // we need the hitset key, requires (layer, sector, side)
-            unsigned int sector = 12 * iphi / nphibins;
-            TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layer, sector, side);
-            auto *hitset = trkrhitsetcontainer->findHitSet(hitsetkey);
-            if (hitset)
+            TrkrHit *hit = signal_hit_by_tbin[it];
+            if (hit)
             {
-              // Get the hitkey
-              TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
-              TrkrHit *hit = nullptr;
-              hit = hitset->getHit(hitkey);
-              if (hit)
-              {
-                hit->setAdc(0);
-              }
+              hit->setAdc(0);
             }
             // bin below threshold, move on
             binpointer++;
@@ -573,7 +546,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
   {
     std::cout << "From PHG4TpcDigitizer: hitsetcontainer dump at end before cleaning:" << std::endl;
   }
-  std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> delete_hitkey_list;
+  std::vector<TrkrDefs::hitkey> delete_hitkey_list;
 
   // Clean up undigitized hits - we want all hitsets for the Tpc
   // This loop is pretty efficient because the remove methods all take a specified hitset as input
@@ -594,6 +567,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 
     // get all of the hits from this hitset
     TrkrHitSet *hitset = hitset_iter->second;
+    delete_hitkey_list.clear();
     TrkrHitSet::ConstRange hit_range = hitset->getHits();
     for (TrkrHitSet::ConstIterator hit_iter = hit_range.first;
          hit_iter != hit_range.second;
@@ -616,28 +590,26 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
           std::cout << "                       --   this hit not digitized - delete it" << std::endl;
         }
         // screws up the iterator to delete it here, store the hitkey for later deletion
-        delete_hitkey_list.emplace_back(hitsetkey, hitkey);
+        delete_hitkey_list.push_back(hitkey);
       }
     }
-  }
 
-  // delete all undigitized hits
-  for (auto &i : delete_hitkey_list)
-  {
-    TrkrHitSet *hitset = trkrhitsetcontainer->findHitSet(i.first);
-    const unsigned int layer = TrkrDefs::getLayer(i.first);
-    hitset->removeHit(i.second);
-    if (Verbosity() > 20)
+    // delete all undigitized hits
+    for (auto &hitkey : delete_hitkey_list)
     {
-      if (layer == print_layer)
+      hitset->removeHit(hitkey);
+      if (Verbosity() > 20)
       {
-        std::cout << "removed hit with hitsetkey " << i.first
-                  << " and hitkey " << i.second << std::endl;
+        if (layer == print_layer)
+        {
+          std::cout << "removed hit with hitsetkey " << hitsetkey
+                    << " and hitkey " << hitkey << std::endl;
+        }
       }
-    }
 
-    // should also delete all entries with this hitkey from the TrkrHitTruthAssoc map
-    // hittruthassoc->removeAssoc(delete_hitkey_list[i].first, delete_hitkey_list[i].second);   // Slow! Commented out by ADF 9/6/2022
+      // should also delete all entries with this hitkey from the TrkrHitTruthAssoc map
+      // hittruthassoc->removeAssoc(hitsetkey, hitkey);   // Slow! Commented out by ADF 9/6/2022
+    }
   }
 
   // Final hitset dump
@@ -648,7 +620,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
   // We want all hitsets for the Tpc
   TrkrHitSetContainer::ConstRange hitset_range_final = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range_final.first;
-       hitset_iter != hitset_range_now.second;
+       hitset_iter != hitset_range_final.second;
        ++hitset_iter)
   {
     // we have an itrator to one TrkrHitSet for the Tpc from the trkrHitSetContainer
