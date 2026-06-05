@@ -196,16 +196,16 @@ class TrkrClusterv6 : public TrkrCluster
   void setHREdge(char hredge) { m_hredge = hredge; }
 
   int getSLMix() const override { return m_slmix; }
-  void setSLMix(char slmix) { m_slmix = slmix; }
+  void setSLMix(unsigned char slmix) { m_slmix = slmix; }
 
   int getSRMix() const override { return m_srmix; }
-  void setSRMix(char srmix) { m_srmix = srmix; }
+  void setSRMix(unsigned char srmix) { m_srmix = srmix; }
 
   int getTLMix() const override { return m_tlmix; }
-  void setTLMix(char tlmix) { m_tlmix = tlmix; }
+  void setTLMix(unsigned char tlmix) { m_tlmix = tlmix; }
 
   int getTRMix() const override { return m_trmix; }
-  void setTRMix(char trmix) { m_trmix = trmix; }
+  void setTRMix(unsigned char trmix) { m_trmix = trmix; }
 
   float getPhiBinLo() const override { return m_phibinlo; }
   void setPhiBinLo(float phibinlo) { m_phibinlo = phibinlo; }
@@ -233,7 +233,7 @@ class TrkrClusterv6 : public TrkrCluster
   //{ std::cout << "Deprecated getPhiError function"<< std::endl; return NAN;}
 
  private:
-  float m_local[2]{std::numeric_limits::quiet_NaN(), std::numeric_limits::quiet_NaN()};
+  float m_local[2]{std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
   //< 2D local position [cm] 2 * 32 64bit  - cumul 1*64
   TrkrDefs::subsurfkey m_subsurfkey;  //< unique identifier for hitsetkey-surface maps 16 bit
   float m_phierr;
@@ -245,7 +245,7 @@ class TrkrClusterv6 : public TrkrCluster
   float m_tbincen;
   float m_padmax;
   float m_tbinmax;
-  unsigned char m_rsize;
+  unsigned char m_rsize;	// 8bit
   char m_phisize;               // 8bit
   char m_zsize;                 // 8bit
   char m_overlap;               // 8bit
@@ -258,10 +258,10 @@ class TrkrClusterv6 : public TrkrCluster
   char m_dredge;                // 8bit
   char m_hledge;                // 8bit
   char m_hredge;                // 8bit
-  char m_slmix;                 // 8bit
-  char m_srmix;                 // 8bit
-  char m_tlmix;                 // 8bit
-  char m_trmix;                 // 8bit
+  unsigned char m_slmix;        // 8bit
+  unsigned char m_srmix;        // 8bit
+  unsigned char m_tlmix;        // 8bit
+  unsigned char m_trmix;        // 8bit
   float m_phibinlo;
   float m_phibinhi;
   float m_tbinlo;
