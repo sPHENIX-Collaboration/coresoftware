@@ -8,6 +8,7 @@
 #define TRACKBASE_TRKRCLUSTERV6_H
 
 #include <iostream>
+#include <climits>
 #include "TrkrCluster.h"
 #include "TrkrDefs.h"
 
