@@ -22,25 +22,28 @@ namespace ActsExamples::Options
   using Description = ::boost::program_options::options_description;
   using Variables = ::boost::program_options::variables_map;
 }  // namespace ActsExamples::Options
-namespace Acts {
-class TrackingGeometry;
-class IMaterialDecorator;
+namespace Acts
+{
+  class TrackingGeometry;
+  class IMaterialDecorator;
 }  // namespace Acts
 
-namespace ActsExamples {
-class IContextDecorator;
+namespace ActsExamples
+{
+  class IContextDecorator;
 }  // namespace ActsExamples
 
-namespace ActsExamples {
-class IBaseDetector {
- public:
-  using ContextDecorators =
-      std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>;
-  using TrackingGeometryPtr = std::shared_ptr<const Acts::TrackingGeometry>;
+namespace ActsExamples
+{
+  class IBaseDetector
+  {
+   public:
+    using ContextDecorators =
+        std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>;
+    using TrackingGeometryPtr = std::shared_ptr<const Acts::TrackingGeometry>;
 
-  virtual ~IBaseDetector() = default;
-  virtual void addOptions(
-      boost::program_options::options_description& opt) const = 0;
-
-};
+    virtual ~IBaseDetector() = default;
+    virtual void addOptions(
+        boost::program_options::options_description& opt) const = 0;
+  };
 }  // namespace ActsExamples

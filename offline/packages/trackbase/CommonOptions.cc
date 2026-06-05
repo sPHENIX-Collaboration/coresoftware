@@ -12,8 +12,8 @@
 using namespace boost::program_options;
 
 boost::program_options::options_description
-ActsExamples::Options::makeDefaultOptions(const std::string& caption) {
-
+ActsExamples::Options::makeDefaultOptions(const std::string& caption)
+{
   options_description opt(caption);
 
   opt.add_options()("help,h", "Produce help message");
@@ -28,9 +28,9 @@ ActsExamples::Options::makeDefaultOptions(const std::string& caption) {
   return opt;
 }
 
-
 void ActsExamples::Options::addGeometryOptions(
-    boost::program_options::options_description& opt) {
+    boost::program_options::options_description& opt)
+{
   opt.add_options()("geo-surface-loglevel", value<size_t>()->default_value(3),
                     "The outoput log level for the surface building.")(
       "geo-layer-loglevel", value<size_t>()->default_value(3),
@@ -42,7 +42,8 @@ void ActsExamples::Options::addGeometryOptions(
 }
 
 void ActsExamples::Options::addMaterialOptions(
-    boost::program_options::options_description& opt) {
+    boost::program_options::options_description& opt)
+{
   opt.add_options()(
       "mat-input-type", value<std::string>()->default_value("build"),
       "The way material is loaded: 'none', 'build', 'proto', 'file'.")(
@@ -66,19 +67,21 @@ void ActsExamples::Options::addMaterialOptions(
       "Add protoMaterial to all surfaces and volume for the mapping.");
 }
 
-
 boost::program_options::variables_map ActsExamples::Options::parse(
     const boost::program_options::options_description& opt, int argc,
-    char* argv[]) noexcept(false) {
+    char* argv[]) noexcept(false)
+{
   variables_map vm;
   store(command_line_parser(argc, argv).options(opt).run(), vm);
   notify(vm);
 
   if (vm.count("response-file") != 0u &&
-      ! vm["response-file"].template as<std::string>().empty()) {
+      !vm["response-file"].template as<std::string>().empty())
+  {
     // Load the file and tokenize it
     std::ifstream ifs(vm["response-file"].as<std::string>().c_str());
-    if (!ifs) {
+    if (!ifs)
+    {
       throw(std::system_error(std::error_code(),
                               "Could not open response file."));
     }
@@ -90,8 +93,10 @@ boost::program_options::variables_map ActsExamples::Options::parse(
     const std::regex rgx("[ \t\r\n\f]");
     std::sregex_token_iterator iter(rString.begin(), rString.end(), rgx, -1);
     std::sregex_token_iterator end;
-    for (; iter != end; ++iter) {
-      if (std::string(*iter).empty()) {
+    for (; iter != end; ++iter)
+    {
+      if (std::string(*iter).empty())
+      {
         continue;
       }
       args.push_back(*iter);
@@ -101,7 +106,8 @@ boost::program_options::variables_map ActsExamples::Options::parse(
   }
 
   // Automatically handle help
-  if (vm.count("help") != 0u) {
+  if (vm.count("help") != 0u)
+  {
     std::cout << opt << std::endl;
     vm.clear();
   }

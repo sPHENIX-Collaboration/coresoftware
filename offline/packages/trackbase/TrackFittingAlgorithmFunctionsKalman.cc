@@ -16,7 +16,6 @@
 
 #include <Acts/Utilities/Helpers.hpp>
 
-
 namespace
 {
   using Updater = Acts::GainMatrixUpdater;

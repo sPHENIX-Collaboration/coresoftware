@@ -35,27 +35,26 @@ void TrackVertexCrossingAssoc_v1::identify(std::ostream& os) const
 {
   std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator iter;
   os << "-----TrackVertexCrossingAssoc_v1-----" << std::endl;
-  os << "Number of vertex associations: " << sizeVertices()  << "Number of track associations: " << sizeTracks() << std::endl;
+  os << "Number of vertex associations: " << sizeVertices() << "Number of track associations: " << sizeTracks() << std::endl;
   for (const auto& cross : _crossing_set)
-    { 
-      auto vtxit = _vertex_assoc_map.equal_range(cross);
-      os << "Crossing " << cross << std::endl;
-      os << "   vertex ID's:  ";
-      for (auto itr = vtxit.first; itr != vtxit.second; ++itr)
-	{
-	  os << itr->second << "  ";
-	} 
-      os << std::endl;
-
-      auto trit = _track_assoc_map.equal_range(cross);
-      os << "   track ID's:  ";
-      for (auto itr = trit.first; itr != trit.second; ++itr)
-	{
-	  os << itr->second << "  ";
-	} 
-      os << std::endl;
-
+  {
+    auto vtxit = _vertex_assoc_map.equal_range(cross);
+    os << "Crossing " << cross << std::endl;
+    os << "   vertex ID's:  ";
+    for (auto itr = vtxit.first; itr != vtxit.second; ++itr)
+    {
+      os << itr->second << "  ";
     }
+    os << std::endl;
+
+    auto trit = _track_assoc_map.equal_range(cross);
+    os << "   track ID's:  ";
+    for (auto itr = trit.first; itr != trit.second; ++itr)
+    {
+      os << itr->second << "  ";
+    }
+    os << std::endl;
+  }
 
   return;
 }
@@ -113,4 +112,3 @@ unsigned int TrackVertexCrossingAssoc_v1::sizeVertices() const
 
   return size;
 }
-

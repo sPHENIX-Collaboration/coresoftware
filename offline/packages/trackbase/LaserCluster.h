@@ -15,7 +15,7 @@
 /**
  * @brief Base class for laser cluster object
  *
- * Virtual base class for TPC laser cluster object 
+ * Virtual base class for TPC laser cluster object
  */
 class LaserCluster : public PHObject
 {
@@ -30,16 +30,15 @@ class LaserCluster : public PHObject
   void Reset() override {}
   int isValid() const override { return 0; }
 
-  
   //! import PHObject CopyFrom, in order to avoid clang warning
   using PHObject::CopyFrom;
-  
-  //! copy content from base class
-  virtual void CopyFrom( const LaserCluster& )  {}
 
   //! copy content from base class
-  virtual void CopyFrom( LaserCluster* )  {}
- 
+  virtual void CopyFrom(const LaserCluster&) {}
+
+  //! copy content from base class
+  virtual void CopyFrom(LaserCluster*) {}
+
   //
   // cluster position
   //
@@ -66,18 +65,17 @@ class LaserCluster : public PHObject
   virtual void setAdc(unsigned int) {}
   virtual unsigned int getAdc() const { return std::numeric_limits<unsigned int>::max(); }
 
-
-  virtual unsigned int getNhits() const {return std::numeric_limits<unsigned int>::max();}
-  virtual void setNhits( unsigned int) {}
+  virtual unsigned int getNhits() const { return std::numeric_limits<unsigned int>::max(); }
+  virtual void setNhits(unsigned int) {}
 
   virtual void setNLayers(unsigned int) {}
-  virtual unsigned int getNLayers() const { return std::numeric_limits<unsigned int>::max();}
+  virtual unsigned int getNLayers() const { return std::numeric_limits<unsigned int>::max(); }
 
   virtual void setNIPhi(unsigned int) {}
-  virtual unsigned int getNIPhi() const { return std::numeric_limits<unsigned int>::max();}
+  virtual unsigned int getNIPhi() const { return std::numeric_limits<unsigned int>::max(); }
 
   virtual void setNIT(unsigned int) {}
-  virtual unsigned int getNIT() const { return std::numeric_limits<unsigned int>::max();}
+  virtual unsigned int getNIT() const { return std::numeric_limits<unsigned int>::max(); }
 
   virtual void setSDLayer(float) {}
   virtual float getSDLayer() const { return std::numeric_limits<float>::quiet_NaN(); }
@@ -97,9 +95,8 @@ class LaserCluster : public PHObject
   virtual void setSDWeightedIT(float) {}
   virtual float getSDWeightedIT() const { return std::numeric_limits<float>::quiet_NaN(); }
 
-
   virtual void addHit() {}
- 
+
   virtual void setHitLayer(int, float) {}
   virtual float getHitLayer(int) const { return std::numeric_limits<float>::quiet_NaN(); }
 
@@ -117,14 +114,13 @@ class LaserCluster : public PHObject
 
   virtual void setHitZ(int, float) {}
   virtual float getHitZ(int) const { return std::numeric_limits<float>::quiet_NaN(); }
- 
+
   virtual void setHitAdc(int, float) {}
   virtual float getHitAdc(int) const { return std::numeric_limits<float>::quiet_NaN(); }
-
 
  protected:
   LaserCluster() = default;
   ClassDefOverride(LaserCluster, 1)
 };
 
-#endif //TRACKBASE_LASERCLUSTER_H
+#endif  // TRACKBASE_LASERCLUSTER_H

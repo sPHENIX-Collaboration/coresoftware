@@ -7,16 +7,16 @@
 #include <phool/phool.h>
 #include <Acts/Definitions/Units.hpp>
 
-#include <ActsExamples/EventData/Measurement.hpp>
 #include <Acts/EventData/MeasurementHelpers.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
 #include <Acts/Utilities/TrackHelpers.hpp>
+#include <ActsExamples/EventData/Measurement.hpp>
 
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 struct ResidualOutlierFinder
 {
-  ActsGeometry* m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
   int verbosity = 0;
   std::map<long unsigned int, float> chi2Cuts;
   std::string outfilename = "OutlierFinder.root";
@@ -26,7 +26,7 @@ struct ResidualOutlierFinder
 
   TNtuple *tree = new TNtuple("ntp_outlierfinder", "tree with predicted states and cluster info",
                               "sphenixlayer:layer:volume:distance:chi2:predgx:predgy:predgz:predlx:predlz:clusgx:clusgy:clusgz:cluslx:cluslz");
-  void outfileName(const std::string& name)
+  void outfileName(const std::string &name)
   {
     outfilename = name;
   }
@@ -47,9 +47,9 @@ struct ResidualOutlierFinder
     {
       return false;
     }
-    
+
     auto sourceLink = state.getUncalibratedSourceLink().template get<ActsSourceLink>();
-    const auto& cluskey = sourceLink.cluskey();
+    const auto &cluskey = sourceLink.cluskey();
 
     double chi2 = Acts::calculatePredictedChi2(state);
 
@@ -75,7 +75,7 @@ struct ResidualOutlierFinder
     int sphenixlayer = TrkrDefs::getLayer(cluskey);
     hChi2->Fill(sphenixlayer, chi2);
     hDistance->Fill(sphenixlayer, distance);
-    if(!m_tGeometry)
+    if (!m_tGeometry)
     {
       std::cout << PHWHERE << "no geometry set in residual outlier finder" << std::endl;
       exit(1);
@@ -86,14 +86,14 @@ struct ResidualOutlierFinder
                               .data();
     Acts::FreeVector freeParams =
         Acts::transformBoundToFreeParameters(state.referenceSurface(),
-                                                     m_tGeometry->geometry().getGeoContext(),
-                                                     predicted);
+                                             m_tGeometry->geometry().getGeoContext(),
+                                             predicted);
     Acts::Vector2 local(fullCalibrated[Acts::eBoundLoc0], fullCalibrated[Acts::eBoundLoc1]);
     Acts::Vector3 global = state.referenceSurface().localToGlobal(
         m_tGeometry->geometry().getGeoContext(), local,
         Acts::Vector3(1, 1, 1));
     float data[] = {
-        (float) sphenixlayer, (float) layer, (float) volume, distance, (float)chi2,
+        (float) sphenixlayer, (float) layer, (float) volume, distance, (float) chi2,
         (float) freeParams[Acts::eFreePos0], (float) freeParams[Acts::eFreePos1], (float) freeParams[Acts::eFreePos2],
         (float) predicted[Acts::eBoundLoc0], (float) predicted[Acts::eBoundLoc1],
         (float) global[Acts::eFreePos0], (float) global[Acts::eFreePos1], (float) global[Acts::eFreePos2],

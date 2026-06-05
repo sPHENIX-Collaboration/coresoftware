@@ -6,10 +6,9 @@
 #include "TrkrDefs.h"
 #include "alignmentTransformationContainer.h"
 
-#include <ActsExamples/EventData/Measurement.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
-
+#include <ActsExamples/EventData/Measurement.hpp>
 
 class Calibrator
 {

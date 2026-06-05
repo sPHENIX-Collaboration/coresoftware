@@ -5,14 +5,14 @@
 #include "Calibrator.h"
 #include "ResidualOutlierFinder.h"
 
-#include <Acts/EventData/detail/CorrectedTransformationFreeToBound.hpp>
-#include <Acts/EventData/VectorMultiTrajectory.hpp>
 #include <Acts/EventData/SourceLink.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
 #include <Acts/EventData/VectorTrackContainer.hpp>
+#include <Acts/EventData/detail/CorrectedTransformationFreeToBound.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <ActsExamples/EventData/Measurement.hpp>
-#pragma GCC diagnostic push // needed for local Act compilation
+#pragma GCC diagnostic push  // needed for local Act compilation
 #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #include <Acts/Propagator/MultiEigenStepperLoop.hpp>
 #pragma GCC diagnostic pop

@@ -1,15 +1,15 @@
 #include "ActsGeometry.h"
+#include <phool/sphenix_constants.h>
 #include <Acts/Definitions/Algebra.hpp>
 #include "TpcDefs.h"
 #include "TrkrCluster.h"
 #include "alignmentTransformationContainer.h"
-#include <phool/sphenix_constants.h>
 
 namespace
 {
   /// square
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -59,8 +59,8 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster
 
 //________________________________________________________________________________________________
 Acts::Vector3 ActsGeometry::getGlobalPositionTpc(const TrkrDefs::hitsetkey& hitsetkey,
-const TrkrDefs::hitkey& hitkey, const float& phi, const float& rad,
-const float& clockPeriod) const
+                                                 const TrkrDefs::hitkey& hitkey, const float& phi, const float& rad,
+                                                 const float& clockPeriod) const
 {
   Acts::Vector3 glob;
   const auto trkrid = TrkrDefs::getTrkrId(hitsetkey);
@@ -72,15 +72,15 @@ const float& clockPeriod) const
 
   auto tbin = TpcDefs::getTBin(hitkey);
   double zdriftlength = tbin * clockPeriod * _drift_velocity;  // cm
-  double zloc =  _max_driftlength / 2.0 - zdriftlength;                   // local z relative to surface center (for north side):
+  double zloc = _max_driftlength / 2.0 - zdriftlength;         // local z relative to surface center (for north side):
   unsigned int side = TpcDefs::getSide(hitsetkey);
   if (side == 0)
   {
     zloc = -zloc;
   }
-  
-  float surfaceZCenter = _max_driftlength/2.0 + _CM_halfwidth;
-  
+
+  float surfaceZCenter = _max_driftlength / 2.0 + _CM_halfwidth;
+
   auto x = rad * std::cos(phi);
   auto y = rad * std::sin(phi);
   auto z = surfaceZCenter + zloc;
@@ -107,16 +107,16 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
 
   /*
   std::cout << " getGlobalPositionTpc transform is: " << std::endl
-	    <<  surface->transform(m_tGeometry.getGeoContext()).matrix()
-	    << std::endl;
+            <<  surface->transform(m_tGeometry.getGeoContext()).matrix()
+            << std::endl;
   alignmentTransformationContainer::use_alignment = false;
   Acts::Vector3 ideal_center = surface->center(m_tGeometry.getGeoContext()) * 0.1;
-  alignmentTransformationContainer::use_alignment = true;  
+  alignmentTransformationContainer::use_alignment = true;
   Acts::Vector3 sensorCenter = surface->center(m_tGeometry.getGeoContext()) * 0.1;  // cm
   std::cout << "  ideal surface center: " << ideal_center << std::endl;
   std::cout << "  aligned surface center: " << sensorCenter << std::endl;
   */
-  
+
   if (!surface)
   {
     std::cerr << "Couldn't identify cluster surface. Returning NAN"
@@ -128,17 +128,15 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
   }
 
   Acts::Vector2 local = getLocalCoords(key, cluster);  // no crossing correction here
-  
+
   glob = surface->localToGlobal(m_tGeometry.getGeoContext(),
                                 local * Acts::UnitConstants::cm,
                                 Acts::Vector3(1, 1, 1));
   glob /= Acts::UnitConstants::cm;
 
-
   // std::cout << "  local " << local << std::endl;
   // std::cout << "  glob " << glob << std::endl;
 
-  
   return glob;
 }
 
@@ -149,7 +147,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   unsigned int side = TpcDefs::getSide(hitsetkey);
-  
+
   auto mapIter = m_surfMaps.m_tpcSurfaceMap.find(layer);
 
   if (mapIter == m_surfMaps.m_tpcSurfaceMap.end())
@@ -177,14 +175,14 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   }
   unsigned int nsurf = nsurfm % surf_vec.size();
   Surface this_surf = surf_vec[nsurf];
-  //std::cout << "    world_phi " << world_phi << " fraction " << fraction << " rounded_nsurf " << rounded_nsurf << " nsurfm " << nsurfm << " nsurf " << nsurf << std::endl;
-  
+  // std::cout << "    world_phi " << world_phi << " fraction " << fraction << " rounded_nsurf " << rounded_nsurf << " nsurfm " << nsurfm << " nsurf " << nsurf << std::endl;
+
   auto vec3d = this_surf->center(m_tGeometry.getGeoContext());
   std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
   double surf_phi = atan2(surf_center[1], surf_center[0]);
   double surfStepPhi = m_tGeometry.tpcSurfStepPhi;
   //  std::cout << "    surf_phi " << surf_phi << " surfStepPhi " << surfStepPhi  << " nsurf " << nsurf << std::endl;
-  
+
   if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
   {
     surf_index = nsurf;
@@ -200,19 +198,19 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
     {
       world_phi += 2.0 * M_PI;
     }
-    //check a few surfaces around this one
-    for( int i = -1; i <= 1; i++)
+    // check a few surfaces around this one
+    for (int i = -1; i <= 1; i++)
     {
-      if(i==0) // already tried this one
+      if (i == 0)  // already tried this one
       {
         continue;
       }
-      unsigned int new_nsurf = (nsurf+i) % surf_vec.size();
+      unsigned int new_nsurf = (nsurf + i) % surf_vec.size();
       this_surf = surf_vec[new_nsurf];
       vec3d = this_surf->center(geometry().getGeoContext());
       surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       surf_phi = atan2(surf_center[1], surf_center[0]);
-      //std::cout << "    new world_phi " << world_phi << " new surf_phi " << surf_phi  << " new_nsurf " << new_nsurf << std::endl;
+      // std::cout << "    new world_phi " << world_phi << " new surf_phi " << surf_phi  << " new_nsurf " << new_nsurf << std::endl;
       if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
       {
         surf_index = new_nsurf;
@@ -251,7 +249,6 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
   return local;
 }
 
-  
 //________________________________________________________________________________________________
 Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing) const
 {
@@ -261,9 +258,9 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
   if (trkrid == TrkrDefs::tpcId)
   {
     double crossing_tzero_correction = crossing * sphenix_constants::time_between_crossings;
-    double tcorrected = cluster->getLocalY() +  _tpc_tzero + _sampa_tzero_bias - crossing_tzero_correction;
-    double zdriftlength = tcorrected * _drift_velocity; 
-    double zloc = _max_driftlength/2.0 - zdriftlength;         // local z relative to surface center (for north side):
+    double tcorrected = cluster->getLocalY() + _tpc_tzero + _sampa_tzero_bias - crossing_tzero_correction;
+    double zdriftlength = tcorrected * _drift_velocity;
+    double zloc = _max_driftlength / 2.0 - zdriftlength;  // local z relative to surface center (for north side):
     unsigned int side = TpcDefs::getSide(key);
     if (side == 0)
     {
@@ -274,12 +271,11 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
 
     /*
     std::cout << " clust " << cluster->getLocalY() << " tpc tzero " << _tpc_tzero << " sampa tbias " << _sampa_tzero_bias
-	      << " crossing tzero correction " << crossing_tzero_correction << " corrected clust " << tcorrected
-	      << " drift vel " << _drift_velocity 
-	      << " crossing " << crossing << " crossing period " << sphenix_constants::time_between_crossings
-	      << " maxdriftlength " << _max_driftlength << " zdriftlength " << zdriftlength << " zloc " << zloc << std::endl;
+              << " crossing tzero correction " << crossing_tzero_correction << " corrected clust " << tcorrected
+              << " drift vel " << _drift_velocity
+              << " crossing " << crossing << " crossing period " << sphenix_constants::time_between_crossings
+              << " maxdriftlength " << _max_driftlength << " zdriftlength " << zdriftlength << " zloc " << zloc << std::endl;
     */
-    
   }
   else
   {

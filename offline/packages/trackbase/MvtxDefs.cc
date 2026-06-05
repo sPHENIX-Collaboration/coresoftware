@@ -21,7 +21,7 @@ namespace
   // bit shift for hitkey
   static const unsigned int kBitShiftCol __attribute__((unused)) = 16;
   static const unsigned int kBitShiftRow __attribute__((unused)) = 0;
-}
+}  // namespace
 
 uint8_t
 MvtxDefs::getStaveId(TrkrDefs::hitsetkey key)
@@ -149,6 +149,6 @@ MvtxDefs::resetStrobe(const TrkrDefs::hitsetkey hitsetkey)
 TrkrDefs::cluskey
 MvtxDefs::resetStrobe(const TrkrDefs::cluskey key)
 {
-  TrkrDefs::hitsetkey tmp =  TrkrDefs::getHitSetKeyFromClusKey(key);
+  TrkrDefs::hitsetkey tmp = TrkrDefs::getHitSetKeyFromClusKey(key);
   return TrkrDefs::genClusKey(resetStrobe(tmp), key);
 }

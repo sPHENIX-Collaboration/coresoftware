@@ -25,7 +25,7 @@ namespace
   //  0  - 16 time bin
   static constexpr unsigned int kBitShiftPad = 16;
   static constexpr unsigned int kBitShiftTBin = 0;
-}
+}  // namespace
 
 uint8_t
 TpcDefs::getSectorId(TrkrDefs::hitsetkey key)

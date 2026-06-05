@@ -49,7 +49,6 @@ class alignmentTransformationContainer
 
   /// Map of TrkrDefs::Layer to misalignment factor
   std::map<uint8_t, double> m_misalignmentFactor;
-
 };
 
 #endif  // TRACKBASE_ALIGNMENTTRANSFORMATIONCONTAINER_H

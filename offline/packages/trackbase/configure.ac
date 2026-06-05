@@ -4,7 +4,7 @@ AC_CONFIG_SRCDIR([configure.ac])
 AM_INIT_AUTOMAKE
 
 AC_PROG_CXX(CC g++)
-LT_INIT([disable-static])
+LT_INIT([disable - static])
 
 dnl   no point in suppressing warnings people should 
 dnl   at least see them, so here we go for g++: -Wall
@@ -20,7 +20,8 @@ AC_ARG_ENABLE(online,
         [case "${enableval}" in
                 yes) online=true ;;
                 no)  online=false ;;
-                *) AC_MSG_ERROR(bad value ${enableval} for --enable-online) ;;
+                *) AC_MSG_ERROR(bad value ${
+  enableval} for --enable-online) ;;
                 esac],
         online=false)
 AM_CONDITIONAL(USE_ONLINE, test "x$online" = xtrue)

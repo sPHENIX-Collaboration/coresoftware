@@ -16,7 +16,9 @@ class TrkrHitSetTpcv1 final : public TrkrHitSetTpc
   TrkrHitSetTpcv1() = default;
 
   TrkrHitSetTpcv1(const uint16_t n_pad, const uint16_t n_tbin)
-    : TrkrHitSetTpc(n_pad, n_tbin), m_nPads(n_pad), m_nTBins(n_tbin)
+    : TrkrHitSetTpc(n_pad, n_tbin)
+    , m_nPads(n_pad)
+    , m_nTBins(n_tbin)
   {
     Resize();
   }

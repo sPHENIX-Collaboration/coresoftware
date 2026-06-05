@@ -109,7 +109,7 @@ Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const TrkrDefs::cluskey
   Acts::Vector3 v1(x1, y1, z1), v2(x2, y2, z2);
 
   Acts::Vector3 surfcenter = surf->center(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
-  Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext(), Acts::Vector3(1,1,1), Acts::Vector3(1,1,1)) / Acts::UnitConstants::cm;
+  Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1)) / Acts::UnitConstants::cm;
 
   Acts::Vector3 u = v2 - v1;
   float const dot = surfnorm.dot(u);
@@ -609,7 +609,7 @@ Acts::Vector2 TrackFitUtils::get_circle_point_pca(float radius, float x0, float 
 
 //_________________________________________________________________________________
 std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global_vec,
-                                              const std::vector<TrkrDefs::cluskey> &cluskey_vec,
+                                              const std::vector<TrkrDefs::cluskey>& cluskey_vec,
                                               bool use_intt)
 {
   std::vector<float> fitpars;
@@ -1027,7 +1027,7 @@ TrackFitUtils::zero_field_track_params(
   return std::make_tuple(true, phi, eta, 1, Acts::Vector3(x, y, z), p);
 }
 
-bool TrackFitUtils::isTrackCrossMvtxHalf(const std::vector<TrkrDefs::cluskey> &cluskey_vec)
+bool TrackFitUtils::isTrackCrossMvtxHalf(const std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
   bool isWest = false;
   bool isEast = false;

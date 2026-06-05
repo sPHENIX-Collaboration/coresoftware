@@ -97,11 +97,16 @@ void TrkrClusterContainerv4::removeClusters(TrkrDefs::hitsetkey hitsetkey)
   auto iter = m_clusmap.find(hitsetkey);
 
   // do nothing if not found
-  if( iter == m_clusmap.end() ) { return; }
+  if (iter == m_clusmap.end())
+  {
+    return;
+  }
 
   // delete all clusters
-  for( auto&& cluster:iter->second)
-  { delete cluster; }
+  for (auto&& cluster : iter->second)
+  {
+    delete cluster;
+  }
 
   // remove from map
   m_clusmap.erase(iter);

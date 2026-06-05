@@ -29,14 +29,16 @@ void TrkrHitSetContainerv2::Reset()
   //! This is inspired by but even faster than TClonesArray::Clear()
   //! We just reset hitset values and reuse the hitset objects
   Int_t n = m_hitArray.GetEntriesFast();
-  for (Int_t i = 0; i < n; i++) {
-     TObject *obj = m_hitArray.UncheckedAt(i);
-     if (obj) {
-        obj->Clear();
-        obj->ResetBit( kHasUUID );
-        obj->ResetBit( kIsReferenced );
-        obj->SetUniqueID( 0 );
-     }
+  for (Int_t i = 0; i < n; i++)
+  {
+    TObject* obj = m_hitArray.UncheckedAt(i);
+    if (obj)
+    {
+      obj->Clear();
+      obj->ResetBit(kHasUUID);
+      obj->ResetBit(kIsReferenced);
+      obj->SetUniqueID(0);
+    }
   }
 
   // alternative is to also marking hitset removed, which is not used here but optional for a v3 container
@@ -79,7 +81,7 @@ TrkrHitSetContainerv2::addHitSetSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHi
   return TrkrHitSetContainer::addHitSetSpecifyKey(key, newhit);
 }
 
-void TrkrHitSetContainerv2::removeHitSet(TrkrDefs::hitsetkey )
+void TrkrHitSetContainerv2::removeHitSet(TrkrDefs::hitsetkey)
 {
   std::cout << __PRETTY_FUNCTION__
             << " : deprecated. This function still works but slows down operation." << std::endl;
@@ -126,7 +128,7 @@ TrkrHitSetContainerv2::findOrAddHitSet(TrkrDefs::hitsetkey key)
   {
     TrkrHitSet* hitset = (TrkrHitSet*) m_hitArray.ConstructedAt(m_hitArray.GetLast() + 1);
     assert(hitset);
-    hitset -> setHitSetKey(key);
+    hitset->setHitSetKey(key);
     it = m_hitmap.insert(it, std::make_pair(key, hitset));
   }
   return it;

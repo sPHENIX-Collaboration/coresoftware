@@ -11,9 +11,9 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <iostream>          // for cout, ostream
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 class LaserCluster;
 
@@ -32,7 +32,7 @@ class LaserClusterContainerv1 : public LaserClusterContainer
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
   LaserClusterContainerv1() = default;
-  
+
   void Reset() override;
 
   void identify(std::ostream &os = std::cout) const override;
@@ -40,16 +40,16 @@ class LaserClusterContainerv1 : public LaserClusterContainer
   void addClusterSpecifyKey(const TrkrDefs::cluskey, LaserCluster *newClus) override;
 
   void removeCluster(TrkrDefs::cluskey) override;
-  
+
   ConstRange getClusters() const override;
 
   LaserCluster *findCluster(TrkrDefs::cluskey key) const override;
 
   unsigned int size() const override;
 
-  private:
+ private:
   Map m_clusmap;
   ClassDefOverride(LaserClusterContainerv1, 1)
 };
 
-#endif //TRACKBASE_LASERCLUSTERCONTAINER_H
+#endif  // TRACKBASE_LASERCLUSTERCONTAINER_H

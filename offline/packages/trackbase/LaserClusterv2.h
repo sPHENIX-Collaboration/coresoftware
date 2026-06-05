@@ -33,13 +33,15 @@ class LaserClusterv2 : public LaserCluster
   void Reset() override {}
   int isValid() const override;
   PHObject* CloneMe() const override { return new LaserClusterv2(*this); }
- 
-  //! copy content from base class
-  void CopyFrom( const LaserCluster& ) override;
 
   //! copy content from base class
-  void CopyFrom( LaserCluster* source ) override
-  { CopyFrom( *source ); }
+  void CopyFrom(const LaserCluster&) override;
+
+  //! copy content from base class
+  void CopyFrom(LaserCluster* source) override
+  {
+    CopyFrom(*source);
+  }
 
   //
   // cluster position
@@ -61,7 +63,7 @@ class LaserClusterv2 : public LaserCluster
   float getIT() const override { return m_posHardware[2]; }
   void setIT(float it) override { m_posHardware[2] = it; }
 
-  unsigned int getNhits() const override {return m_hitVec.size();}
+  unsigned int getNhits() const override { return m_hitVec.size(); }
 
   //
   // cluster info
@@ -96,32 +98,34 @@ class LaserClusterv2 : public LaserCluster
   void setSDWeightedIT(float SDIT) override { m_SDWeightedIT = SDIT; }
   float getSDWeightedIT() const override { return m_SDWeightedIT; }
 
-  void addHit() override {m_hitVec.push_back({0.0,0.0,0.0,0.0}); m_hitVecHardware.push_back({0.0,0.0,0.0}); }
+  void addHit() override
+  {
+    m_hitVec.push_back({0.0, 0.0, 0.0, 0.0});
+    m_hitVecHardware.push_back({0.0, 0.0, 0.0});
+  }
 
-  void setHitLayer(int i, float layer) override {m_hitVecHardware[i][0] = layer; }
+  void setHitLayer(int i, float layer) override { m_hitVecHardware[i][0] = layer; }
   float getHitLayer(int i) const override { return m_hitVecHardware[i][0]; }
 
-  void setHitIPhi(int i, float iphi) override {m_hitVecHardware[i][1] = iphi; }
+  void setHitIPhi(int i, float iphi) override { m_hitVecHardware[i][1] = iphi; }
   float getHitIPhi(int i) const override { return m_hitVecHardware[i][1]; }
 
-  void setHitIT(int i, float it) override {m_hitVecHardware[i][2] = it; }
+  void setHitIT(int i, float it) override { m_hitVecHardware[i][2] = it; }
   float getHitIT(int i) const override { return m_hitVecHardware[i][2]; }
 
-  void setHitX(int i, float x) override {m_hitVec[i][0] = x; }
+  void setHitX(int i, float x) override { m_hitVec[i][0] = x; }
   float getHitX(int i) const override { return m_hitVec[i][0]; }
 
-  void setHitY(int i, float y) override {m_hitVec[i][1] = y; }
+  void setHitY(int i, float y) override { m_hitVec[i][1] = y; }
   float getHitY(int i) const override { return m_hitVec[i][1]; }
 
-  void setHitZ(int i, float z) override {m_hitVec[i][2] = z; }
+  void setHitZ(int i, float z) override { m_hitVec[i][2] = z; }
   float getHitZ(int i) const override { return m_hitVec[i][2]; }
 
-  void setHitAdc(int i, float adc) override {m_hitVec[i][3] = adc; }
+  void setHitAdc(int i, float adc) override { m_hitVec[i][3] = adc; }
   float getHitAdc(int i) const override { return m_hitVec[i][3]; }
 
-
  protected:
-
   /// mean cluster position
   float m_pos[3] = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
   float m_posHardware[3] = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
@@ -133,7 +137,7 @@ class LaserClusterv2 : public LaserCluster
 
   /// cluster sum adc
   unsigned int m_adc = std::numeric_limits<unsigned int>::max();
-  
+
   /// number of TPC clusters used to create this central mebrane cluster
   unsigned int m_nhits = std::numeric_limits<unsigned int>::max();
   unsigned int m_nLayers = std::numeric_limits<unsigned int>::max();
@@ -149,4 +153,4 @@ class LaserClusterv2 : public LaserCluster
   ClassDefOverride(LaserClusterv2, 1)
 };
 
-#endif //TRACKBASE_LASERCLUSTERV2_H
+#endif  // TRACKBASE_LASERCLUSTERV2_H

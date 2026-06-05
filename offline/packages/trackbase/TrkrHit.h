@@ -25,7 +25,6 @@
 class TrkrHit : public PHObject
 {
  public:
-
   //! dtor
   ~TrkrHit() override = default;
 
@@ -42,11 +41,13 @@ class TrkrHit : public PHObject
 
   //! copy content from base class
   virtual void CopyFrom(const TrkrHit&)
-  {}
+  {
+  }
 
   //! copy content from base class
   virtual void CopyFrom(TrkrHit*)
-  {}
+  {
+  }
 
   // these set and get the energy before digitization
   virtual void addEnergy(const double) {}

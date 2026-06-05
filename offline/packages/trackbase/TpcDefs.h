@@ -96,7 +96,7 @@ namespace TpcDefs
    */
   TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t sector, const uint8_t side);
 
-    /**
+  /**
    * @brief Generate a hitsetkey for a tpc module
    * @param[in] region index (0, 1, 2)
    * @param[in] sector Sector index

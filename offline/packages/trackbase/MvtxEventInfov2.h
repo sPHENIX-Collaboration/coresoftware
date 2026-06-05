@@ -51,7 +51,7 @@ class MvtxEventInfov2 : public MvtxEventInfo
   unsigned int get_number_L1s() const override;
 
   // std::set<uint64_t> get_strobe_BCOs() const;
-  std::set<uint64_t> get_strobe_BCOs() const override {return m_strobe_BCOs;}
+  std::set<uint64_t> get_strobe_BCOs() const override { return m_strobe_BCOs; }
   std::set<uint64_t> get_L1_BCOs() const override;
 
   std::set<uint64_t> get_strobe_BCO_from_L1_BCO(const uint64_t ival) const override;

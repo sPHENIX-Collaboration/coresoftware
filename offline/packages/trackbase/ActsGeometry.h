@@ -73,7 +73,7 @@ class ActsGeometry
   Surface get_tpc_surface_from_coords(
       TrkrDefs::hitsetkey hitsetkey,
       Acts::Vector3 world,
-      TrkrDefs::subsurfkey& subsurfkey) const ;
+      TrkrDefs::subsurfkey& subsurfkey) const;
 
   Acts::Transform3 makeAffineTransform(Acts::Vector3 rotation, Acts::Vector3 translation) const;
 
@@ -83,11 +83,11 @@ class ActsGeometry
  private:
   ActsTrackingGeometry m_tGeometry;
   ActsSurfaceMaps m_surfMaps;
-  double _drift_velocity = 8.0e-3;  // cm/ns
+  double _drift_velocity = 8.0e-3;    // cm/ns
   double _max_driftlength = 102.235;  // cm
-  double _CM_halfwidth = 0.28;  // cm
-  double _tpc_tzero = 0.0;  // ns
-  double _sampa_tzero_bias = 0.0;  // ns
+  double _CM_halfwidth = 0.28;        // cm
+  double _tpc_tzero = 0.0;            // ns
+  double _sampa_tzero_bias = 0.0;     // ns
 };
 
 #endif

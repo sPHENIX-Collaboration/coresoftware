@@ -11,9 +11,11 @@
 
 void LaserClusterContainerv1::Reset()
 {
-  for( auto&& [key, cluster]:m_clusmap )
-  { delete cluster; }
-  
+  for (auto&& [key, cluster] : m_clusmap)
+  {
+    delete cluster;
+  }
+
   m_clusmap.clear();
 }
 
@@ -24,7 +26,7 @@ void LaserClusterContainerv1::identify(std::ostream& os) const
   os << "Number of clusters: " << size() << std::endl;
   for (iter = m_clusmap.begin(); iter != m_clusmap.end(); ++iter)
   {
-    os << "clus key " << iter->first  << std::endl;
+    os << "clus key " << iter->first << std::endl;
     (iter->second)->identify();
   }
   os << "------------------------------" << std::endl;
@@ -34,7 +36,7 @@ void LaserClusterContainerv1::identify(std::ostream& os) const
 void LaserClusterContainerv1::addClusterSpecifyKey(const TrkrDefs::cluskey key, LaserCluster* newclus)
 {
   auto ret = m_clusmap.insert(std::make_pair(key, newclus));
-  if ( !ret.second )
+  if (!ret.second)
   {
     std::cout << "LaserClusterContainerv1::AddClusterSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
@@ -42,22 +44,24 @@ void LaserClusterContainerv1::addClusterSpecifyKey(const TrkrDefs::cluskey key, 
 }
 
 void LaserClusterContainerv1::removeCluster(TrkrDefs::cluskey key)
-{ 
+{
   auto clus = findCluster(key);
   delete clus;
 
-  m_clusmap.erase(key); 
+  m_clusmap.erase(key);
 }
 
 LaserClusterContainer::ConstRange
 LaserClusterContainerv1::getClusters() const
-{ return std::make_pair(m_clusmap.cbegin(), m_clusmap.cend()); }
+{
+  return std::make_pair(m_clusmap.cbegin(), m_clusmap.cend());
+}
 
 LaserCluster*
 LaserClusterContainerv1::findCluster(TrkrDefs::cluskey key) const
 {
   auto it = m_clusmap.find(key);
-  return it == m_clusmap.end() ? nullptr:it->second;
+  return it == m_clusmap.end() ? nullptr : it->second;
 }
 
 unsigned int LaserClusterContainerv1::size() const

@@ -17,7 +17,7 @@ class ClusterErrorPara
 
   virtual ~ClusterErrorPara()
   {
-    //delete ftpcR1;
+    // delete ftpcR1;
     delete f0;
     delete f1;
     delete f2;
@@ -73,35 +73,35 @@ class ClusterErrorPara
 
  private:
   //  TF1 *ftpcR1 {nullptr};
-  TF1 *f0 {nullptr};
-  TF1 *f1 {nullptr};
-  TF1 *f2 {nullptr};
-  TF1 *f0fine {nullptr};
-  TF1 *f1fine {nullptr};
-  TF1 *f2fine {nullptr};
-  TF1 *f2fine2 {nullptr};
-  TF1 *fz0 {nullptr};
-  TF1 *fz1 {nullptr};
-  TF1 *fz2 {nullptr};
-  TF1 *fz0fine {nullptr};
-  TF1 *fz1fine {nullptr};
-  TF1 *fz2fine {nullptr};
-  TF1 *fmm_55_2 {nullptr};
-  TF1 *fmm_56_2 {nullptr};
-  TF1 *fmm_3 {nullptr};
-  TF1 *fadcz0 {nullptr};
-  TF1 *fadcz1 {nullptr};
-  TF1 *fadcz2 {nullptr};
-  TF1 *fadcz0fine {nullptr};
-  TF1 *fadcz1fine {nullptr};
-  TF1 *fadcz2fine {nullptr};
-  TF1 *fadcphi0 {nullptr};
-  TF1 *fadcphi0fine {nullptr};
-  TF1 *fadcphi1 {nullptr};
-  TF1 *fadcphi1fine {nullptr};
-  TF1 *fadcphi2 {nullptr};
-  TF1 *fadcphi2fine1 {nullptr};
-  TF1 *fadcphi2fine2 {nullptr};
+  TF1 *f0{nullptr};
+  TF1 *f1{nullptr};
+  TF1 *f2{nullptr};
+  TF1 *f0fine{nullptr};
+  TF1 *f1fine{nullptr};
+  TF1 *f2fine{nullptr};
+  TF1 *f2fine2{nullptr};
+  TF1 *fz0{nullptr};
+  TF1 *fz1{nullptr};
+  TF1 *fz2{nullptr};
+  TF1 *fz0fine{nullptr};
+  TF1 *fz1fine{nullptr};
+  TF1 *fz2fine{nullptr};
+  TF1 *fmm_55_2{nullptr};
+  TF1 *fmm_56_2{nullptr};
+  TF1 *fmm_3{nullptr};
+  TF1 *fadcz0{nullptr};
+  TF1 *fadcz1{nullptr};
+  TF1 *fadcz2{nullptr};
+  TF1 *fadcz0fine{nullptr};
+  TF1 *fadcz1fine{nullptr};
+  TF1 *fadcz2fine{nullptr};
+  TF1 *fadcphi0{nullptr};
+  TF1 *fadcphi0fine{nullptr};
+  TF1 *fadcphi1{nullptr};
+  TF1 *fadcphi1fine{nullptr};
+  TF1 *fadcphi2{nullptr};
+  TF1 *fadcphi2fine1{nullptr};
+  TF1 *fadcphi2fine2{nullptr};
   double pitcherr_phi_mvtx;
   double pitcherr_z_mvtx;
 
@@ -113,12 +113,12 @@ class ClusterErrorPara
 
   double pitcherr_phi_mm2;
   double pitcherr_z_mm2;
-  double scale_mvtx {1.2};
-  double scale_mvtx_z {0.9};
-  double scale_intt_3 {0.97};
-  double scale_intt_4 {0.964};
-  double scale_intt_5 {0.894};
-  double scale_intt_6 {0.893};
+  double scale_mvtx{1.2};
+  double scale_mvtx_z{0.9};
+  double scale_intt_3{0.97};
+  double scale_intt_4{0.964};
+  double scale_intt_5{0.894};
+  double scale_intt_6{0.893};
   /*  double scale_tpc_0 {1.1};
   double scale_tpc_1 {1.2};
   double scale_tpc_2 {1.3};
@@ -126,11 +126,10 @@ class ClusterErrorPara
   double scale_tpc_1_z {1.07};
   double scale_tpc_2_z {1.04};
   */
-  double scale_mm_0 {1.1};
-  double scale_mm_1 {1.5};
+  double scale_mm_0{1.1};
+  double scale_mm_1{1.5};
   double pull_fine_phi[60]{};
   double pull_fine_z[60]{};
-
 };
 
 #endif

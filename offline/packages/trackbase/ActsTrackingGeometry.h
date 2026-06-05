@@ -1,7 +1,6 @@
 #ifndef TRACKBASE_ACTSTRACKINGGEOMETRY_H
 #define TRACKBASE_ACTSTRACKINGGEOMETRY_H
 
-
 #pragma GCC diagnostic push
 #ifdef __clang__
 #pragma GCC diagnostic ignored "-Wundefined-internal"
@@ -26,7 +25,7 @@
  */
 struct ActsTrackingGeometry
 {
-  ActsTrackingGeometry() { }
+  ActsTrackingGeometry() {}
   ActsTrackingGeometry(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
                        // ActsTrackingGeometry(std::shared_ptr<Acts::TrackingGeometry> tGeo,
                        std::shared_ptr<Acts::MagneticFieldProvider> mag,

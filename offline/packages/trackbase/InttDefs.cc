@@ -27,7 +27,7 @@ namespace
   // bit shift for hitkey
   static const unsigned int kBitShiftCol __attribute__((unused)) = 16;
   static const unsigned int kBitShiftRow __attribute__((unused)) = 0;
-}
+}  // namespace
 
 uint8_t
 InttDefs::getLadderZId(TrkrDefs::hitsetkey key)

@@ -13,7 +13,7 @@
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 
-#pragma GCC diagnostic push // needed for local Act compilation
+#pragma GCC diagnostic push  // needed for local Act compilation
 #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #include <Acts/TrackFitting/GaussianSumFitter.hpp>
 #pragma GCC diagnostic pop
@@ -44,8 +44,6 @@ namespace
   using TrackContainer =
       Acts::TrackContainer<Acts::VectorTrackContainer,
                            Acts::VectorMultiTrajectory, std::shared_ptr>;
-
-
 
   struct GsfFitterFunctionImpl
     : public ActsTrackFittingAlgorithm::TrackFitterFunction

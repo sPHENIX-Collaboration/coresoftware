@@ -6,11 +6,11 @@
 #include <Acts/MagneticField/BFieldMapUtils.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 #include <Acts/MagneticField/SolenoidBField.hpp>
-#include <Acts/Utilities/Logger.hpp>
 #include <Acts/MagneticField/TextMagneticFieldIo.hpp>
-#include <ActsPlugins/Root/RootMagneticFieldIo.hpp>
+#include <Acts/Utilities/Logger.hpp>
 #include <ActsExamples/MagneticField/ScalableBFieldService.hpp>
 #include <ActsExamples/Utilities/Options.hpp>
+#include <ActsPlugins/Root/RootMagneticFieldIo.hpp>
 
 #include <filesystem>
 #include <memory>
@@ -19,12 +19,14 @@
 
 #include <boost/program_options.hpp>
 
-void ActsExamples::Options::addMagneticFieldOptions(Description& desc) {
+void ActsExamples::Options::addMagneticFieldOptions(Description& desc)
+{
   using boost::program_options::bool_switch;
   using boost::program_options::value;
 
   // avoid adding the options twice
-  if (desc.find_nothrow("bf-constant-tesla", true) != nullptr) {
+  if (desc.find_nothrow("bf-constant-tesla", true) != nullptr)
+  {
     return;
   }
 
@@ -83,27 +85,32 @@ void ActsExamples::Options::addMagneticFieldOptions(Description& desc) {
       "analytical solenoid field.");
 }
 
-
 std::shared_ptr<Acts::MagneticFieldProvider>
-ActsExamples::Options::readMagneticField(const Variables& vars) {
+ActsExamples::Options::readMagneticField(const Variables& vars)
+{
   using namespace ActsExamples::detail;
   using std::filesystem::path;
 
   // first option: create a constant field
-  if (vars.count("bf-constant-tesla") != 0u) {
+  if (vars.count("bf-constant-tesla") != 0u)
+  {
     const auto values = vars["bf-constant-tesla"].as<Reals<3>>();
     Acts::Vector3 field(values[0] * Acts::UnitConstants::T,
                         values[1] * Acts::UnitConstants::T,
                         values[2] * Acts::UnitConstants::T);
-    if (vars["bf-scalable"].as<bool>()) {
+    if (vars["bf-scalable"].as<bool>())
+    {
       return std::make_shared<ScalableBField>(field);
-    } else {
+    }
+    else
+    {
       return std::make_shared<Acts::ConstantBField>(field);
     }
   }
 
   // second option: read a field map from a file
-  if (vars.count("bf-map-file") != 0u) {
+  if (vars.count("bf-map-file") != 0u)
+  {
     const path file = vars["bf-map-file"].as<std::string>();
     const auto tree = vars["bf-map-tree"].as<std::string>();
     const auto type = vars["bf-map-type"].as<std::string>();
@@ -114,59 +121,74 @@ ActsExamples::Options::readMagneticField(const Variables& vars) {
         vars["bf-map-fieldscale-tesla"].as<double>() * Acts::UnitConstants::T;
 
     bool readRoot = false;
-    if (file.extension() == ".root") {
+    if (file.extension() == ".root")
+    {
       readRoot = true;
-    } else if (file.extension() == ".txt") {
+    }
+    else if (file.extension() == ".txt")
+    {
       readRoot = false;
-    } else {
+    }
+    else
+    {
       throw std::runtime_error("Unsupported magnetic field map file type");
     }
 
-    if (type == "xyz") {
+    if (type == "xyz")
+    {
       auto mapBins = [](const std::array<size_t, 3>& bins,
-                        const std::array<size_t, 3>& sizes) {
+                        const std::array<size_t, 3>& sizes)
+      {
         return (bins[0] * (sizes[1] * sizes[2]) + bins[1] * sizes[2] + bins[2]);
       };
 
-      if (readRoot) {
+      if (readRoot)
+      {
         auto map = ActsPlugins::makeMagneticFieldMapXyzFromRoot(
             std::move(mapBins), file.native(), tree, lengthUnit, fieldUnit,
             useOctantOnly);
         return std::make_shared<InterpolatedMagneticField3>(std::move(map));
-
-      } else {
+      }
+      else
+      {
         auto map = Acts::makeMagneticFieldMapXyzFromText(std::move(mapBins),
-                                                   file.native(), lengthUnit,
-                                                   fieldUnit, useOctantOnly);
+                                                         file.native(), lengthUnit,
+                                                         fieldUnit, useOctantOnly);
         return std::make_shared<InterpolatedMagneticField3>(std::move(map));
       }
-
-    } else if (type == "rz") {
+    }
+    else if (type == "rz")
+    {
       auto mapBins = [](std::array<size_t, 2> bins,
-                        std::array<size_t, 2> sizes) {
+                        std::array<size_t, 2> sizes)
+      {
         return (bins[1] * sizes[0] + bins[0]);
       };
 
-      if (readRoot) {
+      if (readRoot)
+      {
         auto map = ActsPlugins::makeMagneticFieldMapRzFromRoot(
             std::move(mapBins), file.native(), tree, lengthUnit, fieldUnit,
             useOctantOnly);
         return std::make_shared<InterpolatedMagneticField2>(std::move(map));
-
-      } else {
+      }
+      else
+      {
         auto map = Acts::makeMagneticFieldMapRzFromText(std::move(mapBins),
-                                                  file.native(), lengthUnit,
-                                                  fieldUnit, useOctantOnly);
+                                                        file.native(), lengthUnit,
+                                                        fieldUnit, useOctantOnly);
         return std::make_shared<InterpolatedMagneticField2>(std::move(map));
       }
-
-    } else {
+    }
+    else
+    {
       throw std::runtime_error("Unknown magnetic field map type");
     }
   }
 
   // third option: create a solenoid field
-  if (vars["bf-solenoid-mag-tesla"].as<double>() > 0) {
+  if (vars["bf-solenoid-mag-tesla"].as<double>() > 0)
+  {
     // Construct a solenoid field
     Acts::SolenoidBField::Config solenoidConfig{};
     solenoidConfig.length =
@@ -179,7 +201,8 @@ ActsExamples::Options::readMagneticField(const Variables& vars) {
 
     const auto solenoidField = Acts::SolenoidBField(solenoidConfig);
     // The parameters for creating a field map
-    auto getRange = [&](const char* name, auto unit, auto& lower, auto& upper) {
+    auto getRange = [&](const char* name, auto unit, auto& lower, auto& upper)
+    {
       auto interval = vars[name].as<Options::Interval>();
       lower = interval.lower.value() * unit;
       upper = interval.upper.value() * unit;

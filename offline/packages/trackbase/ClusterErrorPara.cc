@@ -1,9 +1,9 @@
 #include "ClusterErrorPara.h"
 
 #include "TrkrCluster.h"
-//#include <phool/phool.h>
-#include <phool/recoConsts.h>
+// #include <phool/phool.h>
 #include <TF1.h>
+#include <phool/recoConsts.h>
 
 #include <algorithm>
 #include <cmath>
@@ -22,36 +22,36 @@ namespace
 
 }  // namespace
 
-ClusterErrorPara::ClusterErrorPara():
-  f0{new TF1("f0", "pol1", 0, 10)},
-  f1{new TF1("f1", "pol2", 0, 10)},
-  f2{new TF1("f2", "pol2", 0, 10)},
-  f0fine{new TF1("f0fine", "pol2", 0, 20000)},
-  f1fine{new TF1("f1fine", "pol3", 0, 20000)},
-  f2fine{new TF1("f2fine", "pol5", 0, 20000)},
-  f2fine2{new TF1("f2fine", "pol5", 0, 20000)},
-  fz0{new TF1("fz0", "pol2", -2, 2)},
-  fz1{new TF1("fz1", "pol4", -2, 2)},
-  fz2{new TF1("fz2", "pol2", -2, 2)},
-  fz0fine{new TF1("fz0fine", "pol2", 0, 20000)},
-  fz1fine{new TF1("fz1fine", "pol3", 0, 20000)},
-  fz2fine{new TF1("fz2fine", "pol5", 0, 20000)},
-  fmm_55_2{new TF1("fmm_55_2", "pol2", -2, 2)},  
-  fmm_56_2{new TF1("fmm_56_2", "pol2", -2, 2)},
-  fmm_3{new TF1("fmm_3", "pol2", -2, 2)},
-  fadcz0{new TF1("fadcz0", "pol5", 0, 20000)},
-  fadcz1{new TF1("fadcz1", "pol5", 0, 20000)},
-  fadcz2{new TF1("fadcz2", "pol5", 0, 20000)},
-  fadcz0fine{new TF1("fadcz0fine", "[0]+([1]/pow(x-[2],2))", 0, 20000)},
-  fadcz1fine{new TF1("fadcz1fine", "[0]+([1]/pow(x-[2],2))", 0, 20000)},
-  fadcz2fine{new TF1("fadcz2fine", "[0]+([1]/pow(x-[2],2))", 0, 20000)},
-  fadcphi0{new TF1("fadcphi0", "pol4", 0, 20000)},
-  fadcphi0fine{new TF1("fadcphi0fine", "pol2", 0, 20000)},
-  fadcphi1{new TF1("fadcphi1", "pol4", 0, 20000)},
-  fadcphi1fine{new TF1("fadcphi1fine", "pol4", 0, 20000)},
-  fadcphi2{new TF1("fadcphi2", "pol5", 0, 20000)},
-  fadcphi2fine1{new TF1("fadcphi2fine1", "pol4", 0, 20000)},
-  fadcphi2fine2{new TF1("fadcphi2fine2", "pol1", 0, 20000)}
+ClusterErrorPara::ClusterErrorPara()
+  : f0{new TF1("f0", "pol1", 0, 10)}
+  , f1{new TF1("f1", "pol2", 0, 10)}
+  , f2{new TF1("f2", "pol2", 0, 10)}
+  , f0fine{new TF1("f0fine", "pol2", 0, 20000)}
+  , f1fine{new TF1("f1fine", "pol3", 0, 20000)}
+  , f2fine{new TF1("f2fine", "pol5", 0, 20000)}
+  , f2fine2{new TF1("f2fine", "pol5", 0, 20000)}
+  , fz0{new TF1("fz0", "pol2", -2, 2)}
+  , fz1{new TF1("fz1", "pol4", -2, 2)}
+  , fz2{new TF1("fz2", "pol2", -2, 2)}
+  , fz0fine{new TF1("fz0fine", "pol2", 0, 20000)}
+  , fz1fine{new TF1("fz1fine", "pol3", 0, 20000)}
+  , fz2fine{new TF1("fz2fine", "pol5", 0, 20000)}
+  , fmm_55_2{new TF1("fmm_55_2", "pol2", -2, 2)}
+  , fmm_56_2{new TF1("fmm_56_2", "pol2", -2, 2)}
+  , fmm_3{new TF1("fmm_3", "pol2", -2, 2)}
+  , fadcz0{new TF1("fadcz0", "pol5", 0, 20000)}
+  , fadcz1{new TF1("fadcz1", "pol5", 0, 20000)}
+  , fadcz2{new TF1("fadcz2", "pol5", 0, 20000)}
+  , fadcz0fine{new TF1("fadcz0fine", "[0]+([1]/pow(x-[2],2))", 0, 20000)}
+  , fadcz1fine{new TF1("fadcz1fine", "[0]+([1]/pow(x-[2],2))", 0, 20000)}
+  , fadcz2fine{new TF1("fadcz2fine", "[0]+([1]/pow(x-[2],2))", 0, 20000)}
+  , fadcphi0{new TF1("fadcphi0", "pol4", 0, 20000)}
+  , fadcphi0fine{new TF1("fadcphi0fine", "pol2", 0, 20000)}
+  , fadcphi1{new TF1("fadcphi1", "pol4", 0, 20000)}
+  , fadcphi1fine{new TF1("fadcphi1fine", "pol4", 0, 20000)}
+  , fadcphi2{new TF1("fadcphi2", "pol5", 0, 20000)}
+  , fadcphi2fine1{new TF1("fadcphi2fine1", "pol4", 0, 20000)}
+  , fadcphi2fine2{new TF1("fadcphi2fine2", "pol1", 0, 20000)}
 
 {
   /*
@@ -60,7 +60,7 @@ ClusterErrorPara::ClusterErrorPara():
   ftpcR1->SetParameter(1, -0.252);
   ftpcR1->SetParameter(2, 0.007);
   */
-  
+
   //  f0 = new TF1("f0", "pol1", 0, 10);
   f0->SetParameter(0, 0.0163943);
   f0->SetParameter(1, 0.0192931);
@@ -515,8 +515,8 @@ ClusterErrorPara::ClusterErrorPara():
 //_________________________________________________________________________________
 ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrCluster* cluster, double /*unused*/, TrkrDefs::cluskey key)
 {
-
-  static const bool is_data_reco = []() {
+  static const bool is_data_reco = []()
+  {
     recoConsts* rc = recoConsts::instance();
     if (rc->FlagExist("CDB_GLOBALTAG"))
     {
@@ -531,13 +531,13 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
   static bool is_data_reco{true};  // default to data
   static bool is_data_reco_set{false};  // default to data
   if(!is_data_reco_set){
-    recoConsts* rc = recoConsts::instance(); 
+    recoConsts* rc = recoConsts::instance();
     if(rc->FlagExist("CDB_GLOBALTAG"))
       {
-	if(rc->get_StringFlag("CDB_GLOBALTAG").find("MDC") != std::string::npos)
-	  {
-	    is_data_reco = false;
-	  }
+        if(rc->get_StringFlag("CDB_GLOBALTAG").find("MDC") != std::string::npos)
+          {
+            is_data_reco = false;
+          }
       }
     is_data_reco_set = true;
   }
@@ -547,223 +547,251 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
   double phierror = cluster->getRPhiError();
   double zerror = cluster->getZError();
 
-  if(is_data_reco==false){
+  if (is_data_reco == false)
+  {
     if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+    {
+      if (layer == 7 || layer == 22 || layer == 23 || layer == 38 || layer == 39)
       {
-	if (layer == 7 || layer == 22 || layer == 23 || layer == 38 || layer == 39)
-	  {
-	    phierror *= 4;
-	    zerror *= 4;
-	  }
-	if (cluster->getEdge() >= 3)
-	  {
-	    phierror *= 4;
-	  }
-	if (cluster->getOverlap() >= 2)
-	  {
-	    phierror *= 2;
-	  }
-	if (cluster->getPhiSize() == 1)
-	  {
-	    phierror *= 10;
-	  }
-	if (cluster->getPhiSize() >= 5)
-	  {
-	    phierror *= 10;
-	  }
-	
-	phierror = std::min(phierror, 0.1);
-	if (phierror < 0.0005)
-	  {
-	    phierror = 0.1;
-	  }
+        phierror *= 4;
+        zerror *= 4;
       }
-  }else{
-    
-    if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+      if (cluster->getEdge() >= 3)
       {
-	if (layer == 7 || layer == 22 || layer == 23 || layer == 38 || layer == 39 || layer == 54)
-	  {
-	    phierror *= 4;
-	    zerror *= 4;
-	  }
-	if (cluster->getEdge() >= 3)
-	  {
-	    phierror *= 4;
-	  }
-	if (cluster->getOverlap() >= 2)
-	  {
-	    phierror *= 2;
-	  }
-	if(layer>=7&&layer<(7+48)){
-	  //Set phi error
-	  if (cluster->getPhiSize() == 1)
-	    {
-	      phierror *= 1.0;
-	    }
-	  if (cluster->getPhiSize() == 2)
-	    {
-	      phierror*=3.15;
-	    }
-	  if (cluster->getPhiSize() == 3)
-	    {
-	  phierror *=3.5;
-	    }
-	  if (cluster->getPhiSize() >3)
-	    {
-	      phierror *= 4;
-	    }
-	  //Set Z Error
-	  if (cluster->getZSize() == 1){
-	    zerror*=1.0;
-	  }
-	  if (cluster->getZSize() == 2){
-	    if(layer>=7&&layer<(7+16)){
-	      zerror*=7;
-	    }
-	    if(layer>=(7+16)&&layer<(7+32)){
-	      zerror*=4.5;
-	    }
-	    if(layer>=(7+32)&&layer<(7+48)){
-	      zerror*=4.5;
-	    }
-	    
-	  }
-	  if ((cluster->getZSize() == 3) || (cluster->getZSize() == 4)){
-	    if(layer>=7&&layer<(7+16)){
-	      zerror*=7;
-	    }
-	    if(layer>=(7+16)&&layer<(7+32)){
-	      zerror*=5;
-	    }
-	    if(layer>=(7+32)&&layer<(7+48)){
-	      zerror*=5;
-	    }
-	    //	zerror*=6;
-	  }
-	  if (cluster->getZSize() >=5){
-	    if(layer>=7&&layer<(7+16)){
-	      zerror*=20;
-	    }
-	    if(layer>=(7+16)&&layer<(7+32)){
-	      zerror*=6;
-	    }
-	    if(layer>=(7+32)&&layer<(7+48)){
-	      zerror*=7;
-	    }
-	  }
-	  /*
-	  static TF1 ftpcR1("ftpcR1", "pol2", 0, 60);
-	  ftpcR1.SetParameter(0, 3.206);
-	  ftpcR1.SetParameter(1, -0.252);
-	  ftpcR1.SetParameter(2, 0.007);
-	  
-	  static TF1 ftpcR2("ftpcR2", "pol2", 0, 60);
-	  ftpcR2.SetParameter(0, 4.48);
-	  ftpcR2.SetParameter(1, -0.226);
-	  ftpcR2.SetParameter(2, 0.00362);
-	  
-	  static TF1 ftpcR3("ftpcR3", "pol2", 0, 60);
-	  ftpcR3.SetParameter(0, 14.8112);
-	  ftpcR3.SetParameter(1, -0.577);
-	  ftpcR3.SetParameter(2, 0.00605);
-	  
-	  if(layer>=7&&layer<(7+16)){
-	    phierror*= ftpcR1.Eval(layer);
-	  }
-	  if(layer>=(7+16)&&layer<(7+32)){
-	    phierror*= ftpcR2.Eval(layer);
-	  }
-	  if(layer>=(7+32)&&layer<(7+48)){
-	    phierror*= ftpcR3.Eval(layer);
-	  }
-	  ftpcR2.SetParameter(0, 5.593);
-	  ftpcR2.SetParameter(1, -0.2458);
-	  ftpcR2.SetParameter(2, 0.00333455);
-	  
-	  ftpcR3.SetParameter(0, 5.6964);
-	  ftpcR3.SetParameter(1, -0.21338);
-	  ftpcR3.SetParameter(2, 0.002502);
-	  
-	  if(layer>=(7+16)&&layer<(7+32)){
-	    zerror*= ftpcR2.Eval(layer);
-	  }
-	  if(layer>=(7+32)&&layer<(7+48)){
-	    zerror*= ftpcR3.Eval(layer);
-	    }
-	  */
-	  
-	  // Inline pol2 evaluation: p0 + p1*x + p2*x^2
-	  auto pol2 = [](double x, double p0, double p1, double p2) {
-	    return p0 + p1 * x + p2 * x * x;
-	  };
-	  
-	  if(layer>=7&&layer<(7+16)){
-	    phierror *= pol2(layer, 3.206, -0.252, 0.007);
-	  }
-	  if(layer>=(7+16)&&layer<(7+32)){
-	    phierror *= pol2(layer, 4.48, -0.226, 0.00362);
-	  }
-	  if(layer>=(7+32)&&layer<(7+48)){
-	    phierror *= pol2(layer, 14.8112, -0.577, 0.00605);
-	  }
-	  
-	  if(layer>=(7+16)&&layer<(7+32)){
-	    zerror *= pol2(layer, 5.593, -0.2458, 0.00333455);
-	  }
-	  if(layer>=(7+32)&&layer<(7+48)){
-	    zerror *= pol2(layer, 5.6964, -0.21338, 0.002502);
-	  }
-	}
-	if (cluster->getPhiSize() >= 5)
-	  {
-	    phierror *= 10;
-	  }
+        phierror *= 4;
       }
-    
-    if (TrkrDefs::getTrkrId(key) == TrkrDefs::mvtxId){
-      phierror*=2;
-      zerror*=2;
-
-    }
-    
-    if (TrkrDefs::getTrkrId(key) == TrkrDefs::inttId){
-      phierror*=9;
-      if (cluster->getPhiSize() == 1){
-	phierror *= 1.25;
+      if (cluster->getOverlap() >= 2)
+      {
+        phierror *= 2;
       }
-      if (cluster->getPhiSize() == 2){
-	phierror *= 2.25;
+      if (cluster->getPhiSize() == 1)
+      {
+        phierror *= 10;
       }
-      if((layer==3)||(layer==4)){
-	phierror*=0.8;
-      }
-      if((layer==5)||(layer==6)){
-	phierror*=1.2;
-      }
-    }
-    
-    if (TrkrDefs::getTrkrId(key) == TrkrDefs::micromegasId){
-      if(layer==55){
-	/*
-	phierror*=5.4;
-	phierror*=4.6;
-	phierror*=3.0;
-	zerror*=0.82;
-	*/
-	phierror = 0.0289;
-      }
-      
-      if(layer==56){
-	/*
-	phierror*=0.9;
-	phierror*=0.95;
-	zerror*=4.5;
-	zerror*=3.4;
-	*/
-	zerror = 0.577;
+      if (cluster->getPhiSize() >= 5)
+      {
+        phierror *= 10;
       }
 
+      phierror = std::min(phierror, 0.1);
+      if (phierror < 0.0005)
+      {
+        phierror = 0.1;
+      }
+    }
+  }
+  else
+  {
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+    {
+      if (layer == 7 || layer == 22 || layer == 23 || layer == 38 || layer == 39 || layer == 54)
+      {
+        phierror *= 4;
+        zerror *= 4;
+      }
+      if (cluster->getEdge() >= 3)
+      {
+        phierror *= 4;
+      }
+      if (cluster->getOverlap() >= 2)
+      {
+        phierror *= 2;
+      }
+      if (layer >= 7 && layer < (7 + 48))
+      {
+        // Set phi error
+        if (cluster->getPhiSize() == 1)
+        {
+          phierror *= 1.0;
+        }
+        if (cluster->getPhiSize() == 2)
+        {
+          phierror *= 3.15;
+        }
+        if (cluster->getPhiSize() == 3)
+        {
+          phierror *= 3.5;
+        }
+        if (cluster->getPhiSize() > 3)
+        {
+          phierror *= 4;
+        }
+        // Set Z Error
+        if (cluster->getZSize() == 1)
+        {
+          zerror *= 1.0;
+        }
+        if (cluster->getZSize() == 2)
+        {
+          if (layer >= 7 && layer < (7 + 16))
+          {
+            zerror *= 7;
+          }
+          if (layer >= (7 + 16) && layer < (7 + 32))
+          {
+            zerror *= 4.5;
+          }
+          if (layer >= (7 + 32) && layer < (7 + 48))
+          {
+            zerror *= 4.5;
+          }
+        }
+        if ((cluster->getZSize() == 3) || (cluster->getZSize() == 4))
+        {
+          if (layer >= 7 && layer < (7 + 16))
+          {
+            zerror *= 7;
+          }
+          if (layer >= (7 + 16) && layer < (7 + 32))
+          {
+            zerror *= 5;
+          }
+          if (layer >= (7 + 32) && layer < (7 + 48))
+          {
+            zerror *= 5;
+          }
+          //	zerror*=6;
+        }
+        if (cluster->getZSize() >= 5)
+        {
+          if (layer >= 7 && layer < (7 + 16))
+          {
+            zerror *= 20;
+          }
+          if (layer >= (7 + 16) && layer < (7 + 32))
+          {
+            zerror *= 6;
+          }
+          if (layer >= (7 + 32) && layer < (7 + 48))
+          {
+            zerror *= 7;
+          }
+        }
+        /*
+        static TF1 ftpcR1("ftpcR1", "pol2", 0, 60);
+        ftpcR1.SetParameter(0, 3.206);
+        ftpcR1.SetParameter(1, -0.252);
+        ftpcR1.SetParameter(2, 0.007);
+
+        static TF1 ftpcR2("ftpcR2", "pol2", 0, 60);
+        ftpcR2.SetParameter(0, 4.48);
+        ftpcR2.SetParameter(1, -0.226);
+        ftpcR2.SetParameter(2, 0.00362);
+
+        static TF1 ftpcR3("ftpcR3", "pol2", 0, 60);
+        ftpcR3.SetParameter(0, 14.8112);
+        ftpcR3.SetParameter(1, -0.577);
+        ftpcR3.SetParameter(2, 0.00605);
+
+        if(layer>=7&&layer<(7+16)){
+          phierror*= ftpcR1.Eval(layer);
+        }
+        if(layer>=(7+16)&&layer<(7+32)){
+          phierror*= ftpcR2.Eval(layer);
+        }
+        if(layer>=(7+32)&&layer<(7+48)){
+          phierror*= ftpcR3.Eval(layer);
+        }
+        ftpcR2.SetParameter(0, 5.593);
+        ftpcR2.SetParameter(1, -0.2458);
+        ftpcR2.SetParameter(2, 0.00333455);
+
+        ftpcR3.SetParameter(0, 5.6964);
+        ftpcR3.SetParameter(1, -0.21338);
+        ftpcR3.SetParameter(2, 0.002502);
+
+        if(layer>=(7+16)&&layer<(7+32)){
+          zerror*= ftpcR2.Eval(layer);
+        }
+        if(layer>=(7+32)&&layer<(7+48)){
+          zerror*= ftpcR3.Eval(layer);
+          }
+        */
+
+        // Inline pol2 evaluation: p0 + p1*x + p2*x^2
+        auto pol2 = [](double x, double p0, double p1, double p2)
+        {
+          return p0 + p1 * x + p2 * x * x;
+        };
+
+        if (layer >= 7 && layer < (7 + 16))
+        {
+          phierror *= pol2(layer, 3.206, -0.252, 0.007);
+        }
+        if (layer >= (7 + 16) && layer < (7 + 32))
+        {
+          phierror *= pol2(layer, 4.48, -0.226, 0.00362);
+        }
+        if (layer >= (7 + 32) && layer < (7 + 48))
+        {
+          phierror *= pol2(layer, 14.8112, -0.577, 0.00605);
+        }
+
+        if (layer >= (7 + 16) && layer < (7 + 32))
+        {
+          zerror *= pol2(layer, 5.593, -0.2458, 0.00333455);
+        }
+        if (layer >= (7 + 32) && layer < (7 + 48))
+        {
+          zerror *= pol2(layer, 5.6964, -0.21338, 0.002502);
+        }
+      }
+      if (cluster->getPhiSize() >= 5)
+      {
+        phierror *= 10;
+      }
+    }
+
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::mvtxId)
+    {
+      phierror *= 2;
+      zerror *= 2;
+    }
+
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::inttId)
+    {
+      phierror *= 9;
+      if (cluster->getPhiSize() == 1)
+      {
+        phierror *= 1.25;
+      }
+      if (cluster->getPhiSize() == 2)
+      {
+        phierror *= 2.25;
+      }
+      if ((layer == 3) || (layer == 4))
+      {
+        phierror *= 0.8;
+      }
+      if ((layer == 5) || (layer == 6))
+      {
+        phierror *= 1.2;
+      }
+    }
+
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::micromegasId)
+    {
+      if (layer == 55)
+      {
+        /*
+        phierror*=5.4;
+        phierror*=4.6;
+        phierror*=3.0;
+        zerror*=0.82;
+        */
+        phierror = 0.0289;
+      }
+
+      if (layer == 56)
+      {
+        /*
+        phierror*=0.9;
+        phierror*=0.95;
+        zerror*=4.5;
+        zerror*=3.4;
+        */
+        zerror = 0.577;
+      }
     }
   }
 

@@ -12,9 +12,9 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <iostream>          // for cout, ostream
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 class LaserCluster;
 
@@ -24,7 +24,6 @@ class LaserCluster;
 class LaserClusterContainer : public PHObject
 {
  public:
-
   //!@name convenient shortuts
   //@{
   using Map = std::map<TrkrDefs::cluskey, LaserCluster *>;
@@ -38,31 +37,29 @@ class LaserClusterContainer : public PHObject
   void Reset() override {}
 
   //! identify object
-  void identify(std::ostream &/*os*/ = std::cout) const override {}
-  
+  void identify(std::ostream & /*os*/ = std::cout) const override {}
+
   //! add a cluster with specific key
-  virtual void addClusterSpecifyKey(const TrkrDefs::cluskey, LaserCluster*) = 0;
+  virtual void addClusterSpecifyKey(const TrkrDefs::cluskey, LaserCluster *) = 0;
 
   //! remove cluster
   virtual void removeCluster(TrkrDefs::cluskey) {}
-  
+
   //! return all clusters
   virtual ConstRange getClusters() const = 0;
 
   //! find cluster matching given key
-  virtual LaserCluster* findCluster(TrkrDefs::cluskey) const { return nullptr; }
+  virtual LaserCluster *findCluster(TrkrDefs::cluskey) const { return nullptr; }
 
   //! total number of clusters
   virtual unsigned int size() const { return 0; }
 
-  protected:
+ protected:
   //! constructor
   LaserClusterContainer() = default;
 
-  private:
-
+ private:
   ClassDefOverride(LaserClusterContainer, 1)
-
 };
 
-#endif //TRACKBASE_LASERCLUSTERCONTAINER_H
+#endif  // TRACKBASE_LASERCLUSTERCONTAINER_H

@@ -15,7 +15,7 @@ namespace
   //  hitsetkey upper 32 bits
   //  cluster id lower 32 bits
   static constexpr unsigned int kBitShiftClusId = 32;
-}
+}  // namespace
 
 void TrkrDefs::printBits(const TrkrDefs::hitsetkey key, std::ostream& os)
 {

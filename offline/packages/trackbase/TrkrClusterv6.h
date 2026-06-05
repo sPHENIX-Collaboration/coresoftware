@@ -7,8 +7,8 @@
 #ifndef TRACKBASE_TRKRCLUSTERV6_H
 #define TRACKBASE_TRKRCLUSTERV6_H
 
-#include <iostream>
 #include <climits>
+#include <iostream>
 #include "TrkrCluster.h"
 #include "TrkrDefs.h"
 
@@ -224,7 +224,7 @@ class TrkrClusterv6 : public TrkrCluster
   void setPadPhase(float padphase) { m_padphase = padphase; }
 
   float getTBinPhase() const override { return m_tbinphase; }
-  void setTBinPhase(float tbinphase){ m_tbinphase = tbinphase; }
+  void setTBinPhase(float tbinphase) { m_tbinphase = tbinphase; }
 
   // float getPhiSize() const override
   //{ std::cout << "Deprecated size function"<< std::endl; return NAN;}
@@ -246,23 +246,23 @@ class TrkrClusterv6 : public TrkrCluster
   float m_tbincen;
   float m_padmax;
   float m_tbinmax;
-  unsigned char m_rsize;	// 8bit
-  char m_phisize;               // 8bit
-  char m_zsize;                 // 8bit
-  char m_overlap;               // 8bit
-  char m_edge;                  // 8bit - cumul 2*64
-  char m_sledge;                // 8bit
-  char m_sredge;                // 8bit
-  char m_tledge;                // 8bit
-  char m_tredge;                // 8bit
-  char m_dledge;                // 8bit
-  char m_dredge;                // 8bit
-  char m_hledge;                // 8bit
-  char m_hredge;                // 8bit
-  unsigned char m_slmix;        // 8bit
-  unsigned char m_srmix;        // 8bit
-  unsigned char m_tlmix;        // 8bit
-  unsigned char m_trmix;        // 8bit
+  unsigned char m_rsize;  // 8bit
+  char m_phisize;         // 8bit
+  char m_zsize;           // 8bit
+  char m_overlap;         // 8bit
+  char m_edge;            // 8bit - cumul 2*64
+  char m_sledge;          // 8bit
+  char m_sredge;          // 8bit
+  char m_tledge;          // 8bit
+  char m_tredge;          // 8bit
+  char m_dledge;          // 8bit
+  char m_dredge;          // 8bit
+  char m_hledge;          // 8bit
+  char m_hredge;          // 8bit
+  unsigned char m_slmix;  // 8bit
+  unsigned char m_srmix;  // 8bit
+  unsigned char m_tlmix;  // 8bit
+  unsigned char m_trmix;  // 8bit
   float m_phibinlo;
   float m_phibinhi;
   float m_tbinlo;

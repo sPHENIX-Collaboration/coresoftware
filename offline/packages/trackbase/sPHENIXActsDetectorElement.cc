@@ -23,7 +23,7 @@ const Acts::Transform3& sPHENIXActsDetectorElement::localToGlobalTransform(const
     auto& layerVec = transformVec[sphlayer];  // get the vector of transforms for this layer
 
     if (layerVec.size() > sensor)
-    { 
+    {
       return layerVec[sensor];
     }
 

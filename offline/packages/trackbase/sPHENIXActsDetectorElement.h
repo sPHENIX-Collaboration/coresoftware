@@ -26,7 +26,7 @@ class sPHENIXActsDetectorElement : public ActsPlugins::TGeoDetectorElement
                              double scalor = 10.,
                              std::shared_ptr<const Acts::ISurfaceMaterial> material = nullptr)
     : ActsPlugins::TGeoDetectorElement(identifier, tGeoNode, tGeoMatrix,
-                                axes, scalor, material)
+                                       axes, scalor, material)
   {
   }
 
@@ -36,7 +36,7 @@ class sPHENIXActsDetectorElement : public ActsPlugins::TGeoDetectorElement
                              std::shared_ptr<const Acts::PlanarBounds> tgBounds,
                              double tgThickness = 0.)
     : ActsPlugins::TGeoDetectorElement(identifier, tGeoNode, tgTransform,
-                                tgBounds, tgThickness)
+                                       tgBounds, tgThickness)
   {
   }
 
@@ -46,7 +46,7 @@ class sPHENIXActsDetectorElement : public ActsPlugins::TGeoDetectorElement
                              std::shared_ptr<const Acts::DiscBounds> tgBounds,
                              double tgThickness = 0.)
     : ActsPlugins::TGeoDetectorElement(identifier, tGeoNode, tgTransform, tgBounds,
-                                tgThickness)
+                                       tgThickness)
   {
   }
 

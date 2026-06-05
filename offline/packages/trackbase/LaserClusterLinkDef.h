@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class LaserCluster+;
+#pragma link C++ class LaserCluster + ;
 
 #endif

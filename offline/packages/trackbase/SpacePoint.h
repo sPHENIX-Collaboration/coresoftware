@@ -5,9 +5,9 @@
 #include <optional>
 #include "trackbase/TrkrDefs.h"
 
-#include <ActsExamples/EventData/SpacePointContainer.hpp>
-#include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/EventData/Seed.hpp>
+#include <Acts/Geometry/GeometryIdentifier.hpp>
+#include <ActsExamples/EventData/SpacePointContainer.hpp>
 
 /**
  * A struct for Acts to take cluster information for seeding
@@ -31,7 +31,7 @@ struct SpacePoint
   double y() const { return m_y; }
   double z() const { return m_z; }
   double r() const { return m_r; }
-   std::optional<double> t() const { return m_t; }
+  std::optional<double> t() const { return m_t; }
   double varianceR() const { return m_varianceR; }
   double varianceZ() const { return m_varianceZ; }
 };

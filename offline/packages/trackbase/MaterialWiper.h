@@ -17,27 +17,31 @@
 #include "Acts/Surfaces/Surface.hpp"
 
 // @note This file will go into the acts-core
-namespace Acts {
+namespace Acts
+{
 
-/// @class MaterialWiper
-///
-/// This decorator sets the nulls-material
-///
-class MaterialWiper : public IMaterialDecorator {
- public:
-  /// Decorate a surface
+  /// @class MaterialWiper
   ///
-  /// @param surface the non-cost surface that is decorated
-  void decorate(Surface& surface) const final {
-    surface.assignSurfaceMaterial(nullptr);
-  }
+  /// This decorator sets the nulls-material
+  ///
+  class MaterialWiper : public IMaterialDecorator
+  {
+   public:
+    /// Decorate a surface
+    ///
+    /// @param surface the non-cost surface that is decorated
+    void decorate(Surface& surface) const final
+    {
+      surface.assignSurfaceMaterial(nullptr);
+    }
 
-  /// Decorate a TrackingVolume
-  ///
-  /// @param volume the non-cost volume that is decorated
-  void decorate(TrackingVolume& volume) const final {
-    volume.assignVolumeMaterial(nullptr);
-  }
-};
+    /// Decorate a TrackingVolume
+    ///
+    /// @param volume the non-cost volume that is decorated
+    void decorate(TrackingVolume& volume) const final
+    {
+      volume.assignVolumeMaterial(nullptr);
+    }
+  };
 
 }  // namespace Acts

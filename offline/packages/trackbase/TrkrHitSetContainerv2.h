@@ -18,7 +18,7 @@ class TrkrHitSet;
  */
 class TrkrHitSetContainerv2 final : public TrkrHitSetContainer
 {
-public:
+ public:
   //! only used in ROOT IO. Do NOT use this constructor in user code
   TrkrHitSetContainerv2() = default;
 

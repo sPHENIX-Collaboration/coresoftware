@@ -46,12 +46,11 @@ namespace TrkrDefs
 
   //! Standard names for trackers
   static const std::map<TrkrId, std::string> TrkrNames =
-  {
-      {mvtxId, "MVTX"},
-      {inttId, "INTT"},
-      {tpcId, "TPC"},
-      {micromegasId, "MICROMEGAS"}
-  };
+      {
+          {mvtxId, "MVTX"},
+          {inttId, "INTT"},
+          {tpcId, "TPC"},
+          {micromegasId, "MICROMEGAS"}};
 
   /// Print the bits for each key type
   void printBits(const TrkrDefs::hitsetkey key, std::ostream& os = std::cout);

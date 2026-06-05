@@ -67,7 +67,7 @@ class TrkrHitSetTpc : public TrkrHitSet
 
     return tmp;
   }
-  virtual  TimeFrameADCDataType& getTimeFrameAdcData()
+  virtual TimeFrameADCDataType& getTimeFrameAdcData()
   {
     static TimeFrameADCDataType tmp;
 
@@ -92,7 +92,7 @@ class TrkrHitSetTpc : public TrkrHitSet
     return 0;
   }
 
-  virtual void setPadIndexStart(uint16_t )
+  virtual void setPadIndexStart(uint16_t)
   {
   }
 
@@ -101,7 +101,7 @@ class TrkrHitSetTpc : public TrkrHitSet
     return 0;
   }
 
-  virtual void setStartingBco(TpcDefs::BCODataType )
+  virtual void setStartingBco(TpcDefs::BCODataType)
   {
   }
 

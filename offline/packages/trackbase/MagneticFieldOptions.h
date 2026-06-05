@@ -16,18 +16,20 @@ namespace ActsExamples::Options
   using Variables = ::boost::program_options::variables_map;
 }  // namespace ActsExamples::Options
 
-namespace ActsExamples {
+namespace ActsExamples
+{
 
-namespace Options {
+  namespace Options
+  {
 
-/// Add magnetic field options with a `bf-` prefix.
-void addMagneticFieldOptions(Description& desc);
+    /// Add magnetic field options with a `bf-` prefix.
+    void addMagneticFieldOptions(Description& desc);
 
-/// Read and create the magnetic field from the given user variables.
-std::shared_ptr<Acts::MagneticFieldProvider> readMagneticField(
-    const Variables& vars);
+    /// Read and create the magnetic field from the given user variables.
+    std::shared_ptr<Acts::MagneticFieldProvider> readMagneticField(
+        const Variables& vars);
 
-}  // namespace Options
+  }  // namespace Options
 }  // namespace ActsExamples
 
 #endif  // _MAGNETICFIELDOPTIONS_H

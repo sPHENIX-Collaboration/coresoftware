@@ -49,8 +49,9 @@ class TrkrClusterContainer : public PHObject
   virtual void removeCluster(TrkrDefs::cluskey) {}
 
   //! delete and remove all the clusters matching a given hitsetkey
-  virtual void removeClusters( TrkrDefs::hitsetkey )
-  {}
+  virtual void removeClusters(TrkrDefs::hitsetkey)
+  {
+  }
 
   //! return all clusters
   virtual ConstRange getClusters() const;
