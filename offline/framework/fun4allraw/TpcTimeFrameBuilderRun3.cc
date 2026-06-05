@@ -313,8 +313,8 @@ void TpcTimeFrameBuilderRun3::cache_timeframe_waveform_starts(uint64_t gtm_bco, 
 
 int64_t TpcTimeFrameBuilderRun3::get_signed_fee_bco_diff(uint32_t first, uint32_t second)
 {
-  static constexpr int64_t fee_clock_range = 1LL << 20U;
-  static constexpr int64_t fee_clock_half_range = 1LL << 19U;
+  static constexpr int64_t fee_clock_range = static_cast<int64_t>(uint64_t{1} << 20U);
+  static constexpr int64_t fee_clock_half_range = static_cast<int64_t>(uint64_t{1} << 19U);
 
   int64_t diff = static_cast<int64_t>(first & kFEEClockMask) - static_cast<int64_t>(second & kFEEClockMask);
   if (diff > fee_clock_half_range)
@@ -528,9 +528,10 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
   size_t exact_hit_count = 0;
   size_t fallback_hit_count = 0;
 
-  for (uint16_t fee = 0; fee < m_bcoMatchingInformation_vec.size(); ++fee)
+  for (size_t fee_index = 0; fee_index < m_bcoMatchingInformation_vec.size(); ++fee_index)
   {
-    const std::optional<uint32_t> predicted_fee_bco = m_bcoMatchingInformation_vec[fee].get_predicted_fee_bco(bclk_rollover_corrected);
+    const uint16_t fee = static_cast<uint16_t>(fee_index);
+    const std::optional<uint32_t> predicted_fee_bco = m_bcoMatchingInformation_vec[fee_index].get_predicted_fee_bco(bclk_rollover_corrected);
     if (!predicted_fee_bco)
     {
       continue;
@@ -1747,20 +1748,21 @@ bool TpcTimeFrameBuilderRun3::BcoMatchingInformation::isMoreDataRequired(const u
 std::optional<uint32_t> TpcTimeFrameBuilderRun3::BcoMatchingInformation::get_predicted_fee_bco(uint64_t gtm_bco) const
 {
   // check proper initialization
-  if (!is_verified())
+  if (!is_verified() || !m_bco_reference)
   {
     return std::nullopt;
   }
 
   // get gtm bco difference with proper rollover accounting
-  const int64_t gtm_bco_difference = int64_t(gtm_bco) - int64_t(m_bco_reference.value().first);  // NOLINT(bugprone-unchecked-optional-access)
+  const auto& bco_reference = *m_bco_reference;
+  const int64_t gtm_bco_difference = int64_t(gtm_bco) - int64_t(bco_reference.first);
 
   assert(m_clock_ratio_numerator > 0);
   assert(m_clock_ratio_denominator > 0);
 
   // convert to fee bco with the exact Run3 30/8 ratio, and truncate to 20 bits
-  const int64_t fee_bco_predicted = int64_t(m_bco_reference.value().second) +
-                                    (gtm_bco_difference * m_clock_ratio_numerator) / m_clock_ratio_denominator;  // NOLINT(bugprone-unchecked-optional-access)
+  const int64_t fee_bco_predicted = int64_t(bco_reference.second) +
+                                    (gtm_bco_difference * m_clock_ratio_numerator) / m_clock_ratio_denominator;
   return uint32_t(static_cast<uint64_t>(fee_bco_predicted) & 0xFFFFFU);
 }
 
