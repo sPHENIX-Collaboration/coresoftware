@@ -44,14 +44,27 @@ class TrkrClusterv6 : public TrkrCluster
   //! copy content from base class
   void CopyFrom(TrkrCluster* source) override
   {
+    if (!source)
+    {
+      return;
+    }
     CopyFrom(*source);
   }
 
   //
   // cluster position
   //
-  float getPosition(int coor) const override { return m_local[coor]; }
-  void setPosition(int coor, float xi) override { m_local[coor] = xi; }
+  float getPosition(int coor) const override
+  {
+    return (coor >= 0 && coor < 2) ? m_local[coor] : NAN;
+  }
+  void setPosition(int coor, float xi) override
+  {
+    if (coor >= 0 && coor < 2)
+    {
+      m_local[coor] = xi;
+    }
+  }
   float getLocalX() const override { return m_local[0]; }
   void setLocalX(float loc0) override { m_local[0] = loc0; }
   float getLocalY() const override { return m_local[1]; }
@@ -144,7 +157,7 @@ class TrkrClusterv6 : public TrkrCluster
   // void setSize(char size) { m_size = size; }
 
   float getRSize() const override { return (float) m_rsize; }
-  void setRSize(char rsize) { m_rsize = rsize; }
+  void setRSize(unsigned char rsize) { m_rsize = rsize; }
 
   float getPhiSize() const override { return (float) m_phisize; }
   void setPhiSize(char phisize) { m_phisize = phisize; }
@@ -182,16 +195,16 @@ class TrkrClusterv6 : public TrkrCluster
   char getHREdge() const override { return m_hredge; }
   void setHREdge(char hredge) { m_hredge = hredge; }
 
-  int getSLMix() const override { return (int) m_slmix; }
+  int getSLMix() const override { return m_slmix; }
   void setSLMix(char slmix) { m_slmix = slmix; }
 
-  int getSRMix() const override { return (int) m_srmix; }
+  int getSRMix() const override { return m_srmix; }
   void setSRMix(char srmix) { m_srmix = srmix; }
 
-  int getTLMix() const override { return (int) m_tlmix; }
+  int getTLMix() const override { return m_tlmix; }
   void setTLMix(char tlmix) { m_tlmix = tlmix; }
 
-  int getTRMix() const override { return (int) m_trmix; }
+  int getTRMix() const override { return m_trmix; }
   void setTRMix(char trmix) { m_trmix = trmix; }
 
   float getPhiBinLo() const override { return m_phibinlo; }
@@ -219,8 +232,9 @@ class TrkrClusterv6 : public TrkrCluster
   // float getPhiError() const override
   //{ std::cout << "Deprecated getPhiError function"<< std::endl; return NAN;}
 
- protected:
-  float m_local[2]{};                 //< 2D local position [cm] 2 * 32 64bit  - cumul 1*64
+ private:
+  float m_local[2]{std::numeric_limits::quiet_NaN(), std::numeric_limits::quiet_NaN()};
+  //< 2D local position [cm] 2 * 32 64bit  - cumul 1*64
   TrkrDefs::subsurfkey m_subsurfkey;  //< unique identifier for hitsetkey-surface maps 16 bit
   float m_phierr;
   float m_zerr;
@@ -231,7 +245,7 @@ class TrkrClusterv6 : public TrkrCluster
   float m_tbincen;
   float m_padmax;
   float m_tbinmax;
-  char m_rsize;                 // 8bit
+  unsigned char m_rsize;
   char m_phisize;               // 8bit
   char m_zsize;                 // 8bit
   char m_overlap;               // 8bit
@@ -255,7 +269,7 @@ class TrkrClusterv6 : public TrkrCluster
   float m_padphase;
   float m_tbinphase;
 
-  ClassDefOverride(TrkrClusterv6, 2)
+  ClassDefOverride(TrkrClusterv6, 1)
 };
 
 #endif  // TRACKBASE_TRKRCLUSTERV6_H
