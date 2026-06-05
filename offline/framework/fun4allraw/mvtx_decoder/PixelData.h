@@ -40,7 +40,7 @@ class ChipPixelData
   ~ChipPixelData() = default;
   uint16_t getChipID() const { return mChipID; }
   const std::vector<PixelData>& getData() const { return mPixels; }
-  std::vector<PixelData>& getData() { return (std::vector<PixelData>&)mPixels; }
+  std::vector<PixelData>& getData() { return mPixels; }
 
 //  void setROFlags(uint8_t f = 0) { mROFlags = f; }
   void setChipID(uint16_t id) { mChipID = id; }

@@ -594,8 +594,8 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
       // fitpoint is the point where the helical fit intersects the plane of the surface
       // Now transform the helix fitpoint to local coordinates to compare with cluster local coordinates
-      Acts::Vector3 fitpoint_local = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint * Acts::UnitConstants::cm);
-      Acts::Vector3 fitpoint_mvtx_half_local = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint_mvtx_half * Acts::UnitConstants::cm);
+      Acts::Vector3 fitpoint_local = surf->localToGlobalTransform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint * Acts::UnitConstants::cm);
+      Acts::Vector3 fitpoint_mvtx_half_local = surf->localToGlobalTransform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint_mvtx_half * Acts::UnitConstants::cm);
 
       fitpoint_local /= Acts::UnitConstants::cm;
       fitpoint_mvtx_half_local /= Acts::UnitConstants::cm;
@@ -634,7 +634,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
       if (Verbosity() > 1)
       {
-        Acts::Vector3 loc_check = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (global * Acts::UnitConstants::cm);
+        Acts::Vector3 loc_check = surf->localToGlobalTransform(_tGeometry->geometry().getGeoContext()).inverse() * (global * Acts::UnitConstants::cm);
         loc_check /= Acts::UnitConstants::cm;
         std::cout << "    layer " << layer << std::endl
                   << " cluster global " << global(0) << " " << global(1) << " " << global(2) << std::endl
@@ -647,10 +647,10 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
       if (Verbosity() > 1)
       {
-        Acts::Transform3 transform = surf->transform(_tGeometry->geometry().getGeoContext());
+        Acts::Transform3 transform = surf->localToGlobalTransform(_tGeometry->geometry().getGeoContext());
         std::cout << "Transform is:" << std::endl;
         std::cout << transform.matrix() << std::endl;
-        Acts::Vector3 loc_check = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (global * Acts::UnitConstants::cm);
+        Acts::Vector3 loc_check = surf->localToGlobalTransform(_tGeometry->geometry().getGeoContext()).inverse() * (global * Acts::UnitConstants::cm);
         loc_check /= Acts::UnitConstants::cm;
         unsigned int const sector = TpcDefs::getSectorId(cluskey_vec[ivec]);
         unsigned int const side = TpcDefs::getSide(cluskey_vec[ivec]);
@@ -779,7 +779,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         Acts::Vector3 ideal_center = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;
         Acts::Vector3 ideal_norm = -surf->normal(_tGeometry->geometry().getGeoContext(),Acts::Vector3(1,1,1), Acts::Vector3(1,1,1));
         Acts::Vector3 const ideal_local(xloc, zloc, 0.0);  // cm
-        Acts::Vector3 ideal_glob = surf->transform(_tGeometry->geometry().getGeoContext()) * (ideal_local * Acts::UnitConstants::cm);
+        Acts::Vector3 ideal_glob = surf->localToGlobalTransform(_tGeometry->geometry().getGeoContext()) * (ideal_local * Acts::UnitConstants::cm);
         ideal_glob /= Acts::UnitConstants::cm;
         alignmentTransformationContainer::use_alignment = true;
 
@@ -1953,10 +1953,10 @@ void HelicalFitter::get_projectionXY(const Surface& surf, const std::pair<Acts::
   // get surface X and Y unit vectors in global frame
   // transform Xlocal = 1.0 to global, subtract the surface center, normalize to 1
   Acts::Vector3 const xloc(1.0, 0.0, 0.0);  // local coord unit vector in x
-  Acts::Vector3 xglob = surf->transform(_tGeometry->geometry().getGeoContext()) * (xloc * Acts::UnitConstants::cm);
+  Acts::Vector3 xglob = surf->localToGlobalTransform(_tGeometry->geometry().getGeoContext()) * (xloc * Acts::UnitConstants::cm);
   xglob /= Acts::UnitConstants::cm;
   Acts::Vector3 const yloc(0.0, 1.0, 0.0);
-  Acts::Vector3 yglob = surf->transform(_tGeometry->geometry().getGeoContext()) * (yloc * Acts::UnitConstants::cm);
+  Acts::Vector3 yglob = surf->localToGlobalTransform(_tGeometry->geometry().getGeoContext()) * (yloc * Acts::UnitConstants::cm);
   yglob /= Acts::UnitConstants::cm;
   // These are the local frame unit vectors transformed to the global frame
   Acts::Vector3 const X = (xglob - sensorCenter) / (xglob - sensorCenter).norm();

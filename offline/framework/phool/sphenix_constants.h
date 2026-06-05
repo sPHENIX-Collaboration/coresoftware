@@ -12,5 +12,6 @@ namespace sphenix_constants
   //! time between RHIC crossings (ns)
   static constexpr double time_between_crossings = 106.65237;
   static constexpr double CF4_density = 3.86;  // mg / cm3 Tom Hemmick
+  static constexpr double m_xsec_MBDNS = 24.07*1e9; //convert to pb from Vernier scan
 }  // namespace sphenix_constants
 #endif

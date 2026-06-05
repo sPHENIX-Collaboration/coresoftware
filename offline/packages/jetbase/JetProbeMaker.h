@@ -19,7 +19,7 @@ class JetProbeMaker : public SubsysReco
 {
  public:
   JetProbeMaker(const std::string &name = "JetProbeMaker");
-  ~JetProbeMaker() override{};
+  ~JetProbeMaker() override = default;
 
   int process_event(PHCompositeNode * /*topNode*/) override;
   int InitRun(PHCompositeNode *topNode) override;

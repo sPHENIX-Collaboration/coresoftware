@@ -6,7 +6,7 @@
  *
  * Each constant names the first or last run number (or a special marker) for a given data-taking period.
  *
- * @var RUN2PP_FIRST First Run 2 proton-proton physics run.
+ * @var RUN2PP_FIRST First Run 2 proton-proton physics run passing >=5m, >=100k evts.
  * @var RUN2PP_LAST  Last Run 2 proton-proton physics run.
  * @var RUN2AUAU_FIRST First Run 2 Au+Au (heavy-ion) physics run.
  * @var RUN2AUAU_LAST  Last Run 2 Au+Au (heavy-ion) physics run.
@@ -20,7 +20,7 @@
  */
 namespace RunnumberRange
 {
-  constexpr int RUN2PP_FIRST = 47286;
+  constexpr int RUN2PP_FIRST = 47287;
   constexpr int RUN2PP_LAST = 53880;
   constexpr int RUN2AUAU_FIRST = 54128;
   constexpr int RUN2AUAU_LAST = 54974;

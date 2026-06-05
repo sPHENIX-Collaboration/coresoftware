@@ -18,6 +18,7 @@ pkginclude_HEADERS = \
   CaloStatusMapperDefs.h \
   ConstituentsinJets.h \
   DijetQA.h \
+  EMCalShowerShapes.h \
   EMClusterKinematics.h \
   JetKinematicCheck.h \
   JetQADefs.h \
@@ -43,6 +44,7 @@ libjetqa_la_SOURCES = \
   CaloStatusMapper.cc \
   ConstituentsinJets.cc \
   DijetQA.cc \
+  EMCalShowerShapes.cc \
   EMClusterKinematics.cc \
   JetKinematicCheck.cc \
   JetSeedCount.cc \

@@ -128,13 +128,12 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
 
   m_fitCfg.dFit = ActsTrackFittingAlgorithm::makeDirectedKalmanFitterFunction(
       m_tGeometry->geometry().tGeometry,
-      m_tGeometry->geometry().magField);
+      m_tGeometry->geometry().magField, true, true, 0.0, Acts::FreeToBoundCorrection(), *Acts::getDefaultLogger("DirectedKalman", level));
 
   MaterialSurfaceSelector selector;
   if (m_fitSiliconMMs || m_directNavigation)
   {
     m_tGeometry->geometry().tGeometry->visitSurfaces(selector, false);
-    // std::cout<<"selector.surfaces.size() "<<selector.surfaces.size()<<std::endl;
     m_materialSurfaces = selector.surfaces;
   }
 
@@ -520,9 +519,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         // add tpc sourcelinks to silicon source links
         sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
       }
-
+      Acts::GeometryContext geoContext{m_alignmentTransformationMapTransient};
       // copy transient map for this track into transient geoContext
-      m_transient_geocontext = m_alignmentTransformationMapTransient;
+      m_transient_geocontext = geoContext;
 
       // position comes from the silicon seed, unless there is no silicon seed
       Acts::Vector3 position(0, 0, 0);
@@ -694,8 +693,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
       /// Reset the track seed with the dummy covariance
       auto seed = ActsTrackFittingAlgorithm::TrackParameters::create(
-                      pSurface,
                       m_transient_geocontext,
+                      pSurface,
                       actsFourPos,
                       momentum,
                       charge / momentum.norm(),
@@ -709,13 +708,12 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
 
       /// Set host of propagator options for Acts to do e.g. material integration
-      Acts::PropagatorPlainOptions ppPlainOptions;
-
       auto calibptr = std::make_unique<Calibrator>();
       CalibratorAdapter calibrator{*calibptr, measurements};
 
       auto magcontext = m_tGeometry->geometry().magFieldContext;
       auto calibcontext = m_tGeometry->geometry().calibContext;
+      auto ppPlainOptions = Acts::PropagatorPlainOptions(m_transient_geocontext, magcontext);
 
       ActsTrackFittingAlgorithm::GeneralFitterOptions
           kfOptions{
@@ -736,6 +734,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       if (Verbosity() > 1)
       {
         std::cout << "Calling fitTrack for track with siid " << siid << " tpcid " << tpcid << " crossing " << crossing << std::endl;
+        std::cout << "surfaces size " << surfaces.size() << " and source links size " << sourceLinks.size() << std::endl;
       }
 
       auto result = fitTrack(sourceLinks, seed, kfOptions, surfaces, calibrator, tracks);
@@ -869,7 +868,7 @@ bool PHActsTrkFitter::getTrackFitResult(
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
-  std::vector<Acts::MultiTrajectoryTraits::IndexType> trackTips;
+  std::vector<Acts::TrackIndexType> trackTips;
   trackTips.reserve(1);
   const auto& outtrack = fitOutput.value();
   if (outtrack.hasReferenceSurface())
@@ -928,10 +927,7 @@ bool PHActsTrkFitter::getTrackFitResult(
     {
       h_updateTime->Fill(updateTime);
     }
-
-    Trajectory trajectory(tracks.trackStateContainer(),
-                          trackTips, indexedParams);
-
+    
     if (m_actsEvaluator)
     {
       m_evaluator->evaluateTrackFit(tracks, trackTips, indexedParams, track,
@@ -1054,7 +1050,7 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
 }
 
 void PHActsTrkFitter::updateSvtxTrack(
-    const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+    const std::vector<Acts::TrackIndexType>& tips,
     const Trajectory::IndexedParameters& paramsMap,
     const ActsTrackFittingAlgorithm::TrackContainer& tracks,
     SvtxTrack* track)

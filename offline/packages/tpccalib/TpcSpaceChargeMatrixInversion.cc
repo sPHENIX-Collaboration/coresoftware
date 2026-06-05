@@ -457,22 +457,6 @@ void TpcSpaceChargeMatrixInversion::save_distortion_corrections(const std::strin
     return;
   }
 
-  // save everything to root file
-  std::cout << "TpcSpaceChargeMatrixInversion::save_distortions - writing histograms to " << filename << std::endl;
-  std::unique_ptr<TFile> outputfile(TFile::Open(filename.c_str(), "RECREATE"));
-  outputfile->cd();
+  m_dcc_average->save_histograms(filename);
 
-  for (const auto& h_list : {m_dcc_average->m_hentries, m_dcc_average->m_hDRint, m_dcc_average->m_hDPint, m_dcc_average->m_hDZint})
-  {
-    for (const auto& h : h_list)
-    {
-      if (h)
-      {
-        h->Write(h->GetName());
-      }
-    }
-  }
-
-  // close TFile
-  outputfile->Close();
 }

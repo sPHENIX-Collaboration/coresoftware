@@ -116,6 +116,9 @@ class PHG4TruthTrackingAction : public PHG4TrackingAction
   // check if track is long-lived
   bool isLongLived(int pid) const;
 
+  // check if track should be kept because it is produced by a decay process 
+  bool keepDecayHistory(PHG4TruthInfoContainer& truth, PHG4Particle* particle) const;
+
   // check if track is sPHENIX primary
   bool issPHENIXPrimary(PHG4TruthInfoContainer& truth, PHG4Particle* particle) const;
 

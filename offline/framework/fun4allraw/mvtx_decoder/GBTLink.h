@@ -330,7 +330,7 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
                  ((gbtWord.activeLanes >> 6) & 0x7) == 0x7) )
           {
             log_error << "Expected all active lanes for links, but " << gbtWord.activeLanes << "found in HBF " << hbfEntry << ", " \
-              << gbtWord.asString().data() << std::endl;
+              << gbtWord.asString() << std::endl;
           }
         }
         else if (gbtWord.isTDH()) // TRIGGER DATA HEADER (TDH)

@@ -714,7 +714,7 @@ namespace
     /// convert to Acts units
     global *= Acts::UnitConstants::cm;
     // std::cout << "transform" << std::endl;
-    Acts::Vector3 local = surface->transform(my_data.tGeometry->geometry().getGeoContext()).inverse() * global;
+    Acts::Vector3 local = surface->localToGlobalTransform(my_data.tGeometry->geometry().getGeoContext()).inverse() * global;
     local /= Acts::UnitConstants::cm;
     // std::cout << "done transform" << std::endl;
     //  we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
@@ -763,7 +763,7 @@ namespace
         double nn_y = radius * std::sin(nn_phi);
         Acts::Vector3 nn_global(nn_x, nn_y, nn_z);
         nn_global *= Acts::UnitConstants::cm;
-        Acts::Vector3 nn_local = surface->transform(my_data.tGeometry->geometry().geoContext).inverse() * nn_global;
+        Acts::Vector3 nn_local = surface->localToGlobalTransform(my_data.tGeometry->geometry().geoContext).inverse() * nn_global;
         nn_local /= Acts::UnitConstants::cm;
         double nn_t = my_data.m_tdriftmax - std::fabs(nn_z) / my_data.tGeometry->get_drift_velocity();
         clus_base->setLocalX(nn_local(0));

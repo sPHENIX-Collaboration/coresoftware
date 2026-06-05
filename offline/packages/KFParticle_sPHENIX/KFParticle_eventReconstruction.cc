@@ -76,6 +76,13 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
 
   std::vector<int> goodTrackIndex = findAllGoodTracks(daughterParticles, primaryVertices);
 
+  if (m_verbosity >= 10)
+  {
+    printSelectionCheck("Number of daughters passing state selection", daughterParticles.size());
+    printSelectionCheck("Number of daughters passing track selection", goodTrackIndex.size());
+    printSelectionCheck("Number of PVs passing selection", primaryVertices.size());
+  }
+
   if (!m_has_intermediates)
   {
     buildBasicChain(selectedMother, selectedVertex, selectedDaughters, daughterParticles, goodTrackIndex, primaryVertices, topNode);
@@ -100,6 +107,11 @@ void KFParticle_eventReconstruction::buildBasicChain(std::vector<KFParticle>& se
   for (int p = 3; p < m_num_tracks + 1; ++p)
   {
     goodTracksThatMeet = findNProngs(daughterParticlesBasic, goodTrackIndexBasic, goodTracksThatMeet, m_num_tracks, p);
+  }
+
+  if (m_verbosity >= 10)
+  { 
+    printSelectionCheck("Number of SVs passing selection", goodTracksThatMeet.size());
   }
 
   getCandidateDecay(selectedMotherBasic, selectedVertexBasic, selectedDaughtersBasic, daughterParticlesBasic,
@@ -136,6 +148,12 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                                        goodTracksThatMeet,
                                        m_num_tracks_from_intermediate[i], p);
     }
+
+    if (m_verbosity >= 10)
+    { 
+      printSelectionCheck("Number of SVs passing selection", goodTracksThatMeet.size());
+    }
+
     getCandidateDecay(potentialIntermediates[i], vertices, potentialDaughters[i], daughterParticlesAdv,
                       goodTracksThatMeet, primaryVerticesAdv, track_start, track_stop, true, i, m_constrain_int_mass, topNode);
     track_start += track_stop;

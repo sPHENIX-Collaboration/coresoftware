@@ -205,6 +205,8 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
       m_tree->Branch(TString(daughter_number) + "_IPchi2", &m_calculated_daughter_ipchi2[i], TString(daughter_number) + "_IPchi2/F");
       m_tree->Branch(TString(daughter_number) + "_IPErr", &m_calculated_daughter_ip_err[i], TString(daughter_number) + "_IPErr/F");
       m_tree->Branch(TString(daughter_number) + "_IP_xy", &m_calculated_daughter_ip_xy[i], TString(daughter_number) + "_IP_xy/F");
+      m_tree->Branch(TString(daughter_number) + "_DCA_sig", &m_calculated_daughter_PV_dca_sig[i], TString(daughter_number) + "_DCA_sig/F");
+      m_tree->Branch(TString(daughter_number) + "_DCA_sig_xy", &m_calculated_daughter_PV_dca_xy_sig[i], TString(daughter_number) + "_DCA_sig_xy/F");
     }
     if (m_get_all_PVs)
     {
@@ -270,6 +272,14 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
         std::string dca_branch_name_xy = dca_branch_name + "_xy";
         std::string dca_leaf_name_xy = dca_branch_name_xy + "/F";
         m_tree->Branch(dca_branch_name_xy.c_str(), &m_daughter_dca_xy[iter], dca_leaf_name_xy.c_str());
+        
+        std::string dca_sig_branch_name = "track_" + std::to_string(i + 1) + "_track_" + std::to_string(j + 1) + "_DCA_sig";
+        std::string dca_sig_leaf_name = dca_sig_branch_name + "/F";
+        m_tree->Branch(dca_sig_branch_name.c_str(), &m_daughter_dca_sig[iter], dca_sig_leaf_name.c_str());
+
+        std::string dca_sig_branch_name_xy = dca_sig_branch_name + "_xy";
+        std::string dca_sig_leaf_name_xy = dca_sig_branch_name_xy + "/F";
+        m_tree->Branch(dca_sig_branch_name_xy.c_str(), &m_daughter_dca_sig_xy[iter], dca_sig_leaf_name_xy.c_str());
 
         ++iter;
       }
@@ -303,9 +313,9 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 
   m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
   m_tree->Branch("eventNumber", &m_evtNumber, "eventNumber/I");
-  m_tree->Branch("event_bco", &m_event_bco, "event_bco/L"); //adding for the current event BCO, not shifted
-  m_tree->Branch("BCO", &m_bco, "BCO/L"); //already there, this is shifted BCO
-  m_tree->Branch("last_event_bco", &m_last_event_bco, "last_event_bco/L"); //BCO for the last event 
+  m_tree->Branch("Collision_BCO", &m_bco, "Collision_BCO/L"); //already there, this is shifted BCO
+  m_tree->Branch("GL1_BCO", &m_event_bco, "GL1_BCO/L"); //adding for the current event BCO, not shifted
+  m_tree->Branch("last_GL1_BCO", &m_last_event_bco, "last_GL1_BCO/L"); //BCO for the last event 
 
   if (m_get_trigger_info)
   {
@@ -496,6 +506,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_calculated_daughter_ipchi2[i] = daughterArray[i].GetDeviationFromVertex(vertex_fillbranch);
       m_calculated_daughter_ip_err[i] = m_calculated_daughter_ip[i] / std::sqrt(m_calculated_daughter_ipchi2[i]);
       m_calculated_daughter_ip_xy[i] = daughterArray[i].GetDistanceFromVertexXY(vertex_fillbranch);
+      m_calculated_daughter_PV_dca_sig[i] = daughterArray[i].GetDeviationFromVertex(vertex_fillbranch);
+      m_calculated_daughter_PV_dca_xy_sig[i] = daughterArray[i].GetDeviationFromVertexXY(vertex_fillbranch);
     }
     m_calculated_daughter_x[i] = daughterArray[i].GetX();
     m_calculated_daughter_y[i] = daughterArray[i].GetY();
@@ -596,6 +608,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       {
         m_daughter_dca[iter] = daughterArray[i].GetDistanceFromParticle(daughterArray[j]);
         m_daughter_dca_xy[iter] = daughterArray[i].GetDistanceFromParticleXY(daughterArray[j]);
+        m_daughter_dca_sig[iter] = daughterArray[i].GetDeviationFromParticle(daughterArray[j]);
+        m_daughter_dca_sig_xy[iter] = daughterArray[i].GetDeviationFromParticleXY(daughterArray[j]);
         ++iter;
       }
     }

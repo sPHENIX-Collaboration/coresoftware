@@ -77,6 +77,15 @@ int BcoLumiReco::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
     Packet *packet = evt->getPacket(14001);
+    if (!packet)
+    {
+      if (Verbosity() > 0)
+      {
+	std::cout << "no gl1 packet 14001" << std::endl;
+	evt->identify();
+      }
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
     uint64_t gtm_bco = packet->lValue(0, "BCO");
     if (Verbosity() > 1)
     {

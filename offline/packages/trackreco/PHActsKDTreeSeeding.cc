@@ -15,8 +15,8 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/TrackSeed_v2.h>
 #include <trackbase_historic/TrackSeedHelper.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #include <intt/CylinderGeomIntt.h>
 #include <intt/CylinderGeomInttHelper.h>
@@ -33,8 +33,7 @@
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <Acts/Seeding/InternalSeed.hpp>
-#include <Acts/Seeding/Seed.hpp>
+#include <Acts/EventData/Seed.hpp>
 #include <Acts/Seeding/SeedFilter.hpp>
 #include <Acts/Seeding/SeedFilterConfig.hpp>
 #include <Acts/Seeding/SeedFinderOrthogonal.hpp>
@@ -60,7 +59,7 @@ PHActsKDTreeSeeding::PHActsKDTreeSeeding(const std::string& name)
 {
 }
 
-//____________________________________________________________________________..
+//______________________ ______________________________________________________..
 PHActsKDTreeSeeding::~PHActsKDTreeSeeding()
 {
 }
@@ -116,23 +115,18 @@ int PHActsKDTreeSeeding::process_event(PHCompositeNode* topNode)
 
 SeedContainer PHActsKDTreeSeeding::runSeeder()
 {
-  Acts::SeedFinderOrthogonal<SpacePoint> finder(m_seedFinderConfig);
+  auto finder = std::make_unique<Acts::SeedFinderOrthogonal<proxy_type>>(m_seedFinderConfig);
 
   auto spacePoints = getMvtxSpacePoints();
+  Acts::SpacePointContainerConfig spConfig;
+  Acts::SpacePointContainerOptions spOptions;
+  spOptions.beamPos = {0, 0};
 
-  std::function<
-      std::tuple<Acts::Vector3, Acts::Vector2, std::optional<Acts::ActsScalar>>(
-          const SpacePoint* sp)>
-      create_coordinates = [](const SpacePoint* sp)
-  {
-    Acts::Vector3 position(sp->x(), sp->y(), sp->z());
-    Acts::Vector2 variance(sp->varianceR(), sp->varianceZ());
-    return std::make_tuple(position, variance, sp->t());
-  };
-
+  ActsExamples::SpacePointContainer container(spacePoints);
+  Acts::SpacePointContainer<decltype(container), Acts::detail::RefHolder> spContainer(spConfig, spOptions, container);
   /// Call acts seeding algo
-  SeedContainer seeds = finder.createSeeds(m_seedFinderOptions,
-                                           spacePoints, create_coordinates);
+  auto seeds = finder->createSeeds(m_seedFinderOptions, spContainer);
+
   if (Verbosity() > 1)
   {
     std::cout << "Acts::OrthogonalSeeder found " << seeds.size()
@@ -148,19 +142,19 @@ void PHActsKDTreeSeeding::fillTrackSeedContainer(SeedContainer& seeds)
   {
     auto siseed = std::make_unique<TrackSeed_v2>();
     std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
-
-    for (auto& spptr : seed.sp())
+    const auto& sps = seed.sp();
+    for (int spid = 0; spid < 3; spid++)
     {
-      auto ckey = spptr->Id();
+      auto ckey = sps[spid]->externalSpacePoint()->Id();
       siseed->insert_cluster_key(ckey);
       auto globalPosition = m_tGeometry->getGlobalPosition(
           ckey,
           m_clusterMap->findCluster(ckey));
       positions.insert(std::make_pair(ckey, globalPosition));
     }
-
-    TrackSeedHelper::circleFitByTaubin(siseed.get(),positions, 0, 8);
-    TrackSeedHelper::lineFit(siseed.get(),positions, 0, 8);
+      
+    TrackSeedHelper::circleFitByTaubin(siseed.get(), positions, 0, 8);
+    TrackSeedHelper::lineFit(siseed.get(), positions, 0, 8);
 
     /// Project to INTT and find matches to add to positions
     findInttMatches(positions, *siseed);
@@ -439,7 +433,7 @@ SpacePointPtr PHActsKDTreeSeeding::makeSpacePoint(const Surface& surf,
    * uncertainties by a tuned factor that gives the v17 performance
    * Track reconstruction is an art as much as it is a science...
    */
-  SpacePointPtr spPtr(new SpacePoint{key, x, y, z, r, surf->geometryId(), var[0] * m_uncfactor, var[1] * m_uncfactor,std::nullopt});
+  SpacePointPtr spPtr(new SpacePoint{key, x, y, z, r, surf->geometryId(), var[0] * m_uncfactor, var[1] * m_uncfactor, std::nullopt});
 
   if (Verbosity() > 2)
   {
@@ -537,8 +531,7 @@ void PHActsKDTreeSeeding::configureSeedFinder()
   filterCfg.maxSeedsPerSpM = m_maxSeedsPerSpM;
 
   m_seedFinderConfig.seedFilter =
-      std::make_unique<Acts::SeedFilter<SpacePoint>>(
-          Acts::SeedFilter<SpacePoint>(filterCfg));
+      std::make_unique<Acts::SeedFilter<proxy_type>>(filterCfg);
 
   m_seedFinderConfig.rMax = m_rMax;
   m_seedFinderConfig.deltaRMinTopSP = m_deltaRMinTopSP;
@@ -561,8 +554,4 @@ void PHActsKDTreeSeeding::configureSeedFinder()
   m_seedFinderConfig.rMinMiddle = m_rMinMiddle;
   m_seedFinderConfig.rMaxMiddle = m_rMaxMiddle;
 
-  m_seedFinderConfig =
-      m_seedFinderConfig.toInternalUnits().calculateDerivedQuantities();
-  m_seedFinderOptions =
-      m_seedFinderOptions.toInternalUnits().calculateDerivedQuantities(m_seedFinderConfig);
 }

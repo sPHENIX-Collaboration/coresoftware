@@ -417,7 +417,7 @@ int QAG4SimulationKFParticle::load_nodes(PHCompositeNode *topNode)
   m_kfpContainer = findNode::getClass<KFParticle_Container>(topNode, m_mother_name + "_KFParticle_Container");
   if (!m_kfpContainer)
   {
-    std::cout << m_mother_name.c_str() << "_KFParticle_Container - Fatal Error - "
+    std::cout << m_mother_name << "_KFParticle_Container - Fatal Error - "
               << "unable to find DST node "
               << "G4_QA" << std::endl;
     assert(m_kfpContainer);

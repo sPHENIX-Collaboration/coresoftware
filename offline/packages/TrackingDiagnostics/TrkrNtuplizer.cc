@@ -1386,7 +1386,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
   }
 
   //-----------------------
-  // fill the Vertex NTuple
+  // fill the Vertex NTuple and fixed NaN placeholders 
   //-----------------------
   bool doit = true;
   if (_ntp_vertex && doit)
@@ -1397,40 +1397,64 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       std::cout << "start vertex time:                " << _timer->get_accumulated_time() / 1000. << " sec" << std::endl;
       _timer->restart();
     }
-    float fx_vertex[n_vertex::vtxsize];
-    for (float& i : fx_vertex)
+
+    SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");
+
+    if (!vertexmap)
     {
-      i = 0;
+      std::cout << PHWHERE << " WARNING: SvtxVertexMapActs not found. Writing no vertex entries for this event." << std::endl;
     }
-
-    //    SvtxVertexMap* vertexmap = nullptr;
-
-    //    vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
-
-    float vx = std::numeric_limits<float>::quiet_NaN();
-    float vy = std::numeric_limits<float>::quiet_NaN();
-    float vz = std::numeric_limits<float>::quiet_NaN();
-    float ntracks = std::numeric_limits<float>::quiet_NaN();
-    fx_vertex[vtxnvx] = vx;
-    fx_vertex[vtxnvy] = vy;
-    fx_vertex[vtxnvz] = vz;
-    fx_vertex[vtxnntracks] = ntracks;
-    if (Verbosity() > 1)
+    else
     {
-      std::cout << " adding vertex data " << std::endl;
+      for (auto & iter : *vertexmap)
+      {
+        SvtxVertex* vertex = iter.second;
+        if (!vertex) { continue;
+}
+
+        float fx_vertex[n_vertex::vtxsize];
+        for (float& i : fx_vertex)
+        {
+          i = std::numeric_limits<float>::quiet_NaN();
+        }
+
+        fx_vertex[vtxnvertexID] = static_cast<float>(vertex->get_id());
+        fx_vertex[vtxnvx]       = vertex->get_x();
+        fx_vertex[vtxnvy]       = vertex->get_y();
+        fx_vertex[vtxnvz]       = vertex->get_z();
+        fx_vertex[vtxnntracks]  = static_cast<float>(vertex->size_tracks());
+        fx_vertex[vtxnchi2]     = vertex->get_chisq();
+        fx_vertex[vtxnndof]     = vertex->get_ndof();
+
+        if (Verbosity() > 1)
+        {
+          std::cout << " adding vertex data "
+                    << " id = " << vertex->get_id()
+                    << " vx = " << vertex->get_x()
+                    << " vy = " << vertex->get_y()
+                    << " vz = " << vertex->get_z()
+                    << " ntracks = " << vertex->size_tracks()
+                    << std::endl;
+        }
+
+        float* vertex_data = new float[((int) (n_info::infosize)) + n_event::evsize + n_vertex::vtxsize];
+        std::copy(fx_event, fx_event + n_event::evsize, vertex_data);
+        std::copy(fx_vertex, fx_vertex + n_vertex::vtxsize, vertex_data + n_event::evsize);
+        std::copy(fx_info, fx_info + ((int) (n_info::infosize)), vertex_data + n_event::evsize + n_vertex::vtxsize);
+
+        _ntp_vertex->Fill(vertex_data);
+        delete[] vertex_data;
+      }
     }
-    float* vertex_data = new float[((int) (n_info::infosize)) + n_event::evsize + n_vertex::vtxsize];
-    std::copy(fx_event, fx_event + n_event::evsize, vertex_data);
-    std::copy(fx_vertex, fx_vertex + n_vertex::vtxsize, vertex_data + n_event::evsize);
-    std::copy(fx_info, fx_info + ((int) (n_info::infosize)), vertex_data + n_event::evsize + n_vertex::vtxsize);
-    _ntp_vertex->Fill(vertex_data);
-    delete[] vertex_data;
   }
+
   if (Verbosity() > 1)
   {
     _timer->stop();
     std::cout << "vertex time:                " << _timer->get_accumulated_time() / 1000. << " sec" << std::endl;
   }
+
+
   //--------------------
   // fill the Hit NTuple
   //--------------------

@@ -32,7 +32,7 @@
 #include <TStyle.h>
 #include <TTree.h>
 #include <TVector3.h>
-
+#include <TVectorD.h>
 #include <boost/format.hpp>
 #include <boost/math/special_functions/lambert_w.hpp>
 
@@ -55,6 +55,13 @@ void TpcLaminationFitting::set_grid_dimensions(int phibins, int rbins)
 {
   m_phibins = phibins;
   m_rbins = rbins;
+}
+
+//___________________________________________________________
+void TpcLaminationFitting::set_lam_grid_dimensions(int phibins, int rbins)
+{
+  m_lamPhiBins = phibins;
+  m_lamRBins = rbins;
 }
 
 //____________________________________________
@@ -91,7 +98,7 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
 
       if(m_fieldOff)
       {
-        m_hLamination[l][s] = new TH2D((boost::format("hLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("Lamination %d %s, #phi_{ideal}=%.2f;R [cm];#phi") %l %(s == 1 ? "North" : "South") %m_laminationIdeal[l][s]).str().c_str(), 200, 30, 80, 200, m_laminationIdeal[l][s] - 0.2, m_laminationIdeal[l][s] + 0.2);
+        m_hLamination[l][s] = new TH2D((boost::format("hLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("Lamination %d %s, #phi_{ideal}=%.2f;R [cm];#phi") %l %(s == 1 ? "North" : "South") %m_laminationIdeal[l][s]).str().c_str(), m_lamRBins, 30, 80, m_lamPhiBins, m_laminationIdeal[l][s] - 0.2, m_laminationIdeal[l][s] + 0.2);
         m_fLamination[l][s] = new TF1((boost::format("fLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), "[0]+[1]", 30, 80);
         m_fLamination[l][s]->SetParameters(m_laminationOffset[l][s], m_laminationIdeal[l][s]);
         m_fLamination[l][s]->SetParLimits(0, -0.05, 0.05);
@@ -99,7 +106,7 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
       }
       else
       {
-        m_hLamination[l][s] = new TH2D((boost::format("hLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("Lamination %d %s, #phi_{nominal}=%.2f;R [cm];#phi") %l %(s == 1 ? "North" : "South") %(m_laminationIdeal[l][s]+m_laminationOffset[l][s])).str().c_str(), 200, 30, 80, 200, m_laminationIdeal[l][s]+m_laminationOffset[l][s] - 0.2, m_laminationIdeal[l][s]+m_laminationOffset[l][s] + 0.2);
+        m_hLamination[l][s] = new TH2D((boost::format("hLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("Lamination %d %s, #phi_{nominal}=%.2f;R [cm];#phi") %l %(s == 1 ? "North" : "South") %(m_laminationIdeal[l][s]+m_laminationOffset[l][s])).str().c_str(), m_lamRBins, 30, 80, m_lamPhiBins, m_laminationIdeal[l][s]+m_laminationOffset[l][s] - 0.2, m_laminationIdeal[l][s]+m_laminationOffset[l][s] + 0.2);
         m_fLamination[l][s] = new TF1((boost::format("fLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), "[3]+[0]*(1-exp(-[2]*(x-[1])))", 30, 80);
         m_fLamination[l][s]->SetParameters(-0.08, 38, 0.16, 0.0);
         m_fLamination[l][s]->SetParLimits(0, -0.02, 0.0);
@@ -343,8 +350,10 @@ int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
   m_laminationTree->Branch("distanceToFit",&m_dist);
   m_laminationTree->Branch("nBinsFit",&m_nBins);
   m_laminationTree->Branch("RMSE",&m_rmse);
-
-
+  //m_laminationTree->Branch("A_zdc",&m_A_zdc);
+  //m_laminationTree->Branch("B_zdc",&m_B_zdc);
+  //m_laminationTree->Branch("C_zdc",&m_C_zdc);
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -387,11 +396,17 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
   {
     const auto &[cmkey, cmclus_orig] = *cmitr;
     LaserCluster *cmclus = cmclus_orig;
-    // const unsigned int adc = cmclus->getAdc();
+    //const unsigned int adc = cmclus->getAdc();
     bool side = (bool) TpcDefs::getSide(cmkey);
     if (cmclus->getNLayers() < m_nLayerCut)
     {
       continue;
+    }
+
+    double weight = 1.0;
+    if(m_adcWeight)
+    {
+      weight = 1.0*cmclus->getAdc();
     }
 
     
@@ -407,8 +422,7 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
     }
 
     TVector3 tmp_pos(pos[0], pos[1], pos[2]);
-
-    if(cmclus->getNLayers() > m_nLayerCut && cmclus->getSDWeightedLayer() > 0.5)
+    if(cmclus->getNLayers() > m_nLayerCut && (!m_useSDLayerCut || cmclus->getSDWeightedLayer() > 0.5))
     {
       for (int l = 0; l < 18; l++)
       {
@@ -426,12 +440,12 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
 	
       	if (phi2pi > shift - 0.2 && phi2pi < shift + 0.2)
 	      {
-	        m_hLamination[l][side]->Fill(tmp_pos.Perp(), phi2pi);
+	        m_hLamination[l][side]->Fill(tmp_pos.Perp(), phi2pi, weight);
 	      }
       }
     }
 
-    if(cmclus->getSDWeightedLayer() > 0.5)
+    if(m_useSDLayerCut && cmclus->getSDWeightedLayer() > 0.5)
     {
       continue;
     }
@@ -450,7 +464,7 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
       phi2pimod -= M_PI / 9;
     }
 
-    m_hPetal[side]->Fill(phi2pimod, tmp_pos.Perp());
+    m_hPetal[side]->Fill(phi2pimod, tmp_pos.Perp(), weight);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -566,10 +580,13 @@ int TpcLaminationFitting::fitLaminations()
       }
       else
       {
+       	m_A_zdc[s] = Af[s]->Eval(m_ZDC_coincidence);
+        m_B_zdc[s] = Bf[s]->Eval(m_ZDC_coincidence);
+        m_C_zdc[s] = Cseed[s];
         m_fLamination[l][s]->SetParameters(Af[s]->Eval(m_ZDC_coincidence), Bf[s]->Eval(m_ZDC_coincidence), Cseed[s], m_laminationIdeal[l][s] + m_laminationOffset[l][s]);
         m_fLamination[l][s]->FixParameter(3, m_laminationIdeal[l][s] + m_laminationOffset[l][s]);
       }
-      
+
       TF1 *fitSeed = (TF1 *) m_fLamination[l][s]->Clone();
       fitSeed->SetName(std::format("fitSeed{}_{}", l, (s == 1 ? "North" : "South")).c_str());
 
@@ -713,6 +730,7 @@ int TpcLaminationFitting::fitLaminations()
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
 
 int TpcLaminationFitting::InterpolatePhiDistortions()
 {
@@ -1089,7 +1107,7 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     }
     c1->SaveAs(std::format("{}]", m_QAFileName).c_str());
   }
-  
+
   //TFile *simDistortion = new TFile("/cvmfs/sphenix.sdcc.bnl.gov/gcc-12.1.0/release/release_new/new.10/share/calibrations/distortion_maps/average_minus_static_distortion_inverted_10-new.root", "READ");
   //TH3 *hIntDistortionP_posz = (TH3 *) simDistortion->Get("hIntDistortionP_posz");
   //hIntDistortionP_posz->GetZaxis()->SetRange(2, 2);
@@ -1210,7 +1228,14 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     m_parameterScan[s]->Write();
   }
   m_laminationTree->Write();
-  
+  m_A_zdc.Write("A_zdc");   
+  m_B_zdc.Write("B_zdc");
+  m_C_zdc.Write("C_zdc");
+  /*  for(int s=0; s<2; s++) {
+    m_A_zdc[s]->Write(std::format("A_zdc_{}",s).c_str());
+    m_B_zdc[s]->Write(std::format("B_zdc_{}",s).c_str());
+    m_C_zdc[s]->Write(std::format("C_zdc_{}",s).c_str());
+    }*/
   if(m_saveAllLaminationHistograms)
   {
     for(auto &i : m_hLamination)

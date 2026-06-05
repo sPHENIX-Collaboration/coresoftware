@@ -309,9 +309,9 @@ bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
   auto param = propagator.makeTrackParams(firststate, track->get_charge(), surf).value();
   auto perigee = propagator.makeVertexSurface(vertex);
   auto actspropagator = propagator.makePropagator();
-
-  Acts::PropagatorOptions<> options(_tGeometry->geometry().getGeoContext(),
-                                    _tGeometry->geometry().magFieldContext);
+  ActsPropagator::SphenixPropagatorOptions 
+  options(_tGeometry->geometry().getGeoContext(),
+          _tGeometry->geometry().magFieldContext);
 
   auto result = actspropagator.propagate(param, *perigee, options);
 

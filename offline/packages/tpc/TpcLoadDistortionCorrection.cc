@@ -56,7 +56,7 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
   {
     std::cout << "("<< i <<", "<<m_correction_in_use[i] << ", " << m_phi_hist_in_radians[i] << ", " << m_interpolate_z[i] << ")"<< std::endl;
   }
-  
+
   /// Get the RUN node and check
   auto *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
@@ -83,24 +83,8 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
       runNode->addNode(node);
     }
 
-    std::cout << "TpcLoadDistortionCorrection::InitRun - reading corrections from " << m_correction_filename[i] << std::endl;
-    auto *distortion_tfile = TFile::Open(m_correction_filename[i].c_str());
-    if (!distortion_tfile)
-    {
-      std::cout << "TpcLoadDistortionCorrection::InitRun - cannot open " << m_correction_filename[i] << std::endl;
-      exit(1);
-    }
-
-    const std::array<const std::string, 2> extension = {{"_negz", "_posz"}};
-    for (int j = 0; j < 2; ++j)
-    {
-      distortion_correction_object->m_hDPint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionP")+extension[j]).c_str()));
-      assert(distortion_correction_object->m_hDPint[j]);
-      distortion_correction_object->m_hDRint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionR")+extension[j]).c_str()));
-      assert(distortion_correction_object->m_hDRint[j]);
-      distortion_correction_object->m_hDZint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionZ")+extension[j]).c_str()));
-      assert(distortion_correction_object->m_hDZint[j]);
-    }
+    // load histograms from file
+    distortion_correction_object->load_histograms(m_correction_filename[i]);
 
     // assign correction object dimension from histograms dimention, assuming all histograms have the same
     distortion_correction_object->m_dimensions = distortion_correction_object->m_hDPint[0]->GetDimension();

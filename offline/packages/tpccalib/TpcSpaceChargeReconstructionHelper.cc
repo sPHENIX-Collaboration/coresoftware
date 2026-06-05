@@ -603,52 +603,69 @@ TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(const TH3* source, co
   }
 
   // fill guarding phi bins
+  fill_guarding_bins( hout );
+
+  return hout;
+}
+
+//_____________________________________________________________________________________________________________________-
+void TpcSpaceChargeReconstructionHelper::fill_guarding_bins(TH3* source )
+{
+  if (!source)
+  {
+    std::cout << "TpcSpaceChargeReconstructionHelper::fill_guarding_bins - invalid source histogram" << std::endl;
+    return;
+  }
+
+  const auto nbinsx = source->GetNbinsX();
+  const auto nbinsy = source->GetNbinsY();
+  const auto nbinsz = source->GetNbinsZ();
+
+  // fill guarding phi bins
   /*
    * we use 2pi periodicity to do that:
    * - last valid bin is copied to first guarding bin;
    * - first valid bin is copied to last guarding bin
    */
-  for (int ir = 0; ir < rbins + 2; ++ir)
+  for (int ir = 0; ir < nbinsy; ++ir)
   {
-    for (int iz = 0; iz < zbins + 2; ++iz)
+    for (int iz = 0; iz < nbinsz; ++iz)
     {
       // copy last bin to first guarding bin
-      hout->SetBinContent(1, ir + 1, iz + 1, hout->GetBinContent(phibins + 1, ir + 1, iz + 1));
-      hout->SetBinError(1, ir + 1, iz + 1, hout->GetBinError(phibins + 1, ir + 1, iz + 1));
+      source ->SetBinContent(1, ir + 1, iz + 1, source ->GetBinContent(nbinsx-1, ir + 1, iz + 1));
+      source ->SetBinError(1, ir + 1, iz + 1, source ->GetBinError(nbinsx-1, ir + 1, iz + 1));
 
       // copy first bin to last guarding bin
-      hout->SetBinContent(phibins + 2, ir + 1, iz + 1, hout->GetBinContent(2, ir + 1, iz + 1));
-      hout->SetBinError(phibins + 2, ir + 1, iz + 1, hout->GetBinError(2, ir + 1, iz + 1));
+      source ->SetBinContent(nbinsx, ir + 1, iz + 1, source ->GetBinContent(2, ir + 1, iz + 1));
+      source ->SetBinError(nbinsx, ir + 1, iz + 1, source ->GetBinError(2, ir + 1, iz + 1));
     }
   }
 
   // fill guarding r bins
-  for (int iphi = 0; iphi < phibins + 2; ++iphi)
+  for (int iphi = 0; iphi < nbinsx; ++iphi)
   {
-    for (int iz = 0; iz < zbins + 2; ++iz)
+    for (int iz = 0; iz < nbinsz; ++iz)
     {
-      hout->SetBinContent(iphi + 1, 1, iz + 1, hout->GetBinContent(iphi + 1, 2, iz + 1));
-      hout->SetBinError(iphi + 1, 1, iz + 1, hout->GetBinError(iphi + 1, 2, iz + 1));
+      source ->SetBinContent(iphi + 1, 1, iz + 1, source ->GetBinContent(iphi + 1, 2, iz + 1));
+      source ->SetBinError(iphi + 1, 1, iz + 1, source ->GetBinError(iphi + 1, 2, iz + 1));
 
-      hout->SetBinContent(iphi + 1, rbins + 2, iz + 1, hout->GetBinContent(iphi + 1, rbins + 1, iz + 1));
-      hout->SetBinError(iphi + 1, rbins + 2, iz + 1, hout->GetBinError(iphi + 1, rbins + 1, iz + 1));
+      source ->SetBinContent(iphi + 1, nbinsy, iz + 1, source ->GetBinContent(iphi + 1, nbinsy-1, iz + 1));
+      source ->SetBinError(iphi + 1, nbinsy, iz + 1, source ->GetBinError(iphi + 1, nbinsy-1, iz + 1));
     }
   }
 
   // fill guarding z bins
-  for (int iphi = 0; iphi < phibins + 2; ++iphi)
+  for (int iphi = 0; iphi < nbinsx; ++iphi)
   {
-    for (int ir = 0; ir < rbins + 2; ++ir)
+    for (int ir = 0; ir < nbinsy; ++ir)
     {
-      hout->SetBinContent(iphi + 1, ir + 1, 1, hout->GetBinContent(iphi + 1, ir + 1, 2));
-      hout->SetBinError(iphi + 1, ir + 1, 1, hout->GetBinError(iphi + 1, ir + 1, 2));
+      source ->SetBinContent(iphi + 1, ir + 1, 1, source ->GetBinContent(iphi + 1, ir + 1, 2));
+      source ->SetBinError(iphi + 1, ir + 1, 1, source ->GetBinError(iphi + 1, ir + 1, 2));
 
-      hout->SetBinContent(iphi + 1, ir + 1, zbins + 2, hout->GetBinContent(iphi + 1, ir + 1, zbins + 1));
-      hout->SetBinError(iphi + 1, ir + 1, zbins + 2, hout->GetBinError(iphi + 1, ir + 1, zbins + 1));
+      source ->SetBinContent(iphi + 1, ir + 1, nbinsz, source ->GetBinContent(iphi + 1, ir + 1, nbinsz-1));
+      source ->SetBinError(iphi + 1, ir + 1, nbinsz, source ->GetBinError(iphi + 1, ir + 1, nbinsz-1));
     }
   }
-
-  return hout;
 }
 
 //___________________________________________________________________________________________________

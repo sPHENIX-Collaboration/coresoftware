@@ -41,6 +41,7 @@ pkginclude_HEADERS = \
   LaserEventInfov2.h \
   LaserEventIdentifier.h \
   LaserEventRejecter.h \
+  DiffuseLaserEventSelector.h \
   TrainingHitsContainer.h \
   TrainingHits.h \
   Tpc3DClusterizer.h \
@@ -79,6 +80,7 @@ libtpc_la_SOURCES = \
   LaserEventInfov1.cc \
   LaserEventInfov2.cc \
   LaserEventIdentifier.cc \
+  DiffuseLaserEventSelector.cc \
   LaserEventRejecter.cc \
   TpcRawDataTree.cc \
   Tpc3DClusterizer.cc \
@@ -86,6 +88,7 @@ libtpc_la_SOURCES = \
   TpcClusterizer.cc \
   TpcCombinedRawDataUnpacker.cc \
   TpcCombinedRawDataUnpackerDebug.cc \
+  TpcDistortionCorrectionContainer.cc \
   TpcGlobalPositionWrapper.cc \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \

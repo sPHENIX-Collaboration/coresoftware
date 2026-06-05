@@ -42,7 +42,7 @@ class DecayFinder : public SubsysReco
 
   int parseDecayDescriptor();
 
-  bool findDecay(PHCompositeNode *topNode);
+  int findDecay(PHCompositeNode *topNode);
 
   bool findParticle(const std::string &particle);
 
