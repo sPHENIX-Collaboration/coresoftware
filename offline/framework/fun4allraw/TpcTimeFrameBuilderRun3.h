@@ -392,14 +392,15 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
   static uint32_t get_fee_bco_diff(uint32_t first, uint32_t second);
   size_t move_time_hits(uint32_t fee_bco, uint16_t fee, std::vector<TpcRawHit *> &timeframe);
   size_t count_time_hits(uint32_t fee_bco, uint16_t fee) const;
+  size_t time_hit_bucket_count() const;
   std::optional<uint32_t> find_fuzzy_fee_bco(uint32_t predicted_fee_bco, uint16_t fee) const;
   void cleanup_time_hit_map(uint64_t bclk_rollover_corrected, uint32_t fee_clock_window);
   void flush_previous_timeframe_waveform_start_cache(uint64_t current_gtm_bco);
   void cache_timeframe_waveform_starts(uint64_t gtm_bco, const std::vector<TpcRawHit *> &timeframe);
   void erase_waveform_start_cache(TpcRawHit *hit);
 
-  //! FEE BCO -> cached TpcRawHit for Run3 exact-ratio matching
-  std::map<uint32_t, std::vector<TpcRawHit *>> m_timeHitMap;
+  //! FEE -> FEE BCO -> cached TpcRawHit for Run3 exact-ratio matching
+  std::vector<std::map<uint32_t, std::vector<TpcRawHit *>>> m_timeHitMap;
 
   //! rollover-corrected GTM BCO -> matched TpcRawHit returned to the input manager
   std::map<uint64_t, std::vector<TpcRawHit *>> m_timeFrameMap;

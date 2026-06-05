@@ -42,6 +42,7 @@ TpcTimeFrameBuilderRun3::TpcTimeFrameBuilderRun3(const int packet_id)
   }
 
   m_feeData.resize(MAX_FEECOUNT);
+  m_timeHitMap.resize(MAX_FEECOUNT);
 
   // cppcheck-suppress noCopyConstructor
   // cppcheck-suppress noOperatorEq
@@ -207,14 +208,16 @@ TpcTimeFrameBuilderRun3::TpcTimeFrameBuilderRun3(const int packet_id)
 
 TpcTimeFrameBuilderRun3::~TpcTimeFrameBuilderRun3()
 {
-  for (auto& timeHitEntry : m_timeHitMap)
+  for (auto& feeTimeHitMap : m_timeHitMap)
   {
-    while (!timeHitEntry.second.empty())
+    for (auto& timeHitEntry : feeTimeHitMap)
     {
-      TpcRawHit* hit = timeHitEntry.second.back();
-      erase_waveform_start_cache(hit);
-      delete hit;
-      timeHitEntry.second.pop_back();
+      for (TpcRawHit* hit : timeHitEntry.second)
+      {
+        erase_waveform_start_cache(hit);
+        delete hit;
+      }
+      timeHitEntry.second.clear();
     }
   }
 
@@ -336,85 +339,114 @@ uint32_t TpcTimeFrameBuilderRun3::get_fee_bco_diff(uint32_t first, uint32_t seco
 
 size_t TpcTimeFrameBuilderRun3::move_time_hits(uint32_t fee_bco, uint16_t fee, std::vector<TpcRawHit*>& timeframe)
 {
-  auto it = m_timeHitMap.find(fee_bco & kFEEClockMask);
-  if (it == m_timeHitMap.end())
+  if (fee >= m_timeHitMap.size())
   {
     return 0;
   }
 
-  size_t moved = 0;
-  auto& hits = it->second;
-  for (auto hit_it = hits.begin(); hit_it != hits.end();)
+  auto& fee_time_hits = m_timeHitMap[fee];
+  auto it = fee_time_hits.find(fee_bco & kFEEClockMask);
+  if (it == fee_time_hits.end())
   {
-    TpcRawHit* hit = *hit_it;
-    if (hit->get_fee() == fee)
-    {
-      timeframe.push_back(hit);
-      hit_it = hits.erase(hit_it);
-      ++moved;
-    }
-    else
-    {
-      ++hit_it;
-    }
+    return 0;
   }
 
-  if (hits.empty())
+  std::vector<TpcRawHit*>& hits = it->second;
+  const size_t moved = hits.size();
+  if (moved == 0)
   {
-    m_timeHitMap.erase(it);
+    fee_time_hits.erase(it);
+    return 0;
   }
+
+  timeframe.reserve(timeframe.size() + moved);
+  timeframe.insert(timeframe.end(), hits.begin(), hits.end());
+  fee_time_hits.erase(it);
   return moved;
 }
 
 size_t TpcTimeFrameBuilderRun3::count_time_hits(uint32_t fee_bco, uint16_t fee) const
 {
-  auto it = m_timeHitMap.find(fee_bco & kFEEClockMask);
-  if (it == m_timeHitMap.end())
+  if (fee >= m_timeHitMap.size())
   {
     return 0;
   }
 
-  size_t count = 0;
-  for (const TpcRawHit* hit : it->second)
+  const auto& fee_time_hits = m_timeHitMap[fee];
+  auto it = fee_time_hits.find(fee_bco & kFEEClockMask);
+  if (it == fee_time_hits.end())
   {
-    if (hit->get_fee() == fee)
-    {
-      ++count;
-    }
+    return 0;
+  }
+
+  return it->second.size();
+}
+
+size_t TpcTimeFrameBuilderRun3::time_hit_bucket_count() const
+{
+  size_t count = 0;
+  for (const auto& fee_time_hits : m_timeHitMap)
+  {
+    count += fee_time_hits.size();
   }
   return count;
 }
 
 std::optional<uint32_t> TpcTimeFrameBuilderRun3::find_fuzzy_fee_bco(uint32_t predicted_fee_bco, uint16_t fee) const
 {
+  if (fee >= m_timeHitMap.size())
+  {
+    return std::nullopt;
+  }
+
+  const auto& fee_time_hits = m_timeHitMap[fee];
+  if (fee_time_hits.empty())
+  {
+    return std::nullopt;
+  }
+
+  predicted_fee_bco &= kFEEClockMask;
   uint32_t best_fee_bco = 0;
   uint32_t best_diff = std::numeric_limits<uint32_t>::max();
+  bool found = false;
 
-  for (const auto& [fee_bco, hits] : m_timeHitMap)
+  auto consider_fee_bco = [&](uint32_t fee_bco, const std::vector<TpcRawHit*>& hits)
   {
-    bool has_fee_hit = false;
-    for (const TpcRawHit* hit : hits)
+    if (hits.empty())
     {
-      if (hit->get_fee() == fee)
-      {
-        has_fee_hit = true;
-        break;
-      }
-    }
-    if (!has_fee_hit)
-    {
-      continue;
+      return;
     }
 
     const uint32_t diff = get_fee_bco_diff(fee_bco, predicted_fee_bco);
-    if (diff < best_diff)
+    if (diff <= kRun3FeeMatchWindow && (!found || diff < best_diff || (diff == best_diff && fee_bco < best_fee_bco)))
     {
+      found = true;
       best_diff = diff;
       best_fee_bco = fee_bco;
     }
+  };
+
+  auto scan_range = [&](uint32_t first_fee_bco, uint32_t last_fee_bco)
+  {
+    for (auto it = fee_time_hits.lower_bound(first_fee_bco); it != fee_time_hits.end() && it->first <= last_fee_bco; ++it)
+    {
+      consider_fee_bco(it->first, it->second);
+    }
+  };
+
+  const uint32_t lower_fee_bco = (predicted_fee_bco - kRun3FeeMatchWindow) & kFEEClockMask;
+  const uint32_t upper_fee_bco = (predicted_fee_bco + kRun3FeeMatchWindow) & kFEEClockMask;
+  if (lower_fee_bco <= upper_fee_bco)
+  {
+    scan_range(lower_fee_bco, upper_fee_bco);
+  }
+  else
+  {
+    scan_range(lower_fee_bco, kFEEClockMask);
+    scan_range(0, upper_fee_bco);
   }
 
-  if (best_diff <= kRun3FeeMatchWindow)
+  if (found)
   {
     return best_fee_bco;
   }
@@ -425,47 +457,34 @@ void TpcTimeFrameBuilderRun3::cleanup_time_hit_map(uint64_t bclk_rollover_correc
 {
   assert(m_hFEEDataStream);
 
-  for (auto map_it = m_timeHitMap.begin(); map_it != m_timeHitMap.end();)
+  const size_t nfees = std::min(m_timeHitMap.size(), m_bcoMatchingInformation_vec.size());
+  for (size_t fee_index = 0; fee_index < nfees; ++fee_index)
   {
-    auto& hits = map_it->second;
-    for (auto hit_it = hits.begin(); hit_it != hits.end();)
+    const std::optional<uint32_t> predicted_fee_bco = m_bcoMatchingInformation_vec[fee_index].get_predicted_fee_bco(bclk_rollover_corrected);
+    if (!predicted_fee_bco)
     {
-      TpcRawHit* hit = *hit_it;
-      const uint16_t fee = hit->get_fee();
-      if (fee >= m_bcoMatchingInformation_vec.size())
-      {
-        ++hit_it;
-        continue;
-      }
+      continue;
+    }
 
-      const std::optional<uint32_t> predicted_fee_bco = m_bcoMatchingInformation_vec[fee].get_predicted_fee_bco(bclk_rollover_corrected);
-      if (!predicted_fee_bco)
-      {
-        ++hit_it;
-        continue;
-      }
-
+    const uint16_t fee = static_cast<uint16_t>(fee_index);
+    auto& fee_time_hits = m_timeHitMap[fee_index];
+    for (auto map_it = fee_time_hits.begin(); map_it != fee_time_hits.end();)
+    {
       const int64_t diff = get_signed_fee_bco_diff(map_it->first, *predicted_fee_bco);
       if ((fee_clock_window == 0 && diff <= 0) || (fee_clock_window > 0 && diff < -static_cast<int64_t>(fee_clock_window)))
       {
-        m_hFEEDataStream->Fill(hit->get_fee(), "HitUnusedBeforeCleanup", 1);
-        erase_waveform_start_cache(hit);
-        delete hit;
-        hit_it = hits.erase(hit_it);
+        for (TpcRawHit* hit : map_it->second)
+        {
+          m_hFEEDataStream->Fill(fee, "HitUnusedBeforeCleanup", 1);
+          erase_waveform_start_cache(hit);
+          delete hit;
+        }
+        map_it = fee_time_hits.erase(map_it);
       }
       else
       {
-        ++hit_it;
+        ++map_it;
       }
-    }
-
-    if (hits.empty())
-    {
-      map_it = m_timeHitMap.erase(map_it);
-    }
-    else
-    {
-      ++map_it;
     }
   }
 }
@@ -607,7 +626,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
       std::cout << __PRETTY_FUNCTION__ << "	- packet " << m_packet_id
                 << ":ERROR: Run3 FEE-clock match failed for gtm_bco: 0x" << std::hex << gtm_bco << std::dec
                 << " bclk_rollover_corrected 0x" << std::hex << bclk_rollover_corrected << std::dec
-                << ". m_timeHitMap size: " << m_timeHitMap.size() << std::endl;
+                << ". m_timeHitMap size: " << time_hit_bucket_count() << std::endl;
     }
 
     m_hNorm->Fill("Run3_TimeFrame_MatchFailed", 1);
@@ -872,22 +891,30 @@ int TpcTimeFrameBuilderRun3::ProcessPacket(Packet* packet)
   }
 
   // sanity check for the cached FEE-clock hit size
-  for (auto& timehit : m_timeHitMap)
+  for (size_t fee = 0; fee < m_timeHitMap.size(); ++fee)
   {
-    if (timehit.second.size() > kMaxRawHitLimit)
+    auto& fee_time_hits = m_timeHitMap[fee];
+    for (auto timehit = fee_time_hits.begin(); timehit != fee_time_hits.end();)
     {
-      std::cout << __PRETTY_FUNCTION__ << "\t- : Warning : impossible amount of hits at FEE BCO "
-                << timehit.first << "\t- : " << timehit.second.size() << ", limit is " << kMaxRawHitLimit
-                << ". Dropping this FEE-clock cache!"
-                << std::endl;
-      m_hNorm->Fill("TimeFrameSizeLimitError", 1);
-
-      while (!timehit.second.empty())
+      if (timehit->second.size() > kMaxRawHitLimit)
       {
-        TpcRawHit* hit = timehit.second.back();
-        erase_waveform_start_cache(hit);
-        delete hit;
-        timehit.second.pop_back();
+        std::cout << __PRETTY_FUNCTION__ << "\t- : Warning : impossible amount of hits for FEE "
+                  << fee << " at FEE BCO " << timehit->first << "\t- : " << timehit->second.size()
+                  << ", limit is " << kMaxRawHitLimit
+                  << ". Dropping this FEE-clock cache!"
+                  << std::endl;
+        m_hNorm->Fill("TimeFrameSizeLimitError", 1);
+
+        for (TpcRawHit* hit : timehit->second)
+        {
+          erase_waveform_start_cache(hit);
+          delete hit;
+        }
+        timehit = fee_time_hits.erase(timehit);
+      }
+      else
+      {
+        ++timehit;
       }
     }
   }
@@ -1211,8 +1238,15 @@ void TpcTimeFrameBuilderRun3::process_fee_data_waveform(const unsigned int& fee,
     // valid packet in the buffer, create a new hit
     if (payload.type != TpcTimeFrameBuilderRun3::BcoMatchingInformation::HEARTBEAT_T)
     {
+      if (fee >= m_timeHitMap.size())
+      {
+        std::cout << __PRETTY_FUNCTION__ << ": ERROR : invalid FEE " << fee
+                  << " for packet " << m_packet_id << ". Dropping waveform hit." << std::endl;
+        return;
+      }
+
       TpcRawHitv3* hit = new TpcRawHitv3();
-      m_timeHitMap[payload.bx_timestamp & kFEEClockMask].push_back(hit);
+      m_timeHitMap[fee][payload.bx_timestamp & kFEEClockMask].push_back(hit);
 
       hit->set_bco(payload.bx_timestamp);
       hit->set_packetid(m_packet_id);
