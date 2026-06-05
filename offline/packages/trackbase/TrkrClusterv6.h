@@ -32,7 +32,7 @@ class TrkrClusterv6 : public TrkrCluster
   // PHObject virtual overloads
 
   void identify(std::ostream& os = std::cout) const override;
-  void Reset() override {}
+  void Reset() override { *this = TrkrClusterv6();}
   int isValid() const override;
   PHObject* CloneMe() const override { return new TrkrClusterv6(*this); }
 
@@ -57,7 +57,7 @@ class TrkrClusterv6 : public TrkrCluster
   //
   float getPosition(int coor) const override
   {
-    return (coor >= 0 && coor < 2) m_local[coor] : NAN;
+    return (coor >= 0 && coor < 2) ? m_local[coor] : NAN;
   }
   void setPosition(int coor, float xi) override
   {
