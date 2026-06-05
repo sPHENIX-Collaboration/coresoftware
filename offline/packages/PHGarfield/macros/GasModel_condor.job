@@ -1,0 +1,13 @@
+Universe           = vanilla
+getenv             = True
+Initialdir         = /direct/phenix+u/workarea/hemmick/code.sphenix/tkh/gas
+Executable         = $(Initialdir)/StartScript.sh
+Output             = $(Initialdir)/out/hitset_AuAu_$(process).out
+Error              = $(Initialdir)/err/hitset_AuAu_$(process).err
+Log                = $(Initialdir)/log/hitset_AuAu_$(process).log
+PeriodicHold       = (NumJobStarts>=1 && JobStatus == 1)
+request_memory     = 4GB
+Priority           = 20
+job_lease_duration = 3600
+Arguments          = $(process)
+Queue 50
