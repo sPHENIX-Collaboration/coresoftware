@@ -32,7 +32,7 @@ class TrkrClusterv6 : public TrkrCluster
   // PHObject virtual overloads
 
   void identify(std::ostream& os = std::cout) const override;
-  void Reset() override { *this = TrkrClusterv6();}
+  void Reset() override { *this = TrkrClusterv6(); }
   int isValid() const override;
   PHObject* CloneMe() const override { return new TrkrClusterv6(*this); }
 
