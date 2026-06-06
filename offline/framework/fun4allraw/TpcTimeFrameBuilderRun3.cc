@@ -530,8 +530,9 @@ size_t TpcTimeFrameBuilderRun3::append_shifted_waveforms(TpcRawHitRun3_typ *targ
     return 0;
   }
 
-  std::unique_ptr<TpcRawHit::AdcIterator> adc_iter(source.CreateAdcIterator());
-  if (!adc_iter)
+  const auto& source_run3 = static_cast<const TpcRawHitRun3_typ&>(source);
+  const TpcRawHitRun3_typ::AdcWaveformVector_t& source_waveforms = source_run3.get_adc_waveforms();
+  if (source_waveforms.empty())
   {
     return 0;
   }
@@ -555,23 +556,39 @@ size_t TpcTimeFrameBuilderRun3::append_shifted_waveforms(TpcRawHitRun3_typ *targ
     ++appended_waveforms;
   };
 
-  for (adc_iter->First(); !adc_iter->IsDone(); adc_iter->Next())
+  for (const TpcRawHitRun3_typ::AdcWaveform_t& source_waveform : source_waveforms)
   {
-    const uint32_t shifted_time_bin = static_cast<uint32_t>(adc_iter->CurrentTimeBin()) + fee_clock_shift;
-    if (shifted_time_bin >= kRun3TruncatedWaveformRecoveryWindow)
+    const std::vector<uint16_t>& source_adc_values = source_waveform.second;
+    if (source_adc_values.empty())
+    {
+      continue;
+    }
+
+    const uint32_t shifted_waveform_start = static_cast<uint32_t>(source_waveform.first) + fee_clock_shift;
+    if (shifted_waveform_start >= kRun3TruncatedWaveformRecoveryWindow)
     {
       flush_waveform();
       continue;
     }
 
-    if (adc_values.empty() || shifted_time_bin != expected_time_bin)
+    for (size_t adc_index = 0; adc_index < source_adc_values.size(); ++adc_index)
     {
-      flush_waveform();
-      waveform_start = static_cast<uint16_t>(shifted_time_bin);
-    }
+      const uint32_t shifted_time_bin = shifted_waveform_start + static_cast<uint32_t>(adc_index);
+      if (shifted_time_bin >= kRun3TruncatedWaveformRecoveryWindow)
+      {
+        flush_waveform();
+        break;
+      }
 
-    adc_values.push_back(adc_iter->CurrentAdc());
-    expected_time_bin = shifted_time_bin + 1U;
+      if (adc_values.empty() || shifted_time_bin != expected_time_bin)
+      {
+        flush_waveform();
+        waveform_start = static_cast<uint16_t>(shifted_time_bin);
+      }
+
+      adc_values.push_back(source_adc_values[adc_index]);
+      expected_time_bin = shifted_time_bin + 1U;
+    }
   }
   flush_waveform();
 
@@ -632,7 +649,7 @@ size_t TpcTimeFrameBuilderRun3::recover_truncated_waveforms(uint32_t predicted_f
       const uint16_t channel = source_hit->get_channel();
       TpcRawHitRun3_typ* target_hit = current_hits[channel];
       const uint32_t target_fee_bco = target_hit ? static_cast<uint32_t>(target_hit->get_bco()) & kFEEClockMask : predicted_fee_bco;
-      const int64_t fee_clock_shift = get_signed_fee_bco_diff(static_cast<uint32_t>(source_hit->get_bco()), target_fee_bco);
+      const int64_t fee_clock_shift = get_signed_fee_bco_diff(static_cast<uint32_t>(source_hit->get_bco()), target_fee_bco) /2; # FEE BCO is 2x ADC clock and therefore the shift is devided by /2
       if (fee_clock_shift <= 0 || fee_clock_shift >= static_cast<int64_t>(kRun3TruncatedWaveformRecoveryWindow))
       {
         continue;
