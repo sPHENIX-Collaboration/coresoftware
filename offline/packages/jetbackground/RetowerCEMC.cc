@@ -145,7 +145,15 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
         }
         else
         {
-          towerinfo->set_energy(retower_e_temp / (double) (1 - scalefactor));
+          if (_do_rescale)
+          {
+            towerinfo->set_energy(retower_e_temp / (double) (1 - scalefactor));
+          }
+          else
+          {
+            towerinfo->set_energy(retower_e_temp);
+          }
+
           if (retower_e_temp == 0)
           {
             towerinfo->set_time(0);
@@ -154,8 +162,8 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
           {
             towerinfo->set_time((retower_time_temp / retower_e_temp));
           }
-          towerinfo->set_chi2(scalefactor);
         }
+        towerinfo->set_chi2(scalefactor);  // store the fraction of bad towers as the chi2
       }
     }
   }

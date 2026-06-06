@@ -295,23 +295,6 @@ class PHActsTrkFitter : public SubsysReco
 
   std::vector<const Acts::Surface*> m_materialSurfaces = {};
 
-  struct MaterialSurfaceSelector
-  {
-    std::vector<const Acts::Surface*> surfaces = {};
-
-    /// @param surface is the test surface
-    void operator()(const Acts::Surface* surface)
-    {
-      if (surface->surfaceMaterial() != nullptr)
-      {
-        if (std::find(surfaces.begin(), surfaces.end(), surface) ==
-            surfaces.end())
-        {
-          surfaces.push_back(surface);
-        }
-      }
-    }
-  };
 };
 
 #endif
