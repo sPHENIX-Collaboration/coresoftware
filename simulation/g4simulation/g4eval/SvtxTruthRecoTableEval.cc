@@ -200,7 +200,7 @@ void SvtxTruthRecoTableEval::fillTruthRecoMaps(PHCompositeNode *topNode, SvtxTra
     for (const auto &[gtrackID, nclusters] : nclustersByTruthId)
     {
       const float clusCont = static_cast<float>(nclusters);
-      if (selectedTruthIdSet.find(gtrackID) != selectedTruthIdSet.end())
+      if (selectedTruthIdSet.contains(gtrackID))
       {
         truthMaps[gtrackID][clusCont].insert(trackID);
       }
