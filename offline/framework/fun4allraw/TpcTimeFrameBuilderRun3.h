@@ -23,6 +23,7 @@
 class Packet;
 class TpcRawHit;
 class TpcRawHitv3;
+using TpcRawHitRun3_typ = TpcRawHitv3;
 class PHTimer;
 class TH1;
 class TH2;
@@ -401,7 +402,7 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
   size_t time_hit_bucket_count() const;
   std::optional<uint32_t> find_fuzzy_fee_bco(uint32_t predicted_fee_bco, uint16_t fee) const;
   size_t recover_truncated_waveforms(uint32_t predicted_fee_bco, uint16_t fee, std::vector<TpcRawHit *> &timeframe);
-  size_t append_shifted_waveforms(TpcRawHitv3 *target, const TpcRawHit &source, uint32_t fee_clock_shift) const;
+  size_t append_shifted_waveforms(TpcRawHitRun3_typ *target, const TpcRawHit &source, uint32_t fee_clock_shift) const;
   void cleanup_time_hit_map(uint64_t bclk_rollover_corrected, uint32_t fee_clock_window);
   void flush_previous_timeframe_qa_cache(uint64_t current_gtm_bco);
   void fill_waveform_gl1_spacing(TH1 *waveform_adc_cache, TH2 *waveform_gl1_spacing, uint64_t gtm_bco_spacing) const;

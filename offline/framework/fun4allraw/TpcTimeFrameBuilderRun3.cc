@@ -523,7 +523,7 @@ std::optional<uint32_t> TpcTimeFrameBuilderRun3::find_fuzzy_fee_bco(uint32_t pre
   return std::nullopt;
 }
 
-size_t TpcTimeFrameBuilderRun3::append_shifted_waveforms(TpcRawHitv3 *target, const TpcRawHit &source, uint32_t fee_clock_shift) const
+size_t TpcTimeFrameBuilderRun3::append_shifted_waveforms(TpcRawHitRun3_typ *target, const TpcRawHit &source, uint32_t fee_clock_shift) const
 {
   if (!target || fee_clock_shift >= kRun3TruncatedWaveformRecoveryWindow)
   {
@@ -586,7 +586,7 @@ size_t TpcTimeFrameBuilderRun3::recover_truncated_waveforms(uint32_t predicted_f
   }
 
   predicted_fee_bco &= kFEEClockMask;
-  std::array<TpcRawHitv3*, MAX_CHANNELS> current_hits{};
+  std::array<TpcRawHitRun3_typ*, MAX_CHANNELS> current_hits{};
   std::array<int64_t, MAX_CHANNELS> current_hit_diff{};
   current_hit_diff.fill(std::numeric_limits<int64_t>::max());
 
@@ -597,7 +597,7 @@ size_t TpcTimeFrameBuilderRun3::recover_truncated_waveforms(uint32_t predicted_f
       continue;
     }
 
-    TpcRawHitv3* hit_v3 = dynamic_cast<TpcRawHitv3*>(hit);
+    TpcRawHitRun3_typ* hit_v3 = dynamic_cast<TpcRawHitRun3_typ*>(hit);
     if (!hit_v3)
     {
       continue;
@@ -630,7 +630,7 @@ size_t TpcTimeFrameBuilderRun3::recover_truncated_waveforms(uint32_t predicted_f
       }
 
       const uint16_t channel = source_hit->get_channel();
-      TpcRawHitv3* target_hit = current_hits[channel];
+      TpcRawHitRun3_typ* target_hit = current_hits[channel];
       const uint32_t target_fee_bco = target_hit ? static_cast<uint32_t>(target_hit->get_bco()) & kFEEClockMask : predicted_fee_bco;
       const int64_t fee_clock_shift = get_signed_fee_bco_diff(static_cast<uint32_t>(source_hit->get_bco()), target_fee_bco);
       if (fee_clock_shift <= 0 || fee_clock_shift >= static_cast<int64_t>(kRun3TruncatedWaveformRecoveryWindow))
@@ -641,7 +641,7 @@ size_t TpcTimeFrameBuilderRun3::recover_truncated_waveforms(uint32_t predicted_f
       bool created_target = false;
       if (!target_hit)
       {
-        target_hit = new TpcRawHitv3();
+        target_hit = new TpcRawHitRun3_typ();
         target_hit->set_bco(predicted_fee_bco);
         target_hit->set_packetid(m_packet_id);
         target_hit->set_fee(fee);
@@ -1525,7 +1525,7 @@ void TpcTimeFrameBuilderRun3::process_fee_data_waveform(const unsigned int& fee,
         return;
       }
 
-      TpcRawHitv3* hit = new TpcRawHitv3();
+      TpcRawHitRun3_typ* hit = new TpcRawHitRun3_typ();
 
       hit->set_bco(payload.bx_timestamp);
       hit->set_packetid(m_packet_id);
