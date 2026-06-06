@@ -65,9 +65,9 @@ class TrkrCluster : public PHObject
   virtual void setMaxAdc(uint16_t) {}
   virtual uint16_t getMaxAdc() const { return UINT16_MAX; }
   virtual uint8_t getOverlap() const { return std::numeric_limits<uint8_t>::max(); }
-  virtual void setOverlap(char) {}
+  virtual void setOverlap(uint8_t) {}
   virtual uint8_t getEdge() const { return std::numeric_limits<uint8_t>::max(); }
-  virtual void setEdge(char) {}
+  virtual void setEdge(uint8_t) {}
   virtual void setTime(const float) {}
   virtual float getTime() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual uint8_t getSize() const { return std::numeric_limits<uint8_t>::max(); }
@@ -97,10 +97,10 @@ class TrkrCluster : public PHObject
   virtual int getSRMix() const { return std::numeric_limits<int>::max(); }
   virtual int getTLMix() const { return std::numeric_limits<int>::max(); }
   virtual int getTRMix() const { return std::numeric_limits<int>::max(); }
-  virtual int getPhiBinLo() const { return std::numeric_limits<int>::quiet_NaN(); }
-  virtual int getPhiBinHi() const { return std::numeric_limits<int>::quiet_NaN(); }
-  virtual int getTBinLo() const { return std::numeric_limits<int>::quiet_NaN(); }
-  virtual int getTBinHi() const { return std::numeric_limits<int>::quiet_NaN(); }
+  virtual int getPhiBinLo() const { return std::numeric_limits<int>::max(); }
+  virtual int getPhiBinHi() const { return std::numeric_limits<int>::max(); }
+  virtual int getTBinLo() const { return std::numeric_limits<int>::max(); }
+  virtual int getTBinHi() const { return std::numeric_limits<int>::max(); }
   virtual float getPadPhase() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float getTBinPhase() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float getRSize() const { return std::numeric_limits<float>::quiet_NaN(); }
