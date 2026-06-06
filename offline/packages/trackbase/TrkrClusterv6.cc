@@ -6,7 +6,9 @@
  */
 #include "TrkrClusterv6.h"
 
+#include <climits>
 #include <cmath>
+#include <cstdint>
 #include <utility>  // for swap
 
 namespace
@@ -20,44 +22,7 @@ namespace
 }  // namespace
 
 TrkrClusterv6::TrkrClusterv6()
-  : m_subsurfkey(TrkrDefs::SUBSURFKEYMAX)
-  , m_phierr(0)
-  , m_zerr(0)
-  , m_adc(0)
-  , m_maxadc(0)
-  , m_cenadc(0)
-  , m_padcen(0)
-  , m_tbincen(0)
-  , m_padmax(0)
-  , m_tbinmax(0)
-  , m_rsize(0)
-  , m_phisize(0)
-  , m_zsize(0)
-  , m_overlap(0)
-  , m_edge(0)
-  , m_sledge(0)
-  , m_sredge(0)
-  , m_tledge(0)
-  , m_tredge(0)
-  , m_dledge(0)
-  , m_dredge(0)
-  , m_hledge(0)
-  , m_hredge(0)
-  , m_slmix(0)
-  , m_srmix(0)
-  , m_tlmix(0)
-  , m_trmix(0)
-  , m_phibinlo(0)
-  , m_phibinhi(0)
-  , m_tbinlo(0)
-  , m_tbinhi(0)
-  , m_padphase(0)
-  , m_tbinphase(0)
 {
-  for (float& i : m_local)
-  {
-    i = NAN;
-  }
 }
 
 void TrkrClusterv6::identify(std::ostream& os) const
@@ -84,7 +49,7 @@ int TrkrClusterv6::isValid() const
       return 0;
     }
   }
-  if (m_adc == 0xFFFF)
+  if (m_adc == std::numeric_limits<uint16_t>::max())
   {
     return 0;
   }
