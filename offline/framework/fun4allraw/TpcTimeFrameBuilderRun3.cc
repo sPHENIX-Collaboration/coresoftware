@@ -187,17 +187,29 @@ TpcTimeFrameBuilderRun3::TpcTimeFrameBuilderRun3(const int packet_id)
                                           MAX_FEECOUNT, -.5, MAX_FEECOUNT - .5);
   hm->registerHisto(h_Run3TimeFrameFuzzyHit_FEE);
 
-  h_Run3WaveformStart_GL1Spacing = new TH2I(TString(m_HistoPrefix.c_str()) + "_Run3WaveformStart_GL1Spacing",  //
-                                               TString(m_HistoPrefix.c_str()) +
-                                                   " Run3 matched waveform start clock vs GL1 spacing;FEE ADC waveform start clock;Current - previous GL1 GTM BCO [BCO]",
-                                               1024, -.5, 1023.5, 1001, -.5, 1000.5);
-  hm->registerHisto(h_Run3WaveformStart_GL1Spacing);
+  h_Run3Waveform_GL1Spacing = new TH2I(TString(m_HistoPrefix.c_str()) + "_Run3Waveform_GL1Spacing",  //
+                                          TString(m_HistoPrefix.c_str()) +
+                                              " Run3 matched waveform ADC sum vs GL1 spacing;ADC Time Bin [0...1023];Current - previous GL1 GTM BCO [BCO]",
+                                          1024, -.5, 1023.5, 1001, -.5, 1000.5);
+  hm->registerHisto(h_Run3Waveform_GL1Spacing);
 
-  h_Run3PreviousTimeFrameWaveformStart = new TH1I(TString(m_HistoPrefix.c_str()) + "_Run3PreviousTimeFrameWaveformStartCache",  //
-                                                  TString(m_HistoPrefix.c_str()) +
-                                                      " Run3 previous matched waveform start cache;FEE ADC waveform start clock;Count",
-                                                  1024, -.5, 1023.5);
-  h_Run3PreviousTimeFrameWaveformStart->SetDirectory(nullptr);
+  h_Run3FEE_TimeFrameCount_GL1Spacing = new TH2I(TString(m_HistoPrefix.c_str()) + "_Run3FEE_TimeFrameCount_GL1Spacing",  //
+                                                 TString(m_HistoPrefix.c_str()) +
+                                                     " Run3 exact timeframe count by FEE vs GL1 spacing;Current - previous GL1 GTM BCO [BCO];FEE",
+                                                 1001, -.5, 1000.5, MAX_FEECOUNT, -.5, MAX_FEECOUNT - .5);
+  hm->registerHisto(h_Run3FEE_TimeFrameCount_GL1Spacing);
+
+  h_Run3FEE_TriggerCount_GL1Spacing = new TH2I(TString(m_HistoPrefix.c_str()) + "_Run3FEE_TriggerCount_GL1Spacing",  //
+                                               TString(m_HistoPrefix.c_str()) +
+                                                   " Run3 GL1 trigger count by FEE vs GL1 spacing;Current - previous GL1 GTM BCO [BCO];FEE",
+                                               1001, -.5, 1000.5, MAX_FEECOUNT, -.5, MAX_FEECOUNT - .5);
+  hm->registerHisto(h_Run3FEE_TriggerCount_GL1Spacing);
+
+  h_Run3PreviousTimeFrameWaveformADC = new TH1I(TString(m_HistoPrefix.c_str()) + "_Run3PreviousTimeFrameWaveformADCCache",  //
+                                                TString(m_HistoPrefix.c_str()) +
+                                                    " Run3 previous matched waveform ADC cache;ADC Time Bin [0...1023];Sum ADC",
+                                                1024, -.5, 1023.5);
+  h_Run3PreviousTimeFrameWaveformADC->SetDirectory(nullptr);
 
   h_ProcessPacket_Time = new TH2I(TString(m_HistoPrefix.c_str()) + "_ProcessPacket_Time",  //
                                   TString(m_HistoPrefix.c_str()) +
@@ -212,10 +224,9 @@ TpcTimeFrameBuilderRun3::~TpcTimeFrameBuilderRun3()
   {
     for (auto& timeHitEntry : feeTimeHitMap)
     {
-      for (CachedTimeHit& cached_hit : timeHitEntry.second)
+      for (TpcRawHit* hit : timeHitEntry.second)
       {
-        delete cached_hit.hit;
-        cached_hit.hit = nullptr;
+        delete hit;
       }
       timeHitEntry.second.clear();
     }
@@ -230,7 +241,7 @@ TpcTimeFrameBuilderRun3::~TpcTimeFrameBuilderRun3()
       timeFrameEntry.second.pop_back();
     }
   }
-  delete h_Run3PreviousTimeFrameWaveformStart;
+  delete h_Run3PreviousTimeFrameWaveformADC;
 
   delete m_packetTimer;
 
@@ -247,10 +258,12 @@ void TpcTimeFrameBuilderRun3::setVerbosity(const int i)
   }
 }
 
-void TpcTimeFrameBuilderRun3::flush_previous_timeframe_waveform_start_cache(uint64_t current_gtm_bco)
+void TpcTimeFrameBuilderRun3::flush_previous_timeframe_qa_cache(uint64_t current_gtm_bco)
 {
-  assert(h_Run3PreviousTimeFrameWaveformStart);
-  assert(h_Run3WaveformStart_GL1Spacing);
+  assert(h_Run3PreviousTimeFrameWaveformADC);
+  assert(h_Run3Waveform_GL1Spacing);
+  assert(h_Run3FEE_TimeFrameCount_GL1Spacing);
+  assert(h_Run3FEE_TriggerCount_GL1Spacing);
 
   if (!m_previousTimeFrameGtmBco)
   {
@@ -264,32 +277,74 @@ void TpcTimeFrameBuilderRun3::flush_previous_timeframe_waveform_start_cache(uint
                                                           : current_gtm_bco + gtm_clock_range;
   const uint64_t gtm_bco_spacing = current_gtm_bco_rollover_corrected - previous_gtm_bco;
 
-  for (int bin = 1; bin <= h_Run3PreviousTimeFrameWaveformStart->GetNbinsX(); ++bin)
+  const int waveform_ybin = h_Run3Waveform_GL1Spacing->GetYaxis()->FindFixBin(static_cast<double>(gtm_bco_spacing));
+  double waveform_entries = 0;
+  for (int xbin = 1; xbin <= h_Run3PreviousTimeFrameWaveformADC->GetNbinsX(); ++xbin)
   {
-    const double count = h_Run3PreviousTimeFrameWaveformStart->GetBinContent(bin);
-    if (count == 0)
+    const double adc_sum = h_Run3PreviousTimeFrameWaveformADC->GetBinContent(xbin);
+    if (adc_sum == 0)
     {
       continue;
     }
 
-    h_Run3WaveformStart_GL1Spacing->Fill(h_Run3PreviousTimeFrameWaveformStart->GetXaxis()->GetBinCenter(bin),
-                                         gtm_bco_spacing, count);
+    h_Run3Waveform_GL1Spacing->AddBinContent(h_Run3Waveform_GL1Spacing->GetBin(xbin, waveform_ybin), adc_sum);
+    ++waveform_entries;
   }
+  h_Run3Waveform_GL1Spacing->SetEntries(h_Run3Waveform_GL1Spacing->GetEntries() + waveform_entries);
 
-  h_Run3PreviousTimeFrameWaveformStart->Reset();
+  const int fee_xbin = h_Run3FEE_TriggerCount_GL1Spacing->GetXaxis()->FindFixBin(static_cast<double>(gtm_bco_spacing));
+  double timeframe_entries = 0;
+  for (uint16_t fee = 0; fee < MAX_FEECOUNT; ++fee)
+  {
+    const int fee_ybin = static_cast<int>(fee) + 1;
+    h_Run3FEE_TriggerCount_GL1Spacing->AddBinContent(h_Run3FEE_TriggerCount_GL1Spacing->GetBin(fee_xbin, fee_ybin));
+
+    if (m_previousTimeFrameExactFees.test(fee))
+    {
+      h_Run3FEE_TimeFrameCount_GL1Spacing->AddBinContent(h_Run3FEE_TimeFrameCount_GL1Spacing->GetBin(fee_xbin, fee_ybin));
+      ++timeframe_entries;
+    }
+  }
+  h_Run3FEE_TriggerCount_GL1Spacing->SetEntries(h_Run3FEE_TriggerCount_GL1Spacing->GetEntries() + MAX_FEECOUNT);
+  h_Run3FEE_TimeFrameCount_GL1Spacing->SetEntries(h_Run3FEE_TimeFrameCount_GL1Spacing->GetEntries() + timeframe_entries);
+
+  h_Run3PreviousTimeFrameWaveformADC->Reset();
+  m_previousTimeFrameExactFees.reset();
   m_previousTimeFrameGtmBco.reset();
 }
 
-void TpcTimeFrameBuilderRun3::cache_timeframe_waveform_starts(uint64_t gtm_bco, const std::vector<uint16_t>& waveform_start_clocks)
+void TpcTimeFrameBuilderRun3::cache_timeframe_qa(uint64_t gtm_bco, const std::vector<TpcRawHit*>& timeframe, const std::bitset<MAX_FEECOUNT>& exact_matched_fees)
 {
-  assert(h_Run3PreviousTimeFrameWaveformStart);
+  assert(h_Run3PreviousTimeFrameWaveformADC);
 
-  h_Run3PreviousTimeFrameWaveformStart->Reset();
-  for (const uint16_t waveform_start : waveform_start_clocks)
+  h_Run3PreviousTimeFrameWaveformADC->Reset();
+  for (const TpcRawHit* hit : timeframe)
   {
-    h_Run3PreviousTimeFrameWaveformStart->Fill(waveform_start);
+    if (!hit)
+    {
+      continue;
+    }
+
+    std::unique_ptr<TpcRawHit::AdcIterator> adc_iter(hit->CreateAdcIterator());
+    if (!adc_iter)
+    {
+      continue;
+    }
+
+    for (adc_iter->First(); !adc_iter->IsDone(); adc_iter->Next())
+    {
+      const uint16_t time_bin = adc_iter->CurrentTimeBin();
+      const uint16_t adc = adc_iter->CurrentAdc();
+      if (adc == 0 || time_bin >= 1024U)
+      {
+        continue;
+      }
+
+      h_Run3PreviousTimeFrameWaveformADC->AddBinContent(static_cast<int>(time_bin) + 1, adc);
+    }
   }
 
+  m_previousTimeFrameExactFees = exact_matched_fees;
   m_previousTimeFrameGtmBco = gtm_bco;
 }
 
@@ -316,7 +371,7 @@ uint32_t TpcTimeFrameBuilderRun3::get_fee_bco_diff(uint32_t first, uint32_t seco
   return static_cast<uint32_t>(diff < 0 ? -diff : diff);
 }
 
-size_t TpcTimeFrameBuilderRun3::move_time_hits(uint32_t fee_bco, uint16_t fee, std::vector<TpcRawHit*>& timeframe, std::vector<uint16_t>& waveform_start_clocks)
+size_t TpcTimeFrameBuilderRun3::move_time_hits(uint32_t fee_bco, uint16_t fee, std::vector<TpcRawHit*>& timeframe)
 {
   if (fee >= m_timeHitMap.size())
   {
@@ -330,7 +385,7 @@ size_t TpcTimeFrameBuilderRun3::move_time_hits(uint32_t fee_bco, uint16_t fee, s
     return 0;
   }
 
-  std::vector<CachedTimeHit>& hits = it->second;
+  std::vector<TpcRawHit*>& hits = it->second;
   const size_t moved = hits.size();
   if (moved == 0)
   {
@@ -339,18 +394,7 @@ size_t TpcTimeFrameBuilderRun3::move_time_hits(uint32_t fee_bco, uint16_t fee, s
   }
 
   timeframe.reserve(timeframe.size() + moved);
-  for (CachedTimeHit& cached_hit : hits)
-  {
-    if (cached_hit.hit)
-    {
-      timeframe.push_back(cached_hit.hit);
-      cached_hit.hit = nullptr;
-    }
-
-    waveform_start_clocks.insert(waveform_start_clocks.end(),
-                                 cached_hit.waveform_start_clocks.begin(),
-                                 cached_hit.waveform_start_clocks.end());
-  }
+  timeframe.insert(timeframe.end(), hits.begin(), hits.end());
   fee_time_hits.erase(it);
   return moved;
 }
@@ -400,7 +444,7 @@ std::optional<uint32_t> TpcTimeFrameBuilderRun3::find_fuzzy_fee_bco(uint32_t pre
   uint32_t best_diff = std::numeric_limits<uint32_t>::max();
   bool found = false;
 
-  auto consider_fee_bco = [&](uint32_t fee_bco, const std::vector<CachedTimeHit>& hits)
+  auto consider_fee_bco = [&](uint32_t fee_bco, const std::vector<TpcRawHit *>& hits)
   {
     if (hits.empty())
     {
@@ -463,11 +507,10 @@ void TpcTimeFrameBuilderRun3::cleanup_time_hit_map(uint64_t bclk_rollover_correc
       const int64_t diff = get_signed_fee_bco_diff(map_it->first, *predicted_fee_bco);
       if ((fee_clock_window == 0 && diff <= 0) || (fee_clock_window > 0 && diff < -static_cast<int64_t>(fee_clock_window)))
       {
-        for (CachedTimeHit& cached_hit : map_it->second)
+        for (TpcRawHit* hit : map_it->second)
         {
           m_hFEEDataStream->Fill(fee, "HitUnusedBeforeCleanup", 1);
-          delete cached_hit.hit;
-          cached_hit.hit = nullptr;
+          delete hit;
         }
         map_it = fee_time_hits.erase(map_it);
       }
@@ -520,7 +563,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
     return cached->second;
   }
 
-  flush_previous_timeframe_waveform_start_cache(bclk_rollover_corrected);
+  flush_previous_timeframe_qa_cache(bclk_rollover_corrected);
 
   if (m_verbosity > 2)
   {
@@ -536,7 +579,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
 
   size_t exact_hit_count = 0;
   size_t fallback_hit_count = 0;
-  std::vector<uint16_t> matched_waveform_start_clocks;
+  std::bitset<MAX_FEECOUNT> exact_matched_fees;
 
   for (size_t fee_index = 0; fee_index < m_bcoMatchingInformation_vec.size(); ++fee_index)
   {
@@ -551,7 +594,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
     for (int32_t fee_clock_offset = -kRun3ExactMatchWindow; fee_clock_offset <= kRun3ExactMatchWindow; ++fee_clock_offset)
     {
       const uint32_t exact_fee_bco = static_cast<uint32_t>(static_cast<uint64_t>(static_cast<int64_t>(*predicted_fee_bco) + fee_clock_offset) & kFEEClockMask);
-      const size_t exact_hits_for_bco = move_time_hits(exact_fee_bco, fee, timeframe, matched_waveform_start_clocks);
+      const size_t exact_hits_for_bco = move_time_hits(exact_fee_bco, fee, timeframe);
       if (exact_hits_for_bco == 0)
       {
         continue;
@@ -569,6 +612,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
     {
       assert(h_Run3TimeFrameExactHit_FEE);
       h_Run3TimeFrameExactHit_FEE->Fill(fee, exact_hits);
+      exact_matched_fees.set(fee);
       continue;
     }
 
@@ -622,6 +666,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
 
     m_hNorm->Fill("Run3_TimeFrame_MatchFailed", 1);
     m_hNorm->Fill("GTM_TimeFrame_Unmatched", 1);
+    cache_timeframe_qa(bclk_rollover_corrected, timeframe, exact_matched_fees);
     m_timeFrameMap.erase(frame_it);
     static std::vector<TpcRawHit*> empty;
     return empty;
@@ -635,7 +680,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
   assert(h_TimeFrame_Matched_Size);
   h_TimeFrame_Matched_Size->Fill(timeframe.size());
   m_hNorm->Fill("GTM_TimeFrame_Matched_Hit_Sum", timeframe.size());
-  cache_timeframe_waveform_starts(bclk_rollover_corrected, matched_waveform_start_clocks);
+  cache_timeframe_qa(bclk_rollover_corrected, timeframe, exact_matched_fees);
   m_UsedTimeFrameSet.push(bclk_rollover_corrected);
   return timeframe;
 }
@@ -895,10 +940,9 @@ int TpcTimeFrameBuilderRun3::ProcessPacket(Packet* packet)
                   << std::endl;
         m_hNorm->Fill("TimeFrameSizeLimitError", 1);
 
-        for (CachedTimeHit& cached_hit : timehit->second)
+        for (TpcRawHit* hit : timehit->second)
         {
-          delete cached_hit.hit;
-          cached_hit.hit = nullptr;
+          delete hit;
         }
         timehit = fee_time_hits.erase(timehit);
       }
@@ -1247,18 +1291,12 @@ void TpcTimeFrameBuilderRun3::process_fee_data_waveform(const unsigned int& fee,
       // hit->set_parity(payload.data_parity);
       hit->set_parityerror(payload.data_parity != payload.calc_parity);
 
-      std::vector<uint16_t> waveform_start_clocks;
-      waveform_start_clocks.reserve(payload.waveforms.size());
-      for (const std::pair<uint16_t, std::vector<uint16_t>>& waveform : payload.waveforms)
-      {
-        waveform_start_clocks.push_back(waveform.first);
-      }
       for (std::pair<uint16_t, std::vector<uint16_t>>& waveform : payload.waveforms)
       {
         hit->move_adc_waveform(waveform.first, std::move(waveform.second));
       }
 
-      m_timeHitMap[fee][payload.bx_timestamp & kFEEClockMask].push_back(CachedTimeHit{hit, std::move(waveform_start_clocks)});
+      m_timeHitMap[fee][payload.bx_timestamp & kFEEClockMask].push_back(hit);
     }
   }  //     if (not m_fastBCOSkip)
 

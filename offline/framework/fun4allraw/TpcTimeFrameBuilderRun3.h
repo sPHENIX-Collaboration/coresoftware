@@ -4,6 +4,7 @@
 #include "TpcTimeFrameBuilderBase.h"
 
 #include <algorithm>
+#include <bitset>
 #include <cstdint>
 #include <deque>
 #include <functional>
@@ -390,28 +391,23 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
 
   static int64_t get_signed_fee_bco_diff(uint32_t first, uint32_t second);
   static uint32_t get_fee_bco_diff(uint32_t first, uint32_t second);
-  struct CachedTimeHit
-  {
-    TpcRawHit *hit = nullptr;
-    std::vector<uint16_t> waveform_start_clocks;
-  };
-
-  size_t move_time_hits(uint32_t fee_bco, uint16_t fee, std::vector<TpcRawHit *> &timeframe, std::vector<uint16_t> &waveform_start_clocks);
+  size_t move_time_hits(uint32_t fee_bco, uint16_t fee, std::vector<TpcRawHit *> &timeframe);
   size_t count_time_hits(uint32_t fee_bco, uint16_t fee) const;
   size_t time_hit_bucket_count() const;
   std::optional<uint32_t> find_fuzzy_fee_bco(uint32_t predicted_fee_bco, uint16_t fee) const;
   void cleanup_time_hit_map(uint64_t bclk_rollover_corrected, uint32_t fee_clock_window);
-  void flush_previous_timeframe_waveform_start_cache(uint64_t current_gtm_bco);
-  void cache_timeframe_waveform_starts(uint64_t gtm_bco, const std::vector<uint16_t> &waveform_start_clocks);
+  void flush_previous_timeframe_qa_cache(uint64_t current_gtm_bco);
+  void cache_timeframe_qa(uint64_t gtm_bco, const std::vector<TpcRawHit *> &timeframe, const std::bitset<MAX_FEECOUNT> &exact_matched_fees);
 
   //! FEE -> FEE BCO -> cached TpcRawHit for Run3 exact-ratio matching
-  std::vector<std::map<uint32_t, std::vector<CachedTimeHit>>> m_timeHitMap;
+  std::vector<std::map<uint32_t, std::vector<TpcRawHit *>>> m_timeHitMap;
 
   //! rollover-corrected GTM BCO -> matched TpcRawHit returned to the input manager
   std::map<uint64_t, std::vector<TpcRawHit *>> m_timeFrameMap;
 
-  //! previous matched timeframe GTM BCO, used to fill waveform-start row once the next GTM BCO is known
+  //! previous timeframe QA state, filled once the next GTM BCO defines the GL1 spacing
   std::optional<uint64_t> m_previousTimeFrameGtmBco;
+  std::bitset<MAX_FEECOUNT> m_previousTimeFrameExactFees;
   static const size_t kMaxRawHitLimit = 10000;  // 10k hits per event > 256ch/fee * 26fee
   std::queue<uint64_t> m_UsedTimeFrameSet;
 
@@ -442,8 +438,10 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
   TH2 *h_Run3_FEE_GTMMatching_ClockDiff = nullptr;
   TH1 *h_Run3TimeFrameExactHit_FEE = nullptr;
   TH1 *h_Run3TimeFrameFuzzyHit_FEE = nullptr;
-  TH1 *h_Run3PreviousTimeFrameWaveformStart = nullptr;
-  TH2 *h_Run3WaveformStart_GL1Spacing = nullptr;
+  TH1 *h_Run3PreviousTimeFrameWaveformADC = nullptr;
+  TH2 *h_Run3Waveform_GL1Spacing = nullptr;
+  TH2 *h_Run3FEE_TimeFrameCount_GL1Spacing = nullptr;
+  TH2 *h_Run3FEE_TriggerCount_GL1Spacing = nullptr;
 
   TH2 *h_ProcessPacket_Time = nullptr;
 };
