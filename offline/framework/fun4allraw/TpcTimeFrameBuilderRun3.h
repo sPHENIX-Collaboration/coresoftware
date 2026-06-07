@@ -421,6 +421,7 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
   //! previous timeframe QA state, filled once the next GTM BCO defines the GL1 spacing
   std::optional<uint64_t> m_previousTimeFrameGtmBco;
   std::bitset<MAX_FEECOUNT> m_previousTimeFrameExactFees;
+  std::bitset<MAX_FEECOUNT> m_previousTimeFrameRecoveredFees;
   int m_hNormTruncatedWaveformRecoveryFeeFirstBin = 0;
   static const size_t kMaxRawHitLimit = 10000;  // 10k hits per event > 256ch/fee * 26fee
   std::queue<uint64_t> m_UsedTimeFrameSet;
@@ -457,6 +458,7 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
   TH2 *h_Run3Waveform_GL1Spacing = nullptr;
   TH2 *h_Run3WaveformRecovered_GL1Spacing = nullptr;
   TH2 *h_Run3FEE_TimeFrameCount_GL1Spacing = nullptr;
+  TH2 *h_Run3FEE_TimeFrameRecoveredCount_GL1Spacing = nullptr;
   TH2 *h_Run3FEE_TriggerCount_GL1Spacing = nullptr;
 
   TH2 *h_ProcessPacket_Time = nullptr;
