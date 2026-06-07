@@ -391,7 +391,10 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
   static constexpr uint32_t kFEEClockMask = (1U << 20U) - 1U;
   static constexpr uint32_t kRun3FeeMatchWindow = (GL1_BCO_MATCH_WINDOW * 30U + 7U) / 8U;
   static constexpr int32_t kRun3ExactMatchWindow = 2;
+  static constexpr uint32_t kRun3FEEClockPerADCClock = 2U;
   static constexpr uint32_t kRun3TruncatedWaveformRecoveryWindow = 1024U;
+  static constexpr uint32_t kRun3TruncatedWaveformRecoveryFEEWindow =
+      kRun3TruncatedWaveformRecoveryWindow * kRun3FEEClockPerADCClock;
   static constexpr int kRun3NormalizationBaseBinCount = 20;
   static constexpr int kRun3NormalizationBinCount = kRun3NormalizationBaseBinCount + MAX_FEECOUNT;
 

@@ -193,16 +193,17 @@ TpcTimeFrameBuilderRun3::TpcTimeFrameBuilderRun3(const int packet_id)
                                           MAX_FEECOUNT, -.5, MAX_FEECOUNT - .5);
   hm->registerHisto(h_Run3TimeFrameFuzzyHit_FEE);
 
+  static constexpr uint32_t kRun3TruncatedWaveformRecoveryWindowPlotingRange = 1200U;
   h_Run3Waveform_GL1Spacing = new TH2I(TString(m_HistoPrefix.c_str()) + "_Run3Waveform_GL1Spacing",  //
                                           TString(m_HistoPrefix.c_str()) +
-                                              " Run3 matched waveform ADC sum before truncated waveform recovery vs GL1 spacing;ADC Time Bin [0...1023];Current - previous GL1 GTM BCO [BCO]",
-                                          1024, -.5, 1023.5, 1001, -.5, 1000.5);
+                                              " Run3 matched waveform ADC sum before truncated waveform recovery vs GL1 spacing;ADC Time Bin [0...1199];Current - previous GL1 GTM BCO [BCO]",
+                                          kRun3TruncatedWaveformRecoveryWindowPlotingRange, -.5, static_cast<double>(kRun3TruncatedWaveformRecoveryWindowPlotingRange) - .5, 1001, -.5, 1000.5);
   hm->registerHisto(h_Run3Waveform_GL1Spacing);
 
   h_Run3WaveformRecovered_GL1Spacing = new TH2I(TString(m_HistoPrefix.c_str()) + "_Run3WaveformRecovered_GL1Spacing",  //
                                                    TString(m_HistoPrefix.c_str()) +
-                                                       " Run3 matched waveform ADC sum after truncated waveform recovery vs GL1 spacing;ADC Time Bin [0...1023];Current - previous GL1 GTM BCO [BCO]",
-                                                   1024, -.5, 1023.5, 1001, -.5, 1000.5);
+                                                       " Run3 matched waveform ADC sum after truncated waveform recovery vs GL1 spacing;ADC Time Bin [0...1199];Current - previous GL1 GTM BCO [BCO]",
+                                                   kRun3TruncatedWaveformRecoveryWindowPlotingRange, -.5, static_cast<double>(kRun3TruncatedWaveformRecoveryWindowPlotingRange) - .5, 1001, -.5, 1000.5);
   hm->registerHisto(h_Run3WaveformRecovered_GL1Spacing);
 
   h_Run3FEE_TimeFrameCount_GL1Spacing = new TH2I(TString(m_HistoPrefix.c_str()) + "_Run3FEE_TimeFrameCount_GL1Spacing",  //
@@ -219,14 +220,14 @@ TpcTimeFrameBuilderRun3::TpcTimeFrameBuilderRun3(const int packet_id)
 
   h_Run3PreviousTimeFrameWaveformADC = new TH1I(TString(m_HistoPrefix.c_str()) + "_Run3PreviousTimeFrameWaveformADCCache",  //
                                                 TString(m_HistoPrefix.c_str()) +
-                                                    " Run3 previous matched waveform ADC cache;ADC Time Bin [0...1023];Sum ADC",
-                                                1024, -.5, 1023.5);
+                                                    " Run3 previous matched waveform ADC cache;ADC Time Bin [0...1199];Sum ADC",
+                                                kRun3TruncatedWaveformRecoveryWindowPlotingRange, -.5, static_cast<double>(kRun3TruncatedWaveformRecoveryWindowPlotingRange) - .5);
   h_Run3PreviousTimeFrameWaveformADC->SetDirectory(nullptr);
 
   h_Run3PreviousTimeFrameRecoveredWaveformADC = new TH1I(TString(m_HistoPrefix.c_str()) + "_Run3PreviousTimeFrameRecoveredWaveformADCCache",  //
                                                          TString(m_HistoPrefix.c_str()) +
-                                                             " Run3 previous matched waveform ADC cache after truncated waveform recovery;ADC Time Bin [0...1023];Sum ADC",
-                                                         1024, -.5, 1023.5);
+                                                             " Run3 previous matched waveform ADC cache after truncated waveform recovery;ADC Time Bin [0...1199];Sum ADC",
+                                                         kRun3TruncatedWaveformRecoveryWindowPlotingRange, -.5, static_cast<double>(kRun3TruncatedWaveformRecoveryWindowPlotingRange) - .5);
   h_Run3PreviousTimeFrameRecoveredWaveformADC->SetDirectory(nullptr);
 
   h_ProcessPacket_Time = new TH2I(TString(m_HistoPrefix.c_str()) + "_ProcessPacket_Time",  //
@@ -264,7 +265,7 @@ TpcTimeFrameBuilderRun3::~TpcTimeFrameBuilderRun3()
 
   delete m_packetTimer;
 
-  delete m_digitalCurrentDebugTTree;
+  // delete m_digitalCurrentDebugTTree;
 }
 
 void TpcTimeFrameBuilderRun3::setVerbosity(const int i)
@@ -649,8 +650,15 @@ size_t TpcTimeFrameBuilderRun3::recover_truncated_waveforms(uint32_t predicted_f
       const uint16_t channel = source_hit->get_channel();
       TpcRawHitRun3_typ* target_hit = current_hits[channel];
       const uint32_t target_fee_bco = target_hit ? static_cast<uint32_t>(target_hit->get_bco()) & kFEEClockMask : predicted_fee_bco;
-      const int64_t fee_clock_shift = get_signed_fee_bco_diff(static_cast<uint32_t>(source_hit->get_bco()), target_fee_bco) /2; # FEE BCO is 2x ADC clock and therefore the shift is devided by /2
-      if (fee_clock_shift <= 0 || fee_clock_shift >= static_cast<int64_t>(kRun3TruncatedWaveformRecoveryWindow))
+      const int64_t fee_bco_diff = get_signed_fee_bco_diff(static_cast<uint32_t>(source_hit->get_bco()), target_fee_bco);
+      if (fee_bco_diff <= 0 || fee_bco_diff >= static_cast<int64_t>(kRun3TruncatedWaveformRecoveryFEEWindow))
+      {
+        continue;
+      }
+
+      const int64_t fee_clock_shift = fee_bco_diff / static_cast<int64_t>(kRun3FEEClockPerADCClock);
+      // FEE BCO is 2x ADC clock, so the waveform shift is half the FEE BCO difference.
+      if (fee_clock_shift <= 0)
       {
         continue;
       }
@@ -693,7 +701,7 @@ size_t TpcTimeFrameBuilderRun3::recover_truncated_waveforms(uint32_t predicted_f
   };
 
   const uint32_t lower_fee_bco = (predicted_fee_bco + 1U) & kFEEClockMask;
-  const uint32_t upper_fee_bco = (predicted_fee_bco + kRun3TruncatedWaveformRecoveryWindow - 1U) & kFEEClockMask;
+  const uint32_t upper_fee_bco = (predicted_fee_bco + kRun3TruncatedWaveformRecoveryFEEWindow - 1U) & kFEEClockMask;
   auto scan_range = [&](uint32_t first_fee_bco, uint32_t last_fee_bco)
   {
     for (auto it = fee_time_hits.lower_bound(first_fee_bco); it != fee_time_hits.end() && it->first <= last_fee_bco; ++it)
