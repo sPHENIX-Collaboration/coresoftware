@@ -183,7 +183,7 @@ TpcTimeFrameBuilder::~TpcTimeFrameBuilder()
 
   delete m_packetTimer;
 
-  // delete m_digitalCurrentDebugTTree;
+  delete m_digitalCurrentDebugTTree;
 }
 
 void TpcTimeFrameBuilder::setVerbosity(const int i)
