@@ -49,7 +49,7 @@ namespace
 TrkrClusterv1::TrkrClusterv1()
   : m_cluskey(TrkrDefs::CLUSKEYMAX)
   , m_isGlobal(true)
-  , m_adc(0xFFFFFFFF)
+  , m_adc(std::numeric_limits<uint16_t>::max())
 {
   for (float& m_po : m_pos)
   {
