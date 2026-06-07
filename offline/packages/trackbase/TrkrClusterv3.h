@@ -62,8 +62,8 @@ class TrkrClusterv3 : public TrkrCluster
   //
   // cluster info
   //
-  unsigned int getAdc() const override { return m_adc; }
-  void setAdc(unsigned int adc) override { m_adc = adc; }
+  uint16_t getAdc() const override { return m_adc; }
+  void setAdc(uint16_t adc) override { m_adc = adc; }
 
   //
   // convenience interface
@@ -137,7 +137,7 @@ class TrkrClusterv3 : public TrkrCluster
   TrkrDefs::cluskey m_cluskey;        //< unique identifier within container
   TrkrDefs::subsurfkey m_subsurfkey;  //< unique identifier for hitsetkey-surface maps
 
-  unsigned int m_adc;  //< cluster sum adc (D. McGlinchey - Do we need this?)
+  uint16_t m_adc;  //< cluster sum adc (D. McGlinchey - Do we need this?)
 
   float m_local[2]{};            //< 2D local position [cm]
   float m_actsLocalErr[2][2]{};  //< 2D local error for Acts [cm]

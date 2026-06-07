@@ -156,7 +156,7 @@ class TrkrClusterv6 : public TrkrCluster
     std::cout << "Deprecated seterr trkrcluster function!" << std::endl;
   }
 
-  char getSize() const override { return m_phisize * m_zsize; }
+  uint8_t getSize() const override { return m_phisize * m_zsize; }
   // void setSize(uint8_t size) { m_size = size; }
 
   float getRSize() const override { return (float) m_rsize; }

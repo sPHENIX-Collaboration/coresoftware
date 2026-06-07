@@ -63,17 +63,17 @@ class TrkrClusterv5 : public TrkrCluster
   //
   // cluster info
   //
-  unsigned int getAdc() const override
+  uint16_t getAdc() const override
   {
     return m_adc;
   }
 
-  void setAdc(unsigned int adc) override
+  void setAdc(uint16_t adc) override
   {
     m_adc = adc;
   }
 
-  unsigned int getMaxAdc() const override
+  uint16_t getMaxAdc() const override
   {
     return m_maxadc;
   }
@@ -151,20 +151,20 @@ class TrkrClusterv5 : public TrkrCluster
     std::cout << "Deprecated seterr trkrcluster function!" << std::endl;
   }
 
-  char getSize() const override { return m_phisize * m_zsize; }
-  //   void setSize(char size) { m_size = size; }
+  uint8_t getSize() const override { return m_phisize * m_zsize; }
+  //   void setSize(uint8_t size) { m_size = size; }
 
   float getPhiSize() const override { return (float) m_phisize; }
-  void setPhiSize(char phisize) { m_phisize = phisize; }
+  void setPhiSize(uint8_t phisize) { m_phisize = phisize; }
 
   float getZSize() const override { return (float) m_zsize; }
-  void setZSize(char zsize) { m_zsize = zsize; }
+  void setZSize(uint8_t zsize) { m_zsize = zsize; }
 
-  char getOverlap() const override { return m_overlap; }
-  void setOverlap(char overlap) override { m_overlap = overlap; }
+  uint8_t getOverlap() const override { return m_overlap; }
+  void setOverlap(uint8_t overlap) override { m_overlap = overlap; }
 
-  char getEdge() const override { return m_edge; }
-  void setEdge(char edge) override { m_edge = edge; }
+  uint8_t getEdge() const override { return m_edge; }
+  void setEdge(uint8_t edge) override { m_edge = edge; }
 
   // float getPhiSize() const override
   //{ std::cout << "Deprecated size function"<< std::endl; return NAN;}
@@ -178,12 +178,12 @@ class TrkrClusterv5 : public TrkrCluster
   TrkrDefs::subsurfkey m_subsurfkey;  //< unique identifier for hitsetkey-surface maps 16 bit
   float m_phierr;
   float m_zerr;
-  unsigned short int m_adc;     //< cluster sum adc 16
-  unsigned short int m_maxadc;  //< cluster sum adc 16
-  char m_phisize;               // 8bit
-  char m_zsize;                 // 8bit
-  char m_overlap;               // 8bit
-  char m_edge;                  // 8bit - cumul 2*64
+  uint16_t m_adc;     //< cluster sum adc 16
+  uint16_t m_maxadc;  //< cluster sum adc 16
+  uint8_t m_phisize;               // 8bit
+  uint8_t m_zsize;                 // 8bit
+  uint8_t m_overlap;               // 8bit
+  uint8_t m_edge;                  // 8bit - cumul 2*64
 
   ClassDefOverride(TrkrClusterv5, 2)
 };

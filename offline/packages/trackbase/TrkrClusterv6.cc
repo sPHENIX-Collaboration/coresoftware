@@ -21,10 +21,6 @@ namespace
   }
 }  // namespace
 
-TrkrClusterv6::TrkrClusterv6()
-{
-}
-
 void TrkrClusterv6::identify(std::ostream& os) const
 {
   os << "---TrkrClusterv6--------------------" << std::endl;

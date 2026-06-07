@@ -62,8 +62,8 @@ class TrkrClusterv1 : public TrkrCluster
   //
   // cluster info
   //
-  unsigned int getAdc() const override { return m_adc; }
-  void setAdc(unsigned int adc) override { m_adc = adc; }
+  uint16_t getAdc() const override { return m_adc; }
+  void setAdc(uint16_t adc) override { m_adc = adc; }
   float getSize(unsigned int i, unsigned int j) const override;        //< get cluster dimension covar
   void setSize(unsigned int i, unsigned int j, float value) override;  //< set cluster dimension covar
 
@@ -84,7 +84,7 @@ class TrkrClusterv1 : public TrkrCluster
   TrkrDefs::cluskey m_cluskey;  //< unique identifier within container
   float m_pos[3]{};             //< mean position x,y,z
   bool m_isGlobal;              //< flag for coord sys (true = global)
-  unsigned int m_adc;           //< cluster sum adc (D. McGlinchey - Do we need this?)
+  uint16_t m_adc;           //< cluster sum adc (D. McGlinchey - Do we need this?)
   float m_size[6]{};            //< size covariance matrix (packed storage) (+/- cm^2)
   float m_err[6]{};             //< covariance matrix: rad, arc and z
 
