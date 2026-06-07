@@ -710,6 +710,38 @@ int Fun4AllStreamingInputManager::FillIntt()
     }
   }
 
+  // hit duplication:add hits in N + [1..M] * shift BCOs
+  if (m_InttHitDuplication)
+  {
+    if (m_InttHitCarryOverShiftMaxMultiple < 1)
+    {
+        std::cout << __FILE__ << ":" << __PRETTY_FUNCTION__ << ":" << __LINE__ << ": m_InttHitDuplication is set to true but m_InttHitCarryOverShiftMaxMultiple=" << m_InttHitCarryOverShiftMaxMultiple << "is not positive. Default to 1" << std::endl;
+        m_InttHitCarryOverShiftMaxMultiple = 1;
+    }
+
+    const uint64_t max_shift = m_InttHitCarryOverShift * m_InttHitCarryOverShiftMaxMultiple;
+    const uint64_t bco_duplicate_high = select_crossings + max_shift;
+
+    // now fill the pool until the highest bco in the map is higher than the duplication threshold, which is the select_crossings + the maximum shift we want to do
+    while (m_InttRawHitMap.rbegin()->first < bco_duplicate_high) // if the highest bco is still smaller than the duplication threshold, keep duplicating
+    {
+        const uint64_t previous_high_bco = m_InttRawHitMap.rbegin()->first;
+        iret = FillInttPool();
+        if (iret)
+        {
+            break; // if FillInttPool returns non zero, there is no more data to read and we can stop trying to duplicate
+        }
+        // Note: need this gaurd. FillInttPool() only returns non-0 if m_InttRawHitMap is empty
+        // FillInttPool() calls SingleInttPoolInput::FillPool() returns regardless of whether it actually fill new data or not
+        // So if FillInttPool() is called and there is no new data to pool, it will return 0 but m_InttRawHitMap will not have changed (non-empty)
+        // If we don't check for this, it would cause an infinite loop
+        if (m_InttRawHitMap.rbegin()->first == previous_high_bco)
+        {
+            break;
+        }
+    }
+  }
+
   unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   bool allpackets = true;
   int allpacketsallfees = 0;
@@ -793,6 +825,32 @@ int Fun4AllStreamingInputManager::FillIntt()
         //        intthititer->identify();
       }
       inttcont->AddHit(intthititer);
+    }
+
+    // Insert duplication of hits in N + [1..M] * shift BCOs if m_InttHitDuplication is set to true
+    if (m_InttHitDuplication)
+    {
+        for (int shift_multiple = 1; shift_multiple <= m_InttHitCarryOverShiftMaxMultiple; ++shift_multiple)
+        {
+            const uint64_t shift = m_InttHitCarryOverShift * shift_multiple;
+            const uint64_t source_bco = bco + shift;
+            auto source_iter = m_InttRawHitMap.find(source_bco);
+            if (source_iter == m_InttRawHitMap.end())
+            {
+                continue;
+            }
+
+            for (auto *source_hit : source_iter->second.InttRawHitVector)
+            {
+                if (source_hit->get_bco() < shift)
+                {
+                    continue;
+                }
+
+                auto *copied_hit = inttcont->AddHit(source_hit);
+                copied_hit->set_bco(source_hit->get_bco() - shift);
+            }
+        }
     }
   } 
   return 0;
