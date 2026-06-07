@@ -6,7 +6,9 @@
  */
 #include "TrkrClusterv1.h"
 
+#include <climits>
 #include <cmath>
+#include <cstdint>
 #include <utility>  // for swap
 
 namespace
@@ -130,7 +132,7 @@ int TrkrClusterv1::isValid() const
       return 0;
     }
   }
-  if (m_adc == 0xFFFFFFFF)
+  if (m_adc == std::numeric_limits<uint16_t>::max())
   {
     return 0;
   }

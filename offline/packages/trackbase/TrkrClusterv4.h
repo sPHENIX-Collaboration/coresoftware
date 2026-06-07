@@ -186,7 +186,7 @@ class TrkrClusterv4 : public TrkrCluster
   uint8_t m_overlap;                     // 8bit
   uint8_t m_edge;                        // 8bit - cumul 2*64
 
-  ClassDefOverride(TrkrClusterv4, 2)
+  ClassDefOverride(TrkrClusterv4, 3)
 };
 
 #endif  // TRACKBASE_TRKRCLUSTERV4_H

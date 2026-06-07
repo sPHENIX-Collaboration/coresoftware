@@ -142,7 +142,7 @@ class TrkrClusterv3 : public TrkrCluster
   float m_local[2]{};            //< 2D local position [cm]
   float m_actsLocalErr[2][2]{};  //< 2D local error for Acts [cm]
 
-  ClassDefOverride(TrkrClusterv3, 2)
+  ClassDefOverride(TrkrClusterv3, 3)
 };
 
 #endif  // TRACKBASE_TRKRCLUSTERV3_H

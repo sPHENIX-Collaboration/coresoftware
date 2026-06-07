@@ -6,7 +6,9 @@
  */
 #include "TrkrClusterv2.h"
 
+#include <climits>
 #include <cmath>
+#include <cstdint>
 #include <utility>  // for swap
 
 namespace
@@ -48,7 +50,7 @@ TrkrClusterv2::TrkrClusterv2()
   : m_cluskey(TrkrDefs::CLUSKEYMAX)
   , m_subsurfkey(TrkrDefs::SUBSURFKEYMAX)
   , m_isGlobal(true)
-  , m_adc(0xFFFFFFFF)
+  , m_adc(std::numeric_limits<uint16_t>::max())
 {
   for (float& m_po : m_pos)
   {
@@ -136,7 +138,7 @@ int TrkrClusterv2::isValid() const
       return 0;
     }
   }
-  if (m_adc == 0xFFFFFFFF)
+  if (m_adc == std::numeric_limits<uint16_t>::max())
   {
     return 0;
   }

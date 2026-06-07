@@ -6,7 +6,9 @@
  */
 #include "TrkrClusterv3.h"
 
+#include <climits>
 #include <cmath>
+#include <cstdint>
 #include <utility>  // for swap
 
 namespace
@@ -22,7 +24,7 @@ namespace
 TrkrClusterv3::TrkrClusterv3()
   : m_cluskey(TrkrDefs::CLUSKEYMAX)
   , m_subsurfkey(TrkrDefs::SUBSURFKEYMAX)
-  , m_adc(0xFFFFFFFF)
+  , m_adc(std::numeric_limits<uint16_t>::max())
 {
   for (int i = 0; i < 2; i++)
   {
@@ -77,7 +79,7 @@ int TrkrClusterv3::isValid() const
       }
     }
   }
-  if (m_adc == 0xFFFFFFFF)
+  if (m_adc == std::numeric_limits<uint16_t>::max())
   {
     return 0;
   }

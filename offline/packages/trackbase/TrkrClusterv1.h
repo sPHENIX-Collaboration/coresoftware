@@ -88,7 +88,7 @@ class TrkrClusterv1 : public TrkrCluster
   float m_size[6]{};            //< size covariance matrix (packed storage) (+/- cm^2)
   float m_err[6]{};             //< covariance matrix: rad, arc and z
 
-  ClassDefOverride(TrkrClusterv1, 1)
+  ClassDefOverride(TrkrClusterv1, 2)
 };
 
 #endif  // TRACKBASE_TRKRCLUSTERV1_H
