@@ -115,6 +115,7 @@ pkginclude_HEADERS = \
   TrkrClusterv3.h \
   TrkrClusterv4.h \
   TrkrClusterv5.h \
+  TrkrClusterv6.h \
   TrkrDefs.h \
   TrkrHit.h \
   TrkrHitSet.h \
@@ -187,6 +188,7 @@ ROOTDICTS = \
   TrkrClusterv3_Dict.cc \
   TrkrClusterv4_Dict.cc \
   TrkrClusterv5_Dict.cc \
+  TrkrClusterv6_Dict.cc \
   TrkrHitSetContMvtxHelper_Dict.cc \
   TrkrHitSetContMvtxHelperv1_Dict.cc \
   TrkrHitSetContainer_Dict.cc \
@@ -273,6 +275,7 @@ libtrack_io_la_SOURCES = \
   TrkrClusterv3.cc \
   TrkrClusterv4.cc \
   TrkrClusterv5.cc \
+  TrkrClusterv6.cc \
   TrkrDefs.cc \
   TrkrHitSet.cc \
   TrkrHitSetContMvtxHelper.cc \
