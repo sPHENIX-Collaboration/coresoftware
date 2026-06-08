@@ -8,9 +8,8 @@
 #include <TFile.h>
 #include <TNtuple.h>
 
-#include "Garfield/MediumMagboltz.hh"
+#include <Garfield/MediumMagboltz.hh>
 
-using namespace std;
 
 int main()
 {
@@ -23,7 +22,6 @@ int main()
   // New version chooses to NOT write output to a file (which seems broken),
   // but to instead just tries to merge the files and validate the copy in memory.
   const std::string dir = "gasfiles";
-  const std::string out = "Ar75_CF20_iso5.gas";
 
   auto filename = [&](const int i)
   {
@@ -90,9 +88,9 @@ int main()
 
   // Initialize using the current system time
   TRandom3 Randy(time(nullptr));  // new initialization each run
-  cout << endl
-       << endl
-       << "Valid Calls: " << endl;
+  std::cout << std::endl
+       << std::endl
+       << "Valid Calls: " << std::endl;
   for (int i = 0; i < nValid; i++)
   {
     double eMag = Randy.Uniform(emin, emax);
@@ -120,32 +118,32 @@ int main()
     gas0.ElectronVelocity(ex, ey, ez, bx, by, bz, vx0, vy0, vz0);
 
     /*
-    cout << "  i:" <<i;
-    cout << "  Ex:"<<ex;
-    cout << "  Ey:"<<ey;
-    cout << "  Ez:"<<ez;
-    cout << "  Bx:"<<bx;
-    cout << "  By:"<<by;
-    cout << "  Bz:"<<bz;
-    cout << "  Vx:"<<vx;
-    cout << "  Vy:"<<vy;
-    cout << "  Vz:"<<vz;
-    cout << endl;
-    cout << "  i:" <<i;
-    cout << "  Ex:"<<ex;
-    cout << "  Ey:"<<ey;
-    cout << "  Ez:"<<ez;
-    cout << "  Bx:"<<bx;
-    cout << "  By:"<<by;
-    cout << "  Bz:"<<bz;
-    cout << "  Vx0:"<<vx0;
-    cout << "  Vy0:"<<vy0;
-    cout << "  Vz0:"<<vz0;
-    cout << "  Vx%:"<<(vx-vx0)/vx;
-    cout << "  Vy%:"<<(vy-vy0)/vy;
-    cout << "  Vy%:"<<(vz-vz0)/vz;
-    cout << endl;
-    cout << endl;
+    std::cout << "  i:" <<i;
+    std::cout << "  Ex:"<<ex;
+    std::cout << "  Ey:"<<ey;
+    std::cout << "  Ez:"<<ez;
+    std::cout << "  Bx:"<<bx;
+    std::cout << "  By:"<<by;
+    std::cout << "  Bz:"<<bz;
+    std::cout << "  Vx:"<<vx;
+    std::cout << "  Vy:"<<vy;
+    std::cout << "  Vz:"<<vz;
+    std::cout << std::endl;
+    std::cout << "  i:" <<i;
+    std::cout << "  Ex:"<<ex;
+    std::cout << "  Ey:"<<ey;
+    std::cout << "  Ez:"<<ez;
+    std::cout << "  Bx:"<<bx;
+    std::cout << "  By:"<<by;
+    std::cout << "  Bz:"<<bz;
+    std::cout << "  Vx0:"<<vx0;
+    std::cout << "  Vy0:"<<vy0;
+    std::cout << "  Vz0:"<<vz0;
+    std::cout << "  Vx%:"<<(vx-vx0)/vx;
+    std::cout << "  Vy%:"<<(vy-vy0)/vy;
+    std::cout << "  Vy%:"<<(vz-vz0)/vz;
+    std::cout << std::endl;
+    std::cout << std::endl;
     */
 
     double DelVx = (vx - vx0) / ((vx + vx0) / 2.);
@@ -154,9 +152,9 @@ int main()
     Validity->Fill(1, sqrt(ex * ex + ey * ey + ez * ez), sqrt(bx * bx + by * by + bz * bz), a, DelVx, DelVy, DelVz);
   }
 
-  cout << endl
-       << endl
-       << "Invalid Calls: " << endl;
+  std::cout << std::endl
+       << std::endl
+       << "Invalid Calls: " << std::endl;
   for (int i = 0; i < nValid; i++)
   {
     double eMag = Randy.Uniform(emin, emax);
@@ -181,32 +179,32 @@ int main()
     gas.ElectronVelocity(ex, ey, ez, bx, by, bz, vx, vy, vz);
     gas0.ElectronVelocity(ex, ey, ez, bx, by, bz, vx0, vy0, vz0);
     /*
-    cout << "  i:" <<i;
-    cout << "  Ex:"<<ex;
-    cout << "  Ey:"<<ey;
-    cout << "  Ez:"<<ez;
-    cout << "  Bx:"<<bx;
-    cout << "  By:"<<by;
-    cout << "  Bz:"<<bz;
-    cout << "  Vx:"<<vx;
-    cout << "  Vy:"<<vy;
-    cout << "  Vz:"<<vz;
-    cout << endl;
-    cout << "  i:" <<i;
-    cout << "  Ex:"<<ex;
-    cout << "  Ey:"<<ey;
-    cout << "  Ez:"<<ez;
-    cout << "  Bx:"<<bx;
-    cout << "  By:"<<by;
-    cout << "  Bz:"<<bz;
-    cout << "  Vx0:"<<vx0;
-    cout << "  Vy0:"<<vy0;
-    cout << "  Vz0:"<<vz0;
-    cout << "  Vx%:"<<(vx-vx0)/vx;
-    cout << "  Vy%:"<<(vy-vy0)/vy;
-    cout << "  Vy%:"<<(vz-vz0)/vz;
-    cout << endl;
-    cout << endl;
+    std::cout << "  i:" <<i;
+    std::cout << "  Ex:"<<ex;
+    std::cout << "  Ey:"<<ey;
+    std::cout << "  Ez:"<<ez;
+    std::cout << "  Bx:"<<bx;
+    std::cout << "  By:"<<by;
+    std::cout << "  Bz:"<<bz;
+    std::cout << "  Vx:"<<vx;
+    std::cout << "  Vy:"<<vy;
+    std::cout << "  Vz:"<<vz;
+    std::cout << std::endl;
+    std::cout << "  i:" <<i;
+    std::cout << "  Ex:"<<ex;
+    std::cout << "  Ey:"<<ey;
+    std::cout << "  Ez:"<<ez;
+    std::cout << "  Bx:"<<bx;
+    std::cout << "  By:"<<by;
+    std::cout << "  Bz:"<<bz;
+    std::cout << "  Vx0:"<<vx0;
+    std::cout << "  Vy0:"<<vy0;
+    std::cout << "  Vz0:"<<vz0;
+    std::cout << "  Vx%:"<<(vx-vx0)/vx;
+    std::cout << "  Vy%:"<<(vy-vy0)/vy;
+    std::cout << "  Vy%:"<<(vz-vz0)/vz;
+    std::cout << std::endl;
+    std::cout << std::endl;
     */
     double DelVx = (vx - vx0) / ((vx + vx0) / 2.);
     double DelVy = (vy - vy0) / ((vy + vy0) / 2.);

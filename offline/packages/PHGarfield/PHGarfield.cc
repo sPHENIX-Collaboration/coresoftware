@@ -1,9 +1,9 @@
 #include "PHGarfield.h"
 
-#include "Garfield/ComponentUser.hh"
-#include "Garfield/DriftLineRKF.hh"
-#include "Garfield/MediumMagboltz.hh"
-#include "Garfield/Sensor.hh"
+#include <Garfield/ComponentUser.hh>
+#include <Garfield/DriftLineRKF.hh>
+#include <Garfield/MediumMagboltz.hh>
+#include <Garfield/Sensor.hh>
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
@@ -45,10 +45,6 @@
 #include <TNtuple.h>
 #include <TPolyLine3D.h>
 
-using namespace std;
-using namespace findNode;
-using namespace Garfield;
-
 PHGarfield::PHGarfield(const std::string& name)
   : SubsysReco(name)
   , PHI_MIN(-M_PI)
@@ -56,12 +52,12 @@ PHGarfield::PHGarfield(const std::string& name)
   // Local handling of Phi valued that wrap around.
 }
 
-int PHGarfield::InitRun(PHCompositeNode* topNode)
+int PHGarfield::InitRun(PHCompositeNode*)
 {
-  // Avoids the compiler error for having nore used the topNode.
-  (void) topNode;
-
+  if(Verbosity() > 1)
+  {
   std::cout << "PHGarfield::InitRun(PHCompositeNode *topNode) Initializing" << std::endl;
+  }
   m_cdb = CDBInterface::instance();
 
   //  Here we use the CDBInterface to set up the magnetic field map:
@@ -69,7 +65,6 @@ int PHGarfield::InitRun(PHCompositeNode* topNode)
   m_field = new PHField3DCartesian(url, 1.0);
 
   //  Here we use the CDBInterface to set up the channel making of the TPC:
-  std::string geofile = m_cdb->getUrl("Tracking_Geometry");
   std::string text = m_cdb->getUrl("TPC_FEE_CHANNEL_MAP");
   m_cdbTPCMAPttree = new CDBTTree(text);
   m_cdbTPCMAPttree->LoadCalibrations();
@@ -84,8 +79,10 @@ int PHGarfield::InitRun(PHCompositeNode* topNode)
 
   //  Diagnostic during code development...
   FillRadii();
-  // PrintMaps();
-
+  if(Verbosity() > 1)
+  {
+  PrintMaps();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -127,7 +124,7 @@ void PHGarfield::PrintGarfield(double x, double y, double z)
   GetElectricFieldVcm(x, y, z, ex, ey, ez);
   GetMagneticFieldTesla(x, y, z, bx, by, bz);
   m_gas->ElectronVelocity(ex, ey, ez, bx, by, bz, vx, vy, vz);
-  cout << " x:" << x
+  std::cout << " x:" << x
        << " y:" << y
        << " z:" << z
        << " ex:" << ex
@@ -139,7 +136,7 @@ void PHGarfield::PrintGarfield(double x, double y, double z)
        << " vx:" << vx
        << " vy:" << vy
        << " vz:" << vz
-       << endl;
+       << std::endl;
 }
 
 void PHGarfield::PrintMaps()
@@ -173,14 +170,14 @@ void PHGarfield::PrintMaps()
             if (prints < MAX)
             {
               prints++;
-              cout << " side: " << side;
-              cout << " sector: " << sector;
-              cout << " fee: " << fee;
-              cout << " channel: " << channel;
-              cout << " layer: " << layer;
-              cout << " phi: " << phi;
-              cout << " r: " << r;
-              cout << endl;
+              std::cout << " side: " << side;
+              std::cout << " sector: " << sector;
+              std::cout << " fee: " << fee;
+              std::cout << " channel: " << channel;
+              std::cout << " layer: " << layer;
+              std::cout << " phi: " << phi;
+              std::cout << " r: " << r;
+              std::cout << std::endl;
             }
           }
         }
@@ -293,9 +290,9 @@ double PHGarfield::bounder(double phi, double phi_min)
 
 TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_ns)
 {
-  vector<double> xlist;
-  vector<double> ylist;
-  vector<double> zlist;
+  std::vector<double> xlist;
+  std::vector<double> ylist;
+  std::vector<double> zlist;
 
   xlist.push_back(x);
   ylist.push_back(y);

@@ -1,13 +1,10 @@
 #include <cmath>
 #include <iostream>
 
-#include "Garfield/ComponentUser.hh"
-#include "Garfield/DriftLineRKF.hh"
-#include "Garfield/MediumMagboltz.hh"
-#include "Garfield/Sensor.hh"
-
-using namespace Garfield;
-using namespace std;
+#include <Garfield/ComponentUser.hh>
+#include <Garfield/DriftLineRKF.hh>
+#include <Garfield/MediumMagboltz.hh>
+#include <Garfield/Sensor.hh>
 
 //------------------------------------------------------------
 //  This standalone executable makes gas calculations for
@@ -45,7 +42,7 @@ int main(int argc, char* argv[])
   const double Amax = std::atof(argv[8]);
   const int nA = std::atoi(argv[9]);
 
-  const string output_file(argv[10]);
+  const std::string output_file(argv[10]);
 
   std::cout << "E grid: "
             << Emin << " -> " << Emax
@@ -59,12 +56,12 @@ int main(int argc, char* argv[])
             << Amin << " -> " << Amax
             << " with " << nA << " points\n";
 
-  std::cout << "Output File: " << output_file << endl;
+  std::cout << "Output File: " << output_file << std::endl;
 
   // ------------------------------------------------------------
   // Gas: Ar/CF4/isobutane = 75/20/5.
   // ------------------------------------------------------------
-  MediumMagboltz gas;
+  Garfield::MediumMagboltz gas;
   gas.SetComposition("ar", 75., "cf4", 20., "isobutane", 5.);
   gas.SetTemperature(301.65);  // K     from Grafana
   gas.SetPressure(762.);       // Torr  from Grafana

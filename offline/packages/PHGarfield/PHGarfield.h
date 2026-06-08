@@ -30,7 +30,7 @@ class PHGarfield : public SubsysReco
   PHGarfield(const std::string &name = "PHGarfield");
   ~PHGarfield() override = default;
 
-  int InitRun(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *) override;
   int process_event(PHCompositeNode *topNode) override;
 
   bool StopHere(const double x, const double y, const double z, const double zPrevious);
