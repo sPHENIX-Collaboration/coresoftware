@@ -52,7 +52,7 @@ PHGarfield::PHGarfield(const std::string& name)
   // Local handling of Phi valued that wrap around.
 }
 
-int PHGarfield::InitRun(PHCompositeNode*)
+int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
 {
   if(Verbosity() > 1)
   {
