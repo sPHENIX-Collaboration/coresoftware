@@ -1,5 +1,3 @@
-#include <PHGarfield.h>
-
 #include "PHGarfield.h"
 
 #include "Garfield/ComponentUser.hh"
@@ -51,9 +49,9 @@ using namespace std;
 using namespace findNode;
 using namespace Garfield;
 
-PHGarfield::PHGarfield(const std::string &name) : SubsysReco(name)
+PHGarfield::PHGarfield(const std::string &name) : SubsysReco(name), PHI_MIN(-M_PI)
 {
-  PHI_MIN = -M_PI;  // Local handling of Phi valued that wrap around.
+   // Local handling of Phi valued that wrap around.
 }
 
 int PHGarfield::InitRun(PHCompositeNode *topNode)
@@ -71,7 +69,7 @@ int PHGarfield::InitRun(PHCompositeNode *topNode)
   //  Here we use the CDBInterface to set up the channel making of the TPC:
   std::string geofile = m_cdb->getUrl("Tracking_Geometry");
   std::string text = m_cdb->getUrl("TPC_FEE_CHANNEL_MAP");
-  m_cdbTPCMAPttree = new CDBTTree(text.c_str());
+  m_cdbTPCMAPttree = new CDBTTree(text);
   m_cdbTPCMAPttree->LoadCalibrations();
 
   //  Make the Garfield Component and register the methods that will interface to our fields...
@@ -114,7 +112,15 @@ void PHGarfield::FillRadii()
 
   void PHGarfield::PrintGarfield(double x, double y, double z)
 {
-  double ex, ey, ez, bx, by, bz, vx, vy, vz;
+  double ex;
+  double ey;
+  double ez;
+  double bx;
+  double by;
+  double bz;
+  double vx;
+  double vy;
+  double vz;
   GetElectricFieldVcm  ( x, y, z, ex, ey, ez);
   GetMagneticFieldTesla( x, y, z, bx, by, bz);
   m_gas->ElectronVelocity(ex, ey, ez, bx, by, bz, vx, vy, vz);
@@ -238,7 +244,6 @@ void PHGarfield::InitializeGas(std::string dir)
       return;
     }
   
-  int nFiles = 1;
   for (int i = 1; ; ++i)
     {
       const std::string file = filename(i);
@@ -257,7 +262,6 @@ void PHGarfield::InitializeGas(std::string dir)
 	  return;
 	}
       
-      ++nFiles;
     }
 }
 
@@ -276,8 +280,10 @@ double PHGarfield::bounder(double phi, double phi_min)
 {
 
   double phi_max = phi_min + 2.0*M_PI;
-  while (phi <  phi_min) phi = phi + 2.0*M_PI;
-  while (phi >= phi_max) phi = phi - 2.0*M_PI;
+  while (phi <  phi_min) { phi = phi + 2.0*M_PI;
+}
+  while (phi >= phi_max) { phi = phi - 2.0*M_PI;
+}
 
   return phi;
 }
@@ -293,7 +299,15 @@ TPolyLine3D *PHGarfield::ReverseDrift (double x, double y, double z, double step
   ylist.push_back(y);
   zlist.push_back(z);
   
-  double ex, ey, ez, bx, by, bz, vx, vy, vz;
+  double ex;
+  double ey;
+  double ez;
+  double bx;
+  double by;
+  double bz;
+  double vx;
+  double vy;
+  double vz;
   
   double zPrevious = z;
   while (!StopHere(x,y,z,zPrevious))
@@ -326,13 +340,18 @@ bool PHGarfield::StopHere(const double x, const double y, const double z,
 {
   const double r = std::hypot(x, y);
   
-  if (r < 18.0) return true;
-  if (r > 82.0) return true;
-  if (z > 120.0) return true;
-  if (z < -120.0) return true;
+  if (r < 18.0) { return true;
+}
+  if (r > 82.0) { return true;
+}
+  if (z > 120.0) { return true;
+}
+  if (z < -120.0) { return true;
+}
   
   // z crossed the central membrane.
-  if (z * zPrevious < 0.0) return true;
+  if (z * zPrevious < 0.0) { return true;
+}
   
   return false;
 }

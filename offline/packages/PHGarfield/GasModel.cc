@@ -76,5 +76,5 @@ int main(int argc, char* argv[]) {
                    Amin, Amax, nA);
   
   gas.GenerateGasTable(10);
-  gas.WriteGasFile(output_file.c_str());
+  gas.WriteGasFile(output_file);
 }

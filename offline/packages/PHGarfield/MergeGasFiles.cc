@@ -54,7 +54,6 @@ int main()
       return 1;
     }
 
-  int nFiles = 1;
   for (int i = 1; ; ++i)
     {
       const std::string file = filename(i);
@@ -73,7 +72,6 @@ int main()
 	  return 1;
 	}
       
-      ++nFiles;
     }
 
   //  Don't write out since it crashes?
@@ -93,7 +91,7 @@ int main()
   //double na=50;
 
   // Initialize using the current system time
-  TRandom3 Randy(time(0));  //new initialization each run
+  TRandom3 Randy(time(nullptr));  //new initialization each run
   cout << endl << endl << "Valid Calls: "<< endl;
   for (int i=0; i<nValid; i++)
     {
