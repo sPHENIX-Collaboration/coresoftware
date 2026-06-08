@@ -97,13 +97,10 @@ class MicromegasBcoMatchingInformation_v2
   //! print gtm bco information
   void print_gtm_bco_information() const;
 
-  //! get first gtm bco
-  unsigned int get_fee_bco_first() const
-  { return m_fee_bco_first; }
-
-  //! get first gtm bco
-  uint64_t get_gtm_bco_first() const
-  { return m_gtm_bco_first; }
+  //! get BCO matching reference
+  using m_bco_matching_pair_t = std::pair<uint32_t, uint64_t>;
+  const m_bco_matching_pair_t& get_bco_matching_reference() const
+  { return m_bco_reference; }
 
   //! get last gtm bco
   uint64_t get_gtm_bco_last() const
@@ -178,14 +175,7 @@ class MicromegasBcoMatchingInformation_v2
 
   //! verified
   bool m_verified_from_modebits = false;
-
   bool m_verified_from_data = false;
-
-  //! first lvl1 bco (40 bits)
-  uint64_t m_gtm_bco_first = 0;
-
-  //! first fee bco (20 bits)
-  uint32_t m_fee_bco_first = 0;
 
   //! last found fee_bco
   /** used to try finding bco reference from data */
@@ -195,8 +185,10 @@ class MicromegasBcoMatchingInformation_v2
   //! list of available bco
   std::list<uint64_t> m_gtm_bco_list;
 
+  //! reference matching
+  m_bco_matching_pair_t m_bco_reference;
+
   //! matching between fee bco and lvl1 bco
-  using m_bco_matching_pair_t = std::pair<unsigned int, uint64_t>;
   std::list<m_bco_matching_pair_t> m_bco_matching_list;
 
   //! keep track or  fee_bco for which no gtm_bco is found

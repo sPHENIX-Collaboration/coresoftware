@@ -142,10 +142,10 @@ std::optional<uint32_t> MicromegasBcoMatchingInformation_v2::get_predicted_fee_b
   }
 
   // get gtm bco difference with proper rollover accounting
-  const uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ? (gtm_bco - m_gtm_bco_first) : (gtm_bco + (1ULL << 40U) - m_gtm_bco_first);
+  const uint64_t gtm_bco_difference = (gtm_bco >= m_bco_reference.second) ? (gtm_bco - m_bco_reference.second) : (gtm_bco + (1ULL << 40U) - m_bco_reference.second);
 
   // convert to fee bco, and truncate to 20 bits
-  const uint64_t fee_bco_predicted = m_fee_bco_first + get_adjusted_multiplier() * gtm_bco_difference;
+  const uint64_t fee_bco_predicted = m_bco_reference.first + get_adjusted_multiplier() * gtm_bco_difference;
   return uint32_t(fee_bco_predicted & 0xFFFFFU);
 }
 
@@ -225,8 +225,7 @@ bool MicromegasBcoMatchingInformation_v2::find_reference_from_modebits(const Mic
 
       // get BCO and assign
       const auto& gtm_bco = payload.bco;
-      m_gtm_bco_first = gtm_bco;
-      m_fee_bco_first = 0;
+      m_bco_reference = {0, gtm_bco};
       m_verified_from_modebits = true;
       return true;
     }
@@ -302,19 +301,18 @@ bool MicromegasBcoMatchingInformation_v2::find_reference_from_data(const fee_pay
       if (get_bco_diff(sum, fee_bco_diff) < m_max_fee_bco_diff)
       {
         m_verified_from_data = true;
-        m_gtm_bco_first = gtm_bco_list[i];
-        m_fee_bco_first = m_fee_bco_prev;
+        m_bco_reference = { m_fee_bco_prev, gtm_bco_list[i] };
 
         if (verbosity())
         {
           std::cout << "MicromegasBcoMatchingInformation_v2::find_reference_from_data - matching is verified" << std::endl;
           std::cout
               << "MicromegasBcoMatchingInformation_v2::find_reference_from_data -"
-              << " m_gtm_bco_first: " << std::hex << m_gtm_bco_first << std::dec
-              << std::endl;
-          std::cout
-              << "MicromegasBcoMatchingInformation_v2::find_reference_from_data -"
-              << " m_fee_bco_first: " << std::hex << m_fee_bco_first << std::dec
+              << std::hex
+              << " m_bco_reference: ( 0x"
+              << m_bco_reference.first
+              << ", 0x" << m_bco_reference.second << ")"
+              << std::dec
               << std::endl;
         }
         return true;
@@ -481,7 +479,7 @@ void MicromegasBcoMatchingInformation_v2::update_multiplier_adjustment(uint64_t 
   }
 
   // skip if trivial
-  if (gtm_bco == m_gtm_bco_first)
+  if (gtm_bco == m_bco_reference.second)
   {
     return;
   }
@@ -496,7 +494,7 @@ void MicromegasBcoMatchingInformation_v2::update_multiplier_adjustment(uint64_t 
   }
   const uint32_t fee_bco_predicted = *predicted_opt;
   const double delta_fee_bco = double(fee_bco) - double(fee_bco_predicted);
-  const double gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ? (gtm_bco - m_gtm_bco_first) : (gtm_bco + (1ULL << 40U) - m_gtm_bco_first);
+  const double gtm_bco_difference = (gtm_bco >= m_bco_reference.second) ? (gtm_bco - m_bco_reference.second) : (gtm_bco + (1ULL << 40U) - m_bco_reference.second);
 
   m_multiplier_adjustment_numerator += gtm_bco_difference * delta_fee_bco;
   m_multiplier_adjustment_denominator += gtm_bco_difference * gtm_bco_difference;

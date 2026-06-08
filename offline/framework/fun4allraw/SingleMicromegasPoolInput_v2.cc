@@ -773,19 +773,18 @@ void SingleMicromegasPoolInput_v2::decode_gtm_data(int packet_id, const SingleMi
   if (m_do_evaluation)
   {
     m_waveform.packet_id = packet_id;
-    m_waveform.gtm_bco_first = bco_matching_information.get_gtm_bco_first();
+    m_waveform.gtm_bco_first = bco_matching_information.get_bco_matching_reference().second;
     m_waveform.gtm_bco = bco_matching_information.get_gtm_bco_last();
 
     {
       const auto predicted = bco_matching_information.get_predicted_fee_bco(m_waveform.gtm_bco);
-      ;
       if (predicted)
       {
         m_waveform.fee_bco_predicted = predicted.value();
       }
     }
 
-    m_waveform.fee_bco_first = bco_matching_information.get_fee_bco_first();
+    m_waveform.fee_bco_first = bco_matching_information.get_bco_matching_reference().first;
   }
 }
 
