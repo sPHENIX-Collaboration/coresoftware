@@ -96,6 +96,7 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
     m_file = TFile::Open(m_tfile_name.c_str(), "RECREATE");
     m_ntuple = new TNtuple (
       "ntp", "ntp",
+      "layer:residualX:residualY:clusphi:"
       "dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:"
       "dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:"
       "dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:"
@@ -478,6 +479,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     TrkrCluster* cluster = _cluster_map->findCluster(ckey);
     const unsigned int layer = TrkrDefs::getLayer(ckey);
     const unsigned int trkrid = TrkrDefs::getTrkrId(ckey);
+    if(m_ignore_tpc && trkrid == TrkrDefs::tpcId)
+      continue;
     const SvtxAlignmentState::ResidualVector residual = state->get_residual();
     const Acts::Vector3 global = _tGeometry->getGlobalPosition(ckey, cluster);
 
@@ -485,6 +488,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     SvtxAlignmentState::ResidualVector clus_sigma = SvtxAlignmentState::ResidualVector::Zero();
 
     double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
+    double clusphi = atan2(global[1] , global[0]);
     auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, ckey);
     double phierror = sqrt(para_errors.first);
     double zerror = sqrt(para_errors.second);
@@ -620,6 +624,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     }
 
     float ntp_data[] = {
+      (float) layer, (float) residual(0), (float) residual(1), (float) clusphi, 
       lcl_derivative[0][0], lcl_derivative[0][1], lcl_derivative[0][2], lcl_derivative[0][3], lcl_derivative[0][4],
       glbl_derivative[0][0], glbl_derivative[0][1], glbl_derivative[0][2], glbl_derivative[0][3], glbl_derivative[0][4], glbl_derivative[0][5],
       lcl_derivative[1][0], lcl_derivative[1][1], lcl_derivative[1][2], lcl_derivative[1][3], lcl_derivative[1][4],
