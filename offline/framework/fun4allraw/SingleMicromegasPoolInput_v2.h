@@ -25,10 +25,17 @@ class TH1;
 class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
 {
  public:
-  explicit SingleMicromegasPoolInput_v2(const std::string &name = "SingleMicromegasPoolInput_v2");
-  ~SingleMicromegasPoolInput_v2() override;
-  void FillPool(const unsigned int nevents = 1) override;
 
+  //! constructor
+  explicit SingleMicromegasPoolInput_v2(const std::string &name = "SingleMicromegasPoolInput_v2");
+
+  //! destructor
+  ~SingleMicromegasPoolInput_v2() override;
+
+  //! pool filling
+  void FillPool(const uint64_t /*target_bco*/) override;
+
+  //! cleanup
   void CleanupUsedPackets(const uint64_t bclk) override
   {
     CleanupUsedPackets(bclk, false);
@@ -37,17 +44,23 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   //! specialized verion of cleaning up packets, with an extra flag about wheter the cleanup hits are dropped or not
   void CleanupUsedPackets(const uint64_t /* bclk */, bool /*dropped */) override;
 
+  //! current event cleaning
   void ClearCurrentEvent() override;
-  bool GetSomeMoreEvents();
+
+  //! print
   void Print(const std::string &what = "ALL") const override;
+
+  //!
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
   void SetBcoRange(const unsigned int value) { m_BcoRange = value; }
+
   void ConfigureStreamingInputManager() override;
+
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
   //! define minimum pool size in terms of how many BCO are stored
-  void SetBcoPoolSize(const unsigned int value) { m_BcoPoolSize = value; }
+  void SetBcoPoolSize(const unsigned int /*value*/) {}
 
   //! save some statistics for BCO QA
   void FillBcoQA(uint64_t /*gtm_bco*/) override;
@@ -61,7 +74,11 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   /// output file name for evaluation histograms
   void set_evaluation_outputfile(const std::string &outputfile) { m_evaluation_filename = outputfile; }
 
- private:
+  private:
+
+  //! true if more data is to be processed for collecting that of a given bco
+  bool is_more_data_required(const uint64_t /*target_bco*/) const;
+
   //!@name decoding constants
   //@{
   /// max number of FEE per OBDC
@@ -97,9 +114,6 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   /// bco adjustment for matching across subsystems
   unsigned int m_NegativeBco{0};
 
-  //! minimum number of BCO required in Micromegas Pools
-  unsigned int m_BcoPoolSize{1};
-
   //! store list of packets that have data for a given beam clock
   /**
    * all packets in taggers are stored,
@@ -113,18 +127,6 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
 
   //! store list of raw hits matching a given bco
   std::map<uint64_t, std::vector<MicromegasRawHit *>> m_MicromegasRawHitMap;
-
-  //! store current list of BCO on a per fee basis.
-  /** only packets for which a given FEE have data are stored */
-  std::map<int, uint64_t> m_FEEBclkMap;
-
-  //! store current list of BCO
-  /**
-   * all packets in taggers are stored,
-   * disregarding whether there is data associated to it or not
-   * this allows to keep track of dropped data, also in zero-suppression mode
-   */
-  std::set<uint64_t> m_BclkStack;
 
   //! map bco_information_t to packet id
   using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation_v2>;

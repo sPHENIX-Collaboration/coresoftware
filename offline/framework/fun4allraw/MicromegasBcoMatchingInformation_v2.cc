@@ -98,6 +98,10 @@ namespace
   //! copied from micromegas/MicromegasDefs.h, not available here
   constexpr int m_nchannels_fee = 256;
 
+  // gtm clock bits
+  /* used for rollover calculation */
+  static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
+
   /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
   enum SampaDataType
   {
@@ -132,6 +136,12 @@ unsigned int MicromegasBcoMatchingInformation_v2::m_max_multiplier_adjustment_co
 // define limit for matching fee_bco to fee_bco_predicted
 unsigned int MicromegasBcoMatchingInformation_v2::m_max_gtm_bco_diff = 100;
 
+//
+// unsigned int MicromegasBcoMatchingInformation_v2::m_max_fee_sync_time = 1024 * 8;
+// unsigned int MicromegasBcoMatchingInformation_v2::m_max_fee_sync_time = 1024 * 16;
+unsigned int MicromegasBcoMatchingInformation_v2::m_max_fee_sync_time = 1024 * 32;
+
+
 //___________________________________________________
 std::optional<uint32_t> MicromegasBcoMatchingInformation_v2::get_predicted_fee_bco(uint64_t gtm_bco) const
 {
@@ -142,7 +152,7 @@ std::optional<uint32_t> MicromegasBcoMatchingInformation_v2::get_predicted_fee_b
   }
 
   // get gtm bco difference with proper rollover accounting
-  const uint64_t gtm_bco_difference = (gtm_bco >= m_bco_reference.second) ? (gtm_bco - m_bco_reference.second) : (gtm_bco + (1ULL << 40U) - m_bco_reference.second);
+  const uint64_t gtm_bco_difference = get_gtm_rollover_correction(gtm_bco) - m_bco_reference.second;
 
   // convert to fee bco, and truncate to 20 bits
   const uint64_t fee_bco_predicted = m_bco_reference.first + get_adjusted_multiplier() * gtm_bco_difference;
@@ -177,6 +187,46 @@ void MicromegasBcoMatchingInformation_v2::print_gtm_bco_information() const
     }
   }
 }
+
+//___________________________________________________
+uint64_t MicromegasBcoMatchingInformation_v2::get_gtm_rollover_correction(uint64_t gtm_bco) const
+{
+  // check proper initialization
+  if (!is_verified()) { return gtm_bco; }
+  else if( gtm_bco >= m_bco_reference.second ) return gtm_bco;
+  else return gtm_bco+(1ULL << m_GTM_CLOCK_BITS);
+}
+
+//___________________________________________________
+bool MicromegasBcoMatchingInformation_v2::is_more_data_required( uint64_t gtm_bco ) const
+{
+  // check proper initialization
+  if( !is_verified() ) return true;
+
+  // get rollover corrected gtm
+  const auto gtm_bco_corrected = get_gtm_rollover_correction( gtm_bco );
+
+  // check against reference
+  if (m_bco_reference.second > gtm_bco_corrected + m_max_fee_sync_time)
+  { return false; }
+
+  // check against stored bco
+  if( !m_gtm_bco_list.empty() )
+  {
+    if (m_gtm_bco_list.back() > gtm_bco_corrected + m_max_fee_sync_time)
+    { return false; }
+  }
+
+  // check against matched BCOs
+  if( !m_bco_matching_list.empty() )
+  {
+    if (m_bco_matching_list.back().second > gtm_bco_corrected + m_max_fee_sync_time)
+    { return false; }
+  }
+
+  return true;
+}
+
 
 //___________________________________________________
 void MicromegasBcoMatchingInformation_v2::save_gtm_bco_information(int /*packet_id*/, const MicromegasBcoMatchingInformation_v2::gtm_payload& payload)
@@ -245,8 +295,7 @@ bool MicromegasBcoMatchingInformation_v2::find_reference_from_data(const fee_pay
     {
       // add difference to last
       // get gtm bco difference with proper rollover accounting
-      const uint64_t gtm_bco_difference = (gtm_bco >= gtm_bco_list.back()) ? (gtm_bco - gtm_bco_list.back()) : (gtm_bco + (1ULL << 40U) - gtm_bco_list.back());
-
+      const uint64_t gtm_bco_difference = get_gtm_rollover_correction( gtm_bco ) - gtm_bco_list.back();
       gtm_bco_diff_list.push_back(get_adjusted_multiplier() * gtm_bco_difference);
     }
 
@@ -494,7 +543,7 @@ void MicromegasBcoMatchingInformation_v2::update_multiplier_adjustment(uint64_t 
   }
   const uint32_t fee_bco_predicted = *predicted_opt;
   const double delta_fee_bco = double(fee_bco) - double(fee_bco_predicted);
-  const double gtm_bco_difference = (gtm_bco >= m_bco_reference.second) ? (gtm_bco - m_bco_reference.second) : (gtm_bco + (1ULL << 40U) - m_bco_reference.second);
+  const double gtm_bco_difference = (gtm_bco >= m_bco_reference.second) ? (gtm_bco - m_bco_reference.second) : (gtm_bco + (1ULL << m_GTM_CLOCK_BITS) - m_bco_reference.second);
 
   m_multiplier_adjustment_numerator += gtm_bco_difference * delta_fee_bco;
   m_multiplier_adjustment_denominator += gtm_bco_difference * gtm_bco_difference;

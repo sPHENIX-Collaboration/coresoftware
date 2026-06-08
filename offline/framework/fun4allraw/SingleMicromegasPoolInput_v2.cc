@@ -228,12 +228,11 @@ SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2()
 }
 
 //______________________________________________________________
-void SingleMicromegasPoolInput_v2::FillPool(const unsigned int /*nbclks*/)
+void SingleMicromegasPoolInput_v2::FillPool(const uint64_t target_bco)
 {
+
   if (AllDone())  // no more files and all events read
-  {
-    return;
-  }
+  { return; }
 
   while (!GetEventiterator())  // at startup this is a null pointer
   {
@@ -244,9 +243,8 @@ void SingleMicromegasPoolInput_v2::FillPool(const unsigned int /*nbclks*/)
     }
   }
 
-  while (GetSomeMoreEvents())
+  while( is_more_data_required(target_bco) )
   {
-    // std::cout << "SingleMicromegasPoolInput_v2::FillPool" << std::endl;
     std::unique_ptr<Event> evt(GetEventiterator()->getNextEvent());
     while (!evt)
     {
@@ -326,15 +324,6 @@ void SingleMicromegasPoolInput_v2::Print(const std::string& what) const
     }
   }
 
-  if (what == "ALL" || what == "FEEBCLK")
-  {
-    for (auto bcliter : m_FEEBclkMap)
-    {
-      std::cout << "FEE" << bcliter.first << " bclk: 0x"
-                << std::hex << bcliter.second << std::dec << std::endl;
-    }
-  }
-
   if (what == "ALL" || what == "STORAGE")
   {
     for (const auto& bcliter : m_MicromegasRawHitMap)
@@ -350,13 +339,6 @@ void SingleMicromegasPoolInput_v2::Print(const std::string& what) const
     }
   }
 
-  if (what == "ALL" || what == "STACK")
-  {
-    for (const auto& iter : m_BclkStack)
-    {
-      std::cout << "stacked bclk: 0x" << std::hex << iter << std::dec << std::endl;
-    }
-  }
 }
 
 //____________________________________________________________________________
@@ -380,8 +362,6 @@ void SingleMicromegasPoolInput_v2::CleanupUsedPackets(const uint64_t bclk, bool 
   }
 
   // cleanup bco stacks
-  /* it erases all elements for which the bco is no greater than the provided one */
-  m_BclkStack.erase(m_BclkStack.begin(), m_BclkStack.upper_bound(bclk));
   m_BeamClockFEE.erase(m_BeamClockFEE.begin(), m_BeamClockFEE.upper_bound(bclk));
   m_BeamClockPacket.erase(m_BeamClockPacket.begin(), m_BeamClockPacket.upper_bound(bclk));
 
@@ -395,51 +375,24 @@ void SingleMicromegasPoolInput_v2::CleanupUsedPackets(const uint64_t bclk, bool 
 //_______________________________________________________
 void SingleMicromegasPoolInput_v2::ClearCurrentEvent()
 {
-  std::cout << "SingleMicromegasPoolInput_v2::ClearCurrentEvent." << std::endl;
-  uint64_t currentbclk = *m_BclkStack.begin();
-  CleanupUsedPackets(currentbclk);
-  return;
+  std::cout << "SingleTpcTimeFrameInput::ClearCurrentEvent() - deprecated " << std::endl;
 }
 
 //_______________________________________________________
-bool SingleMicromegasPoolInput_v2::GetSomeMoreEvents()
+bool SingleMicromegasPoolInput_v2::is_more_data_required(const uint64_t target_bco) const
 {
   if (AllDone())
   {
     return false;
   }
 
-  // check minimum pool size
-  if (m_MicromegasRawHitMap.size() < m_BcoPoolSize)
-  {
-    return true;
-  }
+  if( m_bco_matching_information_map.empty() )
+  { return true; }
 
-  // make sure that the latest BCO received by each FEEs is past the current BCO
-  std::set<int> toerase;
-  uint64_t lowest_bclk = m_MicromegasRawHitMap.begin()->first + m_BcoRange;
-  for (auto bcliter : m_FEEBclkMap)
+  for( const auto& [packet, bco_matching_information]:m_bco_matching_information_map )
   {
-    if (bcliter.second <= lowest_bclk)
-    {
-      uint64_t highest_bclk = m_MicromegasRawHitMap.rbegin()->first;
-      if ((highest_bclk - m_MicromegasRawHitMap.begin()->first) < MaxBclkDiff())
-      {
-        return true;
-      }
-
-      std::cout << PHWHERE << Name() << ": erasing FEE " << bcliter.first
-                << " with stuck bclk: " << std::hex << bcliter.second
-                << " current bco range: 0x" << m_MicromegasRawHitMap.begin()->first
-                << ", to: 0x" << highest_bclk << ", delta: " << std::dec
-                << (highest_bclk - m_MicromegasRawHitMap.begin()->first)
-                << std::dec << std::endl;
-      toerase.insert(bcliter.first);
-    }
-  }
-  for (const auto& fee : toerase)
-  {
-    m_FEEBclkMap.erase(fee);
+    if( bco_matching_information.is_more_data_required( target_bco ) )
+    { return true; }
   }
 
   return false;
@@ -759,7 +712,6 @@ void SingleMicromegasPoolInput_v2::decode_gtm_data(int packet_id, const SingleMi
   {
     const auto& gtm_bco = payload.bco;
     m_BeamClockPacket[gtm_bco].insert(packet_id);
-    m_BclkStack.insert(gtm_bco);
   }
 
   // find reference from modebits, using BX_COUNTER_SYNC_T
@@ -1021,7 +973,6 @@ void SingleMicromegasPoolInput_v2::process_fee_data(int packet_id, unsigned int 
     }
 
     m_BeamClockFEE[gtm_bco].insert(fee_id);
-    m_FEEBclkMap[fee_id] = gtm_bco;
 
     if (StreamingInputManager())
     {

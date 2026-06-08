@@ -106,6 +106,14 @@ class MicromegasBcoMatchingInformation_v2
   uint64_t get_gtm_bco_last() const
   { return m_gtm_bco_list.empty() ? 0:*m_gtm_bco_list.rbegin(); }
 
+  //! get rollover corrected GTM bco depending on reference
+  uint64_t get_gtm_rollover_correction(uint64_t /*gtm_bco*/) const;
+
+  //! returns true if more data needs to be fetched.
+  /** it is based on the latest BCO read from the data stream, from either tagger or heartbeat */
+  bool is_more_data_required(uint64_t /*gtm_bco*/) const;
+
+
   //@}
 
   //!@name modifiers
@@ -139,6 +147,12 @@ class MicromegasBcoMatchingInformation_v2
   static void set_gtm_bco_diff( unsigned int value )
   {
     m_max_gtm_bco_diff = value;
+  }
+
+  //! max time in GTM BCO for FEE data to sync over to datastream
+  static void set_m_max_fee_sync_time( unsigned int value )
+  {
+    m_max_fee_sync_time = value;
   }
 
   //! find reference from modebits
@@ -209,6 +223,9 @@ class MicromegasBcoMatchingInformation_v2
 
   // define limit for matching fee_bco to fee_bco_predicted
   static unsigned int m_max_gtm_bco_diff;
+
+  //! max time in GTM BCO for FEE data to sync over to datastream
+  static unsigned int m_max_fee_sync_time;
 
   //! adjustment to multiplier
   double m_multiplier_adjustment = 0;
