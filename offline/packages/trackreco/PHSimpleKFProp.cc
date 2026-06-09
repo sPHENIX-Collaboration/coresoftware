@@ -242,7 +242,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
         // copy seed clusters position into local map
         std::map<TrkrDefs::cluskey, Acts::Vector3> trackClusPositions;
         std::transform(track->begin_cluster_keys(), track->end_cluster_keys(), std::inserter(trackClusPositions, trackClusPositions.end()),
-          [globalPositions](const auto& key)
+          [&globalPositions](const auto& key)
         { return std::make_pair(key, globalPositions.at(key)); });
 
         /// Can't circle fit a seed with less than 3 clusters, skip it
@@ -317,7 +317,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
         // copy seed clusters position into local map
         std::map<TrkrDefs::cluskey, Acts::Vector3> pretrackClusPositions;
         std::transform(pretrack.begin_cluster_keys(), pretrack.end_cluster_keys(), std::inserter(pretrackClusPositions, pretrackClusPositions.end()),
-          [globalPositions](const auto& key)
+          [&globalPositions](const auto& key)
           { return std::make_pair(key, globalPositions.at(key)); });
 
         // fit seed
@@ -892,8 +892,8 @@ bool PHSimpleKFProp::PropagateStep(
 
   // search for closest available cluster within window
   double query_pt[3] = {new_tx, new_ty, new_tz};
-  std::vector<long unsigned int> index_out(1);
-  std::vector<double> distance_out(1);
+  std::array<size_t, 1> index_out;
+  std::array<double, 1> distance_out;
   int n_results = _kdtrees[next_layer]->knnSearch(&query_pt[0], 1, index_out.data(), distance_out.data());
 
   // if no results, then no cluster to add, but propagation is not necessarily done
@@ -1230,11 +1230,6 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     std::cout << std::endl;
   }
 
-  // get layer for each cluster
-  std::vector<unsigned int> layers;
-  std::transform(ckeys.begin(), ckeys.end(), std::back_inserter(layers), [](const TrkrDefs::cluskey& key)
-                 { return TrkrDefs::getLayer(key); });
-
   double old_phi = track_phi;
   unsigned int old_layer = TrkrDefs::getLayer(ckeys[0]);
   if (Verbosity() > 1)
@@ -1371,7 +1366,7 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
 
       PositionMap local;
       std::transform(seed.begin_cluster_keys(), seed.end_cluster_keys(), std::inserter(local, local.end()),
-        [positions](const auto& key)
+        [&positions](const auto& key)
         { return std::make_pair(key, positions.at(key)); });
       TrackSeedHelper::circleFitByTaubin(&seed,local, 7, 55);
       TrackSeedHelper::lineFit(&seed,local, 7, 55);
