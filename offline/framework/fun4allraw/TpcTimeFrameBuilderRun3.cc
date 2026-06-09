@@ -903,7 +903,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
                                            static_cast<double>(fee),
                                            static_cast<double>(fuzzy_hits));
 
-    if (m_verbosity >= 1)
+    if (m_verbosity >= 2)
     {
       std::cout << __PRETTY_FUNCTION__ << "	- packet " << m_packet_id
                 << ": Run3 fuzzy FEE-clock fallback for fee " << fee
