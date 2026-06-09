@@ -2739,157 +2739,6 @@ std::optional<uint64_t> TpcTimeFrameBuilderRun3::BcoMatchingInformation::find_re
   return std::nullopt;
 }
 
-// //___________________________________________________
-// std::optional<uint64_t> TpcTimeFrameBuilderRun3::BcoMatchingInformation::find_gtm_bco(uint32_t fee_bco)
-// {
-//   if (verbosity() > 5)
-//   {
-//     std::cout << "TpcTimeFrameBuilderRun3[" << m_name << "]::BcoMatchingInformation::find_gtm_bco - entry: "
-//               << std::hex
-//               << "\t- fee_bco: 0x" << fee_bco
-//               << std::dec
-//               << "\t- is_verified(): " << (is_verified() ? "true" : "false")
-//               << std::endl;
-//   }
-
-//   // make sure the bco matching is properly initialized
-//   if (!is_verified())
-//   {
-//     return std::nullopt;
-//   }
-
-//   assert(m_hNorm);
-//   m_hNorm->Fill("FindGTMBCO", 1);
-
-//   // find matching gtm bco in map
-//   const auto bco_matching_iter = std::find_if(
-//       m_bco_matching_list.begin(),
-//       m_bco_matching_list.end(),
-//       [fee_bco](const m_fee_gtm_bco_matching_pair_t& pair)
-//       { return get_fee_bco_diff(pair.first, fee_bco) < m_max_fee_bco_diff; });
-
-//   if (bco_matching_iter != m_bco_matching_list.end())
-//   {
-//     m_hNorm->Fill("FindGTMBCOMatchedExisting", 1);
-//     assert(m_hFindGTMBCO_MatchedExisting_BCODiff);
-//     m_hFindGTMBCO_MatchedExisting_BCODiff->Fill(int64_t(fee_bco) - int64_t(bco_matching_iter->first));
-
-//     if (verbosity() > 3)
-//     {
-//       std::cout << "TpcTimeFrameBuilderRun3[" << m_name << "]::BcoMatchingInformation::find_gtm_bco - found existing FEE BCO: "
-//                 << std::hex
-//                 << "\t- fee_bco: 0x" << fee_bco
-//                 << "\t- predicted: 0x" << bco_matching_iter->first
-//                 << "\t- gtm_bco: 0x" << bco_matching_iter->second
-//                 << std::dec
-//                 << std::endl;
-//     }
-
-//     return bco_matching_iter->second;
-//   }
-//   // find element for which predicted fee_bco matches fee_bco, within limit
-//   const auto iter = std::find_if(
-//       m_gtm_bco_trig_list.begin(),
-//       m_gtm_bco_trig_list.end(),
-//       [this, fee_bco](const uint64_t& gtm_bco)
-//       { return get_fee_bco_diff(get_predicted_fee_bco(gtm_bco).value(), fee_bco) < m_max_gtm_bco_diff; });
-
-//   // check
-//   if (iter != m_gtm_bco_trig_list.end())
-//   {
-//     const uint64_t gtm_bco = *iter;
-
-//     m_hNorm->Fill("FindGTMBCOMatchedNew", 1);
-//     assert(m_hFindGTMBCO_MatchedNew_BCODiff);
-//     m_hFindGTMBCO_MatchedNew_BCODiff->Fill(int64_t(fee_bco) - int64_t(gtm_bco));
-
-//     if (verbosity() > 2)
-//     {
-//       if (auto opt_fee_bco = get_predicted_fee_bco(gtm_bco))  // check if optional exists
-//       {
-//         const uint32_t fee_bco_predicted = *opt_fee_bco;  // get_predicted_fee_bco(gtm_bco).value();
-//         const uint32_t fee_bco_diff = get_bco_diff(fee_bco_predicted, fee_bco);
-
-//         std::cout << "TpcTimeFrameBuilderRun3[" << m_name << "]::BcoMatchingInformation::find_gtm_bco - new GL1 match: "
-//                   << std::hex
-//                   << "\t- fee_bco: 0x" << fee_bco
-//                   << "\t- predicted: 0x" << fee_bco_predicted
-//                   << "\t- gtm_bco: 0x" << gtm_bco
-//                   << std::dec
-//                   << "\t- difference: " << fee_bco_diff
-//                   << std::endl;
-//       }
-//     }
-//     // save fee_bco and gtm_bco matching in map
-//     m_bco_matching_list.emplace_back(fee_bco, gtm_bco);
-
-//     // remove gtm bco from runing list
-//     m_gtm_bco_trig_list.erase(iter);
-
-//     // // update clock adjustment not applied for non HEARTBEAT_T
-//     // update_multiplier_adjustment(gtm_bco, fee_bco);
-
-//     return gtm_bco;
-//   }
-
-//   m_hNorm->Fill("FindGTMBCOMatchedFailed", 1);
-
-//   bool new_orphan = m_orphans.insert(fee_bco).second;
-
-//   if ((new_orphan && verbosity()) || (verbosity() > 3))
-//   {
-//     // find element for which predicted fee_bco is the closest to request
-//     const auto iter2 = std::min_element(
-//         m_gtm_bco_trig_list.begin(),
-//         m_gtm_bco_trig_list.end(),
-//         [this, fee_bco](const uint64_t& first, const uint64_t& second)
-//         { return get_bco_diff(get_predicted_fee_bco(first).value(), fee_bco) < get_bco_diff(get_predicted_fee_bco(second).value(), fee_bco); });
-
-//     // const int fee_bco_diff = (iter2 != m_gtm_bco_trig_list.end()) ? get_bco_diff(get_predicted_fee_bco(*iter2).value(), fee_bco) : -1;
-//     // compared to the previous statement, this checks if the optional
-//     int fee_bco_diff = -1;
-
-//     if (iter2 != m_gtm_bco_trig_list.end())
-//     {
-//       auto predicted = get_predicted_fee_bco(*iter2);
-
-//       if (predicted)
-//       {
-//         fee_bco_diff = get_bco_diff(*predicted, fee_bco);
-//       }
-//     }
-
-//     if (m_verbosity >= 2)
-//     {
-//       std::cout << "TpcTimeFrameBuilderRun3[" << m_name << "]::BcoMatchingInformation::find_gtm_bco - match failed!"
-//                 << std::hex
-//                 << "\t- fee_bco: 0x" << fee_bco
-//                 << std::dec
-//                 << "\t- gtm_bco: 0x" << *iter2
-//                 << "\t- difference: " << fee_bco_diff
-//                 << std::endl;
-//     }
-//   }  //       if ((new_orphan and verbosity()) or (verbosity()>3))
-
-//   if (verbosity() > 3)
-//   {
-//     std::cout << "\t- m_gtm_bco_trig_list : " << std::endl;
-//     for (const auto& gtm_bco : m_gtm_bco_trig_list)
-//     {
-//       std::cout << "\t\t- 0x" << std::hex << gtm_bco << " -> 0x" << get_predicted_fee_bco(gtm_bco).value() << std::dec << std::endl;  // NOLINT(bugprone-unchecked-optional-access)
-//     }
-
-//     std::cout << "\t- m_bco_matching_list : " << std::endl;
-//     for (const auto& iter_m_bco_matching_list : m_bco_matching_list)
-//     {
-//       std::cout << "\t\t- 0x" << std::hex << iter_m_bco_matching_list.first << " -> 0x" << iter_m_bco_matching_list.second << std::dec << std::endl;
-//     }
-
-//   }  //       if (verbosity()>3)
-
-//   return std::nullopt;
-// }
-
 //___________________________________________________
 void TpcTimeFrameBuilderRun3::BcoMatchingInformation::cleanup()
 {
@@ -2902,9 +2751,6 @@ void TpcTimeFrameBuilderRun3::BcoMatchingInformation::cleanup()
   {
     m_bco_matching_list.pop_front();
   }
-
-  // clear orphans
-  m_orphans.clear();
 }
 
 //___________________________________________________
@@ -2923,9 +2769,6 @@ void TpcTimeFrameBuilderRun3::BcoMatchingInformation::cleanup(uint64_t ref_bco)
                                              return pair.second <= ref_bco;
                                            }),
                             m_bco_matching_list.end());
-
-  // clear orphans
-  m_orphans.clear();
 }
 
 void TpcTimeFrameBuilderRun3::fillBadFeeMap()

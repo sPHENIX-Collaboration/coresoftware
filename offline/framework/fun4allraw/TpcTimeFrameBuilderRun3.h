@@ -242,12 +242,6 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
       return m_bco_matching_list.size();
     }
 
-    //! get size of m_orphans
-    size_t get_orphans_size() const
-    {
-      return m_orphans.size();
-    }
-
     //@}
 
     //!@name modifiers
@@ -371,9 +365,6 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
     std::map<uint64_t, uint32_t> m_gtm_bco_trigger_map;
 
     std::list<m_fee_gtm_bco_matching_pair_t> m_bco_matching_list;
-
-    //! keep track or  fee_bco for which no gtm_bco is found
-    std::set<uint32_t> m_orphans;
 
     // define limit for matching two lvl1 and EnDAT tagger BCOs
     static constexpr int m_max_lv1_endat_bco_diff = 16;
