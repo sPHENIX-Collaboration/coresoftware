@@ -218,6 +218,36 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
     //! print gtm bco information
     void print_gtm_bco_information() const;
 
+    //! get size of m_gtm_bco_trig_list
+    size_t get_gtm_bco_trig_list_size() const
+    {
+      return m_gtm_bco_trig_list.size();
+    }
+
+    //! get size of m_bco_reference_candidate_list
+    size_t get_bco_reference_candidate_list_size() const
+    {
+      return m_bco_reference_candidate_list.size();
+    }
+
+    //! get size of m_gtm_bco_trigger_map
+    size_t get_gtm_bco_trigger_map_size() const
+    {
+      return m_gtm_bco_trigger_map.size();
+    }
+
+    //! get size of m_bco_matching_list
+    size_t get_bco_matching_list_size() const
+    {
+      return m_bco_matching_list.size();
+    }
+
+    //! get size of m_orphans
+    size_t get_orphans_size() const
+    {
+      return m_orphans.size();
+    }
+
     //@}
 
     //!@name modifiers

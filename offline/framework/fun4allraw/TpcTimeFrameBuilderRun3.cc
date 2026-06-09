@@ -835,6 +835,45 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
               << std::endl;
   }
 
+  // Track initial buffer usage
+  if (m_verbosity >= 2)
+  {
+    size_t total_time_hits = 0;
+    size_t time_hit_map_buckets = 0;
+    for (const auto& fee_time_hits : m_timeHitMap)
+    {
+      time_hit_map_buckets += fee_time_hits.size();
+      for (const auto& bucket : fee_time_hits)
+      {
+        total_time_hits += bucket.second.size();
+      }
+    }
+    size_t total_gtm_bco_trig = 0;
+    size_t total_bco_ref_cand = 0;
+    size_t total_gtm_bco_trigger = 0;
+    size_t total_bco_matching = 0;
+    size_t total_orphans = 0;
+    for (const auto& bco_info : m_bcoMatchingInformation_vec)
+    {
+      total_gtm_bco_trig += bco_info.get_gtm_bco_trig_list_size();
+      total_bco_ref_cand += bco_info.get_bco_reference_candidate_list_size();
+      total_gtm_bco_trigger += bco_info.get_gtm_bco_trigger_map_size();
+      total_bco_matching += bco_info.get_bco_matching_list_size();
+      total_orphans += bco_info.get_orphans_size();
+    }
+    std::cout << __PRETTY_FUNCTION__ << " - packet " << m_packet_id
+              << ": [INITIAL] STL buffer usage - m_timeFrameMap: " << m_timeFrameMap.size()
+              << " frames, m_UsedTimeFrameSet: " << m_UsedTimeFrameSet.size()
+              << ", m_timeHitMap: " << time_hit_map_buckets << " FEE-BCO buckets, "
+              << total_time_hits << " total hits"
+              << ", BcoMatchingInfo[gtm_trig: " << total_gtm_bco_trig
+              << ", bco_ref_cand: " << total_bco_ref_cand
+              << ", gtm_trigger_map: " << total_gtm_bco_trigger
+              << ", bco_matching: " << total_bco_matching
+              << ", orphans: " << total_orphans << "]"
+              << std::endl;
+  }
+
   auto inserted_frame = m_timeFrameMap.emplace(bclk_rollover_corrected, std::vector<TpcRawHit*>{});
   auto frame_it = inserted_frame.first;
   std::vector<TpcRawHit*>& timeframe = frame_it->second;
@@ -922,6 +961,39 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
 
   cache_waveform_adc(h_Run3PreviousTimeFrameWaveformADC, timeframe);
 
+  // Track buffer usage after exact and fuzzy hit processing
+  if (m_verbosity >= 2)
+  {
+    size_t total_time_hits_post_exact_fuzzy = 0;
+    size_t time_hit_map_buckets_post_exact_fuzzy = 0;
+    for (const auto& fee_time_hits : m_timeHitMap)
+    {
+      time_hit_map_buckets_post_exact_fuzzy += fee_time_hits.size();
+      for (const auto& bucket : fee_time_hits)
+      {
+        total_time_hits_post_exact_fuzzy += bucket.second.size();
+      }
+    }
+    size_t total_gtm_bco_trig_post = 0;
+    size_t total_bco_ref_cand_post = 0;
+    for (const auto& bco_info : m_bcoMatchingInformation_vec)
+    {
+      total_gtm_bco_trig_post += bco_info.get_gtm_bco_trig_list_size();
+      total_bco_ref_cand_post += bco_info.get_bco_reference_candidate_list_size();
+    }
+    std::cout << __PRETTY_FUNCTION__ << " - packet " << m_packet_id
+              << ": [AFTER EXACT/FUZZY] STL buffer usage - exact_hits: " << exact_hit_count
+              << ", fuzzy_hits: " << fallback_hit_count
+              << ", timeframe size: " << timeframe.size()
+              << ", m_timeFrameMap: " << m_timeFrameMap.size()
+              << ", m_UsedTimeFrameSet: " << m_UsedTimeFrameSet.size()
+              << ", m_timeHitMap: " << time_hit_map_buckets_post_exact_fuzzy << " buckets, "
+              << total_time_hits_post_exact_fuzzy << " hits"
+              << ", BcoMatchingInfo[gtm_trig: " << total_gtm_bco_trig_post
+              << ", bco_ref_cand: " << total_bco_ref_cand_post << "]"
+              << std::endl;
+  }
+
   size_t recovered_hit_count = 0;
   for (uint16_t fee = 0; fee < MAX_FEECOUNT; ++fee)
   {
@@ -950,6 +1022,38 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
               << " later hit segments for gtm_bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
   }
 
+  // Track buffer usage after recovery
+  if (m_verbosity >= 2)
+  {
+    size_t total_time_hits_post_recovery = 0;
+    size_t time_hit_map_buckets_post_recovery = 0;
+    for (const auto& fee_time_hits : m_timeHitMap)
+    {
+      time_hit_map_buckets_post_recovery += fee_time_hits.size();
+      for (const auto& bucket : fee_time_hits)
+      {
+        total_time_hits_post_recovery += bucket.second.size();
+      }
+    }
+    size_t total_gtm_bco_trig_recovery = 0;
+    size_t total_bco_ref_cand_recovery = 0;
+    for (const auto& bco_info : m_bcoMatchingInformation_vec)
+    {
+      total_gtm_bco_trig_recovery += bco_info.get_gtm_bco_trig_list_size();
+      total_bco_ref_cand_recovery += bco_info.get_bco_reference_candidate_list_size();
+    }
+    std::cout << __PRETTY_FUNCTION__ << " - packet " << m_packet_id
+              << ": [AFTER RECOVERY] STL buffer usage - timeframe size: " << timeframe.size()
+              << ", recovered_hits: " << recovered_hit_count
+              << ", m_timeFrameMap: " << m_timeFrameMap.size()
+              << ", m_UsedTimeFrameSet: " << m_UsedTimeFrameSet.size()
+              << ", m_timeHitMap: " << time_hit_map_buckets_post_recovery << " buckets, "
+              << total_time_hits_post_recovery << " hits"
+              << ", BcoMatchingInfo[gtm_trig: " << total_gtm_bco_trig_recovery
+              << ", bco_ref_cand: " << total_bco_ref_cand_recovery << "]"
+              << std::endl;
+  }
+
   if (timeframe.empty())
   {
     if (m_verbosity >= 1)
@@ -958,6 +1062,35 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
                 << ":ERROR: Run3 FEE-clock match failed for gtm_bco: 0x" << std::hex << gtm_bco << std::dec
                 << " bclk_rollover_corrected 0x" << std::hex << bclk_rollover_corrected << std::dec
                 << ". m_timeHitMap size: " << time_hit_bucket_count() << std::endl;
+    }
+
+    if (m_verbosity >= 1)
+    {
+      size_t total_time_hits_empty = 0;
+      size_t time_hit_map_buckets_empty = 0;
+      for (const auto& fee_time_hits : m_timeHitMap)
+      {
+        time_hit_map_buckets_empty += fee_time_hits.size();
+        for (const auto& bucket : fee_time_hits)
+        {
+          total_time_hits_empty += bucket.second.size();
+        }
+      }
+      size_t total_gtm_bco_trig_empty = 0;
+      size_t total_bco_ref_cand_empty = 0;
+      for (const auto& bco_info : m_bcoMatchingInformation_vec)
+      {
+        total_gtm_bco_trig_empty += bco_info.get_gtm_bco_trig_list_size();
+        total_bco_ref_cand_empty += bco_info.get_bco_reference_candidate_list_size();
+      }
+      std::cout << __PRETTY_FUNCTION__ << " - packet " << m_packet_id
+                << ": [EMPTY-FRAME ERROR] STL buffer usage - m_timeFrameMap: " << m_timeFrameMap.size()
+                << ", m_UsedTimeFrameSet: " << m_UsedTimeFrameSet.size()
+                << ", m_timeHitMap: " << time_hit_map_buckets_empty << " buckets, "
+                << total_time_hits_empty << " hits"
+                << ", BcoMatchingInfo[gtm_trig: " << total_gtm_bco_trig_empty
+                << ", bco_ref_cand: " << total_bco_ref_cand_empty << "]"
+                << std::endl;
     }
 
     m_hNorm->Fill("Run3_TimeFrame_MatchFailed", 1);
@@ -978,6 +1111,50 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
   m_hNorm->Fill("GTM_TimeFrame_Matched_Hit_Sum", timeframe.size());
   cache_timeframe_qa(bclk_rollover_corrected, timeframe, exact_matched_fees);
   m_UsedTimeFrameSet.push(bclk_rollover_corrected);
+
+  // Track final buffer usage
+  if (m_verbosity >= 1)
+  {
+    size_t total_time_hits_final = 0;
+    size_t time_hit_map_buckets_final = 0;
+    for (const auto& fee_time_hits : m_timeHitMap)
+    {
+      time_hit_map_buckets_final += fee_time_hits.size();
+      for (const auto& bucket : fee_time_hits)
+      {
+        total_time_hits_final += bucket.second.size();
+      }
+    }
+    size_t total_gtm_bco_trig_final = 0;
+    size_t total_bco_ref_cand_final = 0;
+    size_t total_gtm_bco_trigger_final = 0;
+    size_t total_bco_matching_final = 0;
+    size_t total_orphans_final = 0;
+    for (const auto& bco_info : m_bcoMatchingInformation_vec)
+    {
+      total_gtm_bco_trig_final += bco_info.get_gtm_bco_trig_list_size();
+      total_bco_ref_cand_final += bco_info.get_bco_reference_candidate_list_size();
+      total_gtm_bco_trigger_final += bco_info.get_gtm_bco_trigger_map_size();
+      total_bco_matching_final += bco_info.get_bco_matching_list_size();
+      total_orphans_final += bco_info.get_orphans_size();
+    }
+    std::cout << __PRETTY_FUNCTION__ << " - packet " << m_packet_id
+              << ": [FINAL] STL buffer usage - timeframe size: " << timeframe.size()
+              << ", exact_hits: " << exact_hit_count
+              << ", fuzzy_hits: " << fallback_hit_count
+              << ", recovered_hits: " << recovered_hit_count
+              << ", m_timeFrameMap: " << m_timeFrameMap.size()
+              << ", m_UsedTimeFrameSet: " << m_UsedTimeFrameSet.size()
+              << ", m_timeHitMap: " << time_hit_map_buckets_final << " buckets, "
+              << total_time_hits_final << " hits"
+              << ", BcoMatchingInfo[gtm_trig: " << total_gtm_bco_trig_final
+              << ", bco_ref_cand: " << total_bco_ref_cand_final
+              << ", gtm_trigger_map: " << total_gtm_bco_trigger_final
+              << ", bco_matching: " << total_bco_matching_final
+              << ", orphans: " << total_orphans_final << "]"
+              << std::endl;
+  }
+
   return timeframe;
 }
 
@@ -1083,6 +1260,50 @@ int TpcTimeFrameBuilderRun3::ProcessPacket(Packet* packet)
     m_packetTimer->print_stat();
   }
   m_packetTimer->restart();
+
+  // Track initial buffer usage at start of ProcessPacket
+  if (m_verbosity >= 1)
+  {
+    size_t total_time_hits = 0;
+    size_t time_hit_map_buckets = 0;
+    for (const auto& fee_time_hits : m_timeHitMap)
+    {
+      time_hit_map_buckets += fee_time_hits.size();
+      for (const auto& bucket : fee_time_hits)
+      {
+        total_time_hits += bucket.second.size();
+      }
+    }
+    size_t total_fee_data = 0;
+    for (const auto& fee_data_deque : m_feeData)
+    {
+      total_fee_data += fee_data_deque.size();
+    }
+    size_t total_gtm_bco_trig = 0;
+    size_t total_bco_ref_cand = 0;
+    size_t total_gtm_bco_trigger = 0;
+    size_t total_bco_matching = 0;
+    size_t total_orphans = 0;
+    for (const auto& bco_info : m_bcoMatchingInformation_vec)
+    {
+      total_gtm_bco_trig += bco_info.get_gtm_bco_trig_list_size();
+      total_bco_ref_cand += bco_info.get_bco_reference_candidate_list_size();
+      total_gtm_bco_trigger += bco_info.get_gtm_bco_trigger_map_size();
+      total_bco_matching += bco_info.get_bco_matching_list_size();
+      total_orphans += bco_info.get_orphans_size();
+    }
+    std::cout << __PRETTY_FUNCTION__ << " - packet " << m_packet_id
+              << ": [INITIAL] STL buffer usage - m_timeFrameMap: " << m_timeFrameMap.size()
+              << ", m_UsedTimeFrameSet: " << m_UsedTimeFrameSet.size()
+              << ", m_feeData total: " << total_fee_data
+              << ", m_timeHitMap: " << time_hit_map_buckets << " buckets, " << total_time_hits << " hits"
+              << ", BcoMatchingInfo[gtm_trig: " << total_gtm_bco_trig
+              << ", bco_ref_cand: " << total_bco_ref_cand
+              << ", gtm_trigger_map: " << total_gtm_bco_trigger
+              << ", bco_matching: " << total_bco_matching
+              << ", orphans: " << total_orphans << "]"
+              << std::endl;
+  }
 
   // //remove after testing
   // ;
@@ -1221,6 +1442,41 @@ int TpcTimeFrameBuilderRun3::ProcessPacket(Packet* packet)
     }
   }
 
+  // Track buffer usage after DMA word processing
+  if (m_verbosity >= 1)
+  {
+    size_t total_time_hits_post = 0;
+    size_t time_hit_map_buckets_post = 0;
+    for (const auto& fee_time_hits : m_timeHitMap)
+    {
+      time_hit_map_buckets_post += fee_time_hits.size();
+      for (const auto& bucket : fee_time_hits)
+      {
+        total_time_hits_post += bucket.second.size();
+      }
+    }
+    size_t total_fee_data_post = 0;
+    for (const auto& fee_data_deque : m_feeData)
+    {
+      total_fee_data_post += fee_data_deque.size();
+    }
+    size_t total_gtm_bco_trig_post = 0;
+    size_t total_bco_ref_cand_post = 0;
+    for (const auto& bco_info : m_bcoMatchingInformation_vec)
+    {
+      total_gtm_bco_trig_post += bco_info.get_gtm_bco_trig_list_size();
+      total_bco_ref_cand_post += bco_info.get_bco_reference_candidate_list_size();
+    }
+    std::cout << __PRETTY_FUNCTION__ << " - packet " << m_packet_id
+              << ": [AFTER DMA PROCESSING] STL buffer usage - m_feeData total: " << total_fee_data_post
+              << ", m_timeHitMap: " << time_hit_map_buckets_post << " buckets, " << total_time_hits_post << " hits"
+              << ", m_timeFrameMap: " << m_timeFrameMap.size()
+              << ", m_UsedTimeFrameSet: " << m_UsedTimeFrameSet.size()
+              << ", BcoMatchingInfo[gtm_trig: " << total_gtm_bco_trig_post
+              << ", bco_ref_cand: " << total_bco_ref_cand_post << "]"
+              << std::endl;
+  }
+
   // sanity check for the cached FEE-clock hit size
   for (size_t fee = 0; fee < m_timeHitMap.size(); ++fee)
   {
@@ -1252,6 +1508,50 @@ int TpcTimeFrameBuilderRun3::ProcessPacket(Packet* packet)
   m_packetTimer->stop();
   assert(h_ProcessPacket_Time);
   h_ProcessPacket_Time->Fill(call_count, m_packetTimer->elapsed());
+
+  // Track final buffer usage at end of ProcessPacket
+  if (m_verbosity >= 1)
+  {
+    size_t total_time_hits_final = 0;
+    size_t time_hit_map_buckets_final = 0;
+    for (const auto& fee_time_hits : m_timeHitMap)
+    {
+      time_hit_map_buckets_final += fee_time_hits.size();
+      for (const auto& bucket : fee_time_hits)
+      {
+        total_time_hits_final += bucket.second.size();
+      }
+    }
+    size_t total_fee_data_final = 0;
+    for (const auto& fee_data_deque : m_feeData)
+    {
+      total_fee_data_final += fee_data_deque.size();
+    }
+    size_t total_gtm_bco_trig_final = 0;
+    size_t total_bco_ref_cand_final = 0;
+    size_t total_gtm_bco_trigger_final = 0;
+    size_t total_bco_matching_final = 0;
+    size_t total_orphans_final = 0;
+    for (const auto& bco_info : m_bcoMatchingInformation_vec)
+    {
+      total_gtm_bco_trig_final += bco_info.get_gtm_bco_trig_list_size();
+      total_bco_ref_cand_final += bco_info.get_bco_reference_candidate_list_size();
+      total_gtm_bco_trigger_final += bco_info.get_gtm_bco_trigger_map_size();
+      total_bco_matching_final += bco_info.get_bco_matching_list_size();
+      total_orphans_final += bco_info.get_orphans_size();
+    }
+    std::cout << __PRETTY_FUNCTION__ << " - packet " << m_packet_id
+              << ": [FINAL] STL buffer usage - m_timeFrameMap: " << m_timeFrameMap.size()
+              << ", m_UsedTimeFrameSet: " << m_UsedTimeFrameSet.size()
+              << ", m_feeData total: " << total_fee_data_final
+              << ", m_timeHitMap: " << time_hit_map_buckets_final << " buckets, " << total_time_hits_final << " hits"
+              << ", BcoMatchingInfo[gtm_trig: " << total_gtm_bco_trig_final
+              << ", bco_ref_cand: " << total_bco_ref_cand_final
+              << ", gtm_trigger_map: " << total_gtm_bco_trigger_final
+              << ", bco_matching: " << total_bco_matching_final
+              << ", orphans: " << total_orphans_final << "]"
+              << std::endl;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
