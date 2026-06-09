@@ -892,8 +892,8 @@ bool PHSimpleKFProp::PropagateStep(
 
   // search for closest available cluster within window
   double query_pt[3] = {new_tx, new_ty, new_tz};
-  std::array<size_t, 1> index_out;
-  std::array<double, 1> distance_out;
+  std::array<size_t, 1> index_out{};
+  std::array<double, 1> distance_out{};
   int n_results = _kdtrees[next_layer]->knnSearch(&query_pt[0], 1, index_out.data(), distance_out.data());
 
   // if no results, then no cluster to add, but propagation is not necessarily done
