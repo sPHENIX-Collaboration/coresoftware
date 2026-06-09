@@ -138,7 +138,8 @@ void SvtxTruthRecoTableEval::fillTruthRecoMaps(PHCompositeNode *topNode, SvtxTra
     const double pz = g4particle->get_pz();
     const double momentum2 = px * px + py * py + pz * pz;
 
-    // only record particle above minimal momentum requirement.
+    // only record particle above minimal momentum (square) requirement.
+    // doing this saves us a slow sqrt operation to calculate the momentum itself
     if (momentum2 < minMomentumTruthMap2)
     {
       continue;
