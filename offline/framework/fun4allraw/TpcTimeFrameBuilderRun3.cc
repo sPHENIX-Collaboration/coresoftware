@@ -852,14 +852,12 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
     size_t total_bco_ref_cand = 0;
     size_t total_gtm_bco_trigger = 0;
     size_t total_bco_matching = 0;
-    size_t total_orphans = 0;
     for (const auto& bco_info : m_bcoMatchingInformation_vec)
     {
       total_gtm_bco_trig += bco_info.get_gtm_bco_trig_list_size();
       total_bco_ref_cand += bco_info.get_bco_reference_candidate_list_size();
       total_gtm_bco_trigger += bco_info.get_gtm_bco_trigger_map_size();
       total_bco_matching += bco_info.get_bco_matching_list_size();
-      total_orphans += bco_info.get_orphans_size();
     }
     std::cout << __PRETTY_FUNCTION__ << " - packet " << m_packet_id
               << ": [INITIAL] STL buffer usage - m_timeFrameMap: " << m_timeFrameMap.size()
@@ -870,7 +868,6 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
               << ", bco_ref_cand: " << total_bco_ref_cand
               << ", gtm_trigger_map: " << total_gtm_bco_trigger
               << ", bco_matching: " << total_bco_matching
-              << ", orphans: " << total_orphans << "]"
               << std::endl;
   }
 
@@ -1129,14 +1126,12 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
     size_t total_bco_ref_cand_final = 0;
     size_t total_gtm_bco_trigger_final = 0;
     size_t total_bco_matching_final = 0;
-    size_t total_orphans_final = 0;
     for (const auto& bco_info : m_bcoMatchingInformation_vec)
     {
       total_gtm_bco_trig_final += bco_info.get_gtm_bco_trig_list_size();
       total_bco_ref_cand_final += bco_info.get_bco_reference_candidate_list_size();
       total_gtm_bco_trigger_final += bco_info.get_gtm_bco_trigger_map_size();
       total_bco_matching_final += bco_info.get_bco_matching_list_size();
-      total_orphans_final += bco_info.get_orphans_size();
     }
     std::cout << __PRETTY_FUNCTION__ << " - packet " << m_packet_id
               << ": [FINAL] STL buffer usage - timeframe size: " << timeframe.size()
@@ -1151,7 +1146,6 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
               << ", bco_ref_cand: " << total_bco_ref_cand_final
               << ", gtm_trigger_map: " << total_gtm_bco_trigger_final
               << ", bco_matching: " << total_bco_matching_final
-              << ", orphans: " << total_orphans_final << "]"
               << std::endl;
   }
 
@@ -1262,7 +1256,7 @@ int TpcTimeFrameBuilderRun3::ProcessPacket(Packet* packet)
   m_packetTimer->restart();
 
   // Track initial buffer usage at start of ProcessPacket
-  if (m_verbosity >= 1)
+  if (m_verbosity >= 2)
   {
     size_t total_time_hits = 0;
     size_t time_hit_map_buckets = 0;
@@ -1283,14 +1277,12 @@ int TpcTimeFrameBuilderRun3::ProcessPacket(Packet* packet)
     size_t total_bco_ref_cand = 0;
     size_t total_gtm_bco_trigger = 0;
     size_t total_bco_matching = 0;
-    size_t total_orphans = 0;
     for (const auto& bco_info : m_bcoMatchingInformation_vec)
     {
       total_gtm_bco_trig += bco_info.get_gtm_bco_trig_list_size();
       total_bco_ref_cand += bco_info.get_bco_reference_candidate_list_size();
       total_gtm_bco_trigger += bco_info.get_gtm_bco_trigger_map_size();
       total_bco_matching += bco_info.get_bco_matching_list_size();
-      total_orphans += bco_info.get_orphans_size();
     }
     std::cout << __PRETTY_FUNCTION__ << " - packet " << m_packet_id
               << ": [INITIAL] STL buffer usage - m_timeFrameMap: " << m_timeFrameMap.size()
@@ -1301,7 +1293,6 @@ int TpcTimeFrameBuilderRun3::ProcessPacket(Packet* packet)
               << ", bco_ref_cand: " << total_bco_ref_cand
               << ", gtm_trigger_map: " << total_gtm_bco_trigger
               << ", bco_matching: " << total_bco_matching
-              << ", orphans: " << total_orphans << "]"
               << std::endl;
   }
 
@@ -1443,7 +1434,7 @@ int TpcTimeFrameBuilderRun3::ProcessPacket(Packet* packet)
   }
 
   // Track buffer usage after DMA word processing
-  if (m_verbosity >= 1)
+  if (m_verbosity >= 2)
   {
     size_t total_time_hits_post = 0;
     size_t time_hit_map_buckets_post = 0;
@@ -1531,14 +1522,12 @@ int TpcTimeFrameBuilderRun3::ProcessPacket(Packet* packet)
     size_t total_bco_ref_cand_final = 0;
     size_t total_gtm_bco_trigger_final = 0;
     size_t total_bco_matching_final = 0;
-    size_t total_orphans_final = 0;
     for (const auto& bco_info : m_bcoMatchingInformation_vec)
     {
       total_gtm_bco_trig_final += bco_info.get_gtm_bco_trig_list_size();
       total_bco_ref_cand_final += bco_info.get_bco_reference_candidate_list_size();
       total_gtm_bco_trigger_final += bco_info.get_gtm_bco_trigger_map_size();
       total_bco_matching_final += bco_info.get_bco_matching_list_size();
-      total_orphans_final += bco_info.get_orphans_size();
     }
     std::cout << __PRETTY_FUNCTION__ << " - packet " << m_packet_id
               << ": [FINAL] STL buffer usage - m_timeFrameMap: " << m_timeFrameMap.size()
@@ -1549,7 +1538,6 @@ int TpcTimeFrameBuilderRun3::ProcessPacket(Packet* packet)
               << ", bco_ref_cand: " << total_bco_ref_cand_final
               << ", gtm_trigger_map: " << total_gtm_bco_trigger_final
               << ", bco_matching: " << total_bco_matching_final
-              << ", orphans: " << total_orphans_final << "]"
               << std::endl;
   }
 
@@ -2076,7 +2064,7 @@ int TpcTimeFrameBuilderRun3::decode_gtm_data(const TpcTimeFrameBuilderRun3::dma_
   payload.modebits = gtm[22];
   payload.userbits = gtm[23];
 
-  if (m_verbosity >= 2)
+  if (m_verbosity >= 1)
   {
     std::cout << __PRETTY_FUNCTION__ << "\t- GTM data : "
               << "\t- pkt_type = " << payload.pkt_type << std::endl
