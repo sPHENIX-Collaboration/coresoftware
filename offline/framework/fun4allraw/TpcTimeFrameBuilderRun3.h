@@ -36,6 +36,12 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
   explicit TpcTimeFrameBuilderRun3(const int packet_id);
   ~TpcTimeFrameBuilderRun3() override;
 
+  // delete copy and move constructors and assignment operators to avoid unsafe copying
+  TpcTimeFrameBuilderRun3(const TpcTimeFrameBuilderRun3&) = delete;
+  TpcTimeFrameBuilderRun3& operator=(const TpcTimeFrameBuilderRun3&) = delete;
+  TpcTimeFrameBuilderRun3(TpcTimeFrameBuilderRun3&&) = delete;
+  TpcTimeFrameBuilderRun3& operator=(TpcTimeFrameBuilderRun3&&) = delete;
+
   int ProcessPacket(Packet *) override;
   bool isMoreDataRequired(const uint64_t &gtm_bco) const override;
   void CleanupUsedPackets(const uint64_t &bclk) override;
