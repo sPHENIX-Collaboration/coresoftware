@@ -25,7 +25,7 @@ class TrkrClusterv6 : public TrkrCluster
 {
  public:
   //! ctor
-  TrkrClusterv6();
+  TrkrClusterv6() = default;
 
   //! dtor
   ~TrkrClusterv6() override = default;
@@ -58,7 +58,7 @@ class TrkrClusterv6 : public TrkrCluster
   //
   float getPosition(int coor) const override
   {
-    return (coor >= 0 && coor < 2) ? m_local[coor] : NAN;
+    return (coor >= 0 && coor < 2) ? m_local[coor] : std::numeric_limits<float>::quiet_NaN();
   }
   void setPosition(int coor, float xi) override
   {
@@ -107,53 +107,6 @@ class TrkrClusterv6 : public TrkrCluster
 
   void setPhiError(float phierror) { m_phierr = phierror; }
   void setZError(float zerror) { m_zerr = zerror; }
-
-  /// deprecated global funtions with a warning
-  float getX() const override
-  {
-    std::cout << "Deprecated getx trkrcluster function!" << std::endl;
-    return NAN;
-  }
-  float getY() const override
-  {
-    std::cout << "Deprecated gety trkrcluster function!" << std::endl;
-    return NAN;
-  }
-  float getZ() const override
-  {
-    std::cout << "Deprecated getz trkrcluster function!" << std::endl;
-    return NAN;
-  }
-  void setX(float) override
-  {
-    std::cout << "Deprecated setx trkrcluster function!" << std::endl;
-  }
-  void setY(float) override
-  {
-    std::cout << "Deprecated sety trkrcluster function!" << std::endl;
-  }
-  void setZ(float) override
-  {
-    std::cout << "Deprecated setz trkrcluster function!" << std::endl;
-  }
-  float getSize(unsigned int, unsigned int) const override
-  {
-    std::cout << "Deprecated getsize trkrcluster function!" << std::endl;
-    return NAN;
-  }
-  void setSize(unsigned int, unsigned int, float) override
-  {
-    std::cout << "Deprecated setsize trkrcluster function!" << std::endl;
-  }
-  float getError(unsigned int, unsigned int) const override
-  {
-    std::cout << "Deprecated geterr trkrcluster function!" << std::endl;
-    return NAN;
-  }
-  void setError(unsigned int, unsigned int, float) override
-  {
-    std::cout << "Deprecated seterr trkrcluster function!" << std::endl;
-  }
 
   char getSize() const override { return m_phisize * m_zsize; }
   // void setSize(char size) { m_size = size; }
@@ -227,49 +180,42 @@ class TrkrClusterv6 : public TrkrCluster
   float getTBinPhase() const override { return m_tbinphase; }
   void setTBinPhase(float tbinphase){ m_tbinphase = tbinphase; }
 
-  // float getPhiSize() const override
-  //{ std::cout << "Deprecated size function"<< std::endl; return NAN;}
-  // float getZSize() const override
-  //{std::cout << "Deprecated size function" << std::endl; return NAN;}
-  // float getPhiError() const override
-  //{ std::cout << "Deprecated getPhiError function"<< std::endl; return NAN;}
-
  private:
   float m_local[2]{std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
   //< 2D local position [cm] 2 * 32 64bit  - cumul 1*64
-  TrkrDefs::subsurfkey m_subsurfkey;  //< unique identifier for hitsetkey-surface maps 16 bit
-  float m_phierr;
-  float m_zerr;
-  unsigned short int m_adc;     //< cluster sum adc 16
-  unsigned short int m_maxadc;  //< cluster max adc 16
-  unsigned short int m_cenadc;  //< cluster centroid adc 16
-  float m_padcen;
-  float m_tbincen;
-  float m_padmax;
-  float m_tbinmax;
-  unsigned char m_rsize;        // 8bit
-  char m_phisize;               // 8bit
-  char m_zsize;                 // 8bit
-  char m_overlap;               // 8bit
-  char m_edge;                  // 8bit - cumul 2*64
-  char m_sledge;                // 8bit
-  char m_sredge;                // 8bit
-  char m_tledge;                // 8bit
-  char m_tredge;                // 8bit
-  char m_dledge;                // 8bit
-  char m_dredge;                // 8bit
-  char m_hledge;                // 8bit
-  char m_hredge;                // 8bit
-  char m_slmix;                 // 8bit
-  char m_srmix;                 // 8bit
-  char m_tlmix;                 // 8bit
-  char m_trmix;                 // 8bit
-  float m_phibinlo;
-  float m_phibinhi;
-  float m_tbinlo;
-  float m_tbinhi;
-  float m_padphase;
-  float m_tbinphase;
+  TrkrDefs::subsurfkey m_subsurfkey {TrkrDefs::SUBSURFKEYMAX};  //< unique identifier for hitsetkey-surface maps 16 bit
+  float m_phierr{0};
+  float m_zerr{0};
+  unsigned short int m_adc{0};     //< cluster sum adc 16
+  unsigned short int m_maxadc{0};  //< cluster max adc 16
+  unsigned short int m_cenadc{0};  //< cluster centroid adc 16
+  float m_padcen{0};
+  float m_tbincen{0};
+  float m_padmax{0};
+  float m_tbinmax{0};
+  unsigned char m_rsize{0};        // 8bit
+  char m_phisize{0};               // 8bit
+  char m_zsize{0};                 // 8bit
+  char m_overlap{0};               // 8bit
+  char m_edge{0};                  // 8bit - cumul 2*64
+  char m_sledge{0};                // 8bit
+  char m_sredge{0};                // 8bit
+  char m_tledge{0};                // 8bit
+  char m_tredge{0};                // 8bit
+  char m_dledge{0};                // 8bit
+  char m_dredge{0};                // 8bit
+  char m_hledge{0};                // 8bit
+  char m_hredge{0};                // 8bit
+  char m_slmix{0};                 // 8bit
+  char m_srmix{0};                 // 8bit
+  char m_tlmix{0};                 // 8bit
+  char m_trmix{0};                 // 8bit
+  float m_phibinlo{0};
+  float m_phibinhi{0};
+  float m_tbinlo{0};
+  float m_tbinhi{0};
+  float m_padphase{0};
+  float m_tbinphase{0};
 
   ClassDefOverride(TrkrClusterv6, 1)
 };
