@@ -125,12 +125,22 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   //! store list of FEE that have data for a given beam clock
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
 
-  //! store list of raw hits matching a given bco
-  std::map<uint64_t, std::vector<MicromegasRawHit *>> m_MicromegasRawHitMap;
+  //! list of raw hits
+  using rawhit_list_t = std::vector<MicromegasRawHit*>;
+
+  //! maps list of raw hits on GTM BCO values
+  using rawhit_map_t = std::map<uint64_t, rawhit_list_t>;
+
+  //! store list of raw hits matching a given GTM bco on a per FEE basis
+  std::array<rawhit_map_t,MAX_FEECOUNT> m_MicromegasRawHitMap{};
 
   //! map bco_information_t to packet id
   using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation_v2>;
   bco_matching_information_map_t m_bco_matching_information_map;
+
+  //! map packet to FEE ID
+  /* it is filled on the fly. It allows to quickly retrieve BCO matching information from FEE index */
+  std::array<unsigned int,MAX_FEECOUNT> m_fee_packet;
 
   class counter_t
   {

@@ -307,6 +307,7 @@ void SingleMicromegasPoolInput_v2::FillPool(const uint64_t target_bco)
 
     m_timer.stop();
   }
+
 }
 
 //______________________________________________________________
@@ -323,41 +324,34 @@ void SingleMicromegasPoolInput_v2::Print(const std::string& what) const
       }
     }
   }
-
-  if (what == "ALL" || what == "STORAGE")
-  {
-    for (const auto& bcliter : m_MicromegasRawHitMap)
-    {
-      std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
-      for (auto* feeiter : bcliter.second)
-      {
-        std::cout
-            << "fee: " << feeiter->get_fee()
-            << " at " << std::hex << feeiter << std::dec
-            << std::endl;
-      }
-    }
-  }
-
 }
 
 //____________________________________________________________________________
 void SingleMicromegasPoolInput_v2::CleanupUsedPackets(const uint64_t bclk, bool dropped)
 {
   // delete all raw hits associated to bco smaller than reference, and remove from map
-  for (auto iter = m_MicromegasRawHitMap.begin(); iter != m_MicromegasRawHitMap.end() && (iter->first <= bclk); iter = m_MicromegasRawHitMap.erase(iter))
+  // loop over per-FEE maps
+  for( auto&& rawhitmap: m_MicromegasRawHitMap )
   {
-    for (const auto& rawhit : iter->second)
+    // loop over rawhit lists for which gtm bco is below request
+    // delete hits in list and remove list from map
+    for (auto iter = rawhitmap.begin(); iter != rawhitmap.end() && (iter->first <= bclk); iter = rawhitmap.erase(iter))
     {
-      if (dropped)
+      for (const auto& rawhit : iter->second)
       {
-        // increment dropped waveform counter and histogram
-        ++m_waveform_counters[rawhit->get_packetid()].dropped_pool;
-        ++m_fee_waveform_counters[rawhit->get_fee()].dropped_pool;
-        h_waveform_count_dropped_pool->Fill(std::to_string(rawhit->get_packetid()).c_str(), 1);
-        h_fee_waveform_count_dropped_pool->Fill(rawhit->get_fee(), 1);
+        // increment dropped waveform counters
+        if (dropped)
+        {
+          // increment dropped waveform counter and histogram
+          ++m_waveform_counters[rawhit->get_packetid()].dropped_pool;
+          ++m_fee_waveform_counters[rawhit->get_fee()].dropped_pool;
+          h_waveform_count_dropped_pool->Fill(std::to_string(rawhit->get_packetid()).c_str(), 1);
+          h_fee_waveform_count_dropped_pool->Fill(rawhit->get_fee(), 1);
+        }
+
+        // delete raw hit
+        delete rawhit;
       }
-      delete rawhit;
     }
   }
 
@@ -455,10 +449,12 @@ void SingleMicromegasPoolInput_v2::FillBcoQA(uint64_t gtm_bco)
     }
 
     // waveforms
-    const auto wf_iter = m_MicromegasRawHitMap.find(gtm_bco_loc);
-    if (wf_iter != m_MicromegasRawHitMap.end())
+    // loop over FEEs, find gtm bco and increment by number of rawhits in corresponding list
+    for( const auto& rawhitmap:m_MicromegasRawHitMap )
     {
-      n_waveforms += wf_iter->second.size();
+      const auto wf_iter = rawhitmap.find(gtm_bco_loc);
+      if (wf_iter != rawhitmap.end())
+      { n_waveforms += wf_iter->second.size(); }
     }
   }
 
@@ -657,6 +653,10 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet)
       // populate fee buffer
       if (fee_id < MAX_FEECOUNT)
       {
+
+        // update FEE packet ID
+        m_fee_packet[fee_id] = packet_id;
+
         // NOLINTNEXTLINE(modernize-loop-convert)
         for (unsigned int i = 0; i < DAM_DMA_WORD_LENGTH - 1; i++)
         {
@@ -665,6 +665,7 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet)
 
         // immediate fee buffer processing to reduce memory consuption
         process_fee_data(packet_id, fee_id);
+
       }
     }
   }
@@ -974,11 +975,11 @@ void SingleMicromegasPoolInput_v2::process_fee_data(int packet_id, unsigned int 
 
     m_BeamClockFEE[gtm_bco].insert(fee_id);
 
+    // add hit to streaming input manager
     if (StreamingInputManager())
-    {
-      StreamingInputManager()->AddMicromegasRawHit(gtm_bco, newhit.get());
-    }
+    { StreamingInputManager()->AddMicromegasRawHit(gtm_bco, newhit.get()); }
 
-    m_MicromegasRawHitMap[gtm_bco].push_back(newhit.release());
+    // add to local map
+    m_MicromegasRawHitMap[fee_id][gtm_bco].push_back(newhit.release());
   }
 }
