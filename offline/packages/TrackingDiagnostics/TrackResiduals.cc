@@ -718,7 +718,7 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
 	m_padphase = cluster->getPadPhase();
 	m_tbinphase = cluster->getTBinPhase();
         auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, m_sclusgr, key);
-	m_size = cluster->getSize();
+	m_size = cluster->getRSize();
         m_phisize = cluster->getPhiSize();
         m_zsize = cluster->getZSize();
 	m_overlap = cluster->getOverlap();
@@ -1246,7 +1246,7 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   m_clusPadMax.push_back(cluster->getPadMax());
   m_clusTBinMax.push_back(cluster->getTBinMax());
   m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
-  m_clussize.push_back(cluster->getSize());
+  m_clussize.push_back(cluster->getRSize());
   m_clusphisize.push_back(cluster->getPhiSize());
   m_cluszsize.push_back(cluster->getZSize());
   m_clusphibinlo.push_back(cluster->getPhiBinLo());
@@ -1548,7 +1548,7 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   m_clusPadMax.push_back(cluster->getPadMax());
   m_clusTBinMax.push_back(cluster->getTBinMax());
   m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
-  m_clussize.push_back(cluster->getSize());
+  m_clussize.push_back(cluster->getRSize());
   m_clusphisize.push_back(cluster->getPhiSize());
   m_cluszsize.push_back(cluster->getZSize());
   m_clusphibinlo.push_back(cluster->getPhiBinLo());

@@ -440,7 +440,7 @@ namespace
       cluster_hits.insert(encode(hit.iphi, hit.it));
     }
 
-    for (auto &hit : ihit_list)
+    for (const auto &hit : ihit_list)
     {
       int iphi = hit.iphi;
       int it   = hit.it;
@@ -449,29 +449,30 @@ namespace
       {
 	for (int dt = -1; dt <= 1; ++dt)
 	{
-	  if (dphi == 0 && dt == 0) continue;
+	  if (dphi == 0 && dt == 0) { continue; }
 
 	  int nphi = iphi + dphi;
 	  int nt   = it + dt;
 
 	  if (nphi < 0 || nphi >= phibins ||
-	      nt   < 0 || nt   >= tbins)
+	      nt   < 0 || nt   >= tbins) {
 	    continue;
+	  }
 
 	  // skip same cluster
-	  if (cluster_hits.count(encode(nphi, nt))) continue;
+	  if (cluster_hits.contains(encode(nphi, nt))) { continue; }
 
 	  // neighbor has signal → touching
 	  if (adcval[nphi][nt] > 0 &&
 	      adcval[nphi][nt] != USHRT_MAX)
 	  {
 	    // Check Phi
-	    if (dphi == -1) counts.slmix = 1;
-	    if (dphi == 1) counts.srmix = 1;
+	    if (dphi == -1) { counts.slmix = 1; }
+	    if (dphi == 1) { counts.srmix = 1; }
 
 	    // Check Time
-	    if (dt == -1) counts.tlmix = 1;
-	    if (dt == 1) counts.trmix = 1;
+	    if (dt == -1) { counts.tlmix = 1; }
+	    if (dt == 1) { counts.trmix = 1; }
 	  }
 	}
       }
