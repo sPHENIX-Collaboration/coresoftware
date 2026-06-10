@@ -46,8 +46,8 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
  private:
   const int NTPCPACKETS = 3;
 
-  // in BCO, limit caching to 1 second worth of packets, to avoid memory over usage when trigger jumped by a long time
-  static constexpr uint64_t kUsedPacketsCachingLimit = 10000000;  
+  // in BCO, limit caching to a quarter of FEE clock rollover or 7ms, to avoid memory over usage when trigger jumped by a long time
+  static constexpr uint64_t kUsedPacketsCachingLimit = (1<<20)/4/4;  
 
   Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};

@@ -1061,7 +1061,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
                 << ". m_timeHitMap size: " << time_hit_bucket_count() << std::endl;
     }
 
-    if (m_verbosity >= 1)
+    if (m_verbosity >= 2)
     {
       size_t total_time_hits_empty = 0;
       size_t time_hit_map_buckets_empty = 0;
@@ -1157,7 +1157,9 @@ void TpcTimeFrameBuilderRun3::CleanupUsedPackets(const uint64_t& bclk)
   if (m_verbosity > 2)
   {
     std::cout << __PRETTY_FUNCTION__ << "	- packet " << m_packet_id << ": cleaning up bcos < 0x" << std::hex
-              << bclk << std::dec << std::endl;
+              << bclk << std::dec 
+              << " and m_UsedTimeFrameSet size: " << m_UsedTimeFrameSet.size()
+              << std::endl;
   }
 
   while (!m_UsedTimeFrameSet.empty())
