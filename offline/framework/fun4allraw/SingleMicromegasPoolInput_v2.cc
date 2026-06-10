@@ -1047,13 +1047,6 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
       if( bco > found_bco && bco <= found_bco + truncatedWaveformGTMWindow )
       {
 
-//         std::cout << "SingleMicromegasPoolInput_v2::recover_truncated_waveforms -"
-//           << " fee: " << fee
-//           << " target_bco: " << target_bco
-//           << " found_bco: " << found_bco
-//           << " bco: " << bco
-//           << std::endl;
-
         // perform overlap restoration
         for( auto* source:rawhitlist )
         {
@@ -1079,7 +1072,6 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
 
             // get FEE BCO from GTM
             auto result =  bco_matching.get_predicted_fee_bco( target_bco );
-            // auto result =  bco_matching.get_predicted_fee_bco( found_bco );
             if( !result ) { continue; }
 
             const auto target_fee_bco = result.value();
@@ -1094,14 +1086,15 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
             target->set_fee(source->get_fee());
             target->set_channel(source->get_channel());
             target->set_sampaaddress(source->get_sampaaddress());
+            target->set_sampachannel(source->get_sampachannel());
 
             // store in new array
             new_rawhits[target->get_channel()] = target;
-            target->set_sampachannel(source->get_sampachannel());
 
           }
 
           // calculate waveform shift
+          // TODO: get proper diff with proper rollover
           const uint64_t fee_bco_diff = source->get_bco() - target->get_bco();
           const uint16_t fee_clock_shift = static_cast<uint16_t>(fee_bco_diff/kFEEClockPerADCClock);
 
@@ -1110,7 +1103,17 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
 
           // move copy to target hit, with properly shifted start time
           for( auto&& [start_time,adc_list]:waveformlist)
-          { target->move_adc_waveform( start_time+fee_clock_shift, std::move(adc_list) ); }
+          {
+
+            // make sure shifted start time is in acceptable window
+            if( start_time+fee_clock_shift >= kTruncatedWaveformWindow ) continue;
+
+            // make sure all samples are in acceptable range
+            if( start_time+fee_clock_shift + adc_list.size() >=  kTruncatedWaveformWindow )
+            { adc_list.resize( start_time+fee_clock_shift - kTruncatedWaveformWindow ); }
+
+            target->move_adc_waveform( start_time+fee_clock_shift, std::move(adc_list) );
+          }
 
         }
 
