@@ -224,10 +224,10 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
       return m_gtm_bco_trig_list.size();
     }
 
-    //! get size of m_bco_reference_candidate_list
-    size_t get_bco_reference_candidate_list_size() const
+    //! get size of m_bco_heartbeat_list
+    size_t get_bco_heartbeat_list_size() const
     {
-      return m_bco_reference_candidate_list.size();
+      return m_bco_heartbeat_list.size();
     }
 
     //! get size of m_gtm_bco_trigger_map
@@ -251,12 +251,6 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
     void set_verbosity(int value)
     {
       m_verbosity = value;
-    }
-
-    void set_gtm_clock_ratio(int64_t numerator, int64_t denominator)
-    {
-      m_clock_ratio_numerator = numerator;
-      m_clock_ratio_denominator = denominator;
     }
 
     /// set gtm clock with rollover correction
@@ -328,8 +322,9 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
         const uint32_t &first, const uint32_t &second)  // NOLINT(misc-unused-parameters)
     {
       const uint32_t diff_raw = get_bco_diff(first, second);
-
-      return (diff_raw < (1U << (m_FEE_CLOCK_BITS / 2))) ? diff_raw : (1U << m_FEE_CLOCK_BITS) - diff_raw;
+      const uint32_t half_range = 1U << (m_FEE_CLOCK_BITS - 1);
+      const uint32_t full_range = 1U << m_FEE_CLOCK_BITS;
+      return (diff_raw <= half_range) ? diff_raw : full_range - diff_raw;
     }
 
    private:
@@ -354,8 +349,8 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
 
     // std::optional< std::pair< uint64_t, uint32_t > > m_bco_reference_candidate = std::nullopt;
     //! not yet matched heart beats
-    std::list<m_gtm_fee_bco_matching_pair_t> m_bco_reference_candidate_list;
-    static constexpr unsigned int m_max_bco_reference_candidate_list_size = 16;
+    std::list<m_gtm_fee_bco_matching_pair_t> m_bco_heartbeat_list;
+    static constexpr unsigned int m_max_bco_heartbeat_list_size = 16;
 
     // //! list of heart beat GTM BCO that is still to be matched
     // std::queue<uint64_t> m_heartbeat_gtm_bco_queue;
@@ -391,8 +386,9 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
     static constexpr unsigned int m_FEE_CLOCK_BITS = 20;
     static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
 
-    int64_t m_clock_ratio_numerator = 0;
-    int64_t m_clock_ratio_denominator = 1;
+    //! Run3 FEE firmware
+    static constexpr int64_t m_clock_ratio_numerator = 30;
+    static constexpr int64_t m_clock_ratio_denominator = 8;
 
     TH1 *m_hNorm = nullptr;
     TH1 *m_hFEEClockAdjustment_MatchedReference = nullptr;
@@ -417,7 +413,7 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
 
   static constexpr uint32_t kFEEClockMask = (1U << 20U) - 1U;
   static constexpr uint32_t kRun3FeeMatchWindow = (GL1_BCO_MATCH_WINDOW * 30U + 7U) / 8U;
-  static constexpr int32_t kRun3ExactMatchWindow = 2;
+  static constexpr int32_t kRun3ExactMatchWindow = 6; // allow for 1BCO offset from different clock freq. + 1BCO for possible missing first sync
   static constexpr uint32_t kRun3FEEClockPerADCClock = 2U;
   static constexpr uint32_t kRun3TruncatedWaveformRecoveryWindow = 1024U;
   static constexpr uint32_t kRun3TruncatedWaveformRecoveryFEEWindow =
