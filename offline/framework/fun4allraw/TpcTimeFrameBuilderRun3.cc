@@ -762,7 +762,7 @@ void TpcTimeFrameBuilderRun3::cleanup_time_hit_map(uint64_t bclk_rollover_correc
     const std::optional<uint32_t> predicted_fee_bco = m_bcoMatchingInformation_vec[fee_index].get_predicted_fee_bco(bclk_rollover_corrected);
     if (!predicted_fee_bco)
     {
-      if (m_verbosity >= 1)
+      if (m_verbosity >= 2)
       {
         std::cout << __PRETTY_FUNCTION__ << " - packet " << m_packet_id
             << ": WARNING: No predicted FEE BCO for fee index " << fee_index
@@ -2420,11 +2420,13 @@ std::optional<uint32_t> TpcTimeFrameBuilderRun3::BcoMatchingInformation::get_pre
     if (get_bco_diff(gtm_bco , latest_reference_bco)*m_clock_ratio_numerator 
     > ((1U << (m_FEE_CLOCK_BITS -1))) * m_clock_ratio_denominator)
     {
-      if (m_verbosity > 1)
+      if (m_verbosity >= 3)
       {
         std::cout << "TpcTimeFrameBuilderRun3[" << m_name << "]::BcoMatchingInformation::get_predicted_fee_bco -"
                   << " GTM bco 0x" << std::hex << gtm_bco << std::dec
                   << " is too far from the latest heartbeat bco 0x" << std::hex << latest_reference_bco << std::dec
+                  << " get_bco_diff(gtm_bco , latest_reference_bco) =" << get_bco_diff(gtm_bco , latest_reference_bco)
+                  << " > " << ((1U << (m_FEE_CLOCK_BITS -1))) * m_clock_ratio_denominator / m_clock_ratio_numerator
                   << ", cannot predict fee bco" << std::endl;
       }
       return std::nullopt;
