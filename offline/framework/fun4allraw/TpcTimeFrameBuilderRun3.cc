@@ -1501,7 +1501,7 @@ int TpcTimeFrameBuilderRun3::ProcessPacket(Packet* packet)
   h_ProcessPacket_Time->Fill(call_count, m_packetTimer->elapsed());
 
   // Track final buffer usage at end of ProcessPacket
-  if (m_verbosity >= 1)
+  if (m_verbosity >= 2)
   {
     size_t total_time_hits_final = 0;
     size_t time_hit_map_buckets_final = 0;
