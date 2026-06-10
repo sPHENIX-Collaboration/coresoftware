@@ -20,8 +20,6 @@ namespace
 {
 
   // streamer for lists
-
-  // streamer for lists
   template <class T>
   std::ostream& operator<<(std::ostream& o, const std::list<T>& list)
   {
@@ -102,6 +100,9 @@ namespace
   /* used for rollover calculation */
   static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
 
+  static constexpr uint64_t m_GTM_CLOCK_MASK = (1ULL << m_GTM_CLOCK_BITS)-1;
+  static constexpr uint64_t m_GTM_CLOCK_ROLLOVER = 1ULL << m_GTM_CLOCK_BITS;
+
   /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
   enum SampaDataType
   {
@@ -140,7 +141,6 @@ unsigned int MicromegasBcoMatchingInformation_v2::m_max_gtm_bco_diff = 100;
 // unsigned int MicromegasBcoMatchingInformation_v2::m_max_fee_sync_time = 1024 * 8;
 // unsigned int MicromegasBcoMatchingInformation_v2::m_max_fee_sync_time = 1024 * 16;
 unsigned int MicromegasBcoMatchingInformation_v2::m_max_fee_sync_time = 1024 * 32;
-
 
 //___________________________________________________
 std::optional<uint32_t> MicromegasBcoMatchingInformation_v2::get_predicted_fee_bco(uint64_t gtm_bco) const
@@ -194,7 +194,7 @@ uint64_t MicromegasBcoMatchingInformation_v2::get_gtm_rollover_correction(uint64
   // check proper initialization
   if (!is_verified()) { return gtm_bco; }
   else if( gtm_bco >= m_bco_reference.second ) return gtm_bco;
-  else return gtm_bco+(1ULL << m_GTM_CLOCK_BITS);
+  else return gtm_bco+m_GTM_CLOCK_ROLLOVER;
 }
 
 //___________________________________________________

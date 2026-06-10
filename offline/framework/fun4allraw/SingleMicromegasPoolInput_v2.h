@@ -84,6 +84,9 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   /// max number of FEE per OBDC
   static constexpr uint16_t MAX_FEECOUNT = 26;
 
+  /// max number of channels per FEE
+  static constexpr uint16_t MAX_FEECHANNELCOUNT = 256;
+
   // Length for the 256-bit wide Round Robin Multiplexer for the data stream
   static constexpr size_t DAM_DMA_WORD_LENGTH = 16;
   //@}
@@ -99,8 +102,11 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   void decode_gtm_data(int /*packet_id*/, const dma_word &);
   void process_fee_data(int /*packet_id*/, unsigned int /*fee_id*/);
 
+  // recover truncated waveforms for a given gtm bco
+  void recover_truncated_waveforms( const uint64_t /*target_bco*/ );
+
   // fee data buffer
-  std::vector<std::deque<uint16_t>> m_feeData{MAX_FEECOUNT};
+  std::array<std::deque<uint16_t>, MAX_FEECOUNT> m_feeData{};
 
   // list of packets from data stream
   std::array<Packet *, 10> plist{};
@@ -136,11 +142,11 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
 
   //! map bco_information_t to packet id
   using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation_v2>;
-  bco_matching_information_map_t m_bco_matching_information_map;
+  bco_matching_information_map_t m_bco_matching_information_map{};
 
   //! map packet to FEE ID
   /* it is filled on the fly. It allows to quickly retrieve BCO matching information from FEE index */
-  std::array<unsigned int,MAX_FEECOUNT> m_fee_packet;
+  std::array<unsigned int,MAX_FEECOUNT> m_fee_packet{};
 
   class counter_t
   {

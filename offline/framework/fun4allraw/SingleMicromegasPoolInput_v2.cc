@@ -142,6 +142,8 @@ namespace
 
 }  // namespace
 
+using MicromegasRawHit_impl = MicromegasRawHitv3;
+
 //______________________________________________________________
 SingleMicromegasPoolInput_v2::SingleMicromegasPoolInput_v2(const std::string& name)
   : SingleStreamingInput(name)
@@ -308,6 +310,9 @@ void SingleMicromegasPoolInput_v2::FillPool(const uint64_t target_bco)
     m_timer.stop();
   }
 
+  // recover truncated FEEs for target bco
+  recover_truncated_waveforms( target_bco );
+
 }
 
 //______________________________________________________________
@@ -473,6 +478,7 @@ void SingleMicromegasPoolInput_v2::FillBcoQA(uint64_t gtm_bco)
   // how many waveforms found for this BCO
   h_waveform->Fill(n_waveforms);
 }
+
 //_______________________________________________________
 void SingleMicromegasPoolInput_v2::createQAHistos()
 {
@@ -956,7 +962,7 @@ void SingleMicromegasPoolInput_v2::process_fee_data(int packet_id, unsigned int 
     }
 
     // create new hit
-    auto newhit = std::make_unique<MicromegasRawHitv3>();
+    auto newhit = std::make_unique<MicromegasRawHit_impl>();
     newhit->set_bco(fee_bco);
     newhit->set_gtm_bco(gtm_bco);
 
@@ -980,6 +986,155 @@ void SingleMicromegasPoolInput_v2::process_fee_data(int packet_id, unsigned int 
     { StreamingInputManager()->AddMicromegasRawHit(gtm_bco, newhit.get()); }
 
     // add to local map
-    m_MicromegasRawHitMap[fee_id][gtm_bco].push_back(newhit.release());
+    m_MicromegasRawHitMap[fee_id][gtm_bco].emplace_back(newhit.release());
   }
+}
+
+//____________________________________________________________________
+void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t target_bco )
+{
+
+  // TODO: consolidate everything (ahah)
+
+  static constexpr uint32_t kTruncatedWaveformWindow = 1024U;
+  static constexpr uint32_t kFEEClockPerADCClock = 2U;
+  static constexpr uint32_t kTruncatedWaveformFEEWindow = kTruncatedWaveformWindow*kFEEClockPerADCClock;
+
+  using rawhit_array_t = std::array<MicromegasRawHit*, MAX_FEECHANNELCOUNT>;
+
+  // keep track of exact BCO
+  uint64_t found_bco = target_bco;
+
+  // loop over fees
+  for( size_t fee = 0; fee < MAX_FEECOUNT; ++fee )
+  {
+
+    // get local raw hitmap
+    auto&& rawhitmap = m_MicromegasRawHitMap[fee];
+    if( rawhitmap.empty() ) continue;
+
+    // get the relevant BCO matching information object
+    const auto& bco_matching = m_bco_matching_information_map.at( m_fee_packet[fee] );
+    const double truncatedWaveformGTMWindow = kTruncatedWaveformFEEWindow/bco_matching.get_adjusted_multiplier();
+
+    // find matching bco if any and store raw hits
+    // list of raw hits (channel ordered) matching target BCO
+    rawhit_array_t current_rawhits{};
+    for( auto&& [bco, rawhitlist]:rawhitmap )
+    {
+
+      // compare bco to target, within acceptable range
+      // TODO properly acount for rollover. introduce a get_signed_diff
+      if( bco >= target_bco-m_NegativeBco && bco < target_bco+m_BcoRange )
+      {
+        found_bco = bco;
+        for( auto&& rawhit:rawhitlist )
+        {
+          if( rawhit->get_channel() < MAX_FEECHANNELCOUNT )
+          { current_rawhits[rawhit->get_channel()] = rawhit; }
+        }
+
+        break;
+      }
+    }
+
+    // keep track of newly created hits
+    [[maybe_unused]] rawhit_array_t new_rawhits{};
+
+    // find candidate overlapping bco if any
+    for( auto&& [bco, rawhitlist]:rawhitmap )
+    {
+      if( bco > found_bco && bco <= found_bco + truncatedWaveformGTMWindow )
+      {
+
+//         std::cout << "SingleMicromegasPoolInput_v2::recover_truncated_waveforms -"
+//           << " fee: " << fee
+//           << " target_bco: " << target_bco
+//           << " found_bco: " << found_bco
+//           << " bco: " << bco
+//           << std::endl;
+
+        // perform overlap restoration
+        for( auto* source:rawhitlist )
+        {
+
+          // cast to versioned raw hit
+          auto* source_impl = static_cast<MicromegasRawHit_impl*>(source);
+
+          // get channel and check
+          const auto channel = source->get_channel();
+          if( channel >= MAX_FEECHANNELCOUNT ) { continue; }
+
+          // keep track of target hit
+          MicromegasRawHit_impl* target = nullptr;
+
+          // check if there is an existing raw hit in current BCO at the same channel
+          if( current_rawhits[channel] )
+          {
+
+            // cast to versioned raw hit
+            target = static_cast<MicromegasRawHit_impl*>(current_rawhits[channel]);
+
+          } else {
+
+            // get FEE BCO from GTM
+            auto result =  bco_matching.get_predicted_fee_bco( target_bco );
+            // auto result =  bco_matching.get_predicted_fee_bco( found_bco );
+            if( !result ) { continue; }
+
+            const auto target_fee_bco = result.value();
+
+            // create new hit with shifted waveform
+            target = new MicromegasRawHit_impl;
+
+            // copy relevant members from source
+            target->set_bco(target_fee_bco);
+            target->set_gtm_bco(source->get_gtm_bco());
+            target->set_packetid(source->get_packetid());
+            target->set_fee(source->get_fee());
+            target->set_channel(source->get_channel());
+            target->set_sampaaddress(source->get_sampaaddress());
+
+            // store in new array
+            new_rawhits[target->get_channel()] = target;
+            target->set_sampachannel(source->get_sampachannel());
+
+          }
+
+          // calculate waveform shift
+          const uint64_t fee_bco_diff = source->get_bco() - target->get_bco();
+          const uint16_t fee_clock_shift = static_cast<uint16_t>(fee_bco_diff/kFEEClockPerADCClock);
+
+          // get waveforms (copy)
+          auto waveformlist = source_impl->get_adc_waveforms();
+
+          // move copy to target hit, with properly shifted start time
+          for( auto&& [start_time,adc_list]:waveformlist)
+          { target->move_adc_waveform( start_time+fee_clock_shift, std::move(adc_list) ); }
+
+        }
+
+        // found overlapping BCO. stop here
+        break;
+      }
+    }
+
+    // copy new hits in internal storage and add to streaming manager
+    for( auto* rawhit:new_rawhits )
+    {
+      if( rawhit )
+      {
+        // add hit to streaming input manager
+        if (StreamingInputManager())
+        { StreamingInputManager()->AddMicromegasRawHit(found_bco, rawhit); }
+
+        // add hit to insternal storage
+        m_MicromegasRawHitMap[fee][found_bco].emplace_back(rawhit);
+      }
+    }
+
+    // TODO: should mark target BCO as corrected
+
+  }
+
 }
