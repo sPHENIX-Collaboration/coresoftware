@@ -2,7 +2,6 @@
 
 #include <cdbobjects/CDBTTree.h>
 
-
 #include <phfield/PHField3DCartesian.h>
 
 #include <ffamodules/CDBInterface.h>
@@ -29,11 +28,11 @@ PHGarfield::PHGarfield(const std::string& name)
 
 int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
 {
-  if(Verbosity() > 1)
+  if (Verbosity() > 1)
   {
-  std::cout << "PHGarfield::InitRun(PHCompositeNode *topNode) Initializing" << std::endl;
+    std::cout << "PHGarfield::InitRun(PHCompositeNode *topNode) Initializing" << std::endl;
   }
-  CDBInterface *m_cdb = CDBInterface::instance();
+  CDBInterface* m_cdb = CDBInterface::instance();
 
   //  Here we use the CDBInterface to set up the magnetic field map:
   std::string url = m_cdb->getUrl("FIELDMAP_TRACKING");
@@ -54,9 +53,9 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
 
   //  Diagnostic during code development...
   FillRadii();
-  if(Verbosity() > 1)
+  if (Verbosity() > 1)
   {
-  PrintMaps();
+    PrintMaps();
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -100,18 +99,18 @@ void PHGarfield::PrintGarfield(double x, double y, double z)
   GetMagneticFieldTesla(x, y, z, bx, by, bz);
   m_gas->ElectronVelocity(ex, ey, ez, bx, by, bz, vx, vy, vz);
   std::cout << " x:" << x
-       << " y:" << y
-       << " z:" << z
-       << " ex:" << ex
-       << " ey:" << ey
-       << " ez:" << ez
-       << " bx:" << bx
-       << " by:" << by
-       << " bz:" << bz
-       << " vx:" << vx
-       << " vy:" << vy
-       << " vz:" << vz
-       << std::endl;
+            << " y:" << y
+            << " z:" << z
+            << " ex:" << ex
+            << " ey:" << ey
+            << " ez:" << ez
+            << " bx:" << bx
+            << " by:" << by
+            << " bz:" << bz
+            << " vx:" << vx
+            << " vy:" << vy
+            << " vz:" << vz
+            << std::endl;
 }
 
 void PHGarfield::PrintMaps()

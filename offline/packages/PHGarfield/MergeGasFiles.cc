@@ -9,7 +9,7 @@
 #include <cmath>
 #include <filesystem>
 #include <iostream>
-#include <numbers> // for pi
+#include <numbers>  // for pi
 #include <string>
 
 int main()
@@ -91,8 +91,8 @@ int main()
   TRandom3 Randy;
   Randy.SetSeed(PHRandomSeed());  // new initialization each run
   std::cout << std::endl
-       << std::endl
-       << "Valid Calls: " << std::endl;
+            << std::endl
+            << "Valid Calls: " << std::endl;
   for (int i = 0; i < nValid; i++)
   {
     double eMag = Randy.Uniform(emin, emax);
@@ -155,8 +155,8 @@ int main()
   }
 
   std::cout << std::endl
-       << std::endl
-       << "Invalid Calls: " << std::endl;
+            << std::endl
+            << "Invalid Calls: " << std::endl;
   for (int i = 0; i < nValid; i++)
   {
     double eMag = Randy.Uniform(emin, emax);

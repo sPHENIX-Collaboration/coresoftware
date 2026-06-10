@@ -49,8 +49,8 @@ class PHGarfield : public SubsysReco
   //  These are utilities for a spot check of the overall routine:
   // std::string calibdir;
   // std::string m_DiodeContainerName;
-  double PHI_MIN {-std::numbers::pi};
-  double radii[48]{};                                                                       // Radius on each layer just for test purposes...need to be cm!
+  double PHI_MIN{-std::numbers::pi};
+  double radii[48]{};  // Radius on each layer just for test purposes...need to be cm!
 };
 
 #endif
