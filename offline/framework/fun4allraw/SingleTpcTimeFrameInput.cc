@@ -181,6 +181,9 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
   //  std::set<uint64_t> saved_beamclocks;
   while (true)
   {
+    // clean up cache to avoid memory over usage when trigger jumped by a long time
+    CleanupUsedPackets(targetBCO - kUsedPacketsCachingLimit);
+
     if (m_TpcTimeFrameBuilderMap.empty())
     {
       if (Verbosity() > 1)

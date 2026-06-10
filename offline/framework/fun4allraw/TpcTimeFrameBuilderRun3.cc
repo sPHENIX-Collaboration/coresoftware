@@ -1012,7 +1012,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
     }
   }
 
-  if (m_verbosity >= 1 && recovered_hit_count > 0)
+  if (m_verbosity >= 2 && recovered_hit_count > 0)
   {
     std::cout << __PRETTY_FUNCTION__ << "	- packet " << m_packet_id
               << ": Run3 truncated waveform recovery appended " << recovered_hit_count
@@ -1110,7 +1110,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilderRun3::getTimeFrame(const uint64_t& g
   m_UsedTimeFrameSet.push(bclk_rollover_corrected);
 
   // Track final buffer usage
-  if (m_verbosity >= 1)
+  if (m_verbosity >= 2)
   {
     size_t total_time_hits_final = 0;
     size_t time_hit_map_buckets_final = 0;
@@ -2064,7 +2064,7 @@ int TpcTimeFrameBuilderRun3::decode_gtm_data(const TpcTimeFrameBuilderRun3::dma_
   payload.modebits = gtm[22];
   payload.userbits = gtm[23];
 
-  if (m_verbosity >= 1)
+  if (m_verbosity >= 2)
   {
     std::cout << __PRETTY_FUNCTION__ << "\t- GTM data : "
               << "\t- pkt_type = " << payload.pkt_type << std::endl
