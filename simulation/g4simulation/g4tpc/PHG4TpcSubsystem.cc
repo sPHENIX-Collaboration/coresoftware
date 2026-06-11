@@ -41,6 +41,7 @@ PHG4TpcSubsystem::~PHG4TpcSubsystem()
 //_______________________________________________________________________
 int PHG4TpcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
+  std::cout << "PHG4TpcSubsystem initRunSubsystem" << std::endl;
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 

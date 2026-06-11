@@ -118,10 +118,30 @@ void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   ConstructTpcCageVolume(tpc_envelope_logic);
   ConstructTpcGasVolume(tpc_envelope_logic);
 
+  G4RotationMatrix *rot = new G4RotationMatrix();
+  rot->rotateX(m_Params->get_double_param("rot_x")*rad);
+  rot->rotateY(m_Params->get_double_param("rot_y")*rad);
+  rot->rotateZ(m_Params->get_double_param("rot_z")*rad);
+  std::cout << PHWHERE <<  " Setting TPC tilt angles to "
+	    << " rot_x = " << m_Params->get_double_param("rot_x")*rad
+	    << " rot_y = " << m_Params->get_double_param("rot_y")*rad
+	    << " rot_z = " <<  m_Params->get_double_param("rot_z")*rad
+	    << std::endl;
+  
+  new G4PVPlacement(
+		    rot,
+		    G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),
+                    tpc_envelope_logic, "tpc_envelope",
+                    logicWorld,
+		    false, false, OverlapCheck());
+
+  
+  /*
   new G4PVPlacement(nullptr, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),
                     tpc_envelope_logic, "tpc_envelope",
                     logicWorld, false, false, OverlapCheck());
-
+  */
+  
   // geometry node
   add_geometry_node();
 }
