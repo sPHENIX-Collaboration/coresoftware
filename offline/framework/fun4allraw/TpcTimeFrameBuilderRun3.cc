@@ -2412,7 +2412,7 @@ std::optional<uint32_t> TpcTimeFrameBuilderRun3::BcoMatchingInformation::get_pre
   // check whether it is within the same FEE clock rollover window based on the reference candidate list
   {
     uint64_t latest_reference_bco = (*m_bco_reference).first;
-    if (not m_bco_heartbeat_list.empty())  
+    if (! m_bco_heartbeat_list.empty())  
     {
         latest_reference_bco = m_bco_heartbeat_list.back().first;  // get the latest heartbeat bco
     }
@@ -2437,8 +2437,8 @@ std::optional<uint32_t> TpcTimeFrameBuilderRun3::BcoMatchingInformation::get_pre
   const auto& bco_reference = *m_bco_reference;
   const int64_t gtm_bco_difference = int64_t(gtm_bco) - int64_t(bco_reference.first);
 
-  assert(m_clock_ratio_numerator > 0);
-  assert(m_clock_ratio_denominator > 0);
+  static_assert(m_clock_ratio_numerator > 0);
+  static_assert(m_clock_ratio_denominator > 0);
 
   // convert to fee bco with the exact Run3 30/8 ratio, and truncate to 20 bits
   const int64_t fee_bco_predicted = int64_t(bco_reference.second) +
