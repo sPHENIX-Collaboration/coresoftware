@@ -98,9 +98,9 @@ namespace
 
   // Fee clock bits
   static constexpr unsigned int m_FEE_CLOCK_BITS = 20U;
-  static constexpr uint32_t m_FEE_CLOCK_MASK = (1ULL << m_FEE_CLOCK_BITS)-1;
-  static constexpr int32_t m_FEE_CLOCK_RANGE = 1ULL << m_FEE_CLOCK_BITS;
-  static constexpr int32_t m_FEE_CLOCK_HALF_RANGE = 1ULL << (m_FEE_CLOCK_BITS-1);
+  static constexpr uint32_t m_FEE_CLOCK_MASK = (1UL << m_FEE_CLOCK_BITS)-1ULL;
+  static constexpr int32_t m_FEE_CLOCK_RANGE = 1UL << m_FEE_CLOCK_BITS;
+  static constexpr int32_t m_FEE_CLOCK_HALF_RANGE = 1UL << (m_FEE_CLOCK_BITS-1UL);
 
   /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
   enum SampaDataType
