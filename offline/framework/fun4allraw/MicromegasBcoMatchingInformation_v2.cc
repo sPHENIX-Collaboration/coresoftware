@@ -91,16 +91,16 @@ namespace
 
   // gtm clock bits
   /* used for rollover calculation */
-  static constexpr unsigned int m_GTM_CLOCK_BITS = 40U;
-  static constexpr uint64_t m_GTM_CLOCK_MASK = (1ULL << m_GTM_CLOCK_BITS)-1;
-  static constexpr int64_t m_GTM_CLOCK_RANGE = 1ULL << m_GTM_CLOCK_BITS;
-  static constexpr int64_t m_GTM_CLOCK_HALF_RANGE = 1ULL << (m_GTM_CLOCK_BITS-1);
+  constexpr unsigned int m_GTM_CLOCK_BITS = 40U;
+  constexpr uint64_t m_GTM_CLOCK_MASK = (1ULL << m_GTM_CLOCK_BITS)-1;
+  constexpr int64_t m_GTM_CLOCK_RANGE = 1ULL << m_GTM_CLOCK_BITS;
+  constexpr int64_t m_GTM_CLOCK_HALF_RANGE = 1ULL << (m_GTM_CLOCK_BITS-1);
 
   // Fee clock bits
-  static constexpr unsigned int m_FEE_CLOCK_BITS = 20U;
-  static constexpr uint32_t m_FEE_CLOCK_MASK = (1UL << m_FEE_CLOCK_BITS)-1ULL;
-  static constexpr int32_t m_FEE_CLOCK_RANGE = 1UL << m_FEE_CLOCK_BITS;
-  static constexpr int32_t m_FEE_CLOCK_HALF_RANGE = 1UL << (m_FEE_CLOCK_BITS-1UL);
+  constexpr unsigned int m_FEE_CLOCK_BITS = 20U;
+  constexpr uint32_t m_FEE_CLOCK_MASK = (1UL << m_FEE_CLOCK_BITS)-1ULL;
+  constexpr int32_t m_FEE_CLOCK_RANGE = 1UL << m_FEE_CLOCK_BITS;
+  constexpr int32_t m_FEE_CLOCK_HALF_RANGE = 1UL << (m_FEE_CLOCK_BITS-1UL);
 
   /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
   enum SampaDataType
@@ -196,7 +196,7 @@ std::optional<uint32_t> MicromegasBcoMatchingInformation_v2::get_predicted_fee_b
 
   // convert to fee bco, and truncate to 20 bits
   const int64_t fee_bco_predicted = m_bco_reference.first + get_adjusted_multiplier() * gtm_bco_difference;
-  return uint32_t(fee_bco_predicted & m_FEE_CLOCK_MASK);
+  return static_cast<uint32_t>(fee_bco_predicted) & m_FEE_CLOCK_MASK;
 }
 
 //___________________________________________________
@@ -232,7 +232,7 @@ void MicromegasBcoMatchingInformation_v2::print_gtm_bco_information() const
 bool MicromegasBcoMatchingInformation_v2::is_more_data_required( uint64_t gtm_bco ) const
 {
   // check proper initialization
-  if( !is_verified() ) return true;
+  if( !is_verified() ) { return true; }
 
   // compare to reference
   if( get_signed_gtm_bco_diff( m_bco_reference.second, gtm_bco ) > m_max_fee_sync_time )

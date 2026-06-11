@@ -1010,7 +1010,7 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
     // get local raw hitmap
     using rawhit_array_t = std::array<MicromegasRawHit*, MAX_FEECHANNELCOUNT>;
     auto&& rawhitmap = m_MicromegasRawHitMap[fee];
-    if( rawhitmap.empty() ) continue;
+    if( rawhitmap.empty() ) { continue; }
 
     // get the relevant BCO matching information object
     const auto& bco_matching = m_bco_matching_information_map.at( m_fee_packet[fee] );
