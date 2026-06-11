@@ -1000,8 +1000,6 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
   static constexpr uint32_t kFEEClockPerADCClock = 2U;
   static constexpr uint32_t kTruncatedWaveformFEEWindow = kTruncatedWaveformWindow*kFEEClockPerADCClock;
 
-  using rawhit_array_t = std::array<MicromegasRawHit*, MAX_FEECHANNELCOUNT>;
-
   // keep track of exact BCO
   uint64_t found_bco = target_bco;
 
@@ -1010,6 +1008,7 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
   {
 
     // get local raw hitmap
+    using rawhit_array_t = std::array<MicromegasRawHit*, MAX_FEECHANNELCOUNT>;
     auto&& rawhitmap = m_MicromegasRawHitMap[fee];
     if( rawhitmap.empty() ) continue;
 
@@ -1039,7 +1038,8 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
     }
 
     // keep track of newly created hits
-    [[maybe_unused]] rawhit_array_t new_rawhits{};
+    using rawhit_impl_array_t = std::array<MicromegasRawHit_impl*, MAX_FEECHANNELCOUNT>;
+    rawhit_impl_array_t new_rawhits{};
 
     // find candidate overlapping bco if any
     for( auto&& [bco, rawhitlist]:rawhitmap )
@@ -1109,10 +1109,11 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
             if( start_time+fee_clock_shift >= kTruncatedWaveformWindow ) continue;
 
             // make sure all samples are in acceptable range
-            if( start_time+fee_clock_shift + adc_list.size() >=  kTruncatedWaveformWindow )
-            { adc_list.resize( start_time+fee_clock_shift - kTruncatedWaveformWindow ); }
+            if( start_time+fee_clock_shift + adc_list.size() >  kTruncatedWaveformWindow )
+            { adc_list.resize( kTruncatedWaveformWindow - start_time - fee_clock_shift ); }
 
             target->move_adc_waveform( start_time+fee_clock_shift, std::move(adc_list) );
+
           }
 
         }
@@ -1127,12 +1128,17 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
     {
       if( rawhit )
       {
-        // add hit to streaming input manager
-        if (StreamingInputManager())
-        { StreamingInputManager()->AddMicromegasRawHit(found_bco, rawhit); }
+        if( !rawhit->get_adc_waveforms().empty() )
+        {
+          // add hit to streaming input manager
+          if (StreamingInputManager())
+          { StreamingInputManager()->AddMicromegasRawHit(found_bco, rawhit); }
 
-        // add hit to insternal storage
-        m_MicromegasRawHitMap[fee][found_bco].emplace_back(rawhit);
+          // add hit to insternal storage
+          m_MicromegasRawHitMap[fee][found_bco].emplace_back(rawhit);
+        } else {
+          delete rawhit;
+        }
       }
     }
 
