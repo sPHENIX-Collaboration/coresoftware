@@ -1142,9 +1142,6 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
         }
       }
     }
-
-    // TODO: should mark target BCO as corrected
-
   }
 
 }
