@@ -22,6 +22,7 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual Eventiterator *GetEventIterator() { return m_EventIterator; }
   virtual void FillPool(const uint64_t) { return; }
   virtual void FillPool(const unsigned int = 1) { return; }
+  virtual int FillPoolStatus() const { return 0; }
   virtual void RunNumber(const int runno) { m_RunNumber = runno; }
   virtual int RunNumber() const { return m_RunNumber; }
   virtual int fileopen(const std::string &filename) override;
