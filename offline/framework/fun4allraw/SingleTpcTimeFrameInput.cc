@@ -1,5 +1,6 @@
 #include "SingleTpcTimeFrameInput.h"
 #include "TpcTimeFrameBuilder.h"
+#include "TpcTimeFrameBuilderRun3.h"
 
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
@@ -25,6 +26,8 @@
 #include <phool/phool.h>
 
 #include <Event/Event.h>
+#include <Event/oncsSubConstants.h>
+#include <Event/packet.h>
 #include <Event/EventTypes.h>
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
@@ -113,6 +116,7 @@ SingleTpcTimeFrameInput::TimeTracker::~TimeTracker()
 
 void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 {
+  m_FillPoolStatus = Fun4AllReturnCodes::EVENT_OK;
   {
     static bool first = true;
     if (first)
@@ -177,6 +181,9 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
   //  std::set<uint64_t> saved_beamclocks;
   while (true)
   {
+    // clean up cache to avoid memory over usage when trigger jumped by a long time
+    CleanupUsedPackets(targetBCO - kUsedPacketsCachingLimit);
+
     if (m_TpcTimeFrameBuilderMap.empty())
     {
       if (Verbosity() > 1)
@@ -269,6 +276,18 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
       auto &packet = plist[i];
       assert(packet);
 
+      auto cleanup_remaining_packets = [&](const int first_index)
+      {
+        for (int j = first_index; j < npackets; ++j)
+        {
+          if (plist[j])
+          {
+            delete plist[j];
+            plist[j] = nullptr;
+          }
+        }
+      };
+
       // get packet id
       const auto packet_id = packet->getIdentifier();
 
@@ -284,14 +303,52 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
         continue;
       }
 
+      const int hit_format = packet->getHitFormat();
+      const auto builder_hit_format_iter = m_TpcTimeFrameBuilderHitFormatMap.find(packet_id);
+      if (builder_hit_format_iter != m_TpcTimeFrameBuilderHitFormatMap.end() && builder_hit_format_iter->second != hit_format)
+      {
+        std::cout << __PRETTY_FUNCTION__ << ": Error : packet id " << packet_id
+                  << " changed TPC hit format from " << builder_hit_format_iter->second
+                  << " to " << hit_format << ". Aborting run." << std::endl;
+        packet->identify();
+        m_FillPoolStatus = Fun4AllReturnCodes::ABORTRUN;
+        cleanup_remaining_packets(i);
+        return;
+      }
+
       if (!m_TpcTimeFrameBuilderMap.contains(packet_id))
       {
-        if (Verbosity() >= 1)
+        TpcTimeFrameBuilderBase *builder = nullptr;
+        if (hit_format == IDTPCFEEV4)
         {
-          std::cout << __PRETTY_FUNCTION__ << ": Creating TpcTimeFrameBuilder for packet id: " << packet_id << std::endl;
+          if (Verbosity() >= 1)
+          {
+            std::cout << __PRETTY_FUNCTION__ << ": Creating TpcTimeFrameBuilder for packet id: " << packet_id
+                      << " hit format " << hit_format << std::endl;
+          }
+          builder = new TpcTimeFrameBuilder(packet_id);
+        }
+        else if (hit_format == IDTPCFEEV5 || hit_format == IDTPCFEEV6)
+        {
+          if (Verbosity() >= 1)
+          {
+            std::cout << __PRETTY_FUNCTION__ << ": Creating TpcTimeFrameBuilderRun3 for packet id: " << packet_id
+                      << " hit format " << hit_format << std::endl;
+          }
+          builder = new TpcTimeFrameBuilderRun3(packet_id);
+        }
+        else
+        {
+          std::cout << __PRETTY_FUNCTION__ << ": Error : unsupported TPC hit format " << hit_format
+                    << " for packet id " << packet_id << ". Aborting run." << std::endl;
+          packet->identify();
+          m_FillPoolStatus = Fun4AllReturnCodes::ABORTRUN;
+          cleanup_remaining_packets(i);
+          return;
         }
 
-        m_TpcTimeFrameBuilderMap[packet_id] = new TpcTimeFrameBuilder(packet_id);
+        m_TpcTimeFrameBuilderMap[packet_id] = builder;
+        m_TpcTimeFrameBuilderHitFormatMap[packet_id] = hit_format;
         m_TpcTimeFrameBuilderMap[packet_id]->setVerbosity(Verbosity());
         m_TpcTimeFrameBuilderMap[packet_id]->fillBadFeeMap();
         if (!m_digitalCurrentDebugTTreeName.empty())
@@ -306,7 +363,15 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
       }
 
       assert(m_TpcTimeFrameBuilderMap[packet_id]);
-      m_TpcTimeFrameBuilderMap[packet_id]->ProcessPacket(packet);
+      const int process_packet_status = m_TpcTimeFrameBuilderMap[packet_id]->ProcessPacket(packet);
+      if (process_packet_status < 0)
+      {
+        std::cout << __PRETTY_FUNCTION__ << ": Error : TPC packet builder returned " << process_packet_status
+                  << " for packet id " << packet_id << ". Aborting run." << std::endl;
+        m_FillPoolStatus = process_packet_status;
+        cleanup_remaining_packets(i);
+        return;
+      }
       // require_more_data = require_more_data or m_TpcTimeFrameBuilderMap[packet_id]->isMoreDataRequired(targetBCO);
 
       delete packet;

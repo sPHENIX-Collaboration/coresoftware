@@ -1400,6 +1400,11 @@ int Fun4AllStreamingInputManager::FillTpcPool()
       std::cout << "Fun4AllStreamingInputManager::FillTpcPool - fill pool for " << iter->Name() << std::endl;
     }
     iter->FillPool(ref_bco_minus_range);
+    const int fill_pool_status = iter->FillPoolStatus();
+    if (fill_pool_status < 0)
+    {
+      return fill_pool_status;
+    }
     if (m_RunNumber == 0)
     {
       m_RunNumber = iter->RunNumber();
