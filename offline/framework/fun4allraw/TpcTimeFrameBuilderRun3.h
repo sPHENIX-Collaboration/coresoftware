@@ -1,9 +1,11 @@
-#ifndef Fun4All_TpcTimeFrameBuilder_H
-#define Fun4All_TpcTimeFrameBuilder_H
+#ifndef Fun4All_TpcTimeFrameBuilderRun3_H
+#define Fun4All_TpcTimeFrameBuilderRun3_H
 
 #include "TpcTimeFrameBuilderBase.h"
 
 #include <algorithm>
+#include <array>
+#include <bitset>
 #include <cstdint>
 #include <deque>
 #include <functional>
@@ -20,17 +22,25 @@
 
 class Packet;
 class TpcRawHit;
+class TpcRawHitv3;
+using TpcRawHitRun3_typ = TpcRawHitv3;
 class PHTimer;
 class TH1;
 class TH2;
 class TTree;
 
 // NOLINTNEXTLINE(hicpp-special-member-functions)
-class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
+class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
 {
  public:
-  explicit TpcTimeFrameBuilder(const int packet_id);
-  ~TpcTimeFrameBuilder() override;
+  explicit TpcTimeFrameBuilderRun3(const int packet_id);
+  ~TpcTimeFrameBuilderRun3() override;
+
+  // delete copy and move constructors and assignment operators to avoid unsafe copying
+  TpcTimeFrameBuilderRun3(const TpcTimeFrameBuilderRun3&) = delete;
+  TpcTimeFrameBuilderRun3& operator=(const TpcTimeFrameBuilderRun3&) = delete;
+  TpcTimeFrameBuilderRun3(TpcTimeFrameBuilderRun3&&) = delete;
+  TpcTimeFrameBuilderRun3& operator=(TpcTimeFrameBuilderRun3&&) = delete;
 
   int ProcessPacket(Packet *) override;
   bool isMoreDataRequired(const uint64_t &gtm_bco) const override;
@@ -113,6 +123,7 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
     uint16_t user_word = 0;
     uint32_t bx_timestamp = 0;
     uint64_t gtm_bco = 0;
+    bool has_clock_sync = false;
 
     uint16_t data_crc = 0;
     uint16_t calc_crc = 0;
@@ -204,14 +215,32 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
     //! get predicted fee_bco from gtm_bco
     std::optional<uint32_t> get_predicted_fee_bco(uint64_t) const;
 
-    //! multiplier
-    double get_gtm_clock_multiplier()
-    {
-      return m_multiplier;
-    }
-
     //! print gtm bco information
     void print_gtm_bco_information() const;
+
+    //! get size of m_gtm_bco_trig_list
+    size_t get_gtm_bco_trig_list_size() const
+    {
+      return m_gtm_bco_trig_list.size();
+    }
+
+    //! get size of m_bco_heartbeat_list
+    size_t get_bco_heartbeat_list_size() const
+    {
+      return m_bco_heartbeat_list.size();
+    }
+
+    //! get size of m_gtm_bco_trigger_map
+    size_t get_gtm_bco_trigger_map_size() const
+    {
+      return m_gtm_bco_trigger_map.size();
+    }
+
+    //! get size of m_bco_matching_list
+    size_t get_bco_matching_list_size() const
+    {
+      return m_bco_matching_list.size();
+    }
 
     //@}
 
@@ -224,12 +253,6 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
       m_verbosity = value;
     }
 
-    /// set gtm clock multiplier
-    void set_gtm_clock_multiplier(double value)
-    {
-      m_multiplier = value;
-    }
-
     /// set gtm clock with rollover correction
     uint64_t get_gtm_rollover_correction(const uint64_t &gtm_bco) const;
 
@@ -239,8 +262,8 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
     //! save all GTM BCO clocks from packet data
     void save_gtm_bco_information(const gtm_payload &gtm_tagger);
 
-    //! find gtm bco matching a given fee
-    std::optional<uint64_t> find_gtm_bco(uint32_t /*fee_gtm*/);
+    // //! find gtm bco matching a given fee
+    // std::optional<uint64_t> find_gtm_bco(uint32_t /*fee_gtm*/);
 
     //! cleanup
     void cleanup();
@@ -299,8 +322,9 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
         const uint32_t &first, const uint32_t &second)  // NOLINT(misc-unused-parameters)
     {
       const uint32_t diff_raw = get_bco_diff(first, second);
-
-      return (diff_raw < (1U << (m_FEE_CLOCK_BITS / 2))) ? diff_raw : (1U << m_FEE_CLOCK_BITS) - diff_raw;
+      const uint32_t half_range = 1U << (m_FEE_CLOCK_BITS - 1);
+      const uint32_t full_range = 1U << m_FEE_CLOCK_BITS;
+      return (diff_raw <= half_range) ? diff_raw : full_range - diff_raw;
     }
 
    private:
@@ -325,8 +349,8 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
 
     // std::optional< std::pair< uint64_t, uint32_t > > m_bco_reference_candidate = std::nullopt;
     //! not yet matched heart beats
-    std::list<m_gtm_fee_bco_matching_pair_t> m_bco_reference_candidate_list;
-    static constexpr unsigned int m_max_bco_reference_candidate_list_size = 16;
+    std::list<m_gtm_fee_bco_matching_pair_t> m_bco_heartbeat_list;
+    static constexpr unsigned int m_max_bco_heartbeat_list_size = 16;
 
     // //! list of heart beat GTM BCO that is still to be matched
     // std::queue<uint64_t> m_heartbeat_gtm_bco_queue;
@@ -336,9 +360,6 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
     std::map<uint64_t, uint32_t> m_gtm_bco_trigger_map;
 
     std::list<m_fee_gtm_bco_matching_pair_t> m_bco_matching_list;
-
-    //! keep track or  fee_bco for which no gtm_bco is found
-    std::set<uint32_t> m_orphans;
 
     // define limit for matching two lvl1 and EnDAT tagger BCOs
     static constexpr int m_max_lv1_endat_bco_diff = 16;
@@ -357,18 +378,25 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
     //! max time in GTM BCO for FEE data to sync over to datastream
     static constexpr unsigned int m_max_fee_sync_time = 1024 * 8;
 
+    //! fixed GTM BCO offset applied when BX_COUNTER_SYNC_T defines the reference clock
+    static constexpr uint64_t kBXCounterSyncGtmBcoOffset = 0;
+    //! fixed FEE BCO offset applied when BX_COUNTER_SYNC_T defines the reference clock
+    static constexpr uint64_t kBXCounterSyncFEEBcoOffset = 12;
+
     static constexpr unsigned int m_FEE_CLOCK_BITS = 20;
     static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
 
-    double m_multiplier = 0;
+    //! Run3 FEE firmware
+    static constexpr int64_t m_clock_ratio_numerator = 30;
+    static constexpr int64_t m_clock_ratio_denominator = 8;
 
     TH1 *m_hNorm = nullptr;
     TH1 *m_hFEEClockAdjustment_MatchedReference = nullptr;
     TH1 *m_hFEEClockAdjustment_MatchedNew = nullptr;
     TH1 *m_hFEEClockAdjustment_Unmatched = nullptr;
     TH1 *m_hGTMNewEventSpacing = nullptr;
-    TH1 *m_hFindGTMBCO_MatchedExisting_BCODiff = nullptr;
-    TH1 *m_hFindGTMBCO_MatchedNew_BCODiff = nullptr;
+    // TH1 *m_hFindGTMBCO_MatchedExisting_BCODiff = nullptr;
+    // TH1 *m_hFindGTMBCO_MatchedNew_BCODiff = nullptr;
 
   };  //   class BcoMatchingInformation
 
@@ -383,10 +411,41 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
   //! common prefix for QA histograms
   std::string m_HistoPrefix;
 
-  //! GTM BCO -> TpcRawHit
-  //! Map to store TpcRawHit pointers indexed by GTM BCO values
-  //! This is used to organize hits into time frames based on their BCO values
+  static constexpr uint32_t kFEEClockMask = (1U << 20U) - 1U;
+  static constexpr uint32_t kRun3FeeMatchWindow = (GL1_BCO_MATCH_WINDOW * 30U + 7U) / 8U;
+  static constexpr int32_t kRun3ExactMatchWindow = 6; // allow for 1BCO offset from different clock freq. + 1BCO for possible missing first sync
+  static constexpr uint32_t kRun3FEEClockPerADCClock = 2U;
+  static constexpr uint32_t kRun3TruncatedWaveformRecoveryWindow = 1024U;
+  static constexpr uint32_t kRun3TruncatedWaveformRecoveryFEEWindow =
+      kRun3TruncatedWaveformRecoveryWindow * kRun3FEEClockPerADCClock;
+  static constexpr int kRun3NormalizationBaseBinCount = 20;
+  static constexpr int kRun3NormalizationBinCount = kRun3NormalizationBaseBinCount + MAX_FEECOUNT;
+
+  static int64_t get_signed_fee_bco_diff(uint32_t first, uint32_t second);
+  static uint32_t get_fee_bco_diff(uint32_t first, uint32_t second);
+  size_t move_time_hits(uint32_t fee_bco, uint16_t fee, std::vector<TpcRawHit *> &timeframe);
+  size_t count_time_hits(uint32_t fee_bco, uint16_t fee) const;
+  size_t time_hit_bucket_count() const;
+  std::optional<uint32_t> find_fuzzy_fee_bco(uint32_t predicted_fee_bco, uint16_t fee) const;
+  size_t recover_truncated_waveforms(uint32_t predicted_fee_bco, uint16_t fee, std::vector<TpcRawHit *> &timeframe);
+  size_t append_shifted_waveforms(TpcRawHitRun3_typ *target, const TpcRawHit &source, uint32_t fee_clock_shift) const;
+  void cleanup_time_hit_map(uint64_t bclk_rollover_corrected, uint32_t fee_clock_window);
+  void flush_previous_timeframe_qa_cache(uint64_t current_gtm_bco);
+  void fill_waveform_gl1_spacing(TH1 *waveform_adc_cache, TH2 *waveform_gl1_spacing, uint64_t gtm_bco_spacing) const;
+  void cache_waveform_adc(TH1 *waveform_adc_cache, const std::vector<TpcRawHit *> &timeframe) const;
+  void cache_timeframe_qa(uint64_t gtm_bco, const std::vector<TpcRawHit *> &timeframe, const std::bitset<MAX_FEECOUNT> &exact_matched_fees);
+
+  //! FEE -> FEE BCO -> cached TpcRawHit for Run3 exact-ratio matching
+  std::vector<std::map<uint32_t, std::vector<TpcRawHit *>>> m_timeHitMap;
+
+  //! rollover-corrected GTM BCO -> matched TpcRawHit returned to the input manager
   std::map<uint64_t, std::vector<TpcRawHit *>> m_timeFrameMap;
+
+  //! previous timeframe QA state, filled once the next GTM BCO defines the GL1 spacing
+  std::optional<uint64_t> m_previousTimeFrameGtmBco;
+  std::bitset<MAX_FEECOUNT> m_previousTimeFrameExactFees;
+  std::bitset<MAX_FEECOUNT> m_previousTimeFrameRecoveredFees;
+  int m_hNormTruncatedWaveformRecoveryFeeFirstBin = 0;
   static const size_t kMaxRawHitLimit = 10000;  // 10k hits per event > 256ch/fee * 26fee
   std::queue<uint64_t> m_UsedTimeFrameSet;
 
@@ -414,6 +473,16 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
   TH1 *h_GTMClockDiff_Unmatched = nullptr;
   TH1 *h_GTMClockDiff_Dropped = nullptr;
   TH1 *h_TimeFrame_Matched_Size = nullptr;
+  TH2 *h_Run3_FEE_GTMMatching_ClockDiff = nullptr;
+  TH1 *h_Run3TimeFrameExactHit_FEE = nullptr;
+  TH1 *h_Run3TimeFrameFuzzyHit_FEE = nullptr;
+  TH1 *h_Run3PreviousTimeFrameWaveformADC = nullptr;
+  TH1 *h_Run3PreviousTimeFrameRecoveredWaveformADC = nullptr;
+  TH2 *h_Run3Waveform_GL1Spacing = nullptr;
+  TH2 *h_Run3WaveformRecovered_GL1Spacing = nullptr;
+  TH2 *h_Run3FEE_TimeFrameCount_GL1Spacing = nullptr;
+  TH2 *h_Run3FEE_TimeFrameRecoveredCount_GL1Spacing = nullptr;
+  TH2 *h_Run3FEE_TriggerCount_GL1Spacing = nullptr;
 
   TH2 *h_ProcessPacket_Time = nullptr;
 };

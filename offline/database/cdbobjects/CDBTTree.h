@@ -30,14 +30,22 @@ class CDBTTree
   void Print();
   void SetFilename(const std::string &fname) { m_Filename = fname; }
   void LoadCalibrations();
+
   float GetSingleFloatValue(const std::string &name, int verbose = 0);
   float GetFloatValue(int channel, const std::string &name, int verbose = 0);
+  size_t GetFloatMapSize() const { return m_FloatEntryMap.size(); }
+
   double GetSingleDoubleValue(const std::string &name, int verbose = 0);
   double GetDoubleValue(int channel, const std::string &name, int verbose = 0);
+  size_t GetDoubleMapSize() const { return m_DoubleEntryMap.size(); }
+
   int GetSingleIntValue(const std::string &name, int verbose = 0);
   int GetIntValue(int channel, const std::string &name, int verbose = 0);
+  size_t GetIntMapSize() const { return m_IntEntryMap.size(); }
+
   uint64_t GetSingleUInt64Value(const std::string &name, int verbose = 0);
   uint64_t GetUInt64Value(int channel, const std::string &name, int verbose = 0);
+  size_t GetUInt64MapSize() const { return m_UInt64EntryMap.size(); }
 
   const auto &GetFloatEntryMap() const { return m_FloatEntryMap; }
   const auto &GetDoubleEntryMap() const { return m_DoubleEntryMap; }

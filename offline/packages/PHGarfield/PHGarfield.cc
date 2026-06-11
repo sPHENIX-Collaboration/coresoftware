@@ -1,64 +1,38 @@
 #include "PHGarfield.h"
 
-#include <Garfield/ComponentUser.hh>
-#include <Garfield/DriftLineRKF.hh>
-#include <Garfield/MediumMagboltz.hh>
-#include <Garfield/Sensor.hh>
-
 #include <cdbobjects/CDBTTree.h>
-#include <ffamodules/CDBInterface.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>    // for PHIODataNode
-#include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHObject.h>        // for PHObject
-#include <phool/getClass.h>
-
-#include <Event/Event.h>
-#include <Event/caen_correction.h>
-#include <Event/packet.h>
-
-#include <TSystem.h>
-
-#include <algorithm>
-#include <cstdint>  // for uint16_t
-#include <cstdlib>  // for exit, size_t
-#include <filesystem>
-#include <iostream>  // for basic_ostream, operat...
-
-#include <ffaobjects/CdbUrlSave.h>
-#include <ffaobjects/EventHeader.h>
-#include <ffaobjects/FlagSave.h>
-#include <ffaobjects/RunHeader.h>
-#include <ffaobjects/SyncObject.h>
-#include <ffarawobjects/Gl1Packet.h>
-#include <ffarawobjects/TpcRawHit.h>
-#include <ffarawobjects/TpcRawHitContainer.h>
-
-#include <CLHEP/Units/SystemOfUnits.h>
 #include <phfield/PHField3DCartesian.h>
 
-#include <TH1I.h>
-#include <TH2I.h>
-#include <TNtuple.h>
+#include <ffamodules/CDBInterface.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <TPolyLine3D.h>
+
+#include <CLHEP/Units/SystemOfUnits.h>
+
+#include <Garfield/ComponentUser.hh>
+#include <Garfield/MediumMagboltz.hh>
+
+#include <cmath>
+#include <filesystem>
+#include <functional>
+#include <iostream>  // for basic_ostream, operat...
+#include <vector>
 
 PHGarfield::PHGarfield(const std::string& name)
   : SubsysReco(name)
-  , PHI_MIN(-M_PI)
 {
-  // Local handling of Phi valued that wrap around.
 }
 
 int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
 {
-  if(Verbosity() > 1)
+  if (Verbosity() > 1)
   {
-  std::cout << "PHGarfield::InitRun(PHCompositeNode *topNode) Initializing" << std::endl;
+    std::cout << "PHGarfield::InitRun(PHCompositeNode *topNode) Initializing" << std::endl;
   }
-  m_cdb = CDBInterface::instance();
+  CDBInterface* m_cdb = CDBInterface::instance();
 
   //  Here we use the CDBInterface to set up the magnetic field map:
   std::string url = m_cdb->getUrl("FIELDMAP_TRACKING");
@@ -79,9 +53,9 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
 
   //  Diagnostic during code development...
   FillRadii();
-  if(Verbosity() > 1)
+  if (Verbosity() > 1)
   {
-  PrintMaps();
+    PrintMaps();
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -125,18 +99,18 @@ void PHGarfield::PrintGarfield(double x, double y, double z)
   GetMagneticFieldTesla(x, y, z, bx, by, bz);
   m_gas->ElectronVelocity(ex, ey, ez, bx, by, bz, vx, vy, vz);
   std::cout << " x:" << x
-       << " y:" << y
-       << " z:" << z
-       << " ex:" << ex
-       << " ey:" << ey
-       << " ez:" << ez
-       << " bx:" << bx
-       << " by:" << by
-       << " bz:" << bz
-       << " vx:" << vx
-       << " vy:" << vy
-       << " vz:" << vz
-       << std::endl;
+            << " y:" << y
+            << " z:" << z
+            << " ex:" << ex
+            << " ey:" << ey
+            << " ez:" << ez
+            << " bx:" << bx
+            << " by:" << by
+            << " bz:" << bz
+            << " vx:" << vx
+            << " vy:" << vy
+            << " vz:" << vz
+            << std::endl;
 }
 
 void PHGarfield::PrintMaps()
@@ -160,7 +134,7 @@ void PHGarfield::PrintMaps()
         {
           unsigned int key = (256 * (fee)) + channel;
           int layer = m_cdbTPCMAPttree->GetIntValue(key, "layer");
-          double phi = ((side == 1 ? 1 : -1) * (m_cdbTPCMAPttree->GetDoubleValue(key, "phi") - M_PI / 2.)) + ((sector % 12) * M_PI / 6);
+          double phi = ((side == 1 ? 1 : -1) * (m_cdbTPCMAPttree->GetDoubleValue(key, "phi") - std::numbers::pi / 2.)) + ((sector % 12) * std::numbers::pi / 6);
           double r = m_cdbTPCMAPttree->GetDoubleValue(key, "R") / CLHEP::cm;
 
           phi = bounder(phi, PHI_MIN);
@@ -275,14 +249,14 @@ int PHGarfield::process_event(PHCompositeNode* topNode)
 
 double PHGarfield::bounder(double phi, double phi_min)
 {
-  double phi_max = phi_min + 2.0 * M_PI;
+  double phi_max = phi_min + 2.0 * std::numbers::pi;
   while (phi < phi_min)
   {
-    phi = phi + 2.0 * M_PI;
+    phi = phi + 2.0 * std::numbers::pi;
   }
   while (phi >= phi_max)
   {
-    phi = phi - 2.0 * M_PI;
+    phi = phi - 2.0 * std::numbers::pi;
   }
 
   return phi;

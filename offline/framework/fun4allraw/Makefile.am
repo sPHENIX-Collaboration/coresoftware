@@ -37,7 +37,9 @@ pkginclude_HEADERS = \
   SingleTpcPoolInput.h \
   SingleTriggeredInput.h \
   SingleTpcTimeFrameInput.h \
-  TpcTimeFrameBuilder.h
+  TpcTimeFrameBuilder.h \
+  TpcTimeFrameBuilderBase.h \
+  TpcTimeFrameBuilderRun3.h
 
 decoderincludedir = $(includedir)/mvtx_decoder
 decoderinclude_HEADERS = \
@@ -92,7 +94,8 @@ libfun4allraw_la_SOURCES = \
   SingleTpcPoolInput.cc \
   SingleTriggeredInput.cc \
   SingleTpcTimeFrameInput.cc \
-  TpcTimeFrameBuilder.cc
+  TpcTimeFrameBuilder.cc \
+  TpcTimeFrameBuilderRun3.cc
 
 libfun4allraw_la_LIBADD = \
   libmvtx_decoder.la \
