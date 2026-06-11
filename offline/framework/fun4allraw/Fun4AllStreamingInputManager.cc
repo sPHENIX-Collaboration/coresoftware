@@ -715,30 +715,30 @@ int Fun4AllStreamingInputManager::FillIntt()
   {
     if (m_InttHitCarryOverShiftMaxMultiple < 1)
     {
-        std::cout << __FILE__ << ":" << __PRETTY_FUNCTION__ << ":" << __LINE__ << ": m_InttHitDuplication is set to true but m_InttHitCarryOverShiftMaxMultiple=" << m_InttHitCarryOverShiftMaxMultiple << "is not positive. Default to 1" << std::endl;
-        m_InttHitCarryOverShiftMaxMultiple = 1;
+      std::cout << __FILE__ << ":" << __PRETTY_FUNCTION__ << ":" << __LINE__ << ": m_InttHitDuplication is set to true but m_InttHitCarryOverShiftMaxMultiple=" << m_InttHitCarryOverShiftMaxMultiple << "is not positive. Default to 1" << std::endl;
+      m_InttHitCarryOverShiftMaxMultiple = 1;
     }
 
     const uint64_t max_shift = m_InttHitCarryOverShift * m_InttHitCarryOverShiftMaxMultiple;
     const uint64_t bco_duplicate_high = select_crossings + max_shift;
 
     // now fill the pool until the highest bco in the map is higher than the duplication threshold, which is the select_crossings + the maximum shift we want to do
-    while (m_InttRawHitMap.rbegin()->first < bco_duplicate_high) // if the highest bco is still smaller than the duplication threshold, keep duplicating
+    while (m_InttRawHitMap.rbegin()->first < bco_duplicate_high)  // if the highest bco is still smaller than the duplication threshold, keep duplicating
     {
-        const uint64_t previous_high_bco = m_InttRawHitMap.rbegin()->first;
-        iret = FillInttPool();
-        if (iret)
-        {
-            break; // if FillInttPool returns non zero, there is no more data to read and we can stop trying to duplicate
-        }
-        // Note: need this gaurd. FillInttPool() only returns non-0 if m_InttRawHitMap is empty
-        // FillInttPool() calls SingleInttPoolInput::FillPool() returns regardless of whether it actually fill new data or not
-        // So if FillInttPool() is called and there is no new data to pool, it will return 0 but m_InttRawHitMap will not have changed (non-empty)
-        // If we don't check for this, it would cause an infinite loop
-        if (m_InttRawHitMap.rbegin()->first == previous_high_bco)
-        {
-            break;
-        }
+      const uint64_t previous_high_bco = m_InttRawHitMap.rbegin()->first;
+      iret = FillInttPool();
+      if (iret)
+      {
+        break;  // if FillInttPool returns non zero, there is no more data to read and we can stop trying to duplicate
+      }
+      // Note: need this guard. FillInttPool() only returns non-0 if m_InttRawHitMap is empty
+      // FillInttPool() calls SingleInttPoolInput::FillPool() returns regardless of whether it actually fill new data or not
+      // So if FillInttPool() is called and there is no new data to pool, it will return 0 but m_InttRawHitMap will not have changed (non-empty)
+      // If we don't check for this, it would cause an infinite loop
+      if (m_InttRawHitMap.rbegin()->first == previous_high_bco)
+      {
+        break;
+      }
     }
   }
 
@@ -809,7 +809,7 @@ int Fun4AllStreamingInputManager::FillIntt()
     h_taggedAllFee_intt->Fill(refbcobitshift);
   }
 
-  for (auto& [bco, hitinfo] : m_InttRawHitMap)
+  for (auto &[bco, hitinfo] : m_InttRawHitMap)
   {
     if (bco > select_crossings)
     {
@@ -830,29 +830,71 @@ int Fun4AllStreamingInputManager::FillIntt()
     // Insert duplication of hits in N + [1..M] * shift BCOs if m_InttHitDuplication is set to true
     if (m_InttHitDuplication)
     {
-        for (int shift_multiple = 1; shift_multiple <= m_InttHitCarryOverShiftMaxMultiple; ++shift_multiple)
+      for (int shift_multiple = 1; shift_multiple <= m_InttHitCarryOverShiftMaxMultiple; ++shift_multiple)
+      {
+        const uint64_t shift = m_InttHitCarryOverShift * shift_multiple;
+        const uint64_t source_bco = bco + shift;
+        auto source_iter = m_InttRawHitMap.find(source_bco);
+        if (source_iter == m_InttRawHitMap.end())
         {
-            const uint64_t shift = m_InttHitCarryOverShift * shift_multiple;
-            const uint64_t source_bco = bco + shift;
-            auto source_iter = m_InttRawHitMap.find(source_bco);
-            if (source_iter == m_InttRawHitMap.end())
-            {
-                continue;
-            }
-
-            for (auto *source_hit : source_iter->second.InttRawHitVector)
-            {
-                if (source_hit->get_bco() < shift)
-                {
-                    continue;
-                }
-
-                auto *copied_hit = inttcont->AddHit(source_hit);
-                copied_hit->set_bco(source_hit->get_bco() - shift);
-            }
+          continue;
         }
+
+        for (auto *source_hit : source_iter->second.InttRawHitVector)
+        {
+          if (source_hit->get_bco() < shift)
+          {
+            continue;
+          }
+
+          auto *copied_hit = inttcont->AddHit(source_hit);
+          copied_hit->set_bco(source_hit->get_bco() - shift);
+        }
+      }
     }
-  } 
+  }
+
+  // the previous block is the "first" pass of duplication that duplicates hits from N + [1..M] * shift. This doesn't address the carried-over hits whose FPHX BCO was reset to 0
+  // the "second" pass duplicates hits whose FPHX BCO was reset to 0
+  // Also, the "second" pass needs to handle the case where the hits with FPHX BCO = 0 are already duplicated from the "first" pass
+  // This happens when trgrefbco = m_RefBCO % m_InttHitCarryOverShift is 0 and reset_shift = m_InttHitCarryOverShift * s
+  // If this is the case, do not duplicate the hits again
+  if (m_InttHitDuplication)
+  {
+    const uint64_t trgrefbco = m_RefBCO % m_InttHitCarryOverShift;
+
+    if (trgrefbco != 0)
+    {
+      // loop for multiples of carry-over shift
+      for (int s = 1; s <= m_InttHitCarryOverShiftMaxMultiple; s++)
+      {
+        const uint64_t reset_shift = m_InttHitCarryOverShift * s - trgrefbco;  // the shift to be applied to the hits whose FPHX BCO was reset to 0
+        const uint64_t reset_source_low_bco = m_RefBCO - m_intt_negative_bco + reset_shift;
+        const uint64_t reset_source_high_bco = select_crossings + reset_shift;
+
+        for (auto source_iter = m_InttRawHitMap.lower_bound(reset_source_low_bco); source_iter != m_InttRawHitMap.end() && source_iter->first <= reset_source_high_bco; ++source_iter)
+        {
+          for (auto *source_hit : source_iter->second.InttRawHitVector)
+          {
+            // skip hits whose FPHX BCO is not 0
+            if (source_hit->get_FPHX_BCO() != 0)
+            {
+              continue;
+            }
+
+            // also skip hits whose strobe BCO is smaller than the reset shift
+            if (source_hit->get_bco() < reset_shift)
+            {
+              continue;
+            }
+
+            auto *copied_hit = inttcont->AddHit(source_hit);
+            copied_hit->set_bco(source_hit->get_bco() - reset_shift);
+          }
+        }
+      }
+    }
+  }
   return 0;
 }
 int Fun4AllStreamingInputManager::FillMvtx()
@@ -1032,7 +1074,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   uint64_t lower_limit = m_mvtx_is_triggered ? select_crossings : select_crossings - m_mvtx_bco_range - m_mvtx_negative_bco;
   uint64_t upper_limit = m_mvtx_is_triggered ? select_crossings + m_mvtx_bco_range : select_crossings;
 
-  for (auto& [bco, hitinfo] : m_MvtxRawHitMap)
+  for (auto &[bco, hitinfo] : m_MvtxRawHitMap)
   {
     if (bco < lower_limit)
     {
@@ -1045,7 +1087,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
 
     if (Verbosity() > 2)
     {
-      std::cout << "Adding 0x" << std::hex << bco 
+      std::cout << "Adding 0x" << std::hex << bco
                 << " ref: 0x" << select_crossings << std::dec << std::endl;
     }
     for (auto *mvtxFeeIdInfo : hitinfo.MvtxFeeIdInfoVector)
