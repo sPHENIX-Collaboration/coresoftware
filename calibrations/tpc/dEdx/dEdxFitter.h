@@ -1,15 +1,19 @@
 #ifndef DEDXFITTER_H_
 #define DEDXFITTER_H_
 
-#include <fun4all/SubsysReco.h>
-#include <string>
+#include "GlobaldEdxFitter.h"
+
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/ActsGeometry.h>
+
 #include <g4detectors/PHG4TpcGeomContainer.h>
+
 #include <globalvertex/SvtxVertexMap.h>
 
-#include "GlobaldEdxFitter.h"
+#include <fun4all/SubsysReco.h>
+
+#include <string>
 
 //Forward declerations
 class PHCompositeNode;
@@ -59,29 +63,29 @@ class dEdxFitter: public SubsysReco
   { ntracks_to_fit = ntrk; }
 
  private:
-  //output filename
-  std::string _outfile = "dedx_outfile.root";
-  TFile* outf = nullptr;
-  size_t _event = 0;
-   
-  SvtxTrackMap* _trackmap = nullptr;
-  TrkrClusterContainer* _clustermap = nullptr;
-  ActsGeometry* _geometry = nullptr;
-  PHG4TpcGeomContainer* _tpcgeom = nullptr;
-  SvtxVertexMap* _vertexmap = nullptr;
-  
   //Get all the nodes
   void GetNodes(PHCompositeNode * /*topNode*/);
 
   void process_tracks();
 
-  int nmaps_cut = 1;
-  int nintt_cut = 1;
-  int ntpc_cut = 30;
-  float eta_cut = 1.;
-  float dcaxy_cut = 0.5;
+  //output filename
+  std::string _outfile {"dedx_outfile.root"};
+  TFile* outf {nullptr};
+  size_t _event {0};
+   
+  SvtxTrackMap* _trackmap {nullptr};
+  TrkrClusterContainer* _clustermap {nullptr};
+  ActsGeometry* _geometry {nullptr};
+  PHG4TpcGeomContainer* _tpcgeom {nullptr};
+  SvtxVertexMap* _vertexmap {nullptr};
+  
+  int nmaps_cut {1};
+  int nintt_cut {1};
+  int ntpc_cut {30};
+  float eta_cut {1.};
+  float dcaxy_cut {0.5};
 
-  size_t ntracks_to_fit = 40000;
+  size_t ntracks_to_fit {40000};
   std::vector<double> minima;
   std::unique_ptr<GlobaldEdxFitter> fitter;
 

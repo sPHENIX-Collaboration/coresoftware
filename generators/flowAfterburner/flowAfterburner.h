@@ -1,10 +1,10 @@
 #ifndef FLOWAFTERBURNER_FLOWAFTERBURNER_H
 #define FLOWAFTERBURNER_FLOWAFTERBURNER_H
 
+#include "AfterburnerAlgo.h"
+
 #include <string>
 #include <array>
-
-#include "AfterburnerAlgo.h"
 
 namespace CLHEP
 {
@@ -63,18 +63,18 @@ class Afterburner
 
  private:
     
-  AfterburnerAlgo * m_algo = nullptr;
-  CLHEP::HepRandomEngine * m_engine = nullptr;
-  bool m_ownAlgo = false;
-  bool m_ownEngine = false;
-  float m_mineta = -5.0f;
-  float m_maxeta = 5.0f;
-  float m_minpt = 0.0f;
-  float m_maxpt = 100.0f;
-  double m_phishift = 0.0; // shift of the reaction plane angle in phi, used to align with the impact parameter
+  AfterburnerAlgo * m_algo {nullptr};
+  CLHEP::HepRandomEngine * m_engine {nullptr};
+  bool m_ownAlgo {false};
+  bool m_ownEngine {false};
+  float m_mineta {-5.0};
+  float m_maxeta {5.0};
+  float m_minpt {0.0};
+  float m_maxpt {100.0};
+  double m_phishift {0.0}; // shift of the reaction plane angle in phi, used to align with the impact parameter
 
   void setPsiN(unsigned int n, float psi);
-  float m_psi_n[6] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}; // reaction plane angles
+  float m_psi_n[6] {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // reaction plane angles
 
   // Legacy arguments
   void readLegacyArguments(

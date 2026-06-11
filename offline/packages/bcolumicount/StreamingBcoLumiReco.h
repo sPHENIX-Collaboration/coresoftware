@@ -1,16 +1,16 @@
 #ifndef BCOLUMICOUNT_STREAMINGBCOLUMIRECO_H
 #define BCOLUMICOUNT_STREAMINGBCOLUMIRECO_H
 
+#include "StreamingLumiInfo.h"
+
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllHistoManager.h>
-#include "StreamingLumiInfo.h"
 
 #include <string>
 #include <utility>
 #include <array>
 
-#include <TH1.h>
-
+class TH1;
 
 class StreamingBcoLumiReco : public SubsysReco
 {
@@ -44,9 +44,9 @@ class StreamingBcoLumiReco : public SubsysReco
   static int CreateNodeTree(PHCompositeNode *topNode);
   const int trigbits = 40;
   Fun4AllHistoManager *hm = nullptr; 
-  TH1I *h_bco_diff = nullptr;
-  TH1I *h_bco_diff_trigbits[40] = {nullptr};
-  TH1I *h_bco_tag = nullptr;
+  TH1 *h_bco_diff = nullptr;
+  TH1 *h_bco_diff_trigbits[40] = {nullptr};
+  TH1 *h_bco_tag = nullptr;
 
   uint64_t m_bco{0};
   int m_bunches = 120;

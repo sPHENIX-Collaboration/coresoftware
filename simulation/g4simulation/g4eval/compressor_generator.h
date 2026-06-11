@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 
-#include "RtypesCore.h"
+#include <RtypesCore.h>
 //-----------------------------------------------------------------------------
 
 UShort_t residesIn(Float_t raw, std::vector<Float_t>* dict)

@@ -1,15 +1,7 @@
 #include "PHActsGSF.h"
 #include "MakeSourceLinks.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>
-#include <phool/PHNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>
-#include <phool/PHTimer.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
+#include "ActsEvaluator.h"
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ActsGsfTrackFittingAlgorithm.h>
@@ -29,6 +21,17 @@
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHDataNode.h>
+#include <phool/PHNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>
+#include <phool/PHTimer.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
+
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 #include <Acts/EventData/SourceLink.hpp>
@@ -40,7 +43,6 @@
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 
-#include "ActsEvaluator.h"
 
 #include <TDatabasePDG.h>
 

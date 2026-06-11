@@ -1,10 +1,11 @@
 #ifndef TRACKINFOCONTAINERV3_H
 #define TRACKINFOCONTAINERV3_H
 
-#include <phool/PHObject.h>
 #include "SvtxTrackInfo.h"
 #include "SvtxTrackInfo_v3.h"
 #include "TrackInfoContainer.h"
+
+#include <phool/PHObject.h>
 
 #include <TClonesArray.h>
 
@@ -38,7 +39,7 @@ class TrackInfoContainer_v3 : public TrackInfoContainer
   }
 
  protected:
-  TClonesArray *_clones = nullptr;
+  TClonesArray *_clones {nullptr};
 
  private:
   ClassDefOverride(TrackInfoContainer_v3, 1);
