@@ -271,7 +271,7 @@ void MicromegasBcoMatchingInformation_v2::save_gtm_bco_information(int /*packet_
     const auto& gtm_bco = payload.bco;
 
     // add to list if difference to last entry is big enough
-    if (m_gtm_bco_list.empty() || (gtm_bco - m_gtm_bco_list.back()) > 10)
+    if (m_gtm_bco_list.empty() || get_signed_gtm_bco_diff(gtm_bco,m_gtm_bco_list.back()) > 10)
     {
       m_gtm_bco_list.push_back(gtm_bco);
     }
@@ -441,15 +441,15 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation_v2::find_gtm_bco(int pa
         const auto fee_bco_diff = get_unsigned_fee_bco_diff(fee_bco_predicted, fee_bco);
 
         std::cout << "MicromegasBcoMatchingInformation_v2::find_gtm_bco -"
-                  << " packet_id: " << packet_id
-                  << " fee_id: " << fee_id
-                  << std::hex
-                  << " fee_bco: 0x" << fee_bco
-                  << " predicted: 0x" << fee_bco_predicted
-                  << " gtm_bco: 0x" << gtm_bco
-                  << std::dec
-                  << " difference: " << fee_bco_diff
-                  << std::endl;
+          << " packet_id: " << packet_id
+          << " fee_id: " << fee_id
+          << std::hex
+          << " fee_bco: 0x" << fee_bco
+          << " predicted: 0x" << fee_bco_predicted
+          << " gtm_bco: 0x" << gtm_bco
+          << std::dec
+          << " difference: " << fee_bco_diff
+          << std::endl;
       }
     }
     // save fee_bco and gtm_bco matching in map
@@ -526,14 +526,13 @@ void MicromegasBcoMatchingInformation_v2::cleanup()
 void MicromegasBcoMatchingInformation_v2::cleanup(uint64_t ref_bco)
 {
   // erase all elements from bco_list that are less than or equal to ref_bco
-  m_gtm_bco_list.erase(std::remove_if(m_gtm_bco_list.begin(), m_gtm_bco_list.end(), [ref_bco](const uint64_t& bco)
-                                      { return bco <= ref_bco; }),
-                       m_gtm_bco_list.end());
+  m_gtm_bco_list.erase(std::remove_if(m_gtm_bco_list.begin(), m_gtm_bco_list.end(),
+    [ref_bco](const uint64_t& bco) { return get_signed_gtm_bco_diff( bco,ref_bco ) <= 0; }), m_gtm_bco_list.end());
 
   // erase all elements from bco_list that are less than or equal to ref_bco
-  m_bco_matching_list.erase(std::remove_if(m_bco_matching_list.begin(), m_bco_matching_list.end(), [ref_bco](const m_bco_matching_pair_t& pair)
-                                           { return pair.second <= ref_bco; }),
-                            m_bco_matching_list.end());
+  m_bco_matching_list.erase(std::remove_if(m_bco_matching_list.begin(), m_bco_matching_list.end(),
+    [ref_bco](const m_bco_matching_pair_t& pair) { return get_signed_gtm_bco_diff( pair.second, ref_bco ) <= 0; }),
+    m_bco_matching_list.end());
 
   // clear orphans
   m_orphans.clear();
