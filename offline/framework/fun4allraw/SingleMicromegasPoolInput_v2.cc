@@ -1038,7 +1038,8 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
     }
 
     // keep track of newly created hits
-    using rawhit_impl_array_t = std::array<MicromegasRawHit_impl*, MAX_FEECHANNELCOUNT>;
+    using rawhit_impl_pointer_t = std::unique_ptr<MicromegasRawHit_impl>; // unique_ptr to raw hit implementation object
+    using rawhit_impl_array_t = std::array<rawhit_impl_pointer_t, MAX_FEECHANNELCOUNT>; // fixed size array of the above
     rawhit_impl_array_t new_rawhits{};
 
     // find candidate overlapping bco if any
@@ -1090,7 +1091,7 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
             target->set_sampachannel(source->get_sampachannel());
 
             // store in new array
-            new_rawhits[target->get_channel()] = target;
+            new_rawhits[target->get_channel()].reset(target);
 
           }
 
@@ -1125,7 +1126,7 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
     }
 
     // copy new hits in internal storage and add to streaming manager
-    for( auto* rawhit:new_rawhits )
+    for( auto&& rawhit:new_rawhits )
     {
       if( rawhit )
       {
@@ -1133,12 +1134,10 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
         {
           // add hit to streaming input manager
           if (StreamingInputManager())
-          { StreamingInputManager()->AddMicromegasRawHit(found_bco, rawhit); }
+          { StreamingInputManager()->AddMicromegasRawHit(found_bco, rawhit.get()); }
 
           // add hit to insternal storage
-          m_MicromegasRawHitMap[fee][found_bco].emplace_back(rawhit);
-        } else {
-          delete rawhit;
+          m_MicromegasRawHitMap[fee][found_bco].emplace_back(rawhit.release());
         }
       }
     }
