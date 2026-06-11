@@ -859,7 +859,7 @@ int Fun4AllStreamingInputManager::FillIntt()
 
         if (target_refbco == 0)
         {
-          continue;  // if trgrefbco is 0, the hits with FPHX BCO = 0 are already duplicated in the first pass, so skip the second pass to avoid double duplication
+          continue;  // if target_refbco is 0, the hits with FPHX BCO = 0 are already duplicated in the first pass, so skip the second pass to avoid double duplication
         }
 
         const uint64_t reset_shift = shift - target_refbco;
