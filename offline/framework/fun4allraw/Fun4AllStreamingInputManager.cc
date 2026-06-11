@@ -863,6 +863,7 @@ int Fun4AllStreamingInputManager::FillIntt()
   {
     const uint64_t trgrefbco = m_RefBCO % m_InttHitCarryOverShift;
 
+    // skip the second pass if trgrefbco is 0 because in this case the hits with FPHX BCO = 0 are already duplicated in the first pass
     if (trgrefbco != 0)
     {
       // loop for multiples of carry-over shift
