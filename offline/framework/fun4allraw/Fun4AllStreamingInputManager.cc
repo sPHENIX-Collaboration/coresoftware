@@ -827,71 +827,65 @@ int Fun4AllStreamingInputManager::FillIntt()
       inttcont->AddHit(intthititer);
     }
 
-    // Insert duplication of hits in N + [1..M] * shift BCOs if m_InttHitDuplication is set to true
+    // The duplication consists of 2 passes
+    // Pass 1: Insert duplication of hits in N + [1..M] * shift BCOs
+    // the "second" pass duplicates hits whose FPHX BCO was reset to 0
+    // Also, the "second" pass needs to handle the case where the hits with FPHX BCO = 0 are already duplicated from the "first" pass
+    // This happens when target_refbco = bco % m_InttHitCarryOverShift is 0 and reset_shift = m_InttHitCarryOverShift * s
+    // If this is the case, do not duplicate the hits again
     if (m_InttHitDuplication)
     {
+      const uint64_t target_refbco = bco % m_InttHitCarryOverShift;
+
       for (int shift_multiple = 1; shift_multiple <= m_InttHitCarryOverShiftMaxMultiple; ++shift_multiple)
       {
         const uint64_t shift = m_InttHitCarryOverShift * shift_multiple;
         const uint64_t source_bco = bco + shift;
         auto source_iter = m_InttRawHitMap.find(source_bco);
-        if (source_iter == m_InttRawHitMap.end())
-        {
-          continue;
-        }
 
-        for (auto *source_hit : source_iter->second.InttRawHitVector)
-        {
-          if (source_hit->get_bco() < shift)
-          {
-            continue;
-          }
-
-          auto *copied_hit = inttcont->AddHit(source_hit);
-          copied_hit->set_bco(source_hit->get_bco() - shift);
-        }
-      }
-    }
-  }
-
-  // the previous block is the "first" pass of duplication that duplicates hits from N + [1..M] * shift. This doesn't address the carried-over hits whose FPHX BCO was reset to 0
-  // the "second" pass duplicates hits whose FPHX BCO was reset to 0
-  // Also, the "second" pass needs to handle the case where the hits with FPHX BCO = 0 are already duplicated from the "first" pass
-  // This happens when trgrefbco = m_RefBCO % m_InttHitCarryOverShift is 0 and reset_shift = m_InttHitCarryOverShift * s
-  // If this is the case, do not duplicate the hits again
-  if (m_InttHitDuplication)
-  {
-    const uint64_t trgrefbco = m_RefBCO % m_InttHitCarryOverShift;
-
-    // skip the second pass if trgrefbco is 0 because in this case the hits with FPHX BCO = 0 are already duplicated in the first pass
-    if (trgrefbco != 0)
-    {
-      // loop for multiples of carry-over shift
-      for (int s = 1; s <= m_InttHitCarryOverShiftMaxMultiple; s++)
-      {
-        const uint64_t reset_shift = m_InttHitCarryOverShift * s - trgrefbco;  // the shift to be applied to the hits whose FPHX BCO was reset to 0
-        const uint64_t reset_source_low_bco = m_RefBCO - m_intt_negative_bco + reset_shift;
-        const uint64_t reset_source_high_bco = select_crossings + reset_shift;
-
-        for (auto source_iter = m_InttRawHitMap.lower_bound(reset_source_low_bco); source_iter != m_InttRawHitMap.end() && source_iter->first <= reset_source_high_bco; ++source_iter)
+        if (source_iter != m_InttRawHitMap.end())
         {
           for (auto *source_hit : source_iter->second.InttRawHitVector)
           {
-            // skip hits whose FPHX BCO is not 0
-            if (source_hit->get_FPHX_BCO() != 0)
-            {
-              continue;
-            }
-
-            // also skip hits whose strobe BCO is smaller than the reset shift
-            if (source_hit->get_bco() < reset_shift)
+            if (source_hit->get_bco() < shift)
             {
               continue;
             }
 
             auto *copied_hit = inttcont->AddHit(source_hit);
-            copied_hit->set_bco(source_hit->get_bco() - reset_shift);
+            copied_hit->set_bco(source_hit->get_bco() - shift);
           }
+        }
+
+        if (target_refbco == 0)
+        {
+          continue;  // if trgrefbco is 0, the hits with FPHX BCO = 0 are already duplicated in the first pass, so skip the second pass to avoid double duplication
+        }
+
+        const uint64_t reset_shift = shift - target_refbco;
+        const uint64_t reset_source_bco = bco + reset_shift;
+        auto reset_source_iter = m_InttRawHitMap.find(reset_source_bco);
+        if (reset_source_iter == m_InttRawHitMap.end())
+        {
+          continue;
+        }
+
+        for (auto *source_hit : reset_source_iter->second.InttRawHitVector)
+        {
+          // skip hits whose FPHX BCO is not 0
+          if (source_hit->get_FPHX_BCO() != 0)
+          {
+            continue;
+          }
+
+          // also skip hits whose strobe BCO is smaller than the reset shift
+          if (source_hit->get_bco() < reset_shift)
+          {
+            continue;
+          }
+
+          auto *copied_hit = inttcont->AddHit(source_hit);
+          copied_hit->set_bco(source_hit->get_bco() - reset_shift);
         }
       }
     }
