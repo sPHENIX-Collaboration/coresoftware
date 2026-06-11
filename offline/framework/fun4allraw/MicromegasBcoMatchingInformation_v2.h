@@ -106,13 +106,9 @@ class MicromegasBcoMatchingInformation_v2
   uint64_t get_gtm_bco_last() const
   { return m_gtm_bco_list.empty() ? 0:*m_gtm_bco_list.rbegin(); }
 
-  //! get rollover corrected GTM bco depending on reference
-  uint64_t get_gtm_rollover_correction(uint64_t /*gtm_bco*/) const;
-
   //! returns true if more data needs to be fetched.
   /** it is based on the latest BCO read from the data stream, from either tagger or heartbeat */
   bool is_more_data_required(uint64_t /*gtm_bco*/) const;
-
 
   //@}
 
@@ -176,6 +172,25 @@ class MicromegasBcoMatchingInformation_v2
 
   //! cleanup
   void cleanup(uint64_t /*ref_bco*/);
+
+  //@}
+
+  //!@name utilities
+  //@{
+
+  //! get difference between two GTM BCO, properly accounting for 40bits rollover
+  /** based on Jin's code in TpcTimeFrameBuilder */
+  static int64_t get_signed_gtm_bco_diff(uint64_t /*first*/, uint64_t /*second*/);
+
+  //! get difference between two FEE BCO, properly accounting for 20bits rollover
+  /** based on Jin's code in TpcTimeFrameBuilder */
+  static int32_t get_signed_fee_bco_diff(uint32_t /*first*/, uint32_t /*second*/);
+
+  //! get difference between two GTM BCO, properly accounting for 40bits rollover
+  static uint64_t get_unsigned_gtm_bco_diff(uint64_t /*first*/, uint64_t /*second*/);
+
+  //! get difference between two FEE BCO, properly accounting for 20bits rollover
+  static uint32_t get_unsigned_fee_bco_diff(uint32_t /*first*/, uint32_t /*second*/);
 
   //@}
 

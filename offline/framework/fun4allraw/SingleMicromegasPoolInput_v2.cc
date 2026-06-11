@@ -996,9 +996,9 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
 
   // TODO: consolidate everything (ahah)
 
-  static constexpr uint32_t kTruncatedWaveformWindow = 1024U;
-  static constexpr uint32_t kFEEClockPerADCClock = 2U;
-  static constexpr uint32_t kTruncatedWaveformFEEWindow = kTruncatedWaveformWindow*kFEEClockPerADCClock;
+  static constexpr int32_t kTruncatedWaveformWindow = 1024U;
+  static constexpr int32_t kFEEClockPerADCClock = 2U;
+  static constexpr int32_t kTruncatedWaveformFEEWindow = kTruncatedWaveformWindow*kFEEClockPerADCClock;
 
   // keep track of exact BCO
   uint64_t found_bco = target_bco;
@@ -1023,8 +1023,8 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
     {
 
       // compare bco to target, within acceptable range
-      // TODO properly acount for rollover. introduce a get_signed_diff
-      if( bco >= target_bco-m_NegativeBco && bco < target_bco+m_BcoRange )
+      const auto bco_diff = MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff( bco, found_bco );
+      if( bco_diff >= -m_NegativeBco && bco_diff < m_BcoRange )
       {
         found_bco = bco;
         for( auto&& rawhit:rawhitlist )
@@ -1044,7 +1044,8 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
     // find candidate overlapping bco if any
     for( auto&& [bco, rawhitlist]:rawhitmap )
     {
-      if( bco > found_bco && bco <= found_bco + truncatedWaveformGTMWindow )
+      const auto bco_diff = MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff( bco, found_bco );
+      if( bco_diff > 0 && bco_diff < truncatedWaveformGTMWindow )
       {
 
         // perform overlap restoration
@@ -1095,8 +1096,8 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
 
           // calculate waveform shift
           // TODO: get proper diff with proper rollover
-          const uint64_t fee_bco_diff = source->get_bco() - target->get_bco();
-          const uint16_t fee_clock_shift = static_cast<uint16_t>(fee_bco_diff/kFEEClockPerADCClock);
+          const int64_t fee_bco_diff = MicromegasBcoMatchingInformation_v2::get_signed_fee_bco_diff( source->get_bco(), target->get_bco() );
+          const int16_t fee_clock_shift = static_cast<int16_t>(fee_bco_diff/kFEEClockPerADCClock);
 
           // get waveforms (copy)
           auto waveformlist = source_impl->get_adc_waveforms();

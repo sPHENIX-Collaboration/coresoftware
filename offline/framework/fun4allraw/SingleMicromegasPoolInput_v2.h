@@ -60,6 +60,7 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
   //! define minimum pool size in terms of how many BCO are stored
+  /** obsolete */
   void SetBcoPoolSize(const unsigned int /*value*/) {}
 
   //! save some statistics for BCO QA
