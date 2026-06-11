@@ -1,10 +1,8 @@
-#include <cmath>
+#include <cstdlib>
 #include <iostream>
+#include <string>
 
-#include <Garfield/ComponentUser.hh>
-#include <Garfield/DriftLineRKF.hh>
 #include <Garfield/MediumMagboltz.hh>
-#include <Garfield/Sensor.hh>
 
 //------------------------------------------------------------
 //  This standalone executable makes gas calculations for

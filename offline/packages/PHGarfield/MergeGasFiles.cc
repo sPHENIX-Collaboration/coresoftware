@@ -1,15 +1,16 @@
-#include <TMath.h>
-#include <TRandom3.h>
-#include <ctime>
-#include <filesystem>
-#include <iostream>
-#include <string>
+#include <phool/PHRandomSeed.h>
 
 #include <TFile.h>
 #include <TNtuple.h>
+#include <TRandom3.h>
 
 #include <Garfield/MediumMagboltz.hh>
 
+#include <cmath>
+#include <filesystem>
+#include <iostream>
+#include <numbers>  // for pi
+#include <string>
 
 int main()
 {
@@ -87,16 +88,17 @@ int main()
   // double na=50;
 
   // Initialize using the current system time
-  TRandom3 Randy(time(nullptr));  // new initialization each run
+  TRandom3 Randy;
+  Randy.SetSeed(PHRandomSeed());  // new initialization each run
   std::cout << std::endl
-       << std::endl
-       << "Valid Calls: " << std::endl;
+            << std::endl
+            << "Valid Calls: " << std::endl;
   for (int i = 0; i < nValid; i++)
   {
     double eMag = Randy.Uniform(emin, emax);
     double bMag = Randy.Uniform(bmin, bmin + 0.2 * (bmax - bmin) / nb);  // Comes from file0...
     double a = Randy.Uniform(amin, amax);
-    double PHI = Randy.Uniform(0.0, 2.0 * TMath::Pi());
+    double PHI = Randy.Uniform(0.0, 2.0 * std::numbers::pi);
 
     double ex = 0;
     double ey = 0;
@@ -153,14 +155,14 @@ int main()
   }
 
   std::cout << std::endl
-       << std::endl
-       << "Invalid Calls: " << std::endl;
+            << std::endl
+            << "Invalid Calls: " << std::endl;
   for (int i = 0; i < nValid; i++)
   {
     double eMag = Randy.Uniform(emin, emax);
     double bMag = Randy.Uniform(bmin + 5.0 * (bmax - bmin) / nb, bmax);  // Comes from beyond file0...
     double a = Randy.Uniform(amin, amax);
-    double PHI = Randy.Uniform(0.0, 2.0 * TMath::Pi());
+    double PHI = Randy.Uniform(0.0, 2.0 * std::numbers::pi);
 
     double ex = 0;
     double ey = 0;
