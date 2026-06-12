@@ -60,8 +60,9 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
   //! define minimum pool size in terms of how many BCO are stored
-  /** obsolete */
-  void SetBcoPoolSize(const unsigned int /*value*/) {}
+  /** deprecated */
+  void SetBcoPoolSize(const unsigned int /*value*/)
+  { std::cout << "SingleMicromegasPoolInput_v2::SetBcoPoolSize is deprecated" << std::endl; }
 
   //! save some statistics for BCO QA
   void FillBcoQA(uint64_t /*gtm_bco*/) override;
