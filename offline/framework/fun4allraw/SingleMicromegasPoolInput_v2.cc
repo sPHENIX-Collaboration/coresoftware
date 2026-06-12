@@ -941,12 +941,13 @@ void SingleMicromegasPoolInput_v2::process_fee_data(int packet_id, unsigned int 
       {
         if (Verbosity())
         {
-          std::cout << "SingleMicromegasPoolInput_v2::process_fee_data -"
-                    << " samples: " << samples
-                    << " pos: " << pos
-                    << " pkt_length: " << pkt_length
-                    << " format error"
-                    << std::endl;
+          std::cout
+            << "SingleMicromegasPoolInput_v2::process_fee_data -"
+            << " samples: " << samples
+            << " pos: " << pos
+            << " pkt_length: " << pkt_length
+            << " format error"
+            << std::endl;
         }
         break;
       }
@@ -1023,10 +1024,19 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
     {
 
       // compare bco to target, within acceptable range
-      const auto bco_diff = MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff( bco, found_bco );
-      if( bco_diff >= -m_NegativeBco && bco_diff < m_BcoRange )
+      const auto bco_diff = MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff( bco, target_bco );
+      if( bco_diff >= -(int64_t)m_NegativeBco && bco_diff < m_BcoRange )
       {
         found_bco = bco;
+        if( Verbosity() )
+        {
+          std::cout << "SingleMicromegasPoolInput_v2::recover_truncated_waveforms -"
+            << " fee: " << fee
+            << " target_bco: " << target_bco
+            << " found_bco: " << found_bco
+            << std::endl;
+        }
+
         for( auto&& rawhit:rawhitlist )
         {
           if( rawhit->get_channel() < MAX_FEECHANNELCOUNT )
@@ -1045,9 +1055,19 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
     // find candidate overlapping bco if any
     for( auto&& [bco, rawhitlist]:rawhitmap )
     {
-      const auto bco_diff = MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff( bco, found_bco );
-      if( bco_diff > 0 && bco_diff < truncatedWaveformGTMWindow )
+      const auto bco_diff = MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff( bco, target_bco );
+      if( bco_diff >= m_BcoRange && bco_diff < truncatedWaveformGTMWindow )
       {
+
+        if( Verbosity() )
+        {
+          std::cout << "SingleMicromegasPoolInput_v2::recover_truncated_waveforms -"
+            << " fee: " << fee
+            << " target_bco: " << target_bco
+            << " found_bco: " << found_bco
+            << " overlaping bco: " << bco
+            << std::endl;
+        }
 
         // perform overlap restoration
         for( auto* source:rawhitlist )
@@ -1128,19 +1148,17 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
     // copy new hits in internal storage and add to streaming manager
     for( auto&& rawhit:new_rawhits )
     {
-      if( rawhit )
+      if( rawhit && !rawhit->get_adc_waveforms().empty() )
       {
-        if( !rawhit->get_adc_waveforms().empty() )
-        {
-          // add hit to streaming input manager
-          if (StreamingInputManager())
-          { StreamingInputManager()->AddMicromegasRawHit(found_bco, rawhit.get()); }
+        // add hit to streaming input manager
+        if (StreamingInputManager())
+        { StreamingInputManager()->AddMicromegasRawHit(found_bco, rawhit.get()); }
 
-          // add hit to insternal storage
-          m_MicromegasRawHitMap[fee][found_bco].emplace_back(rawhit.release());
-        }
+        // add hit to insternal storage
+        m_MicromegasRawHitMap[fee][found_bco].emplace_back(rawhit.release());
       }
     }
-  }
+
+  } // FEE loop
 
 }
