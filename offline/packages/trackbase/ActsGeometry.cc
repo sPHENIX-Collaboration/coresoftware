@@ -1,15 +1,17 @@
 #include "ActsGeometry.h"
-#include <Acts/Definitions/Algebra.hpp>
 #include "TpcDefs.h"
 #include "TrkrCluster.h"
 #include "alignmentTransformationContainer.h"
+
 #include <phool/sphenix_constants.h>
+
+#include <Acts/Definitions/Algebra.hpp>
 
 namespace
 {
   /// square
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }

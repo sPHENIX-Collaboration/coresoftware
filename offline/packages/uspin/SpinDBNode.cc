@@ -1,6 +1,14 @@
 #include "SpinDBNode.h"
 
+#include "SpinDBContent.h"
+#include "SpinDBContentv1.h"
+#include "SpinDBOutput.h"
+
+#include <ffaobjects/RunHeader.h>
+
+#include <fun4all/Fun4AllBase.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -9,14 +17,6 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 
-#include <ffaobjects/RunHeader.h>
-
-#include <fun4all/Fun4AllBase.h>
-#include <fun4all/SubsysReco.h>
-
-#include "SpinDBContent.h"
-#include "SpinDBContentv1.h"
-#include "SpinDBOutput.h"
 
 SpinDBNode::SpinDBNode(const std::string &name)
   : SubsysReco(name)

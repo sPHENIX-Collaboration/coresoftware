@@ -12,6 +12,7 @@
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class SvtxEvalStack;
+class SvtxTrackEval;
 
 class SvtxTruthRecoTableEval : public SubsysReco
 {
@@ -34,8 +35,7 @@ class SvtxTruthRecoTableEval : public SubsysReco
  private:
   int createNodes(PHCompositeNode *topNode);
 
-  void fillTruthMap(PHCompositeNode *topNode);
-  void fillRecoMap(PHCompositeNode *topNode);
+  void fillTruthRecoMaps(PHCompositeNode *topNode, SvtxTrackEval *trackeval, int verbosity);
 
   bool m_scanForPrimaries = false;
 

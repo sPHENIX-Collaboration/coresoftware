@@ -7,9 +7,10 @@
 #ifndef TRACKBASE_TRKRCLUSTERV3_H
 #define TRACKBASE_TRKRCLUSTERV3_H
 
-#include <iostream>
 #include "TrkrCluster.h"
 #include "TrkrDefs.h"
+
+#include <iostream>
 
 class PHObject;
 

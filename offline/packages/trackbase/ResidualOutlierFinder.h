@@ -1,19 +1,23 @@
 #ifndef TRACKBASE_RESIDUALOUTLIERFINDER_H
 #define TRACKBASE_RESIDUALOUTLIERFINDER_H
 
+#include <phool/phool.h>
+
 #include <TFile.h>
 #include <TH2.h>
 #include <TNtuple.h>
-#include <phool/phool.h>
+
 #include <Acts/Definitions/Units.hpp>
 
 #include <ActsExamples/EventData/Measurement.hpp>
+
 #include <Acts/EventData/MeasurementHelpers.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
+#include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
+
 #include <Acts/Utilities/TrackHelpers.hpp>
 
-#include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 struct ResidualOutlierFinder
 {
   ActsGeometry* m_tGeometry = nullptr;

@@ -1,14 +1,15 @@
 #ifndef TRAININGHITSCONTAINER_H
 #define TRAININGHITSCONTAINER_H
 
-#include <vector>
 #include "TrainingHits.h"
+
+#include <vector>
 
 class TrainingHitsContainer : public PHObject
 {
  public:
   TrainingHitsContainer();
-  ~TrainingHitsContainer() override {}
+  ~TrainingHitsContainer() override = default;
   void Reset() override;
 
   std::vector<TrainingHits> v_hits;

@@ -1,6 +1,8 @@
 #ifndef Fun4All_TpcTimeFrameBuilder_H
 #define Fun4All_TpcTimeFrameBuilder_H
 
+#include "TpcTimeFrameBuilderBase.h"
+
 #include <algorithm>
 #include <cstdint>
 #include <deque>
@@ -24,27 +26,27 @@ class TH2;
 class TTree;
 
 // NOLINTNEXTLINE(hicpp-special-member-functions)
-class TpcTimeFrameBuilder
+class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
 {
  public:
   explicit TpcTimeFrameBuilder(const int packet_id);
-  virtual ~TpcTimeFrameBuilder();
+  ~TpcTimeFrameBuilder() override;
 
-  int ProcessPacket(Packet *);
-  bool isMoreDataRequired(const uint64_t &gtm_bco) const;
-  void CleanupUsedPackets(const uint64_t &bclk);
-  std::vector<TpcRawHit *> &getTimeFrame(const uint64_t &gtm_bco);
+  int ProcessPacket(Packet *) override;
+  bool isMoreDataRequired(const uint64_t &gtm_bco) const override;
+  void CleanupUsedPackets(const uint64_t &bclk) override;
+  std::vector<TpcRawHit *> &getTimeFrame(const uint64_t &gtm_bco) override;
 
-  void setVerbosity(const int i);
+  void setVerbosity(int i) override;
   void setFastBCOSkip(bool fastBCOSkip = true)
   {
     m_fastBCOSkip = fastBCOSkip;
   }
 
-  void fillBadFeeMap();
+  void fillBadFeeMap() override;
 
   // enable saving of digital current debug TTree with file name `name`
-  void SaveDigitalCurrentDebugTTree(const std::string &name);
+  void SaveDigitalCurrentDebugTTree(const std::string &name) override;
 
  protected:
   // Length for the 256-bit wide Round Robin Multiplexer for the data stream

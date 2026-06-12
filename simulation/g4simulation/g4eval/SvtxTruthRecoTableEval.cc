@@ -2,7 +2,8 @@
 #include "SvtxTruthRecoTableEval.h"
 #include "SvtxEvalStack.h"
 #include "SvtxTrackEval.h"
-#include "SvtxTruthEval.h"
+
+#include "SvtxClusterEval.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -19,10 +20,18 @@
 #include <trackbase_historic/PHG4ParticleSvtxMap_v1.h>
 #include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrack_FastSim.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
-#include <CLHEP/Vector/ThreeVector.h>
-
+#include <cassert>
+#include <cstddef>
+#include <iostream>
+#include <map>
+#include <set>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 //____________________________________________________________________________..
 SvtxTruthRecoTableEval::SvtxTruthRecoTableEval(const std::string &name)
@@ -53,11 +62,13 @@ int SvtxTruthRecoTableEval::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int SvtxTruthRecoTableEval::process_event(PHCompositeNode *topNode)
 {
+  const int verbosity = Verbosity();
+
   if (!m_svtxevalstack)
   {
     m_svtxevalstack = std::make_unique<SvtxEvalStack>(topNode);
     m_svtxevalstack->set_strict(false);
-    m_svtxevalstack->set_verbosity(Verbosity());
+    m_svtxevalstack->set_verbosity(verbosity);
     m_svtxevalstack->set_use_initial_vertex(true);
     m_svtxevalstack->set_use_genfit_vertex(false);
     m_svtxevalstack->next_event(topNode);
@@ -67,17 +78,15 @@ int SvtxTruthRecoTableEval::process_event(PHCompositeNode *topNode)
     m_svtxevalstack->next_event(topNode);
   }
 
-  if (Verbosity() > 1)
-  {
-    std::cout << "Fill truth map " << std::endl;
-  }
-  fillTruthMap(topNode);
+  SvtxTrackEval *trackeval = m_svtxevalstack->get_track_eval();
+  assert(trackeval);
+  trackeval->set_verbosity(verbosity);
 
-  if (Verbosity() > 1)
+  if (verbosity > 1)
   {
-    std::cout << "Fill reco map " << std::endl;
+    std::cout << "Fill truth/reco maps " << std::endl;
   }
-  fillRecoMap(topNode);
+  fillTruthRecoMaps(topNode, trackeval, verbosity);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -102,14 +111,13 @@ int SvtxTruthRecoTableEval::End(PHCompositeNode * /*unused*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void SvtxTruthRecoTableEval::fillTruthMap(PHCompositeNode *topNode)
+void SvtxTruthRecoTableEval::fillTruthRecoMaps(PHCompositeNode *topNode, SvtxTrackEval *trackeval, const int verbosity)
 {
   PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   assert(truthinfo);
 
-  SvtxTrackEval *trackeval = m_svtxevalstack->get_track_eval();
-  trackeval->set_verbosity(Verbosity());
-  assert(trackeval);
+  SvtxTrackMap *trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  assert(trackMap);
 
   PHG4TruthInfoContainer::ConstRange range = truthinfo->GetParticleRange();
   if (m_scanForPrimaries)
@@ -117,96 +125,124 @@ void SvtxTruthRecoTableEval::fillTruthMap(PHCompositeNode *topNode)
     range = truthinfo->GetPrimaryParticleRange();
   }
 
+  std::vector<int> selectedTruthIds;
+  std::unordered_set<int> selectedTruthIdSet;
+  const double minMomentumTruthMap2 = m_minMomentumTruthMap * m_minMomentumTruthMap;
+
   for (auto iter = range.first; iter != range.second; ++iter)
   {
     PHG4Particle *g4particle = iter->second;
 
-    const double momentum = CLHEP::
-                                Hep3Vector(g4particle->get_px(), g4particle->get_py(), g4particle->get_pz())
-                                    .mag();
+    const double px = g4particle->get_px();
+    const double py = g4particle->get_py();
+    const double pz = g4particle->get_pz();
+    const double momentum2 = px * px + py * py + pz * pz;
 
-    // only record particle above minimal momentum requirement.
-    if (momentum < m_minMomentumTruthMap)
+    // only record particle above minimal momentum (square) requirement.
+    // doing this saves us a slow sqrt operation to calculate the momentum itself
+    if (momentum2 < minMomentumTruthMap2)
     {
       continue;
     }
 
-    int gtrackID = g4particle->get_track_id();
-    const std::set<SvtxTrack *> &alltracks = trackeval->all_tracks_from(g4particle);
-
-    // not to record zero associations
-    if (alltracks.empty())
-    {
-      continue;
-    }
-
-    PHG4ParticleSvtxMap::WeightedRecoTrackMap recomap;
-
-    for (auto *track : alltracks)
-    {
-      /// We fill the map with a key corresponding to the ncluster contribution.
-      /// This weight could in principle be anything we choose
-      float clusCont = trackeval->get_nclusters_contribution(track, g4particle);
-
-      auto iterator = recomap.find(clusCont);
-      if (iterator == recomap.end())
-      {
-        std::set<unsigned int> dumset;
-        dumset.insert(track->get_id());
-        recomap.insert(std::make_pair(clusCont, dumset));
-      }
-      else
-      {
-        iterator->second.insert(track->get_id());
-      }
-    }
-
-    if (Verbosity() > 1)
-    {
-      std::cout << " Inserting gtrack id " << gtrackID << " with map size " << recomap.size() << std::endl;
-    }
-
-    m_truthMap->insert(gtrackID, recomap);
+    const int gtrackID = g4particle->get_track_id();
+    selectedTruthIds.push_back(gtrackID);
+    selectedTruthIdSet.insert(gtrackID);
   }
 
-  m_truthMap->setProcessed(true);
-}
-
-void SvtxTruthRecoTableEval::fillRecoMap(PHCompositeNode *topNode)
-{
-  SvtxTrackMap *trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-
-  assert(trackMap);
-
-  SvtxTrackEval *trackeval = m_svtxevalstack->get_track_eval();
-  assert(trackeval);
+  SvtxClusterEval *clustereval = trackeval->get_cluster_eval();
+  std::map<int, PHG4ParticleSvtxMap::WeightedRecoTrackMap> truthMaps;
 
   for (const auto &[key, track] : *trackMap)
   {
-    const std::set<PHG4Particle *> &allparticles = trackeval->all_truth_particles(track);
-    SvtxPHG4ParticleMap::WeightedTruthTrackMap truthmap;
-    for (PHG4Particle *g4particle : allparticles)
+    TrackSeed *siliconSeed = track->get_silicon_seed();
+    TrackSeed *tpcSeed = track->get_tpc_seed();
+
+    std::size_t nclusterKeys = 0;
+    if (siliconSeed)
     {
-      float clusCont = trackeval->get_nclusters_contribution(track, g4particle);
-      auto iterator = truthmap.find(clusCont);
-      if (iterator == truthmap.end())
+      nclusterKeys += siliconSeed->size_cluster_keys();
+    }
+    if (tpcSeed)
+    {
+      nclusterKeys += tpcSeed->size_cluster_keys();
+    }
+
+    std::unordered_map<int, unsigned int> nclustersByTruthId;
+    nclustersByTruthId.reserve(nclusterKeys);
+
+    const auto add_cluster_contributions = [&](TrackSeed *seed)
+    {
+      if (!seed)
       {
-        std::set<int> dumset;
-        dumset.insert(g4particle->get_track_id());
-        truthmap.insert(std::make_pair(clusCont, dumset));
+        return;
       }
-      else
+
+      for (auto clusterIter = seed->begin_cluster_keys();
+           clusterIter != seed->end_cluster_keys();
+           ++clusterIter)
       {
-        iterator->second.insert(g4particle->get_track_id());
+        const std::set<PHG4Particle *> particles = clustereval->all_truth_particles(*clusterIter);
+        for (PHG4Particle *g4particle : particles)
+        {
+          ++nclustersByTruthId[g4particle->get_track_id()];
+        }
+      }
+    };
+
+    // Match SvtxTrackEval::get_track_ckeys ordering.
+    add_cluster_contributions(siliconSeed);
+    add_cluster_contributions(tpcSeed);
+
+    SvtxPHG4ParticleMap::WeightedTruthTrackMap truthmap;
+    SvtxTrack_FastSim *fastsim_track = dynamic_cast<SvtxTrack_FastSim *>(track);
+
+    const unsigned int trackID = track->get_id();
+    for (const auto &[gtrackID, nclusters] : nclustersByTruthId)
+    {
+      const float clusCont = static_cast<float>(nclusters);
+      if (selectedTruthIdSet.contains(gtrackID))
+      {
+        truthMaps[gtrackID][clusCont].insert(trackID);
+      }
+      if (!fastsim_track)
+      {
+        truthmap[clusCont].insert(gtrackID);
       }
     }
-    if (Verbosity() > 1)
+
+    if (fastsim_track)
+    {
+      // Preserve SvtxTrackEval::all_truth_particles fast-sim special case for reco->truth maps only.
+      PHG4Particle *g4particle = truthinfo->GetParticle(fastsim_track->get_truth_track_id());
+      const float clusCont = trackeval->get_nclusters_contribution(track, g4particle);
+      truthmap[clusCont].insert(g4particle->get_track_id());
+    }
+
+    if (verbosity > 1)
     {
       std::cout << " Inserting track id " << key << " with truth map size " << truthmap.size() << std::endl;
     }
-    m_recoMap->insert(key, truthmap);
+    m_recoMap->insert(key, std::move(truthmap));
   }
 
+  for (const int gtrackID : selectedTruthIds)
+  {
+    auto truthMapIter = truthMaps.find(gtrackID);
+    if (truthMapIter == truthMaps.end() || truthMapIter->second.empty())
+    {
+      continue;
+    }
+
+    if (verbosity > 1)
+    {
+      std::cout << " Inserting gtrack id " << gtrackID << " with map size " << truthMapIter->second.size() << std::endl;
+    }
+
+    m_truthMap->insert(gtrackID, std::move(truthMapIter->second));
+  }
+
+  m_truthMap->setProcessed(true);
   m_recoMap->setProcessed(true);
 }
 

@@ -8,14 +8,15 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 
+#include <gsl/gsl_rng.h>
+
 #include <map>
 #include <string>   // for string
 #include <utility>  // for pair, make_pair
 #include <vector>
 
-#include <gsl/gsl_rng.h>
-
 class PHCompositeNode;
+class TrkrHit;
 
 class PHG4TpcDigitizer : public SubsysReco
 {
@@ -23,17 +24,11 @@ class PHG4TpcDigitizer : public SubsysReco
   PHG4TpcDigitizer(const std::string &name = "PHG4TpcDigitizer");
   ~PHG4TpcDigitizer() override;
 
-  //! module initialization
-  int Init(PHCompositeNode * /*topNode*/) override { return 0; }
-
   //! run initialization
   int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
   int process_event(PHCompositeNode *topNode) override;
-
-  //! end of process
-  int End(PHCompositeNode * /*topNode*/) override { return 0; };
 
   void set_adc_scale(const int layer, const unsigned int max_adc, const float energy_per_adc)
   {
@@ -52,31 +47,28 @@ class PHG4TpcDigitizer : public SubsysReco
   float added_noise();
   float add_noise_to_bin(float signal);
 
-  unsigned int TpcMinLayer;
-  unsigned int TpcNLayers;
-  float ADCThreshold;
-  float ADCThreshold_mV = 0;
-  float TpcEnc;
-  float Pedestal;
-  float ChargeToPeakVolts;
-  float ADCSignalConversionGain;
-  float ADCNoiseConversionGain;
+  unsigned int TpcMinLayer {7};
+  unsigned int TpcNLayers {48};
+  float ADCThreshold {2700};
+  float ADCThreshold_mV {0};
+  float TpcEnc {670};
+  float Pedestal {50000};
+  float ChargeToPeakVolts {20};
+  float ADCSignalConversionGain {std::numeric_limits<float>::quiet_NaN()};
+  float ADCNoiseConversionGain {std::numeric_limits<float>::quiet_NaN()};
 
-  bool skip_noise = false;
+  bool skip_noise {false};
 
   std::vector<std::vector<TrkrHitSet::ConstIterator> > phi_sorted_hits;
-  std::vector<std::vector<TrkrHitSet::ConstIterator> > t_sorted_hits;
-
   std::vector<float> adc_input;
-  std::vector<TrkrDefs::hitkey> adc_hitid;
-  std::vector<int> is_populated;
+  std::vector<TrkrHit *> signal_hit_by_tbin;
 
   // settings
   std::map<int, unsigned int> _max_adc;
   std::map<int, float> _energy_scale;
 
   //! random generator that conform with sPHENIX standard
-  gsl_rng *RandomGenerator;
+  gsl_rng *RandomGenerator {nullptr};
 };
 
 #endif
