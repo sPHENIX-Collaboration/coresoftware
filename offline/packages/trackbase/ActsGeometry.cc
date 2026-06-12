@@ -147,6 +147,9 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
     Acts::Vector3 world,
     TrkrDefs::subsurfkey& subsurfkey) const
 {
+  // this method needs the world position in tpc envelope coordinates
+  Acts::Vector3 tpc_world = _tpc_world_transform.inverse() * world;
+  
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   unsigned int side = TpcDefs::getSide(hitsetkey);
   
@@ -158,7 +161,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
               << hitsetkey << std::endl;
     return nullptr;
   }
-  double world_phi = atan2(world[1], world[0]);
+  double tpc_world_phi = atan2(tpc_world[1], tpc_world[0]);
 
   const auto& surf_vec = mapIter->second;
   unsigned int surf_index = 999;
@@ -166,7 +169,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   // Predict which surface index this phi and side will correspond to
   // assumes that the vector elements are ordered positive z, -pi to pi, then negative z, -pi to pi
   // we use TPC side from the hitsetkey, since z can be either sign in north and south, depending on crossing
-  double fraction = (world_phi + M_PI) / (2.0 * M_PI);
+  double fraction = (tpc_world_phi + M_PI) / (2.0 * M_PI);
 
   double rounded_nsurf = std::round((double) (surf_vec.size() / 2) * fraction - 0.5);  // NOLINT
   unsigned int nsurfm = (unsigned int) rounded_nsurf;
@@ -177,7 +180,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   }
   unsigned int nsurf = nsurfm % surf_vec.size();
   Surface this_surf = surf_vec[nsurf];
-  //std::cout << "    world_phi " << world_phi << " fraction " << fraction << " rounded_nsurf " << rounded_nsurf << " nsurfm " << nsurfm << " nsurf " << nsurf << std::endl;
+  //std::cout << "   tpc_world_phi " << tpc_world_phi << " fraction " << fraction << " rounded_nsurf " << rounded_nsurf << " nsurfm " << nsurfm << " nsurf " << nsurf << std::endl;
   
   auto vec3d = this_surf->center(m_tGeometry.getGeoContext());
   std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
@@ -185,7 +188,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   double surfStepPhi = m_tGeometry.tpcSurfStepPhi;
   //  std::cout << "    surf_phi " << surf_phi << " surfStepPhi " << surfStepPhi  << " nsurf " << nsurf << std::endl;
   
-  if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
+  if ((tpc_world_phi > surf_phi - surfStepPhi / 2.0 && tpc_world_phi < surf_phi + surfStepPhi / 2.0))
   {
     surf_index = nsurf;
     subsurfkey = nsurf;
@@ -196,9 +199,9 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
     auto firstsurf = *surf_vec.begin();
     auto firstsurfcenter = firstsurf->center(geometry().getGeoContext());
     float firstsurf_phi = atan2(firstsurfcenter[1], firstsurfcenter[0]);
-    if (world_phi < firstsurf_phi - surfStepPhi / 2.0)
+    if (tpc_world_phi < firstsurf_phi - surfStepPhi / 2.0)
     {
-      world_phi += 2.0 * M_PI;
+      tpc_world_phi += 2.0 * M_PI;
     }
     //check a few surfaces around this one
     for( int i = -1; i <= 1; i++)
@@ -212,8 +215,8 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
       vec3d = this_surf->center(geometry().getGeoContext());
       surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       surf_phi = atan2(surf_center[1], surf_center[0]);
-      //std::cout << "    new world_phi " << world_phi << " new surf_phi " << surf_phi  << " new_nsurf " << new_nsurf << std::endl;
-      if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
+      //std::cout << "    new tpc_world_phi " << tpc_world_phi << " new surf_phi " << surf_phi  << " new_nsurf " << new_nsurf << std::endl;
+      if ((tpc_world_phi > surf_phi - surfStepPhi / 2.0 && tpc_world_phi < surf_phi + surfStepPhi / 2.0))
       {
         surf_index = new_nsurf;
         subsurfkey = new_nsurf;

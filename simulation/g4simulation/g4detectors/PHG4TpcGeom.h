@@ -7,6 +7,10 @@
 
 #include <phool/phool.h>
 
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
+
 #include <array>
 #include <iostream>  // for cout, ostream
 #include <limits>
@@ -186,6 +190,14 @@ class PHG4TpcGeom : public PHObject
     PHOOL_VIRTUAL_WARN("get_tbin_float()");
     return -99999;
   }
+
+  virtual Eigen::Affine3d get_tpc_world_transform() const
+  {
+    PHOOL_VIRTUAL_WARN("get_tpc_world_transform()");
+    Eigen::Affine3d null;
+    return null;
+  }
+    
   virtual int find_phibin(const double, int) const
   {
     PHOOL_VIRTUAL_WARN("get_phibin()");
@@ -237,7 +249,9 @@ class PHG4TpcGeom : public PHObject
   virtual void set_adc_clock(const double) { PHOOL_VIRTUAL_WARN("set_adc_clock(const double)"); }
   virtual void set_extended_readout_time(const double) { PHOOL_VIRTUAL_WARN("set_extended_readout_time(const double)"); }
   virtual void set_drift_velocity_sim(const double) { PHOOL_VIRTUAL_WARN("set_drift_velocity_sim(const double)"); }
-  
+
+  virtual void set_tpc_world_transform(const Eigen::Affine3d) {PHOOL_VIRTUAL_WARN("set_tpc_world_transform(const Eigen::Affine3d)"); }
+    
   //! load parameters from PHParameters, which interface to Database/XML/ROOT files
   virtual void ImportParameters(const PHParameters & /*param*/) { return; }
 

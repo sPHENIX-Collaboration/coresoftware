@@ -5,8 +5,6 @@
 
 #include "TpcClusterBuilder.h"
 
-#include <trackbase/ActsGeometry.h>
-
 #include <g4main/PHG4HitContainer.h>
 
 #include <phparameter/PHParameterInterface.h>
@@ -154,6 +152,9 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::string hitnodename;
   std::string seggeonodename;
 
+  Acts::Transform3 m_tpc_world_transform;
+ 
+  
   //! rng de-allocator
   class Deleter
   {

@@ -5,6 +5,10 @@
 
 #include "PHG4TpcGeom.h"
 
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
+
 #include <array>
 #include <cmath>
 #include <iostream>  // for cout, ostream
@@ -54,6 +58,8 @@ class PHG4TpcGeomv1 : public PHG4TpcGeom
   int get_zbin(const double z) const override;
   int get_phibin(const double phi, int side = 0) const override;
   int get_phibin_new(const double phi) const override;
+
+  Eigen::Affine3d get_tpc_world_transform() const override {return tpc_world_transform; };
   
   float get_pad_float(const double phi, int side = 0) const override;
   float get_tbin_float(const double z) const override;
@@ -78,7 +84,8 @@ class PHG4TpcGeomv1 : public PHG4TpcGeom
   void set_adc_clock(const double val) override { adc_clock = val; }
   void set_extended_readout_time(const double val) override { extended_readout_time = val; }
   void set_drift_velocity_sim(const double val) override { drift_velocity_sim = val; }
-  
+  void set_tpc_world_transform(const Eigen::Affine3d val) override {tpc_world_transform = val; }
+
   static const int NSides = 2;
 
   void set_r_bias(const std::array<std::vector<double>, NSides> &dr) override { sector_R_bias = dr; }
@@ -129,6 +136,8 @@ class PHG4TpcGeomv1 : public PHG4TpcGeom
   std::array<std::vector<double>, NSides> sector_min_Phi;
   std::array<std::vector<double>, NSides> sector_max_Phi;
 
+  Eigen::Affine3d tpc_world_transform;
+  
   // streamer
   friend std::ostream& operator<<(std::ostream&, const PHG4TpcGeomv1&);
 
