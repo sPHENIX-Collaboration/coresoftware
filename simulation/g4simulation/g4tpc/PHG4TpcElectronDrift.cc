@@ -59,6 +59,10 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
+
 #include <array>
 #include <cassert>
 #include <cmath>    // for sqrt, abs, NAN
@@ -191,8 +195,13 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   seggeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, seggeonodename);
   assert(seggeo);
 
-    // the z geometry is the same for all layers
+  // the z geometry and TPC tilt are the same for all layers
   PHG4TpcGeom *layergeom = seggeo->GetLayerCellGeom(20);
+
+  // get the local to global transform for TPC to world
+  // This reproduces the G4PVPlacement orientation used to build the TPC model
+  m_tpc_world_transform =  layergeom->get_tpc_world_transform();
+
   // from top of GEM stack to top of GEM stack
   tpc_length = 2 * (layergeom->get_max_driftlength() + layergeom->get_CM_halfwidth());
   
@@ -556,11 +565,19 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       // values between 0 and 1
       const double f = gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
 
-      const double x_start = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
-      const double y_start = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
-      const double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
+      const double x_start_glob = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
+      const double y_start_glob = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
+      const double z_start_glob = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
       const double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
 
+      // transform the g4 global position to a TPC local position for transport to readout plane
+      Eigen::Vector3d g4glob(x_start_glob, y_start_glob, z_start_glob);
+      Eigen::Vector3d g4tpc = m_tpc_world_transform.inverse() * g4glob;
+
+      double x_start = g4tpc.x();
+      double y_start = g4tpc.y();
+      double z_start = g4tpc.z();
+      
       unsigned int side = 0;
       if (z_start > 0)
       {

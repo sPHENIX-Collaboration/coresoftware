@@ -36,6 +36,10 @@
 #include <Geant4/G4UserLimits.hh>
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
+
 #include <algorithm>  // for max, copy
 #include <cassert>
 #include <cmath>
@@ -604,6 +608,18 @@ void PHG4TpcDetector::add_geometry_node()
   std::cout << PHWHERE << "MaxT " << MaxT << " TBinWidth " << TBinWidth << " extended readout time "
             << extended_readout_time << " NTBins = " << NTBins << " drift velocity sim " << drift_velocity_sim << std::endl;
 
+  
+  // make the affine transform to go from TPC local coords to world coords
+  Eigen::AngleAxisd grx(m_Params->get_double_param("rot_x"), Eigen::Vector3d::UnitX());
+  Eigen::AngleAxisd gry(m_Params->get_double_param("rot_y"), Eigen::Vector3d::UnitY());
+  Eigen::AngleAxisd grz(m_Params->get_double_param("rot_z"), Eigen::Vector3d::UnitZ());
+  Eigen::Quaternion<double> gqr = grz * gry * grx;
+  Eigen::Matrix3d tpcRotation = gqr.matrix();
+  Eigen::Vector3d tpcTranslation(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z")*cm);
+  Eigen::Affine3d tpc_world_transform;  
+  tpc_world_transform.linear() = tpcRotation;
+  tpc_world_transform.translation() = tpcTranslation;  
+  
   const std::array<int, 3> NPhiBins =
       {{m_Params->get_int_param("ntpc_phibins_inner"),
         m_Params->get_int_param("ntpc_phibins_mid"),
@@ -751,6 +767,7 @@ void PHG4TpcDetector::add_geometry_node()
 	layerseggeo->set_adc_clock(m_Params->get_double_param("tpc_adc_clock"));
 	layerseggeo->set_extended_readout_time(m_Params->get_double_param("extended_readout_time"));
 	layerseggeo->set_drift_velocity_sim(m_Params->get_double_param("drift_velocity_sim"));	
+	layerseggeo->set_tpc_world_transform(tpc_world_transform);
       }
 
       // Chris Pinkenburg: greater causes huge memory growth which causes problems

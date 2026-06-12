@@ -51,6 +51,7 @@ class ActsGeometry
   void set_CM_halfwidth(double val) { _CM_halfwidth = val; }
   void set_tpc_tzero(double tz) { _tpc_tzero = tz; }
   void set_sampa_tzero_bias(double tzb) { _sampa_tzero_bias = tzb; }
+  void set_tpc_world_transform(Acts::Transform3 val) { _tpc_world_transform = val; }
 
   double get_tpc_tzero() const { return _tpc_tzero; }
   double get_sampa_tzero_bias() const { return _sampa_tzero_bias; }
@@ -88,6 +89,7 @@ class ActsGeometry
   double _CM_halfwidth = 0.28;  // cm
   double _tpc_tzero = 0.0;  // ns
   double _sampa_tzero_bias = 0.0;  // ns
+  Acts::Transform3 _tpc_world_transform;
 };
 
 #endif

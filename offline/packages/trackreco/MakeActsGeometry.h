@@ -286,6 +286,7 @@ private:
   bool m_apply_tpc_tzero_correction = false;
   double m_tpc_tzero = 0.0;  // ns, override from macro
   double m_sampa_tzero_bias = 0.0;  // ns, override from macro
+  Acts::Transform3 m_tpc_world_transform;
   
   /// Magnetic field components to set Acts magnetic field
   std::string m_magField = "1.4";

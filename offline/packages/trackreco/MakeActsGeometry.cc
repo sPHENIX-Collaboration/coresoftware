@@ -181,6 +181,7 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   PHG4TpcGeom *layergeom = m_geomContainerTpc->GetLayerCellGeom(20);  // z geometry is the same for all layers
   m_max_driftlength = layergeom->get_max_driftlength();
   m_CM_halfwidth = layergeom->get_CM_halfwidth();
+  m_tpc_world_transform = layergeom->get_tpc_world_transform();
   
   m_maxSurfZ = m_max_driftlength - 0.0001; // add clearance from physical TPC gas volume length to avoid overlaps
     
@@ -298,6 +299,7 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->set_CM_halfwidth(m_CM_halfwidth);
   m_actsGeometry->set_tpc_tzero(m_tpc_tzero);
   m_actsGeometry->set_sampa_tzero_bias(m_sampa_tzero_bias);
+  m_actsGeometry->set_tpc_world_transform(m_tpc_world_transform);
   // alignment_transformation.useInttSurveyGeometry(m_inttSurvey);
 
   if (Verbosity() > 1)
