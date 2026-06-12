@@ -40,11 +40,11 @@
 #ifndef _PHG4GDMLWRITEDEFINE_INCLUDED_
 #define _PHG4GDMLWRITEDEFINE_INCLUDED_
 
+#include "PHG4GDMLWrite.hh"
+
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4RotationMatrix.hh>
-
-#include "PHG4GDMLWrite.hh"
 
 class PHG4GDMLWriteDefine : public PHG4GDMLWrite
 {

@@ -1,13 +1,14 @@
 #ifndef TRACKBASE_SPACEPOINT_H
 #define TRACKBASE_SPACEPOINT_H
 
-#include <memory>
-#include <optional>
-#include "trackbase/TrkrDefs.h"
+#include <trackbase/TrkrDefs.h>
 
 #include <ActsExamples/EventData/SpacePointContainer.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/EventData/Seed.hpp>
+
+#include <memory>
+#include <optional>
 
 /**
  * A struct for Acts to take cluster information for seeding

@@ -3,9 +3,11 @@
 #ifndef GLOBALVERTEX_GLOBALVERTEXMAP_H
 #define GLOBALVERTEX_GLOBALVERTEXMAP_H
 
-#include <phool/PHObject.h>
 #include "Vertex.h"
 #include "GlobalVertex.h"
+
+#include <phool/PHObject.h>
+
 #include <iostream>
 #include <map>
 
@@ -15,7 +17,7 @@ class GlobalVertexMap : public PHObject
   typedef std::map<unsigned int, GlobalVertex*>::const_iterator ConstIter;
   typedef std::map<unsigned int, GlobalVertex*>::iterator Iter;
 
-  ~GlobalVertexMap() override {}
+  ~GlobalVertexMap() override = default;
 
   void identify(std::ostream& os = std::cout) const override { os << "GlobalVertexMap base class" << std::endl; }
   int isValid() const override { return 0; }
@@ -42,7 +44,7 @@ class GlobalVertexMap : public PHObject
   virtual Iter end();
 
  protected:
-  GlobalVertexMap() {}
+  GlobalVertexMap() = default;
 
  private:
   ClassDefOverride(GlobalVertexMap, 1);

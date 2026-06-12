@@ -28,6 +28,8 @@
 #include <Event/EventTypes.h>
 #include <Event/packet.h>  // for Packet
 
+#include <TH1.h>
+
 #include <iostream>
 
 StreamingBcoLumiReco::StreamingBcoLumiReco(const std::string &name)

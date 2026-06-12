@@ -1,8 +1,9 @@
 #ifndef TRUTHNEUTRALMESONV1_H
 #define TRUTHNEUTRALMESONV1_H
 
-#include <array>
 #include "TruthNeutralMeson.h"
+
+#include <array>
 
 class TruthNeutralMesonv1 : public TruthNeutralMeson
 {

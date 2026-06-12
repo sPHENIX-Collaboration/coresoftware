@@ -10,8 +10,9 @@
 /// \author Mike McCumber
 //===========================================================
 
-#include <fun4all/SubsysReco.h>
 #include "GlobalVertex.h"
+
+#include <fun4all/SubsysReco.h>
 
 #include <string>  // for string
 

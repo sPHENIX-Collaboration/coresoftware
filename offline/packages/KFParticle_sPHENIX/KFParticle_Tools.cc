@@ -26,6 +26,7 @@
 /*****************/
 
 #include "KFParticle_Tools.h"
+#include "KFParticle_truthAndDetTools.h"
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -55,8 +56,6 @@
 #include <Rtypes.h>
 #include <TDatabasePDG.h>
 #include <TMatrixD.h>
-#include "KFParticle_truthAndDetTools.h"
-
 #include <TFile.h>
 #include <TMatrixDfwd.h>  // for TMatrixD
 #include <TMatrixT.h>     // for TMatrixT, operator*
@@ -68,6 +67,7 @@
 #include <cstdlib>    // for abs, NULL
 #include <iostream>   // for operator<<, basic_ostream
 #include <iterator>   // for end
+#include <limits>
 #include <map>        // for _Rb_tree_iterator, map
 #include <memory>     // for allocator_traits<>::va...
 
@@ -78,13 +78,13 @@ KFParticle_Tools::KFParticle_Tools()
   : m_has_intermediates(false)
   , m_min_mass(0)
   , m_max_mass(0)
-  , m_min_decayTime(-1 * FLT_MAX)
-  , m_max_decayTime(FLT_MAX)
-  , m_min_decayLength(-1 * FLT_MAX)
-  , m_max_decayLength(FLT_MAX)
+  , m_min_decayTime(-1 * std::numeric_limits<float>::max())
+  , m_max_decayTime(std::numeric_limits<float>::max())
+  , m_min_decayLength(-1 * std::numeric_limits<float>::max())
+  , m_max_decayLength(std::numeric_limits<float>::max())
   , m_track_min_pt(0.)
   , m_track_max_pt(5e3)
-  , m_track_ptchi2(FLT_MAX)
+  , m_track_ptchi2(std::numeric_limits<float>::max())
   , m_track_ip_xy(-100.)
   , m_track_ipchi2_xy(-1)
   , m_track_ip(-1.)
@@ -101,7 +101,7 @@ KFParticle_Tools::KFParticle_Tools()
   , m_dira_min(-1.01)
   , m_dira_max(1.01)
   , m_mother_pt(0.)
-  , m_mother_ipchi2(FLT_MAX)
+  , m_mother_ipchi2(std::numeric_limits<float>::max())
   , m_get_charge_conjugate(false)
   , m_extrapolateTracksToSV(true)
   , m_vtx_map_node_name("SvtxVertexMap")
@@ -477,10 +477,10 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
     {
       printSelectionCheck("Track pT", m_track_min_pt, pt, m_track_max_pt);
       printSelectionCheck("Track pT chi^2", 0, ptchi2, m_track_ptchi2);
-      printSelectionCheck("IP", m_track_ip, min_ip, FLT_MAX);
-      printSelectionCheck("IP chi^2", m_track_ipchi2, min_ipchi2, FLT_MAX);
-      printSelectionCheck("IP xy", m_track_ip_xy, min_ip_xy, FLT_MAX);
-      printSelectionCheck("IP xy chi^2", m_track_ipchi2_xy, min_ipchi2_xy, FLT_MAX);
+      printSelectionCheck("IP", m_track_ip, min_ip, std::numeric_limits<float>::max());
+      printSelectionCheck("IP chi^2", m_track_ipchi2, min_ipchi2, std::numeric_limits<float>::max());
+      printSelectionCheck("IP xy", m_track_ip_xy, min_ip_xy, std::numeric_limits<float>::max());
+      printSelectionCheck("IP xy chi^2", m_track_ipchi2_xy, min_ipchi2_xy, std::numeric_limits<float>::max());
       printSelectionCheck("Track chi^2/nDoF", 0, trackchi2ndof, m_track_chi2ndof);
     }
   }
@@ -576,7 +576,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
             if (m_verbosity >= 11)
             {
               printSelectionCheck("SV chi^2/nDoFA", 0., vertexchi2ndof, m_vertex_chi2ndof);
-              printSelectionCheck("SV radius", m_min_radial_SV, sv_radial_position, FLT_MAX);
+              printSelectionCheck("SV radius", m_min_radial_SV, sv_radial_position, std::numeric_limits<float>::max());
             }
           }
 
@@ -662,7 +662,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(std::vector<KFPartic
             if (m_verbosity >= 11)
             {
               printSelectionCheck("SV chi^2/nDoFA", 0., vertexchi2ndof, m_vertex_chi2ndof);
-              printSelectionCheck("SV radius", m_min_radial_SV, sv_radial_position, FLT_MAX);
+              printSelectionCheck("SV radius", m_min_radial_SV, sv_radial_position, std::numeric_limits<float>::max());
             }
           }
 
@@ -1008,8 +1008,8 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
         printSelectionCheck("", "Accepted", "Rejected", "the intermediate selection", goodCandidate);
         if (m_verbosity >= 11)
         {
-          printSelectionCheck("Intermediate DIRA", m_intermediate_min_dira[k], intermediate_DIRA, FLT_MAX);
-          printSelectionCheck("Intermediate FD chi^2", m_intermediate_min_fdchi2[k], intermediate_FDchi2, FLT_MAX);
+          printSelectionCheck("Intermediate DIRA", m_intermediate_min_dira[k], intermediate_DIRA, std::numeric_limits<float>::max());
+          printSelectionCheck("Intermediate FD chi^2", m_intermediate_min_fdchi2[k], intermediate_FDchi2, std::numeric_limits<float>::max());
         }
       }
     }
@@ -1022,7 +1022,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     {
       printSelectionCheck("Vertex charge is", "right", "wrong", "", chargeCheck);
       printSelectionCheck("Invariant Mass", min_mass, calculated_mass, max_mass);
-      printSelectionCheck("Mother pT", min_pt, calculated_pt, FLT_MAX);
+      printSelectionCheck("Mother pT", min_pt, calculated_pt, std::numeric_limits<float>::max());
       printSelectionCheck("Mother SV volume", 0., calculateEllipsoidVolume(mother), max_vertex_volume);
     }
   }
@@ -1079,18 +1079,18 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
     {
       printSelectionCheck("Mother DIRA", m_dira_min, calculated_dira, m_dira_max);
       printSelectionCheck("Mother DIRA xy", m_dira_xy_min, calculated_dira_xy, m_dira_xy_max);
-      printSelectionCheck("Mother FD chi^2", m_fdchi2, calculated_fdchi2, FLT_MAX);
+      printSelectionCheck("Mother FD chi^2", m_fdchi2, calculated_fdchi2, std::numeric_limits<float>::max());
       printSelectionCheck("Mother IP", 0, calculated_ip, m_mother_ip);
       printSelectionCheck("Mother IP chi^2", 0., calculated_ipchi2, m_mother_ipchi2);
       printSelectionCheck("Mother IP xy", 0., calculated_ip_xy, m_mother_ip_xy);
       printSelectionCheck("Mother IP xy chi^2", 0., calculated_ipchi2_xy, m_mother_ipchi2_xy);
       printSelectionCheck("Mother Decay Time", m_min_decayTime, calculated_decayTime, m_max_decayTime);
-      printSelectionCheck("Mother Decay Time Significance", m_mother_min_decay_time_significance, calculated_decay_time_significance, FLT_MAX);
+      printSelectionCheck("Mother Decay Time Significance", m_mother_min_decay_time_significance, calculated_decay_time_significance, std::numeric_limits<float>::max());
       printSelectionCheck("Mother Decay Time xy", m_min_decayTime_xy, calculated_decayTime_xy, m_max_decayTime_xy);
       printSelectionCheck("Mother Decay Length", m_min_decayLength, calculated_decayLength, m_max_decayLength);
-      printSelectionCheck("Mother Decay Length Significance", m_mother_min_decay_length_significance, calculated_decay_length_significance, FLT_MAX);
+      printSelectionCheck("Mother Decay Length Significance", m_mother_min_decay_length_significance, calculated_decay_length_significance, std::numeric_limits<float>::max());
       printSelectionCheck("Mother Decay Length xy", m_min_decayLength_xy, calculated_decayLength_xy, m_max_decayLength_xy);
-      printSelectionCheck("Mother Decay Length xy Significance", m_mother_min_decay_length_xy_significance, calculated_decay_length_xy_significance, FLT_MAX);
+      printSelectionCheck("Mother Decay Length xy Significance", m_mother_min_decay_length_xy_significance, calculated_decay_length_xy_significance, std::numeric_limits<float>::max());
     }
   }
 }

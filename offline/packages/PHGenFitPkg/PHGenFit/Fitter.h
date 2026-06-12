@@ -13,7 +13,7 @@
 #include <phgenfit/Track.h>
 
 #include <GenFit/EventDisplay.h>
-#include "GenFit/Exception.h"
+#include <GenFit/Exception.h>
 
 #include <string>
 

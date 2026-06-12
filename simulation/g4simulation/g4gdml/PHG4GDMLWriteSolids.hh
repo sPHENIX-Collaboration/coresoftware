@@ -40,10 +40,10 @@
 #ifndef _PHG4GDMLWRITESOLIDS_INCLUDED_
 #define _PHG4GDMLWRITESOLIDS_INCLUDED_
 
+#include "PHG4GDMLWriteMaterials.hh"
+
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4MultiUnion.hh>
-
-#include "PHG4GDMLWriteMaterials.hh"
 
 class G4BooleanSolid;
 class G4Box;

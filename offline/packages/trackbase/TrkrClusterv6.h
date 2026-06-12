@@ -10,7 +10,7 @@
 #include "TrkrCluster.h"
 #include "TrkrDefs.h"
 
-#include <climits>
+#include <limits>
 #include <iostream>
 
 class PHObject;

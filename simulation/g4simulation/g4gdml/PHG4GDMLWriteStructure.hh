@@ -40,10 +40,10 @@
 #ifndef _PHG4GDMLWRITESTRUCTURE_INCLUDED_
 #define _PHG4GDMLWRITESTRUCTURE_INCLUDED_
 
+#include "PHG4GDMLWriteParamvol.hh"
+
 #include <Geant4/G4Transform3D.hh>
 #include <Geant4/G4Types.hh>
-
-#include "PHG4GDMLWriteParamvol.hh"
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
