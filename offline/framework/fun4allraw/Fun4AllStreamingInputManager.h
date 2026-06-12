@@ -10,6 +10,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <vector>
 
 class SingleStreamingInput;
 class Gl1Packet;
@@ -68,6 +69,10 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   void Streaming(bool b = true) { m_StreamingFlag = b; }
 
   void runMvtxTriggered(bool b = true) { m_mvtx_is_triggered = b; }
+
+  // configuration for INTT hit carry-over issue mitigation (hit duplication)
+  void EnableInttHitDuplication(bool b = true) { m_InttHitDuplication = b; }
+  void InttHitCarryOverShiftMaxMultiple(const int i) { m_InttHitCarryOverShiftMaxMultiple = i; }
 
  private:
   struct MvtxRawHitInfo
@@ -159,6 +164,10 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   TH1 *h_taggedAllFees_intt[8]{nullptr};
   TH1 *h_gl1taggedfee_intt[8][14]{{nullptr}};
   TH2 *h_bcodiff_intt[8]{nullptr};
-};
 
+  // for INTT hit carry-over issue mitigation (hit duplication)
+  bool m_InttHitDuplication{false}; // default to false; Should be set to true when running streaming data
+  const unsigned int m_InttHitCarryOverShift{120}; // 120 BCOs as the default shift. Fixed value 
+  int m_InttHitCarryOverShiftMaxMultiple{4}; // the max multiple of the shift. For a max multiple of M, duplicate hits from N + [1..M] * shift BCOs to N
+};
 #endif /* FUN4ALL_FUN4ALLSTREAMINGINPUTMANAGER_H */
