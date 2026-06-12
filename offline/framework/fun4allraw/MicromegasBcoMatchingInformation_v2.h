@@ -97,17 +97,18 @@ class MicromegasBcoMatchingInformation_v2
   //! print gtm bco information
   void print_gtm_bco_information() const;
 
-  //! get first gtm bco
-  unsigned int get_fee_bco_first() const
-  { return m_fee_bco_first; }
-
-  //! get first gtm bco
-  uint64_t get_gtm_bco_first() const
-  { return m_gtm_bco_first; }
+  //! get BCO matching reference
+  using m_bco_matching_pair_t = std::pair<uint32_t, uint64_t>;
+  const m_bco_matching_pair_t& get_bco_matching_reference() const
+  { return m_bco_reference; }
 
   //! get last gtm bco
   uint64_t get_gtm_bco_last() const
   { return m_gtm_bco_list.empty() ? 0:*m_gtm_bco_list.rbegin(); }
+
+  //! returns true if more data needs to be fetched.
+  /** it is based on the latest BCO read from the data stream, from either tagger or heartbeat */
+  bool is_more_data_required(uint64_t /*gtm_bco*/) const;
 
   //@}
 
@@ -144,6 +145,12 @@ class MicromegasBcoMatchingInformation_v2
     m_max_gtm_bco_diff = value;
   }
 
+  //! max time in GTM BCO for FEE data to sync over to datastream
+  static void set_m_max_fee_sync_time( unsigned int value )
+  {
+    m_max_fee_sync_time = value;
+  }
+
   //! find reference from modebits
   bool find_reference_from_modebits(const gtm_payload&);
 
@@ -168,6 +175,25 @@ class MicromegasBcoMatchingInformation_v2
 
   //@}
 
+  //!@name utilities
+  //@{
+
+  //! get difference between two GTM BCO, properly accounting for 40bits rollover
+  /** based on Jin's code in TpcTimeFrameBuilder */
+  static int64_t get_signed_gtm_bco_diff(uint64_t /*first*/, uint64_t /*second*/);
+
+  //! get difference between two FEE BCO, properly accounting for 20bits rollover
+  /** based on Jin's code in TpcTimeFrameBuilder */
+  static int32_t get_signed_fee_bco_diff(uint32_t /*first*/, uint32_t /*second*/);
+
+  //! get difference between two GTM BCO, properly accounting for 40bits rollover
+  static uint64_t get_unsigned_gtm_bco_diff(uint64_t /*first*/, uint64_t /*second*/);
+
+  //! get difference between two FEE BCO, properly accounting for 20bits rollover
+  static uint32_t get_unsigned_fee_bco_diff(uint32_t /*first*/, uint32_t /*second*/);
+
+  //@}
+
  private:
 
   //! update multiplier adjustment
@@ -178,14 +204,7 @@ class MicromegasBcoMatchingInformation_v2
 
   //! verified
   bool m_verified_from_modebits = false;
-
   bool m_verified_from_data = false;
-
-  //! first lvl1 bco (40 bits)
-  uint64_t m_gtm_bco_first = 0;
-
-  //! first fee bco (20 bits)
-  uint32_t m_fee_bco_first = 0;
 
   //! last found fee_bco
   /** used to try finding bco reference from data */
@@ -195,8 +214,10 @@ class MicromegasBcoMatchingInformation_v2
   //! list of available bco
   std::list<uint64_t> m_gtm_bco_list;
 
+  //! reference matching
+  m_bco_matching_pair_t m_bco_reference;
+
   //! matching between fee bco and lvl1 bco
-  using m_bco_matching_pair_t = std::pair<unsigned int, uint64_t>;
   std::list<m_bco_matching_pair_t> m_bco_matching_list;
 
   //! keep track or  fee_bco for which no gtm_bco is found
@@ -217,6 +238,9 @@ class MicromegasBcoMatchingInformation_v2
 
   // define limit for matching fee_bco to fee_bco_predicted
   static unsigned int m_max_gtm_bco_diff;
+
+  //! max time in GTM BCO for FEE data to sync over to datastream
+  static unsigned int m_max_fee_sync_time;
 
   //! adjustment to multiplier
   double m_multiplier_adjustment = 0;
