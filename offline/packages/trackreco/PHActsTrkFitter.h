@@ -77,12 +77,18 @@ class PHActsTrkFitter : public SubsysReco
     m_fitSiliconMMs = fitSiliconMMs;
   }
 
-  /// with direct navigation, force a fit with only silicon hits
+  /// FOR ALIGNMENT STUDIES ONLY, USE AT OWN RISK. With direct navigation, force a fit with only silicon hits and a full
+  /// matched (si+tpc track seed). This requires a standard track fit to be run first, followed by refit configured with 
+  /// the option below. NOTE this uses the TPC track seed pT for the final pT value, to compensate for poor pt resolution
+  /// with the silicon seeds only. 
   void forceSiOnlyFit(bool forceSiOnlyFit)
   {
     m_forceSiOnlyFit = forceSiOnlyFit;
   }
 
+  /// FOR ALIGNMENT STUDIES ONLY, USE AT OWN RISK. With direct navigation, force a fit with only tpc hits and a full
+  /// matched (si+tpc track seed). This requires a standard track fit to be run first, followed by refit configured with 
+  /// the option below. NOTE this has poor pointing as the Si is not used for an initial guess of the track pointing
   void forceTpcOnlyFit(bool forceTpcOnlyFit)
   {
     m_forceTpcOnlyFit = forceTpcOnlyFit;
