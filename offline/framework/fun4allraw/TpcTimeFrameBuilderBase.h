@@ -21,6 +21,7 @@ class TpcTimeFrameBuilderBase
   virtual void setVerbosity(int i) = 0;
   virtual void fillBadFeeMap() = 0;
   virtual void SaveDigitalCurrentDebugTTree(const std::string &name) = 0;
+  virtual void SaveBXCounterSyncCDBTTree(const std::string &name) = 0;
 };
 
 #endif
