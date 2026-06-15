@@ -3,6 +3,7 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <array>
 #include <numbers>
 #include <string>
 
@@ -34,6 +35,8 @@ class PHGarfield : public SubsysReco
   //  The user is encouraged to add more routine to fit their analysis goals...
   TPolyLine3D *ReverseDrift(double x_cm, double y_cm, double z_cm, double step_ns = 50.0);  // Drifts electrons from some initial point until they hit a detector boundary...
 
+  double GetRadius(size_t index) {return radii.at(index);}
+
  private:
   void GetMagneticFieldTesla(double x_cm, double y_cm, double z_cm, double &bx_t, double &by_t, double &bz_t);      // Feeds magnetic field to Garfield
   void GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, double &ex_vcm, double &ey_vcm, double &ez_vcm);  // Feeds electric field to Garfield
@@ -50,7 +53,7 @@ class PHGarfield : public SubsysReco
   // std::string calibdir;
   // std::string m_DiodeContainerName;
   double PHI_MIN{-std::numbers::pi};
-  double radii[48]{};  // Radius on each layer just for test purposes...need to be cm!
+  std::array<double, 48> radii{};  // Radius on each layer just for test purposes...need to be cm!
 };
 
 #endif
