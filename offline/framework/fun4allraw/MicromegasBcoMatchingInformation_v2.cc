@@ -138,7 +138,7 @@ unsigned int MicromegasBcoMatchingInformation_v2::m_max_multiplier_adjustment_co
 unsigned int MicromegasBcoMatchingInformation_v2::m_max_gtm_bco_diff = 60;
 
 //! Max time forward to ensure that a given
-unsigned int MicromegasBcoMatchingInformation_v2::m_max_fee_sync_time = 1024 * 32;
+unsigned int MicromegasBcoMatchingInformation_v2::m_max_fee_sync_time = 1024 * 96;
 
 //___________________________________________________
 int64_t MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff(uint64_t first, uint64_t second)
