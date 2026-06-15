@@ -314,7 +314,7 @@ void SingleMicromegasPoolInput_v2::FillPool(const uint64_t target_bco)
   { fill_evaluation_tree( target_bco ); }
 
   // recover truncated FEEs for target bco
-  recover_truncated_waveforms( target_bco );
+  if( m_recover_truncated_waveforms ) { recover_truncated_waveforms( target_bco ); }
 
 }
 

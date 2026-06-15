@@ -53,6 +53,8 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   ///
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
+  void SetRecoverTruncatedWaveforms( bool value ) { m_recover_truncated_waveforms = value; }
+
   void SetBcoRange(const unsigned int value) { m_BcoRange = value; }
 
   void ConfigureStreamingInputManager() override;
@@ -118,6 +120,9 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
 
   /// recover truncated waveforms for a given gtm bco
   void recover_truncated_waveforms( const uint64_t /*target_bco*/ );
+
+  /// true to recover waveform truncated due to overlapping timeframes
+  bool m_recover_truncated_waveforms{true};
 
   /// fee data buffer
   std::array<std::deque<uint16_t>, MAX_FEECOUNT> m_feeData{};
