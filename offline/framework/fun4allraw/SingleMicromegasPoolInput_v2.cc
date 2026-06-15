@@ -310,6 +310,9 @@ void SingleMicromegasPoolInput_v2::FillPool(const uint64_t target_bco)
     m_timer.stop();
   }
 
+  if( m_do_evaluation )
+  { fill_evaluation_tree( target_bco ); }
+
   // recover truncated FEEs for target bco
   recover_truncated_waveforms( target_bco );
 
@@ -561,20 +564,18 @@ void SingleMicromegasPoolInput_v2::createQAHistos()
   {
     m_evaluation_file.reset(new TFile(m_evaluation_filename.c_str(), "RECREATE"));
     m_evaluation_tree = new TTree("T", "T");
-    m_evaluation_tree->Branch("is_heartbeat", &m_waveform.is_heartbeat);
-    m_evaluation_tree->Branch("matched", &m_waveform.matched);
     m_evaluation_tree->Branch("packet_id", &m_waveform.packet_id);
     m_evaluation_tree->Branch("fee_id", &m_waveform.fee_id);
     m_evaluation_tree->Branch("channel", &m_waveform.channel);
 
     m_evaluation_tree->Branch("gtm_bco_first", &m_waveform.gtm_bco_first);
-    m_evaluation_tree->Branch("gtm_bco", &m_waveform.gtm_bco);
-    m_evaluation_tree->Branch("gtm_bco_matched", &m_waveform.gtm_bco_matched);
+    m_evaluation_tree->Branch("gtm_bco_tagger", &m_waveform.gtm_bco_tagger);
+    m_evaluation_tree->Branch("gtm_bco_gl1", &m_waveform.gtm_bco_gl1);
 
     m_evaluation_tree->Branch("fee_bco_first", &m_waveform.fee_bco_first);
     m_evaluation_tree->Branch("fee_bco", &m_waveform.fee_bco);
-    m_evaluation_tree->Branch("fee_bco_predicted", &m_waveform.fee_bco_predicted);
-    m_evaluation_tree->Branch("fee_bco_predicted_matched", &m_waveform.fee_bco_predicted_matched);
+    m_evaluation_tree->Branch("fee_bco_predicted_tagger", &m_waveform.fee_bco_predicted_tagger);
+    m_evaluation_tree->Branch("fee_bco_predicted_gl1", &m_waveform.fee_bco_predicted_gl1);
   }
 }
 
@@ -727,24 +728,6 @@ void SingleMicromegasPoolInput_v2::decode_gtm_data(int packet_id, const SingleMi
    * because any BX_COUNTER_SYNC_T event will break past references
    */
   bco_matching_information.find_reference_from_modebits(payload);
-
-  // store in running waveform
-  if (m_do_evaluation)
-  {
-    m_waveform.packet_id = packet_id;
-    m_waveform.gtm_bco_first = bco_matching_information.get_bco_matching_reference().second;
-    m_waveform.gtm_bco = bco_matching_information.get_gtm_bco_last();
-
-    {
-      const auto predicted = bco_matching_information.get_predicted_fee_bco(m_waveform.gtm_bco);
-      if (predicted)
-      {
-        m_waveform.fee_bco_predicted = predicted.value();
-      }
-    }
-
-    m_waveform.fee_bco_first = bco_matching_information.get_bco_matching_reference().first;
-  }
 }
 
 //____________________________________________________________________
@@ -871,13 +854,6 @@ void SingleMicromegasPoolInput_v2::process_fee_data(int packet_id, unsigned int 
 
     // try get gtm bco matching fee
     const auto& fee_bco = payload.bx_timestamp;
-    if( m_do_evaluation )
-    {
-      m_waveform.is_heartbeat = is_heartbeat;
-      m_waveform.fee_id = fee_id;
-      m_waveform.channel = payload.channel;
-      m_waveform.fee_bco = fee_bco;
-    }
 
     // find matching gtm bco
     uint64_t gtm_bco = 0;
@@ -886,20 +862,9 @@ void SingleMicromegasPoolInput_v2::process_fee_data(int packet_id, unsigned int 
     {
       // assign gtm bco
       gtm_bco = result.value();
-      if( m_do_evaluation )
-      {
-        m_waveform.matched = true;
-        m_waveform.gtm_bco_matched = gtm_bco;
-        {
-          const auto predicted = bco_matching_information.get_predicted_fee_bco(gtm_bco);;
-          if( predicted )
-          {
-            m_waveform.fee_bco_predicted_matched = predicted.value();
-          }
-        }
-        m_evaluation_tree->Fill();
-      }
+
     } else {
+
       // increment counter and histogram
       ++m_waveform_counters[packet_id].dropped_bco;
       ++m_fee_waveform_counters[fee_id].dropped_bco;
@@ -910,14 +875,6 @@ void SingleMicromegasPoolInput_v2::process_fee_data(int packet_id, unsigned int 
       {
         ++m_heartbeat_counters[packet_id].dropped_bco;
         ++m_fee_heartbeat_counters[fee_id].dropped_bco;
-      }
-
-      if( m_do_evaluation )
-      {
-        m_waveform.matched = false;
-        m_waveform.gtm_bco_matched = 0;
-        m_waveform.fee_bco_predicted_matched = 0;
-        m_evaluation_tree->Fill();
       }
 
       // skip the waverform
@@ -992,6 +949,58 @@ void SingleMicromegasPoolInput_v2::process_fee_data(int packet_id, unsigned int 
 }
 
 //____________________________________________________________________
+void SingleMicromegasPoolInput_v2::fill_evaluation_tree( const uint64_t target_bco )
+{
+
+  // loop over fees
+  for( size_t fee = 0; fee < MAX_FEECOUNT; ++fee )
+  {
+
+    // get local raw hitmap
+    auto&& rawhitmap = m_MicromegasRawHitMap[fee];
+    if( rawhitmap.empty() ) { continue; }
+
+    // get the relevant BCO matching information object
+    const auto& bco_matching_information = m_bco_matching_information_map.at( m_fee_packet[fee] );
+    if( !bco_matching_information.is_verified() )
+    { continue; }
+
+    m_waveform.packet_id = m_fee_packet[fee];
+    m_waveform.fee_id = fee;
+    m_waveform.gtm_bco_first = bco_matching_information.get_bco_matching_reference().second;
+    m_waveform.fee_bco_first = bco_matching_information.get_bco_matching_reference().first;
+
+    // assign target bco and prediction
+    m_waveform.gtm_bco_gl1 = target_bco;
+    m_waveform.fee_bco_predicted_gl1 = bco_matching_information.get_predicted_fee_bco(target_bco).value();
+
+    // find matching bco if any and store raw hits
+    // list of raw hits (channel ordered) matching target BCO
+    for( auto&& [bco, rawhitlist]:rawhitmap )
+    {
+
+      // compare bco to target, within acceptable range
+      const auto bco_diff = MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff( bco, target_bco );
+      if( bco_diff >= -(int64_t)m_NegativeBco && bco_diff < m_BcoRange )
+      {
+
+        // assign found bco and prediction
+        m_waveform.gtm_bco_tagger = bco;
+        m_waveform.fee_bco_predicted_tagger = bco_matching_information.get_predicted_fee_bco(bco).value();
+        for( auto&& rawhit:rawhitlist )
+        {
+          m_waveform.channel = rawhit->get_channel();
+          m_waveform.fee_bco = rawhit->get_bco();
+          m_evaluation_tree->Fill();
+        }
+        break;
+      }
+    }
+
+  } // FEE loop
+}
+
+//____________________________________________________________________
 void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t target_bco )
 {
 
@@ -1014,8 +1023,12 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
     if( rawhitmap.empty() ) { continue; }
 
     // get the relevant BCO matching information object
-    const auto& bco_matching = m_bco_matching_information_map.at( m_fee_packet[fee] );
-    const double truncatedWaveformGTMWindow = kTruncatedWaveformFEEWindow/bco_matching.get_adjusted_multiplier();
+    const auto& bco_matching_information = m_bco_matching_information_map.at( m_fee_packet[fee] );
+
+    // do nothing if bco_matching_information is not verified
+    if( !bco_matching_information.is_verified() ) { continue; }
+
+    const double truncatedWaveformGTMWindow = kTruncatedWaveformFEEWindow/bco_matching_information.get_adjusted_multiplier();
 
     // find matching bco if any and store raw hits
     // list of raw hits (channel ordered) matching target BCO
@@ -1093,10 +1106,7 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
           } else {
 
             // get FEE BCO from GTM
-            auto result =  bco_matching.get_predicted_fee_bco( target_bco );
-            if( !result ) { continue; }
-
-            const auto target_fee_bco = result.value();
+            const auto target_fee_bco = bco_matching_information.get_predicted_fee_bco( target_bco ).value();
 
             // create new hit with shifted waveform
             target = new MicromegasRawHit_impl;

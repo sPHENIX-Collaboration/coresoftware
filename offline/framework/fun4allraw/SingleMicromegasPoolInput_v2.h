@@ -104,6 +104,9 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   void decode_gtm_data(int /*packet_id*/, const dma_word &);
   void process_fee_data(int /*packet_id*/, unsigned int /*fee_id*/);
 
+  // fill evaluation tree
+  void fill_evaluation_tree( const uint64_t /*target_bco*/ );
+
   // recover truncated waveforms for a given gtm bco
   void recover_truncated_waveforms( const uint64_t /*target_bco*/ );
 
@@ -247,20 +250,14 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
     /// channel id
     unsigned short channel {0};
 
-    /// true if measurement is hearbeat
-    bool is_heartbeat = false;
-
-    /// true if matched
-    bool matched = false;
-
     /// ll1 bco
     uint64_t gtm_bco_first {0};
 
-    /// ll1 bco
-    uint64_t gtm_bco {0};
+    /// bco
+    uint64_t gtm_bco_tagger {0};
 
-    /// ll1 bco
-    uint64_t gtm_bco_matched {0};
+    /// bco
+    uint64_t gtm_bco_gl1 {0};
 
     /// fee bco
     unsigned int fee_bco_first {0};
@@ -268,11 +265,12 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
     /// fee bco
     unsigned int fee_bco {0};
 
-    /// fee bco predicted (from gtm)
-    unsigned int fee_bco_predicted {0};
+    /// fee bco predicted (from gtm tagger)
+    unsigned int fee_bco_predicted_tagger {0};
 
-    /// fee bco match (from gtm)
-    unsigned int fee_bco_predicted_matched {0};
+    /// fee bco predicted (from gtm gl1)
+    unsigned int fee_bco_predicted_gl1 {0};
+
   };
 
   Waveform m_waveform;
