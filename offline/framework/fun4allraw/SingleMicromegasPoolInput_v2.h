@@ -140,7 +140,7 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   unsigned int m_NegativeBco{0};
 
   /// offset between FELIX tagger BCO (internal) and GL1 (external) BCO
-  int m_TaggerBcoOffset{0};
+  int m_TaggerBcoOffset{3};
 
   /// store list of packets that have data for a given beam clock
   /**
