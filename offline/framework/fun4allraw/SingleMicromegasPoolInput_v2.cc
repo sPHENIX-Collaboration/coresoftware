@@ -391,9 +391,11 @@ bool SingleMicromegasPoolInput_v2::is_more_data_required(const uint64_t target_b
   if( m_bco_matching_information_map.empty() )
   { return true; }
 
+  // correct target_bco by negative BCO and Tagger offset
+  const uint64_t target_bco_corrected = target_bco + m_NegativeBco + m_TaggerBcoOffset;
   for( const auto& [packet, bco_matching_information]:m_bco_matching_information_map )
   {
-    if( bco_matching_information.is_more_data_required( target_bco ) )
+    if( bco_matching_information.is_more_data_required( target_bco_corrected ) )
     { return true; }
   }
 
@@ -972,7 +974,10 @@ void SingleMicromegasPoolInput_v2::fill_evaluation_tree( const uint64_t target_b
 
     // assign target bco and prediction
     m_waveform.gtm_bco_gl1 = target_bco;
-    m_waveform.fee_bco_predicted_gl1 = bco_matching_information.get_predicted_fee_bco(target_bco).value();
+
+    // get prediction
+    const uint64_t target_bco_corrected = target_bco + m_NegativeBco + m_TaggerBcoOffset;
+    m_waveform.fee_bco_predicted_gl1 = bco_matching_information.get_predicted_fee_bco(target_bco_corrected).value();
 
     // find matching bco if any and store raw hits
     // list of raw hits (channel ordered) matching target BCO
@@ -980,7 +985,7 @@ void SingleMicromegasPoolInput_v2::fill_evaluation_tree( const uint64_t target_b
     {
 
       // compare bco to target, within acceptable range
-      const auto bco_diff = MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff( bco, target_bco );
+      const auto bco_diff = MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff( bco, target_bco_corrected );
       if( bco_diff >= -(int64_t)m_NegativeBco && bco_diff < m_BcoRange )
       {
 
@@ -1011,7 +1016,8 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
   static constexpr int32_t kTruncatedWaveformFEEWindow = kTruncatedWaveformWindow*kFEEClockPerADCClock;
 
   // keep track of exact BCO
-  uint64_t found_bco = target_bco;
+  const uint64_t target_bco_corrected = target_bco + m_NegativeBco + m_TaggerBcoOffset;
+  uint64_t found_bco = target_bco_corrected;
 
   // loop over fees
   for( size_t fee = 0; fee < MAX_FEECOUNT; ++fee )
@@ -1037,7 +1043,7 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
     {
 
       // compare bco to target, within acceptable range
-      const auto bco_diff = MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff( bco, target_bco );
+      const auto bco_diff = MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff( bco, target_bco_corrected );
       if( bco_diff >= -(int64_t)m_NegativeBco && bco_diff < m_BcoRange )
       {
         found_bco = bco;
@@ -1068,7 +1074,7 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
     // find candidate overlapping bco if any
     for( auto&& [bco, rawhitlist]:rawhitmap )
     {
-      const auto bco_diff = MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff( bco, target_bco );
+      const auto bco_diff = MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff( bco, target_bco_corrected );
       if( bco_diff >= m_BcoRange && bco_diff < truncatedWaveformGTMWindow )
       {
 
@@ -1106,7 +1112,7 @@ void SingleMicromegasPoolInput_v2::recover_truncated_waveforms( const uint64_t t
           } else {
 
             // get FEE BCO from GTM
-            const auto target_fee_bco = bco_matching_information.get_predicted_fee_bco( target_bco ).value();
+            const auto target_fee_bco = bco_matching_information.get_predicted_fee_bco( target_bco_corrected ).value();
 
             // create new hit with shifted waveform
             target = new MicromegasRawHit_impl;

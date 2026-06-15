@@ -26,31 +26,31 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
 {
  public:
 
-  //! constructor
+  /// constructor
   explicit SingleMicromegasPoolInput_v2(const std::string &name = "SingleMicromegasPoolInput_v2");
 
-  //! destructor
+  /// destructor
   ~SingleMicromegasPoolInput_v2() override;
 
-  //! pool filling
+  /// pool filling
   void FillPool(const uint64_t /*target_bco*/) override;
 
-  //! cleanup
+  /// cleanup
   void CleanupUsedPackets(const uint64_t bclk) override
   {
     CleanupUsedPackets(bclk, false);
   }
 
-  //! specialized verion of cleaning up packets, with an extra flag about wheter the cleanup hits are dropped or not
+  /// specialized verion of cleaning up packets, with an extra flag about wheter the cleanup hits are dropped or not
   void CleanupUsedPackets(const uint64_t /* bclk */, bool /*dropped */) override;
 
-  //! current event cleaning
+  /// current event cleaning
   void ClearCurrentEvent() override;
 
-  //! print
+  /// print
   void Print(const std::string &what = "ALL") const override;
 
-  //!
+  ///
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
   void SetBcoRange(const unsigned int value) { m_BcoRange = value; }
@@ -59,12 +59,21 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
 
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
-  //! define minimum pool size in terms of how many BCO are stored
+  /// set the offset between FELIX tagger BCO (internal) and GL1 (external) BCO
+  /**
+   * explicitly taggerBCO = GL1 BCO + offset
+   * this is somewhat redundant with m_Negative BCO, unfortunately, but
+   * 1/ m_NegativeBco is also used upstream by Fun4AllStreamingInputManager
+   * 2/ m_NegativeBCO is unsigned int
+  */
+  void SetTaggerBcoOffset( const int value ) { m_TaggerBcoOffset = value; }
+
+  /// define minimum pool size in terms of how many BCO are stored
   /** deprecated */
   void SetBcoPoolSize(const unsigned int /*value*/)
   { std::cout << "SingleMicromegasPoolInput_v2::SetBcoPoolSize is deprecated" << std::endl; }
 
-  //! save some statistics for BCO QA
+  /// save some statistics for BCO QA
   void FillBcoQA(uint64_t /*gtm_bco*/) override;
 
   // write the initial histograms for QA manager
@@ -78,10 +87,10 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
 
   private:
 
-  //! true if more data is to be processed for collecting that of a given bco
+  /// true if more data is to be processed for collecting that of a given bco
   bool is_more_data_required(const uint64_t /*target_bco*/) const;
 
-  //!@name decoding constants
+  ///@name decoding constants
   //@{
   /// max number of FEE per OBDC
   static constexpr uint16_t MAX_FEECOUNT = 26;
@@ -93,7 +102,7 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   static constexpr size_t DAM_DMA_WORD_LENGTH = 16;
   //@}
 
-  //! DMA word structure
+  /// DMA word structure
   struct dma_word
   {
     uint16_t dma_header;
@@ -104,16 +113,16 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   void decode_gtm_data(int /*packet_id*/, const dma_word &);
   void process_fee_data(int /*packet_id*/, unsigned int /*fee_id*/);
 
-  // fill evaluation tree
+  /// fill evaluation tree
   void fill_evaluation_tree( const uint64_t /*target_bco*/ );
 
-  // recover truncated waveforms for a given gtm bco
+  /// recover truncated waveforms for a given gtm bco
   void recover_truncated_waveforms( const uint64_t /*target_bco*/ );
 
-  // fee data buffer
+  /// fee data buffer
   std::array<std::deque<uint16_t>, MAX_FEECOUNT> m_feeData{};
 
-  // list of packets from data stream
+  /// list of packets from data stream
   std::array<Packet *, 10> plist{};
 
   /// keep track of number of non data events
@@ -125,7 +134,10 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   /// bco adjustment for matching across subsystems
   unsigned int m_NegativeBco{0};
 
-  //! store list of packets that have data for a given beam clock
+  /// offset between FELIX tagger BCO (internal) and GL1 (external) BCO
+  int m_TaggerBcoOffset{0};
+
+  /// store list of packets that have data for a given beam clock
   /**
    * all packets in taggers are stored,
    * disregarding whether there is data associated to it or not
@@ -133,42 +145,42 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
    */
   std::map<uint64_t, std::set<int>> m_BeamClockPacket;
 
-  //! store list of FEE that have data for a given beam clock
+  /// store list of FEE that have data for a given beam clock
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
 
-  //! list of raw hits
+  /// list of raw hits
   using rawhit_list_t = std::vector<MicromegasRawHit*>;
 
-  //! maps list of raw hits on GTM BCO values
+  /// maps list of raw hits on GTM BCO values
   using rawhit_map_t = std::map<uint64_t, rawhit_list_t>;
 
-  //! store list of raw hits matching a given GTM bco on a per FEE basis
+  /// store list of raw hits matching a given GTM bco on a per FEE basis
   std::array<rawhit_map_t,MAX_FEECOUNT> m_MicromegasRawHitMap{};
 
-  //! map bco_information_t to packet id
+  /// map bco_information_t to packet id
   using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation_v2>;
   bco_matching_information_map_t m_bco_matching_information_map{};
 
-  //! map packet to FEE ID
+  /// map packet to FEE ID
   /* it is filled on the fly. It allows to quickly retrieve BCO matching information from FEE index */
   std::array<unsigned int,MAX_FEECOUNT> m_fee_packet{};
 
   class counter_t
   {
    public:
-    //! total count
+    /// total count
     uint64_t total {0};
 
-    //! drop count due to unmatched bco
+    /// drop count due to unmatched bco
     uint64_t dropped_bco {0};
 
-    //! drop count due to pools
+    /// drop count due to pools
     uint64_t dropped_pool {0};
 
-    //! dropped fraction (bco)
+    /// dropped fraction (bco)
     double dropped_fraction_bco() const { return double(dropped_bco) / total; }
 
-    //! dropped fraction (pool)
+    /// dropped fraction (pool)
     double dropped_fraction_pool() const { return double(dropped_pool) / total; }
   };
 
@@ -187,50 +199,50 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   // timer
   PHTimer m_timer{"SingleMicromegasPoolInput_v2"};
 
-  //!@name QA histograms
+  ///@name QA histograms
   //@{
 
-  //! keeps track of how often a given (or all) packets are found for a given BCO
+  /// keeps track of how often a given (or all) packets are found for a given BCO
   TH1 *h_packet_stat{nullptr};
 
-  //! keep track of how many heartbeats are found per FEE sampa
+  /// keep track of how many heartbeats are found per FEE sampa
   TH1 *h_heartbeat_stat{nullptr};
 
-  //! keeps track of how many packets are found for a given BCO
+  /// keeps track of how many packets are found for a given BCO
   TH1 *h_packet{nullptr};
 
-  //! keeps track of how many waveforms are found for a given BCO
+  /// keeps track of how many waveforms are found for a given BCO
   TH1 *h_waveform{nullptr};
 
-  //! total number of waveforms per packet
+  /// total number of waveforms per packet
   TH1 *h_waveform_count_total{nullptr};
 
-  //! total number of dropped waveforms per packet due to bco mismatch
+  /// total number of dropped waveforms per packet due to bco mismatch
   /*! waveforms are dropped when their FEE-BCO cannot be associated to any global BCO */
   TH1 *h_waveform_count_dropped_bco{nullptr};
 
-  //! total number of dropped waveforms per packet due to fun4all pool mismatch
+  /// total number of dropped waveforms per packet due to fun4all pool mismatch
   TH1 *h_waveform_count_dropped_pool{nullptr};
 
-  //! total number of waveforms per packet
+  /// total number of waveforms per packet
   TH1 *h_fee_waveform_count_total{nullptr};
 
-  //! total number of dropped waveforms per fee due to bco mismatch
+  /// total number of dropped waveforms per fee due to bco mismatch
   /*! waveforms are dropped when their FEE-BCO cannot be associated to any global BCO */
   TH1 *h_fee_waveform_count_dropped_bco{nullptr};
 
-  //! total number of dropped waveforms per fee due to fun4all pool mismatch
+  /// total number of dropped waveforms per fee due to fun4all pool mismatch
   TH1 *h_fee_waveform_count_dropped_pool{nullptr};
 
   //@}
 
-  //!@name evaluation
+  ///@name evaluation
   //@{
 
-  //! evaluation
+  /// evaluation
   bool m_do_evaluation = false;
 
-  //! evaluation output filename
+  /// evaluation output filename
   std::string m_evaluation_filename = "SingleMicromegasPoolInput.root";
   std::unique_ptr<TFile> m_evaluation_file;
 
@@ -275,7 +287,7 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
 
   Waveform m_waveform;
 
-  //! tree
+  /// tree
   TTree *m_evaluation_tree {nullptr};
 
   //*}
