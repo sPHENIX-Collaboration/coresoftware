@@ -236,11 +236,8 @@ void PHGarfield::InitializeGas(const std::string &dir)
   }
 }
 
-int PHGarfield::process_event(PHCompositeNode* topNode)
+int PHGarfield::process_event(PHCompositeNode*)
 {
-  // Avoids the compiler error for having nore used the topNode.
-  (void) topNode;
-
   // Initial implementation doesn't do anything event-by-event.
   // Nonetheless, a future user might want do do something here...
 
