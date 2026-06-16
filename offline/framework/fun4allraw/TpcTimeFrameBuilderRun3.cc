@@ -34,6 +34,7 @@
 TpcTimeFrameBuilderRun3::TpcTimeFrameBuilderRun3(const int packet_id)
   : m_packet_id(packet_id)
   , m_HistoPrefix("TpcTimeFrameBuilderRun3_Packet" + std::to_string(packet_id))
+  , m_bxCounterSyncCDBTTreeName(m_HistoPrefix + "_BXCounterSyncCDBTTree.root")
 {
   for (int fee = 0; fee < MAX_FEECOUNT; ++fee)
   {
@@ -266,6 +267,9 @@ TpcTimeFrameBuilderRun3::~TpcTimeFrameBuilderRun3()
       timeFrameEntry.second.pop_back();
     }
   }
+
+  write_bx_counter_sync_cdb_tree();
+
   delete h_Run3PreviousTimeFrameWaveformADC;
   delete h_Run3PreviousTimeFrameRecoveredWaveformADC;
 
@@ -281,6 +285,57 @@ void TpcTimeFrameBuilderRun3::setVerbosity(const int i)
   for (BcoMatchingInformation& bcoMatchingInformation : m_bcoMatchingInformation_vec)
   {
     bcoMatchingInformation.set_verbosity(i);
+  }
+}
+
+void TpcTimeFrameBuilderRun3::write_bx_counter_sync_cdb_tree() const
+{
+  if (m_bxCounterSyncCDBTTreeName.empty())
+  {
+    return;
+  }
+
+  CDBTTree cdbtree(m_bxCounterSyncCDBTTreeName);
+
+  int entry_count = 0;
+  for (size_t fee = 0; fee < m_bcoMatchingInformation_vec.size(); ++fee)
+  {
+    const BcoMatchingInformation& bco_info = m_bcoMatchingInformation_vec[fee];
+    const size_t observation_count = std::min(bco_info.get_bx_counter_sync_observation_count(),
+                                              BcoMatchingInformation::kMaxBXCounterSyncObservations);
+    const auto& observations = bco_info.get_bx_counter_sync_observations();
+    for (size_t observation_index = 0; observation_index < observation_count; ++observation_index)
+    {
+      const BcoMatchingInformation::BXCounterSyncObservation& observation = observations[observation_index];
+      const int channel = static_cast<int>(fee * BcoMatchingInformation::kMaxBXCounterSyncObservations + observation_index);
+      cdbtree.SetIntValue(channel, "packet_id", m_packet_id);
+      cdbtree.SetIntValue(channel, "fee", static_cast<int>(fee));
+      cdbtree.SetIntValue(channel, "observation", static_cast<int>(observation_index));
+      cdbtree.SetUInt64Value(channel, "bx_counter_sync_gtm_bco", observation.bx_counter_sync_gtm_bco);
+      cdbtree.SetUInt64Value(channel, "bco_reference_gtm_bco", observation.bco_reference_gtm_bco);
+      cdbtree.SetUInt64Value(channel, "m_bco_reference_gtm_bco", observation.m_bco_reference.first);
+      cdbtree.SetIntValue(channel, "m_bco_reference_fee_bco", static_cast<int>(observation.m_bco_reference.second));
+      ++entry_count;
+    }
+  }
+
+  if (entry_count == 0)
+  {
+    return;
+  }
+
+  cdbtree.SetSingleIntValue("packet_id", m_packet_id);
+  cdbtree.SetSingleIntValue("n_bx_counter_sync_observations", entry_count);
+  cdbtree.SetSingleIntValue("max_fee_count", MAX_FEECOUNT);
+  cdbtree.SetSingleIntValue("max_observations_per_fee", static_cast<int>(BcoMatchingInformation::kMaxBXCounterSyncObservations));
+  cdbtree.CommitSingle();
+  cdbtree.Commit();
+  cdbtree.WriteCDBTTree();
+
+  if (m_verbosity >= 0)
+  {
+    std::cout << __PRETTY_FUNCTION__ << " - saved " << entry_count
+              << " BX_COUNTER_SYNC_T observations to " << m_bxCounterSyncCDBTTreeName << std::endl;
   }
 }
 
@@ -2007,6 +2062,16 @@ void TpcTimeFrameBuilderRun3::process_fee_data_digital_current(const unsigned in
   return;
 }
 
+void TpcTimeFrameBuilderRun3::SaveBXCounterSyncCDBTTree(const std::string& name)
+{
+  m_bxCounterSyncCDBTTreeName = name;
+
+  if (m_verbosity >= 1)
+  {
+    std::cout << __PRETTY_FUNCTION__ << "\t- : Saving BX counter sync CDB TTree to " << m_bxCounterSyncCDBTTreeName << std::endl;
+  }
+}
+
 void TpcTimeFrameBuilderRun3::SaveDigitalCurrentDebugTTree(const std::string& name)
 {
   if (m_verbosity >= 1)
@@ -2508,6 +2573,23 @@ uint64_t TpcTimeFrameBuilderRun3::BcoMatchingInformation::
 }
 
 //___________________________________________________
+void TpcTimeFrameBuilderRun3::BcoMatchingInformation::save_bx_counter_sync_observation(
+    uint64_t bx_counter_sync_gtm_bco,
+    uint64_t bco_reference_gtm_bco,
+    const TpcTimeFrameBuilderRun3::BcoMatchingInformation::m_gtm_fee_bco_matching_pair_t& bco_reference)
+{
+  if (m_bx_counter_sync_observation_count >= kMaxBXCounterSyncObservations)
+  {
+    return;
+  }
+
+  BXCounterSyncObservation& observation = m_bx_counter_sync_observations[m_bx_counter_sync_observation_count];
+  observation.bx_counter_sync_gtm_bco = bx_counter_sync_gtm_bco;
+  observation.bco_reference_gtm_bco = bco_reference_gtm_bco;
+  observation.m_bco_reference = bco_reference;
+  ++m_bx_counter_sync_observation_count;
+}
+
 void TpcTimeFrameBuilderRun3::BcoMatchingInformation::save_gtm_bco_information(const TpcTimeFrameBuilderRun3::gtm_payload& gtm_tagger)
 {
   // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
@@ -2619,8 +2701,11 @@ void TpcTimeFrameBuilderRun3::BcoMatchingInformation::save_gtm_bco_information(c
 
       // get BCO and assign
       const uint64_t bco_reference_gtm_bco = gtm_bco + kBXCounterSyncGtmBcoOffset;
+      const m_gtm_fee_bco_matching_pair_t bx_counter_sync_reference =
+          std::make_pair(bco_reference_gtm_bco, static_cast<uint32_t>(kBXCounterSyncFEEBcoOffset));
       m_verified_from_modebits = true;
-      m_bco_reference = std::make_pair(bco_reference_gtm_bco, kBXCounterSyncFEEBcoOffset);
+      m_bco_reference = bx_counter_sync_reference;
+      save_bx_counter_sync_observation(gtm_bco, bco_reference_gtm_bco, bx_counter_sync_reference);
       m_bco_heartbeat_list.clear();
 
       if (m_verbosity)

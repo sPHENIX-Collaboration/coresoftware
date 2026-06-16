@@ -57,6 +57,7 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
 
   // enable saving of digital current debug TTree with file name `name`
   void SaveDigitalCurrentDebugTTree(const std::string &name) override;
+  void SaveBXCounterSyncCDBTTree(const std::string &name) override;
 
  protected:
   // Length for the 256-bit wide Round Robin Multiplexer for the data stream
@@ -202,11 +203,30 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
     //! matching between fee bco and lvl1 bco
     using m_gtm_fee_bco_matching_pair_t = std::pair<uint64_t, uint32_t>;
     using m_fee_gtm_bco_matching_pair_t = std::pair<uint32_t, uint64_t>;
+    struct BXCounterSyncObservation
+    {
+      uint64_t bx_counter_sync_gtm_bco = 0;
+      uint64_t bco_reference_gtm_bco = 0;
+      m_gtm_fee_bco_matching_pair_t m_bco_reference = {0, 0};
+    };
+
+    //! expect two but tollerate up to four BX_COUNTER_SYNC_T observations to define the reference clock, depending on data quality. The first few observations will be saved in the CDB for future reference.
+    static constexpr size_t kMaxBXCounterSyncObservations = 4;
 
     //! get reference bco
     const std::optional<m_gtm_fee_bco_matching_pair_t> &get_reference_bco() const
     {
       return m_bco_reference;
+    }
+
+    const std::array<BXCounterSyncObservation, kMaxBXCounterSyncObservations> &get_bx_counter_sync_observations() const
+    {
+      return m_bx_counter_sync_observations;
+    }
+
+    size_t get_bx_counter_sync_observation_count() const
+    {
+      return m_bx_counter_sync_observation_count;
     }
 
     //! whether FEE data has moved pass the given gtm_bco
@@ -328,6 +348,10 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
     }
 
    private:
+    void save_bx_counter_sync_observation(uint64_t bx_counter_sync_gtm_bco,
+                                          uint64_t bco_reference_gtm_bco,
+                                          const m_gtm_fee_bco_matching_pair_t &bco_reference);
+
     std::string m_name;
 
     //! verbosity
@@ -346,6 +370,10 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
 
     //! list of available GTM -> FEE bco mapping for synchronization
     std::optional<m_gtm_fee_bco_matching_pair_t> m_bco_reference = std::nullopt;
+
+    //! first BX_COUNTER_SYNC_T observations saved for future CDB reference studies
+    std::array<BXCounterSyncObservation, kMaxBXCounterSyncObservations> m_bx_counter_sync_observations;
+    size_t m_bx_counter_sync_observation_count = 0;
 
     // std::optional< std::pair< uint64_t, uint32_t > > m_bco_reference_candidate = std::nullopt;
     //! not yet matched heart beats
@@ -410,6 +438,7 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
 
   //! common prefix for QA histograms
   std::string m_HistoPrefix;
+  std::string m_bxCounterSyncCDBTTreeName;
 
   static constexpr uint32_t kFEEClockMask = (1U << 20U) - 1U;
   static constexpr uint32_t kRun3FeeMatchWindow = (GL1_BCO_MATCH_WINDOW * 30U + 7U) / 8U;
@@ -434,6 +463,7 @@ class TpcTimeFrameBuilderRun3 : public TpcTimeFrameBuilderBase
   void fill_waveform_gl1_spacing(TH1 *waveform_adc_cache, TH2 *waveform_gl1_spacing, uint64_t gtm_bco_spacing) const;
   void cache_waveform_adc(TH1 *waveform_adc_cache, const std::vector<TpcRawHit *> &timeframe) const;
   void cache_timeframe_qa(uint64_t gtm_bco, const std::vector<TpcRawHit *> &timeframe, const std::bitset<MAX_FEECOUNT> &exact_matched_fees);
+  void write_bx_counter_sync_cdb_tree() const;
 
   //! FEE -> FEE BCO -> cached TpcRawHit for Run3 exact-ratio matching
   std::vector<std::map<uint32_t, std::vector<TpcRawHit *>>> m_timeHitMap;

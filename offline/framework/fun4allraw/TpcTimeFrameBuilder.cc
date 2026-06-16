@@ -1124,6 +1124,10 @@ void TpcTimeFrameBuilder::process_fee_data_digital_current(const unsigned int& f
   return;
 }
 
+void TpcTimeFrameBuilder::SaveBXCounterSyncCDBTTree(const std::string& /*name*/)
+{
+}
+
 void TpcTimeFrameBuilder::SaveDigitalCurrentDebugTTree(const std::string& name)
 {
   if (m_verbosity >= 1)
