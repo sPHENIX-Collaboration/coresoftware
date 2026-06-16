@@ -40,11 +40,12 @@
 #ifndef _PHG4GDMLWRITEMATERIALS_INCLUDED_
 #define _PHG4GDMLWRITEMATERIALS_INCLUDED_
 
+#include "PHG4GDMLWriteDefine.hh"
+
 #include <Geant4/G4Types.hh>
-#include <vector>
 #include <Geant4/G4Version.hh>
 
-#include "PHG4GDMLWriteDefine.hh"
+#include <vector>
 
 class G4Isotope;
 class G4Element;

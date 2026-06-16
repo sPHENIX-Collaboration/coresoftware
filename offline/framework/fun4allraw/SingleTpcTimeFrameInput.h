@@ -43,6 +43,11 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
     m_digitalCurrentDebugTTreeName = name;
   }
 
+  void setBXCounterSyncCDBTTreeName(const std::string &name)
+  {
+    m_bxCounterSyncCDBTTreeName = name;
+  }
+
  private:
   const int NTPCPACKETS = 3;
 
@@ -83,6 +88,7 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
 
   int m_FillPoolStatus{0};
   std::string m_digitalCurrentDebugTTreeName;
+  std::string m_bxCounterSyncCDBTTreeName;
 };
 
 #endif

@@ -3,6 +3,8 @@
 #ifndef QA_KFPARTICLE_QAKFPARTICLE_H
 #define QA_KFPARTICLE_QAKFPARTICLE_H
 
+#include "QAKFParticleTrackPtAsymmetry.h"
+
 #include <g4eval/SvtxEvalStack.h>
 
 #include <calotrigger/TriggerAnalyzer.h>
@@ -15,7 +17,6 @@
 
 #include <KFParticle.h>
 
-#include "QAKFParticleTrackPtAsymmetry.h"
 
 class KFParticle_Container;
 class PHCompositeNode;

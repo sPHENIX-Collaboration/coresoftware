@@ -287,7 +287,7 @@ void CDBTTree::SetSingleIntValue(const std::string &name, int value)
 void CDBTTree::SetSingleUInt64Value(const std::string &name, uint64_t value)
 {
   std::string fieldname = "g" + name;
-  //  if (m_SingleUInt64EntryMap.contains(fieldname))
+  //  if (!m_SingleUInt64EntryMap.contains(fieldname))
   // NOLINTNEXTLINE(readability-container-contains)
   if (m_SingleUInt64EntryMap.find(fieldname) == m_SingleUInt64EntryMap.end())
   {

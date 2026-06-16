@@ -1,12 +1,13 @@
 #ifndef G4TPC_PHG4TPCPADPLANE_H
 #define G4TPC_PHG4TPCPADPLANE_H
 
-#include <fun4all/SubsysReco.h>
-
-#include <g4main/PHG4HitContainer.h>
 #include "TpcClusterBuilder.h"
 
+#include <g4main/PHG4HitContainer.h>
+
 #include <phparameter/PHParameterInterface.h>
+
+#include <fun4all/SubsysReco.h>
 
 #include <string>  // for string
 

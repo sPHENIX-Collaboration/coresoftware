@@ -180,11 +180,6 @@ void MvtxCombinedRawDataDecoder::GetNodes(PHCompositeNode *topNode)
   }
 }
 
-//_____________________________________________________________________
-int MvtxCombinedRawDataDecoder::Init(PHCompositeNode * /*topNode*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 //____________________________________________________________________________..
 int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
@@ -362,12 +357,6 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     }
   }
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//_____________________________________________________________________
-int MvtxCombinedRawDataDecoder::End(PHCompositeNode * /*topNode*/)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

@@ -10,11 +10,10 @@
 /*          09/11/2023     */
 /***************************/
 
-#include <iostream>
-
-#include <set>
-
 #include "MvtxEventInfo.h"
+
+#include <iostream>
+#include <set>
 
 typedef std::pair<uint64_t, uint64_t> strobe_L1_pair;
 

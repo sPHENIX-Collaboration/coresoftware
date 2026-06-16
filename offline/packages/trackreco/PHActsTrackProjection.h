@@ -1,13 +1,14 @@
 #ifndef TRACKRECO_PHACTSTRACKPROJECTION_H
 #define TRACKRECO_PHACTSTRACKPROJECTION_H
 
-#include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
-#include <trackbase_historic/SvtxTrack.h>
+#include "ActsPropagator.h"
 
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrDefs.h>
 
-#include "ActsPropagator.h"
+#include <trackbase_historic/SvtxTrack.h>
+
+#include <fun4all/SubsysReco.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
@@ -17,6 +18,8 @@
 #include <ActsExamples/EventData/Trajectories.hpp>
 
 #include <map>
+#include <memory>
+#include <string>
 
 class PHCompositeNode;
 class RawClusterContainer;
@@ -25,10 +28,6 @@ class RawTowerGeomContainer;
 class SvtxTrackMap;
 class SvtxTrack;
 class SvtxVertexMap;
-
-#include <map>
-#include <memory>
-#include <string>
 
 /**
  * This class takes final fitted tracks from the Acts track fitting

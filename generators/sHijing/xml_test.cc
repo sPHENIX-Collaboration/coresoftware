@@ -3,6 +3,14 @@
 //
 // Inspired by code from ATLAS.  Thanks!
 //
+#define f2cFortran
+#define gFortran
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#include "cfortran.h"
+#pragma GCC diagnostic pop
+
 #include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
@@ -12,15 +20,6 @@
 #include <iostream>
 #include <string>
 
-#define f2cFortran
-#define gFortran
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-function"
-#include "cfortran.h"
-#pragma GCC diagnostic pop
-
-//using namespace boost;
 
 float atl_ran(int * /*unused*/)
 {

@@ -40,7 +40,7 @@
 #ifndef _PHG4GDMLWRITE_INCLUDED_
 #define _PHG4GDMLWRITE_INCLUDED_
 
-#include <map>
+#include "PHG4GDMLAuxStructType.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
@@ -52,8 +52,8 @@
 
 #include <Geant4/G4Transform3D.hh>
 
+#include <map>
 
-#include "PHG4GDMLAuxStructType.hh"
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;

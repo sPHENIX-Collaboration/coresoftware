@@ -1,13 +1,13 @@
 #ifndef TRACKBASEHISTORIC_SVTXTRACKSEED_V2_H
 #define TRACKBASEHISTORIC_SVTXTRACKSEED_V2_H
 
-#include <phool/PHObject.h>
-
 #include "TrackSeed.h"
 
-#include <climits>
+#include <phool/PHObject.h>
+
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 class SvtxTrackSeed_v2 : public TrackSeed
 {
@@ -33,9 +33,9 @@ class SvtxTrackSeed_v2 : public TrackSeed
   void set_crossing_estimate(const short int cross) override { m_crossing_estimate = cross; }
 
  private:
-  unsigned int m_silicon_seed = std::numeric_limits<unsigned int>::max();
-  unsigned int m_tpc_seed = std::numeric_limits<unsigned int>::max();
-  short int m_crossing_estimate = SHRT_MAX;
+  unsigned int m_silicon_seed {std::numeric_limits<unsigned int>::max()};
+  unsigned int m_tpc_seed {std::numeric_limits<unsigned int>::max()};
+  short int m_crossing_estimate {std::numeric_limits<short>::max()};
 
   ClassDefOverride(SvtxTrackSeed_v2, 1);
 };

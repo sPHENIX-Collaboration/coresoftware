@@ -355,6 +355,10 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
         {
           m_TpcTimeFrameBuilderMap[packet_id]->SaveDigitalCurrentDebugTTree(m_digitalCurrentDebugTTreeName);
         }
+        if (!m_bxCounterSyncCDBTTreeName.empty())
+        {
+          m_TpcTimeFrameBuilderMap[packet_id]->SaveBXCounterSyncCDBTTree(m_bxCounterSyncCDBTTreeName);
+        }
       }
 
       if (Verbosity() > 1)

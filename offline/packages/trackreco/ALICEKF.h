@@ -1,13 +1,15 @@
 #ifndef ALICEKF_H
 #define ALICEKF_H
 
+#include "GPUTPCTrackParam.h"
+
 #include <phfield/PHField.h>
+
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/TrackSeed_v2.h>
-#include "GPUTPCTrackParam.h"
 
 #include <Acts/Definitions/Algebra.hpp>
 

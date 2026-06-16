@@ -36,6 +36,8 @@
 #ifndef _PHG4GDMLAUXSTRUCTTYPE_INCLUDED_
 #define _PHG4GDMLAUXSTRUCTTYPE_INCLUDED_
 
+#include <Geant4/G4String.hh>
+
 #include <vector>
 
 struct PHG4GDMLAuxStructType

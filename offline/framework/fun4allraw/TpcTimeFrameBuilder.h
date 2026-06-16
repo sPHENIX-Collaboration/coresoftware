@@ -47,6 +47,7 @@ class TpcTimeFrameBuilder : public TpcTimeFrameBuilderBase
 
   // enable saving of digital current debug TTree with file name `name`
   void SaveDigitalCurrentDebugTTree(const std::string &name) override;
+  void SaveBXCounterSyncCDBTTree(const std::string &name) override;
 
  protected:
   // Length for the 256-bit wide Round Robin Multiplexer for the data stream

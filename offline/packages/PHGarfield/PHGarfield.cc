@@ -84,7 +84,7 @@ void PHGarfield::FillRadii()
   }
 }
 
-void PHGarfield::PrintGarfield(double x, double y, double z)
+void PHGarfield::PrintGarfield(double x, double y, double z) const
 {
   double ex;
   double ey;
@@ -113,7 +113,7 @@ void PHGarfield::PrintGarfield(double x, double y, double z)
             << std::endl;
 }
 
-void PHGarfield::PrintMaps()
+void PHGarfield::PrintMaps() const
 {
   //  Print out a few test points of the Garfield information
   PrintGarfield(0.0, 0.0, 0.1);
@@ -160,7 +160,7 @@ void PHGarfield::PrintMaps()
   }
 }
 
-void PHGarfield::GetMagneticFieldTesla(double x_cm, double y_cm, double z_cm, double& bx_t, double& by_t, double& bz_t)
+void PHGarfield::GetMagneticFieldTesla(double x_cm, double y_cm, double z_cm, double& bx_t, double& by_t, double& bz_t) const
 {
   // NOTE:  Garfield uses  cm, V/cm, and Tesla.
   //        CLHEP    uses  mm, V/mm, and kiloTesla
@@ -184,7 +184,7 @@ void PHGarfield::GetMagneticFieldTesla(double x_cm, double y_cm, double z_cm, do
   bz_t = bfield[2] / CLHEP::tesla;
 }
 
-void PHGarfield::GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, double& ex_vcm, double& ey_vcm, double& ez_vcm)
+void PHGarfield::GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, double& ex_vcm, double& ey_vcm, double& ez_vcm) const
 {
   // NOTE:  Garfield uses  cm, V/cm, and Tesla.
   (void) x_cm;
@@ -195,7 +195,7 @@ void PHGarfield::GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, doub
   ez_vcm = z_cm > 0 ? -400.0 : 400.0;
 }
 
-void PHGarfield::InitializeGas(std::string dir)
+void PHGarfield::InitializeGas(const std::string &dir)
 {
   //  Create and fill the gas object so that we can trace particles through the gas...
   m_gas = new Garfield::MediumMagboltz();
@@ -236,11 +236,8 @@ void PHGarfield::InitializeGas(std::string dir)
   }
 }
 
-int PHGarfield::process_event(PHCompositeNode* topNode)
+int PHGarfield::process_event(PHCompositeNode*)
 {
-  // Avoids the compiler error for having nore used the topNode.
-  (void) topNode;
-
   // Initial implementation doesn't do anything event-by-event.
   // Nonetheless, a future user might want do do something here...
 

@@ -1,9 +1,9 @@
 #include "TrackAnalysisUtils.h"
 
-#include <globalvertex/GlobalVertex.h>
+#include "SvtxTrack.h"
+#include "TrackSeed.h"
 
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
+#include <globalvertex/GlobalVertex.h>
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TpcDefs.h>
@@ -11,8 +11,9 @@
 #include <trackbase/TrkrClusterContainer.h>
 
 #include <g4detectors/PHG4TpcGeomContainer.h>
-#include "SvtxTrack.h"
-#include "TrackSeed.h"
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
 
 #include <cmath>
 
