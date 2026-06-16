@@ -42,8 +42,8 @@ class CDBUtils
   std::map<std::string, std::tuple<std::string, uint64_t, uint64_t>> PayloadIOVs(uint64_t iov, const std::string &ptype = "");
   void listPayloadIOVs(uint64_t iov, const std::string &ptype = "");
 
-private:
-  int m_Verbosity {0};
+ private:
+  int m_Verbosity{0};
   std::unique_ptr<SphenixClient> cdbclient;
   std::string m_CachedGlobalTag;
   std::set<std::string> m_PayloadTypeCache;
