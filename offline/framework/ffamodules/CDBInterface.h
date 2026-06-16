@@ -6,6 +6,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <cstdint>  // for uint64_t
+#include <map>
 #include <set>
 #include <string>
 #include <tuple>  // for tuple
@@ -34,6 +35,9 @@ class CDBInterface : public SubsysReco
 
   std::string getUrl(const std::string &domain, const std::string &filename = "");
 
+  void DumpCalibrations(const std::string &filename);
+  void ReadCalibrationsFromFile(const std::string &filename);
+
  private:
   CDBInterface(const std::string &name = "CDBInterface");
 
@@ -41,6 +45,8 @@ class CDBInterface : public SubsysReco
   SphenixClient *cdbclient{nullptr};
   bool disable{false};
   bool disable_default{false};
+  bool m_Read_From_File_Flag{false};
+  std::map<std::string, std::string> m_Payload_Url_Cache;
   std::set<std::tuple<std::string, std::string, uint64_t>> m_UrlVector;
 };
 
