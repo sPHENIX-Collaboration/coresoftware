@@ -794,7 +794,7 @@ int Fun4AllStreamingInputManager::FillIntt()
       }
       inttcont->AddHit(intthititer);
     }
-  } 
+  }
   return 0;
 }
 int Fun4AllStreamingInputManager::FillMvtx()
@@ -987,7 +987,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
 
     if (Verbosity() > 2)
     {
-      std::cout << "Adding 0x" << std::hex << bco 
+      std::cout << "Adding 0x" << std::hex << bco
                 << " ref: 0x" << select_crossings << std::dec << std::endl;
     }
     for (auto *mvtxFeeIdInfo : hitinfo.MvtxFeeIdInfoVector)
@@ -1333,13 +1333,20 @@ int Fun4AllStreamingInputManager::FillTpcPool()
 
 int Fun4AllStreamingInputManager::FillMicromegasPool()
 {
+
+  uint64_t ref_bco_minus_range = 0;
+  if (m_RefBCO > m_micromegas_negative_bco)
+  {
+    ref_bco_minus_range = m_RefBCO - m_micromegas_negative_bco;
+  }
+
   for (auto *iter : m_MicromegasInputVector)
   {
     if (Verbosity() > 0)
     {
       std::cout << "Fun4AllStreamingInputManager::FillMicromegasPool - fill pool for " << iter->Name() << std::endl;
     }
-    iter->FillPool();
+    iter->FillPool(ref_bco_minus_range);
     if (m_RunNumber == 0)
     {
       m_RunNumber = iter->RunNumber();
