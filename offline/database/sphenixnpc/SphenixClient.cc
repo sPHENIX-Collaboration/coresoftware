@@ -61,7 +61,7 @@ nlohmann::json SphenixClient::getUrlDict(long long iov)
   }
   for (auto it = resp["msg"].begin(); it != resp["msg"].end();)
   {
-    if (it.value()["minor_iov_end"] < iov)
+    if (it.value()["minor_iov_end"] <= iov)
     {
       it = resp["msg"].erase(it);
     }
@@ -87,7 +87,7 @@ void SphenixClient::DumpCalibrations(long long iov, const std::string& filename)
   }
   for (auto it = resp["msg"].begin(); it != resp["msg"].end();)
   {
-    if (it.value()["minor_iov_end"] < iov)
+    if (it.value()["minor_iov_end"] <= iov)
     {
       it = resp["msg"].erase(it);
     }
