@@ -115,7 +115,7 @@ int PHTrackPruner::process_event(PHCompositeNode * /*unused*/)
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  std::multimap<unsigned int, unsigned int> good_matches;
+  std::multimap<size_t, size_t> good_matches;
 
   for (auto &iter : *_svtx_track_map)
   {
@@ -132,13 +132,16 @@ int PHTrackPruner::process_event(PHCompositeNode * /*unused*/)
     if (tpc_seed && si_seed)
     {
       if (Verbosity() > 1) { std::cout<<"Insert tpcid and siid into good_matches"<<std::endl; }
-      int tpcid = _tpc_seed_map->find(tpc_seed);
-      int siid = _si_seed_map->find(si_seed);
-      good_matches.insert(std::make_pair(tpcid, siid));
+      const size_t tpcid = _tpc_seed_map->find(tpc_seed);
+      const size_t siid = _si_seed_map->find(si_seed);
+
+      // check index validity
+      if( tpcid < _tpc_seed_map->size() && siid < _si_seed_map->size() )
+      { good_matches.emplace(tpcid, siid); }
     }
   }
 
-  for (auto [tpcid, siid] : good_matches)
+  for (const auto& [tpcid, siid] : good_matches)
   {
       if (Verbosity() > 1) { std::cout<<"Insert pruned svtx seed map"<<std::endl; }
     auto _svtx_seed = std::make_unique<SvtxTrackSeed_v2>();
