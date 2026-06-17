@@ -97,4 +97,40 @@ class ActsPropagator
   float m_overstepLimit = 0.01 * Acts::UnitConstants::cm;  // sphenix units cm
 };
 
+/// local aborter class, used to tell acts to end track propagation when a given layer is used
+/** the class is defined locally only because it has no usage outside of ActsPropagator */
+struct ActsAborter
+{
+
+  /// (ACTS) layer id at which propagation should stop
+  unsigned int abortlayer = std::numeric_limits<unsigned int>::max();
+
+  /// (ACTS) voulme id at which propagation should stop
+  unsigned int abortvolume = std::numeric_limits<unsigned int>::max();
+
+  /// called at each extrapolation step, by acts, to verify whether to stop propagation or not
+  template <typename propagator_state_t, typename stepper_t, typename navigator_t>
+    bool checkAbort(
+    propagator_state_t& state, const stepper_t& /*stepper*/,
+    const navigator_t& navigator, const Acts::Logger& /*logger*/) const
+  {
+
+    if (!navigator.currentSurface(state.navigation))
+    { return false; }
+
+    const auto& volumeno = state.navigation.currentSurface->geometryId().volume();
+    const auto& layerno = state.navigation.currentSurface->geometryId().layer();
+    const auto& sensitive = state.navigation.currentSurface->geometryId().sensitive();
+
+    /// Check that we are in the proper layer and that we've also reached
+    /// a sensitive surface
+    if (layerno == abortlayer and volumeno == abortvolume and sensitive != 0)
+    { return true; }
+
+    return false;
+  }
+
+};
+
+
 #endif
