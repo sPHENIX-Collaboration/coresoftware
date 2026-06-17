@@ -20,10 +20,13 @@
 
 #include <TSystem.h>
 
-#include <cstdint>   // for uint64_t
+#include <cstdint>  // for uint64_t
+#include <filesystem>
+#include <fstream>
 #include <iostream>  // for operator<<, basic_ostream, endl
-#include <utility>   // for pair
-#include <vector>    // for vector
+#include <sstream>
+#include <utility>  // for pair
+#include <vector>   // for vector
 
 CDBInterface *CDBInterface::__instance{nullptr};
 
@@ -55,7 +58,8 @@ CDBInterface::~CDBInterface()
 //____________________________________________________________________________..
 int CDBInterface::End(PHCompositeNode *topNode)
 {
-  int iret = UpdateRunNode(topNode);PHNodeIterator iter(topNode);
+  int iret = UpdateRunNode(topNode);
+  PHNodeIterator iter(topNode);
   return iret;
 }
 
@@ -127,6 +131,15 @@ std::string CDBInterface::getUrl(const std::string &domain, const std::string &f
     return "";
   }
   std::string domain_noconst = domain;
+  if (m_Read_From_File_Flag)
+  {
+    if (m_Payload_Url_Cache.contains(domain_noconst))
+    {
+      return m_Payload_Url_Cache[domain_noconst];
+    }
+    std::cout << "calibration " << domain << " not found in local cache" << std::endl;
+    return "";
+  }
   recoConsts *rc = recoConsts::instance();
   if (!rc->FlagExist("CDB_GLOBALTAG"))
   {
@@ -185,14 +198,85 @@ std::string CDBInterface::getUrl(const std::string &domain, const std::string &f
       std::cout << "... reply: " << return_url << std::endl;
     }
   }
-  if (! return_url.empty())
+  if (!return_url.empty())
   {
     auto pret = m_UrlVector.insert(make_tuple(domain_noconst, return_url, timestamp));
     if (!pret.second && Verbosity() > 1)
     {
       std::cout << PHWHERE << "not adding again " << domain_noconst << ", url: " << return_url
-		<< ", time stamp: " << timestamp << std::endl;
+                << ", time stamp: " << timestamp << std::endl;
     }
   }
   return return_url;
+}
+
+void CDBInterface::DumpCalibrations(const std::string &filename)
+{
+  recoConsts *rc = recoConsts::instance();
+  if (!rc->FlagExist("CDB_GLOBALTAG"))
+  {
+    std::cout << PHWHERE << "CDB_GLOBALTAG flag needs to be set via" << std::endl;
+    std::cout << "rc->set_StringFlag(\"CDB_GLOBALTAG\",<global tag>)" << std::endl;
+    gSystem->Exit(1);
+  }
+  if (!rc->FlagExist("TIMESTAMP"))
+  {
+    std::cout << PHWHERE << "TIMESTAMP flag needs to be set via" << std::endl;
+    std::cout << "rc->set_uint64Flag(\"TIMESTAMP\",<64 bit timestamp>)" << std::endl;
+    gSystem->Exit(1);
+  }
+  if (cdbclient == nullptr)
+  {
+    cdbclient = new SphenixClient(rc->get_StringFlag("CDB_GLOBALTAG"));
+  }
+  uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP");
+  cdbclient->DumpCalibrations(timestamp, filename);
+  return;
+}
+
+void CDBInterface::ReadCalibrationsFromFile(const std::string &filename)
+{
+  std::filesystem::path filePath = filename;
+  if (!std::filesystem::exists(filePath))
+  {
+    std::cout << PHWHERE << " cannot locate " << filename << std::endl;
+    gSystem->Exit(1);
+  }
+  if (!std::filesystem::is_regular_file(filePath))
+  {
+    std::cout << PHWHERE << " not a regular file " << filename << std::endl;
+    gSystem->Exit(1);
+  }
+  std::ifstream calibsfile(filename);
+  if (calibsfile.is_open())
+  {
+    std::string line;
+    while (std::getline(calibsfile, line))
+    {
+      // Skip empty lines
+      if (line.empty())
+      {
+        continue;
+      }
+
+      // Skip comments
+      if (line[0] == '#')
+      {
+        continue;
+      }
+      std::istringstream iss(line);
+      std::string key;
+      std::string payload_url;
+      if (iss >> key >> payload_url)
+      {
+        m_Payload_Url_Cache.insert(std::make_pair(key, payload_url));
+      }
+    }
+    m_Read_From_File_Flag = true;
+  }
+  else
+  {
+    std::cout << "could not open " << filename << std::endl;
+  }
+  return;
 }

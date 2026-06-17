@@ -39,9 +39,10 @@ class SphenixClient : public nopayloadclient::NoPayloadClient
   bool isGlobalTagSet();
   void Verbosity(int i) { m_Verbosity = i; }
   int Verbosity() const { return m_Verbosity; }
+  void DumpCalibrations(long long iov, const std::string& filename);
 
  private:
-  int m_Verbosity = 0;
+  int m_Verbosity{0};
   std::string m_CachedGlobalTag;
   std::set<std::string> m_DomainCache;
   std::set<std::string> m_GlobalTagCache;
