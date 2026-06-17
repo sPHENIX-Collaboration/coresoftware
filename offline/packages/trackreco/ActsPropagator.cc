@@ -144,7 +144,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
   unsigned int actsvolume = 0;
   unsigned int actslayer = 0;
   if (!checkLayer(sphenixLayer, actsvolume, actslayer) || !m_geometry)
-  { return Acts::Result<BoundTrackParamPair>::failure(std::error_code(0, std::generic_category())); }
+  { return Acts::Result<BoundTrackParamPair>::failure(std::make_error_code(std::errc::invalid_argument)); }
 
   if (m_verbosity > 1)
   {
