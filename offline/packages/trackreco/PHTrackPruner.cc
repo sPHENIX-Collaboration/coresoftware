@@ -84,9 +84,6 @@ PHTrackPruner::PHTrackPruner(const std::string &name)
 }
 
 //____________________________________________________________________________..
-PHTrackPruner::~PHTrackPruner() = default;
-
-//____________________________________________________________________________..
 int PHTrackPruner::InitRun(PHCompositeNode *topNode)
 {
   int ret = GetNodes(topNode);

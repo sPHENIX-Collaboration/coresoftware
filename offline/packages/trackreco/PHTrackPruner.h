@@ -24,9 +24,10 @@ class TNtuple;
 class PHTrackPruner : public SubsysReco
 {
  public:
-  PHTrackPruner(const std::string &name = "PHTrackPruner");
 
-  ~PHTrackPruner() override;
+
+  //! constructor
+  PHTrackPruner(const std::string &name = "PHTrackPruner");
 
   int InitRun(PHCompositeNode *topNode) override;
 
