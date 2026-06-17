@@ -164,8 +164,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params, const S
   auto intersect = surface.get()->intersect(m_geometry->geometry().getGeoContext(), params.position(m_geometry->geometry().getGeoContext()), params.momentum(),
                                      Acts::BoundaryTolerance::None(), 0.1 * Acts::UnitConstants::mm).closest();
   options.direction = Acts::Direction::fromScalarZeroAsPositive(intersect.pathLength());
-  auto result = propagator.propagate(params, *surface, options);
-
+  auto result = propagator.template propagate<Acts::BoundTrackParameters, SphenixPropagatorOptions, Acts::ForcedSurfaceReached, Acts::PathLimitReached>(params, *surface, options);
   if (result.ok())
   {
     auto finalparams = *result.value().endParameters; // NOLINT(bugprone-unchecked-optional-access)
@@ -226,7 +225,7 @@ ActsPropagator::FastPropagator ActsPropagator::makeFastPropagator()
   ActsPropagator::Stepper stepper(field);
 
   // create logger
-  const Acts::Logging::Level logLevel = (m_verbosity > 3) ? Acts::Logging::VERBOSE:Acts::Logging::FATAL;
+  const Acts::Logging::Level logLevel = (m_verbosity > 3) ? Acts::Logging::VERBOSE : Acts::Logging::FATAL;
   std::shared_ptr<const Acts::Logger> logger = Acts::getDefaultLogger("ActsPropagator", logLevel);
 
   // create propagator and return
