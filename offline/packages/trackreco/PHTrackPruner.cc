@@ -258,21 +258,21 @@ int PHTrackPruner::GetNodes(PHCompositeNode *topNode)
   _svtx_track_map = findNode::getClass<SvtxTrackMap>(topNode, _svtx_track_map_name);
   if (!_svtx_track_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find " << _svtx_track_map_name.c_str()  << endl;
+    cerr << PHWHERE << " ERROR: Can't find " << _svtx_track_map_name  << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _si_seed_map = findNode::getClass<TrackSeedContainer>(topNode, _si_seed_map_name);
   if (!_si_seed_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find " << _si_seed_map_name.c_str()  << endl;
+    cerr << PHWHERE << " ERROR: Can't find " << _si_seed_map_name  << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _tpc_seed_map = findNode::getClass<TrackSeedContainer>(topNode, _tpc_seed_map_name);
   if (!_tpc_seed_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find " << _tpc_seed_map_name.c_str() << endl;
+    cerr << PHWHERE << " ERROR: Can't find " << _tpc_seed_map_name << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

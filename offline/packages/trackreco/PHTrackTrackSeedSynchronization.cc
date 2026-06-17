@@ -103,7 +103,7 @@ int PHTrackTrackSeedSynchronization::GetNodes(PHCompositeNode *topNode)
   _svtx_track_map = findNode::getClass<SvtxTrackMap>(topNode, _svtx_track_map_name);
   if (!_svtx_track_map)
   {
-    cerr << "PHTrackTrackSeedSynchronization::GetNodes - " << _svtx_track_map_name.c_str() << " not found on the node tree." << endl;
+    cerr << "PHTrackTrackSeedSynchronization::GetNodes - " << _svtx_track_map_name << " not found on the node tree." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -111,7 +111,7 @@ int PHTrackTrackSeedSynchronization::GetNodes(PHCompositeNode *topNode)
   _si_seed_map = findNode::getClass<TrackSeedContainer>(topNode, _si_seed_map_name);
   if (!_si_seed_map)
   {
-    cerr << "PHTrackTrackSeedSynchronization::GetNodes - " << _svtx_track_map_name.c_str() << " not found on the node tree." << endl;
+    cerr << "PHTrackTrackSeedSynchronization::GetNodes - " << _si_seed_map_name << " not found on the node tree." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -119,7 +119,7 @@ int PHTrackTrackSeedSynchronization::GetNodes(PHCompositeNode *topNode)
   _tpc_seed_map = findNode::getClass<TrackSeedContainer>(topNode, _tpc_seed_map_name);
   if (!_tpc_seed_map)
   {
-    cerr << "PHTrackTrackSeedSynchronization::GetNodes - " << _svtx_track_map_name.c_str() << " not found on the node tree." << endl;
+    cerr << "PHTrackTrackSeedSynchronization::GetNodes - " << _tpc_seed_map_name << " not found on the node tree." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
