@@ -141,23 +141,10 @@ ActsPropagator::BTPPairResult
 ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
                                const unsigned int sphenixLayer)
 {
-  unsigned int actsvolume;
-  unsigned int actslayer;
+  unsigned int actsvolume = 0;
+  unsigned int actslayer = 0;
   if (!checkLayer(sphenixLayer, actsvolume, actslayer) || !m_geometry)
-  {
-
-    std::cout << "ActsPropagator::propagateTrack - checkLayer failed" << std::endl;
-    return Acts::Result<BoundTrackParamPair>::failure(std::error_code(0, std::generic_category()));
-
-  } else {
-
-    std::cout << "ActsPropagator::propagateTrack -"
-      << " sphenixLayer: " << sphenixLayer
-      << " actsvolume: " << actsvolume
-      << " actslayer: " << actslayer
-      << std::endl;
-
-  }
+  { return Acts::Result<BoundTrackParamPair>::failure(std::error_code(0, std::generic_category())); }
 
   if (m_verbosity > 1)
   {
