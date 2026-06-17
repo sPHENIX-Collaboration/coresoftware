@@ -36,46 +36,6 @@
 
 using namespace std;
 
-namespace
-{
-
-  /// find index of seed in container that matches argument seed
-  size_t find_seed_id( TrackSeedContainer* container, TrackSeed* source )
-  {
-    // perform quick search
-    const size_t index = container->find( source );
-    if( index < container->size() ) return index;
-
-    // perform deep search based on cluster keys
-    using cluster_keyset_t=std::set<TrkrDefs::cluskey>;
-
-    // get cluster key set from seed
-    auto get_cluster_keyset = []( TrackSeed* seed )
-    {
-      cluster_keyset_t ckeys;
-      std::copy( seed->begin_cluster_keys(), seed->end_cluster_keys(), std::inserter(ckeys, ckeys.end() ) );
-      return ckeys;
-    };
-
-    const auto source_ckeys = get_cluster_keyset( source );
-
-    for( size_t i = 0; i < container->size(); ++i )
-    {
-      auto* seed = container->get(i);
-      if( !seed ) continue;
-
-      const auto ckeys = get_cluster_keyset( seed );
-      if( ckeys == source_ckeys )
-      { return i; }
-    }
-
-    // error
-    std::cout << "find_seed_id - could not find seed " << source << " in container " << container << std::endl;
-    return container->size();
-  }
-
-}
-
 //____________________________________________________________________________..
 PHTrackTrackSeedSynchronization::PHTrackTrackSeedSynchronization(const std::string &name)
   : SubsysReco(name)
@@ -166,3 +126,47 @@ int PHTrackTrackSeedSynchronization::GetNodes(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
+//__________________________________________________________________________________
+size_t PHTrackTrackSeedSynchronization::find_seed_id( TrackSeedContainer* container, TrackSeed* source ) const
+{
+  // perform quick search
+  const size_t index = container->find( source );
+  if( index < container->size() ) return index;
+
+  // perform deep search based on cluster keys
+  if( Verbosity() )
+  { std::cout << "PHTrackTrackSeedSynchronization::find_seed_id - performing deep search for seed " << source << " in container " << container << std::endl; }
+
+  using cluster_keyset_t=std::set<TrkrDefs::cluskey>;
+
+  // get cluster key set from seed
+  auto get_cluster_keyset = [this]( TrackSeed* seed )
+  {
+    cluster_keyset_t ckeys;
+    if( m_ignore_micromegas )
+    {
+      std::copy_if( seed->begin_cluster_keys(), seed->end_cluster_keys(), std::inserter(ckeys, ckeys.end() ),
+        []( const TrkrDefs::cluskey& ckey ) { return TrkrDefs::getTrkrId(ckey) != TrkrDefs::micromegasId; } );
+    } else {
+      std::copy( seed->begin_cluster_keys(), seed->end_cluster_keys(), std::inserter(ckeys, ckeys.end() ) );
+    }
+    return ckeys;
+
+  };
+
+  const auto source_ckeys = get_cluster_keyset( source );
+  for( size_t i = 0; i < container->size(); ++i )
+  {
+    auto* seed = container->get(i);
+    if( !seed ) continue;
+
+    const auto ckeys = get_cluster_keyset( seed );
+    if( ckeys == source_ckeys )
+    { return i; }
+  }
+
+  // error
+  std::cout << "PHTrackTrackSeedSynchronization::find_seed_id - could not find seed " << source << " in container " << container << std::endl;
+  return container->size();
+}
