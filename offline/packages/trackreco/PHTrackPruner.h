@@ -34,12 +34,25 @@ class PHTrackPruner : public SubsysReco
 
   int End(PHCompositeNode *) override;
 
-  void set_pruned_svtx_seed_map_name(const std::string &map_name) { _pruned_svtx_seed_map_name = map_name; }
+  //! input cluster map name. Default is TRKR_CLUSTER
+  void set_cluster_map_name(const std::string &map_name) { _cluster_map_name = map_name; }
+
+  //! input seeds map name
   void set_svtx_seed_map_name(const std::string &map_name) { _svtx_seed_map_name = map_name; }
+
+  //! input silicon seeds map name
   void set_si_seed_map_name(const std::string &map_name) { _si_seed_map_name = map_name; }
+
+  //! input tpc seeds map name
   void set_tpc_seed_map_name(const std::string &map_name) { _tpc_seed_map_name = map_name; }
+
+  //! input track map name
   void set_svtx_track_map_name(const std::string &map_name) { _svtx_track_map_name = map_name; }
 
+  //! output pruned track map name
+  void set_pruned_svtx_seed_map_name(const std::string &map_name) { _pruned_svtx_seed_map_name = map_name; }
+
+  /// low pt cut
   void set_track_pt_low_cut(const double val) { m_track_pt_low_cut = val; }
   void set_track_quality_high_cut(const double val) { m_track_quality_high_cut = val; }
 
@@ -72,6 +85,7 @@ class PHTrackPruner : public SubsysReco
   ActsGeometry *_tGeometry{nullptr};
   int m_event = 0;
 
+  std::string _cluster_map_name = "TRKR_CLUSTER";
   std::string _tpc_seed_map_name = "TpcTrackSeedContainer";
   std::string _si_seed_map_name = "SiliconTrackSeedContainer";
   std::string _svtx_seed_map_name = "SvtxTrackSeedContainer";
