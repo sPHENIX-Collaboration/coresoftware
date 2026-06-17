@@ -38,7 +38,6 @@ AM_LDFLAGS = \
 
 
 pkginclude_HEADERS = \
-  ActsAborter.h \
   ActsGeometry.h \
   ActsSourceLink.h \
   ActsSurfaceMaps.h \

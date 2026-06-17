@@ -1,7 +1,5 @@
 #include "ActsPropagator.h"
 
-#include <trackbase/ActsAborter.h>
-
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -18,6 +16,8 @@
 #include <Acts/Propagator/VoidNavigator.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Definitions/Units.hpp>
+
+#include "ActsAborter.h"
 
 ActsPropagator::SurfacePtr
 ActsPropagator::makeVertexSurface(const SvtxVertex* vertex)
@@ -104,7 +104,18 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
   unsigned int actslayer;
   if (!checkLayer(sphenixLayer, actsvolume, actslayer) || !m_geometry)
   {
+
+    std::cout << "ActsPropagator::propagateTrack - checkLayer failed" << std::endl;
     return Acts::Result<BoundTrackParamPair>::failure(std::error_code(0, std::generic_category()));
+
+  } else {
+
+    std::cout << "ActsPropagator::propagateTrack -"
+      << " sphenixLayer: " << sphenixLayer
+      << " actsvolume: " << actsvolume
+      << " actslayer: " << actslayer
+      << std::endl;
+
   }
 
   if (m_verbosity > 1)
@@ -114,14 +125,19 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   auto propagator = makePropagator();
 
-  SphenixPropagatorOptions options(
+  // using actor_list_t = Acts::ActorList<>;
+  using actor_list_t = Acts::ActorList<ActsAborter>;
+  using propagator_options_t = SphenixPropagator::Options<actor_list_t>;
+
+  propagator_options_t  options(
       m_geometry->geometry().getGeoContext(),
       m_geometry->geometry().magFieldContext);
+
   ActsAborter aborter;
   aborter.abortlayer = actslayer;
   aborter.abortvolume = actsvolume;
-  options.actorList.append(aborter);
-
+  options.actorList.get<ActsAborter>() = aborter;
+  // options.actorList.append(aborter);
 
   auto result = propagator.propagate(params, options);
 
@@ -132,6 +148,8 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
     auto pair = std::make_pair(pathlength, finalparams);
 
     return Acts::Result<BoundTrackParamPair>::success(pair);
+  } else {
+    std::cout << "ActsPropagator::propagateTrack - propagation failed" << std::endl;
   }
 
   return result.error();
@@ -164,7 +182,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
     return Acts::Result<BoundTrackParamPair>::success(pair);
   }
-  
+
   return result.error();
 }
 
@@ -235,7 +253,7 @@ ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
   }
 
   Acts::Logging::Level logLevel = Acts::Logging::FATAL;
-  if (m_verbosity > 3)
+//  if (m_verbosity > 3)
   {
     logLevel = Acts::Logging::VERBOSE;
   }
