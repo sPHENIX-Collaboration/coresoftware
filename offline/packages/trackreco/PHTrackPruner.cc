@@ -103,14 +103,12 @@ int PHTrackPruner::process_event(PHCompositeNode * /*unused*/)
 {
   // _tpc_seed_map contains the TPC seed track stubs
   // _si_seed_map contains the silicon seed track stubs
-  // _svtx_seed_map contains the combined silicon and tpc track seeds
   // _svtx_track_map contains the fitted acts track stubs
 
   if (Verbosity() > 0)
   {
     cout << PHWHERE << " TPC seed map size " << _tpc_seed_map->size()
 	 << " Silicon seed map size " << _si_seed_map->size()
-	 << " Svtx seed map size " << _svtx_seed_map->size()
 	 << " Svtx track map size " << _svtx_track_map->size()
 	 << endl;
   }
@@ -279,13 +277,6 @@ int PHTrackPruner::GetNodes(PHCompositeNode *topNode)
   if (!_tpc_seed_map)
   {
     cerr << PHWHERE << " ERROR: Can't find " << _tpc_seed_map_name.c_str() << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  _svtx_seed_map = findNode::getClass<TrackSeedContainer>(topNode, _svtx_seed_map_name);
-  if (!_svtx_seed_map)
-  {
-    cerr << PHWHERE << " ERROR: Can't find " << _svtx_seed_map_name.c_str() << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

@@ -37,9 +37,6 @@ class PHTrackPruner : public SubsysReco
   //! input cluster map name. Default is TRKR_CLUSTER
   void set_cluster_map_name(const std::string &map_name) { _cluster_map_name = map_name; }
 
-  //! input seeds map name
-  void set_svtx_seed_map_name(const std::string &map_name) { _svtx_seed_map_name = map_name; }
-
   //! input silicon seeds map name
   void set_si_seed_map_name(const std::string &map_name) { _si_seed_map_name = map_name; }
 
@@ -74,11 +71,13 @@ class PHTrackPruner : public SubsysReco
   double getBunchCrossing(unsigned int trid, double z_mismatch);
 
   TrackSeedContainer *_pruned_svtx_seed_map{nullptr};
-  TrackSeedContainer *_svtx_seed_map{nullptr};
   TrackSeedContainer *_tpc_seed_map{nullptr};
   TrackSeedContainer *_si_seed_map{nullptr};
+
+  // should remove
   TrackSeed *_tpc_seed{nullptr};
   TrackSeed *_si_seed{nullptr};
+
   SvtxTrackMap *_svtx_track_map{nullptr};
   SvtxTrack *_svtx_track{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};
@@ -88,7 +87,6 @@ class PHTrackPruner : public SubsysReco
   std::string _cluster_map_name = "TRKR_CLUSTER";
   std::string _tpc_seed_map_name = "TpcTrackSeedContainer";
   std::string _si_seed_map_name = "SiliconTrackSeedContainer";
-  std::string _svtx_seed_map_name = "SvtxTrackSeedContainer";
   std::string _pruned_svtx_seed_map_name = "PrunedSvtxTrackSeedContainer";
   std::string _svtx_track_map_name = "SvtxTrackMap";
 
