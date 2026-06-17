@@ -75,10 +75,8 @@ class PHTrackPruner : public SubsysReco
   TrackSeedContainer *_si_seed_map{nullptr};
 
   SvtxTrackMap *_svtx_track_map{nullptr};
-  SvtxTrack *_svtx_track{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};
   ActsGeometry *_tGeometry{nullptr};
-  int m_event = 0;
 
   std::string _cluster_map_name = "TRKR_CLUSTER";
   std::string _tpc_seed_map_name = "TpcTrackSeedContainer";
