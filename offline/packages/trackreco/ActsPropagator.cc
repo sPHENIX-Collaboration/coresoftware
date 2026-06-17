@@ -158,13 +158,11 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params, const S
 
   auto propagator = makePropagator();
 
-  SphenixPropagator::Options options(m_geometry->geometry().getGeoContext(),
-                                    m_geometry->geometry().magFieldContext);
+  SphenixPropagator::Options options(m_geometry->geometry().getGeoContext(), m_geometry->geometry().magFieldContext);
 
-  auto intersect = surface.get()->intersect(m_geometry->geometry().getGeoContext(), params.position(m_geometry->geometry().getGeoContext()), params.momentum(),
-                                     Acts::BoundaryTolerance::None(), 0.1 * Acts::UnitConstants::mm).closest();
+  auto intersect = surface.get()->intersect(m_geometry->geometry().getGeoContext(), params.position(m_geometry->geometry().getGeoContext()), params.momentum(), Acts::BoundaryTolerance::None(), 0.1 * Acts::UnitConstants::mm).closest();
   options.direction = Acts::Direction::fromScalarZeroAsPositive(intersect.pathLength());
-  auto result = propagator.template propagate<Acts::BoundTrackParameters, SphenixPropagatorOptions, Acts::ForcedSurfaceReached, Acts::PathLimitReached>(params, *surface, options);
+  auto result = propagator.template propagate<Acts::BoundTrackParameters, SphenixPropagator::Options<>, Acts::ForcedSurfaceReached, Acts::PathLimitReached>(params, *surface, options);
   if (result.ok())
   {
     auto finalparams = *result.value().endParameters; // NOLINT(bugprone-unchecked-optional-access)
