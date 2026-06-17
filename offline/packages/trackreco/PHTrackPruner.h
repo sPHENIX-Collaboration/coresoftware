@@ -74,10 +74,6 @@ class PHTrackPruner : public SubsysReco
   TrackSeedContainer *_tpc_seed_map{nullptr};
   TrackSeedContainer *_si_seed_map{nullptr};
 
-  // should remove
-  TrackSeed *_tpc_seed{nullptr};
-  TrackSeed *_si_seed{nullptr};
-
   SvtxTrackMap *_svtx_track_map{nullptr};
   SvtxTrack *_svtx_track{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};

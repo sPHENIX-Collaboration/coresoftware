@@ -130,13 +130,13 @@ int PHTrackPruner::process_event(PHCompositeNode * /*unused*/)
     }
     if (Verbosity() > 1) { std::cout<<"Pass track selection"<<std::endl; }
 
-    _tpc_seed = _svtx_track->get_tpc_seed();
-    _si_seed = _svtx_track->get_silicon_seed();
-    if (_tpc_seed && _si_seed)
+    auto* tpc_seed = _svtx_track->get_tpc_seed();
+    auto* si_seed = _svtx_track->get_silicon_seed();
+    if (tpc_seed && si_seed)
     {
       if (Verbosity() > 1) { std::cout<<"Insert tpcid and siid into good_matches"<<std::endl; }
-      int tpcid = _tpc_seed_map->find(_tpc_seed);
-      int siid = _si_seed_map->find(_si_seed);
+      int tpcid = _tpc_seed_map->find(tpc_seed);
+      int siid = _si_seed_map->find(si_seed);
       good_matches.insert(std::make_pair(tpcid, siid));
     }
   }
