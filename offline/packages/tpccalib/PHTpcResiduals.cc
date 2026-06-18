@@ -744,10 +744,10 @@ int PHTpcResiduals::createNodes(PHCompositeNode* /*topNode*/)
 int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
 {
   // clusters
-  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, m_clustermapname);
   if (!m_clusterContainer)
   {
-    std::cout << PHWHERE << "No TRKR_CLUSTER node on node tree. Exiting." << std::endl;
+    std::cout << "PHTpcResiduals::getNodes - cluster map named " << m_clustermapname << " not found." << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -755,7 +755,7 @@ int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
-    std::cout << "ActsTrackingGeometry not on node tree. Exiting." << std::endl;
+    std::cout << "PHTpcResiduals::getNodes - ActsGeometry not found." << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -763,7 +763,7 @@ int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackmapname);
   if (!m_trackMap)
   {
-    std::cout << PHWHERE << " " << m_trackmapname << " not on node tree. Exiting." << std::endl;
+    std::cout << "PHTpcResiduals::getNodes - track map named " << m_trackmapname << " not found." << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
