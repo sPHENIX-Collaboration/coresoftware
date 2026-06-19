@@ -153,6 +153,7 @@ class CaloWaveformSim : public SubsysReco
 
   // Light collection model access
   LightCollectionModel &get_light_collection_model() { return light_collection_model; }
+  void set_use_sipm_occupancy(bool use_sipm_occupancy);
 
  private:
   CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::CEMC};
@@ -227,6 +228,7 @@ class CaloWaveformSim : public SubsysReco
   CDBTTree *cdbttree_time{nullptr}, *cdbttree_MC_time{nullptr};
   TProfile *h_template{nullptr};
   LightCollectionModel light_collection_model;
+  bool m_use_sipm_occupancy{true};
 
   NoiseType m_noiseType{NOISE_TREE};
 
