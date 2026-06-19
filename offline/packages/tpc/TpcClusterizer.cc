@@ -907,7 +907,18 @@ namespace
     //	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
     if (sqrt(phi_err_square) > my_data.min_err_squared)
     {
-      auto *clus = new TrkrClusterv6;
+      TrkrCluster* clus = nullptr;
+
+      if (m_debug)
+      {
+	clus = new TrkrClusterv6;
+      }
+      else
+      {
+	clus = new TrkrClusterv5;
+      }
+
+      // auto *clus = new TrkrClusterv6;
       // auto *clus = new TrkrClusterv5;
       // auto clus = std::make_unique<TrkrClusterv3>();
       clus_base = clus;
