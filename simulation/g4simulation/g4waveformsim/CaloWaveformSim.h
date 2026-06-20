@@ -57,7 +57,6 @@ class CaloWaveformSim : public SubsysReco
   }
   void set_directURL_calib(const std::string &url)
   {
-    m_giveDirectURL = true;
     m_directURL = url;
   }
 
@@ -155,17 +154,17 @@ class CaloWaveformSim : public SubsysReco
   LightCollectionModel &get_light_collection_model() { return light_collection_model; }
 
  private:
-  CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::CEMC};
-  std::string m_detector{"CEMC"};
+  CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
+  std::string m_detector;
 
   // Data energy calibration
   std::string m_fieldname;
   std::string m_calibName;
-  bool m_giveDirectURL{false};
   std::string m_directURL;
+
   // MC energy calibration
-  std::string m_MC_fieldname{"Femc_datadriven_qm1_correction"};
-  std::string m_MC_calibName{"cemc_pi0_twrSlope_v1"};
+  std::string m_MC_fieldname;
+  std::string m_MC_calibName;
   bool m_overrideMCFieldName{false};
   bool m_overrideMCCalibName{false};
   bool m_giveDirectURL_MC{false};

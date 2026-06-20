@@ -67,7 +67,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   const char *calibroot = getenv("CALIBRATIONROOT");
   if (!calibroot)
   {
-    std::cerr << "CaloWaveformSim::InitRun missing CALIBRATIONROOT" << std::endl;
+    std::cout << "CaloWaveformSim::InitRun missing CALIBRATIONROOT" << std::endl;
     exit(1);
   }
   std::string templatefilename = std::string(calibroot) + "/CaloWaveSim/" + m_templatefile;
@@ -82,7 +82,6 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   }
 
   // Detector-specific setup
-  std::string url;
   if (m_dettype == CaloTowerDefs::CEMC)
   {
     m_detector = "CEMC";
@@ -127,17 +126,40 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   }
 
   // Data energy calibration
-  if (m_calibName.empty())
+  // First check if the url is overridden in the macro (default is empty)
+  // Then check if the calibration name is overridden in the macro (default is empty)
+  if (m_directURL.empty())
   {
-    m_calibName = m_detector + "_calib_ADC_to_ETower";
+    if (m_calibName.empty())
+    {
+      m_calibName = m_detector + "_calib_ADC_to_ETower";
+    }
+    else
+    {
+      if (Verbosity() > 2)
+      {
+	std::cout << PHWHERE << Name() << ": using " << m_calibName << " as calib name" << std::endl;
+      }
+    }
+    m_directURL = CDBInterface::instance()->getUrl(m_calibName);
   }
   else
   {
     if (Verbosity() > 2)
     {
-      std::cout << PHWHERE << " using " << m_calibName << " as calib name" << std::endl;
+      std::cout << PHWHERE << Name() << ": using " << m_directURL << " as cdb file" << std::endl;
     }
   }
+  if (!m_directURL.empty())
+  {
+    cdbttree = new CDBTTree(m_directURL);
+  }
+  else
+  {
+    std::cout << Name() << ": CaloWaveformSim::InitRun No data calibration for " << m_calibName << std::endl;
+    exit(1);
+  }
+  // check if the fieldname was overridden in the macro (default is empty), otherwise set it
   if (m_fieldname.empty())
   {
     m_fieldname = m_detector + "_calib_ADC_to_ETower";
@@ -146,18 +168,8 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   {
     if (Verbosity() > 2)
     {
-      std::cout << PHWHERE << " using " << m_fieldname << " as fieldname" << std::endl;
+      std::cout << PHWHERE << Name() << ": using " << m_fieldname << " as fieldname" << std::endl;
     }
-  }
-  url = m_giveDirectURL ? m_directURL : CDBInterface::instance()->getUrl(m_calibName);
-  if (!url.empty())
-  {
-    cdbttree = new CDBTTree(url);
-  }
-  else
-  {
-    std::cerr << "CaloWaveformSim::InitRun No data calibration for " << m_calibName << std::endl;
-    exit(1);
   }
 
   // MC energy calibration (optional)
@@ -169,7 +181,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   {
     m_MC_fieldname = m_detector + "_calib_ADC_to_ETower";
   }
-  url = m_giveDirectURL_MC ? m_directURL_MC : CDBInterface::instance()->getUrl(m_MC_calibName);
+  std::string url = m_giveDirectURL_MC ? m_directURL_MC : CDBInterface::instance()->getUrl(m_MC_calibName);
   if (!url.empty())
   {
     cdbttree_MC = new CDBTTree(url);
