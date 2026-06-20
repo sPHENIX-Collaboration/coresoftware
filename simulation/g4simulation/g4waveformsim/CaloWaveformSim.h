@@ -10,12 +10,16 @@
 #ifndef G4WAVEFORMSIM_CALOWAVEFORMSIM_H
 #define G4WAVEFORMSIM_CALOWAVEFORMSIM_H
 
+#include <fun4all/SubsysReco.h>
+
 #include <calobase/TowerInfoDefs.h>
 #include <caloreco/CaloTowerDefs.h>
-#include <fun4all/SubsysReco.h>
+
 #include <g4detectors/LightCollectionModel.h>
+
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
+
 #include <string>
 #include <vector>
 
@@ -46,20 +50,16 @@ class CaloWaveformSim : public SubsysReco
   void set_fieldname(const std::string &fieldname)
   {
     m_fieldname = fieldname;
-    m_overrideFieldName = true;
   }
   void set_calibName(const std::string &calibName)
   {
     m_calibName = calibName;
-    m_overrideCalibName = true;
   }
   void set_directURL_calib(const std::string &url)
   {
     m_giveDirectURL = true;
     m_directURL = url;
   }
-  void set_overrideCalibName(bool overrideCalib) { m_overrideCalibName = overrideCalib; }
-  void set_overrideFieldName(bool overrideField) { m_overrideFieldName = overrideField; }
 
   // Calibration settings (MC energy)
   void set_MC_fieldname(const std::string &MC_fieldname)
@@ -159,19 +159,17 @@ class CaloWaveformSim : public SubsysReco
   std::string m_detector{"CEMC"};
 
   // Data energy calibration
-  std::string m_fieldname{"Femc_datadriven_qm1_correction"};
-  std::string m_calibName{"cemc_pi0_twrSlope_v1"};
-  bool m_overrideCalibName{false};
-  bool m_overrideFieldName{false};
+  std::string m_fieldname;
+  std::string m_calibName;
   bool m_giveDirectURL{false};
-  std::string m_directURL{""};
+  std::string m_directURL;
   // MC energy calibration
   std::string m_MC_fieldname{"Femc_datadriven_qm1_correction"};
   std::string m_MC_calibName{"cemc_pi0_twrSlope_v1"};
   bool m_overrideMCFieldName{false};
   bool m_overrideMCCalibName{false};
   bool m_giveDirectURL_MC{false};
-  std::string m_directURL_MC{""};
+  std::string m_directURL_MC;
 
   bool m_smear_const{false};
   float factor_const{0.};
@@ -183,14 +181,14 @@ class CaloWaveformSim : public SubsysReco
   bool m_overrideTimeCalibName{false};
   bool m_dotimecalib{true};
   bool m_giveDirectURL_time{false};
-  std::string m_directURL_time{""};
+  std::string m_directURL_time;
   // MC time calibration
   std::string m_MC_fieldname_time{"time"};
   std::string m_MC_calibName_time{"CEMC_meanTime"};
   bool m_overrideMCTimeFieldName{false};
   bool m_overrideMCTimeCalibName{false};
   bool m_giveDirectURL_MC_time{false};
-  std::string m_directURL_MC_time{""};
+  std::string m_directURL_MC_time;
 
   // Waveform settings
   std::string m_templatefile{"waveformtemptempohcalcosmic.root"};
@@ -223,8 +221,10 @@ class CaloWaveformSim : public SubsysReco
   unsigned int (*encode_tower)(unsigned int, unsigned int){TowerInfoDefs::encode_emcal};
   unsigned int (*decode_tower)(unsigned int){TowerInfoDefs::decode_emcal};
 
-  CDBTTree *cdbttree{nullptr}, *cdbttree_MC{nullptr};
-  CDBTTree *cdbttree_time{nullptr}, *cdbttree_MC_time{nullptr};
+  CDBTTree *cdbttree{nullptr};
+  CDBTTree *cdbttree_MC{nullptr};
+  CDBTTree *cdbttree_time{nullptr};
+  CDBTTree *cdbttree_MC_time{nullptr};
   TProfile *h_template{nullptr};
   LightCollectionModel light_collection_model;
 

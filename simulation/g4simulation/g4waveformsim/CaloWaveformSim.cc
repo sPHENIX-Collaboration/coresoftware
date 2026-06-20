@@ -18,6 +18,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
@@ -72,11 +73,9 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   std::string templatefilename = std::string(calibroot) + "/CaloWaveSim/" + m_templatefile;
   TFile *ft = TFile::Open(templatefilename.c_str());
   assert(ft && ft->IsOpen());
-  h_template = static_cast<TProfile *>(ft->Get("hpwaveform"));
+  ft->GetObject("hpwaveform",h_template);
 
-  // Determine run number
-  EventHeader *evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
-  m_runNumber = evtHeader ? evtHeader->get_RunNumber() : -1;
+  m_runNumber = recoConsts::instance()->get_IntFlag("RUNNUMBER");
   if (Verbosity() > 0)
   {
     std::cout << "CaloWaveformSim::InitRun Run Number: " << m_runNumber << std::endl;
@@ -128,13 +127,27 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   }
 
   // Data energy calibration
-  if (!m_overrideCalibName)
+  if (m_calibName.empty())
   {
     m_calibName = m_detector + "_calib_ADC_to_ETower";
   }
-  if (!m_overrideFieldName)
+  else
+  {
+    if (Verbosity() > 2)
+    {
+      std::cout << PHWHERE << " using " << m_calibName << " as calib name" << std::endl;
+    }
+  }
+  if (m_fieldname.empty())
   {
     m_fieldname = m_detector + "_calib_ADC_to_ETower";
+  }
+  else
+  {
+    if (Verbosity() > 2)
+    {
+      std::cout << PHWHERE << " using " << m_fieldname << " as fieldname" << std::endl;
+    }
   }
   url = m_giveDirectURL ? m_directURL : CDBInterface::instance()->getUrl(m_calibName);
   if (!url.empty())
