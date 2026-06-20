@@ -65,8 +65,13 @@ class MicromegasRawHitv3 : public MicromegasRawHit
 
   //! adc list
   using adc_list_t = std::vector<uint16_t>;
+  using waveform_pair_t = std::pair<uint16_t, adc_list_t>;
 
-  // set adc values
+  // get adc values
+  const std::vector<waveform_pair_t>& get_adc_waveforms() const
+  { return m_adcData; }
+
+  // set adc values (move operator)
   void move_adc_waveform(const uint16_t start_time, adc_list_t &&adc);
 
  private:
@@ -83,7 +88,6 @@ class MicromegasRawHitv3 : public MicromegasRawHit
 
   //! list of waveforms
   /** each pair contains the start sample of the waveform and the constituting adc values */
-  using waveform_pair_t = std::pair<uint16_t, adc_list_t>;
   std::vector<waveform_pair_t> m_adcData;
 
   ClassDefOverride(MicromegasRawHitv3, 1)

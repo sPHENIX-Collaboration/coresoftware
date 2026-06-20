@@ -60,6 +60,7 @@ pkginclude_HEADERS = \
   PHTrackPruner.h \
   PHTrackCleaner.h \
   PHTrackSelector.h \
+  PHTrackTrackSeedSynchronization.h \
   PHRaveVertexing.h \
   PHSiliconHelicalPropagator.h \
   PHSiliconSeedMerger.h \
@@ -155,6 +156,7 @@ libtrack_reco_la_SOURCES = \
   PHTrackClusterAssociator.cc \
   PHTrackSeeding.cc \
   PHTrackSelector.cc \
+  PHTrackTrackSeedSynchronization.cc \
   PHTrackSetMerging.cc \
   PHTrackPropagating.cc \
   PHTrackFitting.cc \

@@ -20,8 +20,6 @@ namespace
 {
 
   // streamer for lists
-
-  // streamer for lists
   template <class T>
   std::ostream& operator<<(std::ostream& o, const std::list<T>& list)
   {
@@ -82,21 +80,27 @@ namespace
     return o;
   }
 
-  // get the difference between two BCO.
-  template <class T>
-  constexpr T get_bco_diff(const T& first, const T& second)
-  {
-    return first < second ? (second - first) : (first - second);
-  }
-
   // define limit for matching two fee_bco
-  constexpr unsigned int m_max_fee_bco_diff = 10;
+  constexpr uint32_t m_max_fee_bco_diff = 10;
 
   // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
   constexpr unsigned int m_max_matching_data_size = 50;
 
   //! copied from micromegas/MicromegasDefs.h, not available here
   constexpr int m_nchannels_fee = 256;
+
+  // gtm clock bits
+  /* used for rollover calculation */
+  constexpr unsigned int m_GTM_CLOCK_BITS = 40U;
+  constexpr uint64_t m_GTM_CLOCK_MASK = (1ULL << m_GTM_CLOCK_BITS)-1;
+  constexpr int64_t m_GTM_CLOCK_RANGE = 1ULL << m_GTM_CLOCK_BITS;
+  constexpr int64_t m_GTM_CLOCK_HALF_RANGE = 1ULL << (m_GTM_CLOCK_BITS-1);
+
+  // Fee clock bits
+  constexpr unsigned int m_FEE_CLOCK_BITS = 20U;
+  constexpr uint32_t m_FEE_CLOCK_MASK = (1UL << m_FEE_CLOCK_BITS)-1ULL;
+  constexpr int32_t m_FEE_CLOCK_RANGE = 1UL << m_FEE_CLOCK_BITS;
+  constexpr int32_t m_FEE_CLOCK_HALF_RANGE = 1UL << (m_FEE_CLOCK_BITS-1UL);
 
   /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
   enum SampaDataType
@@ -116,21 +120,65 @@ namespace
     BX_COUNTER_SYNC_T = 0b001,
     ELINK_HEARTBEAT_T = 0b010
   };
+
 }  // namespace
 
-// this is the clock multiplier from lvl1 to fee clock
+//! this is the clock multiplier from lvl1 to fee clock
 bool MicromegasBcoMatchingInformation_v2::m_multiplier_is_set = false;
 double MicromegasBcoMatchingInformation_v2::m_multiplier = 0;
 
-// true if on-fly multiplier adjustment is enabled
+//! true if on-fly multiplier adjustment is enabled
 bool MicromegasBcoMatchingInformation_v2::m_multiplier_adjustment_enabled = true;
 
-// muliplier adjustment count
+//! muliplier adjustment count
 /* controls how often the gtm multiplier is automatically adjusted */
 unsigned int MicromegasBcoMatchingInformation_v2::m_max_multiplier_adjustment_count = 200;
 
-// define limit for matching fee_bco to fee_bco_predicted
-unsigned int MicromegasBcoMatchingInformation_v2::m_max_gtm_bco_diff = 100;
+//! define limit for matching fee_bco to fee_bco_predicted
+unsigned int MicromegasBcoMatchingInformation_v2::m_max_gtm_bco_diff = 60;
+
+//! Max time forward to ensure that a given
+unsigned int MicromegasBcoMatchingInformation_v2::m_max_fee_sync_time = 1024 * 96;
+
+//___________________________________________________
+int64_t MicromegasBcoMatchingInformation_v2::get_signed_gtm_bco_diff(uint64_t first, uint64_t second)
+{
+  // calculate raw diff
+  int64_t diff = static_cast<int64_t>(first & m_GTM_CLOCK_MASK) - static_cast<int64_t>(second & m_GTM_CLOCK_MASK);
+
+  // make sure result is within +/- m_GTM_CLOCK_HALF_RANGE
+  if (diff > m_GTM_CLOCK_HALF_RANGE) { diff -= m_GTM_CLOCK_RANGE; }
+  else if (diff < -m_GTM_CLOCK_HALF_RANGE) { diff += m_GTM_CLOCK_RANGE; }
+
+  return diff;
+}
+
+//___________________________________________________
+int32_t MicromegasBcoMatchingInformation_v2::get_signed_fee_bco_diff(uint32_t first, uint32_t second)
+{
+  // calculate raw diff
+  int32_t diff = static_cast<int32_t>(first & m_FEE_CLOCK_MASK) - static_cast<int32_t>(second & m_FEE_CLOCK_MASK);
+
+  // make sure result is within +/- m_FEE_CLOCK_HALF_RANGE
+  if (diff > m_FEE_CLOCK_HALF_RANGE) { diff -= m_FEE_CLOCK_RANGE; }
+  else if (diff < -m_FEE_CLOCK_HALF_RANGE) { diff += m_FEE_CLOCK_RANGE; }
+
+  return diff;
+}
+
+//___________________________________________________
+uint64_t MicromegasBcoMatchingInformation_v2::get_unsigned_gtm_bco_diff(uint64_t first, uint64_t second)
+{
+  const auto diff = get_signed_gtm_bco_diff(first, second);
+  return uint64_t((diff<0) ? -diff:diff);
+}
+
+//___________________________________________________
+uint32_t MicromegasBcoMatchingInformation_v2::get_unsigned_fee_bco_diff(uint32_t first, uint32_t second)
+{
+  const auto diff = get_signed_fee_bco_diff(first, second);
+  return uint32_t((diff<0) ? -diff:diff);
+}
 
 //___________________________________________________
 std::optional<uint32_t> MicromegasBcoMatchingInformation_v2::get_predicted_fee_bco(uint64_t gtm_bco) const
@@ -141,12 +189,12 @@ std::optional<uint32_t> MicromegasBcoMatchingInformation_v2::get_predicted_fee_b
     return std::nullopt;
   }
 
-  // get gtm bco difference with proper rollover accounting
-  const uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ? (gtm_bco - m_gtm_bco_first) : (gtm_bco + (1ULL << 40U) - m_gtm_bco_first);
+  // get gtm bco difference
+  const int64_t gtm_bco_difference = get_signed_gtm_bco_diff(gtm_bco, m_bco_reference.second);
 
   // convert to fee bco, and truncate to 20 bits
-  const uint64_t fee_bco_predicted = m_fee_bco_first + get_adjusted_multiplier() * gtm_bco_difference;
-  return uint32_t(fee_bco_predicted & 0xFFFFFU);
+  const int64_t fee_bco_predicted = m_bco_reference.first + get_adjusted_multiplier() * gtm_bco_difference;
+  return static_cast<uint32_t>(fee_bco_predicted) & m_FEE_CLOCK_MASK;
 }
 
 //___________________________________________________
@@ -179,6 +227,34 @@ void MicromegasBcoMatchingInformation_v2::print_gtm_bco_information() const
 }
 
 //___________________________________________________
+bool MicromegasBcoMatchingInformation_v2::is_more_data_required( uint64_t gtm_bco ) const
+{
+  // check proper initialization
+  if( !is_verified() ) { return true; }
+
+  // compare to reference
+  if( get_signed_gtm_bco_diff( m_bco_reference.second, gtm_bco ) > m_max_fee_sync_time )
+  { return false; }
+
+  // check against stored bco
+  if( !m_gtm_bco_list.empty() )
+  {
+    if( get_signed_gtm_bco_diff( m_gtm_bco_list.back(), gtm_bco ) > m_max_fee_sync_time )
+    { return false; }
+  }
+
+  // check against matched BCOs
+  if( !m_bco_matching_list.empty() )
+  {
+    if( get_signed_gtm_bco_diff( m_bco_matching_list.back().second, gtm_bco ) > m_max_fee_sync_time )
+    { return false; }
+  }
+
+  return true;
+}
+
+
+//___________________________________________________
 void MicromegasBcoMatchingInformation_v2::save_gtm_bco_information(int /*packet_id*/, const MicromegasBcoMatchingInformation_v2::gtm_payload& payload)
 {
   if (payload.is_lvl1)
@@ -193,7 +269,7 @@ void MicromegasBcoMatchingInformation_v2::save_gtm_bco_information(int /*packet_
     const auto& gtm_bco = payload.bco;
 
     // add to list if difference to last entry is big enough
-    if (m_gtm_bco_list.empty() || (gtm_bco - m_gtm_bco_list.back()) > 10)
+    if (m_gtm_bco_list.empty() || get_signed_gtm_bco_diff(gtm_bco,m_gtm_bco_list.back()) > 10)
     {
       m_gtm_bco_list.push_back(gtm_bco);
     }
@@ -225,8 +301,7 @@ bool MicromegasBcoMatchingInformation_v2::find_reference_from_modebits(const Mic
 
       // get BCO and assign
       const auto& gtm_bco = payload.bco;
-      m_gtm_bco_first = gtm_bco;
-      m_fee_bco_first = 0;
+      m_bco_reference = {0, gtm_bco};
       m_verified_from_modebits = true;
       return true;
     }
@@ -239,16 +314,15 @@ bool MicromegasBcoMatchingInformation_v2::find_reference_from_data(const fee_pay
 {
   // store gtm bco and diff to previous in an array
   std::vector<uint64_t> gtm_bco_list;
-  std::vector<uint64_t> gtm_bco_diff_list;
+  std::vector<int64_t> fee_bco_diff_list;
   for (const auto& gtm_bco : m_gtm_bco_list)
   {
     if (!gtm_bco_list.empty())
     {
       // add difference to last
       // get gtm bco difference with proper rollover accounting
-      const uint64_t gtm_bco_difference = (gtm_bco >= gtm_bco_list.back()) ? (gtm_bco - gtm_bco_list.back()) : (gtm_bco + (1ULL << 40U) - gtm_bco_list.back());
-
-      gtm_bco_diff_list.push_back(get_adjusted_multiplier() * gtm_bco_difference);
+      const int64_t gtm_bco_difference = get_signed_gtm_bco_diff( gtm_bco, gtm_bco_list.back() );
+      fee_bco_diff_list.push_back(get_adjusted_multiplier() * gtm_bco_difference);
     }
 
     // append to list
@@ -258,7 +332,7 @@ bool MicromegasBcoMatchingInformation_v2::find_reference_from_data(const fee_pay
   // print all differences
   if (verbosity())
   {
-    std::cout << "MicromegasBcoMatchingInformation_v2::find_reference_from_data - gtm_bco_diff_list: " << gtm_bco_diff_list << std::endl;
+    std::cout << "MicromegasBcoMatchingInformation_v2::find_reference_from_data - fee_bco_diff_list: " << fee_bco_diff_list << std::endl;
   }
 
   // skip hearbeat
@@ -282,7 +356,7 @@ bool MicromegasBcoMatchingInformation_v2::find_reference_from_data(const fee_pay
   }
 
   // calculate difference
-  const uint64_t fee_bco_diff = get_bco_diff(fee_bco, m_fee_bco_prev);
+  const uint32_t fee_bco_diff = get_unsigned_fee_bco_diff(fee_bco, m_fee_bco_prev);
 
   // discard identical fee_bco
   if (fee_bco_diff < m_max_fee_bco_diff)
@@ -293,28 +367,27 @@ bool MicromegasBcoMatchingInformation_v2::find_reference_from_data(const fee_pay
   std::cout << "MicromegasBcoMatchingInformation_v2::find_reference_from_data - fee_bco_diff: " << fee_bco_diff << std::endl;
 
   // look for matching diff in gtm_bco array
-  for (size_t i = 0; i < gtm_bco_diff_list.size(); ++i)
+  for (size_t i = 0; i < fee_bco_diff_list.size(); ++i)
   {
-    uint64_t sum = 0;
-    for (size_t j = i; j < gtm_bco_diff_list.size(); ++j)
+    uint32_t sum = 0;
+    for (size_t j = i; j < fee_bco_diff_list.size(); ++j)
     {
-      sum += gtm_bco_diff_list[j];
-      if (get_bco_diff(sum, fee_bco_diff) < m_max_fee_bco_diff)
+      sum += fee_bco_diff_list[j];
+      if (get_unsigned_fee_bco_diff(sum, fee_bco_diff) < m_max_fee_bco_diff)
       {
         m_verified_from_data = true;
-        m_gtm_bco_first = gtm_bco_list[i];
-        m_fee_bco_first = m_fee_bco_prev;
+        m_bco_reference = { m_fee_bco_prev, gtm_bco_list[i] };
 
         if (verbosity())
         {
           std::cout << "MicromegasBcoMatchingInformation_v2::find_reference_from_data - matching is verified" << std::endl;
           std::cout
               << "MicromegasBcoMatchingInformation_v2::find_reference_from_data -"
-              << " m_gtm_bco_first: " << std::hex << m_gtm_bco_first << std::dec
-              << std::endl;
-          std::cout
-              << "MicromegasBcoMatchingInformation_v2::find_reference_from_data -"
-              << " m_fee_bco_first: " << std::hex << m_fee_bco_first << std::dec
+              << std::hex
+              << " m_bco_reference: ( 0x"
+              << m_bco_reference.first
+              << ", 0x" << m_bco_reference.second << ")"
+              << std::dec
               << std::endl;
         }
         return true;
@@ -341,18 +414,19 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation_v2::find_gtm_bco(int pa
       m_bco_matching_list.begin(),
       m_bco_matching_list.end(),
       [fee_bco](const m_bco_matching_pair_t& pair)
-      { return get_bco_diff(pair.first, fee_bco) < m_max_fee_bco_diff; });
+      { return get_unsigned_fee_bco_diff(pair.first, fee_bco) < m_max_fee_bco_diff; });
 
   if (bco_matching_iter != m_bco_matching_list.end())
   {
     return bco_matching_iter->second;
   }
+
   // find element for which predicted fee_bco matches fee_bco, within limit
   const auto iter = std::find_if(
       m_gtm_bco_list.begin(),
       m_gtm_bco_list.end(),
       [this, fee_bco](const uint64_t& gtm_bco)
-      { return get_bco_diff(get_predicted_fee_bco(gtm_bco).value(), fee_bco) < m_max_gtm_bco_diff; });
+      { return get_unsigned_fee_bco_diff(get_predicted_fee_bco(gtm_bco).value(), fee_bco) < m_max_gtm_bco_diff; });
 
   // check
   if (iter != m_gtm_bco_list.end())
@@ -363,18 +437,18 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation_v2::find_gtm_bco(int pa
       if (auto opt_fee_bco = get_predicted_fee_bco(gtm_bco))  // check if optional exists
       {
         const auto fee_bco_predicted = *opt_fee_bco;  // get_predicted_fee_bco(gtm_bco).value();
-        const auto fee_bco_diff = get_bco_diff(fee_bco_predicted, fee_bco);
+        const auto fee_bco_diff = get_unsigned_fee_bco_diff(fee_bco_predicted, fee_bco);
 
         std::cout << "MicromegasBcoMatchingInformation_v2::find_gtm_bco -"
-                  << " packet_id: " << packet_id
-                  << " fee_id: " << fee_id
-                  << std::hex
-                  << " fee_bco: 0x" << fee_bco
-                  << " predicted: 0x" << fee_bco_predicted
-                  << " gtm_bco: 0x" << gtm_bco
-                  << std::dec
-                  << " difference: " << fee_bco_diff
-                  << std::endl;
+          << " packet_id: " << packet_id
+          << " fee_id: " << fee_id
+          << std::hex
+          << " fee_bco: 0x" << fee_bco
+          << " predicted: 0x" << fee_bco_predicted
+          << " gtm_bco: 0x" << gtm_bco
+          << std::dec
+          << " difference: " << fee_bco_diff
+          << std::endl;
       }
     }
     // save fee_bco and gtm_bco matching in map
@@ -401,9 +475,8 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation_v2::find_gtm_bco(int pa
           m_gtm_bco_list.begin(),
           m_gtm_bco_list.end(),
           [this, fee_bco](const uint64_t& first, const uint64_t& second)
-          { return get_bco_diff(get_predicted_fee_bco(first).value(), fee_bco) < get_bco_diff(get_predicted_fee_bco(second).value(), fee_bco); });
+          { return get_unsigned_fee_bco_diff(get_predicted_fee_bco(first).value(), fee_bco) < get_unsigned_fee_bco_diff(get_predicted_fee_bco(second).value(), fee_bco); });
 
-      // const int fee_bco_diff = (iter2 != m_gtm_bco_list.end()) ? get_bco_diff(get_predicted_fee_bco(*iter2).value(), fee_bco) : -1;
       // compared to the previous statement, this checks if the optional
       int fee_bco_diff = -1;
 
@@ -413,7 +486,7 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation_v2::find_gtm_bco(int pa
 
         if (predicted)
         {
-          fee_bco_diff = get_bco_diff(*predicted, fee_bco);
+          fee_bco_diff = get_unsigned_fee_bco_diff(*predicted, fee_bco);
         }
       }
 
@@ -452,14 +525,13 @@ void MicromegasBcoMatchingInformation_v2::cleanup()
 void MicromegasBcoMatchingInformation_v2::cleanup(uint64_t ref_bco)
 {
   // erase all elements from bco_list that are less than or equal to ref_bco
-  m_gtm_bco_list.erase(std::remove_if(m_gtm_bco_list.begin(), m_gtm_bco_list.end(), [ref_bco](const uint64_t& bco)
-                                      { return bco <= ref_bco; }),
-                       m_gtm_bco_list.end());
+  m_gtm_bco_list.erase(std::remove_if(m_gtm_bco_list.begin(), m_gtm_bco_list.end(),
+    [ref_bco](const uint64_t& bco) { return get_signed_gtm_bco_diff( bco,ref_bco ) <= 0; }), m_gtm_bco_list.end());
 
   // erase all elements from bco_list that are less than or equal to ref_bco
-  m_bco_matching_list.erase(std::remove_if(m_bco_matching_list.begin(), m_bco_matching_list.end(), [ref_bco](const m_bco_matching_pair_t& pair)
-                                           { return pair.second <= ref_bco; }),
-                            m_bco_matching_list.end());
+  m_bco_matching_list.erase(std::remove_if(m_bco_matching_list.begin(), m_bco_matching_list.end(),
+    [ref_bco](const m_bco_matching_pair_t& pair) { return get_signed_gtm_bco_diff( pair.second, ref_bco ) <= 0; }),
+    m_bco_matching_list.end());
 
   // clear orphans
   m_orphans.clear();
@@ -481,7 +553,7 @@ void MicromegasBcoMatchingInformation_v2::update_multiplier_adjustment(uint64_t 
   }
 
   // skip if trivial
-  if (gtm_bco == m_gtm_bco_first)
+  if (gtm_bco == m_bco_reference.second)
   {
     return;
   }
@@ -494,12 +566,12 @@ void MicromegasBcoMatchingInformation_v2::update_multiplier_adjustment(uint64_t 
     gSystem->Exit(1);
     exit(1);
   }
-  const uint32_t fee_bco_predicted = *predicted_opt;
-  const double delta_fee_bco = double(fee_bco) - double(fee_bco_predicted);
-  const double gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ? (gtm_bco - m_gtm_bco_first) : (gtm_bco + (1ULL << 40U) - m_gtm_bco_first);
+  const uint32_t fee_bco_predicted = predicted_opt.value();
+  const double delta_fee_bco = get_signed_fee_bco_diff(fee_bco,fee_bco_predicted);
+  const double gtm_bco_difference = get_signed_gtm_bco_diff(gtm_bco,m_bco_reference.second);
 
-  m_multiplier_adjustment_numerator += gtm_bco_difference * delta_fee_bco;
-  m_multiplier_adjustment_denominator += gtm_bco_difference * gtm_bco_difference;
+  m_multiplier_adjustment_numerator += gtm_bco_difference*delta_fee_bco;
+  m_multiplier_adjustment_denominator += gtm_bco_difference*gtm_bco_difference;
   ++m_multiplier_adjustment_count;
 
   if (verbosity())

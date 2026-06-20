@@ -322,6 +322,12 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
     }
   }
 
+  // fill Si volume ids
+  for (const auto &[hitsetid, surface] : m_clusterSurfaceMapSilicon)
+  {
+    surfMaps.m_siVolumeIds.insert(surface->geometryId().volume());
+  }
+
   // fill Micromegas volume ids
   for (const auto &[hitsetid, surface] : m_clusterSurfaceMapMmEdit)
   {

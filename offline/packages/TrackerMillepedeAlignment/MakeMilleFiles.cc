@@ -297,23 +297,22 @@ bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
                                               const Acts::Vector3& vertex,
                                               float lclvtx_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC])
 {
+
   //! Get the first track state beyond the vertex, which will be the
   //! innermost track state and propagate it to the vertex surface to
   //! get the jacobian at the vertex
-  SvtxTrackState* firststate = (*std::next(track->begin_states(), 1)).second;
+  auto* firststate = (*std::next(track->begin_states(), 1)).second;
 
-  TrkrDefs::cluskey ckey = firststate->get_cluskey();
-  auto cluster = _cluster_map->findCluster(ckey);
-  auto surf = _tGeometry->maps().getSurface(ckey, cluster);
+  const auto ckey = firststate->get_cluskey();
+  const auto cluster = _cluster_map->findCluster(ckey);
+  const auto surf = _tGeometry->maps().getSurface(ckey, cluster);
 
-  auto param = propagator.makeTrackParams(firststate, track->get_charge(), surf).value();
-  auto perigee = propagator.makeVertexSurface(vertex);
-  auto actspropagator = propagator.makePropagator();
-  ActsPropagator::SphenixPropagatorOptions 
-  options(_tGeometry->geometry().getGeoContext(),
-          _tGeometry->geometry().magFieldContext);
+  const auto param = propagator.makeTrackParams(firststate, track->get_charge(), surf).value();
+  const auto perigee = propagator.makeVertexSurface(vertex);
+  const auto actspropagator = propagator.makePropagator();
+  const ActsPropagator::SphenixPropagator::Options options(_tGeometry->geometry().getGeoContext(), _tGeometry->geometry().magFieldContext);
 
-  auto result = actspropagator.propagate(param, *perigee, options);
+  const auto result = actspropagator.propagate(param, *perigee, options);
 
   if (result.ok())
   {
