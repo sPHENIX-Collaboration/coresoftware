@@ -390,6 +390,14 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     }
   }
 
+  /*
+  Acts::Vector3 test_env(10.0, 40.0, 80.0);
+  std::cout << " test_env " << test_env.x() << "  " << test_env.y() << "  " << test_env.z() << std::endl;
+  Acts::Vector3 test_glob = m_tGeometry-> transformTpcEnvelopeToWorld(test_env);
+  std::cout << " test_glob " << test_glob.x() << "  " << test_glob.y() << "  " << test_glob.z() << std::endl;
+  Acts::Vector3 test_env_check = m_tGeometry-> transformTpcWorldToEnvelope(test_glob);
+  std::cout << " test_env_check " << test_env_check.x() << "  " << test_env_check.y() << "  " << test_env_check.z() << std::endl;  
+  */
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -556,11 +564,22 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       // values between 0 and 1
       const double f = gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
 
-      const double x_start = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
-      const double y_start = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
-      const double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
+      const double x_start_glob = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
+      const double y_start_glob = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
+      const double z_start_glob = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
       const double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
 
+      Acts::Vector3 start_glob(x_start_glob, y_start_glob, z_start_glob);
+      Acts::Vector3 start = m_tGeometry->transformTpcWorldToEnvelope(start_glob); // we drift in tpc envelope coords, where E is in the z direction
+
+      const double x_start = start.x();
+      const double y_start = start.y();
+      const double z_start = start.z();
+      /*
+      std::cout << " xg " << x_start_glob << " x " << x_start
+		<<" yg " << y_start_glob << " y " << y_start
+		<<" zg " << z_start_glob << " z " << z_start << std::endl;
+      */
       unsigned int side = 0;
       if (z_start > 0)
       {

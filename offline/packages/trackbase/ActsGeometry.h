@@ -51,6 +51,7 @@ class ActsGeometry
   void set_CM_halfwidth(double val) { _CM_halfwidth = val; }
   void set_tpc_tzero(double tz) { _tpc_tzero = tz; }
   void set_sampa_tzero_bias(double tzb) { _sampa_tzero_bias = tzb; }
+  void set_tpc_world_envelope_transform(Acts::Transform3 transf) { m_tpc_world_envelope_transform = transf; }
 
   double get_tpc_tzero() const { return _tpc_tzero; }
   double get_sampa_tzero_bias() const { return _sampa_tzero_bias; }
@@ -77,12 +78,17 @@ class ActsGeometry
 
   Acts::Transform3 makeAffineTransform(Acts::Vector3 rotation, Acts::Vector3 translation) const;
 
+  Acts::Vector3 transformTpcWorldToEnvelope(Acts::Vector3 vin) const ;
+  Acts::Vector3 transformTpcEnvelopeToWorld(Acts::Vector3 vin) const ;
+
   Acts::Vector2 getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster) const;
   Acts::Vector2 getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing) const;
 
  private:
   ActsTrackingGeometry m_tGeometry;
   ActsSurfaceMaps m_surfMaps;
+  Acts::Transform3 m_tpc_world_envelope_transform;
+  Acts::Transform3 m_tpc_envelope_world_transform;
   double _drift_velocity = 8.0e-3;  // cm/ns
   double _max_driftlength = 102.235;  // cm
   double _CM_halfwidth = 0.28;  // cm

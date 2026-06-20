@@ -457,8 +457,16 @@ void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std
     // we do not assume that the truth hits know what layer they are in
     for (auto *this_g4hit : truth_hits)
     {
-      float rbegin = std::sqrt(this_g4hit->get_x(0) * this_g4hit->get_x(0) + this_g4hit->get_y(0) * this_g4hit->get_y(0));
-      float rend = std::sqrt(this_g4hit->get_x(1) * this_g4hit->get_x(1) + this_g4hit->get_y(1) * this_g4hit->get_y(1));
+      // The truth hits are in world coordinates
+      // They have to be transformed to envelope coords to find what layer they are in
+      // Then the cluster positions have to be transformed back to world coordinates
+      Acts::Vector3 world0(this_g4hit->get_x(0), this_g4hit->get_y(0), this_g4hit->get_z(0));      
+      Acts::Vector3 env0 = _tgeometry->transformTpcWorldToEnvelope(world0);
+      Acts::Vector3 world1(this_g4hit->get_x(1), this_g4hit->get_y(1), this_g4hit->get_z(1));      
+      Acts::Vector3 env1 = _tgeometry->transformTpcWorldToEnvelope(world1);
+
+      float rbegin = std::sqrt(env0.x() * env0.x() + env0.y() * env0.y());
+      float rend = std::sqrt(env1.x() * env1.x() + env1.y() * env1.y());
       // std::cout << " Eval: g4hit " << this_g4hit->get_hit_id() <<  " layer " << layer << " rbegin " << rbegin << " rend " << rend << std::endl;
 
       // make sure the entry point is at lower radius
@@ -468,21 +476,21 @@ void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std
 
       if (rbegin < rend)
       {
-        xl[0] = this_g4hit->get_x(0);
-        yl[0] = this_g4hit->get_y(0);
-        zl[0] = this_g4hit->get_z(0);
-        xl[1] = this_g4hit->get_x(1);
-        yl[1] = this_g4hit->get_y(1);
-        zl[1] = this_g4hit->get_z(1);
+        xl[0] = env0.x();
+        yl[0] = env0.y();
+        zl[0] = env0.z();
+        xl[1] = env1.x();
+        yl[1] = env1.y();
+        zl[1] = env1.z();
       }
       else
       {
-        xl[0] = this_g4hit->get_x(1);
-        yl[0] = this_g4hit->get_y(1);
-        zl[0] = this_g4hit->get_z(1);
-        xl[1] = this_g4hit->get_x(0);
-        yl[1] = this_g4hit->get_y(0);
-        zl[1] = this_g4hit->get_z(0);
+        xl[0] = env1.x();
+        yl[0] = env1.y();
+        zl[0] = env1.z();
+	xl[1] = env0.x();
+        yl[1] = env0.y();
+        zl[1] = env0.z();
         std::swap(rbegin, rend);
         // std::cout << "swapped in and out " << std::endl;
       }
@@ -659,6 +667,14 @@ void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std
       }
     }
 
+    // convert cluster position back to world coordinates
+    Acts::Vector3 clus_env(gx,gy,gz);
+    Acts::Vector3 clus_world = _tgeometry->transformTpcEnvelopeToWorld(clus_env);
+    gx = clus_world.x();
+    gy = clus_world.y();
+    gz = clus_world.z();    
+    // what is gr used for?
+    
   }  // if TPC
   else
   {

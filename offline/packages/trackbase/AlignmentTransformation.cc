@@ -254,14 +254,14 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
       unsigned int side = TpcDefs::getSide(hitsetkey);
       unsigned int sector = TpcDefs::getSectorId(hitsetkey);
-      // std::cout << "New module hitsetkey " << hitsetkey << "test_layer " << test_layer <<  " side " << side << " sector " << sector << " nlayers " << nlayers << " layer_begin " << layer_begin << std::endl;
+      //      std::cout << "New module hitsetkey " << hitsetkey << "test_layer " << test_layer <<  " side " << side << " sector " << sector << " nlayers " << nlayers << " layer_begin " << layer_begin << std::endl;
 
       // loop over layers in module
       for (unsigned int this_layer = layer_begin; this_layer < layer_begin + nlayers; ++this_layer)
       {
         TrkrDefs::hitsetkey this_hitsetkey = TpcDefs::genHitSetKey(this_layer, sector, side);
 
-        //  std::cout << " *** module hitsetkey " << hitsetkey << " this_hitsetkey " << this_hitsetkey << " this layer " << this_layer << " side " << side << " sector " << sector << std::endl;
+	//   std::cout << " *** module hitsetkey " << hitsetkey << " this_hitsetkey " << this_hitsetkey << " this layer " << this_layer << " side " << side << " sector " << sector << std::endl;
 
         // is this correct??????
         int subsurfkey_min = (1 - side) * 144 + (144 - sector * 12) - 12 - 6;
@@ -643,26 +643,24 @@ void AlignmentTransformation::extractModuleCenterPositions()
 
       for (int isector = 0; isector < 12; ++isector)
       {
-        double sectorphi = sectorPhi[iside][iregion];
+        double sectorphi = sectorPhi[iside][isector];
 
         TrkrDefs::hitsetkey hitsetkey_in = TpcDefs::genHitSetKey(lin, isector, iside);
-        if (localVerbosity)
-        {
-          std::cout << "  hitsetkey_in " << hitsetkey_in << " lin " << lin << " sector " << isector << " side " << iside << " region " << iregion << std::endl;
-        }
-        double surf_rad_in = extractModuleCenter(hitsetkey_in, sectorphi);
+	double surf_rad_in = extractModuleCenter(hitsetkey_in, sectorphi);
 
         TrkrDefs::hitsetkey hitsetkey_out = TpcDefs::genHitSetKey(lout, isector, iside);
-        double surf_rad_out = extractModuleCenter(hitsetkey_out, sectorphi);
+	double surf_rad_out = extractModuleCenter(hitsetkey_out, sectorphi);
+	
         double mod_radius = (surf_rad_in + surf_rad_out) / 2.0;
-
         TpcModuleRadii[iside][isector][iregion] = mod_radius;
 
-        if (localVerbosity)
-        {
-          std::cout << "  hitsetkey_out " << hitsetkey_out << " lout " << lout << " sector " << isector << " side " << iside
-                    << " region " << iregion << " module radius " << mod_radius << std::endl;
-        }
+	if (localVerbosity)
+	  {
+          std::cout << "  hitsetkey_in " << hitsetkey_in << " lin " << lin << " sector " << isector << " side " << iside << " region " << iregion << std::endl;
+	  std::cout << "  hitsetkey_out " << hitsetkey_out << " lout " << lout << " sector " << isector << " side " << iside  << " region " << iregion << std::endl;
+	  std::cout << "          module radius " << mod_radius << std::endl;
+	  }
+
       }
     }
   }
@@ -670,7 +668,7 @@ void AlignmentTransformation::extractModuleCenterPositions()
 
 double AlignmentTransformation::extractModuleCenter(TrkrDefs::hitsetkey hitsetkey, double sectorphi)
 {
-  // We want the module center position from the ideal geometry
+  // We want the module center position from the ideal geometry in the tpc envelope frame
 
   // the radius and z are not used, only the phi value
   double x = std::cos(sectorphi + 0.01) * 10.0;
@@ -680,7 +678,12 @@ double AlignmentTransformation::extractModuleCenter(TrkrDefs::hitsetkey hitsetke
   Acts::Vector3 world(x, y, z);
   TrkrDefs::subsurfkey subsurfkey = 0;
 
-  Surface surface = m_tGeometry->get_tpc_surface_from_coords(hitsetkey, world, subsurfkey);
+  //   std::cout << "extractModuleCenter: sectorphi " << sectorphi << " world " << world(0) << "  " << world(1) << "  " << world(2) << std::endl;
+    
+  // Note: the "world" position here is in pre-tilt tpc envelope coordinates, not global coordinates
+  // But, get_tpc_surface_from_coords() expects a global position as input, so we convert to world coordinates
+  Acts::Vector3 world_envelope = m_tGeometry->transformTpcEnvelopeToWorld(world);
+  Surface surface = m_tGeometry->get_tpc_surface_from_coords(hitsetkey, world_envelope, subsurfkey);
   if (!surface)
   {
     std::cout << PHWHERE << "Failed to find surface, quit " << std::endl;
@@ -689,7 +692,9 @@ double AlignmentTransformation::extractModuleCenter(TrkrDefs::hitsetkey hitsetke
 
   Eigen::Vector3d surf_center = surface->center(m_tGeometry->geometry().getGeoContext());
   surf_center /= 10.0;  // convert from mm to cm
-  double surf_radius = std::sqrt(surf_center[0] * surf_center[0] + surf_center[1] * surf_center[1]);
+  // convert to tpc envelope coords
+  Acts::Vector3 surf_center_envelope = m_tGeometry->transformTpcWorldToEnvelope(surf_center);
+  double surf_radius = std::sqrt(surf_center_envelope[0] * surf_center_envelope[0] + surf_center_envelope[1] * surf_center_envelope[1]);
 
   return surf_radius;
 }

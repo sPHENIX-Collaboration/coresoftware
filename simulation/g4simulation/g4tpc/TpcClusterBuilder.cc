@@ -330,9 +330,11 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
     }  // end debug printing
 
     // get the global vector3 to then get the surface local phi and z
-    Acts::Vector3 global(clusx, clusy, clusz);
+    Acts::Vector3 global_env(clusx, clusy, clusz);
     TrkrDefs::subsurfkey subsurfkey = 0;
 
+    // get_tpc_surface_from coords and the Acts transform both expect coordinates in world (i.e. tilted TPC) coordinates
+    Acts::Vector3 global =  m_tGeometry->transformTpcEnvelopeToWorld(global_env);
     Surface surface = m_tGeometry->get_tpc_surface_from_coords(
         hitsetkey, global, subsurfkey);
 

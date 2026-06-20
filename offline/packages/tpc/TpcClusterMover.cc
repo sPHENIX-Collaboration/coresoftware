@@ -45,13 +45,16 @@ TpcClusterMover::TpcClusterMover()
   }
 }
 
-void TpcClusterMover::initialize_geometry(PHG4TpcGeomContainer* cellgeo)
+void TpcClusterMover::initialize_geometry(PHG4TpcGeomContainer* cellgeo, ActsGeometry *tGeometry)
 {
   if (_verbosity > 0)
   {
     std::cout << "TpcClusterMover: Initializing layer radii for Tpc from cell geometry object" << std::endl;
   }
 
+  
+  _tGeometry = tGeometry;
+  
   int layer = 0;
   PHG4TpcGeomContainer::ConstRange layerrange = cellgeo->get_begin_end();
   for (PHG4TpcGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -67,8 +70,9 @@ void TpcClusterMover::initialize_geometry(PHG4TpcGeomContainer* cellgeo)
 std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::processTrack(const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_in)
 {
   // Get the global positions of the TPC clusters for this track, already corrected for distortions, and move them to the surfaces
-  // The input object contains all clusters for the track
-
+  // The input object contains all clusters for the track in world coordinates
+  // The surface radii are in envelope coordinates, we transform the positions to envelope coordinates
+  
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_moved;
 
   std::vector<Acts::Vector3> tpc_global_vec;
@@ -80,7 +84,8 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
     if (trkrid == TrkrDefs::tpcId)
     {
       tpc_cluskey_vec.push_back(ckey);
-      tpc_global_vec.push_back(global);
+      Acts::Vector3 env_global = _tGeometry->transformTpcWorldToEnvelope(global);
+      tpc_global_vec.push_back(env_global);
     }
     else
     {
@@ -140,9 +145,9 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
     // now move the cluster to the surface radius
     // we keep the cluster key fixed, change the surface if necessary
 
-    Acts::Vector3 global_new(xnew, ynew, znew);
-
-    // add the new position and surface to the return object
+    Acts::Vector3 env_global_new(xnew, ynew, znew);
+    // now we transform back to global coordinates and add the new position and surface to the return object
+    Acts::Vector3 global_new = _tGeometry->transformTpcEnvelopeToWorld(env_global_new);
     global_moved.emplace_back(cluskey, global_new);
 
     if (_verbosity > 2)

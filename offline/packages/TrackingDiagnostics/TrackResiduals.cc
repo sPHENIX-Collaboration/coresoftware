@@ -115,7 +115,9 @@ int TrackResiduals::InitRun(PHCompositeNode* topNode)
   m_globalPositionWrapper.set_suppressCrossing(m_convertSeeds);
   // clusterMover needs the correct radii of the TPC layers
   auto *tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
-  m_clusterMover.initialize_geometry(tpccellgeo);
+
+  auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  m_clusterMover.initialize_geometry(tpccellgeo, geometry);
   m_clusterMover.set_verbosity(0);
 
   auto *se = Fun4AllServer::instance();
