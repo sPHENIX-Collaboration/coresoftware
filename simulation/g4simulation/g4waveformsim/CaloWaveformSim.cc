@@ -421,10 +421,9 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       {
         m_waveforms.at(i).at(j) += m_fixpedestal;
       }
-      // saturate at 2^14 - 1
-      m_waveforms.at(i).at(j) = std::min<__gnu_cxx::__alloc_traits<class std::allocator<float> >::value_type>(m_waveforms.at(i).at(j), 16383);
-      m_waveforms.at(i).at(j) = std::max<__gnu_cxx::__alloc_traits<class std::allocator<float> >::value_type>(m_waveforms.at(i).at(j), 0);
-
+      // saturate at 2^14 - 1 and make sure values are >= 0
+      auto& sample = m_waveforms.at(i).at(j);
+      sample = std::clamp(sample, 0.F, 16383.F);
       m_CaloWaveformContainer->get_tower_at_channel(i)->set_waveform_value(j, m_waveforms.at(i).at(j));
     }
   }
