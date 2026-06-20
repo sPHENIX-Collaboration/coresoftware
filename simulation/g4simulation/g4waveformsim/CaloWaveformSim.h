@@ -64,20 +64,15 @@ class CaloWaveformSim : public SubsysReco
   void set_MC_fieldname(const std::string &MC_fieldname)
   {
     m_MC_fieldname = MC_fieldname;
-    m_overrideMCFieldName = true;
   }
   void set_MC_calibName(const std::string &MC_calibName)
   {
     m_MC_calibName = MC_calibName;
-    m_overrideMCCalibName = true;
   }
   void set_directURL_MCcalib(const std::string &url)
   {
-    m_giveDirectURL_MC = true;
     m_directURL_MC = url;
   }
-  void set_overrideMCFieldName(bool overrideField) { m_overrideMCFieldName = overrideField; }
-  void set_overrideMCCalibName(bool overrideCalib) { m_overrideMCCalibName = overrideCalib; }
 
   // Time calibration (data)
   void set_fieldname_time(const std::string &fieldname_time)
@@ -165,9 +160,6 @@ class CaloWaveformSim : public SubsysReco
   // MC energy calibration
   std::string m_MC_fieldname;
   std::string m_MC_calibName;
-  bool m_overrideMCFieldName{false};
-  bool m_overrideMCCalibName{false};
-  bool m_giveDirectURL_MC{false};
   std::string m_directURL_MC;
 
   bool m_smear_const{false};

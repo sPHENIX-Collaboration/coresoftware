@@ -138,7 +138,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     {
       if (Verbosity() > 2)
       {
-	std::cout << PHWHERE << Name() << ": using " << m_calibName << " as calib name" << std::endl;
+	std::cout << PHWHERE << Name() << ": replacing calib name with " << m_calibName << std::endl;
       }
     }
     m_directURL = CDBInterface::instance()->getUrl(m_calibName);
@@ -147,7 +147,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   {
     if (Verbosity() > 2)
     {
-      std::cout << PHWHERE << Name() << ": using " << m_directURL << " as cdb file" << std::endl;
+      std::cout << PHWHERE << Name() << ": using " << m_directURL << " as direct cdb file" << std::endl;
     }
   }
   if (!m_directURL.empty())
@@ -168,29 +168,56 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   {
     if (Verbosity() > 2)
     {
-      std::cout << PHWHERE << Name() << ": using " << m_fieldname << " as fieldname" << std::endl;
+      std::cout << PHWHERE << Name() << ": replacing fieldname with " << m_fieldname << std::endl;
     }
   }
 
   // MC energy calibration (optional)
-  if (!m_overrideMCCalibName)
+  if (m_directURL_MC.empty())
+  {
+  if (m_MC_calibName.empty())
   {
     m_MC_calibName = m_detector + "_MC_RECALIB";
   }
-  if (!m_overrideMCFieldName)
-  {
-    m_MC_fieldname = m_detector + "_calib_ADC_to_ETower";
+    else
+    {
+      if (Verbosity() > 2)
+      {
+	std::cout << PHWHERE << Name() << ": replacing MC calib name with " << m_MC_calibName  << std::endl;
+      }
+    }
+  std::cout << PHWHERE << Name() << ": m_MC_calibName: " << m_MC_calibName
+	    << ", m_MC_fieldname: " << m_MC_fieldname << std::endl;
+  m_directURL_MC = CDBInterface::instance()->getUrl(m_MC_calibName);
   }
-  std::string url = m_giveDirectURL_MC ? m_directURL_MC : CDBInterface::instance()->getUrl(m_MC_calibName);
-  if (!url.empty())
+  else
   {
-    cdbttree_MC = new CDBTTree(url);
+    if (Verbosity() > 2)
+    {
+      std::cout << PHWHERE << Name() << ": using " << m_directURL_MC << " as direct MC cdb file" << std::endl;
+    }
+  }
+  if (!m_directURL_MC.empty())
+  {
+    cdbttree_MC = new CDBTTree(m_directURL_MC);
   }
   else if (Verbosity() > 0)
   {
     std::cout << "CaloWaveformSim::InitRun No MC calibration for " << m_MC_calibName << std::endl;
   }
 
+  if (m_MC_fieldname.empty())
+  {
+    m_MC_fieldname = m_detector + "_calib_ADC_to_ETower";
+  }
+  else
+  {
+    if (Verbosity() > 2)
+    {
+      std::cout << PHWHERE << Name() << ": using " << m_MC_fieldname << " as MC fieldname" << std::endl;
+    }
+  }
+  std::string url;
   // Time calibration (data)
   if (!m_overrideTimeCalibName)
   {
