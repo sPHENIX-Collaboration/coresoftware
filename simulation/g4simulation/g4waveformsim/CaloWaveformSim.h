@@ -17,7 +17,6 @@
 
 #include <g4detectors/LightCollectionModel.h>
 
-#include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 
 #include <string>
@@ -28,7 +27,6 @@ class TProfile;
 class PHG4Hit;
 class PHG4CylinderCellGeom_Spacalv1;
 class PHG4CylinderGeom_Spacalv3;
-class TTree;
 class CDBTTree;
 class TowerInfoContainer;
 
@@ -77,7 +75,6 @@ class CaloWaveformSim : public SubsysReco
   void set_fieldname_time(const std::string &fieldname_time)
   {
     m_fieldname_time = fieldname_time;
-    m_overrideTimeFieldName = true;
   }
   void set_calibName_time(const std::string &calibName_time)
   {
@@ -85,7 +82,6 @@ class CaloWaveformSim : public SubsysReco
   }
   void set_directURL_timecalib(const std::string &url)
   {
-    m_giveDirectURL_time = true;
     m_directURL_time = url;
   }
   void set_dotimecalib(bool dotimecalib) { m_dotimecalib = dotimecalib; }
@@ -151,7 +147,22 @@ class CaloWaveformSim : public SubsysReco
   unsigned int (*encode_tower)(unsigned int, unsigned int){TowerInfoDefs::encode_emcal};
   unsigned int (*decode_tower)(unsigned int){TowerInfoDefs::decode_emcal};
 
+  // containers
+  TowerInfoContainer *m_CaloWaveformContainer{nullptr};
+  TowerInfoContainer *m_PedestalContainer{nullptr};
+
+  CDBTTree *cdbttree{nullptr};
+  CDBTTree *cdbttree_MC{nullptr};
+  CDBTTree *cdbttree_time{nullptr};
+  CDBTTree *cdbttree_MC_time{nullptr};
+  TProfile *h_template{nullptr};
+
+  gsl_rng *m_RandomGenerator{nullptr};
+  PHG4CylinderCellGeom_Spacalv1 *geo{nullptr};
+  const PHG4CylinderGeom_Spacalv3 *layergeom{nullptr};
+
   CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
+
   std::string m_detector;
 
   // Data energy calibration
@@ -170,14 +181,13 @@ class CaloWaveformSim : public SubsysReco
   // Data time calibration
   std::string m_fieldname_time{"time"};
   std::string m_calibName_time;
-  bool m_overrideTimeFieldName{false};
-  bool m_dotimecalib{true};
-  bool m_giveDirectURL_time{false};
   std::string m_directURL_time;
   // MC time calibration
   std::string m_MC_fieldname_time{"time"};
   std::string m_MC_calibName_time;
   std::string m_directURL_MC_time;
+
+  bool m_dotimecalib{true};
 
   // Waveform settings
   std::string m_templatefile{"waveformtemptempohcalcosmic.root"};
@@ -186,10 +196,6 @@ class CaloWaveformSim : public SubsysReco
   float m_sampletime{50. / 3.};
   int m_nchannels{24576};
   float m_sampling_fraction{1.0f};
-
-  // containers
-  TowerInfoContainer *m_CaloWaveformContainer{nullptr};
-  TowerInfoContainer *m_PedestalContainer{nullptr};
 
   // Shaping & noise
   int m_fixpedestal{1500};
@@ -201,17 +207,9 @@ class CaloWaveformSim : public SubsysReco
   float m_peakpos{6.};
   float m_pedestal_scale{1.};
 
-  gsl_rng *m_RandomGenerator{nullptr};
-  PHG4CylinderCellGeom_Spacalv1 *geo{nullptr};
-  const PHG4CylinderGeom_Spacalv3 *layergeom{nullptr};
   std::vector<std::vector<float>> m_waveforms;
   int m_runNumber{0};
 
-  CDBTTree *cdbttree{nullptr};
-  CDBTTree *cdbttree_MC{nullptr};
-  CDBTTree *cdbttree_time{nullptr};
-  CDBTTree *cdbttree_MC_time{nullptr};
-  TProfile *h_template{nullptr};
   LightCollectionModel light_collection_model;
 
   NoiseType m_noiseType{NOISE_TREE};

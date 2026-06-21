@@ -6,39 +6,43 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4HitDefs.h>  // for hit_idbits
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4TruthInfoContainer.h>
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
 #include <ffamodules/CDBInterface.h>
 
-#include <ffaobjects/EventHeader.h>
-
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 #include <phool/recoConsts.h>
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerSimv2.h>
 
+#include <caloreco/CaloTowerDefs.h>
+
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom_Spacalv1.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4CylinderGeom_Spacalv1.h>  // for PHG4CylinderGeom_Spaca...
 #include <g4detectors/PHG4CylinderGeom_Spacalv3.h>
 
 #include <TF1.h>
 #include <TFile.h>
 #include <TProfile.h>
 #include <TSystem.h>
-#include <TTree.h>
+
+#include <gsl/gsl_randist.h>
+
 #include <algorithm>
 #include <cassert>
-#include <sstream>
-#include <string>
+#include <cstdlib>
+#include <cmath>
+#include <iostream>
+#include <map>
 
 double CaloWaveformSim::template_function(double *x, double *par)
 {
