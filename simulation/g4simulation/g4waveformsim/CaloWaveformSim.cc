@@ -58,6 +58,11 @@ CaloWaveformSim::CaloWaveformSim(const std::string &name)
 CaloWaveformSim::~CaloWaveformSim()
 {
   gsl_rng_free(m_RandomGenerator);
+  delete cdbttree;
+  delete cdbttree_MC;
+  delete cdbttree_time;
+  delete cdbttree_MC_time;
+  delete h_template;
 }
 
 int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
@@ -78,6 +83,12 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   TFile *ft = TFile::Open(templatefilename.c_str());
   assert(ft && ft->IsOpen());
   ft->GetObject("hpwaveform", h_template);
+  if (!h_template)
+  {
+    std::cout << "Could not get hpwaveform TProfile from " << templatefilename << std::endl;
+    gSystem->Exit(1);
+  }
+  h_template->SetDirectory(nullptr);
 
   m_runNumber = recoConsts::instance()->get_IntFlag("RUNNUMBER");
   if (Verbosity() > 0)
@@ -102,7 +113,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     m_sampling_fraction = 0.162166;
     m_nchannels = 1536;
   }
-  else  // HCALOUT
+  else  if (m_dettype == CaloTowerDefs::HCALOUT)
   {
     m_detector = "HCALOUT";
     encode_tower = TowerInfoDefs::encode_hcal;
@@ -110,7 +121,11 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     m_sampling_fraction = 3.38021e-02;
     m_nchannels = 1536;
   }
-
+  else
+  {
+    std::cout << PHWHERE << " Invalid detector type " << m_dettype << ", must call set_dettype() first" << std::endl;
+    exit(1);
+  }
   // Gain settings
   // nobody understands this construct, please keep in mind that other
   // people have to read this and figure out what it does
