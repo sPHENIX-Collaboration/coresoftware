@@ -10,12 +10,15 @@
 #ifndef G4WAVEFORMSIM_CALOWAVEFORMSIM_H
 #define G4WAVEFORMSIM_CALOWAVEFORMSIM_H
 
+#include <fun4all/SubsysReco.h>
+
 #include <calobase/TowerInfoDefs.h>
 #include <caloreco/CaloTowerDefs.h>
-#include <fun4all/SubsysReco.h>
+
 #include <g4detectors/LightCollectionModel.h>
-#include <gsl/gsl_randist.h>
+
 #include <gsl/gsl_rng.h>
+
 #include <string>
 #include <vector>
 
@@ -24,7 +27,6 @@ class TProfile;
 class PHG4Hit;
 class PHG4CylinderCellGeom_Spacalv1;
 class PHG4CylinderGeom_Spacalv3;
-class TTree;
 class CDBTTree;
 class TowerInfoContainer;
 
@@ -36,7 +38,6 @@ class CaloWaveformSim : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
   // Detector configuration
   void set_detector_type(CaloTowerDefs::DetectorSystem dettype) { m_dettype = dettype; }
@@ -46,74 +47,56 @@ class CaloWaveformSim : public SubsysReco
   void set_fieldname(const std::string &fieldname)
   {
     m_fieldname = fieldname;
-    m_overrideFieldName = true;
   }
   void set_calibName(const std::string &calibName)
   {
     m_calibName = calibName;
-    m_overrideCalibName = true;
   }
   void set_directURL_calib(const std::string &url)
   {
-    m_giveDirectURL = true;
     m_directURL = url;
   }
-  void set_overrideCalibName(bool overrideCalib) { m_overrideCalibName = overrideCalib; }
-  void set_overrideFieldName(bool overrideField) { m_overrideFieldName = overrideField; }
 
   // Calibration settings (MC energy)
   void set_MC_fieldname(const std::string &MC_fieldname)
   {
     m_MC_fieldname = MC_fieldname;
-    m_overrideMCFieldName = true;
   }
   void set_MC_calibName(const std::string &MC_calibName)
   {
     m_MC_calibName = MC_calibName;
-    m_overrideMCCalibName = true;
   }
   void set_directURL_MCcalib(const std::string &url)
   {
-    m_giveDirectURL_MC = true;
     m_directURL_MC = url;
   }
-  void set_overrideMCFieldName(bool overrideField) { m_overrideMCFieldName = overrideField; }
-  void set_overrideMCCalibName(bool overrideCalib) { m_overrideMCCalibName = overrideCalib; }
 
   // Time calibration (data)
   void set_fieldname_time(const std::string &fieldname_time)
   {
     m_fieldname_time = fieldname_time;
-    m_overrideTimeFieldName = true;
   }
   void set_calibName_time(const std::string &calibName_time)
   {
     m_calibName_time = calibName_time;
-    m_overrideTimeCalibName = true;
   }
   void set_directURL_timecalib(const std::string &url)
   {
-    m_giveDirectURL_time = true;
     m_directURL_time = url;
   }
   void set_dotimecalib(bool dotimecalib) { m_dotimecalib = dotimecalib; }
-  void set_overrideTimeFieldName(bool overrideField) { m_overrideTimeFieldName = overrideField; }
-  void set_overrideTimeCalibName(bool overrideCalib) { m_overrideTimeCalibName = overrideCalib; }
 
   // Time calibration (MC)
   void set_MC_fieldname_time(const std::string &MC_fieldname_time)
   {
     m_MC_fieldname_time = MC_fieldname_time;
-    m_overrideMCTimeFieldName = true;
   }
   void set_MC_calibName_time(const std::string &MC_calibName_time)
   {
     m_MC_calibName_time = MC_calibName_time;
-    m_overrideMCTimeCalibName = true;
   }
   void set_directURL_MCtimecalib(const std::string &url)
   {
-    m_giveDirectURL_MC_time = true;
     m_directURL_MC_time = url;
   }
   void set_smear_const(float val)
@@ -121,8 +104,6 @@ class CaloWaveformSim : public SubsysReco
     m_smear_const = true;
     factor_const = val;
   }
-  void set_overrideMCTimeFieldName(bool overrideField) { m_overrideMCTimeFieldName = overrideField; }
-  void set_overrideMCTimeCalibName(bool overrideCalib) { m_overrideMCTimeCalibName = overrideCalib; }
 
   // Waveform template & sampling
   void set_templatefile(const std::string &templatefile) { m_templatefile = templatefile; }
@@ -155,42 +136,58 @@ class CaloWaveformSim : public SubsysReco
   LightCollectionModel &get_light_collection_model() { return light_collection_model; }
 
  private:
-  CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::CEMC};
-  std::string m_detector{"CEMC"};
+  void CreateNodeTree(PHCompositeNode *topNode);
+  void maphitetaphi(PHG4Hit *g4hit,
+                    unsigned short &etabin,
+                    unsigned short &phibin,
+                    float &correction);
+  double template_function(double *x, double *par);
+
+  // function pointers for use different decoders for hcals and cemc
+  unsigned int (*encode_tower)(unsigned int, unsigned int){TowerInfoDefs::encode_emcal};
+  unsigned int (*decode_tower)(unsigned int){TowerInfoDefs::decode_emcal};
+
+  // containers
+  TowerInfoContainer *m_CaloWaveformContainer{nullptr};
+  TowerInfoContainer *m_PedestalContainer{nullptr};
+
+  CDBTTree *cdbttree{nullptr};
+  CDBTTree *cdbttree_MC{nullptr};
+  CDBTTree *cdbttree_time{nullptr};
+  CDBTTree *cdbttree_MC_time{nullptr};
+  TProfile *h_template{nullptr};
+
+  gsl_rng *m_RandomGenerator{nullptr};
+  PHG4CylinderCellGeom_Spacalv1 *geo{nullptr};
+  const PHG4CylinderGeom_Spacalv3 *layergeom{nullptr};
+
+  CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
+
+  std::string m_detector;
 
   // Data energy calibration
-  std::string m_fieldname{"Femc_datadriven_qm1_correction"};
-  std::string m_calibName{"cemc_pi0_twrSlope_v1"};
-  bool m_overrideCalibName{false};
-  bool m_overrideFieldName{false};
-  bool m_giveDirectURL{false};
-  std::string m_directURL{""};
+  std::string m_fieldname;
+  std::string m_calibName;
+  std::string m_directURL;
+
   // MC energy calibration
-  std::string m_MC_fieldname{"Femc_datadriven_qm1_correction"};
-  std::string m_MC_calibName{"cemc_pi0_twrSlope_v1"};
-  bool m_overrideMCFieldName{false};
-  bool m_overrideMCCalibName{false};
-  bool m_giveDirectURL_MC{false};
-  std::string m_directURL_MC{""};
+  std::string m_MC_fieldname;
+  std::string m_MC_calibName;
+  std::string m_directURL_MC;
 
   bool m_smear_const{false};
   float factor_const{0.};
 
   // Data time calibration
   std::string m_fieldname_time{"time"};
-  std::string m_calibName_time{"CEMC_meanTime"};
-  bool m_overrideTimeFieldName{false};
-  bool m_overrideTimeCalibName{false};
-  bool m_dotimecalib{true};
-  bool m_giveDirectURL_time{false};
-  std::string m_directURL_time{""};
+  std::string m_calibName_time;
+  std::string m_directURL_time;
   // MC time calibration
   std::string m_MC_fieldname_time{"time"};
-  std::string m_MC_calibName_time{"CEMC_meanTime"};
-  bool m_overrideMCTimeFieldName{false};
-  bool m_overrideMCTimeCalibName{false};
-  bool m_giveDirectURL_MC_time{false};
-  std::string m_directURL_MC_time{""};
+  std::string m_MC_calibName_time;
+  std::string m_directURL_MC_time;
+
+  bool m_dotimecalib{true};
 
   // Waveform settings
   std::string m_templatefile{"waveformtemptempohcalcosmic.root"};
@@ -199,10 +196,6 @@ class CaloWaveformSim : public SubsysReco
   float m_sampletime{50. / 3.};
   int m_nchannels{24576};
   float m_sampling_fraction{1.0f};
-
-  // containers
-  TowerInfoContainer *m_CaloWaveformContainer{nullptr};
-  TowerInfoContainer *m_PedestalContainer{nullptr};
 
   // Shaping & noise
   int m_fixpedestal{1500};
@@ -214,28 +207,12 @@ class CaloWaveformSim : public SubsysReco
   float m_peakpos{6.};
   float m_pedestal_scale{1.};
 
-  gsl_rng *m_RandomGenerator{nullptr};
-  PHG4CylinderCellGeom_Spacalv1 *geo{nullptr};
-  const PHG4CylinderGeom_Spacalv3 *layergeom{nullptr};
   std::vector<std::vector<float>> m_waveforms;
   int m_runNumber{0};
 
-  unsigned int (*encode_tower)(unsigned int, unsigned int){TowerInfoDefs::encode_emcal};
-  unsigned int (*decode_tower)(unsigned int){TowerInfoDefs::decode_emcal};
-
-  CDBTTree *cdbttree{nullptr}, *cdbttree_MC{nullptr};
-  CDBTTree *cdbttree_time{nullptr}, *cdbttree_MC_time{nullptr};
-  TProfile *h_template{nullptr};
   LightCollectionModel light_collection_model;
 
   NoiseType m_noiseType{NOISE_TREE};
-
-  void CreateNodeTree(PHCompositeNode *topNode);
-  void maphitetaphi(PHG4Hit *g4hit,
-                    unsigned short &etabin,
-                    unsigned short &phibin,
-                    float &correction);
-  double template_function(double *x, double *par);
 };
 
 #endif  // G4WAVEFORMSIM_CALOWAVEFORMSIM_H

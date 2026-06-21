@@ -6,38 +6,43 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4HitDefs.h>  // for hit_idbits
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4TruthInfoContainer.h>
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
 #include <ffamodules/CDBInterface.h>
 
-#include <ffaobjects/EventHeader.h>
-
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
+#include <phool/recoConsts.h>
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerSimv2.h>
 
+#include <caloreco/CaloTowerDefs.h>
+
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom_Spacalv1.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4CylinderGeom_Spacalv1.h>  // for PHG4CylinderGeom_Spaca...
 #include <g4detectors/PHG4CylinderGeom_Spacalv3.h>
 
 #include <TF1.h>
 #include <TFile.h>
 #include <TProfile.h>
 #include <TSystem.h>
-#include <TTree.h>
+
+#include <gsl/gsl_randist.h>
+
 #include <algorithm>
 #include <cassert>
-#include <sstream>
-#include <string>
+#include <cstdlib>
+#include <cmath>
+#include <iostream>
+#include <map>
 
 double CaloWaveformSim::template_function(double *x, double *par)
 {
@@ -53,6 +58,11 @@ CaloWaveformSim::CaloWaveformSim(const std::string &name)
 CaloWaveformSim::~CaloWaveformSim()
 {
   gsl_rng_free(m_RandomGenerator);
+  delete cdbttree;
+  delete cdbttree_MC;
+  delete cdbttree_time;
+  delete cdbttree_MC_time;
+  delete h_template;
 }
 
 int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
@@ -66,24 +76,27 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   const char *calibroot = getenv("CALIBRATIONROOT");
   if (!calibroot)
   {
-    std::cerr << "CaloWaveformSim::InitRun missing CALIBRATIONROOT" << std::endl;
+    std::cout << "CaloWaveformSim::InitRun missing CALIBRATIONROOT" << std::endl;
     exit(1);
   }
   std::string templatefilename = std::string(calibroot) + "/CaloWaveSim/" + m_templatefile;
   TFile *ft = TFile::Open(templatefilename.c_str());
   assert(ft && ft->IsOpen());
-  h_template = static_cast<TProfile *>(ft->Get("hpwaveform"));
+  ft->GetObject("hpwaveform", h_template);
+  if (!h_template)
+  {
+    std::cout << "Could not get hpwaveform TProfile from " << templatefilename << std::endl;
+    gSystem->Exit(1);
+  }
+  h_template->SetDirectory(nullptr);
 
-  // Determine run number
-  EventHeader *evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
-  m_runNumber = evtHeader ? evtHeader->get_RunNumber() : -1;
+  m_runNumber = recoConsts::instance()->get_IntFlag("RUNNUMBER");
   if (Verbosity() > 0)
   {
     std::cout << "CaloWaveformSim::InitRun Run Number: " << m_runNumber << std::endl;
   }
 
   // Detector-specific setup
-  std::string url;
   if (m_dettype == CaloTowerDefs::CEMC)
   {
     m_detector = "CEMC";
@@ -100,7 +113,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     m_sampling_fraction = 0.162166;
     m_nchannels = 1536;
   }
-  else  // HCALOUT
+  else  if (m_dettype == CaloTowerDefs::HCALOUT)
   {
     m_detector = "HCALOUT";
     encode_tower = TowerInfoDefs::encode_hcal;
@@ -108,7 +121,11 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     m_sampling_fraction = 3.38021e-02;
     m_nchannels = 1536;
   }
-
+  else
+  {
+    std::cout << PHWHERE << " Invalid detector type " << m_dettype << ", must call set_dettype() first" << std::endl;
+    exit(1);
+  }
   // Gain settings
   // nobody understands this construct, please keep in mind that other
   // people have to read this and figure out what it does
@@ -128,92 +145,146 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   }
 
   // Data energy calibration
-  if (!m_overrideCalibName)
+  // First check if the url is overridden in the macro (default is empty)
+  // Then check if the calibration name is overridden in the macro (default is empty)
+  if (m_directURL.empty())
   {
-    m_calibName = m_detector + "_calib_ADC_to_ETower";
-  }
-  if (!m_overrideFieldName)
-  {
-    m_fieldname = m_detector + "_calib_ADC_to_ETower";
-  }
-  url = m_giveDirectURL ? m_directURL : CDBInterface::instance()->getUrl(m_calibName);
-  if (!url.empty())
-  {
-    cdbttree = new CDBTTree(url);
+    if (m_calibName.empty())
+    {
+      m_calibName = m_detector + "_calib_ADC_to_ETower";
+    }
+    else
+    {
+      if (Verbosity() > 2)
+      {
+        std::cout << PHWHERE << Name() << ": replacing calib name with " << m_calibName << std::endl;
+      }
+    }
+    m_directURL = CDBInterface::instance()->getUrl(m_calibName);
   }
   else
   {
-    std::cerr << "CaloWaveformSim::InitRun No data calibration for " << m_calibName << std::endl;
+    if (Verbosity() > 2)
+    {
+      std::cout << PHWHERE << Name() << ": using " << m_directURL << " as direct cdb file" << std::endl;
+    }
+  }
+  if (!m_directURL.empty())
+  {
+    cdbttree = new CDBTTree(m_directURL);
+  }
+  else
+  {
+    std::cout << Name() << ": CaloWaveformSim::InitRun No data calibration for " << m_calibName << std::endl;
     exit(1);
+  }
+  // check if the fieldname was overridden in the macro (default is empty), otherwise set it
+  if (m_fieldname.empty())
+  {
+    m_fieldname = m_detector + "_calib_ADC_to_ETower";
+  }
+  else
+  {
+    if (Verbosity() > 2)
+    {
+      std::cout << PHWHERE << Name() << ": replacing fieldname with " << m_fieldname << std::endl;
+    }
   }
 
   // MC energy calibration (optional)
-  if (!m_overrideMCCalibName)
+  if (m_directURL_MC.empty())
   {
-    m_MC_calibName = m_detector + "_MC_RECALIB";
+    if (m_MC_calibName.empty())
+    {
+      m_MC_calibName = m_detector + "_MC_RECALIB";
+    }
+    else
+    {
+      if (Verbosity() > 2)
+      {
+        std::cout << PHWHERE << Name() << ": replacing MC calib name with " << m_MC_calibName << std::endl;
+      }
+    }
+    m_directURL_MC = CDBInterface::instance()->getUrl(m_MC_calibName);
   }
-  if (!m_overrideMCFieldName)
+  else
   {
-    m_MC_fieldname = m_detector + "_calib_ADC_to_ETower";
+    if (Verbosity() > 2)
+    {
+      std::cout << PHWHERE << Name() << ": using " << m_directURL_MC << " as direct MC cdb file" << std::endl;
+    }
   }
-  url = m_giveDirectURL_MC ? m_directURL_MC : CDBInterface::instance()->getUrl(m_MC_calibName);
-  if (!url.empty())
+  if (!m_directURL_MC.empty())
   {
-    cdbttree_MC = new CDBTTree(url);
+    cdbttree_MC = new CDBTTree(m_directURL_MC);
   }
   else if (Verbosity() > 0)
   {
     std::cout << "CaloWaveformSim::InitRun No MC calibration for " << m_MC_calibName << std::endl;
   }
 
-  // Time calibration (data)
-  if (!m_overrideTimeCalibName)
+  if (m_MC_fieldname.empty())
   {
-    m_calibName_time = m_detector + "_meanTime";
-  }
-  if (m_giveDirectURL_time)
-  {
-    url = m_directURL_time;
+    m_MC_fieldname = m_detector + "_calib_ADC_to_ETower";
   }
   else
   {
-    url = CDBInterface::instance()->getUrl(m_calibName_time);
-    if (url.empty())
+    if (Verbosity() > 2)
     {
-      if (m_dotimecalib)
-      {
-        std::cerr << "CaloWaveformSim::InitRun No time calibration for " << m_calibName_time << std::endl;
-        exit(1);
-      }
+      std::cout << PHWHERE << Name() << ": using " << m_MC_fieldname << " as MC fieldname" << std::endl;
     }
-  }
-  if (m_dotimecalib)
-  {
-    cdbttree_time = new CDBTTree(url);
-  }
-  if (Verbosity() > 0 && m_dotimecalib)
-  {
-    std::cout << "CaloWaveformSim::InitRun Time calibration from " << url << std::endl;
   }
 
-  // Time calibration (MC)
-  if (!m_overrideMCTimeCalibName)
+  // Time calibration (data)
+  if (m_dotimecalib)
   {
-    m_MC_calibName_time = m_detector + "_MC_meanTime";
-  }
-  if (m_giveDirectURL_MC_time)
-  {
-    url = m_directURL_MC_time;
-    cdbttree_MC_time = new CDBTTree(url);
-  }
-  else
-  {
-    url = CDBInterface::instance()->getUrl(m_MC_calibName_time);
-    if (!url.empty())
+    if (m_directURL_time.empty())
     {
-      cdbttree_MC_time = new CDBTTree(url);
+      if (m_calibName_time.empty())
+      {
+        m_calibName_time = m_detector + "_meanTime";
+      }
+      else
+      {
+        if (Verbosity() > 2)
+        {
+          std::cout << PHWHERE << Name() << ": replacing calib name with " << m_calibName << std::endl;
+        }
+      }
+      m_directURL_time = CDBInterface::instance()->getUrl(m_calibName_time);
     }
-    else if (m_dotimecalib)
+    else
+    {
+      if (Verbosity() > 2)
+      {
+        std::cout << PHWHERE << Name() << ": using " << m_directURL_time << " as direct time cdb file" << std::endl;
+      }
+    }
+    if (m_directURL_time.empty())
+    {
+      std::cout << "CaloWaveformSim::InitRun No time calibration for " << m_calibName_time << std::endl;
+      exit(1);
+    }
+
+    cdbttree_time = new CDBTTree(m_directURL_time);
+    if (Verbosity() > 0 && m_dotimecalib)
+    {
+      std::cout << "CaloWaveformSim::InitRun Time calibration from " << m_directURL_time << std::endl;
+    }
+    // Time calibration (MC)
+    if (m_directURL_MC_time.empty())
+    {
+      if (m_MC_calibName_time.empty())
+      {
+        m_MC_calibName_time = m_detector + "_MC_meanTime";
+      }
+      m_directURL_MC_time = CDBInterface::instance()->getUrl(m_MC_calibName_time);
+    }
+    if (!m_directURL_MC_time.empty())
+    {
+      cdbttree_MC_time = new CDBTTree(m_directURL_MC_time);
+    }
+    else
     {
       std::cerr << "CaloWaveformSim::InitRun No MC time calibration for " << m_MC_calibName_time << std::endl;
       exit(1);
@@ -294,8 +365,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
-  std::map<unsigned int,float> tbt_smear;
-
+  std::map<unsigned int, float> tbt_smear;
 
   // loop over hits
   for (PHG4HitContainer::ConstIterator hititer = hits->getHits().first; hititer != hits->getHits().second; hititer++)
@@ -321,13 +391,13 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     {
       auto it = tbt_smear.find(key);
 
-      if(it != tbt_smear.end())
+      if (it != tbt_smear.end())
       {
         e_vis *= it->second;
       }
       else
       {
-        tbt_smear[key] =  1.0+ gsl_ran_gaussian(m_RandomGenerator,factor_const);
+        tbt_smear[key] = 1.0 + gsl_ran_gaussian(m_RandomGenerator, factor_const);
         e_vis *= tbt_smear[key];
       }
     }
@@ -353,7 +423,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     float t0 = hit->get_t(0) / m_sampletime;
     unsigned int tower_index = decode_tower(key);
     // here I will add the truth matching part
-    //  for the cell reco, the truth matching info relys on edep not light yield, I will be consistent here :)
+    //  for the cell reco, the truth matching info relies on edep not light yield, I will be consistent here :)
     TowerInfo *tower = m_CaloWaveformContainer->get_tower_at_channel(tower_index);
     TowerInfo::EdepMap &edepMap = tower->get_hitEdepMap();
     TowerInfo::ShowerEdepMap &showerMap = tower->get_showerEdepMap();
@@ -421,10 +491,9 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       {
         m_waveforms.at(i).at(j) += m_fixpedestal;
       }
-      // saturate at 2^14 - 1
-      m_waveforms.at(i).at(j) = std::min<__gnu_cxx::__alloc_traits<class std::allocator<float> >::value_type>(m_waveforms.at(i).at(j), 16383);
-      m_waveforms.at(i).at(j) = std::max<__gnu_cxx::__alloc_traits<class std::allocator<float> >::value_type>(m_waveforms.at(i).at(j), 0);
-
+      // saturate at 2^14 - 1 and make sure values are >= 0
+      auto &sample = m_waveforms.at(i).at(j);
+      sample = std::clamp(sample, 0.F, 16383.F);
       m_CaloWaveformContainer->get_tower_at_channel(i)->set_waveform_value(j, m_waveforms.at(i).at(j));
     }
   }
@@ -492,13 +561,6 @@ void CaloWaveformSim::maphitetaphi(PHG4Hit *g4hit, unsigned short &etabin, unsig
     gSystem->Exit(1);
     exit(1);
   }
-}
-
-//____________________________________________________________________________..
-int CaloWaveformSim::End(PHCompositeNode * /*topNode*/)
-{
-  std::cout << "CaloWaveformSim::End(PHCompositeNode *topNode) This is the End..." << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void CaloWaveformSim::CreateNodeTree(PHCompositeNode *topNode)

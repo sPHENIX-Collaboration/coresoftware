@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -20,15 +20,12 @@ libCaloWaveformSim_la_SOURCES = \
   CaloWaveformSim.cc
 
 libCaloWaveformSim_la_LIBADD = \
-  -lphool \
-  -lSubsysReco \
-  -lcalo_io \
-  -lfun4all \
-  -lg4detectors \
-  -lg4detectors_io \
   -lcalo_io \
   -lcdbobjects \
-  -lphg4hit
+  -lg4detectors \
+  -lg4detectors_io \
+  -lphg4hit \
+  -lSubsysReco
 
 BUILT_SOURCES = testexternals.cc
 
