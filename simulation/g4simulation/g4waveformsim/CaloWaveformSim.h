@@ -40,7 +40,6 @@ class CaloWaveformSim : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
   // Detector configuration
   void set_detector_type(CaloTowerDefs::DetectorSystem dettype) { m_dettype = dettype; }
@@ -83,7 +82,6 @@ class CaloWaveformSim : public SubsysReco
   void set_calibName_time(const std::string &calibName_time)
   {
     m_calibName_time = calibName_time;
-    m_overrideTimeCalibName = true;
   }
   void set_directURL_timecalib(const std::string &url)
   {
@@ -91,23 +89,18 @@ class CaloWaveformSim : public SubsysReco
     m_directURL_time = url;
   }
   void set_dotimecalib(bool dotimecalib) { m_dotimecalib = dotimecalib; }
-  void set_overrideTimeFieldName(bool overrideField) { m_overrideTimeFieldName = overrideField; }
-  void set_overrideTimeCalibName(bool overrideCalib) { m_overrideTimeCalibName = overrideCalib; }
 
   // Time calibration (MC)
   void set_MC_fieldname_time(const std::string &MC_fieldname_time)
   {
     m_MC_fieldname_time = MC_fieldname_time;
-    m_overrideMCTimeFieldName = true;
   }
   void set_MC_calibName_time(const std::string &MC_calibName_time)
   {
     m_MC_calibName_time = MC_calibName_time;
-    m_overrideMCTimeCalibName = true;
   }
   void set_directURL_MCtimecalib(const std::string &url)
   {
-    m_giveDirectURL_MC_time = true;
     m_directURL_MC_time = url;
   }
   void set_smear_const(float val)
@@ -115,8 +108,6 @@ class CaloWaveformSim : public SubsysReco
     m_smear_const = true;
     factor_const = val;
   }
-  void set_overrideMCTimeFieldName(bool overrideField) { m_overrideMCTimeFieldName = overrideField; }
-  void set_overrideMCTimeCalibName(bool overrideCalib) { m_overrideMCTimeCalibName = overrideCalib; }
 
   // Waveform template & sampling
   void set_templatefile(const std::string &templatefile) { m_templatefile = templatefile; }
@@ -149,6 +140,17 @@ class CaloWaveformSim : public SubsysReco
   LightCollectionModel &get_light_collection_model() { return light_collection_model; }
 
  private:
+  void CreateNodeTree(PHCompositeNode *topNode);
+  void maphitetaphi(PHG4Hit *g4hit,
+                    unsigned short &etabin,
+                    unsigned short &phibin,
+                    float &correction);
+  double template_function(double *x, double *par);
+
+  // function pointers for use different decoders for hcals and cemc
+  unsigned int (*encode_tower)(unsigned int, unsigned int){TowerInfoDefs::encode_emcal};
+  unsigned int (*decode_tower)(unsigned int){TowerInfoDefs::decode_emcal};
+
   CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
   std::string m_detector;
 
@@ -167,18 +169,14 @@ class CaloWaveformSim : public SubsysReco
 
   // Data time calibration
   std::string m_fieldname_time{"time"};
-  std::string m_calibName_time{"CEMC_meanTime"};
+  std::string m_calibName_time;
   bool m_overrideTimeFieldName{false};
-  bool m_overrideTimeCalibName{false};
   bool m_dotimecalib{true};
   bool m_giveDirectURL_time{false};
   std::string m_directURL_time;
   // MC time calibration
   std::string m_MC_fieldname_time{"time"};
-  std::string m_MC_calibName_time{"CEMC_meanTime"};
-  bool m_overrideMCTimeFieldName{false};
-  bool m_overrideMCTimeCalibName{false};
-  bool m_giveDirectURL_MC_time{false};
+  std::string m_MC_calibName_time;
   std::string m_directURL_MC_time;
 
   // Waveform settings
@@ -209,9 +207,6 @@ class CaloWaveformSim : public SubsysReco
   std::vector<std::vector<float>> m_waveforms;
   int m_runNumber{0};
 
-  unsigned int (*encode_tower)(unsigned int, unsigned int){TowerInfoDefs::encode_emcal};
-  unsigned int (*decode_tower)(unsigned int){TowerInfoDefs::decode_emcal};
-
   CDBTTree *cdbttree{nullptr};
   CDBTTree *cdbttree_MC{nullptr};
   CDBTTree *cdbttree_time{nullptr};
@@ -220,13 +215,6 @@ class CaloWaveformSim : public SubsysReco
   LightCollectionModel light_collection_model;
 
   NoiseType m_noiseType{NOISE_TREE};
-
-  void CreateNodeTree(PHCompositeNode *topNode);
-  void maphitetaphi(PHG4Hit *g4hit,
-                    unsigned short &etabin,
-                    unsigned short &phibin,
-                    float &correction);
-  double template_function(double *x, double *par);
 };
 
 #endif  // G4WAVEFORMSIM_CALOWAVEFORMSIM_H
