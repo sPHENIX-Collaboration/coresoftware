@@ -689,8 +689,8 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
       // fitpoint is the point where the helical fit intersects the plane of the surface
       // Now transform the helix fitpoint to local coordinates to compare with cluster local coordinates
-      Acts::Vector3 fitpoint_local = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint * Acts::UnitConstants::cm);
-      Acts::Vector3 fitpoint_mvtx_half_local = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint_mvtx_half * Acts::UnitConstants::cm);
+      Acts::Vector3 fitpoint_local = surf->localToGlobalTransform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint * Acts::UnitConstants::cm);
+      Acts::Vector3 fitpoint_mvtx_half_local = surf->localToGlobalTransform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint_mvtx_half * Acts::UnitConstants::cm);
 
       fitpoint_local /= Acts::UnitConstants::cm;
       fitpoint_mvtx_half_local /= Acts::UnitConstants::cm;
@@ -730,7 +730,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
       if (Verbosity() > 1)
       {
-        Acts::Vector3 loc_check = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (global * Acts::UnitConstants::cm);
+        Acts::Vector3 loc_check = surf->localToGlobalTransform(_tGeometry->geometry().getGeoContext()).inverse() * (global * Acts::UnitConstants::cm);
         loc_check /= Acts::UnitConstants::cm;
         std::cout << "    layer " << layer << std::endl
                   << " cluster global " << global(0) << " " << global(1) << " " << global(2) << std::endl
@@ -743,10 +743,10 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
       if (Verbosity() > 1)
       {
-        Acts::Transform3 transform = surf->transform(_tGeometry->geometry().getGeoContext());
+        Acts::Transform3 transform = surf->localToGlobalTransform(_tGeometry->geometry().getGeoContext());
         std::cout << "Transform is:" << std::endl;
         std::cout << transform.matrix() << std::endl;
-        Acts::Vector3 loc_check = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (global * Acts::UnitConstants::cm);
+        Acts::Vector3 loc_check = surf->localToGlobalTransform(_tGeometry->geometry().getGeoContext()).inverse() * (global * Acts::UnitConstants::cm);
         loc_check /= Acts::UnitConstants::cm;
         unsigned int const sector = TpcDefs::getSectorId(cluskey_vec[ivec]);
         unsigned int const side = TpcDefs::getSide(cluskey_vec[ivec]);
