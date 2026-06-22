@@ -919,9 +919,6 @@ namespace
 	      clus = new TrkrClusterv5;
       }
 
-      // auto *clus = new TrkrClusterv6;
-      // auto *clus = new TrkrClusterv5;
-      // auto clus = std::make_unique<TrkrClusterv3>();
       clus_base = clus;
       clus->setLocalX(local(0));
       clus->setLocalY(clust);
