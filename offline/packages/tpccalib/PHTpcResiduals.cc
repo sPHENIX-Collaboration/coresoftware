@@ -128,6 +128,8 @@ namespace
 PHTpcResiduals::PHTpcResiduals(const std::string& name)
   : SubsysReco(name)
   , m_matrix_container(new TpcSpaceChargeMatrixContainerv2)
+  , m_matrix_container_pos(new TpcSpaceChargeMatrixContainerv2)
+  , m_matrix_container_neg(new TpcSpaceChargeMatrixContainerv2)
 {
 }
 
@@ -186,11 +188,13 @@ int PHTpcResiduals::End(PHCompositeNode* /*topNode*/)
   std::cout << "PHTpcResiduals::End - writing matrices to " << m_outputfile << std::endl;
 
   // save matrix container in output file
-  if (m_matrix_container)
+  if (m_matrix_container || m_matrix_container_pos || m_matrix_container_neg)
   {
     std::unique_ptr<TFile> outputfile(TFile::Open(m_outputfile.c_str(), "RECREATE"));
     outputfile->cd();
-    m_matrix_container->Write("TpcSpaceChargeMatrixContainer");
+    if( m_matrix_container ) { m_matrix_container->Write("TpcSpaceChargeMatrixContainer"); }
+    if( m_matrix_container_pos ) { m_matrix_container_pos->Write("TpcSpaceChargeMatrixContainer_pos"); }
+    if( m_matrix_container_neg ) { m_matrix_container_neg->Write("TpcSpaceChargeMatrixContainer_neg"); }
   }
 
   // print counters
@@ -650,43 +654,58 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       continue;
     }
 
-    // Fill distortion matrices
-    m_matrix_container->add_to_lhs(index, 0, 0, square(clusR) / erp);
-    m_matrix_container->add_to_lhs(index, 0, 1, 0);
-    m_matrix_container->add_to_lhs(index, 0, 2, clusR * trackAlpha / erp);
+    std::vector<TpcSpaceChargeMatrixContainer*> containers;
+    containers.emplace_back( m_matrix_container.get() );
+    if( track->get_positive_charge() ) {
+      containers.emplace_back( m_matrix_container_pos.get() );
+    } else {
+      containers.emplace_back( m_matrix_container_neg.get() );
+    }
 
-    m_matrix_container->add_to_lhs(index, 1, 0, 0);
-    m_matrix_container->add_to_lhs(index, 1, 1, 1. / ez);
-    m_matrix_container->add_to_lhs(index, 1, 2, trackBeta / ez);
 
-    m_matrix_container->add_to_lhs(index, 2, 0, clusR * trackAlpha / erp);
-    m_matrix_container->add_to_lhs(index, 2, 1, trackBeta / ez);
-    m_matrix_container->add_to_lhs(index, 2, 2, square(trackAlpha) / erp + square(trackBeta) / ez);
+    for( auto& container:containers )
+    {
 
-    m_matrix_container->add_to_rhs(index, 0, clusR * drphi / erp);
-    m_matrix_container->add_to_rhs(index, 1, dz / ez);
-    m_matrix_container->add_to_rhs(index, 2, trackAlpha * drphi / erp + trackBeta * dz / ez);
+      if( !container ) continue;
 
-    // also update rphi reduced matrices
-    m_matrix_container->add_to_lhs_rphi(index, 0, 0, square(clusR) / erp);
-    m_matrix_container->add_to_lhs_rphi(index, 0, 1, clusR * trackAlpha / erp);
-    m_matrix_container->add_to_lhs_rphi(index, 1, 0, clusR * trackAlpha / erp);
-    m_matrix_container->add_to_lhs_rphi(index, 1, 1, square(trackAlpha) / erp);
+      // Fill distortion matrices
+      container->add_to_lhs(index, 0, 0, square(clusR) / erp);
+      container->add_to_lhs(index, 0, 1, 0);
+      container->add_to_lhs(index, 0, 2, clusR * trackAlpha / erp);
 
-    m_matrix_container->add_to_rhs_rphi(index, 0, clusR * drphi / erp);
-    m_matrix_container->add_to_rhs_rphi(index, 1, trackAlpha * drphi / erp);
+      container->add_to_lhs(index, 1, 0, 0);
+      container->add_to_lhs(index, 1, 1, 1. / ez);
+      container->add_to_lhs(index, 1, 2, trackBeta / ez);
 
-    // also update z reduced matrices
-    m_matrix_container->add_to_lhs_z(index, 0, 0, 1. / ez);
-    m_matrix_container->add_to_lhs_z(index, 0, 1, trackBeta / ez);
-    m_matrix_container->add_to_lhs_z(index, 1, 0, trackBeta / ez);
-    m_matrix_container->add_to_lhs_z(index, 1, 1, square(trackBeta) / ez);
+      container->add_to_lhs(index, 2, 0, clusR * trackAlpha / erp);
+      container->add_to_lhs(index, 2, 1, trackBeta / ez);
+      container->add_to_lhs(index, 2, 2, square(trackAlpha) / erp + square(trackBeta) / ez);
 
-    m_matrix_container->add_to_rhs_z(index, 0, dz / ez);
-    m_matrix_container->add_to_rhs_z(index, 1, trackBeta * dz / ez);
+      container->add_to_rhs(index, 0, clusR * drphi / erp);
+      container->add_to_rhs(index, 1, dz / ez);
+      container->add_to_rhs(index, 2, trackAlpha * drphi / erp + trackBeta * dz / ez);
 
-    // update entries in cell
-    m_matrix_container->add_to_entries(index);
+      // also update rphi reduced matrices
+      container->add_to_lhs_rphi(index, 0, 0, square(clusR) / erp);
+      container->add_to_lhs_rphi(index, 0, 1, clusR * trackAlpha / erp);
+      container->add_to_lhs_rphi(index, 1, 0, clusR * trackAlpha / erp);
+      container->add_to_lhs_rphi(index, 1, 1, square(trackAlpha) / erp);
+
+      container->add_to_rhs_rphi(index, 0, clusR * drphi / erp);
+      container->add_to_rhs_rphi(index, 1, trackAlpha * drphi / erp);
+
+      // also update z reduced matrices
+      container->add_to_lhs_z(index, 0, 0, 1. / ez);
+      container->add_to_lhs_z(index, 0, 1, trackBeta / ez);
+      container->add_to_lhs_z(index, 1, 0, trackBeta / ez);
+      container->add_to_lhs_z(index, 1, 1, square(trackBeta) / ez);
+
+      container->add_to_rhs_z(index, 0, dz / ez);
+      container->add_to_rhs_z(index, 1, trackBeta * dz / ez);
+
+      // update entries in cell
+      container->add_to_entries(index);
+    }
 
     // increment number of accepted clusters
     ++m_accepted_clusters;

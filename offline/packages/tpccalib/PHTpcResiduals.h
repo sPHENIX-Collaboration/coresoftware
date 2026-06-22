@@ -193,6 +193,12 @@ class PHTpcResiduals : public SubsysReco
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
 
+  /// matrix container positive charges only
+  std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container_pos;
+
+  /// matrix container negative charges only
+  std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container_neg;
+
   // TODO: check if needed
   int m_event = 0;
 
