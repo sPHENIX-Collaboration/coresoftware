@@ -82,8 +82,8 @@ class TrkrCluster : public PHObject
   virtual unsigned int getCenAdc() const { return UINT_MAX; }
   virtual float getPadCen() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float getTBinCen() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual float getPadMax() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual float getTBinMax() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual int getPadMax() const { return std::numeric_limits<int>::max(); }
+  virtual int getTBinMax() const { return std::numeric_limits<int>::max(); }
   virtual char getSLEdge() const { return std::numeric_limits<char>::max(); }
   virtual char getSREdge() const { return std::numeric_limits<char>::max(); }
   virtual char getTLEdge() const { return std::numeric_limits<char>::max(); }
@@ -96,10 +96,10 @@ class TrkrCluster : public PHObject
   virtual int getSRMix() const { return std::numeric_limits<int>::max(); }
   virtual int getTLMix() const { return std::numeric_limits<int>::max(); }
   virtual int getTRMix() const { return std::numeric_limits<int>::max(); }
-  virtual float getPhiBinLo() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual float getPhiBinHi() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual float getTBinLo() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual float getTBinHi() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual char getPhiBinLo() const { return std::numeric_limits<char>::max(); }
+  virtual char getPhiBinHi() const { return std::numeric_limits<char>::max(); }
+  virtual char getTBinLo() const { return std::numeric_limits<char>::max(); }
+  virtual char getTBinHi() const { return std::numeric_limits<char>::max(); }
   virtual float getPadPhase() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float getTBinPhase() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float getRSize() const { return std::numeric_limits<float>::quiet_NaN(); }
@@ -112,26 +112,26 @@ class TrkrCluster : public PHObject
   virtual void setDREdge(const char) {};
   virtual void setHLEdge(const char) {};
   virtual void setHREdge(const char) {};
-  virtual void setSLMix(const int) {};
-  virtual void setSRMix(const int) {};
-  virtual void setTLMix(const int) {};
-  virtual void setTRMix(const int) {};
-  virtual void setPhiBinLo(const float) {};
-  virtual void setPhiBinHi(const float) {};
-  virtual void setTBinLo(const float) {};
-  virtual void setTBinHi(const float) {};
+  virtual void setSLMix(const char) {};
+  virtual void setSRMix(const char) {};
+  virtual void setTLMix(const char) {};
+  virtual void setTRMix(const char) {};
+  virtual void setPhiBinLo(const char) {};
+  virtual void setPhiBinHi(const char) {};
+  virtual void setTBinLo(const char) {};
+  virtual void setTBinHi(const char) {};
   virtual void setPadPhase(const float) {};
   virtual void setTBinPhase(const float) {};
-  virtual void setRSize(const float) {};
-  virtual void setCenAdc(const unsigned int) {};
+  virtual void setRSize(const char) {};
+  virtual void setCenAdc(const uint16_t) {};
   virtual void setPadCen(const float) {};
   virtual void setTBinCen(const float) {};
-  virtual void setPadMax(const float) {};
-  virtual void setTBinMax(const float) {};
+  virtual void setPadMax(const int) {};
+  virtual void setTBinMax(const int) {};
   virtual void setPhiError(const float) {};
   virtual void setZError(const float) {};
-  virtual void setPhiSize(const float) {};
-  virtual void setZSize(const float) {};
+  virtual void setPhiSize(const char) {};
+  virtual void setZSize(const char) {};
 
   /// Acts functions, for Acts modules use only
   virtual void setActsLocalError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}

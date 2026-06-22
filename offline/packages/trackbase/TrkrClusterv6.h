@@ -85,19 +85,19 @@ class TrkrClusterv6 : public TrkrCluster
   void setMaxAdc(const uint16_t maxadc) override { m_maxadc = maxadc; }
 
   unsigned int getCenAdc() const override { return m_cenadc; }
-  void setCenAdc(const uint16_t cenadc) { m_cenadc = cenadc; }
+  void setCenAdc(const uint16_t cenadc) override { m_cenadc = cenadc; }
 
   float getPadCen() const override { return m_padcen; }
-  void setPadCen(const float padcen) { m_padcen = padcen; }
+  void setPadCen(const float padcen) override { m_padcen = padcen; }
 
   float getTBinCen() const override { return m_tbincen; }
-  void setTBinCen(const float tbincen) { m_tbincen = tbincen; }
+  void setTBinCen(const float tbincen) override { m_tbincen = tbincen; }
 
-  float getPadMax() const override { return m_padmax; }
-  void setPadMax(const float padmax) { m_padmax = padmax; }
+  int getPadMax() const override { return m_padmax; }
+  void setPadMax(const int padmax) override { m_padmax = padmax; }
 
-  float getTBinMax() const override { return m_tbinmax; }
-  void setTBinMax(const float tbinmax) { m_tbinmax = tbinmax; }
+  int getTBinMax() const override { return m_tbinmax; }
+  void setTBinMax(const int tbinmax) override { m_tbinmax = tbinmax; }
 
   //
   // convenience interface
@@ -105,20 +105,20 @@ class TrkrClusterv6 : public TrkrCluster
   float getRPhiError() const override { return m_phierr; }
   float getZError() const override { return m_zerr; }
 
-  void setPhiError(const float phierror) { m_phierr = phierror; }
-  void setZError(const float zerror) { m_zerr = zerror; }
+  void setPhiError(const float phierror) override { m_phierr = phierror; }
+  void setZError(const float zerror) override { m_zerr = zerror; }
 
   char getSize() const override { return m_phisize * m_zsize; }
   // void setSize(const char size) { m_size = size; }
 
   float getRSize() const override { return (float) m_rsize; }
-  void setRSize(const unsigned char rsize) { m_rsize = rsize; }
+  void setRSize(const char rsize) override { m_rsize = rsize; }
 
   float getPhiSize() const override { return (float) m_phisize; }
-  void setPhiSize(const char phisize) { m_phisize = phisize; }
+  void setPhiSize(const char phisize) override { m_phisize = phisize; }
 
   float getZSize() const override { return (float) m_zsize; }
-  void setZSize(const char zsize) { m_zsize = zsize; }
+  void setZSize(const char zsize) override { m_zsize = zsize; }
 
   char getOverlap() const override { return m_overlap; }
   void setOverlap(const char overlap) override { m_overlap = overlap; }
@@ -127,58 +127,58 @@ class TrkrClusterv6 : public TrkrCluster
   void setEdge(const char edge) override { m_edge = edge; }
 
   char getSLEdge() const override { return m_sledge; }
-  void setSLEdge(const char sledge) { m_sledge = sledge; }
+  void setSLEdge(const char sledge) override { m_sledge = sledge; }
 
   char getSREdge() const override { return m_sredge; }
-  void setSREdge(const char sredge) { m_sredge = sredge; }
+  void setSREdge(const char sredge) override { m_sredge = sredge; }
 
   char getTLEdge() const override { return m_tledge; }
-  void setTLEdge(const char tledge) { m_tledge = tledge; }
+  void setTLEdge(const char tledge) override { m_tledge = tledge; }
 
   char getTREdge() const override { return m_tredge; }
-  void setTREdge(const char tredge) { m_tredge = tredge; }
+  void setTREdge(const char tredge) override { m_tredge = tredge; }
 
   char getDLEdge() const override { return m_dledge; }
-  void setDLEdge(const char dledge) { m_dledge = dledge; }
+  void setDLEdge(const char dledge) override { m_dledge = dledge; }
 
   char getDREdge() const override { return m_dredge; }
-  void setDREdge(const char dredge) { m_dredge = dredge; }
+  void setDREdge(const char dredge) override { m_dredge = dredge; }
 
   char getHLEdge() const override { return m_hledge; }
-  void setHLEdge(const char hledge) { m_hledge = hledge; }
+  void setHLEdge(const char hledge) override { m_hledge = hledge; }
 
   char getHREdge() const override { return m_hredge; }
-  void setHREdge(const char hredge) { m_hredge = hredge; }
+  void setHREdge(const char hredge) override { m_hredge = hredge; }
 
   int getSLMix() const override { return m_slmix; }
-  void setSLMix(const char slmix) { m_slmix = slmix; }
+  void setSLMix(const char slmix) override { m_slmix = slmix; }
 
   int getSRMix() const override { return m_srmix; }
-  void setSRMix(const char srmix) { m_srmix = srmix; }
+  void setSRMix(const char srmix) override { m_srmix = srmix; }
 
   int getTLMix() const override { return m_tlmix; }
-  void setTLMix(const char tlmix) { m_tlmix = tlmix; }
+  void setTLMix(const char tlmix) override { m_tlmix = tlmix; }
 
   int getTRMix() const override { return m_trmix; }
-  void setTRMix(const char trmix) { m_trmix = trmix; }
+  void setTRMix(const char trmix) override { m_trmix = trmix; }
 
-  float getPhiBinLo() const override { return m_phibinlo; }
-  void setPhiBinLo(const float phibinlo) { m_phibinlo = phibinlo; }
+  char getPhiBinLo() const override { return m_phibinlo; }
+  void setPhiBinLo(const char phibinlo) override { m_phibinlo = phibinlo; }
 
-  float getPhiBinHi() const override { return m_phibinhi; }
-  void setPhiBinHi(const float phibinhi) { m_phibinhi = phibinhi; }
+  char getPhiBinHi() const override { return m_phibinhi; }
+  void setPhiBinHi(const char phibinhi) override { m_phibinhi = phibinhi; }
 
   char getTBinLo() const override { return m_tbinlo; }
-  void setTBinLo(const char tbinlo) { m_tbinlo = tbinlo; }
+  void setTBinLo(const char tbinlo) override { m_tbinlo = tbinlo; }
 
   char getTBinHi() const override { return m_tbinhi; }
-  void setTBinHi(const char tbinhi) { m_tbinhi = tbinhi; }
+  void setTBinHi(const char tbinhi) override { m_tbinhi = tbinhi; }
 
   float getPadPhase() const override { return m_padphase; }
-  void setPadPhase(const float padphase) { m_padphase = padphase; }
+  void setPadPhase(const float padphase) override { m_padphase = padphase; }
 
   float getTBinPhase() const override { return m_tbinphase; }
-  void setTBinPhase(const float tbinphase){ m_tbinphase = tbinphase; }
+  void setTBinPhase(const float tbinphase) override { m_tbinphase = tbinphase; }
 
  private:
   float m_local[2]{std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
@@ -193,9 +193,9 @@ class TrkrClusterv6 : public TrkrCluster
   float m_tbincen{0};
   int m_padmax{0};
   int m_tbinmax{0};
-  unsigned char m_rsize{0};        
-  unsigned char m_phisize{0};               
-  unsigned char m_zsize{0};                 
+  char m_rsize{0};        
+  char m_phisize{0};               
+  char m_zsize{0};                 
   char m_overlap{0};               
   char m_edge{0};                   
   char m_sledge{0};                
