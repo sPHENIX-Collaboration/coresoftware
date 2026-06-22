@@ -160,6 +160,7 @@ namespace
     hitMaskTpcSet *hotMap = nullptr;
     bool maskDead = false;
     bool maskHot  = false;
+    bool debug = false;
 
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster *> cluster_vector;
@@ -909,13 +910,13 @@ namespace
     {
       TrkrCluster* clus = nullptr;
 
-      if (m_debug)
+      if (my_data.debug)
       {
-	clus = new TrkrClusterv6;
+	      clus = new TrkrClusterv6;
       }
       else
       {
-	clus = new TrkrClusterv5;
+	      clus = new TrkrClusterv5;
       }
 
       // auto *clus = new TrkrClusterv6;
@@ -957,6 +958,7 @@ namespace
       clus->setTBinHi(tbinhi);
       clus->setPadPhase(padphase);
       clus->setTBinPhase(tbinphase);
+
       my_data.cluster_vector.push_back(clus);
       b_made_cluster = true;
     }
@@ -1762,7 +1764,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.phioffset = PhiOffset;
       thread_pair.data.tbins = NTBinsSide;
       thread_pair.data.toffset = TOffset;
-
+      thread_pair.data.debug = m_debug;
       thread_pair.data.radius = layergeom->get_radius();
       thread_pair.data.drift_velocity = m_tGeometry->get_drift_velocity();
       thread_pair.data.pads_per_sector = 0;
