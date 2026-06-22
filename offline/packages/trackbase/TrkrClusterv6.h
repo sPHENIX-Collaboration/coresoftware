@@ -162,17 +162,17 @@ class TrkrClusterv6 : public TrkrCluster
   int getTRMix() const override { return m_trmix; }
   void setTRMix(const char trmix) override { m_trmix = trmix; }
 
-  char getPhiBinLo() const override { return m_phibinlo; }
-  void setPhiBinLo(const char phibinlo) override { m_phibinlo = phibinlo; }
+  int getPhiBinLo() const override { return m_phibinlo; }
+  void setPhiBinLo(const int phibinlo) override { m_phibinlo = phibinlo; }
 
-  char getPhiBinHi() const override { return m_phibinhi; }
-  void setPhiBinHi(const char phibinhi) override { m_phibinhi = phibinhi; }
+  int getPhiBinHi() const override { return m_phibinhi; }
+  void setPhiBinHi(const int phibinhi) override { m_phibinhi = phibinhi; }
 
-  char getTBinLo() const override { return m_tbinlo; }
-  void setTBinLo(const char tbinlo) override { m_tbinlo = tbinlo; }
+  int getTBinLo() const override { return m_tbinlo; }
+  void setTBinLo(const int tbinlo) override { m_tbinlo = tbinlo; }
 
-  char getTBinHi() const override { return m_tbinhi; }
-  void setTBinHi(const char tbinhi) override { m_tbinhi = tbinhi; }
+  int getTBinHi() const override { return m_tbinhi; }
+  void setTBinHi(const int tbinhi) override { m_tbinhi = tbinhi; }
 
   float getPadPhase() const override { return m_padphase; }
   void setPadPhase(const float padphase) override { m_padphase = padphase; }
@@ -210,10 +210,10 @@ class TrkrClusterv6 : public TrkrCluster
   char m_srmix{0};                 
   char m_tlmix{0};                 
   char m_trmix{0};                 
-  char m_phibinlo{0};
-  char m_phibinhi{0};
-  char m_tbinlo{0};
-  char m_tbinhi{0};
+  int m_phibinlo{0};
+  int m_phibinhi{0};
+  int m_tbinlo{0};
+  int m_tbinhi{0};
   float m_padphase{0};
   float m_tbinphase{0};
 
