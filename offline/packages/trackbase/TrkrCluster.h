@@ -104,6 +104,35 @@ class TrkrCluster : public PHObject
   virtual float getTBinPhase() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float getRSize() const { return std::numeric_limits<float>::quiet_NaN(); }
 
+  virtual void setSLEdge(const char) {};
+  virtual void setSREdge(const char) {};
+  virtual void setTLEdge(const char) {};
+  virtual void setTREdge(const char) {};
+  virtual void setDLEdge(const char) {};
+  virtual void setDREdge(const char) {};
+  virtual void setHLEdge(const char) {};
+  virtual void setHREdge(const char) {};
+  virtual void setSLMix(const int) {};
+  virtual void setSRMix(const int) {};
+  virtual void setTLMix(const int) {};
+  virtual void setTRMix(const int) {};
+  virtual void setPhiBinLo(const float) {};
+  virtual void setPhiBinHi(const float) {};
+  virtual void setTBinLo(const float) {};
+  virtual void setTBinHi(const float) {};
+  virtual void setPadPhase(const float) {};
+  virtual void setTBinPhase(const float) {};
+  virtual void setRSize(const float) {};
+  virtual void setCenAdc(const unsigned int) {};
+  virtual void setPadCen(const float) {};
+  virtual void setTBinCen(const float) {};
+  virtual void setPadMax(const float) {};
+  virtual void setTBinMax(const float) {};
+  virtual void setPhiError(const float) {};
+  virtual void setZError(const float) {};
+  virtual void setPhiSize(const float) {};
+  virtual void setZSize(const float) {};
+
   /// Acts functions, for Acts modules use only
   virtual void setActsLocalError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
   virtual float getActsLocalError(unsigned int /*i*/, unsigned int /*j*/) const { return std::numeric_limits<float>::quiet_NaN(); }
