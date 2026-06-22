@@ -174,7 +174,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                               "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
                               "gembed:gprimary:gparentflavor:gparentid:gprimaryflavor:gprimaryid:"
                               "trackID:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:"
-                              "siqr:siphi:sithe:six0:siy0:tpqr:tpphi:tpthe:tpx0:tpy0:"
+                              "crossing:siqr:siphi:sithe:six0:siy0:tpqr:tpphi:tpthe:tpx0:tpy0:"
                               "charge:quality:chisq:ndf:nhits:layers:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:"
                               "vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:nwrongmaps:ntruintt:nwrongintt:ntrutpc:nwrongtpc:ntrumms:nwrongmms:ntrutpc1:nwrongtpc1:ntrutpc11:nwrongtpc11:ntrutpc2:nwrongtpc2:ntrutpc3:nwrongtpc3:layersfromtruth:"
                               "npedge:nredge:nbig:novlp:merr:msize:"
@@ -2893,6 +2893,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float quality = std::numeric_limits<float>::quiet_NaN();
         float chisq = std::numeric_limits<float>::quiet_NaN();
         float ndf = std::numeric_limits<float>::quiet_NaN();
+        float crossing = std::numeric_limits<float>::quiet_NaN();
         float local_nhits = 0;
         float nmaps = 0;
         float nintt = 0;
@@ -2977,6 +2978,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             quality = track->get_quality();
             chisq = track->get_chisq();
             ndf = track->get_ndf();
+            short int crossing_int = track->get_crossing();
+            if (crossing_int != SHRT_MAX)
+            {
+              crossing = (float) crossing_int;
+            }
             TrackSeed* silseed = track->get_silicon_seed();
             TrackSeed* tpcseed = track->get_tpc_seed();
             if (tpcseed)
@@ -3344,6 +3350,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                deltapt,
                                deltaeta,
                                deltaphi,
+                               crossing,
                                siqr,
                                siphi,
                                sithe,
