@@ -96,10 +96,10 @@ class TrkrCluster : public PHObject
   virtual int getSRMix() const { return std::numeric_limits<int>::max(); }
   virtual int getTLMix() const { return std::numeric_limits<int>::max(); }
   virtual int getTRMix() const { return std::numeric_limits<int>::max(); }
-  virtual char getPhiBinLo() const { return std::numeric_limits<char>::max(); }
-  virtual char getPhiBinHi() const { return std::numeric_limits<char>::max(); }
-  virtual char getTBinLo() const { return std::numeric_limits<char>::max(); }
-  virtual char getTBinHi() const { return std::numeric_limits<char>::max(); }
+  virtual int getPhiBinLo() const { return std::numeric_limits<int>::max(); }
+  virtual int getPhiBinHi() const { return std::numeric_limits<int>::max(); }
+  virtual int getTBinLo() const { return std::numeric_limits<int>::max(); }
+  virtual int getTBinHi() const { return std::numeric_limits<int>::max(); }
   virtual float getPadPhase() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float getTBinPhase() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float getRSize() const { return std::numeric_limits<float>::quiet_NaN(); }
@@ -116,10 +116,10 @@ class TrkrCluster : public PHObject
   virtual void setSRMix(const char) {};
   virtual void setTLMix(const char) {};
   virtual void setTRMix(const char) {};
-  virtual void setPhiBinLo(const char) {};
-  virtual void setPhiBinHi(const char) {};
-  virtual void setTBinLo(const char) {};
-  virtual void setTBinHi(const char) {};
+  virtual void setPhiBinLo(const int) {};
+  virtual void setPhiBinHi(const int) {};
+  virtual void setTBinLo(const int) {};
+  virtual void setTBinHi(const int) {};
   virtual void setPadPhase(const float) {};
   virtual void setTBinPhase(const float) {};
   virtual void setRSize(const char) {};

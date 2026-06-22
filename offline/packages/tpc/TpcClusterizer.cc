@@ -1850,6 +1850,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.pedestal = pedestal;
       thread_pair.data.sector = sector;
       thread_pair.data.side = side;
+      thread_pair.data.debug = m_debug;
       thread_pair.data.do_assoc = do_hit_assoc;
       thread_pair.data.do_wedge_emulation = do_wedge_emulation;
       thread_pair.data.tGeometry = m_tGeometry;
