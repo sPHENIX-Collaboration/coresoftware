@@ -197,7 +197,7 @@ bool PHTrackPruner::checkTrack(SvtxTrack *track)
   }
 
   // high pt cut
-  if( m_track_pt_high_cut>0 && track->get_pt() < m_track_pt_high_cut)
+  if( m_track_pt_high_cut>0 && track->get_pt() > m_track_pt_high_cut)
   {
     if (Verbosity() > 1) { std::cout  <<"Track pt "<<track->get_pt()<<" , pt cut "<<m_track_pt_high_cut<<std::endl; }
     return false;
