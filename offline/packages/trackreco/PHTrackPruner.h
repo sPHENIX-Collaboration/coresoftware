@@ -52,6 +52,11 @@ class PHTrackPruner : public SubsysReco
 
   /// low pt cut
   void set_track_pt_low_cut(const double val) { m_track_pt_low_cut = val; }
+
+  /// high pt cut.
+  /** enforced only if >0 */
+  void set_track_pt_high_cut(const double val) { m_track_pt_high_cut = val; }
+
   void set_track_quality_high_cut(const double val) { m_track_quality_high_cut = val; }
 
   void set_nmvtx_clus_low_cut(const int n) { m_nmvtx_clus_low_cut = n; }
@@ -85,7 +90,13 @@ class PHTrackPruner : public SubsysReco
   std::string _pruned_svtx_seed_map_name = "PrunedSvtxTrackSeedContainer";
   std::string _svtx_track_map_name = "SvtxTrackMap";
 
+  /// low pt cut
   double m_track_pt_low_cut = 0.5;
+
+  /// high pt cut.
+  /** enforced only if >0 */
+  double m_track_pt_high_cut = 0.;
+
   double m_track_quality_high_cut = 100;
   int m_nmvtx_clus_low_cut = 3;
   int m_nintt_clus_low_cut = 2;
@@ -96,6 +107,10 @@ class PHTrackPruner : public SubsysReco
   int m_nintt_states_low_cut = 2;
   int m_ntpc_states_low_cut = 35;
   int m_ntpot_states_low_cut = 2;
+
+  //! keep track of track/seed statistics
+  unsigned long m_total_tracks = 0;
+  unsigned long m_accepted_tracks = 0;
 
 };
 
