@@ -85,6 +85,7 @@ namespace
     unsigned short edge = 0;
   };
 
+  // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
   struct ClusterCounters
   {
     int overlap = 0;
@@ -114,7 +115,7 @@ namespace
       *this = ClusterCounters{};
     }
   };
-
+  // NOLINTEND(misc-non-private-member-variables-in-classes)
   using vec_dVerbose = std::vector<std::vector<std::pair<int, int>>>;
 
   // Neural network parameters and modules
