@@ -184,38 +184,38 @@ class TrkrClusterv6 : public TrkrCluster
   float m_local[2]{std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
   //< 2D local position [cm] 2 * 32 64bit  - cumul 1*64
   TrkrDefs::subsurfkey m_subsurfkey {TrkrDefs::SUBSURFKEYMAX};  //< unique identifier for hitsetkey-surface maps 16 bit
-  float m_phierr{0};
-  float m_zerr{0};
-  unsigned short m_adc{0};     //< cluster sum adc 16
-  unsigned short m_maxadc{0};  //< cluster max adc 16
-  unsigned short m_cenadc{0};  //< cluster centroid adc 16
-  float m_padcen{0};
-  float m_tbincen{0};
-  int m_padmax{0};
-  int m_tbinmax{0};
-  char m_rsize{0};        
-  char m_phisize{0};               
-  char m_zsize{0};                 
-  char m_overlap{0};               
-  char m_edge{0};                   
-  char m_sledge{0};                
-  char m_sredge{0};                
-  char m_tledge{0};                
-  char m_tredge{0};                
-  char m_dledge{0};                
-  char m_dredge{0};                
-  char m_hledge{0};                
-  char m_hredge{0};                
-  char m_slmix{0};                 
-  char m_srmix{0};                 
-  char m_tlmix{0};                 
-  char m_trmix{0};                 
-  unsigned short m_phibinlo{0};
-  unsigned short m_phibinhi{0};
-  unsigned short m_tbinlo{0};
-  unsigned short m_tbinhi{0};
-  float m_padphase{0};
-  float m_tbinphase{0};
+  float m_phierr{std::numeric_limits<float>::quiet_NaN()};
+  float m_zerr{std::numeric_limits<float>::quiet_NaN()};
+  unsigned short m_adc{std::numeric_limits<unsigned short>::max()};     //< cluster sum adc 16
+  unsigned short m_maxadc{std::numeric_limits<unsigned short>::max()};  //< cluster max adc 16
+  unsigned short m_cenadc{std::numeric_limits<unsigned short>::max()};  //< cluster centroid adc 16
+  float m_padcen{std::numeric_limits<float>::quiet_NaN()};
+  float m_tbincen{std::numeric_limits<float>::quiet_NaN()};
+  int m_padmax{std::numeric_limits<int>::max()};
+  int m_tbinmax{std::numeric_limits<int>::max()};
+  char m_rsize{std::numeric_limits<char>::max()};        
+  char m_phisize{std::numeric_limits<char>::max()};               
+  char m_zsize{std::numeric_limits<char>::max()};                 
+  char m_overlap{std::numeric_limits<char>::max()};               
+  char m_edge{std::numeric_limits<char>::max()};                   
+  char m_sledge{std::numeric_limits<char>::max()};                
+  char m_sredge{std::numeric_limits<char>::max()};                
+  char m_tledge{std::numeric_limits<char>::max()};                
+  char m_tredge{std::numeric_limits<char>::max()};                
+  char m_dledge{std::numeric_limits<char>::max()};                
+  char m_dredge{std::numeric_limits<char>::max()};                
+  char m_hledge{std::numeric_limits<char>::max()};                
+  char m_hredge{std::numeric_limits<char>::max()};                
+  char m_slmix{std::numeric_limits<char>::max()};                 
+  char m_srmix{std::numeric_limits<char>::max()};                 
+  char m_tlmix{std::numeric_limits<char>::max()};                 
+  char m_trmix{std::numeric_limits<char>::max()};                 
+  unsigned short m_phibinlo{std::numeric_limits<unsigned short>::max()};
+  unsigned short m_phibinhi{std::numeric_limits<unsigned short>::max()};
+  unsigned short m_tbinlo{std::numeric_limits<unsigned short>::max()};
+  unsigned short m_tbinhi{std::numeric_limits<unsigned short>::max()};
+  float m_padphase{std::numeric_limits<float>::quiet_NaN()};
+  float m_tbinphase{std::numeric_limits<float>::quiet_NaN()};
 
   ClassDefOverride(TrkrClusterv6, 1)
 };
