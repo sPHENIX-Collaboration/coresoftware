@@ -108,7 +108,7 @@ int PHTrackPruner::process_event(PHCompositeNode * /*unused*/)
       << std::endl;
   }
 
-  if (_svtx_track_map->size() == 0)
+  if (_svtx_track_map->empty())
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
