@@ -192,9 +192,21 @@ int PHTpcResiduals::End(PHCompositeNode* /*topNode*/)
   {
     std::unique_ptr<TFile> outputfile(TFile::Open(m_outputfile.c_str(), "RECREATE"));
     outputfile->cd();
-    if( m_matrix_container ) { m_matrix_container->Write("TpcSpaceChargeMatrixContainer"); }
-    if( m_matrix_container_pos ) { m_matrix_container_pos->Write("TpcSpaceChargeMatrixContainer_pos"); }
-    if( m_matrix_container_neg ) { m_matrix_container_neg->Write("TpcSpaceChargeMatrixContainer_neg"); }
+
+    if( m_matrix_container ) {
+      std::cout << "PHTpcResiduals::End - writing TpcSpaceChargeMatrixContainer_all object. entries: " << m_matrix_container->get_entries() << std::endl;
+      m_matrix_container->Write("TpcSpaceChargeMatrixContainer_all");
+    }
+
+    if( m_matrix_container_pos ) {
+      std::cout << "PHTpcResiduals::End - writing TpcSpaceChargeMatrixContainer_pos object. entries: " << m_matrix_container_pos->get_entries() << std::endl;
+      m_matrix_container->Write("TpcSpaceChargeMatrixContainer_pos");
+    }
+
+    if( m_matrix_container_neg ) {
+      std::cout << "PHTpcResiduals::End - writing TpcSpaceChargeMatrixContainer_neg object. entries: " << m_matrix_container_neg->get_entries() << std::endl;
+      m_matrix_container->Write("TpcSpaceChargeMatrixContainer_neg");
+    }
   }
 
   // print counters
@@ -795,5 +807,7 @@ int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
 //____________________________________________________________________________
 void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins, const int zBins)
 {
-  m_matrix_container->set_grid_dimensions(phiBins, rBins, zBins);
+  if( m_matrix_container ) { m_matrix_container->set_grid_dimensions(phiBins, rBins, zBins); }
+  if( m_matrix_container_pos ) { m_matrix_container_pos->set_grid_dimensions(phiBins, rBins, zBins); }
+  if( m_matrix_container_neg ) { m_matrix_container_neg->set_grid_dimensions(phiBins, rBins, zBins); }
 }
