@@ -200,12 +200,12 @@ int PHTpcResiduals::End(PHCompositeNode* /*topNode*/)
 
     if( m_matrix_container_pos ) {
       std::cout << "PHTpcResiduals::End - writing TpcSpaceChargeMatrixContainer_pos object. entries: " << m_matrix_container_pos->get_entries() << std::endl;
-      m_matrix_container->Write("TpcSpaceChargeMatrixContainer_pos");
+      m_matrix_container_pos->Write("TpcSpaceChargeMatrixContainer_pos");
     }
 
     if( m_matrix_container_neg ) {
       std::cout << "PHTpcResiduals::End - writing TpcSpaceChargeMatrixContainer_neg object. entries: " << m_matrix_container_neg->get_entries() << std::endl;
-      m_matrix_container->Write("TpcSpaceChargeMatrixContainer_neg");
+      m_matrix_container_neg->Write("TpcSpaceChargeMatrixContainer_neg");
     }
   }
 
