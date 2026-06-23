@@ -163,6 +163,12 @@ bool TpcSpaceChargeMatrixInversion::add_from_file(const std::string& shortfilena
   {
     std::cout << "TpcSpaceChargeMatrixInversion::add_from_file - could not find object name " << objectname << " in file " << filename << std::endl;
     return false;
+  } else if( Verbosity() ) {
+    std::cout << "TpcSpaceChargeMatrixInversion::add_from_file -"
+      << " file: " << filename
+      << " objectname: " << objectname
+      << " entries: " << source->get_entries()
+      << std::endl;
   }
 
   // add object
@@ -199,6 +205,8 @@ void TpcSpaceChargeMatrixInversion::calculate_distortion_corrections(const Inver
     std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - no distortion matrices loaded. Aborting" << std::endl;
     exit(1);
   }
+
+  std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - entries: " <<  m_matrix_container->get_entries() << std::endl;
 
   // get grid dimensions from matrix container
   int phibins = 0;
