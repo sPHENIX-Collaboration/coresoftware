@@ -556,6 +556,8 @@ std::set<short int> PHTruthSiliconAssociation::getInttCrossings(TrackSeed *si_tr
 unsigned int PHTruthSiliconAssociation::buildTrackSeed(const std::set<TrkrDefs::cluskey> &clusters, PHG4Particle *g4particle, TrackSeedContainer *container)
 {
   auto track = std::make_unique<TrackSeed_FastSim_v2>();
+  track->set_truth_track_id(g4particle->get_track_id());
+
   bool silicon = false;
   for (const auto &cluskey : clusters)
   {
