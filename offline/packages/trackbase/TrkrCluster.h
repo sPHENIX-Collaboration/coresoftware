@@ -92,14 +92,14 @@ class TrkrCluster : public PHObject
   virtual char getDREdge() const { return std::numeric_limits<char>::max(); }
   virtual char getHLEdge() const { return std::numeric_limits<char>::max(); }
   virtual char getHREdge() const { return std::numeric_limits<char>::max(); }
-  virtual int getSLMix() const { return std::numeric_limits<int>::max(); }
-  virtual int getSRMix() const { return std::numeric_limits<int>::max(); }
-  virtual int getTLMix() const { return std::numeric_limits<int>::max(); }
-  virtual int getTRMix() const { return std::numeric_limits<int>::max(); }
-  virtual int getPhiBinLo() const { return std::numeric_limits<int>::max(); }
-  virtual int getPhiBinHi() const { return std::numeric_limits<int>::max(); }
-  virtual int getTBinLo() const { return std::numeric_limits<int>::max(); }
-  virtual int getTBinHi() const { return std::numeric_limits<int>::max(); }
+  virtual char getSLMix() const { return std::numeric_limits<char>::max(); }
+  virtual char getSRMix() const { return std::numeric_limits<char>::max(); }
+  virtual char getTLMix() const { return std::numeric_limits<char>::max(); }
+  virtual char getTRMix() const { return std::numeric_limits<char>::max(); }
+  virtual unsigned short getPhiBinLo() const { return std::numeric_limits<unsigned short>::max(); }
+  virtual unsigned short getPhiBinHi() const { return std::numeric_limits<unsigned short>::max(); }
+  virtual unsigned short getTBinLo() const { return std::numeric_limits<unsigned short>::max(); }
+  virtual unsigned short getTBinHi() const { return std::numeric_limits<unsigned short>::max(); }
   virtual float getPadPhase() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float getTBinPhase() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float getRSize() const { return std::numeric_limits<float>::quiet_NaN(); }
@@ -116,10 +116,10 @@ class TrkrCluster : public PHObject
   virtual void setSRMix(const char) {};
   virtual void setTLMix(const char) {};
   virtual void setTRMix(const char) {};
-  virtual void setPhiBinLo(const int) {};
-  virtual void setPhiBinHi(const int) {};
-  virtual void setTBinLo(const int) {};
-  virtual void setTBinHi(const int) {};
+  virtual void setPhiBinLo(const unsigned short) {};
+  virtual void setPhiBinHi(const unsigned short) {};
+  virtual void setTBinLo(const unsigned short) {};
+  virtual void setTBinHi(const unsigned short) {};
   virtual void setPadPhase(const float) {};
   virtual void setTBinPhase(const float) {};
   virtual void setRSize(const char) {};

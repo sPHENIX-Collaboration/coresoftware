@@ -150,29 +150,29 @@ class TrkrClusterv6 : public TrkrCluster
   char getHREdge() const override { return m_hredge; }
   void setHREdge(const char hredge) override { m_hredge = hredge; }
 
-  int getSLMix() const override { return m_slmix; }
+  char getSLMix() const override { return m_slmix; }
   void setSLMix(const char slmix) override { m_slmix = slmix; }
 
-  int getSRMix() const override { return m_srmix; }
+  char getSRMix() const override { return m_srmix; }
   void setSRMix(const char srmix) override { m_srmix = srmix; }
 
-  int getTLMix() const override { return m_tlmix; }
+  char getTLMix() const override { return m_tlmix; }
   void setTLMix(const char tlmix) override { m_tlmix = tlmix; }
 
-  int getTRMix() const override { return m_trmix; }
+  char getTRMix() const override { return m_trmix; }
   void setTRMix(const char trmix) override { m_trmix = trmix; }
 
-  int getPhiBinLo() const override { return m_phibinlo; }
-  void setPhiBinLo(const int phibinlo) override { m_phibinlo = phibinlo; }
+  unsigned short getPhiBinLo() const override { return m_phibinlo; }
+  void setPhiBinLo(const unsigned short phibinlo) override { m_phibinlo = phibinlo; }
 
-  int getPhiBinHi() const override { return m_phibinhi; }
-  void setPhiBinHi(const int phibinhi) override { m_phibinhi = phibinhi; }
+  unsigned short getPhiBinHi() const override { return m_phibinhi; }
+  void setPhiBinHi(const unsigned short phibinhi) override { m_phibinhi = phibinhi; }
 
-  int getTBinLo() const override { return m_tbinlo; }
-  void setTBinLo(const int tbinlo) override { m_tbinlo = tbinlo; }
+  unsigned short getTBinLo() const override { return m_tbinlo; }
+  void setTBinLo(const unsigned short tbinlo) override { m_tbinlo = tbinlo; }
 
-  int getTBinHi() const override { return m_tbinhi; }
-  void setTBinHi(const int tbinhi) override { m_tbinhi = tbinhi; }
+  unsigned short getTBinHi() const override { return m_tbinhi; }
+  void setTBinHi(const unsigned short tbinhi) override { m_tbinhi = tbinhi; }
 
   float getPadPhase() const override { return m_padphase; }
   void setPadPhase(const float padphase) override { m_padphase = padphase; }
@@ -210,10 +210,10 @@ class TrkrClusterv6 : public TrkrCluster
   char m_srmix{0};                 
   char m_tlmix{0};                 
   char m_trmix{0};                 
-  int m_phibinlo{0};
-  int m_phibinhi{0};
-  int m_tbinlo{0};
-  int m_tbinhi{0};
+  unsigned short m_phibinlo{0};
+  unsigned short m_phibinhi{0};
+  unsigned short m_tbinlo{0};
+  unsigned short m_tbinhi{0};
   float m_padphase{0};
   float m_tbinphase{0};
 
