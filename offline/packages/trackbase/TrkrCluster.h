@@ -52,21 +52,21 @@ class TrkrCluster : public PHObject
   // cluster position
   //
   virtual float getLocalX() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void setLocalX(float) {}
+  virtual void setLocalX(const float) {}
   virtual float getLocalY() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void setLocalY(float) {}
+  virtual void setLocalY(const float) {}
 
   //
   // cluster info
   //
-  virtual void setAdc(unsigned int) {}
+  virtual void setAdc(const unsigned int) {}
   virtual unsigned int getAdc() const { return UINT_MAX; }
-  virtual void setMaxAdc(uint16_t) {}
+  virtual void setMaxAdc(const uint16_t) {}
   virtual unsigned int getMaxAdc() const { return UINT_MAX; }
   virtual char getOverlap() const { return std::numeric_limits<char>::max(); }
-  virtual void setOverlap(char) {}
+  virtual void setOverlap(const char) {}
   virtual char getEdge() const { return std::numeric_limits<char>::max(); }
-  virtual void setEdge(char) {}
+  virtual void setEdge(const char) {}
   virtual void setTime(const float) {}
   virtual float getTime() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual char getSize() const { return std::numeric_limits<char>::max(); }
@@ -137,7 +137,7 @@ class TrkrCluster : public PHObject
   virtual void setActsLocalError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
   virtual float getActsLocalError(unsigned int /*i*/, unsigned int /*j*/) const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual TrkrDefs::subsurfkey getSubSurfKey() const { return TrkrDefs::SUBSURFKEYMAX; }
-  virtual void setSubSurfKey(TrkrDefs::subsurfkey /*id*/) {}
+  virtual void setSubSurfKey(const TrkrDefs::subsurfkey /*id*/) {}
 
   // Global coordinate functions are deprecated, use local
   // coordinate functions only
