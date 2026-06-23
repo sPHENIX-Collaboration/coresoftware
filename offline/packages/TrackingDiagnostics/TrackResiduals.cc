@@ -1853,10 +1853,10 @@ void TrackResiduals::createBranches()
   m_clustree->Branch("dredge", &m_dredge, "m_dredge/C");
   m_clustree->Branch("hledge", &m_hledge, "m_hledge/C");
   m_clustree->Branch("hredge", &m_hredge, "m_hredge/C");
-  m_clustree->Branch("slmix", &m_slmix, "m_slmix/I");
-  m_clustree->Branch("srmix", &m_srmix, "m_srmix/I");
-  m_clustree->Branch("tlmix", &m_tlmix, "m_tlmix/I");
-  m_clustree->Branch("trmix", &m_trmix, "m_trmix/I");
+  m_clustree->Branch("slmix", &m_slmix, "m_slmix/C");
+  m_clustree->Branch("srmix", &m_srmix, "m_srmix/C");
+  m_clustree->Branch("tlmix", &m_tlmix, "m_tlmix/C");
+  m_clustree->Branch("trmix", &m_trmix, "m_trmix/C");
   m_clustree->Branch("erphi", &m_scluselx, "m_scluselx/F");
   m_clustree->Branch("ez", &m_scluselz, "m_scluselz/F");
   m_clustree->Branch("maxadc", &m_clusmaxadc, "m_clusmaxadc/F");
