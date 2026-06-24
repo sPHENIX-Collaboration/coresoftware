@@ -154,9 +154,6 @@ void CaloTowerStatus::LoadCalib(CDBTTree *cdbttree_chi2, CDBTTree *cdbttree_hotM
   unsigned int ntowers = m_raw_towers->size();
   m_cdbInfo_vec.resize(ntowers);
 
-  // Check if we actually need to evaluate the z_score
-  bool need_z_score = (z_score_threshold != z_score_threshold_default);
-
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
     unsigned int key = m_raw_towers->encode_key(channel);
@@ -170,7 +167,7 @@ void CaloTowerStatus::LoadCalib(CDBTTree *cdbttree_chi2, CDBTTree *cdbttree_hotM
       m_cdbInfo_vec[channel].hotMap_val = cdbttree_hotMap->GetIntValue(key, m_fieldname_hotMap);
 
       // Only fetch the z_score field if the custom threshold requires it
-      if (need_z_score)
+      if (z_score_threshold != z_score_threshold_default)
       {
         m_cdbInfo_vec[channel].z_score = cdbttree_hotMap->GetFloatValue(key, m_fieldname_z_score);
       }
