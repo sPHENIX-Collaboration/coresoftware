@@ -13,7 +13,7 @@ namespace
 {
   // square convenience function
   template <class T>
-  constexpr T square(const T& x)
+  inline constexpr T square(const T& x)
   {
     return x * x;
   }

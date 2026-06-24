@@ -16,7 +16,6 @@
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrClusterv5.h>
-#include <trackbase/TrkrClusterv6.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
@@ -85,37 +84,6 @@ namespace
     unsigned short edge = 0;
   };
 
-  // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
-  struct ClusterCounters
-  {
-    int overlap = 0;
-
-    int nedge = 0; // Total No. of Edges
-
-    int sledge = 0; // Touching Left Sector Edge
-    int sredge = 0; // Touching Right Sector Edge
-
-    int tledge = 0; // Touching Left Time Edge
-    int tredge = 0; // Touching Right Time Edge
-
-    int dledge = 0; // Touching Left Dead Edge
-    int dredge = 0; // Touching Right Dead Edge
-
-    int hledge = 0; // Touching Left Hot Edge
-    int hredge = 0; // Touching Right Hot Edge
-
-    int slmix = 0; // Touching Cluster at Left in Phibin
-    int srmix = 0; // Touching Cluster at Right in Phibin
-
-    int tlmix = 0; // Touching Cluster at Left in Timebin
-    int trmix = 0; // Touching Cluster at Right in Timebin
-
-    void clear()
-    {
-      *this = ClusterCounters{};
-    }
-  };
-  // NOLINTEND(misc-non-private-member-variables-in-classes)
   using vec_dVerbose = std::vector<std::vector<std::pair<int, int>>>;
 
   // Neural network parameters and modules
@@ -161,7 +129,6 @@ namespace
     hitMaskTpcSet *hotMap = nullptr;
     bool maskDead = false;
     bool maskHot  = false;
-    bool debug = false;
 
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster *> cluster_vector;
@@ -209,14 +176,13 @@ namespace
     }
   }
 
-  void find_t_range(int phibin, int tbin, const thread_data &my_data, const std::vector<std::vector<unsigned short>> &adcval, int &tdown, int &tup, ClusterCounters &counts, bool &ttop_edge, bool &tbottom_edge)
+  void find_t_range(int phibin, int tbin, const thread_data &my_data, const std::vector<std::vector<unsigned short>> &adcval, int &tdown, int &tup, int &touch, int &edge)
   {
     const int FitRangeT = (int) my_data.maxHalfSizeT;
     const int NTBinsMax = (int) my_data.tbins;
-    // const int FixedWindow = (int) my_data.FixedWindow;
+    const int FixedWindow = (int) my_data.FixedWindow;
     tup = 0;
     tdown = 0;
-    /*
     if (FixedWindow != 0)
     {
       tup = FixedWindow;
@@ -224,16 +190,15 @@ namespace
       if (tbin + tup >= NTBinsMax)
       {
         tup = NTBinsMax - tbin - 1;
-        counts.nedge++;
+        edge++;
       }
       if ((tbin - tdown) <= 0)
       {
         tdown = tbin;
-        counts.edge++;
+        edge++;
       }
       return;
     }
-    */
     for (int it = 0; it < FitRangeT; it++)
     {
       int ct = tbin + it;
@@ -241,12 +206,7 @@ namespace
       if (ct <= 0 || ct >= NTBinsMax)
       {
         // tup = it;
-	if (!ttop_edge)
-	{
-	  counts.nedge++;
-	  counts.tredge = 1;
-	  ttop_edge = true;
-	}
+        edge++;
         break;  // truncate edge
       }
 
@@ -256,7 +216,7 @@ namespace
       }
       if (adcval[phibin][ct] == USHRT_MAX)
       {
-        counts.overlap++;
+        touch++;
         break;
       }
       if (my_data.do_split)
@@ -268,7 +228,7 @@ namespace
               adcval[phibin][ct + 2] + adcval[phibin][ct + 3])
           {  // rising again
             tup = it + 1;
-            counts.overlap++;
+            touch++;
             break;
           }
         }
@@ -281,12 +241,7 @@ namespace
       if (ct <= 0 || ct >= NTBinsMax)
       {
         //      tdown = it;
-	if (!tbottom_edge)
-	{
-	  counts.nedge++;
-	  counts.tledge = 1;
-	  tbottom_edge = true;
-	}
+        edge++;
         break;  // truncate edge
       }
       if (adcval[phibin][ct] <= 0)
@@ -295,7 +250,7 @@ namespace
       }
       if (adcval[phibin][ct] == USHRT_MAX)
       {
-        counts.overlap++;
+        touch++;
         break;
       }
       if (my_data.do_split)
@@ -306,7 +261,7 @@ namespace
               adcval[phibin][ct - 2] + adcval[phibin][ct - 3])
           {  // rising again
             tdown = it + 1;
-            counts.overlap++;
+            touch++;
             break;
           }
         }
@@ -316,14 +271,13 @@ namespace
     return;
   }
 
-  void find_phi_range(int phibin, int tbin, const thread_data &my_data, const std::vector<std::vector<unsigned short>> &adcval, int &phidown, int &phiup, ClusterCounters &counts, bool &phitop_edge, bool &phibottom_edge)
+  void find_phi_range(int phibin, int tbin, const thread_data &my_data, const std::vector<std::vector<unsigned short>> &adcval, int &phidown, int &phiup, int &touch, int &edge)
   {
     int FitRangePHI = (int) my_data.maxHalfSizePhi;
     int NPhiBinsMax = (int) my_data.phibins;
-    // const int FixedWindow = (int) my_data.FixedWindow;
+    const int FixedWindow = (int) my_data.FixedWindow;
     phidown = 0;
     phiup = 0;
-    /*
     if (FixedWindow != 0)
     {
       phiup = FixedWindow;
@@ -340,19 +294,13 @@ namespace
       }
       return;
     }
-    */
     for (int iphi = 0; iphi < FitRangePHI; iphi++)
     {
       int cphi = phibin + iphi;
       if (cphi < 0 || cphi >= NPhiBinsMax)
       {
         // phiup = iphi;
-	if (!phitop_edge)
-	{
-	  counts.nedge++;
-	  counts.sredge = 1;
-	  phitop_edge = true;
-	}
+        edge++;
         break;  // truncate edge
       }
 
@@ -364,7 +312,7 @@ namespace
       }
       if (adcval[cphi][tbin] == USHRT_MAX)
       {
-        counts.overlap++;
+        touch++;
         break;
       }
       if (my_data.do_split)
@@ -375,7 +323,7 @@ namespace
               adcval[cphi + 2][tbin] + adcval[cphi + 3][tbin])
           {  // rising again
             phiup = iphi + 1;
-            counts.overlap++;
+            touch++;
             break;
           }
         }
@@ -389,12 +337,7 @@ namespace
       if (cphi < 0 || cphi >= NPhiBinsMax)
       {
         // phidown = iphi;
-	if (!phibottom_edge)
-	{
-	  counts.nedge++;
-	  counts.sledge = 1;
-	  phibottom_edge = true;
-	}
+        edge++;
         break;  // truncate edge
       }
 
@@ -405,7 +348,7 @@ namespace
       }
       if (adcval[cphi][tbin] == USHRT_MAX)
       {
-        counts.overlap++;
+        touch++;
         break;
       }
       if (my_data.do_split)
@@ -416,7 +359,7 @@ namespace
               adcval[cphi - 2][tbin] + adcval[cphi - 3][tbin])
           {  // rising again
             phidown = iphi + 1;
-            counts.overlap++;
+            touch++;
             break;
           }
         }
@@ -424,61 +367,6 @@ namespace
       phidown = iphi;
     }
     return;
-  }
-
-  void check_cluster_touching(const std::vector<ihit>& ihit_list, const std::vector<std::vector<unsigned short>>& adcval, int phibins, int tbins, ClusterCounters &counts)
-  {
-    // Encode (iphi, it) into single integer for fast lookup
-    std::unordered_set<int> cluster_hits;
-    cluster_hits.reserve(ihit_list.size());
-
-    auto encode = [tbins](int phi, int t)
-    {
-      return phi * tbins + t;
-    };
-
-    for (const auto &hit : ihit_list)
-    {
-      cluster_hits.insert(encode(hit.iphi, hit.it));
-    }
-
-    for (const auto &hit : ihit_list)
-    {
-      int iphi = hit.iphi;
-      int it   = hit.it;
-
-      for (int dphi = -1; dphi <= 1; ++dphi)
-      {
-	for (int dt = -1; dt <= 1; ++dt)
-	{
-	  if (dphi == 0 && dt == 0) { continue; }
-
-	  int nphi = iphi + dphi;
-	  int nt   = it + dt;
-
-	  if (nphi < 0 || nphi >= phibins ||
-	      nt   < 0 || nt   >= tbins) {
-	    continue;
-	  }
-
-	  // skip same cluster
-	  if (cluster_hits.contains(encode(nphi, nt))) { continue; }
-
-	  // neighbor has signal → touching
-	  if (adcval[nphi][nt] > 0 &&
-	      adcval[nphi][nt] != USHRT_MAX)
-	  {
-	    // Check Phi
-	    if (dphi == -1) { counts.slmix = 1; }
-	    if (dphi == 1) { counts.srmix = 1; }
-
-	    // Check Time
-	    if (dt == -1) { counts.tlmix = 1; }
-	    if (dt == 1) { counts.trmix = 1; }
-	  }
-	}
-      }
-    }
   }
 
   int is_hit_isolated(int iphi, int it, int NPhiBinsMax, int NTBinsMax, const std::vector<std::vector<unsigned short>> &adcval)
@@ -538,25 +426,20 @@ namespace
     return isiso;
   }
 
-  void get_cluster(int phibin, int tbin, const thread_data &my_data, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list, ClusterCounters &counts)
+  void get_cluster(int phibin, int tbin, const thread_data &my_data, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list, int &touch, int &edge)
   {
-    bool ttop_edge = false;
-    bool tbottom_edge = false;
-    bool phitop_edge = false;
-    bool phibottom_edge = false;
-
     // search along phi at the peak in t
     //    const int NPhiBinsMax = (int) my_data.phibins;
     // const int NTBinsMax = (int) my_data.tbins;
     int tup = 0;
     int tdown = 0;
-    find_t_range(phibin, tbin, my_data, adcval, tdown, tup, counts, ttop_edge, tbottom_edge);
+    find_t_range(phibin, tbin, my_data, adcval, tdown, tup, touch, edge);
     // now we have the t extent of the cluster, go find the phi edges
     for (int it = tbin - tdown; it <= (tbin + tup); it++)
     {
       int phiup = 0;
       int phidown = 0;
-      find_phi_range(phibin, it, my_data, adcval, phidown, phiup, counts, phitop_edge, phibottom_edge);
+      find_phi_range(phibin, it, my_data, adcval, phidown, phiup, touch, edge);
       for (int iphi = (phibin - phidown); iphi <= (phibin + phiup); iphi++)
       {
         if (adcval[iphi][it] > 0 && adcval[iphi][it] != USHRT_MAX)
@@ -573,7 +456,7 @@ namespace
           hit.it = it;
 
           hit.adc = adcval[iphi][it];
-          if (counts.overlap > 0)
+          if (touch > 0)
           {
             if ((iphi == (phibin - phidown)) ||
                 (iphi == (phibin + phiup)))
@@ -589,7 +472,7 @@ namespace
   }
 
   void calc_cluster_parameter(const int iphi_center, const int it_center,
-                              const std::vector<ihit> &ihit_list, thread_data &my_data, ClusterCounters counts)
+                              const std::vector<ihit> &ihit_list, thread_data &my_data, int ntouch, int nedge)
   {
     //
     // get z range from layer geometry
@@ -605,8 +488,6 @@ namespace
     double iphi_sum = 0.0;
     double iphi2_sum = 0.0;
 
-    double it_sum = 0.0;
-
     double radius = my_data.layergeom->get_radius();  // returns center of layer
 
     int phibinhi = -1;
@@ -615,12 +496,6 @@ namespace
     int tbinlo = 666666;
     int clus_size = ihit_list.size();
     int max_adc = 0;
-
-    int phibinmax = -1;
-    int tbinmax = -1;
-    double cen_adc = 0;
-
-    int size = 0;
 
     if (clus_size <= my_data.min_clus_size)
     {
@@ -646,15 +521,13 @@ namespace
       training_hits->phistep = my_data.layergeom->get_phistep();
       training_hits->zstep = my_data.layergeom->get_zstep() * my_data.tGeometry->get_drift_velocity();
       training_hits->layer = my_data.layer;
-      training_hits->ntouch = counts.overlap;
-      training_hits->nedge = counts.nedge;
+      training_hits->ntouch = ntouch;
+      training_hits->nedge = nedge;
       training_hits->v_adc.fill(0);
     }
 
     // std::cout << "process list" << std::endl;
     std::vector<TrkrDefs::hitkey> hitkeyvec;
-
-    std::map<std::pair<int,int>, double> adc_map;
 
     // keep track of the hit locations in a given cluster
     std::map<int, unsigned int> m_phi{};
@@ -671,18 +544,7 @@ namespace
         continue;
       }
 
-      size++;
-
-      int adc_int = static_cast<int>(std::round(adc));
-
-      if (adc_int > max_adc)
-      {
-	max_adc = adc_int;
-	phibinmax = iphi;
-	tbinmax = it;
-      }
-
-      // max_adc = std::max(max_adc, static_cast<int>(std::round(adc))); // preserves rounding (0.5 -> 1)
+      max_adc = std::max(max_adc, static_cast<int>(std::round(adc))); // preserves rounding (0.5 -> 1)
       phibinhi = std::max(iphi, phibinhi);
       phibinlo = std::min(iphi, phibinlo);
       tbinhi = std::max(it, tbinhi);
@@ -703,11 +565,7 @@ namespace
       t_sum += t * adc;
       t2_sum += square(t) * adc;
 
-      it_sum += it * adc;
-
       adc_sum += adc;
-
-      adc_map[{iphi, it}] += adc;
 
       if (my_data.fillClusHitsVerbose)
       {
@@ -765,15 +623,13 @@ namespace
 	    left_pad >= my_data.phioffset &&
 	    deadset.contains(TpcDefs::genHitKey(left_pad, 0)))
 	{
-	  counts.nedge++;
-	  counts.dledge = 1;
+	  nedge++;
 	}
 
 	if (right_pad < (my_data.phibins + my_data.phioffset) &&
 	    deadset.contains(TpcDefs::genHitKey(right_pad, 0)))
 	{
-	  counts.nedge++;
-	  counts.dredge = 1;
+	  nedge++;
 	}
       }
     }
@@ -790,62 +646,24 @@ namespace
 	    left_pad >= my_data.phioffset &&
 	    hotset.contains(TpcDefs::genHitKey(left_pad, 0)))
 	{
-	  counts.nedge++;
-	  counts.hledge = 1;
+	  nedge++;
 	}
 
 	if (right_pad < (my_data.phibins + my_data.phioffset) &&
 	    hotset.contains(TpcDefs::genHitKey(right_pad, 0)))
 	{
-	  counts.nedge++;
-	  counts.hredge = 1;
+	  nedge++;
 	}
       }
     }
 
-    // This is local position
-    double clusiphi = iphi_sum / adc_sum;
-    double clusit = it_sum / adc_sum;
-
     // This is the global position
+    double clusiphi = iphi_sum / adc_sum;
     double clusphi = my_data.layergeom->get_phi(clusiphi, my_data.side);
-    double clust = t_sum / adc_sum;
-
-    // ADC of centroid bin
-    int iphi_centroid = static_cast<int>(std::floor(clusiphi));
-    int it_centroid = static_cast<int>(std::floor(clusit));
-
-    auto it_cent = adc_map.find({iphi_centroid, it_centroid});
-    if (it_cent != adc_map.end())
-    {
-      cen_adc = it_cent->second;
-    }
-    else
-    {
-      cen_adc = 0.0; // centroid may not land on a real hit
-    }
-
-    // Max ADC position in global coordinates
-    double maxphi = my_data.layergeom->get_phi(phibinmax, my_data.side);
-    double maxt   = my_data.layergeom->get_zcenter(tbinmax);
-
-    // Phase relative to max ADC position
-    double padphase = 0.0;
-    double tbinphase = 0.0;
-
-    if (my_data.layergeom->get_phistep() > 0)
-    {
-      padphase = (clusphi - maxphi) / my_data.layergeom->get_phistep();
-    }
-
-    if (my_data.layergeom->get_zstep() > 0)
-    {
-      tbinphase = (clust - maxt) / my_data.layergeom->get_zstep();
-    }
 
     double clusx = radius * cos(clusphi);
     double clusy = radius * sin(clusphi);
-
+    double clust = t_sum / adc_sum;
     // needed for surface identification
     double zdriftlength = clust * my_data.tGeometry->get_drift_velocity();
     // convert z drift length to z position in the TPC
@@ -884,7 +702,6 @@ namespace
   
     char tsize = tbinhi - tbinlo + 1;
     char phisize = phibinhi - phibinlo + 1;
-    char rsize = size;
     // std::cout << "phisize: "  << (int) phisize << " phibinhi " << phibinhi << " phibinlo " << phibinlo << std::endl;
     // phi_cov = (weighted mean of dphi^2) - (weighted mean of dphi)^2,  which is essentially the weighted mean of dphi^2. The error is then:
     // e_phi = sigma_dphi/sqrt(N) = sqrt( sigma_dphi^2 / N )  -- where N is the number of samples of the distribution with standard deviation sigma_dphi
@@ -909,54 +726,20 @@ namespace
     //	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
     if (sqrt(phi_err_square) > my_data.min_err_squared)
     {
-      TrkrCluster* clus = nullptr;
-
-      if (my_data.debug)
-      {
-	      clus = new TrkrClusterv6;
-      }
-      else
-      {
-	      clus = new TrkrClusterv5;
-      }
-
+      auto *clus = new TrkrClusterv5;
+      // auto clus = std::make_unique<TrkrClusterv3>();
       clus_base = clus;
-      clus->setLocalX(local(0));
-      clus->setLocalY(clust);
-      clus->setSubSurfKey(subsurfkey);
       clus->setAdc(adc_sum);
       clus->setMaxAdc(max_adc);
-      clus->setCenAdc(cen_adc);
-      clus->setPadCen(clusiphi);
-      clus->setTBinCen(clusit);
-      clus->setPadMax(phibinmax);
-      clus->setTBinMax(tbinmax);
-      clus->setPhiError(sqrt(phi_err_square));
-      clus->setZError(sqrt(t_err_square * pow(my_data.tGeometry->get_drift_velocity(), 2)));
-      clus->setRSize(rsize);
+      clus->setEdge(nedge);
       clus->setPhiSize(phisize);
       clus->setZSize(tsize);
-      clus->setOverlap(counts.overlap);
-      clus->setEdge(counts.nedge);
-      clus->setSLEdge(counts.sledge);
-      clus->setSREdge(counts.sredge);
-      clus->setTLEdge(counts.tledge);
-      clus->setTREdge(counts.tredge);
-      clus->setDLEdge(counts.dledge);
-      clus->setDREdge(counts.dredge);
-      clus->setHLEdge(counts.hledge);
-      clus->setHREdge(counts.hredge);
-      clus->setSLMix(counts.slmix);
-      clus->setSRMix(counts.srmix);
-      clus->setTLMix(counts.tlmix);
-      clus->setTRMix(counts.trmix);
-      clus->setPhiBinLo(phibinlo);
-      clus->setPhiBinHi(phibinhi);
-      clus->setTBinLo(tbinlo);
-      clus->setTBinHi(tbinhi);
-      clus->setPadPhase(padphase);
-      clus->setTBinPhase(tbinphase);
-
+      clus->setSubSurfKey(subsurfkey);
+      clus->setOverlap(ntouch);
+      clus->setLocalX(local(0));
+      clus->setLocalY(clust);
+      clus->setPhiError(sqrt(phi_err_square));
+      clus->setZError(sqrt(t_err_square * pow(my_data.tGeometry->get_drift_velocity(), 2)));
       my_data.cluster_vector.push_back(clus);
       b_made_cluster = true;
     }
@@ -1254,9 +1037,6 @@ namespace
       }
     }
     */
-    
-    std::vector<std::vector<unsigned short>> adcval_orig = adcval;
-
     // std::cout << "done filling " << std::endl;
     while (!all_hit_map.empty())
     {
@@ -1284,10 +1064,9 @@ namespace
       // start with highest adc hit
       //  -> cluster around it and get vector of hits
       std::vector<ihit> ihit_list;
-      // Setting all the counters
-      ClusterCounters counts;
-
-      get_cluster(iphi, it, *my_data, adcval, ihit_list, counts);
+      int ntouch = 0;
+      int nedge = 0;
+      get_cluster(iphi, it, *my_data, adcval, ihit_list, ntouch, nedge);
 
       if (my_data->FixedWindow > 0)
       {
@@ -1323,16 +1102,11 @@ namespace
           my_data->FixedWindow = 0;
           // reset hit list and try again without fixed window
           ihit_list.clear();
-	  // resetting all the counters
-	  counts.clear();
-          get_cluster(iphi, it, *my_data, adcval, ihit_list, counts);
+          get_cluster(iphi, it, *my_data, adcval, ihit_list, ntouch, nedge);
           // std::cout << " stepdown size after " << ihit_list.size() << std::endl;
           my_data->FixedWindow = window_cache;
         }
       }
-      
-      check_cluster_touching(ihit_list, adcval_orig, my_data->phibins, my_data->tbins, counts);
-
       if (ihit_list.size() <= 1)
       {
         remove_hits(ihit_list, all_hit_map, adcval);
@@ -1343,7 +1117,7 @@ namespace
       // -> add hits to truth association
       // remove hits from all_hit_map
       // repeat untill all_hit_map empty
-      calc_cluster_parameter(iphi, it, ihit_list, *my_data, counts);
+      calc_cluster_parameter(iphi, it, ihit_list, *my_data, ntouch, nedge);
       remove_hits(ihit_list, all_hit_map, adcval);
       ihit_list.clear();
     }
@@ -1762,7 +1536,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.phioffset = PhiOffset;
       thread_pair.data.tbins = NTBinsSide;
       thread_pair.data.toffset = TOffset;
-      thread_pair.data.debug = m_debug;
+
       thread_pair.data.radius = layergeom->get_radius();
       thread_pair.data.drift_velocity = m_tGeometry->get_drift_velocity();
       thread_pair.data.pads_per_sector = 0;
@@ -1851,7 +1625,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.pedestal = pedestal;
       thread_pair.data.sector = sector;
       thread_pair.data.side = side;
-      thread_pair.data.debug = m_debug;
       thread_pair.data.do_assoc = do_hit_assoc;
       thread_pair.data.do_wedge_emulation = do_wedge_emulation;
       thread_pair.data.tGeometry = m_tGeometry;
