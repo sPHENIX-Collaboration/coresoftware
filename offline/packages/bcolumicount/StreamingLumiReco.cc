@@ -1,8 +1,6 @@
-#include "StreamingBcoLumiReco.h"
+#include "StreamingLumiReco.h"
 
 #include "BcoInfo.h"
-#include "StreamingBcoInfo.h"
-#include "StreamingBcoInfov1.h"
 #include "StreamingLumiInfo.h"
 #include "StreamingLumiInfov1.h"
 
@@ -23,6 +21,8 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+#include <phool/sphenix_constants.h> // for MDB_NS_xsec
+
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -32,34 +32,19 @@
 
 #include <iostream>
 
-StreamingBcoLumiReco::StreamingBcoLumiReco(const std::string &name)
+StreamingLumiReco::StreamingLumiReco(const std::string &name)
   : SubsysReco(name)
 {
-  hm = new Fun4AllHistoManager("bco_histos");
-  Fun4AllServer *se = Fun4AllServer::instance();
-  se->registerHistoManager(hm); 
   return;
 }
 
-int StreamingBcoLumiReco::Init(PHCompositeNode *topNode)
+int StreamingLumiReco::Init(PHCompositeNode *topNode)
 {
   int iret = CreateNodeTree(topNode);
-  h_bco_diff = new TH1I("h_bco_diff", ";bco diff;", 3500, 0, 3500);
-  std::string hist_name = "h_bco_diff_bit";
-  for (int bit=0; bit<trigbits; ++bit)
-  {
-    hist_name += std::to_string(bit);
-    h_bco_diff_trigbits[bit] = new TH1I(hist_name.c_str(), ";bco diff;", 3500, 0, 3500);
-    hm->registerHisto(h_bco_diff_trigbits[bit]);
-  }
-  h_bco_tag = new TH1I("h_bco_tag", ";usable bco tag;", 2, -0.5, 1.5);
-  hm->registerHisto(h_bco_diff);
-  hm->registerHisto(h_bco_tag);
-
   return iret;
 }
 
-int StreamingBcoLumiReco::InitRun(PHCompositeNode * topNode)
+int StreamingLumiReco::InitRun(PHCompositeNode * topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode;
@@ -79,7 +64,7 @@ int StreamingBcoLumiReco::InitRun(PHCompositeNode * topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int StreamingBcoLumiReco::CreateNodeTree(PHCompositeNode *topNode)
+int StreamingLumiReco::CreateNodeTree(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode;
@@ -89,17 +74,10 @@ int StreamingBcoLumiReco::CreateNodeTree(PHCompositeNode *topNode)
     std::cout << PHWHERE << " DST Node is missing doing nothing" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  StreamingBcoInfo *streaming_bco_info = findNode::getClass<StreamingBcoInfo>(topNode, "STREAMINGBCOINFO");
-  if (!streaming_bco_info)
-  {
-    streaming_bco_info = new StreamingBcoInfov1();
-    PHIODataNode<PHObject> *bconode = new PHIODataNode<PHObject>(streaming_bco_info, "STREAMINGBCOINFO", "PHObject");
-    dstNode->addNode(bconode);
-  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
+int StreamingLumiReco::process_event(PHCompositeNode *topNode)
 {
   BcoInfo *bcoinfo = findNode::getClass<BcoInfo>(topNode, "BCOINFO");
   SyncObject *syncobject = findNode::getClass<SyncObject>(topNode, syncdefs::SYNCNODENAME);
@@ -125,9 +103,7 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
       }
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-    uint64_t gtm_bco = packet->lValue(0, "BCO");
-    uint64_t gl1_scaledvec = packet->lValue(0, "ScaledVector");
-    //uint64_t gl1_livevec = packet->lValue(0, "TriggerVector");   
+    uint64_t gtm_bco = packet->lValue(0, "BCO"); 
 
     int bunchno = packet->lValue(0,"BunchNumber");
     if (bunchno < 0 || bunchno >= m_bunches)
@@ -175,12 +151,6 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
                   << " bco: " << bcoinfo->get_future_bco() << std::dec << std::endl;
       }
 
-      StreamingBcoInfo *streaming_bco_info = findNode::getClass<StreamingBcoInfo>(topNode, "STREAMINGBCOINFO");
-      if (!streaming_bco_info)
-      {
-        std::cout << PHWHERE << " STREAMINGBCOINFO node missing" << std::endl;
-        return Fun4AllReturnCodes::ABORTEVENT;
-      }
       m_bco = bcoinfo->get_current_bco();
       if (gtm_bco != m_bco) { std::cout << "BCO MISMATCH!!! : gtm_bco : " << gtm_bco << " m_bco " << m_bco << std::endl;}
       uint64_t bco_prev = bcoinfo->get_previous_bco();
@@ -200,29 +170,17 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
       if (bco_diff_futu < m_default_positive_window_length)
       {
         // double check boundaries for overlap!!
-        m_bco_streaming_window = std::make_pair(get_bco() - m_default_negative_window_length, bco_futu - m_default_negative_window_length + 1);
+        m_bco_streaming_window = std::make_pair(m_bco - m_default_negative_window_length, bco_futu - m_default_negative_window_length + 1);
       }
       else
       {
-        m_bco_streaming_window = std::make_pair(get_bco() - m_default_negative_window_length, get_bco() + m_default_positive_window_length);
+        m_bco_streaming_window = std::make_pair(m_bco - m_default_negative_window_length, m_bco + m_default_positive_window_length);
       }
       if (Verbosity() > 2)
       {
-        std::cout << "bco_diff_prev : " << bco_diff_prev << std::endl;
         std::cout << "bco_diff_futu : " << bco_diff_futu << std::endl; 
       }
-      h_bco_diff->Fill(bco_diff_prev);
-      h_bco_tag->Fill(m_usable_bco_tag);
-      for (int bit=0; bit<trigbits; ++bit)
-      {
-        bool trigger_fired = ((gl1_scaledvec >> static_cast<uint64_t>(bit)) & 0x1U) == 0x1U;
-        //bool scaled_trigger_fired = ((gl1_scaledvec >> bit) & 0x1U) == 0x1U;
 
-        if (trigger_fired) 
-        {
-          h_bco_diff_trigbits[bit]->Fill(bco_diff_prev);
-        }
-      }
       // Double check Zhiwan's logic for assigning the adjusted bunch!
       int lower = m_bco_streaming_window.first - m_bco;
       int upper = m_bco_streaming_window.second - m_bco;
@@ -250,27 +208,19 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
           //  m_bunchnumber_crossings[adjusted_bunch] += 1;
           //}
       }
-
-      streaming_bco_info->set_bco(get_bco());
-      streaming_bco_info->set_usable_bco_tag(get_usable_bco_tag());
-      streaming_bco_info->set_bco_streaming_window(get_bco_streaming_window());
-      if (syncobject)
-      {
-        streaming_bco_info->set_evtno(syncobject->EventNumber());
-      }
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int StreamingBcoLumiReco::EndRun(int /*runnumber*/)
+int StreamingLumiReco::EndRun(int /*runnumber*/)
 {
   uint64_t rawgl1scalers_per_bunch = m_rawgl1scaler/120.;
   for (int i=0; i<m_bunches; i++)
   {
-    m_bunchnumber_lumi_raw[i] = ( m_bunchnumber_crossings[i] * m_bunchnumber_MBDNS_raw[i] ) / ( rawgl1scalers_per_bunch * m_xsec_MBDNS );
-    m_bunchnumber_lumi_live[i] = ( m_bunchnumber_crossings[i] * m_bunchnumber_MBDNS_live[i]) / ( rawgl1scalers_per_bunch * m_xsec_MBDNS );
-    m_bunchnumber_lumi_scaled[i] = ( m_bunchnumber_crossings[i] * m_bunchnumber_MBDNS_scaled[i] ) / ( rawgl1scalers_per_bunch * m_xsec_MBDNS );
+    m_bunchnumber_lumi_raw[i] = ( m_bunchnumber_crossings[i] * m_bunchnumber_MBDNS_raw[i] ) / ( rawgl1scalers_per_bunch * sphenix_constants::m_xsec_MBDNS );
+    m_bunchnumber_lumi_live[i] = ( m_bunchnumber_crossings[i] * m_bunchnumber_MBDNS_live[i]) / ( rawgl1scalers_per_bunch * sphenix_constants::m_xsec_MBDNS );
+    m_bunchnumber_lumi_scaled[i] = ( m_bunchnumber_crossings[i] * m_bunchnumber_MBDNS_scaled[i] ) / ( rawgl1scalers_per_bunch * sphenix_constants::m_xsec_MBDNS );
 
     m_lumi_raw += m_bunchnumber_lumi_raw[i];
     m_lumi_live += m_bunchnumber_lumi_live[i];
@@ -286,12 +236,18 @@ int StreamingBcoLumiReco::EndRun(int /*runnumber*/)
     std::cout << PHWHERE << " STREAMINGLUMIINFO node missing in EndRun" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+
+  m_streaming_lumi_info->set_bunchnumber_lumi_raw(get_bunchnumber_lumi_raw());
+  m_streaming_lumi_info->set_bunchnumber_lumi_live(get_bunchnumber_lumi_live());
+  m_streaming_lumi_info->set_bunchnumber_lumi_scaled(get_bunchnumber_lumi_scaled());
+
   m_streaming_lumi_info->set_lumi_raw(get_lumi_raw());
   m_streaming_lumi_info->set_lumi_live(get_lumi_live());
   m_streaming_lumi_info->set_lumi_scaled(get_lumi_scaled());
+  
   if (Verbosity() > 1)
   {
-    std::cout << "MBD xsec : " << m_xsec_MBDNS << std::endl;
+    std::cout << "MBD xsec : " << sphenix_constants::m_xsec_MBDNS << std::endl;
     std::cout << "total lumi (raw) : " << m_lumi_raw << std::endl;
   }
 
