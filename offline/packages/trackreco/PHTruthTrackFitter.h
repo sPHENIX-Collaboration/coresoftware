@@ -9,7 +9,6 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <limits>
-#include <map>
 #include <string>
 #include <vector>
 
@@ -50,7 +49,6 @@ class PHTruthTrackFitter : public SubsysReco
 
   TrackSeed* getSeed(TrackSeedContainer* container, unsigned int index) const;
   unsigned int getTruthTrackId(const TrackSeed* svtxSeed, const TrackSeed* tpcSeed, const TrackSeed* siliconSeed) const;
-  void countTruthHits(const TrackSeed* seed, std::map<int, unsigned int>& counts) const;
 
   std::vector<const PHG4Hit*> getTruthHits(TrkrDefs::cluskey cluskey) const;
   const PHG4Hit* getG4Hit(unsigned int trkrid, PHG4HitDefs::keytype g4hitkey) const;

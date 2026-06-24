@@ -337,6 +337,7 @@ unsigned int PHTruthTrackFitter::getTruthTrackId(const TrackSeed* svtxSeed,
                                                  const TrackSeed* tpcSeed,
                                                  const TrackSeed* siliconSeed) const
 {
+  auto truth_track_id = m_invalidTruthTrackId;
   for (const auto* seed : {svtxSeed, tpcSeed, siliconSeed})
   {
     if (!seed)
@@ -344,52 +345,26 @@ unsigned int PHTruthTrackFitter::getTruthTrackId(const TrackSeed* svtxSeed,
       continue;
     }
 
-    const auto truth_track_id = seed->get_truth_track_id();
-    if (valid_track_id(truth_track_id))
+    const auto seed_truth_track_id = seed->get_truth_track_id();
+    if (!valid_track_id(seed_truth_track_id))
     {
-      return truth_track_id;
+      continue;
     }
-  }
 
-  std::map<int, unsigned int> truth_counts;
-  countTruthHits(tpcSeed, truth_counts);
-  countTruthHits(siliconSeed, truth_counts);
-
-  if (truth_counts.empty())
-  {
-    return m_invalidTruthTrackId;
-  }
-
-  const auto best_iter = std::max_element(truth_counts.begin(), truth_counts.end(),
-                                          [](const auto& lhs, const auto& rhs)
-                                          { return lhs.second < rhs.second; });
-
-  return best_iter->first >= 0 ? static_cast<unsigned int>(best_iter->first) : m_invalidTruthTrackId;
-}
-
-void PHTruthTrackFitter::countTruthHits(const TrackSeed* seed, std::map<int, unsigned int>& counts) const
-{
-  if (!seed)
-  {
-    return;
-  }
-
-  for (auto iter = seed->begin_cluster_keys(); iter != seed->end_cluster_keys(); ++iter)
-  {
-    for (const auto* g4hit : getTruthHits(*iter))
+    if (valid_track_id(truth_track_id) && seed_truth_track_id != truth_track_id)
     {
-      if (!g4hit)
+      if (Verbosity() > 0)
       {
-        continue;
+        std::cout << "PHTruthTrackFitter::getTruthTrackId - inconsistent seed truth ids "
+                  << truth_track_id << " and " << seed_truth_track_id << std::endl;
       }
-
-      const auto track_id = g4hit->get_trkid();
-      if (track_id >= 0)
-      {
-        ++counts[track_id];
-      }
+      return m_invalidTruthTrackId;
     }
+
+    truth_track_id = seed_truth_track_id;
   }
+
+  return truth_track_id;
 }
 
 std::vector<const PHG4Hit*> PHTruthTrackFitter::getTruthHits(TrkrDefs::cluskey cluskey) const
