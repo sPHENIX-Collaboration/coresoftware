@@ -41,7 +41,7 @@
 namespace
 {
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -108,7 +108,7 @@ int PHTruthTrackFitter::process_event(PHCompositeNode* /*topNode*/)
   m_trackMap->Reset();
 
   unsigned int skipped_tracks = 0;
-  for (auto seed : *m_seedMap)
+  for (auto *seed : *m_seedMap)
   {
     if (!seed)
     {
