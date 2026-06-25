@@ -141,6 +141,7 @@ int PHTpcResiduals::Init(PHCompositeNode* /*topNode*/)
   std::cout << "PHTpcResiduals::Init - m_maxTBeta: " << m_maxTBeta << std::endl;
   std::cout << "PHTpcResiduals::Init - m_maxResidualDrphi: " << m_maxResidualDrphi << " cm" << std::endl;
   std::cout << "PHTpcResiduals::Init - m_maxResidualDz: " << m_maxResidualDz << " cm" << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_ignoreEdgeClusters: " << m_ignoreEdgeClusters << std::endl;
   std::cout << "PHTpcResiduals::Init - m_minRPhiErr: " << m_minRPhiErr << " cm" << std::endl;
   std::cout << "PHTpcResiduals::Init - m_minZErr: " << m_minZErr << " cm" << std::endl;
   std::cout << "PHTpcResiduals::Init - m_minPt: " << m_minPt << " GeV/c" << std::endl;
@@ -472,8 +473,6 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
   for (const auto& cluskey : get_cluster_keys(track))
   {
-    // increment counter
-    ++m_total_clusters;
 
     // make sure cluster is from TPC
     const auto detId = TrkrDefs::getTrkrId(cluskey);
@@ -481,6 +480,10 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     {
       continue;
     }
+
+    // increment counter
+    /* only counts TPC clusters */
+    ++m_total_clusters;
 
     // find matching track state
     const auto stateiter = std::find_if( track->begin_states(), track->end_states(), [&cluskey]( const auto& state_pair )
@@ -494,6 +497,14 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
     // calculate residuals with respect to cluster
     auto* const cluster = m_clusterContainer->findCluster(cluskey);
+
+    // check cluster
+    if( !cluster ) { continue; }
+
+    // check if cluster is an edge
+    if( m_ignoreEdgeClusters && cluster->getEdge() > 0 && cluster->getEdge() < std::numeric_limits<char>::max() )
+    { continue; }
+
     const auto globClusPos = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluskey, cluster, crossing);
     const double clusR = get_r(globClusPos(0), globClusPos(1));
     const double clusPhi = std::atan2(globClusPos(1), globClusPos(0));

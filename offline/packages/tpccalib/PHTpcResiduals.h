@@ -63,11 +63,20 @@ class PHTpcResiduals : public SubsysReco
   }
   //@}
 
+  /// true to remove "edge" clusters
+  /** these are clusters that touch the edge of a detector and are considered pathological */
+  void setIgnoreEdgeClusters( bool value )
+  { m_ignoreEdgeClusters = value; }
+
+  /// minimum value for RPhi error.
+  /** a too small rphi error is usually a sign of pathological TPC cluster */
   void setMinRPhiErr(float minRPhiErr)
   {
     m_minRPhiErr = minRPhiErr;
   }
 
+  /// minimum value for z error.
+  /** a too small z error is usually a sign of pathological TPC cluster */
   void setMinZErr(float minZErr)
   {
     m_minZErr = minZErr;
@@ -170,6 +179,9 @@ class PHTpcResiduals : public SubsysReco
   float m_maxResidualDrphi = 0.5;  // cm
   float m_maxTBeta = 1.5;
   float m_maxResidualDz = 0.5;  // cm
+
+  /// ignore edge clusters
+  bool m_ignoreEdgeClusters = false;
 
   float m_minRPhiErr = 0.005;  // 0.005cm -- 50um
   float m_minZErr = 0.01;      // 0.01cm -- 100um
