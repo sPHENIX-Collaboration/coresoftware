@@ -75,8 +75,9 @@ pkginclude_HEADERS = \
   PHTrackSetMerging.h \
   PHTrackSetCopyMerging.h \
   PHTruthClustering.h \
-  PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
+  PHTruthTrackFitter.h \
+  PHTruthTrackSeeding.h \
   PHTruthVertexing.h \
   PrelimDistortionCorrection.h \
   PrelimDistortionCorrectionAuAu.h \
@@ -161,9 +162,10 @@ libtrack_reco_la_SOURCES = \
   PHTrackPropagating.cc \
   PHTrackFitting.cc \
   PHTruthClustering.cc \
+  PHTruthSiliconAssociation.cc \
+  PHTruthTrackFitter.cc \
   PHTruthTrackSeeding.cc \
   PHTruthVertexing.cc \
-  PHTruthSiliconAssociation.cc \
   PrelimDistortionCorrection.cc \
   PrelimDistortionCorrectionAuAu.cc \
   SecondaryVertexFinder.cc \
