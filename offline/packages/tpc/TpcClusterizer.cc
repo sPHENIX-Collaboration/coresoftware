@@ -213,10 +213,10 @@ namespace
   {
     const int FitRangeT = (int) my_data.maxHalfSizeT;
     const int NTBinsMax = (int) my_data.tbins;
-    // const int FixedWindow = (int) my_data.FixedWindow;
+    const int FixedWindow = (int) my_data.FixedWindow;
     tup = 0;
     tdown = 0;
-    /*
+    
     if (FixedWindow != 0)
     {
       tup = FixedWindow;
@@ -229,11 +229,11 @@ namespace
       if ((tbin - tdown) <= 0)
       {
         tdown = tbin;
-        counts.edge++;
+        counts.nedge++;
       }
       return;
     }
-    */
+    
     for (int it = 0; it < FitRangeT; it++)
     {
       int ct = tbin + it;
@@ -320,10 +320,10 @@ namespace
   {
     int FitRangePHI = (int) my_data.maxHalfSizePhi;
     int NPhiBinsMax = (int) my_data.phibins;
-    // const int FixedWindow = (int) my_data.FixedWindow;
+    const int FixedWindow = (int) my_data.FixedWindow;
     phidown = 0;
     phiup = 0;
-    /*
+    
     if (FixedWindow != 0)
     {
       phiup = FixedWindow;
@@ -331,16 +331,16 @@ namespace
       if (phibin + phiup >= NPhiBinsMax)
       {
         phiup = NPhiBinsMax - phibin - 1;
-        edge++;
+        counts.nedge++;
       }
       if (phibin - phidown <= 0)
       {
         phidown = phibin;
-        edge++;
+        counts.nedge++;
       }
       return;
     }
-    */
+    
     for (int iphi = 0; iphi < FitRangePHI; iphi++)
     {
       int cphi = phibin + iphi;
