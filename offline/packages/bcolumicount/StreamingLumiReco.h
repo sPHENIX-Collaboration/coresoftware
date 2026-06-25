@@ -39,9 +39,6 @@ class StreamingLumiReco : public SubsysReco
   static int CreateNodeTree(PHCompositeNode *topNode);
 
   int m_bunches = 120;
-  uint64_t m_bco{0};
-  bool m_usable_bco_tag = false;
-  std::pair<uint64_t, uint64_t> m_bco_streaming_window;
   unsigned int m_default_positive_window_length{340};
   unsigned int m_default_negative_window_length{20};
 

@@ -1,6 +1,6 @@
 #include "StreamingLumiReco.h"
 
-#include "BcoInfo.h"
+#include "StreamingBcoInfo.h"
 #include "StreamingLumiInfo.h"
 #include "StreamingLumiInfov1.h"
 
@@ -79,9 +79,7 @@ int StreamingLumiReco::CreateNodeTree(PHCompositeNode *topNode)
 
 int StreamingLumiReco::process_event(PHCompositeNode *topNode)
 {
-  BcoInfo *bcoinfo = findNode::getClass<BcoInfo>(topNode, "BCOINFO");
-  SyncObject *syncobject = findNode::getClass<SyncObject>(topNode, syncdefs::SYNCNODENAME);
-  //Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(topNode, 14001);
+  StreamingBcoInfo *streaming_bcoinfo = findNode::getClass<StreamingBcoInfo>(topNode, "STREAMINGBCOINFO");
   Event *evt = findNode::getClass<Event>(topNode, "PRDF");
   if (evt)
   {
@@ -129,69 +127,21 @@ int StreamingLumiReco::process_event(PHCompositeNode *topNode)
 
     delete packet;
 
-    if (Verbosity() > 2)
+    if (streaming_bcoinfo)
     {
-      if (!syncobject)
-      {
-        std::cout << PHWHERE << " SyncObject missing" << std::endl;
-        return Fun4AllReturnCodes::ABORTEVENT;
-      }
-      std::cout << "Event No: " << syncobject->EventNumber() /*<< std::hex*/
-                << " gl1  bco: " << gtm_bco <<std::dec << std::endl;
-    }
-    if (bcoinfo)
-    {
-      if (Verbosity() > 2)
-      {
-        std::cout << "prev event: " << bcoinfo->get_previous_evtno() /*<< std::hex*/
-                  << " bco: " << bcoinfo->get_previous_bco() << std::dec << std::endl;
-        std::cout << "curr event: " << bcoinfo->get_current_evtno() /*<< std::hex*/
-                  << " bco: " << bcoinfo->get_current_bco() << std::dec << std::endl;
-        std::cout << "futu event: " << bcoinfo->get_future_evtno() /*<< std::hex*/
-                  << " bco: " << bcoinfo->get_future_bco() << std::dec << std::endl;
-      }
-
-      m_bco = bcoinfo->get_current_bco();
-      if (gtm_bco != m_bco) { std::cout << "BCO MISMATCH!!! : gtm_bco : " << gtm_bco << " m_bco " << m_bco << std::endl;}
-      uint64_t bco_prev = bcoinfo->get_previous_bco();
-      uint64_t bco_futu = bcoinfo->get_future_bco();
-      uint64_t bco_diff_prev = m_bco - bco_prev;
-      uint64_t bco_diff_futu = bco_futu - m_bco;
-
-      // special case if BCO is within 20 of previous BCO?
-      if (bco_diff_prev < m_default_positive_window_length)
-      {
-        m_usable_bco_tag = true;
-      }
-      else
-      {
-        m_usable_bco_tag = false;
-      }
-      if (bco_diff_futu < m_default_positive_window_length)
-      {
-        // double check boundaries for overlap!!
-        m_bco_streaming_window = std::make_pair(m_bco - m_default_negative_window_length, bco_futu - m_default_negative_window_length + 1);
-      }
-      else
-      {
-        m_bco_streaming_window = std::make_pair(m_bco - m_default_negative_window_length, m_bco + m_default_positive_window_length);
-      }
-      if (Verbosity() > 2)
-      {
-        std::cout << "bco_diff_futu : " << bco_diff_futu << std::endl; 
-      }
+      if (gtm_bco != streaming_bcoinfo->get_bco()) { std::cout << "BCO MISMATCH!!! : gtm_bco : " << gtm_bco << " bco " << streaming_bcoinfo->get_bco() << std::endl;}
 
       // Double check Zhiwan's logic for assigning the adjusted bunch!
-      int lower = m_bco_streaming_window.first - m_bco;
-      int upper = m_bco_streaming_window.second - m_bco;
+      int lower = streaming_bcoinfo->get_bco_streaming_window().first - streaming_bcoinfo->get_bco();
+      int upper = streaming_bcoinfo->get_bco_streaming_window().second - streaming_bcoinfo->get_bco();
       for(int i = lower; i< upper;i++)
       {
         int adjusted_bunch = bunchno + i;
-          while (adjusted_bunch < 0) 
+          while (adjusted_bunch < 0)
           {
               adjusted_bunch += 120;
           }
-          while (adjusted_bunch > 119) 
+          while (adjusted_bunch > 119)
           {
               adjusted_bunch -= 120;
           }
@@ -199,7 +149,7 @@ int StreamingLumiReco::process_event(PHCompositeNode *topNode)
           if (adjusted_bunch>110) { continue; }
 
           // Make sure this is the correct way to count crossings! Need to zero out for each run!
-          if(i!=0 || m_usable_bco_tag) 
+          if(i!=0 || streaming_bcoinfo->get_usable_bco_tag())
           {
             m_bunchnumber_crossings[adjusted_bunch] += 1;
           }
