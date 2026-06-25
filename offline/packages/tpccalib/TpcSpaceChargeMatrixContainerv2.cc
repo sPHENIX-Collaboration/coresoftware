@@ -60,7 +60,7 @@ int TpcSpaceChargeMatrixContainerv2::get_cell_index(int iphi, int ir, int iz) co
 
 //___________________________________________________________
 int TpcSpaceChargeMatrixContainerv2::get_entries() const
-{ return std::accumulate( m_entries.begin(), m_entries.end(), (int)0); }
+{ return std::accumulate( m_entries.begin(), m_entries.end(), 0); }
 
 //___________________________________________________________
 int TpcSpaceChargeMatrixContainerv2::get_entries(int cell_index) const

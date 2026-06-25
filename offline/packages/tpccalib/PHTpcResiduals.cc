@@ -689,7 +689,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     for( auto& container:containers )
     {
 
-      if( !container ) continue;
+      if( !container ) { continue; }
 
       // Fill distortion matrices
       container->add_to_lhs(index, 0, 0, square(clusR) / erp);
