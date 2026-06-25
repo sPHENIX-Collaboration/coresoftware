@@ -128,6 +128,8 @@ namespace
 PHTpcResiduals::PHTpcResiduals(const std::string& name)
   : SubsysReco(name)
   , m_matrix_container(new TpcSpaceChargeMatrixContainerv2)
+  , m_matrix_container_pos(new TpcSpaceChargeMatrixContainerv2)
+  , m_matrix_container_neg(new TpcSpaceChargeMatrixContainerv2)
 {
 }
 
@@ -139,6 +141,7 @@ int PHTpcResiduals::Init(PHCompositeNode* /*topNode*/)
   std::cout << "PHTpcResiduals::Init - m_maxTBeta: " << m_maxTBeta << std::endl;
   std::cout << "PHTpcResiduals::Init - m_maxResidualDrphi: " << m_maxResidualDrphi << " cm" << std::endl;
   std::cout << "PHTpcResiduals::Init - m_maxResidualDz: " << m_maxResidualDz << " cm" << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_ignoreEdgeClusters: " << m_ignoreEdgeClusters << std::endl;
   std::cout << "PHTpcResiduals::Init - m_minRPhiErr: " << m_minRPhiErr << " cm" << std::endl;
   std::cout << "PHTpcResiduals::Init - m_minZErr: " << m_minZErr << " cm" << std::endl;
   std::cout << "PHTpcResiduals::Init - m_minPt: " << m_minPt << " GeV/c" << std::endl;
@@ -186,11 +189,25 @@ int PHTpcResiduals::End(PHCompositeNode* /*topNode*/)
   std::cout << "PHTpcResiduals::End - writing matrices to " << m_outputfile << std::endl;
 
   // save matrix container in output file
-  if (m_matrix_container)
+  if (m_matrix_container || m_matrix_container_pos || m_matrix_container_neg)
   {
     std::unique_ptr<TFile> outputfile(TFile::Open(m_outputfile.c_str(), "RECREATE"));
     outputfile->cd();
-    m_matrix_container->Write("TpcSpaceChargeMatrixContainer");
+
+    if( m_matrix_container ) {
+      std::cout << "PHTpcResiduals::End - writing TpcSpaceChargeMatrixContainer object. entries: " << m_matrix_container->get_entries() << std::endl;
+      m_matrix_container->Write("TpcSpaceChargeMatrixContainer");
+    }
+
+    if( m_matrix_container_pos ) {
+      std::cout << "PHTpcResiduals::End - writing TpcSpaceChargeMatrixContainer_pos object. entries: " << m_matrix_container_pos->get_entries() << std::endl;
+      m_matrix_container_pos->Write("TpcSpaceChargeMatrixContainer_pos");
+    }
+
+    if( m_matrix_container_neg ) {
+      std::cout << "PHTpcResiduals::End - writing TpcSpaceChargeMatrixContainer_neg object. entries: " << m_matrix_container_neg->get_entries() << std::endl;
+      m_matrix_container_neg->Write("TpcSpaceChargeMatrixContainer_neg");
+    }
   }
 
   // print counters
@@ -456,8 +473,6 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
   for (const auto& cluskey : get_cluster_keys(track))
   {
-    // increment counter
-    ++m_total_clusters;
 
     // make sure cluster is from TPC
     const auto detId = TrkrDefs::getTrkrId(cluskey);
@@ -465,6 +480,10 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     {
       continue;
     }
+
+    // increment counter
+    /* only counts TPC clusters */
+    ++m_total_clusters;
 
     // find matching track state
     const auto stateiter = std::find_if( track->begin_states(), track->end_states(), [&cluskey]( const auto& state_pair )
@@ -478,6 +497,14 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
     // calculate residuals with respect to cluster
     auto* const cluster = m_clusterContainer->findCluster(cluskey);
+
+    // check cluster
+    if( !cluster ) { continue; }
+
+    // check if cluster is an edge
+    if( m_ignoreEdgeClusters && cluster->getEdge() > 0 && cluster->getEdge() < std::numeric_limits<char>::max() )
+    { continue; }
+
     const auto globClusPos = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluskey, cluster, crossing);
     const double clusR = get_r(globClusPos(0), globClusPos(1));
     const double clusPhi = std::atan2(globClusPos(1), globClusPos(0));
@@ -650,43 +677,58 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       continue;
     }
 
-    // Fill distortion matrices
-    m_matrix_container->add_to_lhs(index, 0, 0, square(clusR) / erp);
-    m_matrix_container->add_to_lhs(index, 0, 1, 0);
-    m_matrix_container->add_to_lhs(index, 0, 2, clusR * trackAlpha / erp);
+    std::vector<TpcSpaceChargeMatrixContainer*> containers;
+    containers.emplace_back( m_matrix_container.get() );
+    if( track->get_positive_charge() ) {
+      containers.emplace_back( m_matrix_container_pos.get() );
+    } else {
+      containers.emplace_back( m_matrix_container_neg.get() );
+    }
 
-    m_matrix_container->add_to_lhs(index, 1, 0, 0);
-    m_matrix_container->add_to_lhs(index, 1, 1, 1. / ez);
-    m_matrix_container->add_to_lhs(index, 1, 2, trackBeta / ez);
 
-    m_matrix_container->add_to_lhs(index, 2, 0, clusR * trackAlpha / erp);
-    m_matrix_container->add_to_lhs(index, 2, 1, trackBeta / ez);
-    m_matrix_container->add_to_lhs(index, 2, 2, square(trackAlpha) / erp + square(trackBeta) / ez);
+    for( auto& container:containers )
+    {
 
-    m_matrix_container->add_to_rhs(index, 0, clusR * drphi / erp);
-    m_matrix_container->add_to_rhs(index, 1, dz / ez);
-    m_matrix_container->add_to_rhs(index, 2, trackAlpha * drphi / erp + trackBeta * dz / ez);
+      if( !container ) { continue; }
 
-    // also update rphi reduced matrices
-    m_matrix_container->add_to_lhs_rphi(index, 0, 0, square(clusR) / erp);
-    m_matrix_container->add_to_lhs_rphi(index, 0, 1, clusR * trackAlpha / erp);
-    m_matrix_container->add_to_lhs_rphi(index, 1, 0, clusR * trackAlpha / erp);
-    m_matrix_container->add_to_lhs_rphi(index, 1, 1, square(trackAlpha) / erp);
+      // Fill distortion matrices
+      container->add_to_lhs(index, 0, 0, square(clusR) / erp);
+      container->add_to_lhs(index, 0, 1, 0);
+      container->add_to_lhs(index, 0, 2, clusR * trackAlpha / erp);
 
-    m_matrix_container->add_to_rhs_rphi(index, 0, clusR * drphi / erp);
-    m_matrix_container->add_to_rhs_rphi(index, 1, trackAlpha * drphi / erp);
+      container->add_to_lhs(index, 1, 0, 0);
+      container->add_to_lhs(index, 1, 1, 1. / ez);
+      container->add_to_lhs(index, 1, 2, trackBeta / ez);
 
-    // also update z reduced matrices
-    m_matrix_container->add_to_lhs_z(index, 0, 0, 1. / ez);
-    m_matrix_container->add_to_lhs_z(index, 0, 1, trackBeta / ez);
-    m_matrix_container->add_to_lhs_z(index, 1, 0, trackBeta / ez);
-    m_matrix_container->add_to_lhs_z(index, 1, 1, square(trackBeta) / ez);
+      container->add_to_lhs(index, 2, 0, clusR * trackAlpha / erp);
+      container->add_to_lhs(index, 2, 1, trackBeta / ez);
+      container->add_to_lhs(index, 2, 2, square(trackAlpha) / erp + square(trackBeta) / ez);
 
-    m_matrix_container->add_to_rhs_z(index, 0, dz / ez);
-    m_matrix_container->add_to_rhs_z(index, 1, trackBeta * dz / ez);
+      container->add_to_rhs(index, 0, clusR * drphi / erp);
+      container->add_to_rhs(index, 1, dz / ez);
+      container->add_to_rhs(index, 2, trackAlpha * drphi / erp + trackBeta * dz / ez);
 
-    // update entries in cell
-    m_matrix_container->add_to_entries(index);
+      // also update rphi reduced matrices
+      container->add_to_lhs_rphi(index, 0, 0, square(clusR) / erp);
+      container->add_to_lhs_rphi(index, 0, 1, clusR * trackAlpha / erp);
+      container->add_to_lhs_rphi(index, 1, 0, clusR * trackAlpha / erp);
+      container->add_to_lhs_rphi(index, 1, 1, square(trackAlpha) / erp);
+
+      container->add_to_rhs_rphi(index, 0, clusR * drphi / erp);
+      container->add_to_rhs_rphi(index, 1, trackAlpha * drphi / erp);
+
+      // also update z reduced matrices
+      container->add_to_lhs_z(index, 0, 0, 1. / ez);
+      container->add_to_lhs_z(index, 0, 1, trackBeta / ez);
+      container->add_to_lhs_z(index, 1, 0, trackBeta / ez);
+      container->add_to_lhs_z(index, 1, 1, square(trackBeta) / ez);
+
+      container->add_to_rhs_z(index, 0, dz / ez);
+      container->add_to_rhs_z(index, 1, trackBeta * dz / ez);
+
+      // update entries in cell
+      container->add_to_entries(index);
+    }
 
     // increment number of accepted clusters
     ++m_accepted_clusters;
@@ -776,5 +818,7 @@ int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
 //____________________________________________________________________________
 void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins, const int zBins)
 {
-  m_matrix_container->set_grid_dimensions(phiBins, rBins, zBins);
+  if( m_matrix_container ) { m_matrix_container->set_grid_dimensions(phiBins, rBins, zBins); }
+  if( m_matrix_container_pos ) { m_matrix_container_pos->set_grid_dimensions(phiBins, rBins, zBins); }
+  if( m_matrix_container_neg ) { m_matrix_container_neg->set_grid_dimensions(phiBins, rBins, zBins); }
 }

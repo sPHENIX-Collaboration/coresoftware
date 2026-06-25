@@ -39,6 +39,9 @@ class TpcSpaceChargeMatrixContainerv2 : public TpcSpaceChargeMatrixContainer
   /// get grid index for given sub-indexes
   int get_cell_index(int iphibin, int irbin, int izbin) const override;
 
+  /// get all entries
+  int get_entries() const override;
+
   /// get entries for a given cell
   int get_entries(int cell_index) const override;
 

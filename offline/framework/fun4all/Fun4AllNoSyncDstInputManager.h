@@ -28,7 +28,7 @@ class Fun4AllNoSyncDstInputManager : public Fun4AllDstInputManager
   int setSyncBranches(PHNodeIOManager* /*IManager*/) override { return 0; }
 
   // turn off reading of the runwise TTree to make run mixing for embedding possible
-  int NoRunTTree();
+  int NoRunTTree() override;
 
   int SkipForThisManager(const int nevents) override { return PushBackEvents(nevents); }
   int HasSyncObject() const override { return 0; }
