@@ -288,9 +288,10 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	    Acts::Vector3 world_pos = m_tGeometry->transformTpcEnvelopeToWorld(env_pos);	    
 	    unsigned short  sskey = 999;
 	    Surface this_surf = m_tGeometry->get_tpc_surface_from_coords(this_hitsetkey, world_pos, sskey);
-	    if(sskey == 999)
+	    if(sskey == 999 || !this_surf)
 	      {
 		std::cout << PHWHERE << "Failed to get surface for layer " << this_layer << " side " << side << " sector " << sector << "  quit!" << std::endl;
+		exit(1);
 	      }
 	    /*
 	    std::cout << " layer " << this_layer << " radius " << radius << " phis " << phis << " min_phi " << min_phi << " max_phi " << max_phi
@@ -579,7 +580,7 @@ int AlignmentTransformation::getNodes(PHCompositeNode* topNode)
   if (!m_tpccellgeo)
   {
     std::cout << PHWHERE << " unable to find DST node TPCGEOMCONTAINER" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    exit(1);
   }
   
   return 0;

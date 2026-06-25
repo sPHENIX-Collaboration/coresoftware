@@ -9,7 +9,7 @@
 #include <map>
 #include <utility>  // for make_pair, pair
 
-#include <g4detectors/PHG4TpcGeomContainer.h>
+class PHG4TpcGeom;
 
 class PHG4TpcGeomContainer : public PHObject
 {
