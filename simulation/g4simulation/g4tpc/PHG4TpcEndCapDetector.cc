@@ -94,9 +94,9 @@ void PHG4TpcEndCapDetector::ConstructMe(G4LogicalVolume *logicWorld)
                              m_Params->get_double_param("place_y") * cm,
                              m_Params->get_double_param("place_z") * cm);
   G4RotationMatrix rotm_center;
-  rotm_center.rotateX(m_Params->get_double_param("rot_x") * deg);
-  rotm_center.rotateY(m_Params->get_double_param("rot_y") * deg);
-  rotm_center.rotateZ(m_Params->get_double_param("rot_z") * deg);
+  rotm_center.rotateX(m_Params->get_double_param("rot_x") * rad);
+  rotm_center.rotateY(m_Params->get_double_param("rot_y") * rad);
+  rotm_center.rotateZ(m_Params->get_double_param("rot_z") * rad);
   G4Transform3D transform_center(rotm_center, g4vec_center);
 
   int i = 0;
@@ -106,6 +106,14 @@ void PHG4TpcEndCapDetector::ConstructMe(G4LogicalVolume *logicWorld)
   // the other side
   G4Transform3D transform_side2 = transform_center * rotm_otherside * g4vec_front_z;
   m_EndCapAssembly->MakeImprint(logicWorld, transform_side2, i++, OverlapCheck());
+
+  
+  G4ThreeVector test_env(10.0, 40.0, 80.0);
+  std::cout << "Endcap:  rot_x " << m_Params->get_double_param("rot_x")*rad << " test_env " << test_env.x() << "  " << test_env.y() << "  " << test_env.z() << std::endl;
+  G4ThreeVector test_glob1 = test_env.transform(rotm_center);
+  std::cout << " test_glob1 " << test_glob1.x() << "  " << test_glob1.y() << "  " << test_glob1.z() << std::endl;  
+  //  G4ThreeVector test_glob2 = test_env(transform_side2);
+  // std::cout << " test_glob2 " << test_glob2.x() << "  " << test_glob2.y() << "  " << test_glob2.z() << std::endl;  
 
   return;
 }

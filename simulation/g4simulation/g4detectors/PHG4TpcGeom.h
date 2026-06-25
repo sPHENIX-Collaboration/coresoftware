@@ -195,32 +195,32 @@ class PHG4TpcGeom : public PHObject
   virtual double get_rot_x() const
   {
     PHOOL_VIRTUAL_WARN("get_rot_x()");
-    return std::numeric_limits<double>::quiet_NaN();
+    return 0.0;
   }
   virtual double get_rot_y() const
   {
     PHOOL_VIRTUAL_WARN("get_rot_y()");
-    return std::numeric_limits<double>::quiet_NaN();
+    return 0.0;
   }
   virtual double get_rot_z() const
   {
     PHOOL_VIRTUAL_WARN("get_rot_z()");
-    return std::numeric_limits<double>::quiet_NaN();
+    return 0.0;
   }
   virtual double get_place_x() const
   {
     PHOOL_VIRTUAL_WARN("get_place_x()");
-    return std::numeric_limits<double>::quiet_NaN();
+    return 0.0;
   }
     virtual double get_place_y() const
   {
     PHOOL_VIRTUAL_WARN("get_place_y()");
-    return std::numeric_limits<double>::quiet_NaN();
+    return 0.0;
   }
     virtual double get_place_z() const
   {
     PHOOL_VIRTUAL_WARN("get_place_z()");
-    return std::numeric_limits<double>::quiet_NaN();
+    return 0.0;
   }
   
   

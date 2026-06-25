@@ -295,6 +295,7 @@ libtrack_la_LIBADD = \
   -lActsPluginRoot \
   -lActsExamplesDetectorTGeo \
   -lffamodules \
+  -lg4detectors \
   -lboost_program_options
 
 libtrack_io_la_LIBADD = \

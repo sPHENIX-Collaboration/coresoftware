@@ -131,12 +131,12 @@ void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
                     logicWorld,
 		    false, false, OverlapCheck());
 
-  /*
+
   G4ThreeVector test_env(10.0, 40.0, 80.0);
   std::cout << " test_env " << test_env.x() << "  " << test_env.y() << "  " << test_env.z() << std::endl;
   G4ThreeVector test_glob = test_env.transform(rot);
   std::cout << " test_glob " << test_glob.x() << "  " << test_glob.y() << "  " << test_glob.z() << std::endl;  
-  */
+
   
   // geometry node
   add_geometry_node();

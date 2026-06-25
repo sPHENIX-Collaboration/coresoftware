@@ -1005,6 +1005,7 @@ SurfacePtrVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
   {
     const ActsSourceLink asl = sl.get<ActsSourceLink>();
     const auto* const surf = m_tGeometry->geometry().tGeometry->findSurface(asl.geometryId());
+    //   std::cout << "sl: " <<  surf->geometryId() << std::endl;
     surfaces.push_back(surf);
   }
 

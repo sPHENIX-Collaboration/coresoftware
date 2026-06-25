@@ -193,7 +193,7 @@ void PHG4TpcGeomv2::identify(std::ostream& os) const
 std::pair<double, double>
 PHG4TpcGeomv2::get_zbounds(const int ibin) const
 {
-  if (ibin < 0 || ibin > nzbins)
+  if (ibin < 0 || ibin >= nzbins)
   {
     std::cout << PHWHERE << " Asking for invalid bin in z: " << ibin << std::endl;
     exit(1);
@@ -207,7 +207,7 @@ PHG4TpcGeomv2::get_zbounds(const int ibin) const
 std::pair<double, double>
 PHG4TpcGeomv2::get_etabounds(const int ibin) const
 {
-  if (ibin < 0 || ibin > nzbins)
+  if (ibin < 0 || ibin >= nzbins)
   {
     std::cout << PHWHERE << " Asking for invalid bin in z: " << ibin << std::endl;
     exit(1);
@@ -222,7 +222,7 @@ PHG4TpcGeomv2::get_etabounds(const int ibin) const
 std::pair<double, double>
 PHG4TpcGeomv2::get_phibounds(const int ibin) const
 {
-  if (ibin < 0 || ibin > nphibins)
+  if (ibin < 0 || ibin >= nphibins)
   {
     std::cout << PHWHERE << "Asking for invalid bin in phi: " << ibin << std::endl;
     exit(1);
@@ -235,7 +235,7 @@ PHG4TpcGeomv2::get_phibounds(const int ibin) const
 
 int PHG4TpcGeomv2::get_zbin(const double z) const
 {
-  if (z < zmin || z > (zmin + nzbins * zstep))
+  if (z < zmin || z >= (zmin + nzbins * zstep))
   {
     //    cout << PHWHERE << "Asking for bin for z outside of z range: " << z << endl;
     return -1;
@@ -247,7 +247,7 @@ int PHG4TpcGeomv2::get_zbin(const double z) const
 
 int PHG4TpcGeomv2::get_etabin(const double eta) const
 {
-  if (eta < zmin || eta > (zmin + nzbins * zstep))
+  if (eta < zmin || eta >= (zmin + nzbins * zstep))
   {
     //    cout << "Asking for bin for eta outside of eta range: " << eta << endl;
     return -1;
@@ -259,7 +259,7 @@ int PHG4TpcGeomv2::get_etabin(const double eta) const
 int PHG4TpcGeomv2::get_phibin_new(const double phi) const
 {
   double norm_phi = phi;
-  if (phi < phimin || phi > (phimin + nphibins * phistep))
+  if (phi < phimin || phi >= (phimin + nphibins * phistep))
   {
     int nwraparound = -floor((phi - phimin) * 0.5 / M_PI);
     norm_phi += 2 * M_PI * nwraparound;
@@ -270,8 +270,14 @@ int PHG4TpcGeomv2::get_phibin_new(const double phi) const
 
 int PHG4TpcGeomv2::find_phibin(const double phi, int side) const
 {
+  if(side < 0 || side > 1)
+    {
+      std::cout << PHWHERE << " side is not valid, have to quit!" << std::endl;
+      exit(1);
+    }
+
   double norm_phi = phi;
-  if (phi < phimin || phi > (phimin + nphibins * phistep))
+  if (phi < phimin || phi >= (phimin + nphibins * phistep))
   {
     int nwraparound = -floor((phi - phimin) * 0.5 / M_PI);
     norm_phi += 2 * M_PI * nwraparound;
@@ -315,8 +321,14 @@ int PHG4TpcGeomv2::find_phibin(const double phi, int side) const
 
 float PHG4TpcGeomv2::get_pad_float(const double phi, int side) const
 {
+  if(side < 0 || side > 1)
+    {
+      std::cout << PHWHERE << " side is not valid, have to quit!" << std::endl;
+      exit(1);
+    }
+
   double norm_phi = phi;
-  if (phi < phimin || phi > (phimin + nphibins * phistep))
+  if (phi < phimin || phi >= (phimin + nphibins * phistep))
   {
     int nwraparound = -floor((phi - phimin) * 0.5 / M_PI);
     norm_phi += 2 * M_PI * nwraparound;
@@ -360,7 +372,7 @@ float PHG4TpcGeomv2::get_pad_float(const double phi, int side) const
 
 float PHG4TpcGeomv2::get_tbin_float(const double z) const
 {
-  if (z < zmin || z > (zmin + nzbins * zstep))
+  if (z < zmin || z >= (zmin + nzbins * zstep))
   {
     //    cout << PHWHERE << "Asking for bin for z outside of z range: " << z << endl;
     return -1;
@@ -372,6 +384,12 @@ float PHG4TpcGeomv2::get_tbin_float(const double z) const
 
 int PHG4TpcGeomv2::get_phibin(const double phi, int side) const
 {
+  if(side < 0 || side > 1)
+    {
+      std::cout << PHWHERE << " side is not valid, have to quit!" << std::endl;
+      exit(1);
+    }
+
   double new_phi = phi;
   if (phi > M_PI)
   {
@@ -431,7 +449,7 @@ int PHG4TpcGeomv2::get_phibin(const double phi, int side) const
 double
 PHG4TpcGeomv2::get_zcenter(const int ibin) const
 {
-  if (ibin < 0 || ibin > nzbins)
+  if (ibin < 0 || ibin >= nzbins)
   {
     std::cout << PHWHERE << "Asking for invalid bin in z: " << ibin << std::endl;
     exit(1);
@@ -443,7 +461,7 @@ PHG4TpcGeomv2::get_zcenter(const int ibin) const
 double
 PHG4TpcGeomv2::get_etacenter(const int ibin) const
 {
-  if (ibin < 0 || ibin > nzbins)
+  if (ibin < 0 || ibin >= nzbins)
   {
     std::cout << PHWHERE << "Asking for invalid bin in eta: " << ibin << std::endl;
     std::cout << "minbin: 0, maxbin " << nzbins << std::endl;
@@ -456,7 +474,7 @@ PHG4TpcGeomv2::get_etacenter(const int ibin) const
 double
 PHG4TpcGeomv2::get_phicenter_new(const int ibin) const
 {
-  if (ibin < 0 || ibin > nphibins)
+  if (ibin < 0 || ibin >= nphibins)
   {
     std::cout << PHWHERE << "Asking for invalid bin in phi: " << ibin << std::endl;
     exit(1);
@@ -470,8 +488,14 @@ PHG4TpcGeomv2::get_phicenter_new(const int ibin) const
 double
 PHG4TpcGeomv2::get_phicenter(const int ibin, const int side) const
 {
+  if(side < 0 || side > 1)
+    {
+      std::cout << PHWHERE << " side is not valid, have to quit!" << std::endl;
+      exit(1);
+    }
+
   // double phi_center = -999;
-  if (ibin < 0 || ibin > nphibins)
+  if (ibin < 0 || ibin >= nphibins)
   {
     std::cout << PHWHERE << "Asking for invalid bin in phi: " << ibin << std::endl;
     exit(1);
@@ -493,8 +517,14 @@ PHG4TpcGeomv2::get_phicenter(const int ibin, const int side) const
 double
 PHG4TpcGeomv2::get_phi(const float ibin, const int side) const
 {
+  if(side < 0 || side > 1)
+    {
+      std::cout << PHWHERE << " side is not valid, have to quit!" << std::endl;
+      exit(1);
+    }
+
   // double phi_center = -999;
-  if (ibin < 0 || ibin > nphibins)
+  if (ibin < 0 || ibin >= nphibins)
   {
     std::cout << PHWHERE << "Asking for invalid bin in phi: " << ibin << std::endl;
     exit(1);

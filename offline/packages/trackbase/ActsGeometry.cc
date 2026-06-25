@@ -187,10 +187,11 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
       double surf_phi = atan2(surf_center_envelope[1], surf_center_envelope[0]);  
       double surfStepPhi = m_tGeometry.tpcSurfStepPhi;
 
-      if ((world_phi > surf_phi - surfStepPhi / 2.0) && (world_phi < surf_phi + surfStepPhi / 2.0))
+      const double dphi = std::atan2(std::sin(world_phi - surf_phi), std::cos(world_phi - surf_phi));
+      if (std::abs(dphi) < surfStepPhi / 2.0)
 	{
-	  if(surf_center.z() < 0 && side != 0) { continue; }
-	  if(surf_center.z() > 0 && side != 1) { continue; }
+	  if(surf_center_envelope.z() < 0 && side != 0) { continue; }
+	  if(surf_center_envelope.z() > 0 && side != 1) { continue; }
 	  surf_index = isurf;
 	  subsurfkey = isurf;
 	  break;

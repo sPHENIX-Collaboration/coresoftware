@@ -183,6 +183,12 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
 
       adc_sum += adc;
     }
+
+    if(adc_sum == 0)
+      {
+	continue;
+      }
+    
     if (mClusHitsVerbose)
     {
       if (verbosity > 10)

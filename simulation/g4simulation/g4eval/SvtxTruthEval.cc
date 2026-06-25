@@ -324,6 +324,9 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxTruthEval::all_tru
     std::vector<double> contributing_hits_energy;
     std::vector<std::vector<double>> contributing_hits_entry;
     std::vector<std::vector<double>> contributing_hits_exit;
+    // contributing_hits are the original g4hits in world coords
+    // contributing_hits_entry, contributing_hits_exit are in envelope coords, for use in G4ClusterSize()
+    // gx, gy, gz are the cluster position in this layer in world coords to compare with data
     LayerClusterG4Hits(g4hits, contributing_hits, contributing_hits_energy, contributing_hits_entry, contributing_hits_exit, layer, gx, gy, gz, gt, gedep);
     if (!(gedep > 0))
     {

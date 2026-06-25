@@ -764,9 +764,11 @@ namespace
         double nn_z = training_hits->z + std::clamp(ten_pos[0][1][0].item<double>(), -(double) nd, (double) nd) * training_hits->zstep;
         double nn_x = radius * std::cos(nn_phi);
         double nn_y = radius * std::sin(nn_phi);
-        Acts::Vector3 nn_global(nn_x, nn_y, nn_z);
+
+        Acts::Vector3 nn_env_global(nn_x, nn_y, nn_z);
+        Acts::Vector3 nn_global = my_data.tGeometry->transformTpcEnvelopeToWorld(nn_env_global);
         nn_global *= Acts::UnitConstants::cm;
-        Acts::Vector3 nn_local = surface->localToGlobalTransform(my_data.tGeometry->geometry().geoContext).inverse() * nn_global;
+         Acts::Vector3 nn_local = surface->localToGlobalTransform(my_data.tGeometry->geometry().geoContext).inverse() * nn_global;
         nn_local /= Acts::UnitConstants::cm;
         double nn_t = my_data.m_tdriftmax - std::fabs(nn_z) / my_data.tGeometry->get_drift_velocity();
         clus_base->setLocalX(nn_local(0));

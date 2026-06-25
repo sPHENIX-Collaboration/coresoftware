@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4TPCGEOMV1_H
-#define G4DETECTORS_PHG4TPCGEOMV1_H
+#ifndef G4DETECTORS_PHG4TPCGEOMV2_H
+#define G4DETECTORS_PHG4TPCGEOMV2_H
 
 #include "PHG4TpcGeom.h"
 

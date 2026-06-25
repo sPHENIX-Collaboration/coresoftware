@@ -183,8 +183,8 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_CM_halfwidth = layergeom->get_CM_halfwidth();  
   m_maxSurfZ = m_max_driftlength - 0.0001; // add clearance from physical TPC gas volume length to avoid overlaps
 
-  // This transform will eventually be built using the tilt and placement variables that will be in layergeom
-  // TPC envelope to global transformation
+    // Make the transform from TPC envelope to global coordinates
+  // This transform is built using the tilt and placement variables from  layergeom
 
   double rot_x = layergeom->get_rot_x();
   double rot_y = layergeom->get_rot_y();
@@ -513,7 +513,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
     return;
   }
 
-  if (Verbosity() > 3)
+  if (Verbosity() > 0)
   {
     std::cout << "EditTPCGeometry - gas volume: ";
     tpc_gas_north_vol->Print();
@@ -559,7 +559,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
     tpc_gas_measurement_vol[ilayer]->SetFillColor(kYellow);
     tpc_gas_measurement_vol[ilayer]->SetVisibility(kTRUE);
 
-    if (Verbosity() > 3)
+    if (Verbosity() > 0)
     {
       std::cout << " Made box for layer " << ilayer
                 << " with dx " << m_layerThickness[ilayer] << " dy "
@@ -899,7 +899,8 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 
       TrkrDefs::hitsetkey hitsetkey = getTpcHitSetKeyFromCoords(world_center);
       unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-
+      // unsigned int sector = TpcDefs::getSectorId(hitsetkey);
+      // unsigned int side = TpcDefs::getSide(hitsetkey);
       // If there is already an entry for this hitsetkey, add the surface
       // to its corresponding vector
       // std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
@@ -909,11 +910,13 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 
       if (mapIter != m_clusterSurfaceMapTpcEdit.end())
       {
+	//std::cout << "  Adding surface to map with layer " << layer << " side " << side << " sector " << sector << std::endl; 
         mapIter->second.push_back(surf);
       }
       else
       {
         // Otherwise make a new map entry
+	//	std::cout << "Starting new surfvec for layer " << layer << " side " << side << " sector " << sector << std::endl; 
         std::vector<Surface> dumvec;
         dumvec.push_back(surf);
         std::pair<unsigned int, std::vector<Surface>> tmp =
@@ -927,7 +930,7 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 //____________________________________________________________________________________________
 void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 {
-  if (Verbosity())
+  if (Verbosity()>1)
   {
     std::cout << "MakeActsGeometry::makeMmMapPairs - mmVolume: " << mmVolume->volumeName() << std::endl;
   }
@@ -989,7 +992,7 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
         continue;
       }
 
-      if (Verbosity())
+      if (Verbosity()>1)
       {
         std::cout << "MakeActsGeometry::makeMmMapPairs - layer: " << layer << " tileid: " << tileid << std::endl;
       }
@@ -1155,7 +1158,7 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
       auto vec3d = surf->center(m_geoCtxt);
       std::vector<double> world_center = {(vec3d(0) - v_globaldisplacement[0]) / 10.0, (vec3d(1) - v_globaldisplacement[1]) / 10.0, (vec3d(2) - v_globaldisplacement[2]) / 10.0};  // convert from mm to cm
       double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
-      if (Verbosity() > 0)
+      if (Verbosity() > 1)
       {
         std::cout << "[DEBUG] MVTX surface center (before misalignment): (x,y,z)=(" << vec3d(0) / 10. << "," << vec3d(1) / 10. << "," << vec3d(2) / 10. << "), layer_rad=" << sqrt(pow(vec3d(0) / 10., 2) + pow(vec3d(1) / 10., 2)) << std::endl;
         std::cout << "[DEBUG] MVTX surface center: (x,y,z)=(" << world_center[0] << "," << world_center[1] << "," << world_center[2] << "), layer_rad=" << layer_rad << std::endl;
@@ -1255,7 +1258,8 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
 
 TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<double> &world)
 {
-  // the input position is assumed to be in tpc envelope coords - i.e. tilt removed
+  // This is used only in simulations
+  // so the input position is assumed to be in tpc envelope coords - i.e. tilt removed
   // Look up TPC surface index values from tpc envelope position of surface center
   // layer
   unsigned int layer = 999;
@@ -1310,8 +1314,8 @@ TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<doub
     }
   }
 
-  if (Verbosity() > 3 && layer == 7)
-    {
+  if (Verbosity() > 3 && layer == 15)
+  {
       std::cout << " layer_rad " << layer_rad << " m_layerRadius[layer] " << m_layerRadius[layer-7] << " found layer " << layer << " side " << side << " world " << world[0] << "  " << world[1] << "  " << world[2] << " phi_world " << phi_world << " readout_mod " << readout_mod << std::endl;
     }
   

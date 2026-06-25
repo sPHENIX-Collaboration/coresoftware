@@ -21,6 +21,9 @@
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
+#include <g4detectors/PHG4TpcGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <Eigen/LU>
@@ -194,7 +197,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
       Acts::GeometryIdentifier id = surf->geometryId();
 
-      if (localVerbosity)
+      if (localVerbosity > 1)
       {
         std::cout << " Add transform for MVTX with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
         std::cout << " final mvtx transform:" << std::endl
@@ -223,7 +226,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
       transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, trkrId, use_intt_survey_geometry);
       Acts::GeometryIdentifier id = surf->geometryId();
 
-      if (localVerbosity)
+      if (localVerbosity > 1)
       {
         std::cout << " Add transform for INTT with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
       }
@@ -263,58 +266,82 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
 	//   std::cout << " *** module hitsetkey " << hitsetkey << " this_hitsetkey " << this_hitsetkey << " this layer " << this_layer << " side " << side << " sector " << sector << std::endl;
 
-        // is this correct??????
-        int subsurfkey_min = (1 - side) * 144 + (144 - sector * 12) - 12 - 6;
-        int subsurfkey_max = subsurfkey_min + 12;
-        for (int subsurfkey = subsurfkey_min; subsurfkey < subsurfkey_max; subsurfkey++)
-        {
-          int sskey = subsurfkey;
-          if (sskey < 0)
-          {
-            sskey += 288;
-          }
+	// Each TPC hitsetkey has 12 fake surfaces associated with it
+	// We want to make a transform for every fake surface in this hitsetkey
+	// Loop over the sector phi angles for the fake surfaces and get each surface
+	auto layergeom = m_tpccellgeo->GetLayerCellGeom((int) this_layer);
+        auto sec_min_phi = layergeom->get_sector_min_phi();
+	auto min_phi = sec_min_phi[side][sector];
+        auto sec_max_phi = layergeom->get_sector_max_phi();
+	auto max_phi = sec_max_phi[side][sector];
+	double dphi  = (max_phi - min_phi)/12.0;
+	for(int is = 0; is < 12; ++is)
+	  {
+	    double phis = min_phi + is*dphi + dphi/2.0;
+	    double radius = layergeom->get_radius();
+	    double zcenter = 51.0;
+	    if(side == 0)
+	      {
+		zcenter *= -1;
+	      }
+	    Acts::Vector3 env_pos(radius*std::cos(phis), radius * std::sin(phis), zcenter);
+	    Acts::Vector3 world_pos = m_tGeometry->transformTpcEnvelopeToWorld(env_pos);	    
+	    unsigned short  sskey = 999;
+	    Surface this_surf = m_tGeometry->get_tpc_surface_from_coords(this_hitsetkey, world_pos, sskey);
+	    if(sskey == 999)
+	      {
+		std::cout << PHWHERE << "Failed to get surface for layer " << this_layer << " side " << side << " sector " << sector << "  quit!" << std::endl;
+	      }
+	    /*
+	    std::cout << " layer " << this_layer << " radius " << radius << " phis " << phis << " min_phi " << min_phi << " max_phi " << max_phi
+		      << " side " << side << " sector " << sector << " world " << world_pos.x() << "  " << world_pos.y() << "  " << world_pos.z()
+		      <<"  world_radius " << sqrt(world_pos.x() * world_pos.x() + world_pos.y() * world_pos.y())
+		      << " sskey " << sskey << std::endl;
+	    */
+	    
+	    Eigen::Vector3d localFrameTranslation(0, 0, 0);
+	    use_module_tilt = false;
+	    if (test_layer < 4 || use_module_tilt_always)
+	      {
+		// get the local frame translation that puts the local surface center at the tilted position after the local rotations are applied
+		unsigned int this_region = (this_layer - 7) / 16;                                           // 0-2
+		Eigen::Vector3d this_center = this_surf->center(m_tGeometry->geometry().getGeoContext()) * 0.1;  // mm to cm
+		//this_center includes the TPC tilt used in PHG4TpcDetector construction, transform to tpc envelope coords
+		Acts::Vector3 this_center_envelope = m_tGeometry->transformTpcWorldToEnvelope(this_center);
+		double this_radius = std::sqrt(this_center_envelope[0] * this_center_envelope[0] + this_center_envelope[1] * this_center_envelope[1]);
+		float moduleRadius = TpcModuleRadii[side][sector][this_region];                                     // radius of the center of the module in cm
+		localFrameTranslation = getTpcLocalFrameTranslation(moduleRadius, this_radius, sensorAngles) * 10;  // cm to mm
+		
+		// set this flag for later use 
+		use_module_tilt = true;
+	      }
 
-          surf = surfMaps.getTpcSurface(this_hitsetkey, (unsigned int) sskey);
-
-          Eigen::Vector3d localFrameTranslation(0, 0, 0);
-	  use_module_tilt = false;
-          if (test_layer < 4 || use_module_tilt_always)
-          {
-            // get the local frame translation that puts the local surface center at the tilted position after the local rotations are applied
-            unsigned int this_region = (this_layer - 7) / 16;                                           // 0-2
-            Eigen::Vector3d this_center = surf->center(m_tGeometry->geometry().getGeoContext()) * 0.1;  // mm to cm
-            double this_radius = std::sqrt(this_center[0] * this_center[0] + this_center[1] * this_center[1]);
-            float moduleRadius = TpcModuleRadii[side][sector][this_region];                                     // radius of the center of the module in cm
-            localFrameTranslation = getTpcLocalFrameTranslation(moduleRadius, this_radius, sensorAngles) * 10;  // cm to mm
-
-	    // set this flag for later use 
-	    use_module_tilt = true;
-          }
-
-          Acts::Transform3 transform;
-          transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, trkrId, false);
-          Acts::GeometryIdentifier id = surf->geometryId();
-
-          if (localVerbosity)
-          {
-            unsigned int layer = this_layer;
-            std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << std::endl
-                      << " trkrid " << trkrId << " hitsetkey " << this_hitsetkey << " layer " << layer << " sector " << sector << " side " << side
-                      << " subsurfkey " << subsurfkey << std::endl;
-            Acts::Vector3 center = surf->center(m_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
-            std::cout << "Ideal surface center: " << std::endl
-                      << center << std::endl;
-            std::cout << "transform matrix: " << std::endl
-                      << transform.matrix() << std::endl;
-          }
-          transformMap->addTransform(id, transform);
-          transformMapTransient->addTransform(id, transform);
-        }
+	    Acts::Transform3 transform;
+	    transform = newMakeTransform(this_surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, trkrId, false);
+	    Acts::GeometryIdentifier id = this_surf->geometryId();
+	    
+	    if (localVerbosity)
+	      {
+		std::cout << "    Add transform for TPC with surface GeometryIdentifier " << id 
+			  << " trkrid " << trkrId << " hitsetkey " << this_hitsetkey << " layer " << this_layer << " sector " << sector
+			  << " side " << side << std::endl;
+		if(localVerbosity > 1)
+		  {
+		    Acts::Vector3 center = this_surf->center(m_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
+		    std::cout << "Ideal surface center: " << std::endl
+			      << center << std::endl;
+		    std::cout << "transform matrix: " << std::endl
+			      << transform.matrix() << std::endl;
+		  }
+	      }
+	    transformMap->addTransform(id, transform);
+	    transformMapTransient->addTransform(id, transform);
+	  }
       }
-
+      
       break;
     }
-
+    
     case TrkrDefs::micromegasId:
     {
       if (perturbMM)
@@ -332,7 +359,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
       transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, trkrId, false);
       Acts::GeometryIdentifier id = surf->geometryId();
 
-      if (localVerbosity)
+      if (localVerbosity > 1)
       {
         std::cout << " Add transform for Micromegas with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
       }
@@ -461,7 +488,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
 	}
     }
   
-  if (localVerbosity)
+  if (localVerbosity > 1)
     {
       Acts::Transform3 actstransform = actsTranslationAffine * actsRotationAffine;
       
@@ -526,7 +553,7 @@ Eigen::Vector3d AlignmentTransformation::getTpcLocalFrameTranslation(float modul
   dy += -Rdiff * (1 - std::cos(gamma));
   dz += 0.0;
 
-  if (localVerbosity)
+  if (localVerbosity > 1)
   {
     std::cout << " alpha, beta, gamma " << alpha << "  " << beta << "  " << gamma << " radius " << moduleRadius << " Rdiff " << Rdiff
               << " dx, dy dz " << dx << "  " << dy << "  " << dz << std::endl;
@@ -548,6 +575,13 @@ int AlignmentTransformation::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  m_tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  if (!m_tpccellgeo)
+  {
+    std::cout << PHWHERE << " unable to find DST node TPCGEOMCONTAINER" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  
   return 0;
 }
 
@@ -621,7 +655,7 @@ void AlignmentTransformation::generateRandomPerturbations(Eigen::Vector3d angleD
     std::normal_distribution<double> distribution(0, transformDev(2));
     perturbationTranslation(2) = distribution(generator);
   }
-  if (localVerbosity)
+  if (localVerbosity > 1)
   {
     std::cout << "randomperturbationAngles" << perturbationAngles << " randomperturbationTrans:" << perturbationTranslation << std::endl;
   }
@@ -629,7 +663,7 @@ void AlignmentTransformation::generateRandomPerturbations(Eigen::Vector3d angleD
 
 void AlignmentTransformation::extractModuleCenterPositions()
 {
-  if (localVerbosity)
+  if (localVerbosity > 1)
   {
     std::cout << "Extracting TPC module center radii:" << std::endl;
   }
@@ -654,7 +688,7 @@ void AlignmentTransformation::extractModuleCenterPositions()
         double mod_radius = (surf_rad_in + surf_rad_out) / 2.0;
         TpcModuleRadii[iside][isector][iregion] = mod_radius;
 
-	if (localVerbosity)
+	if (localVerbosity > 1)
 	  {
           std::cout << "  hitsetkey_in " << hitsetkey_in << " lin " << lin << " sector " << isector << " side " << iside << " region " << iregion << std::endl;
 	  std::cout << "  hitsetkey_out " << hitsetkey_out << " lout " << lout << " sector " << isector << " side " << iside  << " region " << iregion << std::endl;

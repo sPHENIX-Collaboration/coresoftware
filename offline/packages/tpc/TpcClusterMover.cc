@@ -49,9 +49,14 @@ void TpcClusterMover::initialize_geometry(PHG4TpcGeomContainer* cellgeo, ActsGeo
 {
   if (_verbosity > 0)
   {
-    std::cout << "TpcClusterMover: Initializing layer radii for Tpc from cell geometry object" << std::endl;
+    std::cout << "TpcClusterMover: Getting ActsGeometry, and getting layer radii for Tpc from cell geometry object" << std::endl;
   }
 
+  if(!tGeometry || !cellgeo)
+    {
+      std::cout << PHWHERE << " Failed to get ActsGeometry or TPC cell geometry, cannot continue - quit!" << std::endl;
+	exit(1);
+    }
   
   _tGeometry = tGeometry;
   

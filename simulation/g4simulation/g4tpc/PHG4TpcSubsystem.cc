@@ -144,7 +144,7 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
-  set_default_double_param("rot_x", 0.);
+  set_default_double_param("rot_x", -0.004);  // TEST! // should default to zero
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
   set_default_double_param("tpc_length", 205.21);  // 2 * (maxdrift 102.325 + CM halfwidth 0.28) cm 

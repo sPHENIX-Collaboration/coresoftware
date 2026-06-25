@@ -309,10 +309,10 @@ namespace TrackAnalysisUtils
     globalWrapper.loadNodes(topNode);
     globalWrapper.set_suppressCrossing(true);
 
-    auto* geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
     
-    TpcClusterMover mover;
+    auto* geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
     auto* tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+    TpcClusterMover mover;
     mover.initialize_geometry(tpccellgeo, geometry);
     mover.set_verbosity(0);
 
