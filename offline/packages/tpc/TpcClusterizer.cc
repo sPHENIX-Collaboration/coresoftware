@@ -224,12 +224,22 @@ namespace
       if (tbin + tup >= NTBinsMax)
       {
         tup = NTBinsMax - tbin - 1;
-        counts.nedge++;
+	if (!ttop_edge)
+	{
+          counts.nedge++;
+	  counts.tredge = 1;
+	  ttop_edge = true;
+	}
       }
       if ((tbin - tdown) <= 0)
       {
         tdown = tbin;
-        counts.nedge++;
+	if (!tbottom_edge)
+	{
+          counts.nedge++;
+	  counts.tledge = 1;
+	  tbottom_edge = true;
+	}
       }
       return;
     }
@@ -331,12 +341,22 @@ namespace
       if (phibin + phiup >= NPhiBinsMax)
       {
         phiup = NPhiBinsMax - phibin - 1;
-        counts.nedge++;
+	if (!phitop_edge)
+	{
+          counts.nedge++;
+	  counts.sredge = 1;
+	  phitop_edge = true;
+	}
       }
       if (phibin - phidown <= 0)
       {
         phidown = phibin;
-        counts.nedge++;
+	if (!phibottom_edge)
+	{
+          counts.nedge++;
+	  counts.sledge = 1;
+	  phibottom_edge = true;
+	}
       }
       return;
     }
@@ -913,11 +933,11 @@ namespace
 
       if (my_data.debug)
       {
-	      clus = new TrkrClusterv6;
+	clus = new TrkrClusterv6;
       }
       else
       {
-	      clus = new TrkrClusterv5;
+	clus = new TrkrClusterv5;
       }
 
       clus_base = clus;
