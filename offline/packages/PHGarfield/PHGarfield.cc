@@ -1,5 +1,5 @@
 #include "PHGarfield.h"
-
+#include <phool/phool.h>
 #include <cdbobjects/CDBTTree.h>
 
 #include <phfield/PHField3DCartesian.h>
@@ -20,10 +20,28 @@
 #include <functional>
 #include <iostream>  // for basic_ostream, operat...
 #include <vector>
+#include <regex>
+#include <string>
+#include <utility>
+#include <sstream>
+#include <iomanip>
+
+namespace fs = std::filesystem;
 
 PHGarfield::PHGarfield(const std::string& name)
-  : SubsysReco(name)
+  : SubsysReco(name),
+    //m_defaultGasfile("/sphenix/user/hemmick/gasfiles_20260624/Ar75_CF20_iso5.gas")
+    m_defaultGasfile("/sphenix/user/hemmick/gasfiles_20260624")
 {
+}
+
+PHGarfield::~PHGarfield()
+{
+  //  Housekeeping.
+  delete m_field;
+  delete m_cdbTPCMAPttree;
+  delete m_component;
+  delete m_gas;
 }
 
 int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
@@ -49,7 +67,16 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
                                 { GetMagneticFieldTesla(x, y, z, bx, by, bz); });
   m_component->SetElectricField([this](double x, double y, double z, double& ex, double& ey, double& ez)
                                 { GetElectricFieldVcm(x, y, z, ex, ey, ez); });
-  InitializeGas("/direct/phenix+u/workarea/hemmick/code.sphenix/tkh/gas/gasfiles/");
+
+  // Here we fetch the gas from the CDB
+  std::string gasfile = m_cdb->getUrl("PHGARFIELD_GAS");
+  if (gasfile.empty() || !fs::exists(gasfile))
+    {
+      std::cerr << PHWHERE << " Missing CDB gasfile: " << gasfile << std::endl;
+      std::cerr << PHWHERE << " Using default gasfile: " << m_defaultGasfile << std::endl;
+      gasfile = m_defaultGasfile;
+    }
+  InitializeGas(gasfile);
 
   //  Diagnostic during code development...
   FillRadii();
@@ -111,6 +138,25 @@ void PHGarfield::PrintGarfield(double x, double y, double z) const
             << " vy:" << vy
             << " vz:" << vz
             << std::endl;
+}
+
+void PHGarfield::PrintGasSummary() const
+{
+  if (!m_GasFilesLoaded)
+    {
+      std::cerr << PHWHERE << "No Gas File(s) have been successfully loaded." << std::endl;
+      return;
+    }
+
+  std::vector<double> nE;
+  std::vector<double> nB;
+  std::vector<double> nA;
+  m_gas->GetFieldGrid(nE, nB, nA);
+  
+  std::cout << "Gas File Grid Dimensions: " << std::endl;
+  std::cout << nE.size() << " E-fields ranging from " << nE.front() << " to " << nE.back() << std::endl; 
+  std::cout << nB.size() << " B-fields ranging from " << nB.front() << " to " << nB.back() << std::endl; 
+  std::cout << nA.size() << " Angles   ranging from " << nA.front() << " to " << nA.back() << std::endl; 
 }
 
 void PHGarfield::PrintMaps() const
@@ -195,52 +241,77 @@ void PHGarfield::GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, doub
   ez_vcm = z_cm > 0 ? -400.0 : 400.0;
 }
 
-void PHGarfield::InitializeGas(const std::string &dir)
+void PHGarfield::InitializeGas(const std::string &name)
 {
   //  Create and fill the gas object so that we can trace particles through the gas...
   m_gas = new Garfield::MediumMagboltz();
 
-  auto filename = [&](const int i)
-  { return dir + "/PART_" + std::to_string(i) + ".gas"; };
-
-  const std::string first = filename(0);
-  if (!std::filesystem::exists(first))
+  if (!std::filesystem::exists(name))
   {
-    std::cerr << "Missing first gas file: " << first << std::endl;
+    std::cerr << "Missing gas file or gas directory: " << name << std::endl;
     return;
   }
 
-  if (!m_gas->LoadGasFile(first))
-  {
-    std::cerr << "Failed to load " << first << std::endl;
-    return;
-  }
-
-  for (int i = 1;; ++i)
-  {
-    const std::string file = filename(i);
-
-    if (!std::filesystem::exists(file))
+  if (fs::is_regular_file(name))
     {
-      std::cout << "Stopping at first missing file: " << file << std::endl;
-      break;
+      std::cout << "Loading Garfield gas from file: " << name << std::endl;
+      if (!m_gas->LoadGasFile(name))
+	{
+	  std::cerr << "Failed to load " << name << std::endl;
+	  return;
+	}
+      m_GasFilesLoaded = true;
+    }
+  else if (fs::is_directory(name))
+    {
+      std::cout << "Loading Garfield gas from directory: " << name << std::endl;
+      std::regex filePattern(R"(^MERGED_E([0-9]{3})\.gas$)");
+      std::smatch matchResults;
+
+      // Iterate through all items in the directory
+      // NOTE:  Map assures that files are properly ordered when merged...
+      std::map<unsigned int, std::string> FilesToMerge;
+      for (const auto& entry : fs::directory_iterator(name))
+	{
+	  // Only process regular files
+	  if (entry.is_regular_file())
+	    {
+	      std::string filepath = entry.path().string();
+	      std::string filename = entry.path().filename().string();
+	      
+	      // Check if the filename matches our target pattern
+	      if (std::regex_match(filename, matchResults, filePattern))
+		{
+		  //std::cout << "matchResults: " << matchResults[1].str() << std::endl;
+		  FilesToMerge[std::stoul( matchResults[1].str() )]=filepath;
+		}
+	    }
+	}
+      bool firstE = true;
+      for (const auto& [key, filepath] : FilesToMerge)
+	{
+	  if (firstE)
+	    {
+	      m_gas->LoadGasFile(filepath);
+	      firstE = false;
+	      m_GasFilesLoaded = true;
+	    }
+	  else
+	    {
+	      m_gas->MergeGasFile(filepath, true);
+	      m_GasFilesLoaded = true;
+	    }
+	}
     }
 
-    std::cout << "Merging " << file << std::endl;
-
-    if (!m_gas->MergeGasFile(file, true))
-    {
-      std::cerr << "Failed to merge " << file << std::endl;
-      return;
-    }
-  }
+  PrintGasSummary();
 }
 
-int PHGarfield::process_event(PHCompositeNode*)
+int PHGarfield::process_event(PHCompositeNode* topNode)
 {
   // Initial implementation doesn't do anything event-by-event.
   // Nonetheless, a future user might want do do something here...
-
+  (void) topNode;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

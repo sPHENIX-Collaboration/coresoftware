@@ -21,15 +21,16 @@ class PHGarfield : public SubsysReco
 {
  public:
   PHGarfield(const std::string &name = "PHGarfield");
-  ~PHGarfield() override = default;
+  ~PHGarfield() override;
 
   int InitRun(PHCompositeNode *) override;
-  int process_event(PHCompositeNode * /*topNode*/) override;
+  int process_event(PHCompositeNode * topNode) override;
 
   bool StopHere(const double x, const double y, const double z, const double zPrevious);
 
   void PrintMaps() const;
   void PrintGarfield(double x, double y, double z) const;
+  void PrintGasSummary() const;
 
   //  These are left in public namespace for easy plotting macros...
   //  The user is encouraged to add more routine to fit their analysis goals...
@@ -40,14 +41,16 @@ class PHGarfield : public SubsysReco
  private:
   void GetMagneticFieldTesla(double x_cm, double y_cm, double z_cm, double &bx_t, double &by_t, double &bz_t) const;      // Feeds magnetic field to Garfield
   void GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, double &ex_vcm, double &ey_vcm, double &ez_vcm) const;  // Feeds electric field to Garfield
-  void InitializeGas(const std::string &dir);
+  void InitializeGas(const std::string &name);  // Acepts a file or a directory
   void FillRadii();
   static double bounder(double phi, double phi_min);
 
   CDBTTree *m_cdbTPCMAPttree{nullptr};            // Locations of the pads from CDB...
-  PHField3DCartesian *m_field{nullptr};           // The stanards sPHENIX field holding container.
+  PHField3DCartesian *m_field{nullptr};           // The standard sPHENIX field holding container.
   Garfield::ComponentUser *m_component{nullptr};  // This handles the interface of the electric and magnetic fields as handed to Garfield
   Garfield::MediumMagboltz *m_gas{nullptr};       // This is the pre-tabulated gas properties required by Garfield...
+  std::string m_defaultGasfile;
+  bool m_GasFilesLoaded{false};
 
   //  These are utilities for a spot check of the overall routine:
   // std::string calibdir;
