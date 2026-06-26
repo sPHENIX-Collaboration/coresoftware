@@ -269,7 +269,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	// Each TPC hitsetkey has 12 fake surfaces associated with it
 	// We want to make a transform for every fake surface in this hitsetkey
 	// Loop over the sector phi angles for the fake surfaces and get each surface
-	auto layergeom = m_tpccellgeo->GetLayerCellGeom((int) this_layer);
+	auto* layergeom = m_tpccellgeo->GetLayerCellGeom((int) this_layer);
         auto sec_min_phi = layergeom->get_sector_min_phi();
 	auto min_phi = sec_min_phi[side][sector];
         auto sec_max_phi = layergeom->get_sector_max_phi();

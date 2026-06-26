@@ -78,8 +78,8 @@ class ActsGeometry
 
   Acts::Transform3 makeAffineTransform(Acts::Vector3 rotation, Acts::Vector3 translation) const;
 
-  Acts::Vector3 transformTpcWorldToEnvelope(Acts::Vector3 vin) const ;
-  Acts::Vector3 transformTpcEnvelopeToWorld(Acts::Vector3 vin) const ;
+  Acts::Vector3 transformTpcWorldToEnvelope(const Acts::Vector3& world) const ;
+  Acts::Vector3 transformTpcEnvelopeToWorld(const Acts::Vector3& envelope) const ;
 
   Acts::Vector2 getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster) const;
   Acts::Vector2 getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing) const;

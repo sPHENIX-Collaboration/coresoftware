@@ -1024,7 +1024,7 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
     const Acts::Vector3 this_center = surface->center(m_tGeometry->geometry().getGeoContext());
     double thisRadius = sqrt(this_center.x()*this_center.x()+this_center.y()*this_center.y());
     
-    const auto nextSurface = surfaces.at(i + 1);
+    const auto* nextSurface = surfaces.at(i + 1);
     const auto nextVolume = nextSurface->geometryId().volume();
 
     const Acts::Vector3 next_center = surface->center(m_tGeometry->geometry().getGeoContext());

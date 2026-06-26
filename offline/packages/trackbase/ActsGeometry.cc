@@ -345,14 +345,14 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
   return local;
 }
 
-  Acts::Vector3  ActsGeometry::transformTpcWorldToEnvelope(Acts::Vector3 world) const
+  Acts::Vector3  ActsGeometry::transformTpcWorldToEnvelope(const Acts::Vector3& world) const
   {
     Acts::Vector3 envelope = m_tpc_world_envelope_transform * world;
 
     return envelope;
   }
 
-  Acts::Vector3  ActsGeometry::transformTpcEnvelopeToWorld(Acts::Vector3 envelope) const
+  Acts::Vector3  ActsGeometry::transformTpcEnvelopeToWorld(const Acts::Vector3& envelope) const
   {
     Acts::Vector3 world = m_tpc_world_envelope_transform.inverse() * envelope;
 
