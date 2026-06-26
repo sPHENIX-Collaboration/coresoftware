@@ -36,7 +36,6 @@ libg4testbench_la_LDFLAGS = \
 
 libg4testbench_la_LIBADD = \
   libphg4hit.la \
-  -lboost_filesystem \
   -lffamodules \
   -lfun4all \
   -lg4decayer \
