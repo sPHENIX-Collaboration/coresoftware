@@ -122,9 +122,8 @@ void PHG4TpcEndCapSubsystem::SetDefaultParameters()
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
-  //  set_default_double_param("rot_x", 0.);
   // angles are in rad
-  set_default_double_param("rot_x", -0.004); // TEMPORARY TEST! return to 0.0
+  set_default_double_param("rot_x", 0.); 
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
 
