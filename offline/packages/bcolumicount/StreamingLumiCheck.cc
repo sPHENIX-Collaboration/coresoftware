@@ -1,4 +1,4 @@
-#include "StreamingBcoLumiCheck.h"
+#include "StreamingLumiCheck.h"
 
 //#include "BcoInfo.h"
 #include "StreamingBcoInfo.h"
@@ -26,20 +26,20 @@
 
 #include <iostream>
 
-StreamingBcoLumiCheck::StreamingBcoLumiCheck(const std::string &name)
+StreamingLumiCheck::StreamingLumiCheck(const std::string &name)
   : SubsysReco(name)
 {
   return;
 }
 
-int StreamingBcoLumiCheck::Init(PHCompositeNode *topNode)
+int StreamingLumiCheck::Init(PHCompositeNode *topNode)
 {
   int iret = CreateNodeTree(topNode);
 
   return iret;
 }
 
-int StreamingBcoLumiCheck::InitRun(PHCompositeNode *topNode)
+int StreamingLumiCheck::InitRun(PHCompositeNode *topNode)
 {
   StreamingLumiInfo *streaming_lumi_info = findNode::getClass<StreamingLumiInfo>(topNode, "STREAMINGLUMIINFO");
   if (streaming_lumi_info)
@@ -51,7 +51,7 @@ int StreamingBcoLumiCheck::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int StreamingBcoLumiCheck::CreateNodeTree(PHCompositeNode *topNode)
+int StreamingLumiCheck::CreateNodeTree(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode;
@@ -63,8 +63,8 @@ int StreamingBcoLumiCheck::CreateNodeTree(PHCompositeNode *topNode)
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-int StreamingBcoLumiCheck::process_event(PHCompositeNode *topNode)
+/*
+int StreamingLumiCheck::process_event(PHCompositeNode *topNode)
 {
   StreamingBcoInfo *streaming_bco_info = findNode::getClass<StreamingBcoInfo>(topNode, "STREAMINGBCOINFO");
   if (streaming_bco_info)
@@ -79,3 +79,4 @@ int StreamingBcoLumiCheck::process_event(PHCompositeNode *topNode)
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
+*/

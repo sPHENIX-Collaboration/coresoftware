@@ -1,10 +1,8 @@
-#include "StreamingBcoLumiReco.h"
+#include "StreamingBcoReco.h"
 
 #include "BcoInfo.h"
 #include "StreamingBcoInfo.h"
 #include "StreamingBcoInfov1.h"
-#include "StreamingLumiInfo.h"
-#include "StreamingLumiInfov1.h"
 
 
 #include <ffaobjects/SyncDefs.h>
@@ -32,7 +30,7 @@
 
 #include <iostream>
 
-StreamingBcoLumiReco::StreamingBcoLumiReco(const std::string &name)
+StreamingBcoReco::StreamingBcoReco(const std::string &name)
   : SubsysReco(name)
 {
   hm = new Fun4AllHistoManager("bco_histos");
@@ -41,7 +39,7 @@ StreamingBcoLumiReco::StreamingBcoLumiReco(const std::string &name)
   return;
 }
 
-int StreamingBcoLumiReco::Init(PHCompositeNode *topNode)
+int StreamingBcoReco::Init(PHCompositeNode *topNode)
 {
   int iret = CreateNodeTree(topNode);
   h_bco_diff = new TH1I("h_bco_diff", ";bco diff;", 3500, 0, 3500);
@@ -59,7 +57,8 @@ int StreamingBcoLumiReco::Init(PHCompositeNode *topNode)
   return iret;
 }
 
-int StreamingBcoLumiReco::InitRun(PHCompositeNode * topNode)
+// Do we even need to include this now that the lumi calculatin has been separated? Or should I remove `InitRun` entirely?
+int StreamingBcoReco::InitRun(PHCompositeNode * topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode;
@@ -69,17 +68,10 @@ int StreamingBcoLumiReco::InitRun(PHCompositeNode * topNode)
     std::cout << PHWHERE << " Run Node is missing doing nothing" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  m_streaming_lumi_info = findNode::getClass<StreamingLumiInfo>(topNode, "STREAMINGLUMIINFO");
-  if (!m_streaming_lumi_info)
-  {
-    m_streaming_lumi_info = new StreamingLumiInfov1();
-    PHIODataNode<PHObject> *luminode = new PHIODataNode<PHObject>(m_streaming_lumi_info, "STREAMINGLUMIINFO", "PHObject");
-    runNode->addNode(luminode);
-  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int StreamingBcoLumiReco::CreateNodeTree(PHCompositeNode *topNode)
+int StreamingBcoReco::CreateNodeTree(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode;
@@ -99,7 +91,7 @@ int StreamingBcoLumiReco::CreateNodeTree(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
+int StreamingBcoReco::process_event(PHCompositeNode *topNode)
 {
   BcoInfo *bcoinfo = findNode::getClass<BcoInfo>(topNode, "BCOINFO");
   SyncObject *syncobject = findNode::getClass<SyncObject>(topNode, syncdefs::SYNCNODENAME);
@@ -138,17 +130,6 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
       }
       delete packet;
       return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-    // SYNTAX TAKEN FROM ZHIWANS CODE, why = and not +=? If this is correct it seems like a waste to call it for every event (would just need it for the last event in a particular crossing?)
-    m_bunchnumber_MBDNS_raw[bunchno] = packet->lValue(0, "GL1PRAW");
-    m_bunchnumber_MBDNS_live[bunchno] = packet->lValue(0, "GL1PLIVE");
-    m_bunchnumber_MBDNS_scaled[bunchno] = packet->lValue(0, "GL1PSCALED");
-
-
-    if(packet->lValue(0, 0))
-    {
-      m_rawgl1scaler = packet->lValue(0, 0);
     }
 
     delete packet;
@@ -223,33 +204,6 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
           h_bco_diff_trigbits[bit]->Fill(bco_diff_prev);
         }
       }
-      // Double check Zhiwan's logic for assigning the adjusted bunch!
-      int lower = m_bco_streaming_window.first - m_bco;
-      int upper = m_bco_streaming_window.second - m_bco;
-      for(int i = lower; i< upper;i++)
-      {
-        int adjusted_bunch = bunchno + i;
-          while (adjusted_bunch < 0) 
-          {
-              adjusted_bunch += 120;
-          }
-          while (adjusted_bunch > 119) 
-          {
-              adjusted_bunch -= 120;
-          }
-          // ABORT GAP!
-          if (adjusted_bunch>110) { continue; }
-
-          // Make sure this is the correct way to count crossings! Need to zero out for each run!
-          if(i!=0 || m_usable_bco_tag) 
-          {
-            m_bunchnumber_crossings[adjusted_bunch] += 1;
-          }
-          //else if (m_usable_bco_tag)
-          //{
-          //  m_bunchnumber_crossings[adjusted_bunch] += 1;
-          //}
-      }
 
       streaming_bco_info->set_bco(get_bco());
       streaming_bco_info->set_usable_bco_tag(get_usable_bco_tag());
@@ -260,52 +214,5 @@ int StreamingBcoLumiReco::process_event(PHCompositeNode *topNode)
       }
     }
   }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int StreamingBcoLumiReco::EndRun(int /*runnumber*/)
-{
-  uint64_t rawgl1scalers_per_bunch = m_rawgl1scaler/120.;
-  for (int i=0; i<m_bunches; i++)
-  {
-    m_bunchnumber_lumi_raw[i] = ( m_bunchnumber_crossings[i] * m_bunchnumber_MBDNS_raw[i] ) / ( rawgl1scalers_per_bunch * m_xsec_MBDNS );
-    m_bunchnumber_lumi_live[i] = ( m_bunchnumber_crossings[i] * m_bunchnumber_MBDNS_live[i]) / ( rawgl1scalers_per_bunch * m_xsec_MBDNS );
-    m_bunchnumber_lumi_scaled[i] = ( m_bunchnumber_crossings[i] * m_bunchnumber_MBDNS_scaled[i] ) / ( rawgl1scalers_per_bunch * m_xsec_MBDNS );
-
-    m_lumi_raw += m_bunchnumber_lumi_raw[i];
-    m_lumi_live += m_bunchnumber_lumi_live[i];
-    m_lumi_scaled += m_bunchnumber_lumi_scaled[i];
-
-    if (Verbosity() > 1)
-    {
-     std::cout << "bunchno : " << i << " lumi_raw : " << m_bunchnumber_lumi_raw[i] << std::endl;
-    }
-  }
-  if (!m_streaming_lumi_info)
-  {
-    std::cout << PHWHERE << " STREAMINGLUMIINFO node missing in EndRun" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-  m_streaming_lumi_info->set_lumi_raw(get_lumi_raw());
-  m_streaming_lumi_info->set_lumi_live(get_lumi_live());
-  m_streaming_lumi_info->set_lumi_scaled(get_lumi_scaled());
-  if (Verbosity() > 1)
-  {
-    std::cout << "MBD xsec : " << m_xsec_MBDNS << std::endl;
-    std::cout << "total lumi (raw) : " << m_lumi_raw << std::endl;
-  }
-
-  m_bunchnumber_lumi_raw.fill(0);
-  m_bunchnumber_lumi_live.fill(0);
-  m_bunchnumber_lumi_scaled.fill(0);
-  m_bunchnumber_crossings.fill(0);
-  m_bunchnumber_MBDNS_raw.fill(0);
-  m_bunchnumber_MBDNS_live.fill(0);
-  m_bunchnumber_MBDNS_scaled.fill(0);
-  m_lumi_raw = 0.;
-  m_lumi_live = 0.;
-  m_lumi_scaled = 0.;
-  m_rawgl1scaler = 0;
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
