@@ -3,13 +3,16 @@
 
 #include "MbdRunningStats.h"
 
-#include <TH1.h>
+#include <Rtypes.h>
 
 #include <fstream>
+#include <limits>
 #include <vector>
 
 class TTree;
+class TF1;
 class TGraphErrors;
+class TH1;
 class TH2;
 class MbdCalib;
 
