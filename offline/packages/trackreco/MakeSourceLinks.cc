@@ -50,12 +50,12 @@ namespace
 
 }  // namespace
 
-void MakeSourceLinks::initialize(PHG4TpcGeomContainer* cellgeo)
+void MakeSourceLinks::initialize(PHG4TpcGeomContainer* cellgeo, ActsGeometry *tGeometry)
 {
   // get the TPC layer radii from the geometry object
-  if (cellgeo)
+  if (cellgeo && tGeometry)
   {
-    _clusterMover.initialize_geometry(cellgeo);
+    _clusterMover.initialize_geometry(cellgeo, tGeometry);
   }
 }
 

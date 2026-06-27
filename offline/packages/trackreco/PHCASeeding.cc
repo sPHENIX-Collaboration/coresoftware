@@ -31,6 +31,7 @@
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
+#include <trackbase/TpcDefs.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 
 // ROOT includes for debugging
@@ -56,6 +57,8 @@
 #include <unordered_set>
 #include <utility>  // for pair, make_pair
 #include <vector>
+
+#include <cstdint>  // for uint8_t, uint16_t, uint32_t
 
 //#define _DEBUG_
 
@@ -211,6 +214,17 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode* topNode)
 
 Acts::Vector3 PHCASeeding::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster) const
 {
+  /*
+  unsigned int layer =  TrkrDefs::getLayer(key);
+  unsigned int side =  TpcDefs::getSide(key);
+  unsigned int sector =  TpcDefs::getSectorId(key);
+  std::cout << " _pp_mode = " << _pp_mode
+	    << " layer " << layer
+	    << " side " << side
+	    << " sector " << sector
+	    << " subsurfkey " << cluster->getSubSurfKey()
+	    << std::endl;
+  */
   return _pp_mode ? m_tGeometry->getGlobalPosition(key, cluster) : m_globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, 0);
 }
 

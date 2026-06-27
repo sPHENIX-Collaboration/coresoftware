@@ -30,7 +30,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-#include <g4detectors/PHG4TpcGeomv1.h>
+//#include <g4detectors/PHG4TpcGeomv1.h>
+#include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <Acts/Definitions/Units.hpp>
@@ -826,9 +827,9 @@ namespace
     // This is local position
     double clusiphi = iphi_sum / adc_sum;
     double clusit = it_sum / adc_sum;
-
-    // This is the global position
-    double clusphi = my_data.layergeom->get_phi(clusiphi, my_data.side);
+    
+    // this is the phi position in the TPC envelope
+    double env_clusphi = my_data.layergeom->get_phi(clusiphi, my_data.side);    
     double clust = t_sum / adc_sum;
 
     // ADC of centroid bin
@@ -855,7 +856,7 @@ namespace
 
     if (my_data.layergeom->get_phistep() > 0)
     {
-      padphase = (clusphi - maxphi) / my_data.layergeom->get_phistep();
+      padphase = (env_clusphi - maxphi) / my_data.layergeom->get_phistep();
     }
 
     if (my_data.layergeom->get_zstep() > 0)
@@ -863,26 +864,25 @@ namespace
       tbinphase = (clust - maxt) / my_data.layergeom->get_zstep();
     }
 
-    double clusx = radius * cos(clusphi);
-    double clusy = radius * sin(clusphi);
+    // these positions are in the tpc_envelope
+    double env_clusx = radius * cos(env_clusphi);
+    double env_clusy = radius * sin(env_clusphi);
 
     // needed for surface identification
     double zdriftlength = clust * my_data.tGeometry->get_drift_velocity();
     // convert z drift length to z position in the TPC
-    double clusz = my_data.m_tdriftmax * my_data.tGeometry->get_drift_velocity() - zdriftlength;
+    double env_clusz = my_data.m_tdriftmax * my_data.tGeometry->get_drift_velocity() - zdriftlength;
     if (my_data.side == 0)
     {
-      clusz = -clusz;
+      env_clusz = -env_clusz;
     }
-    //  std::cout << " side " << my_data.side << " clusz " << clusz << " clust " << clust << " driftmax " << my_data.m_tdriftmax << std::endl;
     const double phi_cov = (iphi2_sum / adc_sum - square(clusiphi)) * pow(my_data.layergeom->get_phistep(), 2);
     const double t_cov = t2_sum / adc_sum - square(clust);
 
-    // Get the surface key to find the surface from the
-    // TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(my_data.layer, my_data.sector, my_data.side);
-    Acts::Vector3 global(clusx, clusy, clusz);
+    // get_tpc_surface_from_coords expects a world global position
+    Acts::Vector3 env_global(env_clusx, env_clusy, env_clusz);
+    Acts::Vector3 global = my_data.tGeometry->transformTpcEnvelopeToWorld(env_global);
     TrkrDefs::subsurfkey subsurfkey = 0;
-
     Surface surface = my_data.tGeometry->get_tpc_surface_from_coords(
         tpcHitSetKey,
         global,
@@ -895,6 +895,8 @@ namespace
       hitkeyvec.clear();
       return;
     }
+    // Acts::Vector3 surfcent = surface->center(my_data.tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+    //    std::cout << "     surf center = " << surfcent.x() << "  " << surfcent.y() << "  " << surfcent.z() << std::endl;
 
     // Estimate the errors
     // Blow up error on single pixel clusters by a factor 3 to compensate for threshold effects
@@ -981,6 +983,7 @@ namespace
       b_made_cluster = true;
     }
 
+    // This code needs to be reviewed in case of a non-zero TPC tilt - ADF 6/16/26
     if (use_nn && clus_base && training_hits)
     {
       try
@@ -998,9 +1001,11 @@ namespace
         double nn_z = training_hits->z + std::clamp(ten_pos[0][1][0].item<double>(), -(double) nd, (double) nd) * training_hits->zstep;
         double nn_x = radius * std::cos(nn_phi);
         double nn_y = radius * std::sin(nn_phi);
-        Acts::Vector3 nn_global(nn_x, nn_y, nn_z);
+
+        Acts::Vector3 nn_env_global(nn_x, nn_y, nn_z);
+        Acts::Vector3 nn_global = my_data.tGeometry->transformTpcEnvelopeToWorld(nn_env_global);
         nn_global *= Acts::UnitConstants::cm;
-        Acts::Vector3 nn_local = surface->localToGlobalTransform(my_data.tGeometry->geometry().geoContext).inverse() * nn_global;
+         Acts::Vector3 nn_local = surface->localToGlobalTransform(my_data.tGeometry->geometry().geoContext).inverse() * nn_global;
         nn_local /= Acts::UnitConstants::cm;
         double nn_t = my_data.m_tdriftmax - std::fabs(nn_z) / my_data.tGeometry->get_drift_velocity();
         clus_base->setLocalX(nn_local(0));
@@ -1544,16 +1549,11 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
   
   AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
 
-  std::cout << "FirstLayerCellGeomv1 streamer: " << std::endl;  
-  auto *g1 = static_cast<PHG4TpcGeomv1*> (geom->GetFirstLayerCellGeom()); // cast because << not in the base class
-  std::cout << *g1 << std::endl;
-  std::cout << "LayerCellGeomv1 streamer for layer 24: " << std::endl;
-  auto *g2 = static_cast<PHG4TpcGeomv1*> (geom->GetLayerCellGeom(24)); // cast because << not in the base class
-  std::cout << *g2 << std::endl;
-  std::cout << "LayerCellGeomv1 streamer for layer 40: " << std::endl;  
-  auto *g3 = static_cast<PHG4TpcGeomv1*> (geom->GetLayerCellGeom(40)); // cast because << not in the base class
-  std::cout << *g3 << std::endl;
-
+  // the identify now contains all information from the streamer for v2
+  geom->GetFirstLayerCellGeom()->identify();
+  geom->GetLayerCellGeom(24)->identify();
+  geom->GetLayerCellGeom(40)->identify();
+  
   if (m_maskDeadChannels)
   {
     m_deadChannelMap.clear();
