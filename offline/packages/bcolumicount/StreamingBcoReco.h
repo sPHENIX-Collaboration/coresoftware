@@ -17,7 +17,6 @@ class StreamingBcoReco : public SubsysReco
   ~StreamingBcoReco() override = default;
 
   int Init(PHCompositeNode *topNode) override;
-  int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
 
   virtual int get_evtno() const { return m_evtno; }

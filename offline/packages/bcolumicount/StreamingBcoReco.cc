@@ -57,20 +57,6 @@ int StreamingBcoReco::Init(PHCompositeNode *topNode)
   return iret;
 }
 
-// Do we even need to include this now that the lumi calculatin has been separated? Or should I remove `InitRun` entirely?
-int StreamingBcoReco::InitRun(PHCompositeNode * topNode)
-{
-  PHNodeIterator iter(topNode);
-  PHCompositeNode *runNode;
-  runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-  if (!runNode)
-  {
-    std::cout << PHWHERE << " Run Node is missing doing nothing" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int StreamingBcoReco::CreateNodeTree(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
