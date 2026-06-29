@@ -10,6 +10,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <vector>
 
 class SingleStreamingInput;
 class Gl1Packet;
@@ -68,6 +69,16 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   void Streaming(bool b = true) { m_StreamingFlag = b; }
 
   void runMvtxTriggered(bool b = true) { m_mvtx_is_triggered = b; }
+
+  // configuration for INTT hit carry-over issue mitigation (hit duplication)
+  void EnableInttHitDuplication(bool b = true) { m_InttHitDuplication = b; }
+  void InttHitCarryOverShiftMaxMultiple(const int i) { m_InttHitCarryOverShiftMaxMultiple = i; }
+  void SetIsRejectInttNoiseCrossings(bool b = true) {m_IsRejectInttNoiseCrossings = b;}
+  void SetIsInttStreaming(bool b = true) {m_IsInttStreaming = b;}
+  void SetIsDuplicateInttFPHXBCOResetHit(bool b = true) {m_IsDuplicateInttFPHXBCOResetHit = b;}
+  void SetInttResetFphxBcoVec(std::vector<int> input_vec) {m_InttResetFphxBcoVec = input_vec;}
+  void SetInttStreamingSignalCrossing(std::pair<int,int> input_pair) {m_InttStreamingSignalCrossing = input_pair;}
+
 
  private:
   struct MvtxRawHitInfo
@@ -159,6 +170,20 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   TH1 *h_taggedAllFees_intt[8]{nullptr};
   TH1 *h_gl1taggedfee_intt[8][14]{{nullptr}};
   TH2 *h_bcodiff_intt[8]{nullptr};
+
+  // for INTT hit carry-over issue mitigation (hit duplication)
+  bool m_InttHitDuplication{false}; // default to false; Should be set to true when running streaming data
+  const unsigned int m_InttHitCarryOverShift{120}; // 120 BCOs as the default shift. Fixed value 
+  int m_InttHitCarryOverShiftMaxMultiple{4}; // the max multiple of the shift. For a max multiple of M, duplicate hits from N + [1..M] * shift BCOs to N
+  bool m_IsRejectInttNoiseCrossings{false}; // not allow hits in the abort-gap crossings being saved to the INTTRawHit container
+  bool m_IsInttStreaming{true}; // is INTT in the streaming readout mode
+  bool m_IsDuplicateInttFPHXBCOResetHit{true}; // Allow duplicating hits with FPHXBCO in the range given by std::vector<int>m_InttResetFphxBcoVec
+
+  std::pair<int,int> m_InttStreamingSignalCrossing{6,116};
+  std::map<std::string, int> m_InttRawHitCount_FEE;
+  int m_Intt_print_count{0};
+  std::vector<int> m_InttResetFphxBcoVec{0,1,2,3,4,5};
+
 };
 
 #endif /* FUN4ALL_FUN4ALLSTREAMINGINPUTMANAGER_H */

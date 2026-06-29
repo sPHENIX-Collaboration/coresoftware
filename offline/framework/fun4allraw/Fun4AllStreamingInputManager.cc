@@ -650,6 +650,28 @@ int Fun4AllStreamingInputManager::FillIntt()
     return iret;
   }
 
+  if (m_Intt_print_count == 0)
+  {
+    std::cout<<"Fun4AllStreamingInputManager::FillIntt(), Post first FillInttPool(), m_RefBCO: "<<m_RefBCO<<std::endl;
+    std::cout<<"Fun4AllStreamingInputManager::FillIntt(), Post first FillInttPool(), m_intt_bco_range: "<<m_intt_bco_range<<std::endl;
+    std::cout<<"Fun4AllStreamingInputManager::FillIntt(), Post first FillInttPool(), m_intt_negative_bco: "<<m_intt_negative_bco<<std::endl;
+
+    std::cout<<"Fun4AllStreamingInputManager::FillIntt(), Post first FillInttPool(), m_IsDuplicateInttFPHXBCOResetHit: "<<m_IsDuplicateInttFPHXBCOResetHit<<std::endl;
+    std::cout<<"Fun4AllStreamingInputManager::FillIntt(), Post first FillInttPool(), m_InttStreamingSignalCrossing: "<<m_InttStreamingSignalCrossing.first<<", "<<m_InttStreamingSignalCrossing.second<<std::endl;
+    std::cout<<"Fun4AllStreamingInputManager::FillIntt(), Post first FillInttPool(), m_InttResetFphxBcoVec element: ";
+    for ( auto &ele : m_InttResetFphxBcoVec){
+      std::cout<<ele<<", ";
+    }
+    std::cout<<std::endl;
+
+    std::cout<<"m_IsInttStreaming: "<<m_IsInttStreaming<<std::endl;
+    std::cout<<"m_InttHitDuplication: "<<m_InttHitDuplication<<std::endl;
+    std::cout<<"m_InttHitCarryOverShift: "<<m_InttHitCarryOverShift<<std::endl;
+    std::cout<<"m_InttHitCarryOverShiftMaxMultiple: "<<m_InttHitCarryOverShiftMaxMultiple<<std::endl;
+    std::cout<<"m_IsRejectInttNoiseCrossings: "<<m_IsRejectInttNoiseCrossings<<std::endl; 
+    m_Intt_print_count = 1;
+  }
+
   // unsigned int alldone = 0;
   //     std::cout << "stashed intt BCOs: " << m_InttRawHitMap.size() << std::endl;
   InttRawHitContainer *inttcont = findNode::getClass<InttRawHitContainer>(m_topNode, "INTTRAWHIT");
@@ -708,6 +730,14 @@ int Fun4AllStreamingInputManager::FillIntt()
     {
       return iret;
     }
+  }
+
+  if (Verbosity() > 2 && m_Intt_print_count < 10){
+    std::cout<<"Fun4AllStreamingInputManager::FillIntt(), Post GL1BCO matching, m_RefBCO (40-bit GL1BCO): "<<m_RefBCO<<std::endl;
+    std::cout<<"Fun4AllStreamingInputManager::FillIntt(), Post GL1BCO matching, m_intt_bco_range: "<<m_intt_bco_range<<std::endl;
+    std::cout<<"Fun4AllStreamingInputManager::FillIntt(), Post GL1BCO matching, m_intt_negative_bco: "<<m_intt_negative_bco<<std::endl;
+    std::cout<<"Fun4AllStreamingInputManager::FillIntt(), Post GL1BCO matching, m_InttRawHitMap.size(): "<<m_InttRawHitMap.size()<<std::endl;
+    std::cout<<std::endl;
   }
 
   unsigned int refbcobitshift = m_RefBCO & 0x3FU;
@@ -777,6 +807,44 @@ int Fun4AllStreamingInputManager::FillIntt()
     h_taggedAllFee_intt->Fill(refbcobitshift);
   }
 
+  if (m_InttHitDuplication){
+    m_InttRawHitCount_FEE.clear();
+
+    for (auto& [bco, hitinfo] : m_InttRawHitMap)
+    {
+      if (bco > select_crossings)
+      {
+        break;
+      }
+  
+      for (auto *intthititer : hitinfo.InttRawHitVector)
+      {
+        uint64_t bco_full = intthititer->get_bco();
+        int FPHXbco = intthititer->get_FPHX_BCO();
+        int server = intthititer->get_packetid(); // note : the felix server ID
+        int felix_ch = intthititer->get_fee(); // note : the felix channel ID 0 - 13
+        
+        std::string hit_string = Form("%ld_%d_%d_%d",bco_full,FPHXbco,server,felix_ch);
+  
+        // note: "BCOFULL_FPHXBCO_FELIX_FEE"
+        if (m_InttRawHitCount_FEE.find(hit_string.c_str()) == m_InttRawHitCount_FEE.end()){
+          m_InttRawHitCount_FEE[hit_string.c_str()] = 1;
+        }
+        else {
+          m_InttRawHitCount_FEE[hit_string.c_str()] += 1;
+        }
+      }
+    }
+
+    if (Verbosity() > 2 && m_Intt_print_count < 10){
+      for (auto &pair : m_InttRawHitCount_FEE){      
+        std::cout<<"m_InttRawHitCount_FEE key: "<<pair.first<<", count: "<<pair.second<<std::endl;
+      }
+      m_Intt_print_count += 1;
+    }
+
+  }
+
   for (auto& [bco, hitinfo] : m_InttRawHitMap)
   {
     if (bco > select_crossings)
@@ -792,9 +860,96 @@ int Fun4AllStreamingInputManager::FillIntt()
                   << intthititer->get_bco() << std::dec << std::endl;
         //        intthititer->identify();
       }
+
+      int FPHXbco = intthititer->get_FPHX_BCO();
+      if (m_IsRejectInttNoiseCrossings && m_IsInttStreaming && (FPHXbco < m_InttStreamingSignalCrossing.first || FPHXbco > m_InttStreamingSignalCrossing.second) ){
+        
+        if (Verbosity() > 10){
+          std::cout<<"Fun4AllStreamingInputManager::FillIntt(), hits with FPHX_BCO: "<<FPHXbco<<", not a signal hit, rejecting"<<std::endl;
+        }
+        
+        continue;
+      }
+
       inttcont->AddHit(intthititer);
     }
   }
+
+  if (m_InttHitDuplication){
+      for (auto pair : m_InttRawHitCount_FEE){
+
+        uint64_t ThisStrobe_HL_bco_full;
+        int ThisStrobe_HL_FPHXBCO;
+        int ThisStrobe_HL_server;
+        int ThisStrobe_HL_felix_ch;
+
+        sscanf(
+            pair.first.c_str(),
+            "%ld_%d_%d_%d",
+            &ThisStrobe_HL_bco_full,
+            &ThisStrobe_HL_FPHXBCO,
+            &ThisStrobe_HL_server,
+            &ThisStrobe_HL_felix_ch
+        );
+
+        int ThisStrobe_HL_count_perFPHXBCO = pair.second;
+
+        if (m_IsRejectInttNoiseCrossings && m_IsInttStreaming && (ThisStrobe_HL_FPHXBCO < m_InttStreamingSignalCrossing.first || ThisStrobe_HL_FPHXBCO > m_InttStreamingSignalCrossing.second) ){
+        
+          if (Verbosity() > 10){
+            std::cout<<"Fun4AllStreamingInputManager::FillIntt(), Doing hit duplication, half-ladder (BCOFULL_FPHXBCO_FELIXID_FELIXChannel): "<<pair.first<<", with FPHX_BCO: "<<ThisStrobe_HL_FPHXBCO<<", not a signal crossing, rejecting duplication for this half-ladder."<<std::endl;
+          }
+          
+          continue;
+        }
+
+        for (int search_i = 1; search_i <= m_InttHitCarryOverShiftMaxMultiple; search_i++){
+          
+          uint64_t future_strobe_bco_full = ThisStrobe_HL_bco_full + m_InttHitCarryOverShift * search_i;
+
+          auto source_iter = m_InttRawHitMap.find(future_strobe_bco_full);
+          if (source_iter == m_InttRawHitMap.end()){
+            
+            if (Verbosity()>10){
+              std::cout<<"Fun4AllStreamingInputManager::FillIntt(), don't see the future strobe, GL1_BCO: "<<m_RefBCO
+              <<", This BCOFULL: "<<ThisStrobe_HL_bco_full
+              <<", this FPHXBCO: "<<ThisStrobe_HL_FPHXBCO
+              <<", FELIXID: "<<ThisStrobe_HL_server
+              <<", FELIX_ch: "<<ThisStrobe_HL_felix_ch
+              <<", hit count: "<<ThisStrobe_HL_count_perFPHXBCO
+              <<", No hits in strobe: bco_full+120*"<<search_i
+              <<std::endl;
+            }
+
+            continue;
+          }
+
+          for (auto *source_hit : source_iter->second.InttRawHitVector)
+          {
+            int server = source_hit->get_packetid(); // note : the felix server ID
+            int felix_ch = source_hit->get_fee(); // note : the felix channel ID 0 - 13
+            int FPHXbco = source_hit->get_FPHX_BCO();
+            uint64_t bco_full = source_hit->get_bco();
+
+            if (bco_full != future_strobe_bco_full){continue;}
+            if (server != ThisStrobe_HL_server){continue;}
+            if (felix_ch != ThisStrobe_HL_felix_ch){continue;}
+
+            if (
+              FPHXbco == ThisStrobe_HL_FPHXBCO ||
+              (m_IsDuplicateInttFPHXBCOResetHit && std::find(m_InttResetFphxBcoVec.begin(),m_InttResetFphxBcoVec.end(), FPHXbco) != m_InttResetFphxBcoVec.end())
+            ){
+              auto *copied_hit = inttcont->AddHit(source_hit);
+              copied_hit->set_bco(ThisStrobe_HL_bco_full);
+              copied_hit->set_FPHX_BCO(ThisStrobe_HL_FPHXBCO);
+            }
+          }
+
+        }
+
+      }
+  }
+
   return 0;
 }
 int Fun4AllStreamingInputManager::FillMvtx()
