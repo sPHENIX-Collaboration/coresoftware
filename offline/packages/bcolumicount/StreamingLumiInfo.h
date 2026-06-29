@@ -8,6 +8,7 @@
 #include <iostream>
 #include <limits>
 #include <utility>
+#include <array>
 
 
 ///
@@ -26,6 +27,15 @@ class StreamingLumiInfo : public PHObject
 
   /// isValid returns non zero if object contains valid data
   //int isValid() const override;
+
+  virtual const std::array<double, 120> get_bunchnumber_lumi_raw() const { return std::array<double, 120>{}; }
+  virtual void set_bunchnumber_lumi_raw(const std::array<double, 120>& /*vals*/) { return; }
+
+  virtual const std::array<double, 120> get_bunchnumber_lumi_live() const { return std::array<double, 120>{}; }
+  virtual void set_bunchnumber_lumi_live(const std::array<double, 120>& /*vals*/) { return; }
+
+  virtual const std::array<double, 120> get_bunchnumber_lumi_scaled() const { return std::array<double, 120>{}; }
+  virtual void set_bunchnumber_lumi_scaled(const std::array<double, 120>& /*vals*/) { return; }
 
   virtual double get_lumi_raw() const { return 0; }
   virtual void set_lumi_raw(double /*val*/) { return; }
