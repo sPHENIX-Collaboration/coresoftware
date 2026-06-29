@@ -71,6 +71,7 @@ class MbdCalib
     return std::numeric_limits<float>::quiet_NaN();
   }
 
+  void get_tcorr_range(const int ifeech, int& min, int& max, int& step);
 
   float get_tcorr(const int ifeech, const int tdc) const {
     if (tdc<0)
@@ -160,7 +161,7 @@ class MbdCalib
   int Write_CDB_Gains(const std::string& dbfile);
   int Write_CDB_Pileup(const std::string& dbfile);
   int Write_CDB_Thresholds(const std::string& dbfile);
-  static int Write_CDB_All();
+  int Write_CDB_All();
 #endif
 
   int Write_SampMax(const std::string& dbfile);
@@ -174,6 +175,7 @@ class MbdCalib
   int Write_Gains(const std::string& dbfile);
   int Write_Pileup(const std::string& dbfile);
   int Write_Thresholds(const std::string& dbfile);
+  int Write_All();
 
   void Reset_TQT0();
   void Reset_TTT0();

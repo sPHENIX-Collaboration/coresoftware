@@ -973,6 +973,19 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
   return 1;
 }
 
+void MbdCalib::get_tcorr_range(const int ifeech, int& min, int& max, int& step)
+{
+    min = static_cast<int>( _tcorr_minrange[ifeech] );
+    max = static_cast<int>( _tcorr_maxrange[ifeech] );
+    if ( _tcorr_npts[ifeech] > 1 )
+    {
+      step = (_tcorr_maxrange[ifeech] - _tcorr_minrange[ifeech]) / (_tcorr_npts[ifeech]-1);
+    }
+    else
+    {
+      step = 0;
+    }
+}
 
 int MbdCalib::Download_TimeCorr(const std::string& dbase_location)
 {
@@ -2426,9 +2439,113 @@ int MbdCalib::Write_Thresholds(const std::string& dbfile)
 #ifndef ONLINE
 int MbdCalib::Write_CDB_All()
 {
-  return 1;
+  int status = 1;
+
+  if ( Write_CDB_Shapes("mbd_shape.root") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_CDB_TimeCorr("mbd_timecorr.root") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_CDB_SlewCorr("mbd_slewcorr.root") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_CDB_Pileup("mbd_pileup.root") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_CDB_SampMax("mbd_sampmax.root") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_CDB_Ped("mbd_ped.root") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_CDB_Status("mbd_status.root") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_CDB_TTT0("mbd_tt_t0.root") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_CDB_TQT0("mbd_tq_t0.root") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_CDB_T0Corr("mbd_t0corr.root") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_CDB_Gains("mbd_qfit.root") != 1 )
+  {
+    status = 0;
+  }
+  //Write_CDB_TimeRMS("mbd_trms.root");
+  //Write_CDB_Thresholds("mbd_thresh.root");
+
+  return status;
 }
 #endif
+
+int MbdCalib::Write_All()
+{
+  int status = 1;
+  /*
+  if ( Write_Shapes("mbd_shape.calib") != 1 )
+  {
+    status = 0;
+  }
+  */
+  if ( Write_TimeCorr("mbd_timecorr.calib") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_SlewCorr("mbd_slewcorr.calib") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_Pileup("mbd_pileup.calib") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_SampMax("mbd_sampmax.calib") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_Ped("mbd_ped.calib") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_Status("mbd_status.calib") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_TTT0("mbd_tt_t0.calib") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_TQT0("mbd_tq_t0.calib") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_T0Corr("mbd_t0corr.calib") != 1 )
+  {
+    status = 0;
+  }
+  if ( Write_Gains("mbd_qfit.calib") != 1 )
+  {
+    status = 0;
+  }
+  //Write_TimeRMS("mbd_trms.calib");
+  //Write_Thresholds("mbd_thresh.calib");
+
+  return status;
+}
 
 // dz is what we need to move the MBD z by
 // dt is what we change the MBD t0 by
