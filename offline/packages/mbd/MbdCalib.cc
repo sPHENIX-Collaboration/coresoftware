@@ -2439,6 +2439,8 @@ int MbdCalib::Write_Thresholds(const std::string& dbfile)
 #ifndef ONLINE
 int MbdCalib::Write_CDB_All()
 {
+  int status = 1;
+
   if ( Write_CDB_Shapes("mbd_shape.root") != 1 )
   {
     status = 0;
@@ -2493,10 +2495,12 @@ int MbdCalib::Write_CDB_All()
 int MbdCalib::Write_All()
 {
   int status = 1;
+  /*
   if ( Write_Shapes("mbd_shape.calib") != 1 )
   {
     status = 0;
   }
+  */
   if ( Write_TimeCorr("mbd_timecorr.calib") != 1 )
   {
     status = 0;
