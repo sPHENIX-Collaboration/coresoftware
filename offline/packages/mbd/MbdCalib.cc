@@ -973,6 +973,12 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
   return 1;
 }
 
+void MbdCalib::get_tcorr_range(const int ifeech, int& min, int& max, int& step)
+{
+    min = _tcorr_minrange[ifeech];
+    max = _tcorr_maxrange[ifeech];
+    step = (_tcorr_maxrange[ifeech] - _tcorr_minrange[ifeech]) / (_tcorr_npts[ifeech]-1);
+}
 
 int MbdCalib::Download_TimeCorr(const std::string& dbase_location)
 {
@@ -2426,9 +2432,42 @@ int MbdCalib::Write_Thresholds(const std::string& dbfile)
 #ifndef ONLINE
 int MbdCalib::Write_CDB_All()
 {
+  Write_CDB_Shapes("mbd_shape.root");
+  Write_CDB_TimeCorr("mbd_t0orr.root");
+  Write_CDB_SlewCorr("mbd_slewcorr.root");
+  Write_CDB_Pileup("mbd_pileup.root");
+  Write_CDB_SampMax("mbd_sampmax.root");
+  Write_CDB_Ped("mbd_ped.root");
+  Write_CDB_Status("mbd_status.root");
+  Write_CDB_TTT0("mbd_tt_t0.root");
+  Write_CDB_TQT0("mbd_tq_t0.root");
+  Write_CDB_T0Corr("mbd_t0corr.root");
+  Write_CDB_Gains("mbd_qfit.root");
+  Write_CDB_TimeRMS("mbd_trms.root");
+  Write_CDB_Thresholds("mbd_thresh.root");
+
   return 1;
 }
 #endif
+
+int MbdCalib::Write_All()
+{
+  //Write_Shapes("mbd_shape.calib");
+  Write_TimeCorr("mbd_t0corr.calib");
+  Write_SlewCorr("mbd_slewcorr.calib");
+  Write_Pileup("mbd_pileup.calib");
+  Write_SampMax("mbd_sampmax.calib");
+  Write_Ped("mbd_ped.calib");
+  Write_Status("mbd_status.calib");
+  Write_TTT0("mbd_tt_t0.calib");
+  Write_TQT0("mbd_tq_t0.calib");
+  Write_T0Corr("mbd_t0corr.calib");
+  Write_Gains("mbd_qfit.calib");
+  //Write_TimeRMS("mbd_trms.calib");
+  //Write_Thresholds("mbd_thresh.calib");
+
+  return 1;
+}
 
 // dz is what we need to move the MBD z by
 // dt is what we change the MBD t0 by
