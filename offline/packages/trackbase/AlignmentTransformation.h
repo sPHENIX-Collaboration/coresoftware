@@ -11,7 +11,7 @@
 #include <random>
 
 class PHCompositeNode;
-
+class PHG4TpcGeomContainer;
 class ActsGeometry;
 
 class AlignmentTransformation
@@ -148,6 +148,8 @@ private:
   float TpcModuleRadii[2][12][3] = {}; // module radial center in local coords
   unsigned int innerLayer[3] = {};
   double sectorPhi[2][12] = {};
+
+  PHG4TpcGeomContainer *m_tpccellgeo = nullptr;
 };
 
 #endif

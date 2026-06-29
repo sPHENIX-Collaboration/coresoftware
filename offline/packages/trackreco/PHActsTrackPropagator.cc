@@ -11,7 +11,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <trackbase/ActsAborter.h>
 #include <trackbase/ActsTrackFittingAlgorithm.h>
 
 #include <trackbase_historic/ActsTransformations.h>

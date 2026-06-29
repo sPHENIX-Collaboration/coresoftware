@@ -54,12 +54,12 @@ class TrkrClusterv5 : public TrkrCluster
   float getPosition(int coor) const override { return m_local[coor]; }
   void setPosition(int coor, float xi) override { m_local[coor] = xi; }
   float getLocalX() const override { return m_local[0]; }
-  void setLocalX(float loc0) override { m_local[0] = loc0; }
+  void setLocalX(const float loc0) override { m_local[0] = loc0; }
   float getLocalY() const override { return m_local[1]; }
-  void setLocalY(float loc1) override { m_local[1] = loc1; }
+  void setLocalY(const float loc1) override { m_local[1] = loc1; }
 
   TrkrDefs::subsurfkey getSubSurfKey() const override { return m_subsurfkey; }
-  void setSubSurfKey(TrkrDefs::subsurfkey id) override { m_subsurfkey = id; }
+  void setSubSurfKey(const TrkrDefs::subsurfkey id) override { m_subsurfkey = id; }
 
   //
   // cluster info
@@ -69,7 +69,7 @@ class TrkrClusterv5 : public TrkrCluster
     return m_adc;
   }
 
-  void setAdc(unsigned int adc) override
+  void setAdc(const unsigned int adc) override
   {
     m_adc = adc;
   }
@@ -79,7 +79,7 @@ class TrkrClusterv5 : public TrkrCluster
     return m_maxadc;
   }
 
-  void setMaxAdc(uint16_t maxadc) override
+  void setMaxAdc(const uint16_t maxadc) override
   {
     m_maxadc = maxadc;
   }
@@ -96,11 +96,11 @@ class TrkrClusterv5 : public TrkrCluster
     return m_zerr;
   }
 
-  void setPhiError(float phierror)
+  void setPhiError(const float phierror) override
   {
     m_phierr = phierror;
   }
-  void setZError(float zerror)
+  void setZError(const float zerror) override 
   {
     m_zerr = zerror;
   }
@@ -156,16 +156,16 @@ class TrkrClusterv5 : public TrkrCluster
   //   void setSize(char size) { m_size = size; }
 
   float getPhiSize() const override { return (float) m_phisize; }
-  void setPhiSize(char phisize) { m_phisize = phisize; }
+  void setPhiSize(const char phisize) override { m_phisize = phisize; }
 
   float getZSize() const override { return (float) m_zsize; }
-  void setZSize(char zsize) { m_zsize = zsize; }
+  void setZSize(const char zsize) override { m_zsize = zsize; }
 
   char getOverlap() const override { return m_overlap; }
-  void setOverlap(char overlap) override { m_overlap = overlap; }
+  void setOverlap(const char overlap) override { m_overlap = overlap; }
 
   char getEdge() const override { return m_edge; }
-  void setEdge(char edge) override { m_edge = edge; }
+  void setEdge(const char edge) override { m_edge = edge; }
 
   // float getPhiSize() const override
   //{ std::cout << "Deprecated size function"<< std::endl; return NAN;}

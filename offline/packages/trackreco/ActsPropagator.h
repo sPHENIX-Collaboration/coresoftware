@@ -31,16 +31,14 @@ class ActsPropagator
  public:
   using BoundTrackParam = Acts::BoundTrackParameters;
   using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
-  /// Return type of std::pair<path length, parameters>
   using BoundTrackParamPair = std::pair<float, BoundTrackParam>;
   using BTPPairResult = Acts::Result<BoundTrackParamPair>;
   using SurfacePtr = std::shared_ptr<const Acts::Surface>;
   using Stepper = Acts::EigenStepper<>;
+
   using FastPropagator = Acts::Propagator<Stepper>;
   using SphenixPropagator = Acts::Propagator<Stepper, Acts::Navigator>;
-  using Actors = Acts::ActorList<>;
-  using SphenixPropagatorOptions = SphenixPropagator::Options<Actors>;
-  
+
   ActsPropagator() {}
   ActsPropagator(ActsGeometry* geometry)
     : m_geometry(geometry)
@@ -52,9 +50,9 @@ class ActsPropagator
   /// functions below
   SurfacePtr makeVertexSurface(const SvtxVertex* vertex);
   SurfacePtr makeVertexSurface(const Acts::Vector3& vertex);
-  BoundTrackParamResult makeTrackParams(SvtxTrack* track, 
+  BoundTrackParamResult makeTrackParams(SvtxTrack* track,
 					SvtxVertexMap* vertexMap);
-  BoundTrackParamResult makeTrackParams(SvtxTrackState* state, 
+  BoundTrackParamResult makeTrackParams(SvtxTrackState* state,
 					int trackCharge,
 					SurfacePtr surf);
 

@@ -436,7 +436,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       SourceLinkVec sourceLinks;
 
       MakeSourceLinks makeSourceLinks;
-      makeSourceLinks.initialize(_tpccellgeo);
+      makeSourceLinks.initialize(_tpccellgeo, m_tGeometry);
       makeSourceLinks.setVerbosity(Verbosity());
       makeSourceLinks.set_pp_mode(m_pp_mode);
       makeSourceLinks.set_cluster_edge_rejection(m_cluster_edge_rejection);
@@ -1005,6 +1005,7 @@ SurfacePtrVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
   {
     const ActsSourceLink asl = sl.get<ActsSourceLink>();
     const auto* const surf = m_tGeometry->geometry().tGeometry->findSurface(asl.geometryId());
+    //   std::cout << "sl: " <<  surf->geometryId() << std::endl;
     surfaces.push_back(surf);
   }
 
@@ -1013,25 +1014,32 @@ SurfacePtrVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
 
 void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
 {
+  // Do not assume volume id has the correct layer, check the surface radius
+
   for (unsigned int i = 0; i < surfaces.size() - 1; i++)
   {
     const auto& surface = surfaces.at(i);
     const auto thisVolume = surface->geometryId().volume();
-    const auto thisLayer = surface->geometryId().layer();
 
-    const auto nextSurface = surfaces.at(i + 1);
+    const Acts::Vector3 this_center = surface->center(m_tGeometry->geometry().getGeoContext());
+    double thisRadius = sqrt(this_center.x()*this_center.x()+this_center.y()*this_center.y());
+    
+    const auto* nextSurface = surfaces.at(i + 1);
     const auto nextVolume = nextSurface->geometryId().volume();
-    const auto nextLayer = nextSurface->geometryId().layer();
 
+    const Acts::Vector3 next_center = surface->center(m_tGeometry->geometry().getGeoContext());
+    double nextRadius = sqrt(next_center.x()*next_center.x()+next_center.y()*next_center.y());
+    
     /// Implement a check to ensure surfaces are sorted
     if (nextVolume == thisVolume)
     {
-      if (nextLayer < thisLayer)
+      //    if (nextLayer < thisLayer)
+      if (nextRadius < thisRadius)
       {
         std::cout
             << "PHActsTrkFitter::checkSurfaceVec - "
             << "Surface not in order... removing surface"
-            << surface->geometryId() << std::endl;
+            << surface->geometryId() << " with radius " << thisRadius << std::endl;
 
         surfaces.erase(surfaces.begin() + i);
 

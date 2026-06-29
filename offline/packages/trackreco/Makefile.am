@@ -60,6 +60,7 @@ pkginclude_HEADERS = \
   PHTrackPruner.h \
   PHTrackCleaner.h \
   PHTrackSelector.h \
+  PHTrackTrackSeedSynchronization.h \
   PHRaveVertexing.h \
   PHSiliconHelicalPropagator.h \
   PHSiliconSeedMerger.h \
@@ -74,8 +75,9 @@ pkginclude_HEADERS = \
   PHTrackSetMerging.h \
   PHTrackSetCopyMerging.h \
   PHTruthClustering.h \
-  PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
+  PHTruthTrackFitter.h \
+  PHTruthTrackSeeding.h \
   PHTruthVertexing.h \
   PrelimDistortionCorrection.h \
   PrelimDistortionCorrectionAuAu.h \
@@ -155,13 +157,15 @@ libtrack_reco_la_SOURCES = \
   PHTrackClusterAssociator.cc \
   PHTrackSeeding.cc \
   PHTrackSelector.cc \
+  PHTrackTrackSeedSynchronization.cc \
   PHTrackSetMerging.cc \
   PHTrackPropagating.cc \
   PHTrackFitting.cc \
   PHTruthClustering.cc \
+  PHTruthSiliconAssociation.cc \
+  PHTruthTrackFitter.cc \
   PHTruthTrackSeeding.cc \
   PHTruthVertexing.cc \
-  PHTruthSiliconAssociation.cc \
   PrelimDistortionCorrection.cc \
   PrelimDistortionCorrectionAuAu.cc \
   SecondaryVertexFinder.cc \

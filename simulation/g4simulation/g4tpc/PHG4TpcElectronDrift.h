@@ -38,6 +38,7 @@ class DistortedTrackContainer;
 class TpcClusterBuilder;
 class PHG4TpcGeomContainer;
 class ClusHitsVerbose;
+class ActsGeometry;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {

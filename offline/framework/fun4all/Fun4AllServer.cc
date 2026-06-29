@@ -1105,7 +1105,14 @@ int Fun4AllServer::EndRun(const int runno)
 int Fun4AllServer::End()
 {
   recoConsts *rc = recoConsts::instance();
-  EndRun(rc->get_IntFlag("RUNNUMBER"));  // call SubsysReco EndRun methods for current run
+  if (rc->FlagExist("RUNNUMBER"))
+  {
+    EndRun(rc->get_IntFlag("RUNNUMBER"));  // call SubsysReco EndRun methods for current run
+  }
+  else
+  {
+    std::cout << PHWHERE << " No RUNNUMBER Int Flag set, not calling EndRun() for registered modules" << std::endl;
+  }
   int i = 0;
   std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
   gROOT->cd(default_Tdirectory.c_str());

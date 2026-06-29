@@ -7,12 +7,14 @@
 #include <TFile.h>
 #include <TGraphErrors.h>
 #include <TRatioPlot.h>
+#include <TH1.h>
 #include <TH2.h>
 #include <TMath.h>
 #include <TPad.h>
 #include <TSpectrum.h>
 #include <TSpline.h>
 #include <TTree.h>
+#include <TVirtualFitter.h>
 
 #include <algorithm>
 #include <fstream>
@@ -140,6 +142,8 @@ MbdSig::~MbdSig()
   {
     _pileupfile->close();
   }
+  // ROOT keeps the current fitter as a process-wide cache after Fit().
+  TVirtualFitter::SetFitter(nullptr, 0);
   delete hRawPulse;
   delete hSubPulse;
   delete gRawPulse;

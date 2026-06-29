@@ -44,8 +44,10 @@ pkginclude_HEADERS = \
   StreamingBcoInfov1.h \
   StreamingLumiInfo.h \
   StreamingLumiInfov1.h \
-  StreamingBcoLumiReco.h \
-  StreamingBcoLumiCheck.h
+  StreamingBcoReco.h \
+  StreamingBcoCheck.h \
+  StreamingLumiReco.h \
+  StreamingLumiCheck.h
 
 
 libbcolumicount_io_la_SOURCES = \
@@ -59,8 +61,10 @@ libbcolumicount_io_la_SOURCES = \
 
 libbcolumicount_la_SOURCES = \
   BcoLumiReco.cc \
-  StreamingBcoLumiReco.cc \
-  StreamingBcoLumiCheck.cc
+  StreamingBcoReco.cc \
+  StreamingBcoCheck.cc \
+  StreamingLumiReco.cc \
+  StreamingLumiCheck.cc
 
 BUILT_SOURCES = testexternals.cc
 

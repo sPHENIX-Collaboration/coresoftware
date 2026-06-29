@@ -66,7 +66,6 @@ libfun4all_la_SOURCES = \
 libfun4all_la_LIBADD = \
   libSubsysReco.la \
   libTDirectoryHelper.la \
-  -lboost_filesystem \
   -lFROG \
   -lffaobjects \
   -lphool \

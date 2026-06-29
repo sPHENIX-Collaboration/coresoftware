@@ -165,7 +165,12 @@ void CaloTowerStatus::LoadCalib(CDBTTree *cdbttree_chi2, CDBTTree *cdbttree_hotM
     if (m_doHotMap && cdbttree_hotMap)
     {
       m_cdbInfo_vec[channel].hotMap_val = cdbttree_hotMap->GetIntValue(key, m_fieldname_hotMap);
-      m_cdbInfo_vec[channel].z_score = cdbttree_hotMap->GetFloatValue(key, m_fieldname_z_score);
+
+      // Only fetch the z_score field if the custom threshold requires it
+      if (z_score_threshold != z_score_threshold_default)
+      {
+        m_cdbInfo_vec[channel].z_score = cdbttree_hotMap->GetFloatValue(key, m_fieldname_z_score);
+      }
     }
   }
 }

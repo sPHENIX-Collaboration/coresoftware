@@ -13,9 +13,12 @@
 #include <ffarawobjects/CaloPacket.h>
 #include <ffarawobjects/CaloPacketContainer.h>
 
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
+
+#include <ffamodules/CDBInterface.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
-#include <phool/recoConsts.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -23,10 +26,7 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-
-#include <cdbobjects/CDBTTree.h>  // for CDBTTree
-
-#include <ffamodules/CDBInterface.h>
+#include <phool/recoConsts.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -58,6 +58,7 @@ CaloTowerBuilder::~CaloTowerBuilder()
 {
   delete cdbttree;
   delete cdbttree_tbt_zs;
+  delete cdbttree_sepd_map;
   delete WaveformProcessing;
 }
 

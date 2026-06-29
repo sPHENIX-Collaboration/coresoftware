@@ -303,6 +303,10 @@ private:
 
   bool m_use_module_tilt_always = false;
   bool m_use_new_silicon_rotation_order = false;
+
+  Acts::Transform3 m_tpc_world_envelope_transform;
+  Acts::Transform3 m_tpc_envelope_world_transform;
+
 };
 
 #endif
