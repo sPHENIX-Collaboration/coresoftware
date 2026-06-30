@@ -21,7 +21,7 @@
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerSimv2.h>
+#include <calobase/TowerInfoContainerSimv3.h>
 
 #include <caloreco/CaloTowerDefs.h>
 
@@ -607,8 +607,12 @@ void CaloWaveformSim::CreateNodeTree(PHCompositeNode *topNode)
     DetNode = new PHCompositeNode(DetectorNodeName);
     dstNode->addNode(DetNode);
   }
-  m_CaloWaveformContainer = new TowerInfoContainerSimv2(DetectorEnum);
-
+  m_CaloWaveformContainer = new TowerInfoContainerSimv3(DetectorEnum);
+  for (size_t index = 0; index < m_CaloWaveformContainer->size(); index++)
+  {
+    TowerInfo *twr = m_CaloWaveformContainer->get_tower_at_channel(index);
+    twr->set_nsample(m_nsamples);
+  }
   PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloWaveformContainer, "WAVEFORM_" + m_detector, "PHObject");
   DetNode->addNode(newTowerNode);
 }
