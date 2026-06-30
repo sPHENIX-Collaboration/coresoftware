@@ -108,7 +108,6 @@ class CaloWaveformSim : public SubsysReco
   // Waveform template & sampling
   void set_templatefile(const std::string &templatefile) { m_templatefile = templatefile; }
   void set_nsamples(int nsamples) { m_nsamples = nsamples; }
-  void set_pedestalsamples(int pedestalsamples) { m_pedestalsamples = pedestalsamples; }
   void set_sampletime(float sampletime) { m_sampletime = sampletime; }
   void set_nchannels(int nchannels) { m_nchannels = nchannels; }
   void set_sampling_fraction(float fraction) { m_sampling_fraction = fraction; }
@@ -191,8 +190,7 @@ class CaloWaveformSim : public SubsysReco
 
   // Waveform settings
   std::string m_templatefile{"waveformtemptempohcalcosmic.root"};
-  int m_nsamples{31};
-  int m_pedestalsamples{31};
+  int m_nsamples{12}; // number of samples for calos in our default data taking configuration
   float m_sampletime{50. / 3.};
   int m_nchannels{24576};
   float m_sampling_fraction{1.0f};

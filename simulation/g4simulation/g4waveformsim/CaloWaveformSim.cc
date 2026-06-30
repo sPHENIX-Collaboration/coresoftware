@@ -456,32 +456,30 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     }
   }
 
+  std::vector<float> waveform_pedestal_vector(m_nsamples);
   for (int i = 0; i < m_nchannels; i++)
   {
-    std::vector<float> m_waveform_pedestal;
-    m_waveform_pedestal.resize(m_nsamples);
     if (m_noiseType == NoiseType::NOISE_TREE)
     {
       TowerInfo *pedestal_tower = m_PedestalContainer->get_tower_at_channel(i);
+      int pedestalsamples = pedestal_tower->get_nsample();
       float pedestal_mean = 0;
       for (int j = 0; j < m_nsamples; j++)
       {
-        m_waveform_pedestal.at(j) = (j < m_pedestalsamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(m_pedestalsamples - 1);
-        pedestal_mean += m_waveform_pedestal.at(j);
+        waveform_pedestal_vector.at(j) = (j < pedestalsamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(pedestalsamples - 1);
+        pedestal_mean += waveform_pedestal_vector.at(j);
       }
       pedestal_mean /= m_nsamples;
       for (int j = 0; j < m_nsamples; j++)
       {
-        m_waveform_pedestal.at(j) = (m_waveform_pedestal.at(j) - pedestal_mean) * m_pedestal_scale + pedestal_mean;
+        waveform_pedestal_vector.at(j) = (waveform_pedestal_vector.at(j) - pedestal_mean) * m_pedestal_scale + pedestal_mean;
       }
     }
     for (int j = 0; j < m_nsamples; j++)
     {
       if (m_noiseType == NoiseType::NOISE_TREE)
       {
-        // TowerInfo *pedestal_tower = m_PedestalContainer->get_tower_at_channel(i);
-        // m_waveforms.at(i).at(j) += (j < m_pedestalsamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(m_pedestalsamples - 1);
-        m_waveforms.at(i).at(j) += m_waveform_pedestal.at(j);
+        m_waveforms.at(i).at(j) += waveform_pedestal_vector.at(j);
       }
       if (m_noiseType == NoiseType::NOISE_GAUSSIAN)
       {
