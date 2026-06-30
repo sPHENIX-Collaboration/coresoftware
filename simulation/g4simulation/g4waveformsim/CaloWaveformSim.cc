@@ -89,12 +89,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     gSystem->Exit(1);
   }
   h_template->SetDirectory(nullptr);
-
-  m_runNumber = recoConsts::instance()->get_IntFlag("RUNNUMBER");
-  if (Verbosity() > 0)
-  {
-    std::cout << "CaloWaveformSim::InitRun Run Number: " << m_runNumber << std::endl;
-  }
+  ft->Close();
 
   // Detector-specific setup
   if (m_dettype == CaloTowerDefs::CEMC)
