@@ -176,6 +176,10 @@ class PHActsSiliconSeeding : public SubsysReco
   {
     m_bField = field;
   }
+  void zeroField(const bool flag = true)
+  {
+    m_zeroField = flag;
+  }
   void minpt(const float pt)
   {
     m_minSeedPt = pt;
@@ -353,6 +357,7 @@ class PHActsSiliconSeeding : public SubsysReco
   /// B field value in z direction
   /// bfield for space point grid neds to be in kiloTesla
   float m_bField = 1.4 * Acts::UnitConstants::T;
+  bool m_zeroField = false;
   std::vector<std::pair<int, int>> zBinNeighborsTop;
   std::vector<std::pair<int, int>> zBinNeighborsBottom;
   int nphineighbors = 1;
