@@ -274,6 +274,70 @@ void Fun4AllDstPileupMerger::copy_background_event(PHCompositeNode *dstNode, dou
       }
     }
 
+    // also need to copy the sPHENIX primary particle info
+    {
+      // sPHENIX primary particles
+      const auto range = container_truth->GetSPHENIXPrimaryParticleRange();
+      for (auto iter = range.first; iter != range.second; ++iter)
+      {
+        const auto &source = iter->second;
+        if (!source) // guard
+        {
+          std::cout << __PRETTY_FUNCTION__ << " - " << __LINE__ << " - null source (sPHENIX primary) particle" << std::endl;
+          continue;
+        }
+
+        auto keyiter = trkid_map.find(source->get_track_id());
+        if (keyiter == trkid_map.end()) // guard against missing track id in map
+        {
+          std::cout << __PRETTY_FUNCTION__ << " - " << __LINE__ << " - track id " << source->get_track_id() << " not found in map" << std::endl;
+          continue;
+        }
+
+        auto *dest = new PHG4Particle_t(source);
+        dest->set_track_id(keyiter->second);
+
+        if (source->get_parent_id() == 0)
+        {
+          dest->set_parent_id(0);
+        }
+        else
+        {
+          keyiter = trkid_map.find(source->get_parent_id());
+          if (keyiter != trkid_map.end())
+          {
+            dest->set_parent_id(keyiter->second);
+          }
+          else
+          {
+            std::cout << "Fun4AllDstPileupMerger::copy_background_event - track id " << source->get_parent_id() << " not found in map" << std::endl;
+          }
+        }
+
+        keyiter = trkid_map.find(source->get_primary_id());
+        if (keyiter != trkid_map.end())
+        {
+          dest->set_primary_id(keyiter->second);
+        }
+        else
+        {
+          std::cout << "Fun4AllDstPileupMerger::copy_background_event - track id " << source->get_primary_id() << " not found in map" << std::endl;
+        }
+
+        keyiter = vtxid_map.find(source->get_vtx_id());
+        if (keyiter != vtxid_map.end())
+        {
+          dest->set_vtx_id(keyiter->second);
+        }
+        else
+        {
+          std::cout << "Fun4AllDstPileupMerger::copy_background_event - vertex id " << source->get_vtx_id() << " not found in map" << std::endl;
+        }
+
+        m_g4truthinfo->AddsPHENIXPrimaryParticle(dest->get_track_id(), dest);
+      }
+    }
+
     // vertex embed flags
     /* embed flag is stored only for primary vertices, consistently with PHG4TruthEventAction */
     for (const auto &pair : vtxid_map)
