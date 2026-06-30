@@ -19,6 +19,8 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
+#include <phool/sphenix_constants.h>
+
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -172,7 +174,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                               "gpx:gpy:gpz:gpt:geta:gphi:"
                               "gvx:gvy:gvz:gvt:"
                               "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
-                              "gembed:gprimary:gparentflavor:gparentid:gprimaryflavor:gprimaryid:"
+                              "gembed:gprimary:gcrossing:gparentflavor:gparentid:gprimaryflavor:gprimaryid:"
                               "trackID:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:"
                               "crossing:siqr:siphi:sithe:six0:siy0:tpqr:tpphi:tpthe:tpx0:tpy0:"
                               "charge:quality:chisq:ndf:nhits:layers:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:"
@@ -192,7 +194,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                              "gpx:gpy:gpz:gpt:geta:gphi:"
                              "gvx:gvy:gvz:gvt:"
                              "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
-                             "gembed:gprimary:gparentflavor:gparentid:gprimaryflavor:gprimaryid:nfromtruth:nwrong:ntrumaps:nwrongmaps:ntruintt:nwrongintt:"
+                             "gembed:gprimary:gcrossing:gparentflavor:gparentid:gprimaryflavor:gprimaryid:nfromtruth:nwrong:ntrumaps:nwrongmaps:ntruintt:nwrongintt:"
                              "ntrutpc:nwrongtpc:ntrumms:nwrongmms:ntrutpc1:nwrongtpc1:ntrutpc11:nwrongtpc11:ntrutpc2:nwrongtpc2:ntrutpc3:nwrongtpc3:layersfromtruth:"
                              "npedge:nredge:nbig:novlp:merr:msize:"
                              "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
@@ -2858,7 +2860,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float gvy = vtx->get_y();
         float gvz = vtx->get_z();
         float gvt = vtx->get_t();
-
+        int gcrossing = std::floor(gvt / sphenix_constants::time_between_crossings);
         float gfpx = 0.;
         float gfpy = 0.;
         float gfpz = 0.;
@@ -3340,6 +3342,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                gfz,
                                gembed,
                                gprimary,
+                               (float) gcrossing,
 			       gparentflavor,
 			       gparentid,
 			       gprimaryflavor,
@@ -3812,7 +3815,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float gfz = std::numeric_limits<float>::quiet_NaN();
         float gembed = std::numeric_limits<float>::quiet_NaN();
         float gprimary = std::numeric_limits<float>::quiet_NaN();
-
+        int gcrossing = std::numeric_limits<int>::max();
         int ispure = 0;
         float nfromtruth = std::numeric_limits<float>::quiet_NaN();
         float nwrong = std::numeric_limits<float>::quiet_NaN();
@@ -3942,6 +3945,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             gvz = vtx->get_z();
             gvt = vtx->get_t();
 
+            gcrossing = std::floor(gvt / sphenix_constants::time_between_crossings);
             PHG4Hit* outerhit = nullptr;
             if (_do_eval_light == false)
             {
@@ -4090,6 +4094,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                               gfz,
 			      gembed,
                               gprimary,
+                              (float) gcrossing,
 			      gparentflavor,
 			      gparentid,
 			      gprimaryflavor,
