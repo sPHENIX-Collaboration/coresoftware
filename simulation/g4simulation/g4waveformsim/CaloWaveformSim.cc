@@ -449,6 +449,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       gSystem->Exit(1);
       exit(1);
     }
+    m_PedestalContainer->identify();
   }
 
   std::vector<float> waveform_pedestal_vector(m_nsamples);
@@ -463,6 +464,11 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       {
         waveform_pedestal_vector.at(j) = (j < pedestalsamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(pedestalsamples - 1);
         pedestal_mean += waveform_pedestal_vector.at(j);
+	if (pedestal_tower->get_waveform_value(j) < 100)
+	{
+	  std::cout << Name() << " channel: " << j << " too small pedestal value for index " << j << ": " << pedestal_tower->get_waveform_value(j) << std::endl;
+	  pedestal_tower->identify();
+	}
       }
       pedestal_mean /= m_nsamples;
       for (int j = 0; j < m_nsamples; j++)
