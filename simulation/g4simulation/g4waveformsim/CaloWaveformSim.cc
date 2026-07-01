@@ -366,6 +366,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
   }
 
   std::map<unsigned int, float> tbt_smear;
+  std::map<unsigned int, double> tower_photon_count_mean;
 
   // loop over hits
   for (PHG4HitContainer::ConstIterator hititer = hits->getHits().first; hititer != hits->getHits().second; hititer++)
@@ -384,6 +385,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     float correction = 1.;
     maphitetaphi(hit, etabin, phibin, correction);
     unsigned int key = encode_tower(etabin, phibin);
+    unsigned int tower_index = decode_tower(key);
     float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
     float e_vis = hit->get_light_yield();
     e_vis *= correction;
@@ -397,10 +399,26 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       }
       else
       {
-        tbt_smear[key] = 1.0 + gsl_ran_gaussian(m_RandomGenerator, factor_const);
+        float val =  1.0+ gsl_ran_gaussian(m_RandomGenerator,factor_const);
+        if(val < 0.0f)
+        {
+          val = 0;
+        }
+        tbt_smear[key] = val; 
         e_vis *= tbt_smear[key];
       }
     }
+
+    if (m_use_sipm_occupancy && m_dettype == CaloTowerDefs::CEMC)
+    {
+      double kPhotonElecYieldVisibleGeV = kPhotoelectronsPerGeV / kSamplingFraction;
+      const double photon_count_mean = static_cast<double>(e_vis) * kPhotonElecYieldVisibleGeV;
+      if (photon_count_mean > 0.)
+      {
+        tower_photon_count_mean[tower_index] += photon_count_mean;
+      }
+    }
+
     float e_dep = e_vis / m_sampling_fraction;
     float ADC = (calibconst != 0) ? e_dep / calibconst : 0.;
     ADC *= m_gain;
@@ -421,7 +439,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     }
 
     float t0 = hit->get_t(0) / m_sampletime;
-    unsigned int tower_index = decode_tower(key);
+
     // here I will add the truth matching part
     //  for the cell reco, the truth matching info relies on edep not light yield, I will be consistent here :)
     TowerInfo *tower = m_CaloWaveformContainer->get_tower_at_channel(tower_index);
@@ -440,6 +458,31 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       m_waveforms.at(tower_index).at(i) += f_fit->Eval(i);
     }
   }
+
+  if (m_use_sipm_occupancy && m_dettype == CaloTowerDefs::CEMC)
+  {
+    for (const auto &entry : tower_photon_count_mean)
+    {
+      const unsigned int tower_index = entry.first;
+      const double photon_count_mean = entry.second;
+      if (photon_count_mean <= 0. || tower_index >= m_waveforms.size())
+      {
+        continue;
+      }
+
+      const double poisson_param_per_pixel = photon_count_mean / kSiPMEffectivePixel;
+      const double expected_active_pixels =
+          kSiPMEffectivePixel * (1. - std::exp(-poisson_param_per_pixel));
+      const double occupancy_ratio =
+          std::max(0., std::min(1., expected_active_pixels / photon_count_mean));
+      //std::cout << "occupancy_ratio: " << occupancy_ratio << std::endl;
+      for (int isample = 0; isample < m_nsamples; ++isample)
+      {
+        m_waveforms.at(tower_index).at(isample) *= occupancy_ratio;
+      }
+    }
+  }
+
 
   // do noise here and add to waveform
 
