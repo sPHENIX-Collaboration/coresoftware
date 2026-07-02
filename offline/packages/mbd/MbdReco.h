@@ -36,7 +36,7 @@ class MbdReco : public SubsysReco
 
   void DoOnlyFits()                  { _fitsonly = 1; }
   void DoFitEval(const int s)        { _fiteval = s; }
-  void SetCalPass(const int calpass) { _calpass = calpass; }
+  void SetCalPass(const int calpass) { _calpass = calpass; if (calpass==1) DoOnlyFits(); }
   void SetProcChargeCh(const bool s) { _always_process_charge = s; }
   void SetMbdTrigOnly(const int m)   { _mbdonly = m; }
 
