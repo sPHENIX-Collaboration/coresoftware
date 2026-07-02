@@ -74,7 +74,7 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
 
   nPVs = primaryVertices.size();
 
-  std::vector<int> goodTrackIndex = findAllGoodTracks(daughterParticles, primaryVertices);
+  std::vector<int> goodTrackIndex = findAllGoodTracks(daughterParticles);//, primaryVertices);
 
   if (m_verbosity >= 10)
   {
@@ -103,10 +103,10 @@ void KFParticle_eventReconstruction::buildBasicChain(std::vector<KFParticle>& se
                                                      const std::vector<int>& goodTrackIndexBasic,
                                                      const std::vector<KFParticle>& primaryVerticesBasic, PHCompositeNode* topNode)
 {
-  std::vector<std::vector<int>> goodTracksThatMeet = findTwoProngs(daughterParticlesBasic, goodTrackIndexBasic, m_num_tracks);
+  std::vector<std::vector<int>> goodTracksThatMeet = findTwoProngs(daughterParticlesBasic, goodTrackIndexBasic, m_num_tracks, primaryVerticesBasic);
   for (int p = 3; p < m_num_tracks + 1; ++p)
   {
-    goodTracksThatMeet = findNProngs(daughterParticlesBasic, goodTrackIndexBasic, goodTracksThatMeet, m_num_tracks, p);
+    goodTracksThatMeet = findNProngs(daughterParticlesBasic, goodTrackIndexBasic, goodTracksThatMeet, m_num_tracks, p, primaryVerticesBasic);
   }
 
   if (m_verbosity >= 10)
@@ -140,13 +140,13 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
   for (int i = 0; i < m_num_intermediate_states; ++i)
   {
     std::vector<KFParticle> vertices;
-    std::vector<std::vector<int>> goodTracksThatMeet = findTwoProngs(daughterParticlesAdv, goodTrackIndexAdv, m_num_tracks_from_intermediate[i]);
+    std::vector<std::vector<int>> goodTracksThatMeet = findTwoProngs(daughterParticlesAdv, goodTrackIndexAdv, m_num_tracks_from_intermediate[i], primaryVerticesAdv);
     for (int p = 3; p <= m_num_tracks_from_intermediate[i]; ++p)
     {
       goodTracksThatMeet = findNProngs(daughterParticlesAdv,
                                        goodTrackIndexAdv,
                                        goodTracksThatMeet,
-                                       m_num_tracks_from_intermediate[i], p);
+                                       m_num_tracks_from_intermediate[i], p, primaryVerticesAdv);
     }
 
     if (m_verbosity >= 10)
@@ -156,8 +156,9 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 
     getCandidateDecay(potentialIntermediates[i], vertices, potentialDaughters[i], daughterParticlesAdv,
                       goodTracksThatMeet, primaryVerticesAdv, track_start, track_stop, true, i, m_constrain_int_mass, topNode);
-    track_start += track_stop;
+    track_start = track_stop;
     track_stop += m_num_tracks_from_intermediate[i + 1];
+    if (track_stop > m_num_tracks) break;
   }
   int num_tracks_used_by_intermediates = 0;
   for (int i = 0; i < m_num_intermediate_states; ++i)
@@ -260,7 +261,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 
             uniqueCombinations = findUniqueDaughterCombinations(num_tracks_used_by_intermediates, m_num_tracks);  // Unique comb of remaining trackIDs
 
-            listOfTracksToAppend = appendTracksToIntermediates(motherDecayProducts, daughterParticlesAdv, goodTrackIndexAdv_withoutIntermediates, num_remaining_tracks);
+            listOfTracksToAppend = appendTracksToIntermediates(motherDecayProducts, daughterParticlesAdv, goodTrackIndexAdv_withoutIntermediates, num_remaining_tracks, primaryVerticesAdv);
 
             for (auto& uniqueCombination : uniqueCombinations)
             {
@@ -299,7 +300,8 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                                                              m_constrain_to_vertex, false, 0, num_mother_decay_products, m_constrain_int_mass, required_unique_vertexID, topNode);
                 if (isGood)
                 {
-
+                  /*
+                   * Moving this to SV calculation for speed 
                   if (m_require_bunch_crossing_match)
                   {
                     KFParticle_truthAndDetTools toolSet;
@@ -330,6 +332,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                       continue;
                     }
                   }
+                  */
 
                   goodCandidates.push_back(candidate);
                   if (m_constrain_to_vertex)
@@ -468,16 +471,16 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
                                                      isIntermediate, intermediateNumber, nTracks, constrainMass, required_unique_vertexID, topNode);
         if (isIntermediate && isGood)
         {
-          float min_ip = 0;
-          float min_ipchi2 = 0;
-          float min_ip_xy = 0;
-          float min_ipchi2_xy  = 0;
-          calcMinIP(candidate, primaryVerticesCand, min_ip, min_ipchi2);
-          calcMinIP(candidate, primaryVerticesCand, min_ip_xy , min_ipchi2_xy, false);
-          if (!isInRange(m_intermediate_min_ip[intermediateNumber], min_ip, m_intermediate_max_ip[intermediateNumber])
-           || !isInRange(m_intermediate_min_ipchi2[intermediateNumber], min_ipchi2, m_intermediate_max_ipchi2[intermediateNumber])
-           || !isInRange(m_intermediate_min_ip_xy[intermediateNumber], min_ip_xy, m_intermediate_max_ip_xy[intermediateNumber])
-           || !isInRange(m_intermediate_min_ipchi2_xy[intermediateNumber], min_ipchi2_xy, m_intermediate_max_ipchi2_xy[intermediateNumber]))
+          float min_PV_dca = 0;
+          float min_PV_dca_stddev = 0;
+          float min_PV_dca_xy = 0;
+          float min_PV_dca_stddev_xy  = 0;
+          calcMinPV_DCA(candidate, primaryVerticesCand, min_PV_dca, min_PV_dca_stddev);
+          calcMinPV_DCA(candidate, primaryVerticesCand, min_PV_dca_xy , min_PV_dca_stddev_xy, false);
+          if (!isInRange(m_intermediate_min_PV_dca[intermediateNumber], min_PV_dca, m_intermediate_max_PV_dca[intermediateNumber])
+           || !isInRange(m_intermediate_min_PV_dca_stddev[intermediateNumber], min_PV_dca_stddev, m_intermediate_max_PV_dca_stddev[intermediateNumber])
+           || !isInRange(m_intermediate_min_PV_dca_xy[intermediateNumber], min_PV_dca_xy, m_intermediate_max_PV_dca_xy[intermediateNumber])
+           || !isInRange(m_intermediate_min_PV_dca_stddev_xy[intermediateNumber], min_PV_dca_stddev_xy, m_intermediate_max_PV_dca_stddev_xy[intermediateNumber]))
           {
             isGood = false;
           }
@@ -571,21 +574,21 @@ int KFParticle_eventReconstruction::selectBestCombination(bool PVconstraint, boo
     }
     else 
     {
-      float current_IPchi2 = 0;
-      float best_IPchi2 = 0;
+      float current_PV_DCAchi2 = 0;
+      float best_PV_DCAchi2 = 0;
    
       if (m_use_2D_matching_tools)
       {
-        current_IPchi2 = possibleCandidates[i].GetDeviationFromVertexXY(possibleVertex[i]);
-        best_IPchi2 = smallestMassError.GetDeviationFromVertexXY(possibleVertex[bestCombinationIndex]);
+        current_PV_DCAchi2 = possibleCandidates[i].GetDeviationFromVertexXY(possibleVertex[i]);
+        best_PV_DCAchi2 = smallestMassError.GetDeviationFromVertexXY(possibleVertex[bestCombinationIndex]);
       }
       else
       {
-        current_IPchi2 = possibleCandidates[i].GetDeviationFromVertex(possibleVertex[i]);
-        best_IPchi2 = smallestMassError.GetDeviationFromVertex(possibleVertex[bestCombinationIndex]);
+        current_PV_DCAchi2 = possibleCandidates[i].GetDeviationFromVertex(possibleVertex[i]);
+        best_PV_DCAchi2 = smallestMassError.GetDeviationFromVertex(possibleVertex[bestCombinationIndex]);
       }
 
-      if (current_IPchi2 < best_IPchi2)
+      if (current_PV_DCAchi2 < best_PV_DCAchi2)
       {
         smallestMassError = possibleCandidates[i];
         bestCombinationIndex = i;
