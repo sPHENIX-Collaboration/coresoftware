@@ -45,6 +45,7 @@
 #include <cstdlib>
 #include <format>
 #include <iostream>  // for operator<<, basic_ostream, endl
+#include <sstream>
 #include <utility>   // for pair
 
 Fun4AllStreamingInputManager::Fun4AllStreamingInputManager(const std::string &name, const std::string &dstnodename, const std::string &topnodename)
@@ -824,13 +825,11 @@ int Fun4AllStreamingInputManager::FillIntt()
         int server = intthititer->get_packetid(); // note : the felix server ID
         int felix_ch = intthititer->get_fee(); // note : the felix channel ID 0 - 13
         
-        std::string hit_string =
-          Form("%" PRIu64 "_%d_%d_%d",
-              bco_full, FPHXbco, server, felix_ch
-        );
+        std::string hit_string = std::format("{}_{}_{}_{}",
+                                             bco_full, FPHXbco, server, felix_ch);
   
         // note: "BCOFULL_FPHXBCO_FELIX_FEE"
-        if (m_InttRawHitCount_FEE.find(hit_string.c_str()) == m_InttRawHitCount_FEE.end()){
+        if (!m_InttRawHitCount_FEE.contains(hit_string)){
           m_InttRawHitCount_FEE[hit_string.c_str()] = 1;
         }
         else {
@@ -879,23 +878,20 @@ int Fun4AllStreamingInputManager::FillIntt()
   }
 
   if (m_InttHitDuplication){
-      for (auto pair : m_InttRawHitCount_FEE){
+      for (const auto& pair : m_InttRawHitCount_FEE){
 
-        uint64_t ThisStrobe_HL_bco_full;
-        int ThisStrobe_HL_FPHXBCO;
-        int ThisStrobe_HL_server;
-        int ThisStrobe_HL_felix_ch;
+      uint64_t ThisStrobe_HL_bco_full = 0;
+      int ThisStrobe_HL_FPHXBCO = 0;
+      int ThisStrobe_HL_server = 0;
+      int ThisStrobe_HL_felix_ch = 0;
 
-        const int nparsed = sscanf(
-            pair.first.c_str(),
-            "%" SCNu64 "_%d_%d_%d",
-            &ThisStrobe_HL_bco_full,
-            &ThisStrobe_HL_FPHXBCO,
-            &ThisStrobe_HL_server,
-            &ThisStrobe_HL_felix_ch
-        );
+      char separator1 = 0;
+      char separator2 = 0;
+      char separator3 = 0;
 
-        if (nparsed != 4)
+      std::stringstream key_stream(pair.first);
+      if (!(key_stream >> ThisStrobe_HL_bco_full >> separator1 >> ThisStrobe_HL_FPHXBCO >> separator2 >> ThisStrobe_HL_server >> separator3 >> ThisStrobe_HL_felix_ch) ||
+        separator1 != '_' || separator2 != '_' || separator3 != '_')
         {
             std::cerr << "Fun4AllStreamingInputManager::FillIntt(), Failed to parse hit key: " << pair.first.c_str() << std::endl;
             gSystem->Exit(1);
