@@ -76,6 +76,11 @@ class CaloWaveformSim : public SubsysReco
     m_use_sipm_occupancy = use_sipm_occupancy;
   }
 
+  void set_use_photon_statistics( bool state=true )
+  {
+    m_use_photon_statistics = state;
+  }
+
   // Time calibration (data)
   void set_fieldname_time(const std::string &fieldname_time)
   {
@@ -230,6 +235,7 @@ class CaloWaveformSim : public SubsysReco
 
   LightCollectionModel light_collection_model;
 
+  bool m_use_photon_statistics{false};
   bool m_use_sipm_occupancy{false};
   double kSamplingFraction     = 2e-2;
   double kPhotoelectronsPerGeV = 500.;

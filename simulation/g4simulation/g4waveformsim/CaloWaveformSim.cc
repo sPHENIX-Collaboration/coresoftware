@@ -465,20 +465,28 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     {
       const unsigned int tower_index = entry.first;
       const double photon_count_mean = entry.second;
-      if (photon_count_mean <= 0. || tower_index >= m_waveforms.size())
+      
+      double photon_count = photon_count_mean;
+      if (m_use_photon_statistics)
+      {
+        const double sigma = std::sqrt(std::max(0., photon_count_mean));
+        photon_count = std::max(0., photon_count + gsl_ran_gaussian(m_RandomGenerator, sigma));
+      }
+
+      if (photon_count_mean <= 0. || photon_count <= 0. || tower_index >= m_waveforms.size())
       {
         continue;
       }
 
-      const double poisson_param_per_pixel = photon_count_mean / kSiPMEffectivePixel;
+      const double poisson_param_per_pixel = photon_count / kSiPMEffectivePixel;
       const double expected_active_pixels =
           kSiPMEffectivePixel * (1. - std::exp(-poisson_param_per_pixel));
       const double occupancy_ratio =
-          std::max(0., std::min(1., expected_active_pixels / photon_count_mean));
-      //std::cout << "occupancy_ratio: " << occupancy_ratio << std::endl;
+          std::max(0., std::min(1., expected_active_pixels / photon_count));
+      const double photon_stat_fac = photon_count / photon_count_mean;
       for (int isample = 0; isample < m_nsamples; ++isample)
       {
-        m_waveforms.at(tower_index).at(isample) *= occupancy_ratio;
+        m_waveforms.at(tower_index).at(isample) *= occupancy_ratio * photon_stat_fac;
       }
     }
   }
