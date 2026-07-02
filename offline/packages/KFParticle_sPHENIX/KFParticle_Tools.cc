@@ -527,10 +527,7 @@ std::vector<int> KFParticle_Tools::findAllGoodTracks(const std::vector<KFParticl
 
   for (unsigned int i_parts = 0; i_parts < daughterParticles.size(); ++i_parts)
   {
-    //if (isGoodTrack(daughterParticles[i_parts], primaryVertices))
-    //{
-      goodTrackIndex.push_back(i_parts);
-    //}
+    goodTrackIndex.push_back(i_parts);
   }
 
   removeDuplicates(goodTrackIndex);
@@ -581,8 +578,8 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
           track.SetProductionVertex(dummy_mother);
         }
 
-        float dca = daughterParticles[*i_it].GetDistanceFromParticle(daughterParticles[*j_it]);
-        float dca_xy = abs(daughterParticles[*i_it].GetDistanceFromParticleXY(daughterParticles[*j_it]));
+        float dca = dummy_tracks[0].GetDistanceFromParticle(dummy_tracks[1]);
+        float dca_xy = abs(dummy_tracks[1].GetDistanceFromParticleXY(dummy_tracks[1]));
 
         if (m_verbosity >= 10)
         {
@@ -597,8 +594,8 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
         if (dca <= m_comb_DCA && dca_xy <= m_comb_DCA_xy)
         {
           KFVertex twoParticleVertex;
-          twoParticleVertex += daughterParticles[*i_it];
-          twoParticleVertex += daughterParticles[*j_it];
+          twoParticleVertex += dummy_tracks[0];
+          twoParticleVertex += dummy_tracks[1];
           float vertexchi2ndof = twoParticleVertex.GetChi2() / twoParticleVertex.GetNDF();
           float sv_radial_position = sqrt(pow(twoParticleVertex.GetX(), 2) + pow(twoParticleVertex.GetY(), 2));
           std::vector<int> combination = {*i_it, *j_it};
@@ -675,10 +672,39 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(std::vector<KFPartic
       if (trackNotUsedAlready)
       {
         bool dcaMet = true;
+
+        //Need to propagate all tracks first
+        KFVertex particleVertex;
+        particleVertex += daughterParticles[i_it];
+        std::vector<int> combination;
+        combination.push_back(i_it);
         for (unsigned int i = 0; i < nProngs - 1; ++i)
         {
-          float dca = daughterParticles[i_it].GetDistanceFromParticle(daughterParticles[goodTracksThatMeet[i_prongs][i]]);
-          float dca_xy = abs(daughterParticles[i_it].GetDistanceFromParticleXY(daughterParticles[goodTracksThatMeet[i_prongs][i]]));
+          particleVertex += daughterParticles[goodTracksThatMeet[i_prongs][i]];
+          combination.push_back(goodTracksThatMeet[i_prongs][i]);
+        }
+
+        KFParticle dummy_mother;
+        std::vector<KFParticle> dummy_tracks;
+        for (auto &id : combination)
+        {
+          dummy_tracks.push_back(daughterParticles[id]);
+        }
+        dummy_mother.SetConstructMethod(2);
+
+        for (auto &track : dummy_tracks)
+        {
+          dummy_mother.AddDaughter(track);
+        }
+        for (auto &track : dummy_tracks)
+        {
+          track.SetProductionVertex(dummy_mother);
+        }
+
+        for (unsigned int i = 1; i < combination.size(); ++i)
+        {
+          float dca = dummy_tracks[0].GetDistanceFromParticle(dummy_tracks[i]);
+          float dca_xy = dummy_tracks[0].GetDistanceFromParticleXY(dummy_tracks[i]);
 
          if (m_verbosity >= 10)
          {
@@ -698,33 +724,6 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(std::vector<KFPartic
 
         if (dcaMet)
         {
-          KFVertex particleVertex;
-          particleVertex += daughterParticles[i_it];
-          std::vector<int> combination;
-          combination.push_back(i_it);
-          for (unsigned int i = 0; i < nProngs - 1; ++i)
-          {
-            particleVertex += daughterParticles[goodTracksThatMeet[i_prongs][i]];
-            combination.push_back(goodTracksThatMeet[i_prongs][i]);
-          }
-
-          KFParticle dummy_mother;
-          std::vector<KFParticle> dummy_tracks;
-          for (auto &id : combination)
-          {
-            dummy_tracks.push_back(daughterParticles[id]);
-          }
-          dummy_mother.SetConstructMethod(2);
-
-          for (auto &track : dummy_tracks)
-          {
-            dummy_mother.AddDaughter(track);
-          }
-          for (auto &track : dummy_tracks)
-          {
-            track.SetProductionVertex(dummy_mother);
-          }
-
           float vertexchi2ndof = particleVertex.GetChi2() / particleVertex.GetNDF();
           float sv_radial_position = sqrt(pow(particleVertex.GetX(), 2) + pow(particleVertex.GetY(), 2));
 
