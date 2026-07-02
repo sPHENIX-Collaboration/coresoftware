@@ -21,7 +21,7 @@
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerSimv2.h>
+#include <calobase/TowerInfoContainerSimv3.h>
 
 #include <caloreco/CaloTowerDefs.h>
 
@@ -89,12 +89,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     gSystem->Exit(1);
   }
   h_template->SetDirectory(nullptr);
-
-  m_runNumber = recoConsts::instance()->get_IntFlag("RUNNUMBER");
-  if (Verbosity() > 0)
-  {
-    std::cout << "CaloWaveformSim::InitRun Run Number: " << m_runNumber << std::endl;
-  }
+  ft->Close();
 
   // Detector-specific setup
   if (m_dettype == CaloTowerDefs::CEMC)
@@ -456,32 +451,35 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     }
   }
 
+  std::vector<float> waveform_pedestal_vector(m_nsamples);
   for (int i = 0; i < m_nchannels; i++)
   {
-    std::vector<float> m_waveform_pedestal;
-    m_waveform_pedestal.resize(m_nsamples);
     if (m_noiseType == NoiseType::NOISE_TREE)
     {
       TowerInfo *pedestal_tower = m_PedestalContainer->get_tower_at_channel(i);
+      int pedestalsamples = pedestal_tower->get_nsample();
       float pedestal_mean = 0;
       for (int j = 0; j < m_nsamples; j++)
       {
-        m_waveform_pedestal.at(j) = (j < m_pedestalsamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(m_pedestalsamples - 1);
-        pedestal_mean += m_waveform_pedestal.at(j);
+        waveform_pedestal_vector.at(j) = (j < pedestalsamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(pedestalsamples - 1);
+        pedestal_mean += waveform_pedestal_vector.at(j);
+	if (Verbosity() > 2 && pedestal_tower->get_waveform_value(j) < 100)
+	{
+	  std::cout << Name() << " channel: " << j << " too small pedestal value for index " << j << ": " << pedestal_tower->get_waveform_value(j) << std::endl;
+	  pedestal_tower->identify();
+	}
       }
       pedestal_mean /= m_nsamples;
       for (int j = 0; j < m_nsamples; j++)
       {
-        m_waveform_pedestal.at(j) = (m_waveform_pedestal.at(j) - pedestal_mean) * m_pedestal_scale + pedestal_mean;
+        waveform_pedestal_vector.at(j) = (waveform_pedestal_vector.at(j) - pedestal_mean) * m_pedestal_scale + pedestal_mean;
       }
     }
     for (int j = 0; j < m_nsamples; j++)
     {
       if (m_noiseType == NoiseType::NOISE_TREE)
       {
-        // TowerInfo *pedestal_tower = m_PedestalContainer->get_tower_at_channel(i);
-        // m_waveforms.at(i).at(j) += (j < m_pedestalsamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(m_pedestalsamples - 1);
-        m_waveforms.at(i).at(j) += m_waveform_pedestal.at(j);
+        m_waveforms.at(i).at(j) += waveform_pedestal_vector.at(j);
       }
       if (m_noiseType == NoiseType::NOISE_GAUSSIAN)
       {
@@ -607,8 +605,12 @@ void CaloWaveformSim::CreateNodeTree(PHCompositeNode *topNode)
     DetNode = new PHCompositeNode(DetectorNodeName);
     dstNode->addNode(DetNode);
   }
-  m_CaloWaveformContainer = new TowerInfoContainerSimv2(DetectorEnum);
-
+  m_CaloWaveformContainer = new TowerInfoContainerSimv3(DetectorEnum);
+  for (size_t index = 0; index < m_CaloWaveformContainer->size(); index++)
+  {
+    TowerInfo *twr = m_CaloWaveformContainer->get_tower_at_channel(index);
+    twr->set_nsample(m_nsamples);
+  }
   PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloWaveformContainer, "WAVEFORM_" + m_detector, "PHObject");
   DetNode->addNode(newTowerNode);
 }

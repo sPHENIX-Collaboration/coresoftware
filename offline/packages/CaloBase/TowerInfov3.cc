@@ -46,3 +46,13 @@ void TowerInfov3::copy_tower(TowerInfo* tower)
   }
   return;
 }
+
+void TowerInfov3::identify(std::ostream& os) const
+{
+  os << "TowerInfov3" << std::endl;
+  for (int i = 0; i < nsample; ++i)
+  {
+    std::cout << "sample " << i << ": " << get_waveform_value(i) << std::endl;
+  }
+  return;
+}

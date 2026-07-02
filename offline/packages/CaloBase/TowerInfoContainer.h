@@ -57,7 +57,7 @@ class TowerInfoContainer : public PHObject
   virtual DETECTOR get_detectorid() const { return DETECTOR_INVALID; }
 
  private:
-  ClassDefOverride(TowerInfoContainer, 1);
+  ClassDefOverride(TowerInfoContainer, 0);
 };
 
 #endif

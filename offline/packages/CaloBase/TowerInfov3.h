@@ -21,6 +21,8 @@ class TowerInfov3 : public TowerInfov2
 
   void copy_tower(TowerInfo* tower) override;
 
+  void identify(std::ostream& os) const override;
+
  private:
   static const int nsample = 31;
   int16_t _waveform[nsample] = {0};  // Initializes the entire array to zero
