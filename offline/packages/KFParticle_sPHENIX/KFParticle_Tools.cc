@@ -650,7 +650,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
   return goodTracksThatMeet;
 }
 
-std::vector<std::vector<int>> KFParticle_Tools::findNProngs(std::vector<KFParticle> daughterParticles,
+std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KFParticle> &daughterParticles,
                                                             const std::vector<int> &goodTrackIndex,
                                                             std::vector<std::vector<int>> goodTracksThatMeet,
                                                             int nRequiredTracks, unsigned int nProngs, const std::vector<KFParticle> &primaryVertices)
