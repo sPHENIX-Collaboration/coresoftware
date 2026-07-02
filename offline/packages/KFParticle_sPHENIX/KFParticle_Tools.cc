@@ -579,7 +579,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
         }
 
         float dca = dummy_tracks[0].GetDistanceFromParticle(dummy_tracks[1]);
-        float dca_xy = abs(dummy_tracks[1].GetDistanceFromParticleXY(dummy_tracks[1]));
+        float dca_xy = std::abs(dummy_tracks[0].GetDistanceFromParticleXY(dummy_tracks[1]));
 
         if (m_verbosity >= 10)
         {
