@@ -466,7 +466,7 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
   std::set<int> toerase;
   for (auto bcliter : m_FEEBclkMap)
   {
-    if (bcliter.second <= localbclk)
+    if (bcliter.second <= localbclk + 120 * 40)
     {
       uint64_t highest_bclk = m_InttRawHitMap.rbegin()->first;
       if ((highest_bclk - m_InttRawHitMap.begin()->first) < MaxBclkDiff())
