@@ -54,6 +54,28 @@ namespace
   {
     return x * x;
   }
+
+  Acts::Vector3 get_line_surface_intersection(const Surface& surf,
+                                              const std::vector<float>& fitpars,
+                                              const Acts::Vector3& global,
+                                              ActsGeometry* tGeometry)
+  {
+    Acts::Vector3 const sensorCenter = surf->center(tGeometry->geometry().getGeoContext()) * 0.1;
+    Acts::Vector3 sensorNormal = -surf->normal(tGeometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
+    sensorNormal /= sensorNormal.norm();
+
+    Acts::Vector3 const linePoint(0., fitpars[1], fitpars[3]);
+    Acts::Vector3 tangent(1., fitpars[0], fitpars[2]);
+    tangent /= tangent.norm();
+
+    // Keep the line direction consistent with the measured cluster direction when possible.
+    if ((global - linePoint).dot(tangent) < 0)
+    {
+      tangent = -1. * tangent;
+    }
+
+    return TrackFitUtils::get_line_plane_intersection(linePoint, tangent, sensorCenter, sensorNormal);
+  }
 }  // namespace
 
 PHActsSiliconSeeding::PHActsSiliconSeeding(const std::string& name)
@@ -807,7 +829,8 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
     std::vector<TrkrDefs::cluskey>& keys,
     TrackSeed& seed)
 {
-  auto fitpars = TrackFitUtils::fitClusters(clusters, keys, true);
+  auto fitpars = m_zeroField ? TrackFitUtils::fitClustersZeroField(clusters, keys, true)
+                             : TrackFitUtils::fitClusters(clusters, keys, true);
   float avgtripletx = 0;
   float avgtriplety = 0;
   for (auto& pos : clusters)
@@ -934,7 +957,8 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
         /// If we added a cluster, refit the track to get a better projection
         if (dummyclusters.size() > clusters.size())
         {
-          dummypars = TrackFitUtils::fitClusters(dummyclusters, dummykeys, false);
+          dummypars = m_zeroField ? TrackFitUtils::fitClustersZeroField(dummyclusters, dummykeys, false)
+                                  : TrackFitUtils::fitClusters(dummyclusters, dummykeys, false);
         }
         auto range = m_clusterMap->getClusters(hitsetkey);
         for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
@@ -951,10 +975,12 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
           auto* const cluster = clusIter->second;
           auto glob = m_tGeometry->getGlobalPosition(
               cluskey, cluster);
-          auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, m_tGeometry);
+          auto intersection = m_zeroField ? get_line_surface_intersection(surf, fitpars, glob, m_tGeometry)
+                                          : TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, m_tGeometry);
           if (!dummypars.empty())
           {
-            intersection = TrackFitUtils::get_helix_surface_intersection(surf, dummypars, glob, m_tGeometry);
+            intersection = m_zeroField ? get_line_surface_intersection(surf, dummypars, glob, m_tGeometry)
+                                       : TrackFitUtils::get_helix_surface_intersection(surf, dummypars, glob, m_tGeometry);
           }
           auto local = (surf->localToGlobalTransform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
           local /= Acts::UnitConstants::cm;
@@ -1145,7 +1171,8 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
 {
   std::vector<std::vector<TrkrDefs::cluskey>> inttMatches;
   auto dummypos = positions;
-  auto fitpars = TrackFitUtils::fitClusters(dummypos, keys, true);
+  auto fitpars = m_zeroField ? TrackFitUtils::fitClustersZeroField(dummypos, keys, true)
+                             : TrackFitUtils::fitClusters(dummypos, keys, true);
   float avgtripletx = 0;
   float avgtriplety = 0;
   for (const auto& pos : positions)
@@ -1258,7 +1285,8 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
         auto* const cluster = clusIter->second;
         auto glob = m_tGeometry->getGlobalPosition(
             cluskey, cluster);
-        auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, m_tGeometry);
+        auto intersection = m_zeroField ? get_line_surface_intersection(surf, fitpars, glob, m_tGeometry)
+                : TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, m_tGeometry);
         auto local = (surf->localToGlobalTransform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
         local /= Acts::UnitConstants::cm;
         m_projgx = intersection.x();
