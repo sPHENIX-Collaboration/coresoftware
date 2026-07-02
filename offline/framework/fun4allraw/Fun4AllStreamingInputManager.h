@@ -11,6 +11,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <cinttypes>
 
 class SingleStreamingInput;
 class Gl1Packet;
@@ -72,12 +73,13 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
 
   // configuration for INTT hit carry-over issue mitigation (hit duplication)
   void EnableInttHitDuplication(bool b = true) { m_InttHitDuplication = b; }
-  void InttHitCarryOverShiftMaxMultiple(const int i) { m_InttHitCarryOverShiftMaxMultiple = i; }
   void SetIsRejectInttNoiseCrossings(bool b = true) {m_IsRejectInttNoiseCrossings = b;}
   void SetIsInttStreaming(bool b = true) {m_IsInttStreaming = b;}
   void SetIsDuplicateInttFPHXBCOResetHit(bool b = true) {m_IsDuplicateInttFPHXBCOResetHit = b;}
   void SetInttResetFphxBcoVec(std::vector<int> input_vec) {m_InttResetFphxBcoVec = input_vec;}
-  void SetInttStreamingSignalCrossing(std::pair<int,int> input_pair) {m_InttStreamingSignalCrossing = input_pair;}
+  
+  void SetInttStreamingSignalCrossing(std::pair<int,int> input_pair);
+  void InttHitCarryOverShiftMaxMultiple(const int i);
 
 
  private:

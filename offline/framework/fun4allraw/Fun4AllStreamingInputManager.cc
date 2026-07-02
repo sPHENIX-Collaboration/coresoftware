@@ -824,7 +824,10 @@ int Fun4AllStreamingInputManager::FillIntt()
         int server = intthititer->get_packetid(); // note : the felix server ID
         int felix_ch = intthititer->get_fee(); // note : the felix channel ID 0 - 13
         
-        std::string hit_string = Form("%ld_%d_%d_%d",bco_full,FPHXbco,server,felix_ch);
+        std::string hit_string =
+          Form("%" PRIu64 "_%d_%d_%d",
+              bco_full, FPHXbco, server, felix_ch
+        );
   
         // note: "BCOFULL_FPHXBCO_FELIX_FEE"
         if (m_InttRawHitCount_FEE.find(hit_string.c_str()) == m_InttRawHitCount_FEE.end()){
@@ -883,14 +886,21 @@ int Fun4AllStreamingInputManager::FillIntt()
         int ThisStrobe_HL_server;
         int ThisStrobe_HL_felix_ch;
 
-        sscanf(
+        const int nparsed = sscanf(
             pair.first.c_str(),
-            "%ld_%d_%d_%d",
+            "%" SCNu64 "_%d_%d_%d",
             &ThisStrobe_HL_bco_full,
             &ThisStrobe_HL_FPHXBCO,
             &ThisStrobe_HL_server,
             &ThisStrobe_HL_felix_ch
         );
+
+        if (nparsed != 4)
+        {
+            std::cerr << "Fun4AllStreamingInputManager::FillIntt(), Failed to parse hit key: " << pair.first.c_str() << std::endl;
+            gSystem->Exit(1);
+            exit(1);
+        }
 
         int ThisStrobe_HL_count_perFPHXBCO = pair.second;
 
@@ -1678,4 +1688,27 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h_tagBcoFelix_mvtx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCO_felix%i") % i).str()));
     h_tagBcoFelixAllFees_mvtx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCOAllFees_Felix%i") % i).str()));
   }
+}
+
+
+void Fun4AllStreamingInputManager::SetInttStreamingSignalCrossing(std::pair<int,int> input_pair) {
+
+  if (input_pair.first > input_pair.second)
+  {
+    std::cout << "In Fun4AllStreamingInputManager, Error: streaming signal crossing range is reversed: "
+              << input_pair.first << ", " << input_pair.second << std::endl;
+    std::exit(1);
+  }
+
+  m_InttStreamingSignalCrossing = input_pair;
+}
+
+void Fun4AllStreamingInputManager::InttHitCarryOverShiftMaxMultiple(const int i) { 
+  if (i < 0)
+  {
+    std::cout << "In Fun4AllStreamingInputManagerm, Error: InttHitCarryOverShiftMaxMultiple must be non-negative"
+              << std::endl;
+    std::exit(1);
+  }
+  m_InttHitCarryOverShiftMaxMultiple = i; 
 }
