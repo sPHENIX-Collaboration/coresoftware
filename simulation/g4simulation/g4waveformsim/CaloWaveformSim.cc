@@ -400,7 +400,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       else
       {
         float val =  1.0+ gsl_ran_gaussian(m_RandomGenerator,factor_const);
-        if(val < 0.0f)
+        if(val < 0.0F)
         {
           val = 0;
         }
