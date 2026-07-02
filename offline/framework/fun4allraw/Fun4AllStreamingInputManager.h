@@ -76,7 +76,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   void SetIsRejectInttNoiseCrossings(bool b = true) {m_IsRejectInttNoiseCrossings = b;}
   void SetIsInttStreaming(bool b = true) {m_IsInttStreaming = b;}
   void SetIsDuplicateInttFPHXBCOResetHit(bool b = true) {m_IsDuplicateInttFPHXBCOResetHit = b;}
-  void SetInttResetFphxBcoVec(std::vector<int> input_vec) {m_InttResetFphxBcoVec = input_vec;}
+  void SetInttResetFphxBcoVec(const std::vector<int>& input_vec) {m_InttResetFphxBcoVec = input_vec;}
   
   void SetInttStreamingSignalCrossing(std::pair<int,int> input_pair);
   void InttHitCarryOverShiftMaxMultiple(const int i);
