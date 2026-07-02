@@ -156,6 +156,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 
     getCandidateDecay(potentialIntermediates[i], vertices, potentialDaughters[i], daughterParticlesAdv,
                       goodTracksThatMeet, primaryVerticesAdv, track_start, track_stop, true, i, m_constrain_int_mass, topNode);
+    if (i + 1 >= m_num_intermediate_states) break;
     track_start = track_stop;
     track_stop += m_num_tracks_from_intermediate[i + 1];
     if (track_stop > m_num_tracks) break;
