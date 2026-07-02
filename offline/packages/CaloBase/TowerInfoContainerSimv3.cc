@@ -2,6 +2,7 @@
 #include "TowerInfoSimv3.h"
 
 #include <TClonesArray.h>
+#include <TSystem.h>
 
 #include <cassert>
 
@@ -30,8 +31,6 @@ TowerInfoContainerSimv3::TowerInfoContainerSimv3(DETECTOR detec)
     nchannels = 52;
   }
   _clones = new TClonesArray("TowerInfoSimv3", nchannels);
-  _clones->SetOwner();
-  _clones->SetName("TowerInfoContainerSimv3");
   for (int i = 0; i < nchannels; ++i)
   {
     // as tower numbers are fixed per event
@@ -45,13 +44,13 @@ TowerInfoContainerSimv3::TowerInfoContainerSimv3(const TowerInfoContainerSimv3& 
   , _clones(new TClonesArray("TowerInfoSimv3", (int) source.size()))
   , _detector(source.get_detectorid())
 {
-  _clones->SetOwner();
-  _clones->SetName("TowerInfoContainerSimv3");
   for (int i = 0; i < (int) source.size(); ++i)
   {
     // as tower numbers are fixed per event
     // construct towers once per run, and clear the towers for first use
-    _clones->ConstructedAt(i, "C");
+    auto* tower = static_cast<TowerInfoSimv3*>(_clones->ConstructedAt(i, "C"));
+    auto* source_tower = static_cast<TowerInfoSimv3*>(source._clones->UncheckedAt(i));
+    tower->copy_tower(source_tower);
   }
 }
 
@@ -71,23 +70,19 @@ void TowerInfoContainerSimv3::Reset()
 
   for (Int_t i = 0; i < _clones->GetEntriesFast(); ++i)
   {
-    TObject* obj = _clones->UncheckedAt(i);
+    TowerInfo *twr = (TowerInfoSimv3*) _clones->UncheckedAt(i);
 
-    if (obj == nullptr)
+    if (twr == nullptr)
     {
       std::cout << __PRETTY_FUNCTION__ << " Fatal access error:"
                 << " _clones->GetSize() = " << _clones->GetSize()
                 << " _clones->GetEntriesFast() = " << _clones->GetEntriesFast()
                 << " i = " << i << std::endl;
       _clones->Print();
+      gSystem->Exit(1);
+      exit(1);
     }
-
-    assert(obj);
-    // same as TClonesArray::Clear() but only clear but not to erase all towers
-    obj->Clear();
-    obj->ResetBit(kHasUUID);
-    obj->ResetBit(kIsReferenced);
-    obj->SetUniqueID(0);
+    twr->Reset();
   }
 }
 

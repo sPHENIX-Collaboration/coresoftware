@@ -17,6 +17,7 @@ class TowerInfoContainerSimv3 : public TowerInfoContainer
   TowerInfoContainerSimv3() = default;
   PHObject *CloneMe() const override { return new TowerInfoContainerSimv3(*this); }
   TowerInfoContainerSimv3(const TowerInfoContainerSimv3 &);
+  TowerInfoContainerSimv3 &operator=(const TowerInfoContainerSimv3 &) = delete;
 
   ~TowerInfoContainerSimv3() override;
 

@@ -2,30 +2,26 @@
 
 #include "TowerInfo.h"
 
+#include <phool/phool.h>
+
+#include <TSystem.h>
+
 void TowerInfoSimv3::Reset()
 {
   TowerInfoSimv1::Reset();
-  for (short& i : _waveform)
-  {
-    i = 0;
-  }
-}
-
-void TowerInfoSimv3::Clear(Option_t* /*unused*/)
-{
-  TowerInfoSimv1::Clear();
-  for (short& i : _waveform)
-  {
-    i = 0;
-  }
+  std::ranges::fill(_waveform,0);
 }
 
 void TowerInfoSimv3::set_nsample(int nsample)
 {
-  if (nsample >= 0)
+  if (nsample > 0)
   {
     _waveform.resize(nsample, 0);
+    return;
   }
+  std::cout << PHWHERE << " invalid number of samples: " << nsample << std::endl;
+  gSystem->Exit(1);
+  exit(1);
 }
 
 int16_t TowerInfoSimv3::get_waveform_value(int index) const
@@ -52,7 +48,7 @@ void TowerInfoSimv3::copy_tower(TowerInfo* tower)
   const int nsamples = tower->get_nsample();
   if (nsamples <= 0)
   {
-    set_nsample(0);
+    _waveform.clear();
     return;
   }
   set_nsample(nsamples);

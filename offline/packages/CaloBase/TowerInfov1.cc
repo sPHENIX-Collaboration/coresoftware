@@ -11,13 +11,12 @@ TowerInfov1::TowerInfov1(TowerInfo& tower)
 void TowerInfov1::Reset()
 {
   _time = 0;
-  _energy = std::numeric_limits<float>::quiet_NaN();
+  _energy = 0;
 }
 
 void TowerInfov1::Clear(Option_t* /*unused*/)
 {
-  _time = 0;
-  _energy = 0;
+  TowerInfov1::Reset();
 }
 
 void TowerInfov1::copy_tower(TowerInfo* tower)

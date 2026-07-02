@@ -13,7 +13,6 @@ class TowerInfoSimv3 : public TowerInfoSimv1
   ~TowerInfoSimv3() override = default;
 
   void Reset() override;
-  void Clear(Option_t* = "") override;
 
   void copy_tower(TowerInfo* tower) override;
 
@@ -23,12 +22,9 @@ class TowerInfoSimv3 : public TowerInfoSimv1
   void set_waveform_value(int index, int16_t value) override;
 
  private:
-  EdepMap _hitedeps;
-  ShowerEdepMap _showeredeps;
   std::vector<int16_t> _waveform;
 
   ClassDefOverride(TowerInfoSimv3, 1);
-  // Inherit other methods and properties from TowerInfoSimv1
 };
 
 #endif
