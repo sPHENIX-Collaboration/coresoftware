@@ -17,11 +17,11 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <phool/recoConsts.h>
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerSimv3.h>
+#include <calobase/TowerInfoDefs.h>
 
 #include <caloreco/CaloTowerDefs.h>
 
