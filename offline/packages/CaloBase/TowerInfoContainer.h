@@ -55,7 +55,8 @@ class TowerInfoContainer : public PHObject
   virtual unsigned int getTowerEtaBin(unsigned int /*towerIndex*/);
 
   virtual DETECTOR get_detectorid() const { return DETECTOR_INVALID; }
-
+  virtual int get_channels(DETECTOR detec);
+  
  private:
   ClassDefOverride(TowerInfoContainer, 0);
 };

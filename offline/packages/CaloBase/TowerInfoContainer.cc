@@ -130,3 +130,29 @@ unsigned int TowerInfoContainer::decode_key(unsigned int tower_key)
   }
   return index;
 }
+
+int TowerInfoContainer::get_channels(DETECTOR detec)
+{
+  int nchannels = 744;
+  if (detec == DETECTOR::SEPD)
+  {
+    nchannels = 744;
+  }
+  else if (detec == DETECTOR::EMCAL)
+  {
+    nchannels = 24576;
+  }
+  else if (detec == DETECTOR::HCAL)
+  {
+    nchannels = 1536;
+  }
+  else if (detec == DETECTOR::MBD)
+  {
+    nchannels = 256;
+  }
+  else if (detec == DETECTOR::ZDC)
+  {
+    nchannels = 52;
+  }
+  return nchannels;
+}

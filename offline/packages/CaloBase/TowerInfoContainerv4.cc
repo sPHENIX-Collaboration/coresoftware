@@ -9,27 +9,7 @@
 TowerInfoContainerv4::TowerInfoContainerv4(DETECTOR detec)
   : _detector(detec)
 {
-  int nchannels = 744;
-  if (_detector == DETECTOR::SEPD)
-  {
-    nchannels = 744;
-  }
-  else if (_detector == DETECTOR::EMCAL)
-  {
-    nchannels = 24576;
-  }
-  else if (_detector == DETECTOR::HCAL)
-  {
-    nchannels = 1536;
-  }
-  else if (_detector == DETECTOR::MBD)
-  {
-    nchannels = 256;
-  }
-  else if (_detector == DETECTOR::ZDC)
-  {
-    nchannels = 52;
-  }
+  int nchannels = get_channels(detec);
   _clones = new TClonesArray("TowerInfov4", nchannels);
   for (int i = 0; i < nchannels; ++i)
   {
