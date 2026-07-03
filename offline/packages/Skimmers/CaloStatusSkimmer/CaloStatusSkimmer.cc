@@ -177,7 +177,8 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
       {
         std::cout << PHWHERE << "CaloStatusSkimmer::process_event: missing TOWERS_SEPD" << std::endl;
       }
-      return Fun4AllReturnCodes::ABORTEVENT;
+      //Temporarily turned off the event abort because the sEPD towers were removed from calofitting dsts. 
+      //return Fun4AllReturnCodes::ABORTEVENT;
     }
     const uint32_t ntowers = sepd_towers->size();
     for (uint32_t ch = 0; ch < ntowers; ++ch)
