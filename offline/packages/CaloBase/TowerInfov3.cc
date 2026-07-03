@@ -1,6 +1,8 @@
 #include "TowerInfov3.h"
 #include "TowerInfo.h"
 
+#include <iostream>
+
 void TowerInfov3::Reset()
 {
   TowerInfov2::Reset();

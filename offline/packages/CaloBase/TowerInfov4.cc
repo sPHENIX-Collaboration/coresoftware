@@ -1,8 +1,6 @@
 #include "TowerInfov4.h"
 #include "TowerInfo.h"
 
-#include <limits>
-
 void TowerInfov4::Reset()
 {
   energy = 0;

@@ -5,6 +5,10 @@
 
 #include <TSystem.h>
 
+#include <algorithm>
+#include <cstdlib>
+#include <iostream>
+
 void TowerInfov5::Reset()
 {
   TowerInfov2::Reset();

@@ -6,6 +6,10 @@
 
 #include <TSystem.h>
 
+#include <algorithm>
+#include <cstdlib>
+#include <iostream>
+
 void TowerInfoSimv3::Reset()
 {
   TowerInfoSimv1::Reset();

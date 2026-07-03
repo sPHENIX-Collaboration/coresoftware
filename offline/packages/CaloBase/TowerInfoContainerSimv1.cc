@@ -4,7 +4,7 @@
 #include <TClonesArray.h>
 #include <TSystem.h>
 
-#include <cassert>
+#include <cstdlib>
 
 TowerInfoContainerSimv1::TowerInfoContainerSimv1(DETECTOR detec)
   : _detector(detec)

@@ -4,6 +4,8 @@
 #include "TowerInfov2.h"
 
 #include <cstdint>  // For int16_t
+#include <iosfwd>   // for ostream
+#include <vector>
 
 class TowerInfov5 : public TowerInfov2
 {

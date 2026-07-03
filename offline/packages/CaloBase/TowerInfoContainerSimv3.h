@@ -6,6 +6,9 @@
 
 #include <TClonesArray.h>
 
+#include <cstddef> // for size_t
+#include <iostream>
+
 class PHObject;
 
 class TowerInfoContainerSimv3 : public TowerInfoContainer
