@@ -26,9 +26,9 @@ TowerInfoContainerSimv2::TowerInfoContainerSimv2(const TowerInfoContainerSimv2& 
 {
   for (int i = 0; i < (int) source.size(); ++i)
   {
-    // as tower numbers are fixed per event
-    // construct towers once per run, and clear the towers for first use
-    _clones->ConstructedAt(i, "C");
+    auto* tower = static_cast<TowerInfoSimv2*>(_clones->ConstructedAt(i, "C"));
+    auto* source_tower = static_cast<TowerInfoSimv2*>(source._clones->UncheckedAt(i));
+    tower->copy_tower(source_tower);
   }
 }
 

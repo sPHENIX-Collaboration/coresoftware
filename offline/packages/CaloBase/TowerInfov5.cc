@@ -67,7 +67,7 @@ void TowerInfov5::identify(std::ostream& os) const
   os << "TowerInfov5" << std::endl;
   for (int i = 0; i < get_nsample(); ++i)
   {
-    std::cout << "sample " << i << ": " << get_waveform_value(i) << std::endl;
+    os << "sample " << i << ": " << get_waveform_value(i) << std::endl;
   }
   return;
 }
