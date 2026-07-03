@@ -15,7 +15,6 @@ class TowerInfov4 : public TowerInfo
   ~TowerInfov4() override = default;
 
   void Reset() override;
-  void Clear(Option_t* = "") override;
 
   void set_energy(float _energy) override { energy = _energy; }
   float get_energy() override { return energy; }

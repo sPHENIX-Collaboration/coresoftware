@@ -10,7 +10,6 @@ class TowerInfoSimv1 : public TowerInfov2
   ~TowerInfoSimv1() override = default;
 
   void Reset() override;
-  void Clear(Option_t* = "") override;
 
   void copy_tower(TowerInfo* tower) override;
 

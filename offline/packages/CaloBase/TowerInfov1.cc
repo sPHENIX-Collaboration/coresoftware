@@ -14,11 +14,6 @@ void TowerInfov1::Reset()
   _energy = 0;
 }
 
-void TowerInfov1::Clear(Option_t* /*unused*/)
-{
-  TowerInfov1::Reset();
-}
-
 void TowerInfov1::copy_tower(TowerInfo* tower)
 {
   set_time(tower->get_time());

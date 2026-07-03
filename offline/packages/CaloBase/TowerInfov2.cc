@@ -9,14 +9,6 @@ void TowerInfov2::Reset()
   _status = 0;
 }
 
-void TowerInfov2::Clear(Option_t* /*unused*/)
-{
-  TowerInfov1::Clear();
-  _chi2 = 0;
-  _pedestal = 0;
-  _status = 0;
-}
-
 void TowerInfov2::copy_tower(TowerInfo* tower)
 {
   TowerInfov1::copy_tower(tower);

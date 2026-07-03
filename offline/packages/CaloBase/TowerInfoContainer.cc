@@ -77,3 +77,56 @@ unsigned int TowerInfoContainer::getTowerEtaBin(unsigned int key)
   unsigned int etabin = TowerInfoDefs::getCaloTowerEtaBin(key);
   return etabin;
 }
+
+unsigned int TowerInfoContainer::encode_key(unsigned int towerIndex)
+{
+  unsigned int key = 0;
+  if (get_detectorid() == DETECTOR::EMCAL)
+  {
+    key = TowerInfoContainer::encode_emcal(towerIndex);
+  }
+  else if (get_detectorid() == DETECTOR::HCAL)
+  {
+    key = TowerInfoContainer::encode_hcal(towerIndex);
+  }
+  else if (get_detectorid() == DETECTOR::SEPD)
+  {
+    key = TowerInfoContainer::encode_epd(towerIndex);
+  }
+  else if (get_detectorid() == DETECTOR::MBD)
+  {
+    key = TowerInfoContainer::encode_mbd(towerIndex);
+  }
+  else if (get_detectorid() == DETECTOR::ZDC)
+  {
+    key = TowerInfoContainer::encode_zdc(towerIndex);
+  }
+  return key;
+}
+
+unsigned int TowerInfoContainer::decode_key(unsigned int tower_key)
+{
+  unsigned int index = 0;
+
+  if (get_detectorid() == DETECTOR::EMCAL)
+  {
+    index = TowerInfoContainer::decode_emcal(tower_key);
+  }
+  else if (get_detectorid() == DETECTOR::HCAL)
+  {
+    index = TowerInfoContainer::decode_hcal(tower_key);
+  }
+  else if (get_detectorid() == DETECTOR::SEPD)
+  {
+    index = TowerInfoContainer::decode_epd(tower_key);
+  }
+  else if (get_detectorid() == DETECTOR::MBD)
+  {
+    index = TowerInfoContainer::decode_mbd(tower_key);
+  }
+  else if (get_detectorid() == DETECTOR::ZDC)
+  {
+    index = TowerInfoContainer::decode_zdc(tower_key);
+  }
+  return index;
+}

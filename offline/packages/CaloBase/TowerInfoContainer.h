@@ -36,8 +36,8 @@ class TowerInfoContainer : public PHObject
   virtual TowerInfo* get_tower_at_key(int /*key*/) { return nullptr; }
   virtual size_t size() const { return 0; }
 
-  virtual unsigned int encode_key(unsigned int /*towerIndex*/) { return std::numeric_limits<unsigned int>::max(); }
-  virtual unsigned int decode_key(unsigned int /*towerIndex*/) { return std::numeric_limits<unsigned int>::max(); }
+  virtual unsigned int encode_key(unsigned int towerIndex);
+  virtual unsigned int decode_key(unsigned int towerIndex);
 
   virtual unsigned int encode_epd(unsigned int /*towerIndex*/);
   virtual unsigned int encode_hcal(unsigned int /*towerIndex*/);
