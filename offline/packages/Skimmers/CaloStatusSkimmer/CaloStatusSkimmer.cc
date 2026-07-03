@@ -1,7 +1,7 @@
 #include "CaloStatusSkimmer.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
@@ -20,11 +20,10 @@
 
 //____________________________________________________________________________..
 CaloStatusSkimmer::CaloStatusSkimmer(const std::string &name)
-    : SubsysReco(name)
+  : SubsysReco(name)
 {
-  //std::cout << "CaloStatusSkimmer::CaloStatusSkimmer(const std::string &name) ""Calling ctor" << std::endl;
+  // std::cout << "CaloStatusSkimmer::CaloStatusSkimmer(const std::string &name) ""Calling ctor" << std::endl;
 }
-
 
 //____________________________________________________________________________..
 int CaloStatusSkimmer::Init([[maybe_unused]] PHCompositeNode *topNode)
@@ -33,7 +32,7 @@ int CaloStatusSkimmer::Init([[maybe_unused]] PHCompositeNode *topNode)
 
   if (b_produce_QA_histograms)
   {
-    auto* hm = QAHistManagerDef::getHistoManager();
+    auto *hm = QAHistManagerDef::getHistoManager();
     assert(hm);
 
     h_EMC_nTowers_notinstr = new TH1F("h_EMC_nTowers_notinstr", "Number of not-instrumented(empty/missing pckt) towers in EMCal; nNotInstrTowers; Counts", 24577, -0.5, 24576.5);
@@ -177,31 +176,35 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
       {
         std::cout << PHWHERE << "CaloStatusSkimmer::process_event: missing TOWERS_SEPD" << std::endl;
       }
-      return Fun4AllReturnCodes::ABORTEVENT;
+      // Temporarily turned off the event abort because the sEPD towers were removed from calofitting dsts.
+      // return Fun4AllReturnCodes::ABORTEVENT;
     }
-    const uint32_t ntowers = sepd_towers->size();
-    for (uint32_t ch = 0; ch < ntowers; ++ch)
+    if (sepd_towers)
     {
-      TowerInfo *tower = sepd_towers->get_tower_at_channel(ch);
-      if (tower->get_isNotInstr())
+      const uint32_t ntowers = sepd_towers->size();
+      for (uint32_t ch = 0; ch < ntowers; ++ch)
       {
-        ++notinstr_sEPD;
+        TowerInfo *tower = sepd_towers->get_tower_at_channel(ch);
+        if (tower->get_isNotInstr())
+        {
+          ++notinstr_sEPD;
+        }
       }
-    }
 
-    if (Verbosity() > 9)
-    {
-      std::cout << "CaloStatusSkimmer::process_event: event " << n_eventcounter << ", ntowers in sEPD = " << ntowers << ", not-instrumented(empty/missing pckt) towers in sEPD = " << notinstr_sEPD << std::endl;
-    }
+      if (Verbosity() > 9)
+      {
+        std::cout << "CaloStatusSkimmer::process_event: event " << n_eventcounter << ", ntowers in sEPD = " << ntowers << ", not-instrumented(empty/missing pckt) towers in sEPD = " << notinstr_sEPD << std::endl;
+      }
 
-    if(b_produce_QA_histograms)
-    {
-      h_sEPD_nTowers_notinstr->Fill(notinstr_sEPD);
-    }
+      if (b_produce_QA_histograms)
+      {
+        h_sEPD_nTowers_notinstr->Fill(notinstr_sEPD);
+      }
 
-    if (notinstr_sEPD >= m_sEPD_skim_threshold)
-    {
-      sEPD_skim_count++;
+      if (notinstr_sEPD >= m_sEPD_skim_threshold)
+      {
+        sEPD_skim_count++;
+      }
     }
   }
 
@@ -233,7 +236,7 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
       std::cout << "CaloStatusSkimmer::process_event: event " << n_eventcounter << ", ntowers in ZDC = " << ntowers << ", not-instrumented(empty/missing pckt) towers in ZDC = " << notinstr_ZDC << std::endl;
     }
 
-    if(b_produce_QA_histograms)
+    if (b_produce_QA_histograms)
     {
       h_ZDC_nTowers_notinstr->Fill(notinstr_ZDC);
     }
