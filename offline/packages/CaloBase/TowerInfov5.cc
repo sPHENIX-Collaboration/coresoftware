@@ -12,7 +12,7 @@
 void TowerInfov5::Reset()
 {
   TowerInfov2::Reset();
-  std::ranges::fill(_waveform,0);
+  std::ranges::fill(_waveform, 0);
 }
 
 void TowerInfov5::set_nsample(int nsample)

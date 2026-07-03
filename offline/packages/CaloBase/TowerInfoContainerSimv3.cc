@@ -50,7 +50,7 @@ void TowerInfoContainerSimv3::Reset()
 
   for (Int_t i = 0; i < _clones->GetEntriesFast(); ++i)
   {
-    TowerInfo *twr = (TowerInfoSimv3*) _clones->UncheckedAt(i);
+    TowerInfo* twr = (TowerInfoSimv3*) _clones->UncheckedAt(i);
 
     if (twr == nullptr)
     {

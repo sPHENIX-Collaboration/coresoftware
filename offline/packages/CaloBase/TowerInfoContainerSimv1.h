@@ -33,8 +33,8 @@ class TowerInfoContainerSimv1 : public TowerInfoContainer
   DETECTOR get_detectorid() const override { return _detector; }
 
  protected:
-  TClonesArray *_clones {nullptr};
-  DETECTOR _detector {DETECTOR_INVALID};
+  TClonesArray *_clones{nullptr};
+  DETECTOR _detector{DETECTOR_INVALID};
 
  private:
   ClassDefOverride(TowerInfoContainerSimv1, 1);

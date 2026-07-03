@@ -13,7 +13,7 @@
 void TowerInfoSimv3::Reset()
 {
   TowerInfoSimv1::Reset();
-  std::ranges::fill(_waveform,0);
+  std::ranges::fill(_waveform, 0);
 }
 
 void TowerInfoSimv3::set_nsample(int nsample)

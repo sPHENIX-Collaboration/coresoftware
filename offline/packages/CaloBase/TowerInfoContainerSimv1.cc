@@ -48,8 +48,8 @@ void TowerInfoContainerSimv1::Reset()
 
   for (Int_t i = 0; i < _clones->GetEntriesFast(); ++i)
   {
-    TowerInfo *twr = (TowerInfoSimv1 *) _clones->UncheckedAt(i);
-    
+    TowerInfo* twr = (TowerInfoSimv1*) _clones->UncheckedAt(i);
+
     if (twr == nullptr)
     {
       std::cout << __PRETTY_FUNCTION__ << " Fatal access error:"

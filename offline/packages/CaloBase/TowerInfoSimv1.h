@@ -3,7 +3,7 @@
 
 #include "TowerInfov2.h"
 
-#include <g4main/PHG4HitDefs.h> 
+#include <g4main/PHG4HitDefs.h>
 
 class TowerInfoSimv1 : public TowerInfov2
 {
