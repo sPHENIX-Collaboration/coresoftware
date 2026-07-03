@@ -71,6 +71,16 @@ class CaloWaveformSim : public SubsysReco
     m_directURL_MC = url;
   }
 
+  void set_use_sipm_occupancy(bool use_sipm_occupancy = true)
+  {
+    m_use_sipm_occupancy = use_sipm_occupancy;
+  }
+
+  void set_use_photon_statistics( bool state=true )
+  {
+    m_use_photon_statistics = state;
+  }
+
   // Time calibration (data)
   void set_fieldname_time(const std::string &fieldname_time)
   {
@@ -103,6 +113,19 @@ class CaloWaveformSim : public SubsysReco
   {
     m_smear_const = true;
     factor_const = val;
+  }
+
+  void set_kSamplingFraction(double val)
+  {
+    kSamplingFraction     = val;
+  }
+  void set_kPhotoelectronsPerGeV(double val)
+  {
+    kPhotoelectronsPerGeV = val;
+  }
+  void set_kSiPMEffectivePixel(double val)
+  {
+    kSiPMEffectivePixel   = val;
   }
 
   // Waveform template & sampling
@@ -208,6 +231,12 @@ class CaloWaveformSim : public SubsysReco
   std::vector<std::vector<float>> m_waveforms;
 
   LightCollectionModel light_collection_model;
+
+  bool m_use_photon_statistics{false};
+  bool m_use_sipm_occupancy{false};
+  double kSamplingFraction     = 2e-2;
+  double kPhotoelectronsPerGeV = 500.;
+  double kSiPMEffectivePixel   = 40000 * 4.;
 
   NoiseType m_noiseType{NOISE_TREE};
 };
