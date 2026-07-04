@@ -1,5 +1,4 @@
-#include "TowerInfoSimv3.h"
-
+#include "TowerInfov5.h"
 #include "TowerInfo.h"
 
 #include <phool/phool.h>
@@ -10,13 +9,13 @@
 #include <cstdlib>
 #include <iostream>
 
-void TowerInfoSimv3::Reset()
+void TowerInfov5::Reset()
 {
-  TowerInfoSimv1::Reset();
+  TowerInfov2::Reset();
   std::ranges::fill(_waveform, 0);
 }
 
-void TowerInfoSimv3::set_nsample(int nsample)
+void TowerInfov5::set_nsample(int nsample)
 {
   if (nsample > 0)
   {
@@ -28,7 +27,7 @@ void TowerInfoSimv3::set_nsample(int nsample)
   exit(1);
 }
 
-int16_t TowerInfoSimv3::get_waveform_value(int index) const
+int16_t TowerInfov5::get_waveform_value(int index) const
 {
   if (index >= 0 && index < get_nsample())
   {
@@ -37,7 +36,7 @@ int16_t TowerInfoSimv3::get_waveform_value(int index) const
   return 0;
 }
 
-void TowerInfoSimv3::set_waveform_value(int index, int16_t value)
+void TowerInfov5::set_waveform_value(int index, int16_t value)
 {
   if (index >= 0 && index < get_nsample())
   {
@@ -46,9 +45,9 @@ void TowerInfoSimv3::set_waveform_value(int index, int16_t value)
   return;
 }
 
-void TowerInfoSimv3::copy_tower(TowerInfo* tower)
+void TowerInfov5::copy_tower(TowerInfo* tower)
 {
-  TowerInfoSimv1::copy_tower(tower);
+  TowerInfov2::copy_tower(tower);
   const int nsamples = tower->get_nsample();
   if (nsamples <= 0)
   {
@@ -59,6 +58,16 @@ void TowerInfoSimv3::copy_tower(TowerInfo* tower)
   for (int i = 0; i < nsamples; ++i)
   {
     _waveform[i] = tower->get_waveform_value(i);
+  }
+  return;
+}
+
+void TowerInfov5::identify(std::ostream& os) const
+{
+  os << "TowerInfov5" << std::endl;
+  for (int i = 0; i < get_nsample(); ++i)
+  {
+    os << "sample " << i << ": " << get_waveform_value(i) << std::endl;
   }
   return;
 }

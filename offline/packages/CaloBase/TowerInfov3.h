@@ -12,7 +12,6 @@ class TowerInfov3 : public TowerInfov2
   ~TowerInfov3() override = default;
 
   void Reset() override;
-  void Clear(Option_t* = "") override;
 
   // Getter and setter for waveform
   int get_nsample() const override { return nsample; }

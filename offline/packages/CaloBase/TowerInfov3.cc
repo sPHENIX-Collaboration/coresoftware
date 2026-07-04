@@ -1,18 +1,11 @@
 #include "TowerInfov3.h"
 #include "TowerInfo.h"
 
+#include <iostream>
+
 void TowerInfov3::Reset()
 {
   TowerInfov2::Reset();
-  for (short& i : _waveform)
-  {
-    i = 0;
-  }
-}
-
-void TowerInfov3::Clear(Option_t* /*unused*/)
-{
-  TowerInfov2::Clear();
   for (short& i : _waveform)
   {
     i = 0;
