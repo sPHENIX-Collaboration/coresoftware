@@ -98,9 +98,9 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
       "ntp", "ntp",
       "layer:residualX:residualY:clusphi:xglob:yglob:zglob:"
       "errX:errY:"
-      "dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:"
+      "dXdR:dXdZ0:dXdphi:dXdtheta:dXdqoverp:dXdt"
       "dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:"
-      "dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:"
+      "dYdR:dYdZ0:dYdphi:dYdtheta:dYdqoverp:dYdt"
       "dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz"
     );
     m_ntuple->SetDirectory(m_file);
@@ -482,7 +482,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     const unsigned int trkrid = TrkrDefs::getTrkrId(ckey);
     if(m_ignore_tpc && trkrid == TrkrDefs::tpcId)
       continue;
-    const SvtxAlignmentState::ResidualVector residual = state->get_residual() / Acts::UnitConstants::cm;
+    const SvtxAlignmentState::ResidualVector residual = state->get_residual();// / Acts::UnitConstants::cm;
     const Acts::Vector3 global = _tGeometry->getGlobalPosition(ckey, cluster);
 
     // need standard deviation of measurements
@@ -507,11 +507,11 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     int glbl_label[SvtxAlignmentState::NGL];
     if (layer < 3)
     {
-      AlignmentDefs::getMvtxGlobalLabels(surf, glbl_label, mvtx_group);
+      AlignmentDefs::getMvtxGlobalLabels(surf, ckey, glbl_label, mvtx_group);
     }
     else if (layer > 2 && layer < 7)
     {
-      AlignmentDefs::getInttGlobalLabels(surf, glbl_label, intt_group);
+      AlignmentDefs::getInttGlobalLabels(surf, ckey, glbl_label, intt_group);
     }
     else if (layer < 55)
     {
@@ -627,9 +627,9 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     float ntp_data[] = {
       (float) layer, (float) residual(0), (float) residual(1), (float) clusphi, (float) global[0], (float) global[1], (float) global[2],
       (float) clus_sigma(0), (float) clus_sigma(1),
-      lcl_derivative[0][0], lcl_derivative[0][1], lcl_derivative[0][2], lcl_derivative[0][3], lcl_derivative[0][4],
+      lcl_derivative[0][0], lcl_derivative[0][1], lcl_derivative[0][2], lcl_derivative[0][3], lcl_derivative[0][4], lcl_derivative[0][5]
       glbl_derivative[0][0], glbl_derivative[0][1], glbl_derivative[0][2], glbl_derivative[0][3], glbl_derivative[0][4], glbl_derivative[0][5],
-      lcl_derivative[1][0], lcl_derivative[1][1], lcl_derivative[1][2], lcl_derivative[1][3], lcl_derivative[1][4],
+      lcl_derivative[1][0], lcl_derivative[1][1], lcl_derivative[1][2], lcl_derivative[1][3], lcl_derivative[1][4], lcl_derivative[1][5]
       glbl_derivative[1][0], glbl_derivative[1][1], glbl_derivative[1][2], glbl_derivative[1][3], glbl_derivative[1][4], glbl_derivative[1][5],
     };
 

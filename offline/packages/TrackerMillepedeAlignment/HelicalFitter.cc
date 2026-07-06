@@ -1082,7 +1082,12 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
           std::cerr << "glbl_derivativeX is NaN" << std::endl;
           continue;
         }
-        _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf * clus_sigma(0));
+        if(Verbosity() > 2){
+          std::cout << "xyz layer " << layer << " buffers:" << std::endl;
+          AlignmentDefs::printBuffers(0, residual, clus_sigma, lcl_derivativeX, glbl_derivativeX, glbl_label);
+          
+        }
+          _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf * clus_sigma(0));
       }
 
       if (!isnan(residual(1)) && clus_sigma(1) < 1.0&&pull_cumulative_pass)

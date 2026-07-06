@@ -1294,8 +1294,8 @@ void PHActsTrkFitter::updateSvtxTrack(
   track->set_z(params.position(m_transient_geocontext)(2) / Acts::UnitConstants::cm);
 
   auto* seed = track->get_tpc_seed();
-
-  if(!m_forceSiOnlyFit)
+  
+  if(!m_forceSiOnlyFit || !m_siOnlyTpcSeedPt)
   {
     track->set_px(params.momentum()(0));
     track->set_py(params.momentum()(1));
