@@ -175,12 +175,11 @@ int MakeActsGeometry::Init(PHCompositeNode * /*topNode*/)
 
 int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
-  m_geomContainerTpc =
-      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  m_geomContainerTpc = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
 
   PHG4TpcGeom *layergeom = m_geomContainerTpc->GetLayerCellGeom(20);  // z geometry is the same for all layers
   m_max_driftlength = layergeom->get_max_driftlength();
-  m_CM_halfwidth = layergeom->get_CM_halfwidth();  
+  m_CM_halfwidth = layergeom->get_CM_halfwidth();
   m_maxSurfZ = m_max_driftlength - 0.0001; // add clearance from physical TPC gas volume length to avoid overlaps
 
     // Make the transform from TPC envelope to global coordinates
@@ -203,7 +202,7 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_tpc_envelope_world_transform.translation() = trans;
   // and the inverse
   m_tpc_world_envelope_transform = m_tpc_envelope_world_transform.inverse();
-  
+
   // test
   Acts::Vector3 test_env(10.0, 40.0, 80.0);
   std::cout << "MakeActsGeometry::InitRun transform tests north" << std::endl;
@@ -211,7 +210,7 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   Acts::Vector3 test_glob =  m_tpc_envelope_world_transform * test_env;
   std::cout << " test_glob " << test_glob.x() << "  " << test_glob.y() << "  " << test_glob.z() << std::endl;
   Acts::Vector3 test_env_check =  m_tpc_world_envelope_transform * test_glob;
-  std::cout << " test_env_check " << test_env_check.x() << "  " << test_env_check.y() << "  " << test_env_check.z() << std::endl;  
+  std::cout << " test_env_check " << test_env_check.x() << "  " << test_env_check.y() << "  " << test_env_check.z() << std::endl;
 
   Acts::Vector3 test_envs(10.0, 40.0, -80.0);
   std::cout << "MakeActsGeometry::InitRun transform tests south" << std::endl;
@@ -219,10 +218,11 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   Acts::Vector3 test_globs =  m_tpc_envelope_world_transform * test_envs;
   std::cout << " test_glob " << test_globs.x() << "  " << test_globs.y() << "  " << test_globs.z() << std::endl;
   Acts::Vector3 test_env_checks =  m_tpc_world_envelope_transform * test_globs;
-  std::cout << " test_env_check " << test_env_checks.x() << "  " << test_env_checks.y() << "  " << test_env_checks.z() << std::endl;  
+  std::cout << " test_env_check " << test_env_checks.x() << "  " << test_env_checks.y() << "  " << test_env_checks.z() << std::endl;
 
   // Alignment Transformation declaration of instance - must be here to set initial alignment flag
   AlignmentTransformation alignment_transformation;
+  alignment_transformation.setAlignmentParamsFile(m_alignmentParamsFile);
   alignment_transformation.createAlignmentTransformContainer(topNode);
 
   // set parameter for sampling probability distribution
@@ -245,8 +245,8 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 
   alignment_transformation.setUseNewSiliconRotationOrder(m_use_new_silicon_rotation_order);
   alignment_transformation.setUseModuleTiltAlways(m_use_module_tilt_always);
-  
-  
+
+
   if (buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -784,7 +784,7 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[], const std::string& r
     matDeco = std::make_shared<Acts::MaterialWiper>();
   }
   config.materialDecorator = matDeco;
-  // this does the building now. The TGeoDetector owns the 
+  // this does the building now. The TGeoDetector owns the
   // tracking geometry
   m_TGeoDetector = std::make_unique<ActsExamples::TGeoDetectorWithOptions>(config);
 
@@ -892,7 +892,7 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
       auto vec3d = surf->center(m_geoCtxt);
       vec3d /= 10.0;
       auto vec3d_envelope = m_tpc_world_envelope_transform * vec3d;  // needs to be in TPC envelope coordinates due to tilt in sims
-      
+
       std::vector<double> world_center = {vec3d_envelope(0),
                                           vec3d_envelope(1),
                                           vec3d_envelope(2)};
@@ -910,13 +910,13 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 
       if (mapIter != m_clusterSurfaceMapTpcEdit.end())
       {
-	//std::cout << "  Adding surface to map with layer " << layer << " side " << side << " sector " << sector << std::endl; 
+	//std::cout << "  Adding surface to map with layer " << layer << " side " << side << " sector " << sector << std::endl;
         mapIter->second.push_back(surf);
       }
       else
       {
         // Otherwise make a new map entry
-	//	std::cout << "Starting new surfvec for layer " << layer << " side " << side << " sector " << sector << std::endl; 
+	//	std::cout << "Starting new surfvec for layer " << layer << " side " << side << " sector " << sector << std::endl;
         std::vector<Surface> dumvec;
         dumvec.push_back(surf);
         std::pair<unsigned int, std::vector<Surface>> tmp =
@@ -1270,7 +1270,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<doub
         m_layerRadius[ilayer] - m_layerThickness[ilayer] / 2.0;
     double tpc_ref_radius_high =
         m_layerRadius[ilayer] + m_layerThickness[ilayer] / 2.0;
-	  
+
     if (layer_rad >= tpc_ref_radius_low && layer_rad < tpc_ref_radius_high)
     {
       layer = ilayer;
@@ -1299,7 +1299,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<doub
   {
     side = 1;
   }
-  
+
   // readout module
   unsigned int readout_mod = 999;
   double phi_world = atan2(world[1], world[0]);
@@ -1318,7 +1318,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<doub
   {
       std::cout << " layer_rad " << layer_rad << " m_layerRadius[layer] " << m_layerRadius[layer-7] << " found layer " << layer << " side " << side << " world " << world[0] << "  " << world[1] << "  " << world[2] << " phi_world " << phi_world << " readout_mod " << readout_mod << std::endl;
     }
-  
+
   if (readout_mod >= m_nTpcModulesPerLayer)
   {
     std::cout << PHWHERE
