@@ -524,6 +524,7 @@ int KFParticle_Tools::calcMinPV_DCA(const KFParticle &track, const std::vector<K
 std::vector<int> KFParticle_Tools::findAllGoodTracks(const std::vector<KFParticle> &daughterParticles)//, const std::vector<KFParticle> &primaryVertices)
 {
   std::vector<int> goodTrackIndex;
+  goodTrackIndex.reserve(daughterParticles.size());
 
   for (unsigned int i_parts = 0; i_parts < daughterParticles.size(); ++i_parts)
   {
@@ -549,9 +550,11 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
         if (m_require_bunch_crossing_match)
         {
           std::vector<int> crossings;
-          for (auto &track : dummy_tracks)
+          crossings.reserve(dummy_tracks.size());
+          for (const auto &track : dummy_tracks)
           {
-            SvtxTrack *thisTrack = toolSet.getTrack(track.Id(), m_dst_trackmap);
+            int track_id = track.Id(); //Jenkins complains if accessed in getTrack()
+            SvtxTrack *thisTrack = toolSet.getTrack(track_id, m_dst_trackmap);
             if (thisTrack)
             {
               crossings.push_back(thisTrack->get_crossing());
@@ -686,6 +689,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
 
         KFParticle dummy_mother;
         std::vector<KFParticle> dummy_tracks;
+        dummy_tracks.reserve(combination.size());
         for (auto &id : combination)
         {
           dummy_tracks.push_back(daughterParticles[id]);
