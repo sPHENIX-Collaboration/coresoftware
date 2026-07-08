@@ -77,11 +77,17 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
   // load alignment constants file
   std::ifstream datafile;
-  datafile.open(alignmentParamsFile);  //  looks for default file name on disk
+  if( !alignmentParamsFile.empty() )
+  {
+    //  looks for default file name on disk
+    datafile.open(alignmentParamsFile);
+  }
+
   if (datafile.is_open())
   {
-    std::cout << "AlignmentTransformation: Reading alignment parameters from disk file: "
-              << alignmentParamsFile << " localVerbosity = " << localVerbosity << std::endl;
+    std::cout
+      << "AlignmentTransformation: Reading alignment parameters from disk file: "
+      << alignmentParamsFile << " localVerbosity = " << localVerbosity << std::endl;
   }
   else
   {
@@ -165,7 +171,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	std::cout  <<  hitsetkey << "  " << alpha  << "  " << beta  << "  " << gamma  << "  " << dx  << "  " << dy << "  " << dz
 		   << "  " << dgrx << "  " << dgry << "  " << dgrz << std::endl;
       }
-    
+
     // Perturbation translations and angles for stave and sensor
     Eigen::Vector3d sensorAngles(alpha, beta, gamma);
     Eigen::Vector3d millepedeTranslation(dx, dy, dz);
@@ -285,7 +291,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 		zcenter *= -1;
 	      }
 	    Acts::Vector3 env_pos(radius*std::cos(phis), radius * std::sin(phis), zcenter);
-	    Acts::Vector3 world_pos = m_tGeometry->transformTpcEnvelopeToWorld(env_pos);	    
+	    Acts::Vector3 world_pos = m_tGeometry->transformTpcEnvelopeToWorld(env_pos);
 	    unsigned short  sskey = 999;
 	    Surface this_surf = m_tGeometry->get_tpc_surface_from_coords(this_hitsetkey, world_pos, sskey);
 	    if(sskey == 999 || !this_surf)
@@ -299,7 +305,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 		      <<"  world_radius " << sqrt(world_pos.x() * world_pos.x() + world_pos.y() * world_pos.y())
 		      << " sskey " << sskey << std::endl;
 	    */
-	    
+
 	    Eigen::Vector3d localFrameTranslation(0, 0, 0);
 	    use_module_tilt = false;
 	    if (test_layer < 4 || use_module_tilt_always)
@@ -312,18 +318,18 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 		double this_radius = std::sqrt(this_center_envelope[0] * this_center_envelope[0] + this_center_envelope[1] * this_center_envelope[1]);
 		float moduleRadius = TpcModuleRadii[side][sector][this_region];                                     // radius of the center of the module in cm
 		localFrameTranslation = getTpcLocalFrameTranslation(moduleRadius, this_radius, sensorAngles) * 10;  // cm to mm
-		
-		// set this flag for later use 
+
+		// set this flag for later use
 		use_module_tilt = true;
 	      }
 
 	    Acts::Transform3 transform;
 	    transform = newMakeTransform(this_surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, trkrId, false);
 	    Acts::GeometryIdentifier id = this_surf->geometryId();
-	    
+
 	    if (localVerbosity)
 	      {
-		std::cout << "    Add transform for TPC with surface GeometryIdentifier " << id 
+		std::cout << "    Add transform for TPC with surface GeometryIdentifier " << id
 			  << " trkrid " << trkrId << " hitsetkey " << this_hitsetkey << " layer " << this_layer << " sector " << sector
 			  << " side " << side << std::endl;
 		if(localVerbosity > 1)
@@ -339,10 +345,10 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	    transformMapTransient->addTransform(id, transform);
 	  }
       }
-      
+
       break;
     }
-    
+
     case TrkrDefs::micromegasId:
     {
       if (perturbMM)
@@ -464,7 +470,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
 	{
 	  if(use_module_tilt)
 	    {
-	      // use module tilt transforms with local rotation followed by local translation 
+	      // use module tilt transforms with local rotation followed by local translation
 	      transform = mpGlobalTranslationAffine * mpGlobalRotationAffine * actsTranslationAffine * actsRotationAffine * mpLocalTranslationAffine * mpLocalRotationAffine;
 	    }
 	  else
@@ -475,7 +481,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
 	}
       else
 	{
-	  // silicon and TPOT	  
+	  // silicon and TPOT
 	  if(use_new_silicon_rotation_order)
 	    {
 	      // use new transform order for silicon as well as TPC
@@ -488,11 +494,11 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
 	    }
 	}
     }
-  
+
   if (localVerbosity > 1)
     {
       Acts::Transform3 actstransform = actsTranslationAffine * actsRotationAffine;
-      
+
       std::cout << "newMakeTransform" << std::endl;
       std::cout << "Input sensorAngles: " << std::endl
 		<< sensorAngles << std::endl;
@@ -526,7 +532,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
 	  std::cout << std::endl;
 	}
     }
-  
+
   return transform;
 }
 
@@ -582,7 +588,7 @@ int AlignmentTransformation::getNodes(PHCompositeNode* topNode)
     std::cout << PHWHERE << " unable to find DST node TPCGEOMCONTAINER" << std::endl;
     exit(1);
   }
-  
+
   return 0;
 }
 
@@ -685,7 +691,7 @@ void AlignmentTransformation::extractModuleCenterPositions()
 
         TrkrDefs::hitsetkey hitsetkey_out = TpcDefs::genHitSetKey(lout, isector, iside);
 	double surf_rad_out = extractModuleCenter(hitsetkey_out, sectorphi);
-	
+
         double mod_radius = (surf_rad_in + surf_rad_out) / 2.0;
         TpcModuleRadii[iside][isector][iregion] = mod_radius;
 
@@ -714,7 +720,7 @@ double AlignmentTransformation::extractModuleCenter(TrkrDefs::hitsetkey hitsetke
   TrkrDefs::subsurfkey subsurfkey = 0;
 
   //   std::cout << "extractModuleCenter: sectorphi " << sectorphi << " world " << world(0) << "  " << world(1) << "  " << world(2) << std::endl;
-    
+
   // Note: the "world" position here is in pre-tilt tpc envelope coordinates, not global coordinates
   // But, get_tpc_surface_from_coords() expects a global position as input, so we convert to world coordinates
   Acts::Vector3 world_envelope = m_tGeometry->transformTpcEnvelopeToWorld(world);
