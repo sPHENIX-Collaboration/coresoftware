@@ -13,8 +13,6 @@ class TowerInfov2 : public TowerInfov1
   ~TowerInfov2() override = default;
 
   void Reset() override;
-  void Clear(Option_t* = "") override;
-
 
   void set_chi2(float chi2) override { _chi2 = chi2; }
   float get_chi2() override { return _chi2; }

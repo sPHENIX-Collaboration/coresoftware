@@ -30,9 +30,6 @@ class TowerInfoContainerv2 : public TowerInfoContainer
   TowerInfov2 *get_tower_at_channel(int pos) override;
   TowerInfov2 *get_tower_at_key(int pos) override;
 
-  unsigned int encode_key(unsigned int towerIndex) override;
-  unsigned int decode_key(unsigned int tower_key) override;
-
   size_t size() const override { return _clones->GetEntries(); }
   DETECTOR get_detectorid() const override { return _detector; }
 

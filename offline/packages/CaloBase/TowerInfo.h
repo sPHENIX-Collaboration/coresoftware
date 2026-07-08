@@ -74,9 +74,11 @@ class TowerInfo : public PHObject
   }
   virtual void add_edep(const PHG4HitDefs::keytype /*g4hitid*/, const float /*edep*/) { return; }
   virtual void add_shower_edep(const int /*showerid*/, const float /*edep*/) { return; }
+  // methods in v5 and simv3
+  virtual void set_nsample(int /*nsample*/) { return; }
 
  private:
-  ClassDefOverride(TowerInfo, 1);
+  ClassDefOverride(TowerInfo, 0);
 };
 
 #endif

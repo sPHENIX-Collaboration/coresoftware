@@ -11,15 +11,6 @@ void TowerInfoSimv2::Reset()
   }
 }
 
-void TowerInfoSimv2::Clear(Option_t* /*unused*/)
-{
-  TowerInfoSimv1::Clear();
-  for (short& i : _waveform)
-  {
-    i = 0;
-  }
-}
-
 int16_t TowerInfoSimv2::get_waveform_value(int index) const
 {
   if (index >= 0 && index < nsample)

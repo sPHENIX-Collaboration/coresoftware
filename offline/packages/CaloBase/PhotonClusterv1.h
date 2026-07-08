@@ -3,6 +3,7 @@
 
 #include "RawClusterv1.h"
 
+#include <iostream>
 #include <map>
 #include <string>
 
@@ -14,8 +15,7 @@ class PhotonClusterv1 : public RawClusterv1
 
   ~PhotonClusterv1() override = default;
 
-
-  explicit PhotonClusterv1(const RawCluster & rc);
+  explicit PhotonClusterv1(const RawCluster& rc);
 
   //! Copy constructor
   PhotonClusterv1(const PhotonClusterv1& other) = default;
@@ -28,7 +28,6 @@ class PhotonClusterv1 : public RawClusterv1
   void identify(std::ostream& os = std::cout) const override;
   bool pass_photon_cuts() const override;
   void identify_photon(std::ostream& os = std::cout) const override;
-
 
   void reset_photon_properties() override;
 
@@ -45,8 +44,8 @@ class PhotonClusterv1 : public RawClusterv1
  private:
   //! @warning Photon-specific data members - memory managed only in this derived class
   // Photon energy and isolation energy now sourced from RawCluster
-  //float m_conversion_prob{0.0f};                 //!< Probability of photon conversion
-  //bool m_is_converted{false};                    //!< Conversion flag
+  // float m_conversion_prob{0.0f};                 //!< Probability of photon conversion
+  // bool m_is_converted{false};                    //!< Conversion flag
   std::map<std::string, float> m_shower_shapes;  //!< Named shower shape parameters
 
   ClassDefOverride(PhotonClusterv1, 1)  //!< ROOT dictionary generation

@@ -15,7 +15,6 @@ class TowerInfov4 : public TowerInfo
   ~TowerInfov4() override = default;
 
   void Reset() override;
-  void Clear(Option_t* = "") override;
 
   void set_energy(float _energy) override { energy = _energy; }
   float get_energy() override { return energy; }
@@ -24,7 +23,6 @@ class TowerInfov4 : public TowerInfo
   float get_time() override { return time / 1000.; }
   void set_time_short(short t) override { time = t * 1000; }
   short get_time_short() override { return short(time / 1000); }
-
 
   void set_chi2(float _chi2) override
   {

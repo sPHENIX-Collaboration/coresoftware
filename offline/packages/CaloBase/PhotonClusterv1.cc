@@ -1,5 +1,5 @@
 #include "PhotonClusterv1.h"
-#include <cmath>
+
 #include <iostream>
 #include <limits>
 #include <map>
@@ -28,9 +28,6 @@ void PhotonClusterv1::reset_photon_properties()
   m_shower_shapes.clear();
   return;
 }
-
-
-
 
 void PhotonClusterv1::identify(std::ostream& os) const
 {
@@ -64,7 +61,6 @@ bool PhotonClusterv1::pass_photon_cuts() const
   // if (it_core != m_shower_shapes.end()) {
   //  if (it_core->second > 0.3f) return false;
   //}
-
 
   // @warning: Add more sophisticated photon ID cuts as needed
   // Consider using cluster properties like get_ecore(), get_prob(), etc.
