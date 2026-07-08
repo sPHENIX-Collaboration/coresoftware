@@ -205,21 +205,21 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_tpc_world_envelope_transform = m_tpc_envelope_world_transform.inverse();
   
   // test
-  Acts::Vector3 test_env(10.0, 40.0, 80.0);
+  Acts::Vector3 test_env(0.0, 0.0, 113.025);
   std::cout << "MakeActsGeometry::InitRun transform tests north" << std::endl;
-  std::cout << " test_env " << test_env.x() << "  " << test_env.y() << "  " << test_env.z() << std::endl;
+  std::cout << " test envelope position (mm) " << test_env.x()*10 << "  " << test_env.y()*10 << "  " << test_env.z()*10 << std::endl;
   Acts::Vector3 test_glob =  m_tpc_envelope_world_transform * test_env;
-  std::cout << " test_glob " << test_glob.x() << "  " << test_glob.y() << "  " << test_glob.z() << std::endl;
+  std::cout << " test global position (mm) " << test_glob.x()*10 << "  " << test_glob.y()*10 << "  " << test_glob.z()*10 << std::endl;
   Acts::Vector3 test_env_check =  m_tpc_world_envelope_transform * test_glob;
-  std::cout << " test_env_check " << test_env_check.x() << "  " << test_env_check.y() << "  " << test_env_check.z() << std::endl;  
+  std::cout << " test inverse transform (mm) " << test_env_check.x()*10 << "  " << test_env_check.y()*10 << "  " << test_env_check.z()*10 << std::endl;  
 
-  Acts::Vector3 test_envs(10.0, 40.0, -80.0);
+  Acts::Vector3 test_envs(0.0, 0.0, -113.025);
   std::cout << "MakeActsGeometry::InitRun transform tests south" << std::endl;
-  std::cout << " test_env " << test_envs.x() << "  " << test_envs.y() << "  " << test_envs.z() << std::endl;
+  std::cout << " test envelope position (mm) " << test_envs.x()*10 << "  " << test_envs.y()*10 << "  " << test_envs.z()*10 << std::endl;
   Acts::Vector3 test_globs =  m_tpc_envelope_world_transform * test_envs;
-  std::cout << " test_glob " << test_globs.x() << "  " << test_globs.y() << "  " << test_globs.z() << std::endl;
+  std::cout << " test global position (mm) " << test_globs.x()*10 << "  " << test_globs.y()*10 << "  " << test_globs.z()*10 << std::endl;
   Acts::Vector3 test_env_checks =  m_tpc_world_envelope_transform * test_globs;
-  std::cout << " test_env_check " << test_env_checks.x() << "  " << test_env_checks.y() << "  " << test_env_checks.z() << std::endl;  
+  std::cout << " test inverse transform (mm) " << test_env_checks.x()*10 << "  " << test_env_checks.y()*10 << "  " << test_env_checks.z()*10 << std::endl;  
 
   // Alignment Transformation declaration of instance - must be here to set initial alignment flag
   AlignmentTransformation alignment_transformation;

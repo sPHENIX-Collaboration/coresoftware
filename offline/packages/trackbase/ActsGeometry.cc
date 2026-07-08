@@ -188,7 +188,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
       double surfStepPhi = m_tGeometry.tpcSurfStepPhi;
 
       const double dphi = std::atan2(std::sin(world_phi - surf_phi), std::cos(world_phi - surf_phi));
-      if (std::abs(dphi) < surfStepPhi / 2.0)
+      if (std::abs(dphi) <= surfStepPhi / 2.0)
 	{
 	  if(surf_center_envelope.z() < 0 && side != 0) { continue; }
 	  if(surf_center_envelope.z() > 0 && side != 1) { continue; }
@@ -201,7 +201,10 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   if(surf_index == 999)
     {
     std::cout << "Error: surface not found in ActsGeometry::get_tpc_surface_from_coords "
-              << " layer " << layer << " side " << side << " sector " << sector << " world_phi " << world_phi << "  world[0]  " << world[0] << " world[1] " << world[1] << " hitsetkey " << hitsetkey << std::endl;
+              << " layer " << layer << " side " << side << " sector " << sector
+	      << " world_phi (deg) " << world_phi* 180.0/M_PI
+	      << "  world[0]  " << world[0] << " world[1] " << world[1]
+	      << " hitsetkey " << hitsetkey << std::endl;
     return nullptr;
     }
 
