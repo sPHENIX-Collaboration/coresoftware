@@ -11,6 +11,9 @@
 #include <calobase/TowerInfo.h>
 
 #include <mbd/MbdOut.h>
+#include <mbd/MbdPmtContainer.h>
+#include <mbd/MbdPmtContainerV1.h>
+#include <mbd/MbdPmtHit.h>
 
 #include <ffaobjects/EventHeader.h>
 #include <ffaobjects/RunHeader.h>
@@ -56,6 +59,10 @@ int CopyIODataNodes::InitRun(PHCompositeNode *topNode)
   {
     CreateMbdOut(topNode, se->topNode());
   }
+  if (m_CopyMbdPmtContainerFlag)
+  {
+    CreateMbdPmtContainer(topNode, se->topNode());
+  }
   if (m_CopySyncObjectFlag)
   {
     CreateSyncObject(topNode, se->topNode());
@@ -91,6 +98,10 @@ int CopyIODataNodes::process_event(PHCompositeNode *topNode)
   if (m_CopyMbdOutFlag)
   {
     CopyMbdOut(topNode, se->topNode());
+  }
+  if (m_CopyMbdPmtContainerFlag)
+  {
+    CopyMbdPmtContainer(topNode, se->topNode());
   }
   if (m_CopySyncObjectFlag)
   {
@@ -364,6 +375,41 @@ void CopyIODataNodes::CreateMbdOut(PHCompositeNode *from_topNode, PHCompositeNod
 
 }
 
+void CopyIODataNodes::CreateMbdPmtContainer(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode)
+{
+  MbdPmtContainer *from_mbdpmtcontainer = findNode::getClass<MbdPmtContainer>(from_topNode, "MbdPmtContainer");
+  if (!from_mbdpmtcontainer)
+  {
+    std::cout << "Could not locate MbdPmtContainer on " << from_topNode->getName() << std::endl;
+    m_CopyMbdPmtContainerFlag = false;
+    return;
+  }
+
+  MbdPmtContainer *to_mbdpmtcontainer = findNode::getClass<MbdPmtContainer>(to_topNode, "MbdPmtContainer_data");
+  if (!to_mbdpmtcontainer)
+  {
+    PHNodeIterator iter(to_topNode);
+    PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+    if (!dstNode)
+    {
+      dstNode = new PHCompositeNode("DST");
+      to_topNode->addNode(dstNode);
+    }
+
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *mbdNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "MBD"));
+    if (!mbdNode)
+    {
+      mbdNode = new PHCompositeNode("MBD");
+      dstNode->addNode(mbdNode);
+    }
+
+    to_mbdpmtcontainer = new MbdPmtContainerV1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(to_mbdpmtcontainer, "MbdPmtContainer_data", "PHObject");
+    mbdNode->addNode(newNode);
+  }
+}
+
 void CopyIODataNodes::CreateTowerInfo(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode)
 {
   std::cout << "copying tower info" << std::endl;
@@ -407,6 +453,35 @@ void CopyIODataNodes::CopyMbdOut(PHCompositeNode *from_topNode, PHCompositeNode 
     to_mbdout->identify();
   }
   
+  return;
+}
+
+void CopyIODataNodes::CopyMbdPmtContainer(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode)
+{
+  MbdPmtContainer *from_mbdpmtcontainer = findNode::getClass<MbdPmtContainer>(from_topNode, "MbdPmtContainer");
+  MbdPmtContainer *to_mbdpmtcontainer = findNode::getClass<MbdPmtContainer>(to_topNode, "MbdPmtContainer_data");
+  if (!from_mbdpmtcontainer || !to_mbdpmtcontainer)
+  {
+    return;
+  }
+
+  to_mbdpmtcontainer->Reset();
+  const short nPMTs = from_mbdpmtcontainer->get_npmt();
+  to_mbdpmtcontainer->set_npmt(nPMTs);
+  for (short i = 0; i < nPMTs; ++i)
+  {
+    MbdPmtHit *from_mbdpmt = from_mbdpmtcontainer->get_pmt(i);
+    MbdPmtHit *to_mbdpmt = to_mbdpmtcontainer->get_pmt(i);
+    to_mbdpmt->set_pmt(from_mbdpmt->get_pmt(), from_mbdpmt->get_q(), from_mbdpmt->get_tt(), from_mbdpmt->get_tq());
+  }
+
+  if (Verbosity() > 0)
+  {
+    std::cout << "From MbdPmtContainer identify()" << std::endl;
+    from_mbdpmtcontainer->identify();
+    std::cout << "To MbdPmtContainer identify()" << std::endl;
+    to_mbdpmtcontainer->identify();
+  }
   return;
 }
 
