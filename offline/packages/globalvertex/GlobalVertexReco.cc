@@ -6,7 +6,7 @@
 #include "GlobalVertexv3.h"
 #include "MbdVertex.h"
 #include "MbdVertexMap.h"
-#include "CaloVertex.h"
+#include "CaloVertexv1.h"
 #include "CaloVertexMap.h"
 #include "SvtxVertex.h"
 #include "SvtxVertexMap.h"
@@ -297,6 +297,32 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
   }
 
+  // okay now put in zero
+  if (useVertexType(GlobalVertex::VTXTYPE::ZERO))
+    {
+      if (Verbosity())
+	{
+	  std::cout << "GlobalVertexReco::process_event -  zero" << std::endl;
+	}
+      
+      CaloVertex *cvertex = new CaloVertexv1();
+      cvertex->set_z(0);
+      
+      GlobalVertex *vertex = new GlobalVertexv3();
+      vertex->set_id(globalmap->size());
+      
+      vertex->clone_insert_vtx(GlobalVertex::ZERO, cvertex);
+      used_calo_vtxids.insert(cvertex->get_id());
+	  
+      globalmap->insert(vertex);
+	  
+      if (Verbosity() > 1)
+	{
+	  vertex->identify();
+	}
+    }
+
+  
 // okay now loop over all unused MBD vertexes (3rd class)...
   if (mbdmap && calomap && useVertexType(GlobalVertex::VTXTYPE::MBD_CALO))
   {

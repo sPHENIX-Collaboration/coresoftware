@@ -19,6 +19,7 @@ class GlobalVertex : public PHObject
   {
     UNDEFINED = 0,
     TRUTH = 100,
+    ZERO = 150,
     SMEARED = 200,
     MBD = 300,
     SVTX = 400,

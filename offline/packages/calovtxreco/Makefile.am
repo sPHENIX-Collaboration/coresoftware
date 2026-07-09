@@ -10,13 +10,21 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
-  CaloVtxReco.h
+  CaloVtxReco.h \
+  CaloVtxAlgo.h \
+  CaloVtxAlgoJetSkew.h \
+  CaloVtxAlgoCaloZ.h \
+  CaloVtxAlgoMLP.h \
+  VertexMLP.h
 
 lib_LTLIBRARIES = \
   libcalovtxreco.la
 
 libcalovtxreco_la_SOURCES = \
-  CaloVtxReco.cc
+  CaloVtxReco.cc \
+  CaloVtxAlgoJetSkew.cc \
+  CaloVtxAlgoCaloZ.cc \
+  CaloVtxAlgoMLP.cc
 
 libcalovtxreco_la_LIBADD = \
   -lcalo_io \
