@@ -12,11 +12,6 @@
 
 #include <array>
 
-CaloVtxAlgoCaloZ::CaloVtxAlgoCaloZ()
-{
-
-}
-
 int CaloVtxAlgoCaloZ::Init(PHCompositeNode * /*topNode*/)
 {
 

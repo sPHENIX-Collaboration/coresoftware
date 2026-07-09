@@ -12,13 +12,13 @@ class PHCompositeNode;
 class CaloVtxAlgoCaloZ : public CaloVtxAlgo
 {
  public:
-  explicit CaloVtxAlgoCaloZ();
+  explicit CaloVtxAlgoCaloZ() = default;
   ~CaloVtxAlgoCaloZ() override = default;
 
   int Init(PHCompositeNode *topNode) override;
   int CalculateVertex(PHCompositeNode *topNode, float &zvtx) override;
   std::string Name() const override { return "CaloZ"; }
-  
+  VertexDefs::CALOALGO Algo() const override { return VertexDefs::CALOALGO::AVGZ; }  
   float get_energy_cut() { return m_energy_cut; }
   void set_energy_cut(float new_energy) { m_energy_cut = new_energy; }
 

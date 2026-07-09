@@ -25,6 +25,9 @@ class GlobalVertex : public PHObject
     SVTX = 400,
     SVTX_MBD = 500,
     CALO = 250,
+    CALO_JETSKEW = 251,
+    CALO_AVGZ = 252,
+    CALO_JETMLP = 253,
     MBD_CALO = 350
   };
 

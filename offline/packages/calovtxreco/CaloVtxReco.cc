@@ -84,17 +84,21 @@ int CaloVtxReco::InitRun(PHCompositeNode *topNode)
 int CaloVtxReco::process_event(PHCompositeNode *topNode)
 {
   
-  float zvtx = std::numeric_limits<float>::quiet_NaN();
 
   for (auto &algo : m_algos)
     {
       float tempz = std::numeric_limits<float>::quiet_NaN();
-      algo->CalculateVertex(topNode, zvtx);
-      std::cout << algo->Name() <<": "<<tempz<<std::endl;
+      algo->CalculateVertex(topNode, tempz);
 
+      CaloVertex *vertex = new CaloVertexv1();  
+
+      vertex->set_z(tempz);
+      vertex->set_z_err(0);
+      vertex->set_t(0);
+      vertex->set_t_err(0);
+      vertex->set_calo_algo(algo->Algo());
+      m_calovtxmap->insert(vertex);
     }
-  CaloVertex *vertex = new CaloVertexv1();  
-  vertex->set_z(zvtx);
-  m_calovtxmap->insert(vertex);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }

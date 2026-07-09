@@ -13,9 +13,6 @@
 
 #include <array>
 
-CaloVtxAlgoJetSkew::CaloVtxAlgoJetSkew()
-{
-}
 
 int CaloVtxAlgoJetSkew::Init(PHCompositeNode *topNode)
 {

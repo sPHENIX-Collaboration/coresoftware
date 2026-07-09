@@ -2,6 +2,7 @@
 #define CALOVTXALGO_H
 
 #include <string>
+#include <globalvertex/VertexDefs.h>
 
 class PHCompositeNode;
 
@@ -26,6 +27,8 @@ class CaloVtxAlgo
   // (e.g. "CALOVTXOUT_MLP") and in log/eval output so results from
   // different algorithms don't collide and can be compared directly.
   virtual std::string Name() const = 0;
+
+  virtual VertexDefs::CALOALGO Algo() const = 0;
 };
 
 #endif

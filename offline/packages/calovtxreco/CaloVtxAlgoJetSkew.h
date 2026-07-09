@@ -19,13 +19,14 @@ class TowerInfoContainer;
 class CaloVtxAlgoJetSkew : public CaloVtxAlgo
 {
  public:
-  explicit CaloVtxAlgoJetSkew();
+  explicit CaloVtxAlgoJetSkew() = default;
   ~CaloVtxAlgoJetSkew() override = default;
 
   int Init(PHCompositeNode *topNode) override;
   int CalculateVertex(PHCompositeNode *topNode, float &zvtx) override;
   std::string Name() const override { return "JetSkew"; }
-
+  VertexDefs::CALOALGO Algo() const override { return VertexDefs::CALOALGO::JETSKEW; }
+  
   void setJetNode(std::string jetnode) { m_jetnodename = jetnode; }
   float get_jet_threshold() { return m_jet_threshold; }
   void set_jet_threshold(float new_thresh) { m_jet_threshold = new_thresh; }
