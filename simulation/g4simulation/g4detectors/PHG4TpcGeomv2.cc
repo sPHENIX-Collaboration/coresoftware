@@ -188,6 +188,9 @@ void PHG4TpcGeomv2::identify(std::ostream& os) const
   os << "  sector_Phi_bias: " << sector_Phi_bias << std::endl;
   os << "  sector_min_Phi: " << sector_min_Phi << std::endl;
   os << "  sector_max_Phi: " << sector_max_Phi << std::endl;
+
+  os << " rotation:  rot_x " << rot_x << " rot_y " << rot_y << " rot_z " << rot_z << std::endl;
+  os << " translation:  place_x " << place_x << " place_y " << place_y << " place_z " << place_z << std::endl;  
 }
 
 std::pair<double, double>

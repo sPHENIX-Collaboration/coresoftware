@@ -131,12 +131,22 @@ void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
                     logicWorld,
 		    false, false, OverlapCheck());
 
-
-  G4ThreeVector test_env(10.0, 40.0, 80.0);
-  std::cout << " test_env " << test_env.x() << "  " << test_env.y() << "  " << test_env.z() << std::endl;
-  G4ThreeVector test_glob = test_env.transform(rot);
-  std::cout << " test_glob " << test_glob.x() << "  " << test_glob.y() << "  " << test_glob.z() << std::endl;  
-
+  std::cout
+    << PHWHERE << std::endl
+    << " place_x " << m_Params->get_double_param("place_x")*cm
+    << " place_y " << m_Params->get_double_param("place_y")*cm
+    << " place_z " << m_Params->get_double_param("place_z")*cm
+    << " mm " << std::endl;
+  std::cout
+    << " rot_x " << m_Params->get_double_param("rot_x")*rad
+    << " rot_y " << m_Params->get_double_param("rot_y")*rad
+    << " rot_z " << m_Params->get_double_param("rot_z")*rad
+    << " rad " << std::endl;
+  
+  G4Point3D test_env(0.0*cm, 0.0*cm, 113.025*cm);
+  std::cout << " test envelope position (mm) " << test_env.x() << "  " << test_env.y() << "  " << test_env.z() << std::endl;
+  G4Point3D test_glob = test_env.transform(G4Transform3D(rot,trans));
+  std::cout << " test global position (mm) " << test_glob.x() << "  " << test_glob.y() << "  " << test_glob.z() << std::endl;  
   
   // geometry node
   add_geometry_node();
