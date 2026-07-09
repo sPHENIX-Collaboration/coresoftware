@@ -17,41 +17,41 @@ void SpinDBContentv1::InitializeV1()
 
   for (int icross = 0; icross < GetNCrossing(); icross++)
   {
-    bpol[icross] = (float) GetErrorValue();
-    bpolerr[icross] = (float) GetErrorValue();
-    bpolsys[icross] = (float) GetErrorValue();
-    ypol[icross] = (float) GetErrorValue();
-    ypolerr[icross] = (float) GetErrorValue();
-    ypolsys[icross] = (float) GetErrorValue();
+    bpol[icross] = GetErrorValue();
+    bpolerr[icross] = GetErrorValue();
+    bpolsys[icross] = GetErrorValue();
+    ypol[icross] = GetErrorValue();
+    ypolerr[icross] = GetErrorValue();
+    ypolsys[icross] = GetErrorValue();
     bpat[icross] = GetErrorValue();
     ypat[icross] = GetErrorValue();
-    scaler_mbd_vtxcut[icross] = (long long) GetErrorValue();
-    scaler_mbd_nocut[icross] = (long long) GetErrorValue();
-    scaler_zdc_nocut[icross] = (long long) GetErrorValue();
+    scaler_mbd_vtxcut[icross] = GetErrorValue();
+    scaler_mbd_nocut[icross] = GetErrorValue();
+    scaler_zdc_nocut[icross] = GetErrorValue();
     bad_bunch[icross] = GetErrorValue();
   }
 
-  cross_angle = (float) GetErrorValue();
-  cross_angle_std = (float) GetErrorValue();
-  cross_angle_min = (float) GetErrorValue();
-  cross_angle_max = (float) GetErrorValue();
+  cross_angle = GetErrorValue();
+  cross_angle_std = GetErrorValue();
+  cross_angle_min = GetErrorValue();
+  cross_angle_max = GetErrorValue();
 
-  asym_bf = (float) GetErrorValue();
-  asym_bb = (float) GetErrorValue();
-  asym_yf = (float) GetErrorValue();
-  asym_yb = (float) GetErrorValue();
-  asymerr_bf = (float) GetErrorValue();
-  asymerr_bb = (float) GetErrorValue();
-  asymerr_yf = (float) GetErrorValue();
-  asymerr_yb = (float) GetErrorValue();
-  phase_bf = (float) GetErrorValue();
-  phase_bb = (float) GetErrorValue();
-  phase_yf = (float) GetErrorValue();
-  phase_yb = (float) GetErrorValue();
-  phaseerr_bf = (float) GetErrorValue();
-  phaseerr_bb = (float) GetErrorValue();
-  phaseerr_yf = (float) GetErrorValue();
-  phaseerr_yb = (float) GetErrorValue();
+  asym_bf = GetErrorValue();
+  asym_bb = GetErrorValue();
+  asym_yf = GetErrorValue();
+  asym_yb = GetErrorValue();
+  asymerr_bf = GetErrorValue();
+  asymerr_bb = GetErrorValue();
+  asymerr_yf = GetErrorValue();
+  asymerr_yb = GetErrorValue();
+  phase_bf = GetErrorValue();
+  phase_bb = GetErrorValue();
+  phase_yf = GetErrorValue();
+  phase_yb = GetErrorValue();
+  phaseerr_bf = GetErrorValue();
+  phaseerr_bb = GetErrorValue();
+  phaseerr_yf = GetErrorValue();
+  phaseerr_yb = GetErrorValue();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -307,6 +307,8 @@ int SpinDBContentv1::GetPolarizationBlue(int bunch, float &value, float &error) 
 {
   if (CheckBunchNumber(bunch) == GetErrorValue())
   {
+    value = GetErrorValue();
+    error = GetErrorValue();
     return (GetErrorValue());
   }
   value = bpol[bunch];
@@ -320,6 +322,9 @@ int SpinDBContentv1::GetPolarizationBlue(int bunch, float &value, float &error, 
 {
   if (CheckBunchNumber(bunch) == GetErrorValue())
   {
+    value = GetErrorValue();
+    error = GetErrorValue();
+    syserr = GetErrorValue();
     return (GetErrorValue());
   }
   value = bpol[bunch];
@@ -334,6 +339,8 @@ int SpinDBContentv1::GetPolarizationBlue(int bunch, double &value, double &error
 {
   if (CheckBunchNumber(bunch) == GetErrorValue())
   {
+    value = GetErrorValue();
+    error = GetErrorValue();
     return (GetErrorValue());
   }
   value = (double) bpol[bunch];
@@ -347,6 +354,9 @@ int SpinDBContentv1::GetPolarizationBlue(int bunch, double &value, double &error
 {
   if (CheckBunchNumber(bunch) == GetErrorValue())
   {
+    value = GetErrorValue();
+    error = GetErrorValue();
+    syserr = GetErrorValue();
     return (GetErrorValue());
   }
   value = (double) bpol[bunch];
@@ -361,6 +371,8 @@ int SpinDBContentv1::GetPolarizationYellow(int bunch, float &value, float &error
 {
   if (CheckBunchNumber(bunch) == GetErrorValue())
   {
+    value = GetErrorValue();
+    error = GetErrorValue();
     return (GetErrorValue());
   }
   value = ypol[bunch];
@@ -374,6 +386,9 @@ int SpinDBContentv1::GetPolarizationYellow(int bunch, float &value, float &error
 {
   if (CheckBunchNumber(bunch) == GetErrorValue())
   {
+    value = GetErrorValue();
+    error = GetErrorValue();
+    syserr = GetErrorValue();
     return (GetErrorValue());
   }
   value = ypol[bunch];
@@ -388,6 +403,8 @@ int SpinDBContentv1::GetPolarizationYellow(int bunch, double &value, double &err
 {
   if (CheckBunchNumber(bunch) == GetErrorValue())
   {
+    value = GetErrorValue();
+    error = GetErrorValue();
     return (GetErrorValue());
   }
   value = (double) ypol[bunch];
@@ -401,6 +418,9 @@ int SpinDBContentv1::GetPolarizationYellow(int bunch, double &value, double &err
 {
   if (CheckBunchNumber(bunch) == GetErrorValue())
   {
+    value = GetErrorValue();
+    error = GetErrorValue();
+    syserr = GetErrorValue();
     return (GetErrorValue());
   }
   value = (double) ypol[bunch];
