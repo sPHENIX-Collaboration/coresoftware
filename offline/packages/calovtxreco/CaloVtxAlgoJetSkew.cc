@@ -41,13 +41,13 @@ int CaloVtxAlgoJetSkew::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
 
   JetContainer *jetcon = findNode::getClass<JetContainer>(topNode, m_jetnodename);
 
-  towers[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
-  towers[1] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
-  towers[2] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
+  m_towers[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
+  m_towers[1] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
+  m_towers[2] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
 
-  geom[0] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
-  geom[1] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
-  geom[2] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+  m_geom[0] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
+  m_geom[1] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
+  m_geom[2] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
 
   const int nz = 601;
   const int njet = 2;
@@ -116,24 +116,24 @@ int CaloVtxAlgoJetSkew::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
 	  unsigned int channel = comp.second;
 	  if (comp.first == 7 || comp.first == 27)
 	    {
-	      TowerInfo *tower = towers[2]->get_tower_at_channel(channel);
+	      TowerInfo *tower = m_towers[2]->get_tower_at_channel(channel);
 	      if (tower->get_energy() < 0.1)
 		{
 		  continue;
 		}
 	      johsum[j] += tower->get_energy();
-	      float neweta = new_eta(channel, towers[2], geom[2], RawTowerDefs::CalorimeterId::HCALOUT, testz);
+	      float neweta = new_eta(channel, m_towers[2], m_geom[2], RawTowerDefs::CalorimeterId::HCALOUT, testz);
 	      joheta[j] += neweta * tower->get_energy();
 	    }
 	  if (comp.first == 13 || comp.first == 28 || comp.first == 25)
 	    {
-	      TowerInfo *tower = towers[0]->get_tower_at_channel(channel);
+	      TowerInfo *tower = m_towers[0]->get_tower_at_channel(channel);
 	      if (tower->get_energy() < 0.1)
 		{
 		  continue;
 		}
 	      jemsum[j] += tower->get_energy();
-	      float neweta = new_eta(channel, towers[0], geom[1], RawTowerDefs::CalorimeterId::HCALIN, testz);
+	      float neweta = new_eta(channel, m_towers[0], m_geom[1], RawTowerDefs::CalorimeterId::HCALIN, testz);
 	      jemeta[j] += neweta * tower->get_energy();
 	    }
 	}

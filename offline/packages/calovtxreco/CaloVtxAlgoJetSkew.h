@@ -46,8 +46,8 @@ class CaloVtxAlgoJetSkew : public CaloVtxAlgo
   float m_radius_EM{std::numeric_limits<float>::quiet_NaN()};
   float m_radius_OH{std::numeric_limits<float>::quiet_NaN()};
 
-  TowerInfoContainer *towers[3] = {0};
-  RawTowerGeomContainer *geom[3] = {0};
+  TowerInfoContainer *m_towers[3] = {0};
+  RawTowerGeomContainer *m_geom[3] = {0};
 
 
 };

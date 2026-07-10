@@ -85,25 +85,28 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
   std::vector<float> *b_reco_jet_ohcal = new std::vector<float>();
   std::vector<float> *b_reco_jet_ihcal = new std::vector<float>();
 
-  JetContainer *jetscon = findNode::getClass<JetContainer>(topNode, m_jet_node.c_str());
+  JetContainer *jetscon = findNode::getClass<JetContainer>(topNode, m_jet_node);
 
   int ijet = 0;
-  double dijet_pt[2] = {0};
+  float dijet_pt[2] = {0};
   int dijet_index[2] = {0};
 
   if (jetscon)
     {
-      for (auto jet : *jetscon)
+      for (auto *jet : *jetscon)
 	{
-	  double jet_E = 0;
-	  double jet_emcal = 0;
-	  double jet_ihcal = 0;
-	  double jet_ohcal = 0;
-	  double jet_emcal_eta = 0;
-	  double jet_ihcal_eta = 0;
-	  double jet_ohcal_eta = 0;
-	  double jetpt = jet->get_pt();
-	  if (jetpt < 2) continue;
+	  float jet_E = 0;
+	  float jet_emcal = 0;
+	  float jet_ihcal = 0;
+	  float jet_ohcal = 0;
+	  float jet_emcal_eta = 0;
+	  float jet_ihcal_eta = 0;
+	  float jet_ohcal_eta = 0;
+	  float jetpt = jet->get_pt();
+	  if (jetpt < 2)
+	    {
+	      continue;
+	    }
 
 	  double em_S0 = 0.0;
 	  double em_S1 = 0.0;
@@ -134,14 +137,17 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
 		  int ieta = hcalin_towers->getTowerEtaBin(towerkey);
 		  int iphi = hcalin_towers->getTowerPhiBin(towerkey);
 		  const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta, iphi);
-		  float tower_eta = tower_geomIH->get_tower_geometry(key)->get_eta();
-		  float tower_r = m_radius_IH;
-		  float tower_z = tower_r*sinh(tower_eta);
-		  float new_tower_z = tower_z;// - jet_vertex;
-		  float new_tower_eta = asinh(new_tower_z/tower_r);
+		  double tower_eta = tower_geomIH->get_tower_geometry(key)->get_eta();
+		  double tower_r = m_radius_IH;
+		  double tower_z = tower_r*sinh(tower_eta);
+		  double new_tower_z = tower_z;// - jet_vertex;
+		  double new_tower_eta = asinh(new_tower_z/tower_r);
 		      
 		  tower_e = tower->get_energy();
-		  if (tower_e < 0.005) continue;
+		  if (tower_e < 0.005)
+		    {
+		      continue;
+		    }
 		  jet_ihcal_eta += new_tower_eta*tower_e;
 		  jet_ihcal += tower_e;
 		  jet_E += tower_e;
@@ -157,14 +163,17 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
 		  int ieta = hcalout_towers->getTowerEtaBin(towerkey);
 		  int iphi = hcalout_towers->getTowerPhiBin(towerkey);
 		  const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ieta, iphi);
-		  float tower_eta = tower_geomOH->get_tower_geometry(key)->get_eta();
-		  float tower_r = m_radius_OH;
-		  float tower_z = tower_r*sinh(tower_eta);
-		  float new_tower_z = tower_z;// - jet_vertex;
-		  float new_tower_eta = asinh(new_tower_z/tower_r);
+		  double tower_eta = tower_geomOH->get_tower_geometry(key)->get_eta();
+		  double tower_r = m_radius_OH;
+		  double tower_z = tower_r*sinh(tower_eta);
+		  double new_tower_z = tower_z;// - jet_vertex;
+		  double new_tower_eta = asinh(new_tower_z/tower_r);
 		      
 		  tower_e = tower->get_energy();
-		  if (tower_e < 0.035) continue;
+		  if (tower_e < 0.035)
+		    {
+		      continue;
+		    }
 		  jet_ohcal_eta += new_tower_eta*tower_e;
 		  jet_ohcal += tower_e;
 		  oh_S0 += tower_e;
@@ -189,14 +198,17 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
 		  int ieta = emcalre_towers->getTowerEtaBin(towerkey);
 		  int iphi = emcalre_towers->getTowerPhiBin(towerkey);
 		  const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta, iphi);
-		  float tower_eta = tower_geomIH->get_tower_geometry(key)->get_eta();
-		  float tower_r = m_radius_EM;
-		  float tower_z = tower_r*sinh(tower_eta);
-		  float new_tower_z = tower_z;// - jet_vertex;
-		  float new_tower_eta = asinh(new_tower_z/tower_r);
+		  double tower_eta = tower_geomIH->get_tower_geometry(key)->get_eta();
+		  double tower_r = m_radius_EM;
+		  double tower_z = tower_r*sinh(tower_eta);
+		  double new_tower_z = tower_z;// - jet_vertex;
+		  double new_tower_eta = asinh(new_tower_z/tower_r);
 		      
 		  tower_e = tower->get_energy();
-		  if (tower_e < 0.068) continue;
+		  if (tower_e < 0.068)
+		    {
+		      continue;
+		    }
 		  jet_emcal_eta += new_tower_eta*tower_e;
 		  jet_emcal += tower_e;
 		  jet_E += tower_e;
@@ -213,7 +225,10 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
 
 	      itower++;	      
 	    }
-	  if (itower == 0) continue;
+	  if (itower == 0)
+	    {
+	      continue;
+	    }
 
 	  double em_mean = em_S1/em_S0;
 
@@ -293,8 +308,8 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
   // VertexMLP.h (emcal/ohcal lead+sublead flags, zmean/zsig/zskew,
   // energy, exj). This is the same per-event extraction CaloVtxReco used
   // to do inline before the NN call -- move that block here unchanged.
-  float e1 = dijet_pt[0] * cosh(b_reco_jet_eta->at(dijet_index[0]));
-  float e2 = dijet_pt[1] * cosh(b_reco_jet_eta->at(dijet_index[1]));
+  double e1 = dijet_pt[0] * cosh(b_reco_jet_eta->at(dijet_index[0]));
+  double e2 = dijet_pt[1] * cosh(b_reco_jet_eta->at(dijet_index[1]));
 
   double exj = e2/e1;
   double emcal_lead_on = 1;
@@ -319,47 +334,47 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
   if (std::isnan(b_reco_jet_ohcal_zskew->at(dijet_index[1]))) { ohcal_sublead_on = 0; }//maxz_OH <<","
   if (std::isnan(b_reco_jet_ohcal->at(dijet_index[1]))) { ohcal_sublead_on = 0; }//<","
 
-  float emcal_lead_z_moments[4] = {b_reco_jet_emcal_zmean->at(dijet_index[0]),
+  double emcal_lead_z_moments[4] = {b_reco_jet_emcal_zmean->at(dijet_index[0]),
     b_reco_jet_emcal_zsig->at(dijet_index[0]),
     b_reco_jet_emcal_zskew->at(dijet_index[0]),
     b_reco_jet_emcal->at(dijet_index[0])};
-  float emcal_sublead_z_moments[4] = {b_reco_jet_emcal_zmean->at(dijet_index[1]),
+  double emcal_sublead_z_moments[4] = {b_reco_jet_emcal_zmean->at(dijet_index[1]),
     b_reco_jet_emcal_zsig->at(dijet_index[1]),
     b_reco_jet_emcal_zskew->at(dijet_index[1]),
     b_reco_jet_emcal->at(dijet_index[1])};
-  float ohcal_lead_z_moments[4] = {b_reco_jet_ohcal_zmean->at(dijet_index[0]),
+  double ohcal_lead_z_moments[4] = {b_reco_jet_ohcal_zmean->at(dijet_index[0]),
     b_reco_jet_ohcal_zsig->at(dijet_index[0]),
     b_reco_jet_ohcal_zskew->at(dijet_index[0]),
     b_reco_jet_ohcal->at(dijet_index[0])};
-  float ohcal_sublead_z_moments[4] = {b_reco_jet_ohcal_zmean->at(dijet_index[1]),
+  double ohcal_sublead_z_moments[4] = {b_reco_jet_ohcal_zmean->at(dijet_index[1]),
     b_reco_jet_ohcal_zsig->at(dijet_index[1]),
     b_reco_jet_ohcal_zskew->at(dijet_index[1]),
     b_reco_jet_ohcal->at(dijet_index[1])};
 
   if (!emcal_lead_on)
     {
-      for (float & emcal_lead_z_moment : emcal_lead_z_moments)
+      for (double & emcal_lead_z_moment : emcal_lead_z_moments)
 	{
 	  emcal_lead_z_moment = 0;
 	}
     }
   if (!emcal_sublead_on)
     {
-      for (float & emcal_sublead_z_moment : emcal_sublead_z_moments)
+      for (double & emcal_sublead_z_moment : emcal_sublead_z_moments)
 	{
 	  emcal_sublead_z_moment = 0;
 	}
     }
   if (!ohcal_lead_on)
     {
-      for (float & ohcal_lead_z_moment : ohcal_lead_z_moments)
+      for (double & ohcal_lead_z_moment : ohcal_lead_z_moments)
 	{
 	  ohcal_lead_z_moment = 0;
 	}
     }
   if (!ohcal_sublead_on)
     {
-      for (float & ohcal_sublead_z_moment : ohcal_sublead_z_moments)
+      for (double & ohcal_sublead_z_moment : ohcal_sublead_z_moments)
 	{
 	  ohcal_sublead_z_moment = 0;
 	}
