@@ -364,29 +364,30 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
 	  ohcal_sublead_z_moments[i] = 0;
 	}
     }
+  // {
+  //   std::cout << emcal_lead_on << ","
+  // 	    << ohcal_lead_on << ","
+  // 	    << emcal_sublead_on << ","
+  // 	    << ohcal_sublead_on << ","
+  // 	    << emcal_lead_z_moments[0] << ","
+  // 	    << emcal_lead_z_moments[1] << ","
+  // 	    << emcal_lead_z_moments[2] << ","
+  // 	    << emcal_lead_z_moments[3] << ","
+  // 	    << ohcal_lead_z_moments[0] << ","
+  // 	    << ohcal_lead_z_moments[1] << ","
+  // 	    << ohcal_lead_z_moments[2] << ","
+  // 	    << ohcal_lead_z_moments[3] << ","
+  // 	    << emcal_sublead_z_moments[0] << ","
+  // 	    << emcal_sublead_z_moments[1] << ","
+  // 	    << emcal_sublead_z_moments[2] << ","
+  // 	    << emcal_sublead_z_moments[3] << ","
+  // 	    << ohcal_sublead_z_moments[0] << ","
+  // 	    << ohcal_sublead_z_moments[1] << ","
+  // 	    << ohcal_sublead_z_moments[2] << ","
+  // 	    << ohcal_sublead_z_moments[3] << ","
+  // 	    << exj << std::endl;
+  // }
 
-  std::cout << emcal_lead_on << ","
-	    << ohcal_lead_on << ","
-	    << emcal_sublead_on << ","
-	    << ohcal_sublead_on << ","
-	    << emcal_lead_z_moments[0] << ","
-	    << emcal_lead_z_moments[1] << ","
-	    << emcal_lead_z_moments[2] << ","
-	    << emcal_lead_z_moments[3] << ","
-	    << ohcal_lead_z_moments[0] << ","
-	    << ohcal_lead_z_moments[1] << ","
-	    << ohcal_lead_z_moments[2] << ","
-	    << ohcal_lead_z_moments[3] << ","
-	    << emcal_sublead_z_moments[0] << ","
-	    << emcal_sublead_z_moments[1] << ","
-	    << emcal_sublead_z_moments[2] << ","
-	    << emcal_sublead_z_moments[3] << ","
-	    << ohcal_sublead_z_moments[0] << ","
-	    << ohcal_sublead_z_moments[1] << ","
-	    << ohcal_sublead_z_moments[2] << ","
-	    << ohcal_sublead_z_moments[3] << ","
-	    << exj << std::endl;
-    
   std::array<double, VertexMLP::kNFeatures> features = {emcal_lead_on,
     ohcal_lead_on,
     emcal_sublead_on,
