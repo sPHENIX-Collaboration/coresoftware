@@ -34,8 +34,6 @@
 #include <set>      // for _Rb_tree_const_iterator
 #include <utility>  // for pair
 
-using namespace std;
-
 namespace
 {
   //! get cluster keys from a given track
@@ -84,9 +82,6 @@ PHTrackPruner::PHTrackPruner(const std::string &name)
 }
 
 //____________________________________________________________________________..
-PHTrackPruner::~PHTrackPruner() = default;
-
-//____________________________________________________________________________..
 int PHTrackPruner::InitRun(PHCompositeNode *topNode)
 {
   int ret = GetNodes(topNode);
@@ -103,49 +98,57 @@ int PHTrackPruner::process_event(PHCompositeNode * /*unused*/)
 {
   // _tpc_seed_map contains the TPC seed track stubs
   // _si_seed_map contains the silicon seed track stubs
-  // _svtx_seed_map contains the combined silicon and tpc track seeds
   // _svtx_track_map contains the fitted acts track stubs
 
   if (Verbosity() > 0)
   {
-    cout << PHWHERE << " TPC seed map size " << _tpc_seed_map->size()
-	 << " Silicon seed map size " << _si_seed_map->size()
-	 << " Svtx seed map size " << _svtx_seed_map->size()
-	 << " Svtx track map size " << _svtx_track_map->size()
-	 << endl;
+    std::cout   << PHWHERE << " TPC seed map size " << _tpc_seed_map->size()
+      << " Silicon seed map size " << _si_seed_map->size()
+      << " Svtx track map size " << _svtx_track_map->size()
+      << std::endl;
   }
 
-  if (_svtx_track_map->size() == 0)
+  if (_svtx_track_map->empty())
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  std::multimap<unsigned int, unsigned int> good_matches;
+  std::multimap<size_t, size_t> good_matches;
+
+  // increment number of processed tracks
+  m_total_tracks += _svtx_track_map->size();
 
   for (auto &iter : *_svtx_track_map)
   {
-    _svtx_track = iter.second;
+    auto* svtx_track = iter.second;
 
-    if(!checkTrack(_svtx_track))
+    if(!checkTrack(svtx_track))
     {
       continue;
     }
-    if (Verbosity() > 1) { std::cout<<"Pass track selection"<<std::endl; }
 
-    _tpc_seed = _svtx_track->get_tpc_seed();
-    _si_seed = _svtx_track->get_silicon_seed();
-    if (_tpc_seed && _si_seed)
+    if (Verbosity() > 1) { std::cout  <<"Pass track selection"<<std::endl; }
+
+    auto* tpc_seed = svtx_track->get_tpc_seed();
+    auto* si_seed = svtx_track->get_silicon_seed();
+    if (tpc_seed && si_seed)
     {
-      if (Verbosity() > 1) { std::cout<<"Insert tpcid and siid into good_matches"<<std::endl; }
-      int tpcid = _tpc_seed_map->find(_tpc_seed);
-      int siid = _si_seed_map->find(_si_seed);
-      good_matches.insert(std::make_pair(tpcid, siid));
+      if (Verbosity() > 1) { std::cout <<"Insert tpcid and siid into good_matches"<<std::endl; }
+      const size_t tpcid = _tpc_seed_map->find(tpc_seed);
+      const size_t siid = _si_seed_map->find(si_seed);
+
+      // check index validity
+      if( tpcid < _tpc_seed_map->size() && siid < _si_seed_map->size() )
+      {
+        good_matches.emplace(tpcid, siid);
+        ++m_accepted_tracks;
+      }
     }
   }
 
-  for (auto [tpcid, siid] : good_matches)
+  for (const auto& [tpcid, siid] : good_matches)
   {
-      if (Verbosity() > 1) { std::cout<<"Insert pruned svtx seed map"<<std::endl; }
+      if (Verbosity() > 1) { std::cout  <<"Insert pruned svtx seed map"<<std::endl; }
     auto _svtx_seed = std::make_unique<SvtxTrackSeed_v2>();
     _svtx_seed->set_silicon_seed_index(siid);
     _svtx_seed->set_tpc_seed_index(tpcid);
@@ -157,13 +160,13 @@ int PHTrackPruner::process_event(PHCompositeNode * /*unused*/)
 
     if (Verbosity() > 1)
     {
-      std::cout << "  combined seed id " << _pruned_svtx_seed_map->size() - 1 << " si id " << siid << " tpc id " << tpcid << " crossing estimate " << crossing_estimate << std::endl;
+      std::cout   << "  combined seed id " << _pruned_svtx_seed_map->size() - 1 << " si id " << siid << " tpc id " << tpcid << " crossing estimate " << crossing_estimate << std::endl;
     }
   }
 
   if (Verbosity() > 0)
   {
-    std::cout << "final svtx seed map size " << _pruned_svtx_seed_map->size() << std::endl;
+    std::cout   << "final svtx seed map size " << _pruned_svtx_seed_map->size() << std::endl;
   }
 
   if (Verbosity() > 1)
@@ -173,9 +176,8 @@ int PHTrackPruner::process_event(PHCompositeNode * /*unused*/)
       seed->identify();
     }
 
-    cout << "PHTrackPruner::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;
+    std::cout  << "PHTrackPruner::process_event(PHCompositeNode *topNode) Leaving process_event" << std::endl;
   }
-  m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -183,21 +185,28 @@ bool PHTrackPruner::checkTrack(SvtxTrack *track)
 {
   if(!track)
   {
-    if (Verbosity() > 1) { std::cout<<"invalid track"<<std::endl; }
+    if (Verbosity() > 1) { std::cout  <<"invalid track"<<std::endl; }
     return false;
   }
 
-  //pt cut
+  // low pt cut
   if(track->get_pt() < m_track_pt_low_cut)
   {
-    if (Verbosity() > 1) { std::cout<<"Track pt "<<track->get_pt()<<" , pt cut "<<m_track_pt_low_cut<<std::endl; }
+    if (Verbosity() > 1) { std::cout  <<"Track pt "<<track->get_pt()<<" , pt cut "<<m_track_pt_low_cut<<std::endl; }
+    return false;
+  }
+
+  // high pt cut
+  if( m_track_pt_high_cut>0 && track->get_pt() > m_track_pt_high_cut)
+  {
+    if (Verbosity() > 1) { std::cout  <<"Track pt "<<track->get_pt()<<" , pt cut "<<m_track_pt_high_cut<<std::endl; }
     return false;
   }
 
   //quality cut
   if(track->get_quality() > m_track_quality_high_cut)
   {
-    if (Verbosity() > 1) { std::cout<<"Track quality "<<track->get_quality()<<" , quality cut "<<m_track_quality_high_cut<<std::endl; }
+    if (Verbosity() > 1) { std::cout  <<"Track quality "<<track->get_quality()<<" , quality cut "<<m_track_quality_high_cut<<std::endl; }
     return false;
   }
 
@@ -205,22 +214,22 @@ bool PHTrackPruner::checkTrack(SvtxTrack *track)
   const auto cluster_keys(get_cluster_keys(track));
   if (count_clusters<TrkrDefs::mvtxId>(cluster_keys) < m_nmvtx_clus_low_cut)
   {
-    if (Verbosity() > 1) { std::cout<<"nmvtx "<<count_clusters<TrkrDefs::mvtxId>(cluster_keys)<<" , nmvtx cut "<<m_nmvtx_clus_low_cut<<std::endl; }
+    if (Verbosity() > 1) { std::cout  <<"nmvtx "<<count_clusters<TrkrDefs::mvtxId>(cluster_keys)<<" , nmvtx cut "<<m_nmvtx_clus_low_cut<<std::endl; }
     return false;
   }
   if (count_clusters<TrkrDefs::inttId>(cluster_keys) < m_nintt_clus_low_cut)
   {
-    if (Verbosity() > 1) { std::cout<<"nintt "<<count_clusters<TrkrDefs::inttId>(cluster_keys)<<" , nintt cut "<<m_nintt_clus_low_cut<<std::endl; }
+    if (Verbosity() > 1) { std::cout  <<"nintt "<<count_clusters<TrkrDefs::inttId>(cluster_keys)<<" , nintt cut "<<m_nintt_clus_low_cut<<std::endl; }
     return false;
   }
   if (count_clusters<TrkrDefs::tpcId>(cluster_keys) < m_ntpc_clus_low_cut)
   {
-    if (Verbosity() > 1) { std::cout<<"ntpc "<<count_clusters<TrkrDefs::tpcId>(cluster_keys)<<" , ntpc cut "<<m_ntpc_clus_low_cut<<std::endl; }
+    if (Verbosity() > 1) { std::cout  <<"ntpc "<<count_clusters<TrkrDefs::tpcId>(cluster_keys)<<" , ntpc cut "<<m_ntpc_clus_low_cut<<std::endl; }
     return false;
   }
   if (count_clusters<TrkrDefs::micromegasId>(cluster_keys) < m_ntpot_clus_low_cut)
   {
-    if (Verbosity() > 1) { std::cout<<"nmicromegas "<<count_clusters<TrkrDefs::micromegasId>(cluster_keys)<<" , nmicromegas cut "<<m_ntpot_clus_low_cut<<std::endl; }
+    if (Verbosity() > 1) { std::cout  <<"nmicromegas "<<count_clusters<TrkrDefs::micromegasId>(cluster_keys)<<" , nmicromegas cut "<<m_ntpot_clus_low_cut<<std::endl; }
     return false;
   }
 
@@ -228,22 +237,22 @@ bool PHTrackPruner::checkTrack(SvtxTrack *track)
   const auto state_keys(get_state_keys(track));
   if (count_clusters<TrkrDefs::mvtxId>(state_keys) < m_nmvtx_states_low_cut)
   {
-    if (Verbosity() > 1) { std::cout<<"nmvtxstates "<<count_clusters<TrkrDefs::mvtxId>(state_keys)<<" , nmvtxstates cut "<<m_nmvtx_states_low_cut<<std::endl; }
+    if (Verbosity() > 1) { std::cout  <<"nmvtxstates "<<count_clusters<TrkrDefs::mvtxId>(state_keys)<<" , nmvtxstates cut "<<m_nmvtx_states_low_cut<<std::endl; }
     return false;
   }
   if (count_clusters<TrkrDefs::inttId>(state_keys) < m_nintt_states_low_cut)
   {
-    if (Verbosity() > 1) { std::cout<<"ninttstates "<<count_clusters<TrkrDefs::inttId>(state_keys)<<" , ninttstates cut "<<m_nintt_states_low_cut<<std::endl; }
+    if (Verbosity() > 1) { std::cout  <<"ninttstates "<<count_clusters<TrkrDefs::inttId>(state_keys)<<" , ninttstates cut "<<m_nintt_states_low_cut<<std::endl; }
     return false;
   }
   if (count_clusters<TrkrDefs::tpcId>(state_keys) < m_ntpc_states_low_cut)
   {
-    if (Verbosity() > 1) { std::cout<<"ntpcstates "<<count_clusters<TrkrDefs::tpcId>(state_keys)<<" , ntpcstates cut "<<m_ntpc_states_low_cut<<std::endl; }
+    if (Verbosity() > 1) { std::cout  <<"ntpcstates "<<count_clusters<TrkrDefs::tpcId>(state_keys)<<" , ntpcstates cut "<<m_ntpc_states_low_cut<<std::endl; }
     return false;
   }
   if (count_clusters<TrkrDefs::micromegasId>(state_keys) < m_ntpot_states_low_cut)
   {
-    if (Verbosity() > 1) { std::cout<<"nmicromegasstates "<<count_clusters<TrkrDefs::micromegasId>(state_keys)<<" , nmicromegasstates cut "<<m_ntpot_states_low_cut<<std::endl; }
+    if (Verbosity() > 1) { std::cout  <<"nmicromegasstates "<<count_clusters<TrkrDefs::micromegasId>(state_keys)<<" , nmicromegasstates cut "<<m_ntpot_states_low_cut<<std::endl; }
     return false;
   }
 
@@ -252,6 +261,8 @@ bool PHTrackPruner::checkTrack(SvtxTrack *track)
 
 int PHTrackPruner::End(PHCompositeNode * /*unused*/)
 {
+  std::cout   << "PHTrackPruner::End - m_total_tracks: " << m_total_tracks << std::endl;
+  std::cout   << "PHTrackPruner::End -  m_accepted_tracks: " << m_accepted_tracks << " fraction: " << double(m_accepted_tracks)/m_total_tracks << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -264,35 +275,28 @@ int PHTrackPruner::GetNodes(PHCompositeNode *topNode)
   _svtx_track_map = findNode::getClass<SvtxTrackMap>(topNode, _svtx_track_map_name);
   if (!_svtx_track_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find " << _svtx_track_map_name.c_str()  << endl;
+    std::cout   << PHWHERE << " ERROR: Can't find " << _svtx_track_map_name  << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _si_seed_map = findNode::getClass<TrackSeedContainer>(topNode, _si_seed_map_name);
   if (!_si_seed_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find " << _si_seed_map_name.c_str()  << endl;
+    std::cout   << PHWHERE << " ERROR: Can't find " << _si_seed_map_name  << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _tpc_seed_map = findNode::getClass<TrackSeedContainer>(topNode, _tpc_seed_map_name);
   if (!_tpc_seed_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find " << _tpc_seed_map_name.c_str() << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  _svtx_seed_map = findNode::getClass<TrackSeedContainer>(topNode, _svtx_seed_map_name);
-  if (!_svtx_seed_map)
-  {
-    cerr << PHWHERE << " ERROR: Can't find " << _svtx_seed_map_name.c_str() << endl;
+    std::cout   << PHWHERE << " ERROR: Can't find " << _tpc_seed_map_name << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _pruned_svtx_seed_map = findNode::getClass<TrackSeedContainer>(topNode, _pruned_svtx_seed_map_name);
   if (!_pruned_svtx_seed_map)
   {
-    std::cout << "Creating node " << _pruned_svtx_seed_map_name << std::endl;
+    std::cout   << "Creating node " << _pruned_svtx_seed_map_name << std::endl;
     /// Get the DST Node
     PHNodeIterator iter(topNode);
     PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -320,17 +324,17 @@ int PHTrackPruner::GetNodes(PHCompositeNode *topNode)
     svtxNode->addNode(node);
   }
 
-  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, _cluster_map_name);
   if (!_cluster_map)
   {
-    std::cout << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
+    std::cout   << PHWHERE << " ERROR: Can't find node " << _cluster_map_name << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!_tGeometry)
   {
-    std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
+    std::cout   << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -352,7 +356,7 @@ short int PHTrackPruner::findCrossingGeometrically(unsigned int tpcid, unsigned 
 
   if (Verbosity() > 1)
   {
-    std::cout << "findCrossing: "
+    std::cout   << "findCrossing: "
               << " tpcid " << tpcid << " si_id " << si_id << " tpc_z " << tpc_z << " si_z " << si_z << " dz " << tpc_z - si_z
               << " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
   }
@@ -394,7 +398,7 @@ double PHTrackPruner::getBunchCrossing(unsigned int trid, double z_mismatch)
 
   if (side_set.size() == 2 && Verbosity() > 1)
   {
-    std::cout << "     WARNING: tpc seed " << trid << " changed TPC sides, "
+    std::cout   << "     WARNING: tpc seed " << trid << " changed TPC sides, "
               << "  final side " << side << std::endl;
   }
 
@@ -407,7 +411,7 @@ double PHTrackPruner::getBunchCrossing(unsigned int trid, double z_mismatch)
 
   if (Verbosity() > 1)
   {
-    std::cout << "  gettrackid " << trid << " side " << side << " z_mismatch " << z_mismatch << " crossings " << crossings << std::endl;
+    std::cout   << "  gettrackid " << trid << " side " << side << " z_mismatch " << z_mismatch << " crossings " << crossings << std::endl;
   }
 
   return crossings;

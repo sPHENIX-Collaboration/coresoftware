@@ -192,6 +192,38 @@ class PHG4TpcGeom : public PHObject
     return -99999;
   }
 
+  virtual double get_rot_x() const
+  {
+    PHOOL_VIRTUAL_WARN("get_rot_x()");
+    return 0.0;
+  }
+  virtual double get_rot_y() const
+  {
+    PHOOL_VIRTUAL_WARN("get_rot_y()");
+    return 0.0;
+  }
+  virtual double get_rot_z() const
+  {
+    PHOOL_VIRTUAL_WARN("get_rot_z()");
+    return 0.0;
+  }
+  virtual double get_place_x() const
+  {
+    PHOOL_VIRTUAL_WARN("get_place_x()");
+    return 0.0;
+  }
+    virtual double get_place_y() const
+  {
+    PHOOL_VIRTUAL_WARN("get_place_y()");
+    return 0.0;
+  }
+    virtual double get_place_z() const
+  {
+    PHOOL_VIRTUAL_WARN("get_place_z()");
+    return 0.0;
+  }
+  
+  
   virtual const std::array<std::vector<double>, 2> &get_sector_min_phi();
   virtual const std::array<std::vector<double>, 2> &get_sector_max_phi();
 
@@ -211,6 +243,17 @@ class PHG4TpcGeom : public PHObject
   {
     PHOOL_VIRTUAL_WARN("set_phi_bias(const std::array<std::vector<double>, 2>&)");  
   }
+
+
+
+  /*
+  double get_rot_x() const override  { return rot_x; }
+  double get_rot_y() const override  { return rot_y; }
+  double get_rot_z() const override  { return rot_z; }
+  double get_place_x() const override  { return place_x; }
+  double get_place_y() const override  { return place_y; }
+  double get_place_z() const override  { return place_z; }
+  */
   
   virtual void set_layer(const int) { PHOOL_VIRTUAL_WARN("set_layer(const int)"); }
   virtual void set_radius(const double) { PHOOL_VIRTUAL_WARN("set_radius(const double)"); }
@@ -237,7 +280,15 @@ class PHG4TpcGeom : public PHObject
   virtual void set_adc_clock(const double) { PHOOL_VIRTUAL_WARN("set_adc_clock(const double)"); }
   virtual void set_extended_readout_time(const double) { PHOOL_VIRTUAL_WARN("set_extended_readout_time(const double)"); }
   virtual void set_drift_velocity_sim(const double) { PHOOL_VIRTUAL_WARN("set_drift_velocity_sim(const double)"); }
-  
+
+  virtual void set_rot_x(const double) { PHOOL_VIRTUAL_WARN("set_rot_x(const double)"); }
+  virtual void set_rot_y(const double) { PHOOL_VIRTUAL_WARN("set_rot_y(const double)"); }
+  virtual void set_rot_z(const double) { PHOOL_VIRTUAL_WARN("set_rot_z(const double)"); }
+
+  virtual void set_place_x(const double) { PHOOL_VIRTUAL_WARN("set_place_x(const double)"); }
+  virtual void set_place_y(const double) { PHOOL_VIRTUAL_WARN("set_place_y(const double)"); }
+  virtual void set_place_z(const double) { PHOOL_VIRTUAL_WARN("set_place_z(const double)"); }
+
   //! load parameters from PHParameters, which interface to Database/XML/ROOT files
   virtual void ImportParameters(const PHParameters & /*param*/) { return; }
 

@@ -38,7 +38,6 @@ AM_LDFLAGS = \
 
 
 pkginclude_HEADERS = \
-  ActsAborter.h \
   ActsGeometry.h \
   ActsSourceLink.h \
   ActsSurfaceMaps.h \
@@ -296,6 +295,7 @@ libtrack_la_LIBADD = \
   -lActsPluginRoot \
   -lActsExamplesDetectorTGeo \
   -lffamodules \
+  -lg4detectors \
   -lboost_program_options
 
 libtrack_io_la_LIBADD = \

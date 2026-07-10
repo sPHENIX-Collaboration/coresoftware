@@ -59,15 +59,19 @@ pkginclude_HEADERS = \
   TowerInfov2.h \
   TowerInfov3.h \
   TowerInfov4.h \
+  TowerInfov5.h \
   TowerInfoSimv1.h \
   TowerInfoSimv2.h \
+  TowerInfoSimv3.h \
   TowerInfoContainer.h \
   TowerInfoContainerv1.h \
   TowerInfoContainerv2.h \
   TowerInfoContainerv3.h \
   TowerInfoContainerv4.h \
+  TowerInfoContainerv5.h \
   TowerInfoContainerSimv1.h \
-  TowerInfoContainerSimv2.h
+  TowerInfoContainerSimv2.h \
+  TowerInfoContainerSimv3.h
 
 ROOTDICTS = \
   PhotonClusterv1_Dict.cc \
@@ -94,15 +98,19 @@ ROOTDICTS = \
   TowerInfov2_Dict.cc \
   TowerInfov3_Dict.cc \
   TowerInfov4_Dict.cc \
+  TowerInfov5_Dict.cc \
   TowerInfoSimv1_Dict.cc \
   TowerInfoSimv2_Dict.cc \
+  TowerInfoSimv3_Dict.cc \
   TowerInfoContainer_Dict.cc \
   TowerInfoContainerv1_Dict.cc \
   TowerInfoContainerv2_Dict.cc \
   TowerInfoContainerv3_Dict.cc \
   TowerInfoContainerv4_Dict.cc \
+  TowerInfoContainerv5_Dict.cc \
   TowerInfoContainerSimv1_Dict.cc \
-  TowerInfoContainerSimv2_Dict.cc
+  TowerInfoContainerSimv2_Dict.cc \
+  TowerInfoContainerSimv3_Dict.cc
 
 pcmdir = $(libdir)
 # more elegant way to create pcm files (without listing them)
@@ -133,16 +141,20 @@ libcalo_io_la_SOURCES = \
   TowerInfov2.cc \
   TowerInfov3.cc \
   TowerInfov4.cc \
+  TowerInfov5.cc \
   TowerInfoSimv1.cc \
   TowerInfoSimv2.cc \
+  TowerInfoSimv3.cc \
   TowerInfoDefs.cc \
   TowerInfoContainer.cc \
   TowerInfoContainerv1.cc \
   TowerInfoContainerv2.cc \
   TowerInfoContainerv3.cc \
   TowerInfoContainerv4.cc \
+  TowerInfoContainerv5.cc \
   TowerInfoContainerSimv1.cc \
-  TowerInfoContainerSimv2.cc
+  TowerInfoContainerSimv2.cc \
+  TowerInfoContainerSimv3.cc
 endif
 
 # Rule for generating table CINT dictionaries.

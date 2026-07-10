@@ -137,17 +137,22 @@ class MakeActsGeometry : public SubsysReco
   double getSurfStepPhi() { return m_surfStepPhi; }
   double getSurfStepZ() { return m_surfStepZ; }
 
+  /// assign local alignment parameter file to be used instead of CDB, if found
+  void set_alignmentParamsFile(const std::string& value ) { m_alignmentParamsFile = value; }
+
+  /// assign TPC drift velocity
   void set_drift_velocity(double vd) { m_drift_velocity = vd; }
+
+  /// assign TPC T0
   void set_tpc_tzero(double tz) { m_tpc_tzero = tz; }
   void set_sampa_tzero_bias(double tzb) { m_sampa_tzero_bias = tzb; }
   void set_apply_tpc_tzero_correction(bool flag) { m_apply_tpc_tzero_correction = flag; }
-  
+
   void set_nSurfPhi(unsigned int value)
   {
     m_nSurfPhi = value;
   }
-  //  void set_maxSurfZ(double value) {m_maxSurfZ = value;}  // set to TPC gas volume length
-    
+
   void set_mvtx_applymisalign(bool b) { m_mvtxapplymisalign = b; }
   void set_intt_survey(bool surv) { m_inttSurvey = surv; }
 
@@ -275,18 +280,28 @@ private:
 
   std::map<unsigned int, unsigned int> base_layer_map = {{10, 0}, {12, 3}, {14, 7}, {16, 55}};
   unsigned int mvtx_chips_per_stave = 9;
-  
+
   /// Verbosity value handed from PHActsSourceLinks
   //  int m_verbosity = 0;
 
-  double m_drift_velocity = 0.;  // cm/ns, override from macro
-  double m_max_driftlength = 0.;  // override from macro
-  double m_CM_halfwidth = 0.;  // central membrane half width in cm
+  /// local alignment parameter file
+  /** this is passed to Alignment Transformation and used instead of CDB if found */
+  std::string m_alignmentParamsFile = "./localAlignmentParamsFile.txt";
 
+  /// TPC drift velocity overriden from macro (cm/ns)
+  double m_drift_velocity = 0.;
+
+  /// maximum drift length, overriden from macro (cm)
+  double m_max_driftlength = 0.;
+
+  /// central membrane half width (cm) overriden from macro
+  double m_CM_halfwidth = 0.;
+
+  /// T0 correction
   bool m_apply_tpc_tzero_correction = false;
   double m_tpc_tzero = 0.0;  // ns, override from macro
   double m_sampa_tzero_bias = 0.0;  // ns, override from macro
-  
+
   /// Magnetic field components to set Acts magnetic field
   std::string m_magField = "1.4";
   double m_magFieldRescale = -1.;
@@ -303,6 +318,10 @@ private:
 
   bool m_use_module_tilt_always = false;
   bool m_use_new_silicon_rotation_order = false;
+
+  Acts::Transform3 m_tpc_world_envelope_transform;
+  Acts::Transform3 m_tpc_envelope_world_transform;
+
 };
 
 #endif

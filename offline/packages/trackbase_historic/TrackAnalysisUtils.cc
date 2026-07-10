@@ -308,12 +308,13 @@ namespace TrackAnalysisUtils
     TpcGlobalPositionWrapper globalWrapper;
     globalWrapper.loadNodes(topNode);
     globalWrapper.set_suppressCrossing(true);
-    TpcClusterMover mover;
-    auto* tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
-    mover.initialize_geometry(tpccellgeo);
-    mover.set_verbosity(0);
 
+    
     auto* geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+    auto* tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+    TpcClusterMover mover;
+    mover.initialize_geometry(tpccellgeo, geometry);
+    mover.set_verbosity(0);
 
     std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
 

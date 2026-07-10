@@ -729,6 +729,15 @@ void SingleTriggeredInput::FillPool()
   if (!FilesDone())
   {
     int eventvectorsize = FillEventVector();
+    // this seems a unique signature for raw data files which only contain the
+    // begin and end run event but no data events. FillEventVector() returns -1
+    // and since no events were read the m_PacketEventDeque is empty
+    if (eventvectorsize < 0 && m_PacketEventDeque.empty())
+    {
+      std::cout << Name() << ": No data Events in input file " << FileName() << std::endl;
+      AllDone(1);
+      return;
+    }
     if (eventvectorsize != 0)
     {
       if (Gl1Input()->m_bclkdiffarray_map.empty())
@@ -1226,7 +1235,6 @@ int SingleTriggeredInput::ReadEvent()
     size_t size = m_PacketEventDeque.begin()->second.size();
     std::cout << "deque size: " << size << std::endl;
   }
-
   auto* ref_evt = m_PacketEventDeque.begin()->second.front();
   RunNumber(ref_evt->getRunNumber());
 

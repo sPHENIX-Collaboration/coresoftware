@@ -48,7 +48,7 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode*) override;
   int End(PHCompositeNode*) override;
-  
+
   // deprecated calls
   inline void set_sc_calib_mode(const bool) {}
   inline void set_collision_rate(const double) {}
@@ -77,7 +77,7 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   unsigned int _max_tpc_layer = 55;
 
   // pt cut for field-on data
-  float _pt_cut = 0.5;
+  float _pt_cut = 0.2;
 
   // delta_phi window between the last cluster in the tracklet and the projection
   float _dphi_cut = 0.9;
@@ -90,7 +90,7 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   TrackSeedContainer* _si_track_map{nullptr};
 
   std::string _clustermap_name = "TRKR_CLUSTER";
-  
+
   //! default rphi search window for each layer
   std::array<double, _n_mm_layers> _rphi_search_win{0.25, 13.0};
 

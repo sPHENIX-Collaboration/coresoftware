@@ -7,6 +7,10 @@
 
 #include <Acts/Definitions/Algebra.hpp>
 
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
+
 namespace
 {
   /// square
@@ -149,9 +153,16 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
     Acts::Vector3 world,
     TrkrDefs::subsurfkey& subsurfkey) const
 {
+  // Assume that the world coordinates are in the sPHENIX frame, where the TPC is tilted
+  // We convert the position to tpc envelope coordinates, where we know where everything is
+  Acts::Vector3 world_envelope = transformTpcWorldToEnvelope(world);
+  double world_phi = atan2(world_envelope[1], world_envelope[0]);
+
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   unsigned int side = TpcDefs::getSide(hitsetkey);
-  
+  unsigned int sector = TpcDefs::getSectorId(hitsetkey);
+ 
+  // returns an iterator to all of the surfaces for this layer
   auto mapIter = m_surfMaps.m_tpcSurfaceMap.find(layer);
 
   if (mapIter == m_surfMaps.m_tpcSurfaceMap.end())
@@ -160,11 +171,46 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
               << hitsetkey << std::endl;
     return nullptr;
   }
-  double world_phi = atan2(world[1], world[0]);
 
   const auto& surf_vec = mapIter->second;
   unsigned int surf_index = 999;
 
+  // Apparently, tilting the TPC leads to the surfaces not being sorted in phi in the outer layers
+  // just test all surfaces in each layer for now
+  for(unsigned int isurf = 0; isurf < surf_vec.size(); ++isurf)
+    {
+      Surface this_surf = surf_vec[isurf];
+      auto surf_center = this_surf->center(m_tGeometry.getGeoContext());
+      surf_center /= 10.0;   // convert from mm to cm
+      //this surface center includes the TPC tilt used in PHG4TpcDetector construction, transform it to tpc envelope coordinates
+      Acts::Vector3 surf_center_envelope = transformTpcWorldToEnvelope(surf_center);
+      double surf_phi = atan2(surf_center_envelope[1], surf_center_envelope[0]);  
+      double surfStepPhi = m_tGeometry.tpcSurfStepPhi;
+
+      const double dphi = std::atan2(std::sin(world_phi - surf_phi), std::cos(world_phi - surf_phi));
+      if (std::abs(dphi) <= surfStepPhi / 2.0)
+	{
+	  if(surf_center_envelope.z() < 0 && side != 0) { continue; }
+	  if(surf_center_envelope.z() > 0 && side != 1) { continue; }
+	  surf_index = isurf;
+	  subsurfkey = isurf;
+	  break;
+	}            
+    }  
+
+  if(surf_index == 999)
+    {
+    std::cout << "Error: surface not found in ActsGeometry::get_tpc_surface_from_coords "
+              << " layer " << layer << " side " << side << " sector " << sector
+	      << " world_phi (deg) " << world_phi* 180.0/M_PI
+	      << "  world[0]  " << world[0] << " world[1] " << world[1]
+	      << " hitsetkey " << hitsetkey << std::endl;
+    return nullptr;
+    }
+
+  return surf_vec[surf_index];
+  
+  /*
   // Predict which surface index this phi and side will correspond to
   // assumes that the vector elements are ordered positive z, -pi to pi, then negative z, -pi to pi
   // we use TPC side from the hitsetkey, since z can be either sign in north and south, depending on crossing
@@ -172,33 +218,38 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
 
   double rounded_nsurf = std::round((double) (surf_vec.size() / 2) * fraction - 0.5);  // NOLINT
   unsigned int nsurfm = (unsigned int) rounded_nsurf;
-
+ std::cout << " surf_vec.size " << surf_vec.size() << " rounded_nsurf " << rounded_nsurf << " initial nsurfm " << nsurfm << std::endl;
+  
   if (side == 0)
   {
     nsurfm += surf_vec.size() / 2;
   }
   unsigned int nsurf = nsurfm % surf_vec.size();
   Surface this_surf = surf_vec[nsurf];
-  //std::cout << "    world_phi " << world_phi << " fraction " << fraction << " rounded_nsurf " << rounded_nsurf << " nsurfm " << nsurfm << " nsurf " << nsurf << std::endl;
-  
-  auto vec3d = this_surf->center(m_tGeometry.getGeoContext());
-  std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
-  double surf_phi = atan2(surf_center[1], surf_center[0]);
+  auto surf_center = this_surf->center(m_tGeometry.getGeoContext());
+  surf_center /= 10.0;   // convert from mm to cm
+  //this surface center is from the default geometry, which includes the TPC tilt used in PHG4TpcDetector construction
+  // transform it to tpc envelope coordinates
+  Acts::Vector3 surf_center_envelope = m_tpc_world_envelope_transform * surf_center;
+
+  double surf_phi = atan2(surf_center_envelope[1], surf_center_envelope[0]);  
   double surfStepPhi = m_tGeometry.tpcSurfStepPhi;
-  //  std::cout << "    surf_phi " << surf_phi << " surfStepPhi " << surfStepPhi  << " nsurf " << nsurf << std::endl;
   
-  if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
+  if ((world_phi > surf_phi - surfStepPhi / 2.0) && (world_phi < surf_phi + surfStepPhi / 2.0))
   {
     surf_index = nsurf;
     subsurfkey = nsurf;
+    std::cout << "success, found nsurf = " << nsurf << std::endl;
   }
   else
   {
     // check for the periodic boundary condition
     auto firstsurf = *surf_vec.begin();
-    auto firstsurfcenter = firstsurf->center(geometry().getGeoContext());
-    float firstsurf_phi = atan2(firstsurfcenter[1], firstsurfcenter[0]);
-    if (world_phi < firstsurf_phi - surfStepPhi / 2.0)
+    auto firstsurfcenter = firstsurf->center(m_tGeometry.getGeoContext());
+    firstsurfcenter /= 10.0;
+    auto firstsurfcenter_envelope = m_tpc_world_envelope_transform * firstsurfcenter;
+    double firstsurf_phi = atan2(firstsurfcenter_envelope[1], firstsurfcenter_envelope[0]);
+    if (world_phi < -M_PI)
     {
       world_phi += 2.0 * M_PI;
     }
@@ -211,12 +262,16 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
       }
       unsigned int new_nsurf = (nsurf+i) % surf_vec.size();
       this_surf = surf_vec[new_nsurf];
-      vec3d = this_surf->center(geometry().getGeoContext());
-      surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
-      surf_phi = atan2(surf_center[1], surf_center[0]);
-      //std::cout << "    new world_phi " << world_phi << " new surf_phi " << surf_phi  << " new_nsurf " << new_nsurf << std::endl;
-      if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
+      surf_center = this_surf->center(m_tGeometry.getGeoContext());
+      surf_center /= 10.0;
+      surf_center_envelope = m_tpc_world_envelope_transform * surf_center;
+      surf_phi = atan2(surf_center_envelope[1], surf_center_envelope[0]);
+      double this_philow =  surf_phi - surfStepPhi / 2.0;
+      double this_phihigh =  surf_phi + surfStepPhi / 2.0;
+      
+      if ((world_phi > this_philow) && (world_phi < this_phihigh))
       {
+	std::cout << "success, found nsurf = " << new_nsurf << std::endl;	
         surf_index = new_nsurf;
         subsurfkey = new_nsurf;
         return surf_vec[surf_index];
@@ -224,8 +279,9 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
     }
     return nullptr;
   }
+  */
+  
 
-  return surf_vec[surf_index];
 }
 
 //________________________________________________________________________________________________
@@ -291,3 +347,17 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
 
   return local;
 }
+
+  Acts::Vector3  ActsGeometry::transformTpcWorldToEnvelope(const Acts::Vector3& world) const
+  {
+    Acts::Vector3 envelope = m_tpc_world_envelope_transform * world;
+
+    return envelope;
+  }
+
+  Acts::Vector3  ActsGeometry::transformTpcEnvelopeToWorld(const Acts::Vector3& envelope) const
+  {
+    Acts::Vector3 world = m_tpc_world_envelope_transform.inverse() * envelope;
+
+    return world;
+  }

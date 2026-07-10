@@ -3,7 +3,7 @@
 #include "PHG4TpcDisplayAction.h"
 
 #include <g4detectors/PHG4CellDefs.h>
-#include <g4detectors/PHG4TpcGeomv1.h>
+#include <g4detectors/PHG4TpcGeomv2.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <phparameter/PHParameters.h>
@@ -118,10 +118,36 @@ void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   ConstructTpcCageVolume(tpc_envelope_logic);
   ConstructTpcGasVolume(tpc_envelope_logic);
 
-  new G4PVPlacement(nullptr, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),
+  G4RotationMatrix rot;
+  rot.rotateX(m_Params->get_double_param("rot_x")*rad);
+  rot.rotateY(m_Params->get_double_param("rot_y")*rad);
+  rot.rotateZ(m_Params->get_double_param("rot_z")*rad);
+  
+  G4ThreeVector trans(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm);
+		      
+  new G4PVPlacement(
+		    G4Transform3D(rot, trans),
                     tpc_envelope_logic, "tpc_envelope",
-                    logicWorld, false, false, OverlapCheck());
+                    logicWorld,
+		    false, false, OverlapCheck());
 
+  std::cout
+    << PHWHERE << std::endl
+    << " place_x " << m_Params->get_double_param("place_x")*cm
+    << " place_y " << m_Params->get_double_param("place_y")*cm
+    << " place_z " << m_Params->get_double_param("place_z")*cm
+    << " mm " << std::endl;
+  std::cout
+    << " rot_x " << m_Params->get_double_param("rot_x")*rad
+    << " rot_y " << m_Params->get_double_param("rot_y")*rad
+    << " rot_z " << m_Params->get_double_param("rot_z")*rad
+    << " rad " << std::endl;
+  
+  G4Point3D test_env(0.0*cm, 0.0*cm, 113.025*cm);
+  std::cout << " test envelope position (mm) " << test_env.x() << "  " << test_env.y() << "  " << test_env.z() << std::endl;
+  G4Point3D test_glob = test_env.transform(G4Transform3D(rot,trans));
+  std::cout << " test global position (mm) " << test_glob.x() << "  " << test_glob.y() << "  " << test_glob.z() << std::endl;  
+  
   // geometry node
   add_geometry_node();
 }
@@ -538,7 +564,12 @@ void PHG4TpcDetector::add_geometry_node()
     auto *newNode = new PHIODataNode<PHObject>(geonode, geonode_name, "PHObject");
     geomNode->addNode(newNode);
   }
-
+  else
+    {
+      std::cout << "PHG4TpcGeomContainer already exists with name  " << geonode_name << " and it should not! " << std::endl;
+      geonode->identify();
+    }
+  
   m_cdb = CDBInterface::instance();
   std::string calibdir = m_cdb->getUrl("TPC_FEE_CHANNEL_MAP");
 
@@ -695,7 +726,7 @@ void PHG4TpcDetector::add_geometry_node()
                   << " phibins " << NPhiBins[iregion] << " phistep " << phi_bin_width_cdb[layer] << std::endl;
       }
 
-      auto *layerseggeo = new PHG4TpcGeomv1;
+      auto *layerseggeo = new PHG4TpcGeomv2;
       layerseggeo->set_layer(layer);
 
       double r_length = Thickness[iregion];
@@ -731,6 +762,12 @@ void PHG4TpcDetector::add_geometry_node()
 	layerseggeo->set_adc_clock(m_Params->get_double_param("tpc_adc_clock"));
 	layerseggeo->set_extended_readout_time(m_Params->get_double_param("extended_readout_time"));
 	layerseggeo->set_drift_velocity_sim(m_Params->get_double_param("drift_velocity_sim"));	
+	layerseggeo->set_rot_x(m_Params->get_double_param("rot_x"));
+	layerseggeo->set_rot_y(m_Params->get_double_param("rot_y"));
+	layerseggeo->set_rot_z(m_Params->get_double_param("rot_z"));
+	layerseggeo->set_place_x(m_Params->get_double_param("place_x"));
+	layerseggeo->set_place_y(m_Params->get_double_param("place_y"));
+	layerseggeo->set_place_z(m_Params->get_double_param("place_z"));	
       }
 
       // Chris Pinkenburg: greater causes huge memory growth which causes problems

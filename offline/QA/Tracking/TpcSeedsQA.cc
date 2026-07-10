@@ -73,7 +73,7 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   // global position wrapper
   m_globalPositionWrapper.loadNodes(topNode);
 
-  m_clusterMover.initialize_geometry(g4geom);
+  m_clusterMover.initialize_geometry(g4geom, actsgeom);
   m_clusterMover.set_verbosity(0);
 
   auto *hm = QAHistManagerDef::getHistoManager();

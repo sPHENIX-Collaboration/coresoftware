@@ -11,7 +11,7 @@ MicromegasRawHitv3::MicromegasRawHitv3(MicromegasRawHit *source)
   {
     once = false;
     std::cout << "MicromegasRawHitv3::MicromegasRawHitv3(MicromegasRawHit *tpchit) - "
-              << "WARNING: This moethod is slow and should be avoided as much as possible! Please use the move constructor."
+              << "WARNING: This method is slow and should be avoided as much as possible! Please use the move constructor."
               << std::endl;
   }
 

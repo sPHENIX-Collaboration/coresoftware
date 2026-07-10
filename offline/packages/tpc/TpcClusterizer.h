@@ -91,6 +91,11 @@ public:
     m_hotChannelMapName = hmap;
   }
 
+  void DetailedClusterAnalysis()
+  {
+    m_debug = true;
+  }
+
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4TpcGeom *layergeom) const;
   bool record_ClusHitsVerbose{false};
@@ -135,6 +140,7 @@ public:
   bool m_maskDeadChannels {false};
   bool m_maskHotChannels {false};
   bool m_maskFromFile {false};
+  bool m_debug{false};
   std::string m_deadChannelMapName; 
   std::string m_hotChannelMapName;
 };

@@ -71,14 +71,14 @@ class SpinDBContent : public PHObject
   virtual int GetBadRunFlag() const = 0;
   virtual int GetCrossingShift() const = 0;
 
-  virtual int GetPolarizationBlue(int, float&, float&) const { return -1; }
-  virtual int GetPolarizationBlue(int, float&, float&, float&) const { return -1; }
-  virtual int GetPolarizationBlue(int, double&, double&) const { return -1; }
-  virtual int GetPolarizationBlue(int, double&, double&, double&) const { return -1; }
-  virtual int GetPolarizationYellow(int, float&, float&) const { return -1; }
-  virtual int GetPolarizationYellow(int, float&, float&, float&) const { return -1; }
-  virtual int GetPolarizationYellow(int, double&, double&) const { return -1; }
-  virtual int GetPolarizationYellow(int, double&, double&, double&) const { return -1; }
+  virtual int GetPolarizationBlue(int, float&, float&) const;
+  virtual int GetPolarizationBlue(int, float&, float&, float&) const;
+  virtual int GetPolarizationBlue(int, double&, double&) const;
+  virtual int GetPolarizationBlue(int, double&, double&, double&) const;
+  virtual int GetPolarizationYellow(int, float&, float&) const;
+  virtual int GetPolarizationYellow(int, float&, float&, float&) const;
+  virtual int GetPolarizationYellow(int, double&, double&) const;
+  virtual int GetPolarizationYellow(int, double&, double&, double&) const;
 
   virtual int GetSpinPatternBlue(int) const { return -1; }
   virtual int GetSpinPatternYellow(int) const { return -1; }

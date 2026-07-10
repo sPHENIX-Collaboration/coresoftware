@@ -10,14 +10,6 @@ void TowerInfoSimv1::Reset()
   return;
 }
 
-void TowerInfoSimv1::Clear(Option_t* /*unused*/)
-{
-  TowerInfov2::Clear();
-  _hitedeps.clear();
-  _showeredeps.clear();
-  return;
-}
-
 void TowerInfoSimv1::copy_tower(TowerInfo* tower)
 {
   TowerInfov2::copy_tower(tower);

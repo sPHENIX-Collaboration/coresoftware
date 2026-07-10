@@ -8,6 +8,8 @@
 
 #include "TpcSpaceChargeMatrixContainerv2.h"
 
+#include <numeric>
+
 //___________________________________________________________
 TpcSpaceChargeMatrixContainerv2::TpcSpaceChargeMatrixContainerv2()
 {
@@ -55,6 +57,10 @@ int TpcSpaceChargeMatrixContainerv2::get_cell_index(int iphi, int ir, int iz) co
   }
   return iz + m_zbins * (ir + m_rbins * iphi);
 }
+
+//___________________________________________________________
+int TpcSpaceChargeMatrixContainerv2::get_entries() const
+{ return std::accumulate( m_entries.begin(), m_entries.end(), 0); }
 
 //___________________________________________________________
 int TpcSpaceChargeMatrixContainerv2::get_entries(int cell_index) const

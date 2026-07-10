@@ -252,6 +252,8 @@ void PHTruthTrackSeeding::buildTrackSeed(const std::vector<TrkrDefs::cluskey>& c
   // This method is called separately for silicon and tpc seeds
 
   auto track = std::make_unique<TrackSeed_FastSim_v2>();
+  track->set_truth_track_id(g4particle->get_track_id());
+
   bool silicon = false;
   bool tpc = false;
   for (const auto& cluskey : clusters)

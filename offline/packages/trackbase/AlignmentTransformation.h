@@ -11,15 +11,18 @@
 #include <random>
 
 class PHCompositeNode;
-
+class PHG4TpcGeomContainer;
 class ActsGeometry;
 
 class AlignmentTransformation
 {
  public:
+
+  /// constructor
   AlignmentTransformation() = default;
 
-  ~AlignmentTransformation() {}
+  /// destructor
+  ~AlignmentTransformation() = default;
 
   void createMap(PHCompositeNode* topNode);
   void createAlignmentTransformContainer(PHCompositeNode* topNode);
@@ -33,6 +36,9 @@ class AlignmentTransformation
   Eigen::Vector3d perturbationAngles = Eigen::Vector3d(0.0, 0.0, 0.0);
   Eigen::Vector3d perturbationAnglesGlobal = Eigen::Vector3d(0.0, 0.0, 0.0);
   Eigen::Vector3d perturbationTranslation = Eigen::Vector3d(0.0, 0.0, 0.0);
+
+  /// assign local alignment parameter file to be used instead of CDB, if found
+  void setAlignmentParamsFile(const std::string& value ) { alignmentParamsFile = value; }
 
   void setMVTXParams(double mvtxDevs[6])
   {
@@ -129,14 +135,14 @@ private:
   bool use_new_silicon_rotation_order = false;
   bool use_module_tilt_always = false;
   bool use_module_tilt = false;   // starts at false in all cases
-  
+
   bool use_intt_survey_geometry = false;
-  
+
   Acts::Transform3 newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& localFrameTranslation, Eigen::Vector3d& sensorAnglesGlobal, unsigned int trkrid, bool survey);
 
-  Eigen::Vector3d getTpcLocalFrameTranslation(float moduleRadius, float layerRadius, Eigen::Vector3d& localRotation) const; 
+  Eigen::Vector3d getTpcLocalFrameTranslation(float moduleRadius, float layerRadius, Eigen::Vector3d& localRotation) const;
   void extractModuleCenterPositions();
-  double extractModuleCenter(TrkrDefs::hitsetkey hitsetkey, double sectorphi);  
+  double extractModuleCenter(TrkrDefs::hitsetkey hitsetkey, double sectorphi);
 
   alignmentTransformationContainer* transformMap = NULL;
   alignmentTransformationContainer* transformMapTransient = NULL;
@@ -148,6 +154,8 @@ private:
   float TpcModuleRadii[2][12][3] = {}; // module radial center in local coords
   unsigned int innerLayer[3] = {};
   double sectorPhi[2][12] = {};
+
+  PHG4TpcGeomContainer *m_tpccellgeo = nullptr;
 };
 
 #endif
