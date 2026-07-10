@@ -7,7 +7,7 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
-#include <trackbase/TrkrHitv2.h>
+#include <trackbase/TrkrHitv3.h>
 
 #include <ffarawobjects/Gl1RawHit.h>
 #include <ffarawobjects/Gl1Packet.h>
@@ -499,7 +499,7 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
       }
       
 
-      hit = new TrkrHitv2;
+      hit = new TrkrHitv3;
       //--hit->setAdc(adc);
       hit->setAdc(dac);
       hit->setFPHXBCO(intthit->get_FPHX_BCO());

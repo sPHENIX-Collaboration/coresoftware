@@ -13,8 +13,6 @@ void TrkrHitv1::CopyFrom(const TrkrHit& source)
 
   // copy adc
   setAdc(source.getAdc());
-  setFPHXBCO(source.getFPHXBCO());
-  setBCO(source.getBCO());
 }
 
 unsigned int TrkrHitv1::getAdc() const
