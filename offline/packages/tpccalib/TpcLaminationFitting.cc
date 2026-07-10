@@ -75,6 +75,9 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
     //m_parameterScan[s] = new TH2D((boost::format("parameterScan_%s") %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("TPC %s Lamination Parameter Scan;m;B") %(s == 1 ? "North" : "South")).str().c_str(), 101, -0.101, 0.101, 101, -10.1, 10.1);
     //m_parameterScan[s] = new TH2D((boost::format("parameterScan_%s") %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("TPC %s Lamination Parameter Scan;A (asymptote);C (decay constant)") %(s == 1 ? "North" : "South")).str().c_str(), 101, -1.005, 0.005, 101, -0.0025, 0.5025);
 
+
+    clusterMap[s] = new TH2D((boost::format("clusterMap_%s") %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("TPC %s;#phi;R [cm]") %(s == 1 ? "North" : "South")).str().c_str(), 2000, 0.0, 2*TMath::Pi(), 2000, 28, 80);
+
     for (int l = 0; l < 18; l++)
     {
       double shift = (l * M_PI / 9);
@@ -422,8 +425,10 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
     }
 
     TVector3 tmp_pos(pos[0], pos[1], pos[2]);
+
     if(cmclus->getNLayers() > m_nLayerCut && (!m_useSDLayerCut || cmclus->getSDWeightedLayer() > 0.5))
     {
+      clusterMap[side]->Fill(tmp_pos.Phi(), tmp_pos.Perp(), weight);
       for (int l = 0; l < 18; l++)
       {
 	      double shift = m_laminationIdeal[l][side];
@@ -1175,6 +1180,7 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
   
   for(int s=0; s<2; s++)
   {
+    clusterMap[s]->Write();
     for(int l=0; l<18; l++)
     {
       m_side = s;

@@ -115,6 +115,8 @@ class TpcLaminationFitting : public SubsysReco
   TH2 *phiDistortionLamination[2]{nullptr};
   //TH2 *scaleFactorMap[2]{nullptr};
 
+  TH2 *clusterMap[2]{nullptr};
+
   unsigned int m_nLayerCut{1};
   bool m_useSDLayerCut{true};
   bool m_adcWeight{false};
