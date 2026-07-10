@@ -1956,8 +1956,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float maxadc = -999;
 	  float padcen = -999.;
 	  float tbincen = -999.;
-	  float padmax = -999;
-	  float tbinmax = -999;
+	  float padmax = -999.;
+	  float tbinmax = -999.;
           float redge = std::numeric_limits<float>::quiet_NaN();
           float pedge = std::numeric_limits<float>::quiet_NaN();
 	  float sledge = std::numeric_limits<float>::quiet_NaN();
@@ -2350,11 +2350,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float size = 0;
           float phisize = 0;
           float zsize = 0;
-          float maxadc = -999;
+          float maxadc = -999.;
 	  float padcen = -999.;
 	  float tbincen = -999.;
-	  float padmax = 999;
-	  float tbinmax= 999;
+	  float padmax = -999.;
+	  float tbinmax= -999.;
           float redge = std::numeric_limits<float>::quiet_NaN();
           float pedge = std::numeric_limits<float>::quiet_NaN();
 	  float sledge = std::numeric_limits<float>::quiet_NaN();
