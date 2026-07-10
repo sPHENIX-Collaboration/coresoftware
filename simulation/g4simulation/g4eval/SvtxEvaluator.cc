@@ -1953,7 +1953,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float size = 0;
           float phisize = 0;
           float zsize = 0;
-          float maxadc = -999;
+          float maxadc = -999.;
 	  float padcen = -999.;
 	  float tbincen = -999.;
 	  float padmax = -999.;
