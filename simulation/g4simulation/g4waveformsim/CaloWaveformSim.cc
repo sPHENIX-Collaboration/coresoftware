@@ -514,7 +514,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       {
         waveform_pedestal_vector.at(j) = (j < pedestalsamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(pedestalsamples - 1);
         pedestal_mean += waveform_pedestal_vector.at(j);
-	if (Verbosity() > 2 && pedestal_tower->get_waveform_value(j) < 100)
+	if (Verbosity() > 1 && pedestal_tower->get_waveform_value(j) == 0)
 	{
 	  std::cout << Name() << " channel: " << j << " too small pedestal value for index " << j << ": " << pedestal_tower->get_waveform_value(j) << std::endl;
 	  pedestal_tower->identify();
@@ -530,7 +530,14 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     {
       if (m_noiseType == NoiseType::NOISE_TREE)
       {
-        m_waveforms.at(i).at(j) += waveform_pedestal_vector.at(j);
+	if (waveform_pedestal_vector.at(j) == 0)
+	{
+	  m_waveforms.at(i).at(j) = 0;
+	}
+	else
+	{
+          m_waveforms.at(i).at(j) += waveform_pedestal_vector.at(j);
+	}
       }
       if (m_noiseType == NoiseType::NOISE_GAUSSIAN)
       {
