@@ -302,22 +302,22 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
   double ohcal_lead_on = 1;
   double ohcal_sublead_on = 1;
 	  
-  if (std::isnan(b_reco_jet_emcal_zmean->at(dijet_index[0]))) emcal_lead_on = 0;//maxz_EM <<","
-  if (std::isnan(b_reco_jet_emcal_zsig->at(dijet_index[0]))) emcal_lead_on = 0;//maxz_EM <<","
-  if (std::isnan(b_reco_jet_emcal_zskew->at(dijet_index[0]))) emcal_lead_on = 0;//maxz_EM <<","
-  if (std::isnan(b_reco_jet_emcal->at(dijet_index[0]))) emcal_lead_on = 0;//<","
-  if (std::isnan(b_reco_jet_ohcal_zmean->at(dijet_index[0]))) ohcal_lead_on = 0;//maxz_OH <<","
-  if (std::isnan(b_reco_jet_ohcal_zsig->at(dijet_index[0]))) ohcal_lead_on = 0;//maxz_OH <<","
-  if (std::isnan(b_reco_jet_ohcal_zskew->at(dijet_index[0]))) ohcal_lead_on = 0;//maxz_OH <<","
-  if (std::isnan(b_reco_jet_ohcal->at(dijet_index[0]))) ohcal_lead_on = 0;//<","
-  if (std::isnan(b_reco_jet_emcal_zmean->at(dijet_index[1]))) emcal_sublead_on = 0;//maxz_EM <<","
-  if (std::isnan(b_reco_jet_emcal_zsig->at(dijet_index[1]))) emcal_sublead_on = 0;//maxz_EM <<","
-  if (std::isnan(b_reco_jet_emcal_zskew->at(dijet_index[1]))) emcal_sublead_on = 0;//maxz_EM <<","
-  if (std::isnan(b_reco_jet_emcal->at(dijet_index[1]))) emcal_sublead_on = 0;//<","
-  if (std::isnan(b_reco_jet_ohcal_zmean->at(dijet_index[1]))) ohcal_sublead_on = 0;//maxz_OH <<","
-  if (std::isnan(b_reco_jet_ohcal_zsig->at(dijet_index[1]))) ohcal_sublead_on = 0;//maxz_OH <<","
-  if (std::isnan(b_reco_jet_ohcal_zskew->at(dijet_index[1]))) ohcal_sublead_on = 0;//maxz_OH <<","
-  if (std::isnan(b_reco_jet_ohcal->at(dijet_index[1]))) ohcal_sublead_on = 0;//<","
+  if (std::isnan(b_reco_jet_emcal_zmean->at(dijet_index[0]))) { emcal_lead_on = 0; }//maxz_EM <<","
+  if (std::isnan(b_reco_jet_emcal_zsig->at(dijet_index[0]))) { emcal_lead_on = 0; }//maxz_EM <<","
+  if (std::isnan(b_reco_jet_emcal_zskew->at(dijet_index[0]))) { emcal_lead_on = 0; }//maxz_EM <<","
+  if (std::isnan(b_reco_jet_emcal->at(dijet_index[0]))) { emcal_lead_on = 0; }//<","
+  if (std::isnan(b_reco_jet_ohcal_zmean->at(dijet_index[0]))) { ohcal_lead_on = 0; }//maxz_OH <<","
+  if (std::isnan(b_reco_jet_ohcal_zsig->at(dijet_index[0]))) { ohcal_lead_on = 0; }//maxz_OH <<","
+  if (std::isnan(b_reco_jet_ohcal_zskew->at(dijet_index[0]))) { ohcal_lead_on = 0; }//maxz_OH <<","
+  if (std::isnan(b_reco_jet_ohcal->at(dijet_index[0]))) { ohcal_lead_on = 0; }//<","
+  if (std::isnan(b_reco_jet_emcal_zmean->at(dijet_index[1]))) { emcal_sublead_on = 0; }//maxz_EM <<","
+  if (std::isnan(b_reco_jet_emcal_zsig->at(dijet_index[1]))) { emcal_sublead_on = 0; }//maxz_EM <<","
+  if (std::isnan(b_reco_jet_emcal_zskew->at(dijet_index[1]))) { emcal_sublead_on = 0; }//maxz_EM <<","
+  if (std::isnan(b_reco_jet_emcal->at(dijet_index[1]))) { emcal_sublead_on = 0; }//<","
+  if (std::isnan(b_reco_jet_ohcal_zmean->at(dijet_index[1]))) { ohcal_sublead_on = 0; }//maxz_OH <<","
+  if (std::isnan(b_reco_jet_ohcal_zsig->at(dijet_index[1]))) { ohcal_sublead_on = 0; }//maxz_OH <<","
+  if (std::isnan(b_reco_jet_ohcal_zskew->at(dijet_index[1]))) { ohcal_sublead_on = 0; }//maxz_OH <<","
+  if (std::isnan(b_reco_jet_ohcal->at(dijet_index[1]))) { ohcal_sublead_on = 0; }//<","
 
   float emcal_lead_z_moments[4] = {b_reco_jet_emcal_zmean->at(dijet_index[0]),
     b_reco_jet_emcal_zsig->at(dijet_index[0]),
@@ -338,30 +338,30 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
 
   if (!emcal_lead_on)
     {
-      for (int i = 0; i < 4; i++)
+      for (float & emcal_lead_z_moment : emcal_lead_z_moments)
 	{
-	  emcal_lead_z_moments[i] = 0;
+	  emcal_lead_z_moment = 0;
 	}
     }
   if (!emcal_sublead_on)
     {
-      for (int i = 0; i < 4; i++)
+      for (float & emcal_sublead_z_moment : emcal_sublead_z_moments)
 	{
-	  emcal_sublead_z_moments[i] = 0;
+	  emcal_sublead_z_moment = 0;
 	}
     }
   if (!ohcal_lead_on)
     {
-      for (int i = 0; i < 4; i++)
+      for (float & ohcal_lead_z_moment : ohcal_lead_z_moments)
 	{
-	  ohcal_lead_z_moments[i] = 0;
+	  ohcal_lead_z_moment = 0;
 	}
     }
   if (!ohcal_sublead_on)
     {
-      for (int i = 0; i < 4; i++)
+      for (float & ohcal_sublead_z_moment : ohcal_sublead_z_moments)
 	{
-	  ohcal_sublead_z_moments[i] = 0;
+	  ohcal_sublead_z_moment = 0;
 	}
     }
   // {

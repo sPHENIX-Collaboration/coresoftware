@@ -151,7 +151,7 @@ int CaloVtxAlgoJetSkew::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
 	zvtx = testz;
       }
   }
-  if (fabs(zvtx) >= 305)
+  if (std::fabs(zvtx) >= 305)
     {
       zvtx = std::numeric_limits<float>::quiet_NaN();
     }

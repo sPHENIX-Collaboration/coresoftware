@@ -32,7 +32,7 @@ class CaloVtxReco : public SubsysReco
   void registerAlgo(CaloVtxAlgo* algo) { m_algos.push_back(std::move(algo)); }
   
  private:
-  std::vector<CaloVtxAlgo*> m_algos;
+  std::vector<CaloVtxAlgo*> m_algos{};
   
   CaloVertexMap *m_calovtxmap{nullptr};
 };
