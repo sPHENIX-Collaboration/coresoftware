@@ -303,7 +303,11 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 	  {
 	    vertex->clone_insert_vtx(GlobalVertex::CALO_JETMLP, calo);
 	  }
-	vertex->set_id(globalmap->size());	
+	if (caloalgo == VertexDefs::CALOALGO::CNN)
+	  {
+	    vertex->clone_insert_vtx(GlobalVertex::CALO_CNN, calo);
+	  }
+	vertex->set_id(globalmap->size());
 
 	used_calo_vtxids.insert(calo->get_id());
 	
