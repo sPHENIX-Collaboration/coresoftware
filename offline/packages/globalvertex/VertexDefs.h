@@ -15,7 +15,8 @@ namespace VertexDefs
       UNDEFINED=0,
       JETSKEW=1,
       AVGZ=2,
-      JETMLP=3
+      JETMLP=3,
+      CNN=4
     };
 };
 #endif

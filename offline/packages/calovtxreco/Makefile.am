@@ -15,6 +15,7 @@ pkginclude_HEADERS = \
   CaloVtxAlgoJetSkew.h \
   CaloVtxAlgoCaloZ.h \
   CaloVtxAlgoMLP.h \
+  CaloVtxAlgoCNN.h \
   VertexMLP.h
 
 lib_LTLIBRARIES = \
@@ -24,13 +25,15 @@ libcalovtxreco_la_SOURCES = \
   CaloVtxReco.cc \
   CaloVtxAlgoJetSkew.cc \
   CaloVtxAlgoCaloZ.cc \
-  CaloVtxAlgoMLP.cc
+  CaloVtxAlgoMLP.cc \
+  CaloVtxAlgoCNN.cc
 
 libcalovtxreco_la_LIBADD = \
   -lcalo_io \
   -lSubsysReco \
   -ljetbase \
-  -lglobalvertex_io
+  -lglobalvertex_io \
+  -lonnxruntime
 
 BUILT_SOURCES = testexternals.cc
 

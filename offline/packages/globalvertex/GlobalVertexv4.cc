@@ -148,6 +148,12 @@ float GlobalVertexv4::get_position(unsigned int coor) const
 	{
 	  return caloit->second[0]->get_position(coor);
 	}
+
+      caloit = find_vertexes(GlobalVertex::VTXTYPE::CALO_CNN);
+      if (caloit != _vtxs.end())
+	{
+	  return caloit->second[0]->get_position(coor);
+	}
       caloit = find_vertexes(GlobalVertex::VTXTYPE::ZERO);
       if (caloit != _vtxs.end())
 	{
