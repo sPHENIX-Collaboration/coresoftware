@@ -16,6 +16,7 @@ pkginclude_HEADERS = \
   CaloVtxAlgoCaloZ.h \
   CaloVtxAlgoMLP.h \
   CaloVtxAlgoCNN.h \
+  CaloVtxAlgoVit.h \
   VertexMLP.h
 
 lib_LTLIBRARIES = \
@@ -26,7 +27,8 @@ libcalovtxreco_la_SOURCES = \
   CaloVtxAlgoJetSkew.cc \
   CaloVtxAlgoCaloZ.cc \
   CaloVtxAlgoMLP.cc \
-  CaloVtxAlgoCNN.cc
+  CaloVtxAlgoCNN.cc \
+  CaloVtxAlgoVit.cc
 
 libcalovtxreco_la_LIBADD = \
   -lcalo_io \

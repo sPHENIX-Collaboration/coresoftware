@@ -307,6 +307,10 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 	  {
 	    vertex->clone_insert_vtx(GlobalVertex::CALO_CNN, calo);
 	  }
+	if (caloalgo == VertexDefs::CALOALGO::VIT)
+	  {
+	    vertex->clone_insert_vtx(GlobalVertex::CALO_VIT, calo);
+	  }
 	vertex->set_id(globalmap->size());
 
 	used_calo_vtxids.insert(calo->get_id());
