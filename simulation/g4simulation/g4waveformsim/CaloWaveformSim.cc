@@ -535,6 +535,9 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     {
       if (m_noiseType == NoiseType::NOISE_TREE)
       {
+	// set samples which have zero pedestal (dead channels in real data) to zero
+	// they are supposed to be masked out later, so this is just a safeguard in case
+	// that changes or doesn't work
         if (waveform_pedestal_vector.at(j) == 0)
         {
           m_waveforms.at(i).at(j) = 0;
