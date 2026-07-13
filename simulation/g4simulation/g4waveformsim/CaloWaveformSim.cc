@@ -525,7 +525,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       {
         // only modify the waveform_pedestal_vector if it is > 0, otherwise there is something wrong with the pedestal
         // (for dead channels all samples of the waveform are zero). Doing it this way will also catch single zero samples
-        if (waveform_pedestal_vector.at(j) == 0)
+        if (waveform_pedestal_vector.at(j) != 0)
         {
           waveform_pedestal_vector.at(j) = (waveform_pedestal_vector.at(j) - pedestal_mean) * m_pedestal_scale + pedestal_mean;
         }
