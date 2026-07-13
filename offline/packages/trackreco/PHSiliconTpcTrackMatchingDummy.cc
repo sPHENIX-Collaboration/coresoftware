@@ -195,7 +195,7 @@ int PHSiliconTpcTrackMatchingDummy::process_event(PHCompositeNode * /*unused*/)
     cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << endl;
   }
 
-  if (_track_map->size() == 0)
+  if (_track_map_silicon->size() == 0)
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
@@ -222,7 +222,12 @@ int PHSiliconTpcTrackMatchingDummy::process_event(PHCompositeNode * /*unused*/)
       cout << " Si track " << trackid << " crossing " << crossing << endl;
     }
     auto dummy = std::make_unique<TrackSeed_v2>();
-
+    dummy->set_qOverR(_tracklet_si->get_qOverR());
+    dummy->set_phi(_tracklet_si->get_phi());
+    dummy->set_X0(_tracklet_si->get_X0());
+    dummy->set_Y0(_tracklet_si->get_Y0());
+    dummy->set_Z0(_tracklet_si->get_Z0());
+    dummy->set_slope(_tracklet_si->get_slope());
     
     auto svtxseed = std::make_unique<SvtxTrackSeed_v2>();
     svtxseed->set_silicon_seed_index(si_id);
@@ -233,6 +238,7 @@ int PHSiliconTpcTrackMatchingDummy::process_event(PHCompositeNode * /*unused*/)
     _track_map->insert(dummy.get());
     _svtx_seed_map->insert(svtxseed.get());
 
+    si_id++;
     if (Verbosity() > 1)
     {
       std::cout << "  combined seed id " << _svtx_seed_map->size() - 1 << " si id " << si_id << " tpc id " << si_id << " crossing estimate " << crossing << std::endl;

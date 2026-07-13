@@ -173,8 +173,14 @@ void ActsAlignmentStates::fillAlignmentStateMap(
 
     // Get the derivative of alignment (global) parameters w.r.t. measurement or residual
     /// The local bound parameters still have access to global phi/theta
+    const double l0 = state.smoothed()[Acts::eBoundLoc0];
+    const double l1 = state.smoothed()[Acts::eBoundLoc1];
     const double phi = state.smoothed()[Acts::eBoundPhi];
     const double theta = state.smoothed()[Acts::eBoundTheta];
+    const double qoverp = state.smoothed()[Acts::eBoundQOverP];
+    const double time = state.smoothed()[Acts::eBoundTime];
+
+    SvtxAlignmentState::ActsTrackParamsVector track_params = {l0,l1,phi,theta,qoverp,time};
 
     Acts::Vector3 tangent = Acts::makeDirectionFromPhiTheta(phi,theta);
 
@@ -217,6 +223,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(
     svtxstate->set_residual(localResidual);
     svtxstate->set_local_derivative_matrix(localDeriv);
     svtxstate->set_global_derivative_matrix(globDeriv);
+    svtxstate->set_acts_track_params(track_params);
     svtxstate->set_cluster_key(ckey);
 
     statevec.push_back(svtxstate.release());

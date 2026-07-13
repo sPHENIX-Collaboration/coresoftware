@@ -97,10 +97,10 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
     m_ntuple = new TNtuple (
       "ntp", "ntp",
       "layer:residualX:residualY:clusphi:xglob:yglob:zglob:"
-      "errX:errY:"
-      "dXdR:dXdZ0:dXdphi:dXdtheta:dXdqoverp:dXdt"
+      "errX:errY:l0:l1:phi:theta:qoverp:time:"
+      "dXdR:dXdZ0:dXdphi:dXdtheta:dXdqoverp:dXdt:"
       "dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:"
-      "dYdR:dYdZ0:dYdphi:dYdtheta:dYdqoverp:dYdt"
+      "dYdR:dYdZ0:dYdphi:dYdtheta:dYdqoverp:dYdt:"
       "dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz"
     );
     m_ntuple->SetDirectory(m_file);
@@ -483,6 +483,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     if(m_ignore_tpc && trkrid == TrkrDefs::tpcId)
       continue;
     const SvtxAlignmentState::ResidualVector residual = state->get_residual();// / Acts::UnitConstants::cm;
+    //auto acts_pars = state->parameters();
+    //std::cout<<"acts_par(0): "<<acts_pars(0)<<std::endl;
     const Acts::Vector3 global = _tGeometry->getGlobalPosition(ckey, cluster);
 
     // need standard deviation of measurements
@@ -493,8 +495,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, ckey);
     double phierror = sqrt(para_errors.first);
     double zerror = sqrt(para_errors.second);
-    clus_sigma(1) = zerror;// / Acts::UnitConstants::cm;
-    clus_sigma(0) = phierror;// / Acts::UnitConstants::cm;
+    clus_sigma(1) = zerror * Acts::UnitConstants::cm;
+    clus_sigma(0) = phierror * Acts::UnitConstants::cm;
 
     if (std::isnan(clus_sigma(0)) ||
         std::isnan(clus_sigma(1)))
@@ -529,7 +531,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
 
     float glbl_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NGL]{};
     float lcl_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC]{};
-
+    SvtxAlignmentState::ActsTrackParamsVector lcl_trackpars = state->get_acts_track_params();
+    
     /// For N residual local coordinates x, z
     for (int i = 0; i < SvtxAlignmentState::NRES; ++i)
     {
@@ -626,10 +629,10 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
 
     float ntp_data[] = {
       (float) layer, (float) residual(0), (float) residual(1), (float) clusphi, (float) global[0], (float) global[1], (float) global[2],
-      (float) clus_sigma(0), (float) clus_sigma(1),
-      lcl_derivative[0][0], lcl_derivative[0][1], lcl_derivative[0][2], lcl_derivative[0][3], lcl_derivative[0][4], lcl_derivative[0][5]
+      (float) clus_sigma(0), (float) clus_sigma(1), (float) lcl_trackpars(0), (float) lcl_trackpars(1), (float) lcl_trackpars(2), (float) lcl_trackpars(3), (float) lcl_trackpars(4), (float) lcl_trackpars(5),
+      lcl_derivative[0][0], lcl_derivative[0][1], lcl_derivative[0][2], lcl_derivative[0][3], lcl_derivative[0][4], lcl_derivative[0][5],
       glbl_derivative[0][0], glbl_derivative[0][1], glbl_derivative[0][2], glbl_derivative[0][3], glbl_derivative[0][4], glbl_derivative[0][5],
-      lcl_derivative[1][0], lcl_derivative[1][1], lcl_derivative[1][2], lcl_derivative[1][3], lcl_derivative[1][4], lcl_derivative[1][5]
+      lcl_derivative[1][0], lcl_derivative[1][1], lcl_derivative[1][2], lcl_derivative[1][3], lcl_derivative[1][4], lcl_derivative[1][5],
       glbl_derivative[1][0], glbl_derivative[1][1], glbl_derivative[1][2], glbl_derivative[1][3], glbl_derivative[1][4], glbl_derivative[1][5],
     };
 
@@ -714,3 +717,5 @@ bool MakeMilleFiles::is_tpc_sector_fixed(unsigned int layer, unsigned int sector
 
   return ret;
 }
+
+
