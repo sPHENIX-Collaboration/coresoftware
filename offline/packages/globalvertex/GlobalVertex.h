@@ -29,6 +29,7 @@ class GlobalVertex : public PHObject
     CALO_AVGZ = 252,
     CALO_JETMLP = 253,
     CALO_CNN = 254,
+    CALO_VIT = 255,
     MBD_CALO = 350
   };
 

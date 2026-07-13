@@ -16,7 +16,8 @@ namespace VertexDefs
       JETSKEW=1,
       AVGZ=2,
       JETMLP=3,
-      CNN=4
+      CNN=4,
+      VIT=5
     };
 };
 #endif
