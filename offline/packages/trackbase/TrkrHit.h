@@ -15,6 +15,7 @@
 #include <climits>
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 /**
  * @brief Base class for hit object
@@ -60,7 +61,7 @@ class TrkrHit : public PHObject
   // optional per-hit timing payload used by detectors that need to retain
   // the frontend bunch-counter value alongside the digitized hit.
   virtual void setFPHXBCO(const uint16_t) {}
-  virtual uint16_t getFPHXBCO() const { return 0; }
+  virtual uint16_t getFPHXBCO() const { return std::numeric_limits<uint16_t>::max(); }
   virtual void setBCO(const uint64_t) {}
   virtual uint64_t getBCO() const { return 0; }
   /*
