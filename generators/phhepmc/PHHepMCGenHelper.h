@@ -43,9 +43,9 @@ class PHHepMCGenHelper
   enum VTXFUNC
   {
     //! uniform distribution with half width set via set_vertex_distribution_width()
-    Uniform,
+    Uniform = 0,
     //! normal distribution with sigma width set via set_vertex_distribution_width()
-    Gaus
+    Gaus = 1
   };
 
   //! toss a new vertex according to a Uniform or Gaus distribution
