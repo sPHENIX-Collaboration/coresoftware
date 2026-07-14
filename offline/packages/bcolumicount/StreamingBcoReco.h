@@ -34,14 +34,13 @@ class StreamingBcoReco : public SubsysReco
 
  private:
   static int CreateNodeTree(PHCompositeNode *topNode);
-  const int trigbits = 40;
+  //const int trigbits = 40;
   Fun4AllHistoManager *hm = nullptr; 
   TH1 *h_bco_diff = nullptr;
   //TH1 *h_bco_diff_trigbits[40] = {nullptr};
   TH1 *h_bco_tag = nullptr;
 
   uint64_t m_bco{0};
-  int m_bunches = 120;
   int m_evtno{0};
   bool m_usable_bco_tag = false;
   std::pair<uint64_t, uint64_t> m_bco_streaming_window;
