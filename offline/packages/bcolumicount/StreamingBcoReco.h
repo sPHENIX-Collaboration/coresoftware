@@ -37,7 +37,7 @@ class StreamingBcoReco : public SubsysReco
   const int trigbits = 40;
   Fun4AllHistoManager *hm = nullptr; 
   TH1 *h_bco_diff = nullptr;
-  TH1 *h_bco_diff_trigbits[40] = {nullptr};
+  //TH1 *h_bco_diff_trigbits[40] = {nullptr};
   TH1 *h_bco_tag = nullptr;
 
   uint64_t m_bco{0};
