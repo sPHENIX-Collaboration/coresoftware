@@ -39,8 +39,8 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <map>
 
@@ -108,7 +108,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     m_sampling_fraction = 0.162166;
     m_nchannels = 1536;
   }
-  else  if (m_dettype == CaloTowerDefs::HCALOUT)
+  else if (m_dettype == CaloTowerDefs::HCALOUT)
   {
     m_detector = "HCALOUT";
     encode_tower = TowerInfoDefs::encode_hcal;
@@ -394,12 +394,12 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       }
       else
       {
-        float val =  1.0+ gsl_ran_gaussian(m_RandomGenerator,factor_const);
-        if(val < 0.0F)
+        float val = 1.0 + gsl_ran_gaussian(m_RandomGenerator, factor_const);
+        if (val < 0.0F)
         {
           val = 0;
         }
-        tbt_smear[key] = val; 
+        tbt_smear[key] = val;
         e_vis *= tbt_smear[key];
       }
     }
@@ -460,7 +460,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     {
       const unsigned int tower_index = entry.first;
       const double photon_count_mean = entry.second;
-      
+
       double photon_count = photon_count_mean;
       if (m_use_photon_statistics)
       {
@@ -485,7 +485,6 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       }
     }
   }
-
 
   // do noise here and add to waveform
 
@@ -514,23 +513,39 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       {
         waveform_pedestal_vector.at(j) = (j < pedestalsamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(pedestalsamples - 1);
         pedestal_mean += waveform_pedestal_vector.at(j);
-	if (Verbosity() > 2 && pedestal_tower->get_waveform_value(j) < 100)
-	{
-	  std::cout << Name() << " channel: " << j << " too small pedestal value for index " << j << ": " << pedestal_tower->get_waveform_value(j) << std::endl;
-	  pedestal_tower->identify();
-	}
+        // it should be around 5000+, dead channels have zero's but who knows what else is out there in the future
+        if (Verbosity() > 1 && pedestal_tower->get_waveform_value(j) < 1000)
+        {
+          std::cout << Name() << " channel: " << j << " too small pedestal value for index " << j << ": " << pedestal_tower->get_waveform_value(j) << std::endl;
+          pedestal_tower->identify();
+        }
       }
       pedestal_mean /= m_nsamples;
       for (int j = 0; j < m_nsamples; j++)
       {
-        waveform_pedestal_vector.at(j) = (waveform_pedestal_vector.at(j) - pedestal_mean) * m_pedestal_scale + pedestal_mean;
+        // only modify the waveform_pedestal_vector if it is > 0, otherwise there is something wrong with the pedestal
+        // (for dead channels all samples of the waveform are zero). Doing it this way will also catch single zero samples
+        if (waveform_pedestal_vector.at(j) != 0)
+        {
+          waveform_pedestal_vector.at(j) = (waveform_pedestal_vector.at(j) - pedestal_mean) * m_pedestal_scale + pedestal_mean;
+        }
       }
     }
     for (int j = 0; j < m_nsamples; j++)
     {
       if (m_noiseType == NoiseType::NOISE_TREE)
       {
-        m_waveforms.at(i).at(j) += waveform_pedestal_vector.at(j);
+	// set samples which have zero pedestal (dead channels in real data) to zero
+	// they are supposed to be masked out later, so this is just a safeguard in case
+	// that changes or doesn't work
+        if (waveform_pedestal_vector.at(j) == 0)
+        {
+          m_waveforms.at(i).at(j) = 0;
+        }
+        else
+        {
+          m_waveforms.at(i).at(j) += waveform_pedestal_vector.at(j);
+        }
       }
       if (m_noiseType == NoiseType::NOISE_GAUSSIAN)
       {
