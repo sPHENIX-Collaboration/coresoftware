@@ -30,11 +30,13 @@ namespace
 // onnxruntime session (pImpl, keeps Ort types out of the header)
 struct CaloVtxAlgoCNN::OnnxSession
 {
+  //NOLINTBEGIN(misc-non-private-member-variables-in-classes)
   Ort::Env env{ORT_LOGGING_LEVEL_WARNING, "CaloVtxAlgoCNN"};
   Ort::SessionOptions opts;
   std::unique_ptr<Ort::Session> session;
   Ort::MemoryInfo memInfo{
       Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault)};
+// NOLINTEND(misc-non-private-member-variables-in-classes)
 
   explicit OnnxSession(const std::string &path)
   {
@@ -70,13 +72,13 @@ int CaloVtxAlgoCNN::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
   }
 
   double etot = 0.;
-  for (int layer = 0; layer < kNLayer; ++layer)
+  for (auto & layer : m_image)
   {
-    for (int ieta = 0; ieta < kNEtaImg; ++ieta)
+    for (auto & ieta : layer)
     {
-      for (int iphi = 0; iphi < kNPhiImg; ++iphi)
+      for (float iphi : ieta)
       {
-        etot += m_image[layer][ieta][iphi];
+        etot += iphi;
       }
     }
   }
@@ -121,13 +123,13 @@ bool CaloVtxAlgoCNN::predict(float &z)
 // pre-processing: fill the 3-layer tower image from the nodes, including retowering of the EMCAL
 int CaloVtxAlgoCNN::fillTowerImage(PHCompositeNode *topNode)
 {
-  for (int layer = 0; layer < kNLayer; ++layer)
+  for (auto & layer : m_image)
   {
-    for (int ieta = 0; ieta < kNEtaImg; ++ieta)
+    for (auto & ieta : layer)
     {
-      for (int iphi = 0; iphi < kNPhiImg; ++iphi)
+      for (float & iphi : ieta)
       {
-        m_image[layer][ieta][iphi] = 0.;
+        iphi = 0.;
       }
     }
   }

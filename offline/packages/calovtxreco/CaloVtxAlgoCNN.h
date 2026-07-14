@@ -52,9 +52,8 @@ class CaloVtxAlgoCNN : public CaloVtxAlgo
 
   std::unique_ptr<OnnxSession> m_onnx;
 
-  float m_image[kNLayer][kNEtaImg][kNPhiImg]{};
-  double m_rawEmcFine[kNEtaEmcFine][kNPhiEmcFine]{};
-
+  std::array<std::array<std::array<float, kNPhiImg>, kNEtaImg>, kNLayer> m_image{};
+  std::array<std::array<double, kNPhiEmcFine>, kNEtaEmcFine> m_rawEmcFine{};
   bool m_retowerMapReady{false};
   int m_retowerPhiOffset{-1};
   std::array<int, kNEtaImg> m_retowerLowerEta{};

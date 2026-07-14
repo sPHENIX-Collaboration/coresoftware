@@ -19,12 +19,13 @@
 // onnxruntime session (pImpl, keeps Ort types out of the header)
 struct CaloVtxAlgoVit::OnnxSession
 {
+  //NOLINTBEGIN(misc-non-private-member-variables-in-classes)
   Ort::Env env{ORT_LOGGING_LEVEL_WARNING, "CaloVtxAlgoVit"};
   Ort::SessionOptions opts;
   std::unique_ptr<Ort::Session> session;
   Ort::MemoryInfo memInfo{
       Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault)};
-
+// NOLINTEND(misc-non-private-member-variables-in-classes)
   explicit OnnxSession(const std::string &path)
   {
     // pin to one compute thread: on shared (Condor) nodes onnxruntime must
@@ -142,7 +143,7 @@ int CaloVtxAlgoVit::fillCalo(PHCompositeNode *topNode, int calo)
       continue;
     }
     // raw energy floored at 0, NO log1p (the graph applies it); keep the time
-    const float e = std::max(tower->get_energy(), 0.f);
+    const float e = std::max(tower->get_energy(), 0.F);
     const size_t idx = static_cast<size_t>(ieta) * nPhi + iphi;
     eChan[idx] = e;
     tChan[idx] = tower->get_time();
