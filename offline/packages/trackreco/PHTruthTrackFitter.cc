@@ -80,23 +80,44 @@ namespace
     return trackid != std::numeric_limits<unsigned int>::max();
   }
 
-  struct InterpolationData
+  class InterpolationData
   {
-    double x = 0;
-    double y = 0;
-    double z = 0;
-    double px = 0;
-    double py = 0;
-    double pz = 0;
-    double weight = 1;
+   public:
+    InterpolationData(double x, double y, double z, double px, double py, double pz, double weight)
+      : m_x(x)
+      , m_y(y)
+      , m_z(z)
+      , m_px(px)
+      , m_py(py)
+      , m_pz(pz)
+      , m_weight(weight)
+    {
+    }
 
     double r() const
     {
-      return std::sqrt(square(x) + square(y));
+      return std::sqrt(square(m_x) + square(m_y));
     }
+
+    double x() const { return m_x; }
+    double y() const { return m_y; }
+    double z() const { return m_z; }
+    double px() const { return m_px; }
+    double py() const { return m_py; }
+    double pz() const { return m_pz; }
+    double weight() const { return m_weight; }
+
+   private:
+    double m_x = 0;
+    double m_y = 0;
+    double m_z = 0;
+    double m_px = 0;
+    double m_py = 0;
+    double m_pz = 0;
+    double m_weight = 1;
   };
 
-  template <double InterpolationData::* member>
+  template <double (InterpolationData::*accessor)() const>
   double interpolate_r(const std::vector<InterpolationData>& hits, double r_extrap, double fallback)
   {
     double sw = 0;
@@ -107,18 +128,19 @@ namespace
 
     for (const auto& hit : hits)
     {
-      const auto q = hit.*member;
+      const auto q = (hit.*accessor)();
       const auto r = hit.r();
-      if (!std::isfinite(q) || !std::isfinite(r) || !std::isfinite(hit.weight) || hit.weight <= 0)
+      const auto weight = hit.weight();
+      if (!std::isfinite(q) || !std::isfinite(r) || !std::isfinite(weight) || weight <= 0)
       {
         continue;
       }
 
-      sw += hit.weight;
-      swr += hit.weight * r;
-      swr2 += hit.weight * square(r);
-      swq += hit.weight * q;
-      swrq += hit.weight * r * q;
+      sw += weight;
+      swr += weight * r;
+      swr2 += weight * square(r);
+      swq += weight * q;
+      swrq += weight * r * q;
     }
 
     /*
@@ -570,13 +592,13 @@ bool PHTruthTrackFitter::addStateFromCluster(SvtxTrack* track,
       const auto endpoint_py = g4hit->get_py(endpoint);
       const auto endpoint_pz = g4hit->get_pz(endpoint);
 
-      interpolation_hits.push_back({endpoint_x,
-                                    endpoint_y,
-                                    endpoint_z,
-                                    is_finite(endpoint_px) ? endpoint_px : particle->get_px(),
-                                    is_finite(endpoint_py) ? endpoint_py : particle->get_py(),
-                                    is_finite(endpoint_pz) ? endpoint_pz : particle->get_pz(),
-                                    weight});
+      interpolation_hits.emplace_back(endpoint_x,
+                                      endpoint_y,
+                                      endpoint_z,
+                                      is_finite(endpoint_px) ? endpoint_px : particle->get_px(),
+                                      is_finite(endpoint_py) ? endpoint_py : particle->get_py(),
+                                      is_finite(endpoint_pz) ? endpoint_pz : particle->get_pz(),
+                                      weight);
     }
 
     weight_sum += weight;
