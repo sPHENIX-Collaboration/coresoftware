@@ -164,12 +164,12 @@ namespace
 
     // the helix-plane equation can have more than one solution:
     // look for a solution within the tile acceptance from three different phi seeds
-    std::vector<double> t_seeds;
+    std::vector<double> t_seeds(3);
     const double t_center = 0.5 * (t_min + t_max);
     const double delta = 2.0 * M_PI / 3.0;
     for (int i = 0; i < 3; ++i)
     {
-      t_seeds.push_back(wrap(t_center + i * delta));
+      t_seeds[i]=wrap(t_center + i * delta);
     }
 
     for (const double t_seed : t_seeds)
