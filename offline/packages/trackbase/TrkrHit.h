@@ -11,9 +11,11 @@
 
 #include <phool/PHObject.h>
 
+#include <cstdint>
 #include <climits>
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 /**
  * @brief Base class for hit object
@@ -55,6 +57,13 @@ class TrkrHit : public PHObject
   // after digitization, these are the adc values
   virtual void setAdc(const unsigned int) {}
   virtual unsigned int getAdc() const { return 0; }
+
+  // optional per-hit timing payload used by detectors that need to retain
+  // the frontend bunch-counter value alongside the digitized hit.
+  virtual void setFPHXBCO(const uint16_t) {}
+  virtual uint16_t getFPHXBCO() const { return std::numeric_limits<uint16_t>::max(); }
+  virtual void setBCO(const uint64_t) {}
+  virtual uint64_t getBCO() const { return 0; }
   /*
   virtual void setCrossing(const short int) {}
   virtual short int getCrossing() { return 0;}
