@@ -43,13 +43,13 @@ int StreamingBcoReco::Init(PHCompositeNode *topNode)
 {
   int iret = CreateNodeTree(topNode);
   h_bco_diff = new TH1I("h_bco_diff", ";bco diff;", 3500, 0, 3500);
-  std::string hist_name = "h_bco_diff_bit";
-  for (int bit=0; bit<trigbits; ++bit)
-  {
-    hist_name += std::to_string(bit);
-    h_bco_diff_trigbits[bit] = new TH1I(hist_name.c_str(), ";bco diff;", 3500, 0, 3500);
-    hm->registerHisto(h_bco_diff_trigbits[bit]);
-  }
+  //std::string hist_name = "h_bco_diff_bit";
+  //for (int bit=0; bit<trigbits; ++bit)
+  //{
+  //  hist_name += std::to_string(bit);
+  //  h_bco_diff_trigbits[bit] = new TH1I(hist_name.c_str(), ";bco diff;", 3500, 0, 3500);
+  //  hm->registerHisto(h_bco_diff_trigbits[bit]);
+  //}
   h_bco_tag = new TH1I("h_bco_tag", ";usable bco tag;", 2, -0.5, 1.5);
   hm->registerHisto(h_bco_diff);
   hm->registerHisto(h_bco_tag);
@@ -81,123 +81,81 @@ int StreamingBcoReco::process_event(PHCompositeNode *topNode)
 {
   BcoInfo *bcoinfo = findNode::getClass<BcoInfo>(topNode, "BCOINFO");
   SyncObject *syncobject = findNode::getClass<SyncObject>(topNode, syncdefs::SYNCNODENAME);
-  //Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(topNode, 14001);
-  Event *evt = findNode::getClass<Event>(topNode, "PRDF");
-  if (evt)
+  if (Verbosity() > 2)
+  {
+    if (!syncobject)
+    {
+      std::cout << PHWHERE << " SyncObject missing" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    std::cout << "Event No: " << syncobject->EventNumber() << std::endl;
+  }
+  if (bcoinfo)
   {
     if (Verbosity() > 2)
     {
-      evt->identify();
+      std::cout << "prev event: " << bcoinfo->get_previous_evtno() /*<< std::hex*/
+                << " bco: " << bcoinfo->get_previous_bco() << std::dec << std::endl;
+      std::cout << "curr event: " << bcoinfo->get_current_evtno() /*<< std::hex*/
+                << " bco: " << bcoinfo->get_current_bco() << std::dec << std::endl;
+      std::cout << "futu event: " << bcoinfo->get_future_evtno() /*<< std::hex*/
+                << " bco: " << bcoinfo->get_future_bco() << std::dec << std::endl;
     }
-    if (evt->getEvtType() != DATAEVENT)
+    StreamingBcoInfo *streaming_bco_info = findNode::getClass<StreamingBcoInfo>(topNode, "STREAMINGBCOINFO");
+    if (!streaming_bco_info)
     {
+      std::cout << PHWHERE << " STREAMINGBCOINFO node missing" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-    Packet *packet = evt->getPacket(14001);
-    if (!packet)
+    m_bco = bcoinfo->get_current_bco();
+    // No longer reading in the raw data for this check, but it should not be necessary
+    //if (gtm_bco != m_bco) { std::cout << "BCO MISMATCH!!! : gtm_bco : " << gtm_bco << " m_bco " << m_bco << std::endl;}
+    uint64_t bco_prev = bcoinfo->get_previous_bco();
+    uint64_t bco_futu = bcoinfo->get_future_bco();
+    uint64_t bco_diff_prev = m_bco - bco_prev;
+    uint64_t bco_diff_futu = bco_futu - m_bco;
+
+    // special case if BCO is within 20 of previous BCO?
+    if (bco_diff_prev < m_default_positive_window_length)
     {
-      if (Verbosity() > 0)
-      {
-        std::cout << "no gl1 packet 14001" << std::endl;
-        evt->identify();
-      }
-      return Fun4AllReturnCodes::ABORTEVENT;
+      m_usable_bco_tag = true;
     }
-    uint64_t gtm_bco = packet->lValue(0, "BCO");
-    uint64_t gl1_scaledvec = packet->lValue(0, "ScaledVector");
-    //uint64_t gl1_livevec = packet->lValue(0, "TriggerVector");   
-
-    int bunchno = packet->lValue(0,"BunchNumber");
-    if (bunchno < 0 || bunchno >= m_bunches)
+    else
     {
-      if (Verbosity() > 0)
-      {
-        std::cout << PHWHERE << " invalid bunch number: " << bunchno << std::endl;
-      }
-      delete packet;
-      return Fun4AllReturnCodes::ABORTEVENT;
+      m_usable_bco_tag = false;
     }
-
-    delete packet;
-
+    if (bco_diff_futu < m_default_positive_window_length)
+    {
+      // double check boundaries for overlap!!
+      m_bco_streaming_window = std::make_pair(get_bco() - m_default_negative_window_length, bco_futu - m_default_negative_window_length + 1);
+    }
+    else
+    {
+      m_bco_streaming_window = std::make_pair(get_bco() - m_default_negative_window_length, get_bco() + m_default_positive_window_length);
+    }
     if (Verbosity() > 2)
     {
-      if (!syncobject)
-      {
-        std::cout << PHWHERE << " SyncObject missing" << std::endl;
-        return Fun4AllReturnCodes::ABORTEVENT;
-      }
-      std::cout << "Event No: " << syncobject->EventNumber() /*<< std::hex*/
-                << " gl1  bco: " << gtm_bco <<std::dec << std::endl;
+      std::cout << "bco_diff_prev : " << bco_diff_prev << std::endl;
+      std::cout << "bco_diff_futu : " << bco_diff_futu << std::endl;
     }
-    if (bcoinfo)
+    h_bco_diff->Fill(bco_diff_prev);
+    h_bco_tag->Fill(m_usable_bco_tag);
+    // There is no longer a need to read in the .evt file here, so we won't have access to this info. If we wish to access it we can in a different module
+    //for (int bit=0; bit<trigbits; ++bit)
+    //{
+    //  bool trigger_fired = ((gl1_scaledvec >> static_cast<uint64_t>(bit)) & 0x1U) == 0x1U;
+    //  if (trigger_fired)
+    //  {
+    //    h_bco_diff_trigbits[bit]->Fill(bco_diff_prev);
+    //  }
+    //}
+
+    streaming_bco_info->set_bco(get_bco());
+    streaming_bco_info->set_usable_bco_tag(get_usable_bco_tag());
+    streaming_bco_info->set_bco_streaming_window(get_bco_streaming_window());
+    if (syncobject)
     {
-      if (Verbosity() > 2)
-      {
-        std::cout << "prev event: " << bcoinfo->get_previous_evtno() /*<< std::hex*/
-                  << " bco: " << bcoinfo->get_previous_bco() << std::dec << std::endl;
-        std::cout << "curr event: " << bcoinfo->get_current_evtno() /*<< std::hex*/
-                  << " bco: " << bcoinfo->get_current_bco() << std::dec << std::endl;
-        std::cout << "futu event: " << bcoinfo->get_future_evtno() /*<< std::hex*/
-                  << " bco: " << bcoinfo->get_future_bco() << std::dec << std::endl;
-      }
-
-      StreamingBcoInfo *streaming_bco_info = findNode::getClass<StreamingBcoInfo>(topNode, "STREAMINGBCOINFO");
-      if (!streaming_bco_info)
-      {
-        std::cout << PHWHERE << " STREAMINGBCOINFO node missing" << std::endl;
-        return Fun4AllReturnCodes::ABORTEVENT;
-      }
-      m_bco = bcoinfo->get_current_bco();
-      if (gtm_bco != m_bco) { std::cout << "BCO MISMATCH!!! : gtm_bco : " << gtm_bco << " m_bco " << m_bco << std::endl;}
-      uint64_t bco_prev = bcoinfo->get_previous_bco();
-      uint64_t bco_futu = bcoinfo->get_future_bco();
-      uint64_t bco_diff_prev = m_bco - bco_prev;
-      uint64_t bco_diff_futu = bco_futu - m_bco;
-
-      // special case if BCO is within 20 of previous BCO?
-      if (bco_diff_prev < m_default_positive_window_length)
-      {
-        m_usable_bco_tag = true;
-      }
-      else
-      {
-        m_usable_bco_tag = false;
-      }
-      if (bco_diff_futu < m_default_positive_window_length)
-      {
-        // double check boundaries for overlap!!
-        m_bco_streaming_window = std::make_pair(get_bco() - m_default_negative_window_length, bco_futu - m_default_negative_window_length + 1);
-      }
-      else
-      {
-        m_bco_streaming_window = std::make_pair(get_bco() - m_default_negative_window_length, get_bco() + m_default_positive_window_length);
-      }
-      if (Verbosity() > 2)
-      {
-        std::cout << "bco_diff_prev : " << bco_diff_prev << std::endl;
-        std::cout << "bco_diff_futu : " << bco_diff_futu << std::endl; 
-      }
-      h_bco_diff->Fill(bco_diff_prev);
-      h_bco_tag->Fill(m_usable_bco_tag);
-      for (int bit=0; bit<trigbits; ++bit)
-      {
-        bool trigger_fired = ((gl1_scaledvec >> static_cast<uint64_t>(bit)) & 0x1U) == 0x1U;
-        //bool scaled_trigger_fired = ((gl1_scaledvec >> bit) & 0x1U) == 0x1U;
-
-        if (trigger_fired) 
-        {
-          h_bco_diff_trigbits[bit]->Fill(bco_diff_prev);
-        }
-      }
-
-      streaming_bco_info->set_bco(get_bco());
-      streaming_bco_info->set_usable_bco_tag(get_usable_bco_tag());
-      streaming_bco_info->set_bco_streaming_window(get_bco_streaming_window());
-      if (syncobject)
-      {
-        streaming_bco_info->set_evtno(syncobject->EventNumber());
-      }
+      streaming_bco_info->set_evtno(syncobject->EventNumber());
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
