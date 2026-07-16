@@ -71,8 +71,6 @@
 #include <map>        // for _Rb_tree_iterator, map
 #include <memory>     // for allocator_traits<>::va...
 
-KFParticle_truthAndDetTools toolSet;
-
 /// KFParticle constructor
 KFParticle_Tools::KFParticle_Tools()
   : m_has_intermediates(false)
@@ -553,8 +551,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
           crossings.reserve(dummy_tracks.size());
           for (const auto &track : dummy_tracks)
           {
-            int track_id = track.Id(); //Jenkins complains if accessed in getTrack()
-            SvtxTrack *thisTrack = toolSet.getTrack(track_id, m_dst_trackmap);
+            SvtxTrack *thisTrack = KFParticle_truthAndDetTools::getTrack(track.Id(), m_dst_trackmap);
             if (thisTrack)
             {
               crossings.push_back(thisTrack->get_crossing());
