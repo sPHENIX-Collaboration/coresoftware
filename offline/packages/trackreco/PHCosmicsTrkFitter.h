@@ -32,6 +32,7 @@ class TrackSeedContainer;
 class TrkrClusterContainer;
 class SvtxAlignmentStateMap;
 class PHG4TpcGeomContainer;
+class PHCompositeNode;
 
 class TFile;
 class TTree;
@@ -236,6 +237,8 @@ class PHCosmicsTrkFitter : public SubsysReco
   void clearVectors();
   void fillVectors(TrackSeed* tpcseed, TrackSeed* siseed);
   ClusterErrorPara m_clusErrPara;
+
+  PHCompositeNode *m_topNode;
 };
 
 #endif

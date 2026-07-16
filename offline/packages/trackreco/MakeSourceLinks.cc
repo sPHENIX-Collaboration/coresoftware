@@ -50,12 +50,12 @@ namespace
 
 }  // namespace
 
-void MakeSourceLinks::initialize(PHG4TpcGeomContainer* cellgeo, ActsGeometry *tGeometry)
+void MakeSourceLinks::initialize(PHG4TpcGeomContainer* cellgeo, ActsGeometry *tGeometry, PHCompositeNode *topNode)
 {
   // get the TPC layer radii from the geometry object
   if (cellgeo && tGeometry)
   {
-    _clusterMover.initialize_geometry(cellgeo, tGeometry);
+    _clusterMover.initialize_geometry(cellgeo, tGeometry, topNode);
   }
 }
 
@@ -449,6 +449,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 
     auto* cluster = clusterContainer->findCluster(cluskey);
     Surface surf = tGeometry->maps().getSurface(cluskey, cluster);
+
     if (std::isnan(global.x()) || std::isnan(global.y()))
     {
       std::cout << "MakeSourceLinks::getSourceLinksClusterMover - invalid position"
@@ -470,6 +471,14 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
       TrkrDefs::subsurfkey new_subsurfkey = 0;
       surf = tGeometry->get_tpc_surface_from_coords(hitsetkey, global, new_subsurfkey);
+
+      if(m_verbosity > 2 && (int) TrkrDefs::getLayer(cluskey) == 28)
+	{
+	  if(new_subsurfkey - cluster->getSubSurfKey() != 0)
+	    {
+	      std::cout << "        ********  surf sskey changed from " << cluster->getSubSurfKey() << " to " << new_subsurfkey << std::endl;
+	    }
+	}
     }
 
     if (!surf)

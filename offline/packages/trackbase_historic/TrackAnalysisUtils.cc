@@ -313,7 +313,7 @@ namespace TrackAnalysisUtils
     auto* geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
     auto* tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
     TpcClusterMover mover;
-    mover.initialize_geometry(tpccellgeo, geometry);
+    mover.initialize_geometry(tpccellgeo, geometry, topNode);
     mover.set_verbosity(0);
 
     std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;

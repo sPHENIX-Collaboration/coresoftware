@@ -876,16 +876,15 @@ namespace
     {
       env_clusz = -env_clusz;
     }
+
     const double phi_cov = (iphi2_sum / adc_sum - square(clusiphi)) * pow(my_data.layergeom->get_phistep(), 2);
     const double t_cov = t2_sum / adc_sum - square(clust);
 
-    // get_tpc_surface_from_coords expects a world global position
-    Acts::Vector3 env_global(env_clusx, env_clusy, env_clusz);
-    Acts::Vector3 global = my_data.tGeometry->transformTpcEnvelopeToWorld(env_global);
+    Acts::Vector3 env_pos(env_clusx, env_clusy, env_clusz);
     TrkrDefs::subsurfkey subsurfkey = 0;
-    Surface surface = my_data.tGeometry->get_tpc_surface_from_coords(
+    Surface surface = my_data.tGeometry->get_clusterizer_tpc_surface(
         tpcHitSetKey,
-        global,
+        env_pos,
         subsurfkey);
 
     if (!surface)
@@ -917,9 +916,9 @@ namespace
     // Equivalent charge per T bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
 
     /// convert to Acts units
-    global *= Acts::UnitConstants::cm;
+    env_pos *= Acts::UnitConstants::cm;
     // std::cout << "transform" << std::endl;
-    Acts::Vector3 local = surface->localToGlobalTransform(my_data.tGeometry->geometry().getGeoContext()).inverse() * global;
+    Acts::Vector3 local = surface->localToGlobalTransform(my_data.tGeometry->geometry().getGeoContext()).inverse() * env_pos;
     local /= Acts::UnitConstants::cm;
     // std::cout << "done transform" << std::endl;
     //  we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
@@ -2155,3 +2154,4 @@ void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &db
   }
 
 }
+

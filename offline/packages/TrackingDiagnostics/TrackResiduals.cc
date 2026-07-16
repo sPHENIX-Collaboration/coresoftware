@@ -120,7 +120,7 @@ int TrackResiduals::InitRun(PHCompositeNode* topNode)
   auto *tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
 
   auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-  m_clusterMover.initialize_geometry(tpccellgeo, geometry);
+  m_clusterMover.initialize_geometry(tpccellgeo, geometry, topNode);
   m_clusterMover.set_verbosity(0);
 
   auto *se = Fun4AllServer::instance();

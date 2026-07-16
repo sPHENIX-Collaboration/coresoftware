@@ -41,6 +41,7 @@ class TrackSeedContainer;
 class TrkrClusterContainer;
 class SvtxAlignmentStateMap;
 class PHG4TpcGeomContainer;
+class PHCompositeNode;
 
 using SourceLink = ActsSourceLink;
 using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
@@ -307,6 +308,7 @@ class PHActsTrkFitter : public SubsysReco
 
   std::vector<const Acts::Surface*> m_materialSurfaces = {};
 
+  PHCompositeNode *_topNode;
 };
 
 #endif
