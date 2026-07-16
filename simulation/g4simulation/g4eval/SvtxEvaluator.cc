@@ -148,8 +148,11 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
   {
     _ntp_cluster = new TNtuple("ntp_cluster", "svtxcluster => max truth",
                                "event:seed:hitID:x:y:z:r:phi:eta:theta:ex:ey:ez:ephi:pez:pephi:"
-                               "e:adc:maxadc:layer:phielem:zelem:size:phisize:zsize:"
-                               "pedge:redge:ovlp:"
+                               "e:adc:maxadc:cenadc:padcen:tbincen:padmax:tbinmax:layer:phielem:zelem:"
+			       "size:phisize:zsize:"
+                               "pedge:redge:sledge:sredge:tledge:tredge:dledge:dredge:hledge:hredge:"
+			       "slmix:srmix:tlmix:trmix:ovlp:"
+			       "phibinlo:phibinhi:tbinlo:tbinhi:padphase:tbinphase:"
                                "trackID:niter:g4hitID:gx:"
                                "gy:gz:gr:gphi:geta:gt:gtrackID:gflavor:"
                                "gpx:gpy:gpz:gvx:gvy:gvz:gvt:"
@@ -179,7 +182,8 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                               "crossing:siqr:siphi:sithe:six0:siy0:tpqr:tpphi:tpthe:tpx0:tpy0:"
                               "charge:quality:chisq:ndf:nhits:layers:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:"
                               "vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:nwrongmaps:ntruintt:nwrongintt:ntrutpc:nwrongtpc:ntrumms:nwrongmms:ntrutpc1:nwrongtpc1:ntrutpc11:nwrongtpc11:ntrutpc2:nwrongtpc2:ntrutpc3:nwrongtpc3:layersfromtruth:"
-                              "npedge:nredge:nbig:novlp:merr:msize:"
+                              "nedge:npedge:nredge:nsledge:nsredge:ntledge:ntredge:ndledge:ndredge:nhledge:nhredge:"
+			      "nslmix:nsrmix:ntlmix:ntrmix:nbig:novlp:merr:msize:"
                               "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
 
@@ -196,7 +200,8 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                              "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
                              "gembed:gprimary:gcrossing:gparentflavor:gparentid:gprimaryflavor:gprimaryid:nfromtruth:nwrong:ntrumaps:nwrongmaps:ntruintt:nwrongintt:"
                              "ntrutpc:nwrongtpc:ntrumms:nwrongmms:ntrutpc1:nwrongtpc1:ntrutpc11:nwrongtpc11:ntrutpc2:nwrongtpc2:ntrutpc3:nwrongtpc3:layersfromtruth:"
-                             "npedge:nredge:nbig:novlp:merr:msize:"
+                             "nedge:npedge:nredge:nsledge:nsredge:ntledge:ntredge:ndledge:ndredge:nhledge:nhredge:"
+			     "nslmix:nsrmix:ntlmix:ntrmix:nbig:novlp:merr:msize:"
                              "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
 
@@ -410,7 +415,7 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode* topNode)
       }
     }
 
-    std::cout << "---SVXTRACKS-------------" << std::endl;
+    std::cout << "---SVTXTRACKS-------------" << std::endl;
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname);
     if (trackmap)
     {
@@ -428,7 +433,7 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode* topNode)
       }
     }
 
-    std::cout << "---SVXVERTEXES-------------" << std::endl;
+    std::cout << "---SVTXVERTEXES-------------" << std::endl;
     SvtxVertexMap* vertexmap = nullptr;
     if (_use_initial_vertex)
     {
@@ -1948,10 +1953,28 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float size = 0;
           float phisize = 0;
           float zsize = 0;
-          float maxadc = -999;
+          float maxadc = -999.;
+	  float padcen = -999.;
+	  float tbincen = -999.;
+	  float padmax = -999.;
+	  float tbinmax = -999.;
           float redge = std::numeric_limits<float>::quiet_NaN();
           float pedge = std::numeric_limits<float>::quiet_NaN();
+	  float sledge = std::numeric_limits<float>::quiet_NaN();
+	  float sredge = std::numeric_limits<float>::quiet_NaN();
+	  float tledge = std::numeric_limits<float>::quiet_NaN();
+	  float tredge = std::numeric_limits<float>::quiet_NaN();
+	  float dledge = std::numeric_limits<float>::quiet_NaN();
+	  float dredge = std::numeric_limits<float>::quiet_NaN();
+	  float hledge = std::numeric_limits<float>::quiet_NaN();
+	  float hredge = std::numeric_limits<float>::quiet_NaN();
+	  float slmix = std::numeric_limits<float>::quiet_NaN();
+	  float srmix = std::numeric_limits<float>::quiet_NaN();
+	  float tlmix = std::numeric_limits<float>::quiet_NaN();
+	  float trmix = std::numeric_limits<float>::quiet_NaN();
           float ovlp = std::numeric_limits<float>::quiet_NaN();
+	  float padphase = -999.;
+	  float tbinphase = -999.;
 
           auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, r, cluster_key);
           phisize = cluster->getPhiSize();
@@ -1960,8 +1983,26 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           ez = sqrt(para_errors.second);
           ephi = sqrt(para_errors.first);
           maxadc = cluster->getMaxAdc();
+	  padcen = cluster->getPadCen();
+	  tbincen = cluster->getTBinCen();
+	  padmax = cluster->getPadMax();
+	  tbinmax = cluster->getTBinMax();
           pedge = cluster->getEdge();
+	  sledge = cluster->getSLEdge();
+	  sredge = cluster->getSREdge();
+	  tledge = cluster->getTLEdge();
+	  tredge = cluster->getTREdge();
+	  dledge = cluster->getDLEdge();
+	  dredge = cluster->getDREdge();
+	  hledge = cluster->getHLEdge();
+	  hredge = cluster->getHREdge();
+	  slmix = cluster->getSLMix();
+	  srmix = cluster->getSRMix();
+	  tlmix = cluster->getTLMix();
+	  trmix = cluster->getTRMix();
           ovlp = cluster->getOverlap();
+	  padphase = cluster->getPadPhase();
+	  tbinphase = cluster->getTBinPhase();
 
           if (hitsetlayer == 7 || hitsetlayer == 22 || hitsetlayer == 23 || hitsetlayer == 38 || hitsetlayer == 39)
           {
@@ -1970,6 +2011,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
           float e = cluster->getAdc();
           float adc = cluster->getAdc();
+	  float cenadc = cluster->getCenAdc();
+	  float phibinlo = cluster->getPhiBinLo();
+	  float phibinhi = cluster->getPhiBinHi();
+	  float tbinlo = cluster->getTBinLo();
+	  float tbinhi = cluster->getTBinHi();
           float local_layer = (float) TrkrDefs::getLayer(cluster_key);
           float sector = TpcDefs::getSectorId(cluster_key);
           float side = TpcDefs::getSide(cluster_key);
@@ -2133,6 +2179,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                   e,
                                   adc,
                                   maxadc,
+				  cenadc,
+				  padcen,
+				  tbincen,
+				  padmax,
+				  tbinmax,
                                   local_layer,
                                   sector,
                                   side,
@@ -2141,7 +2192,25 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                   zsize,
                                   pedge,
                                   redge,
+				  sledge,
+				  sredge,
+				  tledge,
+				  tredge,
+				  dledge,
+				  dredge,
+				  hledge,
+				  hredge,
+				  slmix,
+				  srmix,
+				  tlmix,
+				  trmix,
                                   ovlp,
+				  phibinlo,
+				  phibinhi,
+				  tbinlo,
+				  tbinhi,
+				  padphase,
+				  tbinphase,
                                   trackID,
                                   niter,
                                   g4hitID,
@@ -2281,10 +2350,28 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float size = 0;
           float phisize = 0;
           float zsize = 0;
-          float maxadc = -999;
+          float maxadc = -999.;
+	  float padcen = -999.;
+	  float tbincen = -999.;
+	  float padmax = -999.;
+	  float tbinmax= -999.;
           float redge = std::numeric_limits<float>::quiet_NaN();
           float pedge = std::numeric_limits<float>::quiet_NaN();
+	  float sledge = std::numeric_limits<float>::quiet_NaN();
+	  float sredge = std::numeric_limits<float>::quiet_NaN();
+	  float tledge = std::numeric_limits<float>::quiet_NaN();
+	  float tredge = std::numeric_limits<float>::quiet_NaN();
+	  float dledge = std::numeric_limits<float>::quiet_NaN();
+	  float dredge = std::numeric_limits<float>::quiet_NaN();
+	  float hledge = std::numeric_limits<float>::quiet_NaN();
+	  float hredge = std::numeric_limits<float>::quiet_NaN();
+	  float slmix = std::numeric_limits<float>::quiet_NaN();
+	  float srmix = std::numeric_limits<float>::quiet_NaN();
+	  float tlmix = std::numeric_limits<float>::quiet_NaN();
+	  float trmix = std::numeric_limits<float>::quiet_NaN();
           float ovlp = std::numeric_limits<float>::quiet_NaN();
+	  float padphase = -999.;
+	  float tbinphase = -999.;
 
           auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, r, cluster_key);
           phisize = cluster->getPhiSize();
@@ -2293,11 +2380,34 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           ez = sqrt(para_errors.second);
           ephi = sqrt(para_errors.first);
           maxadc = cluster->getMaxAdc();
+	  padcen = cluster->getPadCen();
+	  tbincen = cluster->getTBinCen();
+	  padmax = cluster->getPadMax();
+	  tbinmax = cluster->getTBinMax();
           pedge = cluster->getEdge();
+	  sledge = cluster->getSLEdge();
+	  sredge = cluster->getSREdge();
+	  tledge = cluster->getTLEdge();
+	  tredge = cluster->getTREdge();
+	  dledge = cluster->getDLEdge();
+	  dredge = cluster->getDREdge();
+	  hledge = cluster->getHLEdge();
+	  hredge = cluster->getHREdge();
+	  slmix = cluster->getSLMix();
+	  srmix = cluster->getSRMix();
+	  tlmix = cluster->getTLMix();
+	  trmix = cluster->getTRMix();
           ovlp = cluster->getOverlap();
+	  padphase = cluster->getPadPhase();
+	  tbinphase = cluster->getTBinPhase();
 
           float e = cluster->getAdc();
           float adc = cluster->getAdc();
+	  float cenadc = cluster->getCenAdc();
+	  float phibinlo = cluster->getPhiBinLo();
+	  float phibinhi = cluster->getPhiBinHi();
+	  float tbinlo = cluster->getTBinLo();
+	  float tbinhi = cluster->getTBinHi();
           float local_layer = (float) TrkrDefs::getLayer(cluster_key);
           float sector = TpcDefs::getSectorId(cluster_key);
           float side = TpcDefs::getSide(cluster_key);
@@ -2430,6 +2540,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                   e,
                                   adc,
                                   maxadc,
+				  cenadc,
+				  padcen,
+				  tbincen,
+				  padmax,
+				  tbinmax,
                                   local_layer,
                                   sector,
                                   side,
@@ -2438,7 +2553,25 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                   zsize,
                                   pedge,
                                   redge,
+				  sledge,
+				  sredge,
+				  tledge,
+				  tredge,
+				  dledge,
+				  dredge,
+				  hledge,
+				  hredge,
+				  slmix,
+				  srmix,
+				  tlmix,
+				  trmix,
                                   ovlp,
+				  phibinlo,
+				  phibinhi,
+				  tbinlo,
+				  tbinhi,
+				  padphase,
+				  tbinphase,
                                   trackID,
                                   niter,
                                   g4hitID,
@@ -2956,8 +3089,21 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float ntrutpc3 = std::numeric_limits<float>::quiet_NaN();
         float nwrongtpc3 = std::numeric_limits<float>::quiet_NaN();
         float layersfromtruth = std::numeric_limits<float>::quiet_NaN();
+	float nedge = 0;
         float npedge = 0;
         float nredge = 0;
+	float nsledge = 0;
+	float nsredge = 0;
+	float ntledge = 0;
+	float ntredge = 0;
+	float ndledge = 0;
+	float ndredge = 0;
+	float nhledge = 0;
+	float nhredge = 0;
+	float nslmix = 0;
+	float nsrmix = 0;
+	float ntlmix = 0;
+	float ntrmix = 0;
         float nbig = 0;
         float novlp = 0;
         float merr = 0;
@@ -3089,10 +3235,23 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                   gphierr = sqrt(para_errors.first);
                   govlp = cluster->getOverlap();
                   gedge = cluster->getEdge();
+		  nsledge = cluster->getSLEdge();
+		  nsredge = cluster->getSREdge();
+		  ntledge = cluster->getTLEdge();
+		  ntredge = cluster->getTREdge();
+		  ndledge = cluster->getDLEdge();
+		  ndredge = cluster->getDREdge();
+		  nhledge = cluster->getHLEdge();
+		  nhredge = cluster->getHREdge();
+		  nslmix = cluster->getSLMix();
+		  nsrmix = cluster->getSRMix();
+		  ntlmix = cluster->getTLMix();
+		  ntrmix = cluster->getTRMix();
 
                   if (gedge > 0)
                   {
                     npedge++;
+		    nedge = gedge;
                   }
                   if (gphisize >= 4)
                   {
@@ -3418,8 +3577,21 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                ntrutpc3,
                                nwrongtpc3,
                                layersfromtruth,
+			       nedge,
                                npedge,
                                nredge,
+			       nsledge,
+			       nsredge,
+			       ntledge,
+			       ntredge,
+			       ndledge,
+			       ndredge,
+			       nhledge,
+			       nhredge,
+			       nslmix,
+			       nsrmix,
+			       ntlmix,
+			       ntrmix,
                                nbig,
                                novlp,
                                merr,
@@ -3520,8 +3692,21 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float nlintt = 0;
         float nltpc = 0;
         float nlmms = 0;
+	float nedge = 0;
         float npedge = 0;
         float nredge = 0;
+	float nsledge = 0;
+	float nsredge = 0;
+	float ntledge = 0;
+	float ntredge = 0;
+	float ndledge = 0;
+	float ndredge = 0;
+	float nhledge = 0;
+	float nhredge = 0;
+	float nslmix = 0;
+	float nsrmix = 0;
+	float ntlmix = 0;
+	float ntrmix = 0;
         float nbig = 0;
         float novlp = 0;
         float merr = 0;
@@ -3615,10 +3800,23 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
               rphierr = sqrt(para_errors.first);
               rovlp = cluster->getOverlap();
               pedge = cluster->getEdge();
+	      nsledge = cluster->getSLEdge();
+	      nsredge = cluster->getSREdge();
+	      ntledge = cluster->getTLEdge();
+	      ntredge = cluster->getTREdge();
+	      ndledge = cluster->getDLEdge();
+	      ndredge = cluster->getDREdge();
+	      nhledge = cluster->getHLEdge();
+	      nhredge = cluster->getHREdge();
+	      nslmix = cluster->getSLMix();
+	      nsrmix = cluster->getSRMix();
+	      ntlmix = cluster->getTLMix();
+	      ntrmix = cluster->getTRMix();
 
               if (pedge > 0)
               {
                 npedge++;
+		nedge = pedge;
               }
               if (rphisize >= 4)
               {
@@ -4118,8 +4316,21 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                               ntrutpc3,
                               nwrongtpc3,
                               layersfromtruth,
+			      nedge,
                               npedge,
                               nredge,
+			      nsledge,
+			      nsredge,
+			      ntledge,
+			      ntredge,
+			      ndledge,
+			      ndredge,
+			      nhledge,
+			      nhredge,
+			      nslmix,
+			      nsrmix,
+			      ntlmix,
+			      ntrmix,
                               nbig,
                               novlp,
                               merr,

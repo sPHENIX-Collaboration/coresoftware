@@ -77,7 +77,7 @@ class CaloWaveformSim : public SubsysReco
     m_use_sipm_occupancy = use_sipm_occupancy;
   }
 
-  void set_use_photon_statistics( bool state=true )
+  void set_use_photon_statistics(bool state = true)
   {
     m_use_photon_statistics = state;
   }
@@ -118,7 +118,7 @@ class CaloWaveformSim : public SubsysReco
 
   void set_kSamplingFraction(double val)
   {
-    kSamplingFraction     = val;
+    kSamplingFraction = val;
   }
   void set_kPhotoelectronsPerGeV(double val)
   {
@@ -126,7 +126,7 @@ class CaloWaveformSim : public SubsysReco
   }
   void set_kSiPMEffectivePixel(double val)
   {
-    kSiPMEffectivePixel   = val;
+    kSiPMEffectivePixel = val;
   }
 
   // Waveform template & sampling
@@ -214,7 +214,7 @@ class CaloWaveformSim : public SubsysReco
 
   // Waveform settings
   std::string m_templatefile{"waveformtemptempohcalcosmic.root"};
-  int m_nsamples{12}; // number of samples for calos in our default data taking configuration
+  int m_nsamples{12};  // number of samples for calos in our default data taking configuration
   float m_sampletime{50. / 3.};
   int m_nchannels{-1};
   float m_sampling_fraction{std::numeric_limits<float>::quiet_NaN()};
@@ -235,9 +235,9 @@ class CaloWaveformSim : public SubsysReco
 
   bool m_use_photon_statistics{false};
   bool m_use_sipm_occupancy{false};
-  double kSamplingFraction     = 2e-2;
+  double kSamplingFraction = 2e-2;
   double kPhotoelectronsPerGeV = 500.;
-  double kSiPMEffectivePixel   = 40000 * 4.;
+  double kSiPMEffectivePixel = 40000 * 4.;
 
   NoiseType m_noiseType{NOISE_TREE};
 };

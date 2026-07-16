@@ -23,11 +23,6 @@
 #include <phool/phool.h>  // for PHWHERE
 #include <phool/sphenix_constants.h> // for MDB_NS_xsec
 
-
-#include <Event/Event.h>
-#include <Event/EventTypes.h>
-#include <Event/packet.h>  // for Packet
-
 #include <TH1.h>
 
 #include <iostream>
@@ -80,83 +75,63 @@ int StreamingLumiReco::CreateNodeTree(PHCompositeNode *topNode)
 int StreamingLumiReco::process_event(PHCompositeNode *topNode)
 {
   StreamingBcoInfo *streaming_bcoinfo = findNode::getClass<StreamingBcoInfo>(topNode, "STREAMINGBCOINFO");
-  Event *evt = findNode::getClass<Event>(topNode, "PRDF");
-  if (evt)
+  Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+  if (!gl1packet)
   {
-    if (Verbosity() > 2)
+    if (Verbosity() > 0)
     {
-      evt->identify();
+      std::cout << "no gl1 packet 14001" << std::endl;
     }
-    if (evt->getEvtType() != DATAEVENT)
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+  uint64_t gtm_bco = gl1packet->lValue(0, "BCO");
+
+  int bunchno = gl1packet->lValue(0,"BunchNumber");
+  if (bunchno < 0 || bunchno >= m_bunches)
+  {
+    if (Verbosity() > 0)
     {
-      return Fun4AllReturnCodes::ABORTEVENT;
+      std::cout << PHWHERE << " invalid bunch number: " << bunchno << std::endl;
     }
-    Packet *packet = evt->getPacket(14001);
-    if (!packet)
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  // SYNTAX TAKEN FROM ZHIWANS CODE, why = and not +=? If this is correct it seems like a waste to call it for every event (would just need it for the last event in a particular crossing?)
+  m_bunchnumber_MBDNS_raw[bunchno] = gl1packet->lValue(0, "GL1PRAW");
+  m_bunchnumber_MBDNS_live[bunchno] = gl1packet->lValue(0, "GL1PLIVE");
+  m_bunchnumber_MBDNS_scaled[bunchno] = gl1packet->lValue(0, "GL1PSCALED");
+
+
+  if(gl1packet->lValue(0, 0))
+  {
+    m_rawgl1scaler = gl1packet->lValue(0, 0);
+  }
+
+  if (streaming_bcoinfo)
+  {
+    if (gtm_bco != streaming_bcoinfo->get_bco()) { std::cout << "BCO MISMATCH!!! : gtm_bco : " << gtm_bco << " bco " << streaming_bcoinfo->get_bco() << std::endl;}
+
+    // Double check Zhiwan's logic for assigning the adjusted bunch!
+    int lower = streaming_bcoinfo->get_bco_streaming_window().first - streaming_bcoinfo->get_bco();
+    int upper = streaming_bcoinfo->get_bco_streaming_window().second - streaming_bcoinfo->get_bco();
+    for(int i = lower; i< upper;i++)
     {
-      if (Verbosity() > 0)
+      int adjusted_bunch = bunchno + i;
+      while (adjusted_bunch < 0)
       {
-        std::cout << "no gl1 packet 14001" << std::endl;
-        evt->identify();
+          adjusted_bunch += 120;
       }
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-    uint64_t gtm_bco = packet->lValue(0, "BCO"); 
-
-    int bunchno = packet->lValue(0,"BunchNumber");
-    if (bunchno < 0 || bunchno >= m_bunches)
-    {
-      if (Verbosity() > 0)
+      while (adjusted_bunch > 119)
       {
-        std::cout << PHWHERE << " invalid bunch number: " << bunchno << std::endl;
+          adjusted_bunch -= 120;
       }
-      delete packet;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+      // ABORT GAP!
+      if (adjusted_bunch>110) { continue; }
 
-    // SYNTAX TAKEN FROM ZHIWANS CODE, why = and not +=? If this is correct it seems like a waste to call it for every event (would just need it for the last event in a particular crossing?)
-    m_bunchnumber_MBDNS_raw[bunchno] = packet->lValue(0, "GL1PRAW");
-    m_bunchnumber_MBDNS_live[bunchno] = packet->lValue(0, "GL1PLIVE");
-    m_bunchnumber_MBDNS_scaled[bunchno] = packet->lValue(0, "GL1PSCALED");
-
-
-    if(packet->lValue(0, 0))
-    {
-      m_rawgl1scaler = packet->lValue(0, 0);
-    }
-
-    delete packet;
-
-    if (streaming_bcoinfo)
-    {
-      if (gtm_bco != streaming_bcoinfo->get_bco()) { std::cout << "BCO MISMATCH!!! : gtm_bco : " << gtm_bco << " bco " << streaming_bcoinfo->get_bco() << std::endl;}
-
-      // Double check Zhiwan's logic for assigning the adjusted bunch!
-      int lower = streaming_bcoinfo->get_bco_streaming_window().first - streaming_bcoinfo->get_bco();
-      int upper = streaming_bcoinfo->get_bco_streaming_window().second - streaming_bcoinfo->get_bco();
-      for(int i = lower; i< upper;i++)
+      // Make sure this is the correct way to count crossings! Need to zero out for each run!
+      if(i!=0 || streaming_bcoinfo->get_usable_bco_tag())
       {
-        int adjusted_bunch = bunchno + i;
-          while (adjusted_bunch < 0)
-          {
-              adjusted_bunch += 120;
-          }
-          while (adjusted_bunch > 119)
-          {
-              adjusted_bunch -= 120;
-          }
-          // ABORT GAP!
-          if (adjusted_bunch>110) { continue; }
-
-          // Make sure this is the correct way to count crossings! Need to zero out for each run!
-          if(i!=0 || streaming_bcoinfo->get_usable_bco_tag())
-          {
-            m_bunchnumber_crossings[adjusted_bunch] += 1;
-          }
-          //else if (m_usable_bco_tag)
-          //{
-          //  m_bunchnumber_crossings[adjusted_bunch] += 1;
-          //}
+        m_bunchnumber_crossings[adjusted_bunch] += 1;
       }
     }
   }
