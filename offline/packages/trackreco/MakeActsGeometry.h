@@ -188,7 +188,7 @@ private:
   void makeGeometry(int argc, char *argv[], const std::string& responseFile, const std::string& materialFile);
 
   void setMaterialResponseFile(std::string &responseFile,
-                               std::string &materialFile);
+                               std::string &materialFile) const;
 
   /// Get hitsetkey from TGeoNode for each detector geometry
   void getInttKeyFromNode(TGeoNode *gnode);

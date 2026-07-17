@@ -728,7 +728,7 @@ void MakeActsGeometry::buildActsSurfaces()
 
 
 void MakeActsGeometry::setMaterialResponseFile(std::string &responseFile,
-                                               std::string &materialFile)
+                                               std::string &materialFile) const
 {
   responseFile = "tgeo-sphenix-mms.json";
   // Check to see if the geometry response file exists locally. If not, use CDB.
