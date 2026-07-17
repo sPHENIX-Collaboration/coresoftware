@@ -91,6 +91,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -646,10 +647,17 @@ void MakeActsGeometry::buildActsSurfaces()
   std::vector<std::string> argstr =
   {
     "-n1",
-    "--geo-tgeo-jsonconfig", responseFile,
-    "--mat-input-type", "file",
-    "--mat-input-file", materialFile
+    "--geo-tgeo-jsonconfig", responseFile
   };
+
+  if (m_useActsMaterialMap)
+  {
+    argstr.insert(argstr.end(),
+    {
+      "--mat-input-type", "file",
+      "--mat-input-file", materialFile
+    });
+  }
 
   double fieldstrength = std::numeric_limits<double>::quiet_NaN();
   if( isConstantField( m_magField, fieldstrength ) )
@@ -723,12 +731,9 @@ void MakeActsGeometry::setMaterialResponseFile(std::string &responseFile,
                                                std::string &materialFile)
 {
   responseFile = "tgeo-sphenix-mms.json";
-  materialFile = "sphenix-mm-material.json";
-  // Check to see if files exist locally - if not, use defaults
-  std::ifstream file;
-
-  file.open(responseFile);
-  if (!file.is_open())
+  // Check to see if the geometry response file exists locally. If not, use CDB.
+  std::ifstream responseStream(responseFile);
+  if (!responseStream.is_open())
   {
     std::cout << responseFile
               << " not found locally, use CDB version"
@@ -736,19 +741,29 @@ void MakeActsGeometry::setMaterialResponseFile(std::string &responseFile,
     responseFile = CDBInterface::instance()->getUrl("ACTSGEOMETRYCONFIG");
   }
 
-  file.open(materialFile);
-  if (!file.is_open())
+  if (m_useActsMaterialMap)
   {
-    std::cout << materialFile
-              << " not found locally, use CDB version"
+    materialFile = "sphenix-mm-material.json";
+    std::ifstream materialStream(materialFile);
+    if (!materialStream.is_open())
+    {
+      std::cout << materialFile
+                << " not found locally, use CDB version"
+                << std::endl;
+      materialFile = CDBInterface::instance()->getUrl("ACTSMATERIALMAP");
+    }
+
+    std::cout << "Using Acts material file : " << materialFile
               << std::endl;
-    materialFile = CDBInterface::instance()->getUrl("ACTSMATERIALMAP");
+  }
+  else
+  {
+    materialFile.clear();
+    std::cout << "Using empty Acts material map" << std::endl;
   }
 
-    std::cout << "using Acts material file : " << materialFile
-              << std::endl;
-    std::cout << "Using Acts TGeoResponse file : " << responseFile
-              << std::endl;
+  std::cout << "Using Acts TGeoResponse file : " << responseFile
+            << std::endl;
 
   return;
 }
@@ -770,9 +785,16 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[], const std::string& r
   config.readJson(responseFile);
 
   std::shared_ptr<Acts::IMaterialDecorator> matDeco = nullptr;
-  if (materialFile.find(".json") != std::string::npos ||
-      materialFile.find(".cbor") != std::string::npos)
+  if (m_useActsMaterialMap)
   {
+    if (materialFile.find(".json") == std::string::npos &&
+        materialFile.find(".cbor") == std::string::npos)
+    {
+      std::cout << "Unsupported Acts material map format: " << materialFile
+                << std::endl;
+      exit(1);
+    }
+
     // Set up the converter first
     Acts::MaterialMapJsonConverter::Config jsonGeoConvConfig;
     // Set up the json-based decorator
