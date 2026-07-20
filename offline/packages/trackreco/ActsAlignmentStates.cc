@@ -212,7 +212,8 @@ void ActsAlignmentStates::fillAlignmentStateMap(
 
     //! this is the derivative of the state wrt to Acts track parameters
     //! e.g. (d_0, z_0, phi, theta, q/p, t)
-      auto localDeriv = H * state.jacobian();
+      //auto localDeriv = H * state.jacobian();
+      auto localDeriv = H * H;
       if (m_verbosity > 2)
       {
 	std::cout << "local deriv " << std::endl << localDeriv << std::endl;

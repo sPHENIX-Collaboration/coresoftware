@@ -167,6 +167,14 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 
     //! Make any desired track cuts here
     //! Maybe set a lower pT limit - low pT tracks are not very sensitive to alignment
+    if(track->get_pt() < m_minPt)
+    {
+      if (Verbosity() > 0)
+      {
+        std::cout << "Skipping track with pT " << track->get_pt() << " < " << m_minPt << std::endl;
+      }
+      continue;
+    }
     addTrackToMilleFile(statevec);
 
     //! Only take tracks that have 2 mm within event vertex
