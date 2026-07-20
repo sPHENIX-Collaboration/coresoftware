@@ -60,6 +60,12 @@ class PHTruthTrackSeeding : public PHTrackSeeding
     _max_layer = maxLayer;
   }
 
+  //! include Geant4 secondary particles when building truth seeds
+  void set_include_secondaries(bool includeSecondaries)
+  {
+    m_include_secondaries = includeSecondaries;
+  }
+
   //! minimal truth momentum cut
   double get_min_momentum() const
   {
@@ -105,6 +111,9 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   unsigned int _min_clusters_per_track = 3;
   unsigned int _min_layer = 0;
   unsigned int _max_layer = 60;
+
+  //! include Geant4 secondary particles in addition to primaries
+  bool m_include_secondaries = false;
 
   //! minimal truth momentum cut (GeV)
   double _min_momentum = 50e-3;

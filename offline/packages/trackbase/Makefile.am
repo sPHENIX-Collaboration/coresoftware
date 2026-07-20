@@ -130,7 +130,8 @@ pkginclude_HEADERS = \
   TrkrHitTruthAssoc.h \
   TrkrHitTruthAssocv1.h \
   TrkrHitv1.h \
-  TrkrHitv2.h
+  TrkrHitv2.h \
+  TrkrHitv3.h
 
 ROOTDICTS = \
   CMFlashClusterContainer_Dict.cc \
@@ -203,7 +204,8 @@ ROOTDICTS = \
   TrkrHitTruthAssocv1_Dict.cc \
   TrkrHit_Dict.cc \
   TrkrHitv1_Dict.cc \
-  TrkrHitv2_Dict.cc
+  TrkrHitv2_Dict.cc \
+  TrkrHitv3_Dict.cc
 
 
 pcmdir = $(libdir)
@@ -290,7 +292,8 @@ libtrack_io_la_SOURCES = \
   TrkrHitSetTpcv1.cc \
   TrkrHitTruthAssocv1.cc \
   TrkrHitv1.cc \
-  TrkrHitv2.cc
+  TrkrHitv2.cc \
+  TrkrHitv3.cc
 
 libtrack_la_LIBADD = \
   libtrack_io.la \
