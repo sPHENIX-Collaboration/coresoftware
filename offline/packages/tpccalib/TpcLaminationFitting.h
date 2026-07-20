@@ -1,9 +1,15 @@
 #ifndef TPCCALIB_TPCLAMINATIONFITTING_H
 #define TPCCALIB_TPCLAMINATIONFITTING_H
 
+
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
+
+#include <tpc/LaserClusterHelper.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
 
@@ -65,6 +71,8 @@ class TpcLaminationFitting : public SubsysReco
   void set_adcWeight(bool useADC) { m_adcWeight = useADC; }
 
   void set_lam_grid_dimensions(int phibins, int rbins);
+
+  void set_useZ(bool use) { m_useZ = use; }
 
   int InitRun(PHCompositeNode *topNode) override;
 
@@ -194,6 +202,12 @@ class TpcLaminationFitting : public SubsysReco
 
   double m_phiModMin[2]{-M_PI/18, 0.0};
   double m_phiModMax[2]{M_PI/18, M_PI/9};
+
+  ActsGeometry *m_tGeometry {nullptr};
+  PHG4TpcGeomContainer *m_geom_container {nullptr};
+
+  LaserClusterHelper m_laserClusterHelper;
+  bool m_useZ{false};
 };
 
 #endif

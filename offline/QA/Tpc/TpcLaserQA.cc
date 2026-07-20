@@ -30,7 +30,7 @@ TpcLaserQA::TpcLaserQA(const std::string &name)
 {
 }
 
-int TpcLaserQA::InitRun(PHCompositeNode * /*topNode*/)
+int TpcLaserQA::InitRun(PHCompositeNode* topNode)
 {
   createHistos();
 
@@ -53,6 +53,21 @@ int TpcLaserQA::InitRun(PHCompositeNode * /*topNode*/)
       m_sample_R3[side][sec] = dynamic_cast<TH1 *>(hm->getHisto(std::format("{}sample_R3_{}_{}", getHistoPrefix(), (side == 1 ? "North" : "South"), sec)));
     }
   }
+
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
+  if(!m_tGeometry)
+  {
+      std::cout << "LaserClusterHelper::loadNodes - ActsGeometry not found on node tree" << std::endl;
+  }
+
+  m_geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  if(!m_geom_container)
+  {
+      std::cout << "LaserClusterHelper::loadNodes - TPCGEOMCONTAINER not found on node tree" << std::endl;
+  }
+
+  m_laserClusterHelper.set_useZ(m_useZ);
+  m_laserClusterHelper.loadNodes(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -111,11 +126,24 @@ int TpcLaserQA::process_event(PHCompositeNode *topNode)
     const unsigned int nhits = cmclus->getNhits();
     for (unsigned int i = 0; i < nhits; i++)
     {
-      float layer = cmclus->getHitLayer(i);
-      float hitAdc = cmclus->getHitAdc(i);
-      float hitIT = cmclus->getHitIT(i);
+      Acts::Vector3 global = m_laserClusterHelper.getClusterCentroid(cmclus);
 
-      double phi = std::atan2(cmclus->getHitY(i), cmclus->getHitX(i));
+      if(global.hasNaN())
+      {
+        continue;
+      }
+
+      LaserClusterHitInfo LCHI = cmclus->getHit(i);
+
+      float layer = 1.0*TrkrDefs::getLayer(LCHI.hitsetkey);
+      float hitAdc = 1.0*LCHI.adc;
+      float hitIT = 1.0*TpcDefs::getTBin(LCHI.hitkey);
+
+      //float layer = cmclus->getHitLayer(i);
+      //float hitAdc = cmclus->getHitAdc(i);
+      //float hitIT = cmclus->getHitIT(i);
+
+      double phi = std::atan2(global(1), global(0));
       if (phi < -M_PI / 12.) { phi += 2 * M_PI;
 }
 

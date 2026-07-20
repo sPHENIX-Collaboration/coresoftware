@@ -3,7 +3,7 @@
 #include <trackbase/CMFlashDifferenceContainerv1.h>
 #include <trackbase/CMFlashDifferencev1.h>
 #include <trackbase/LaserClusterContainerv1.h>
-#include <trackbase/LaserClusterv1.h>
+#include <trackbase/LaserClusterv3.h>
 #include <trackbase/TpcDefs.h>
 
 #include <ffaobjects/EventHeader.h>
@@ -120,82 +120,6 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  /*
-  //Make map for run and ZDC rate for pp mode
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(49709, 555.0));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(52077, 0.0));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(52078, 0.0));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53534, 3013.5));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53630, 6849.3));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53631, 5577.8));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53632, 5151.2));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53652, 4600.0));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53687, 3967.2));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53716, 3070.1));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53738, 4510.7));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53739, 4165.0));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53741, 3738.1));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53742, 3721.4));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53743, 3693.4));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53744, 3581.9));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53756, 4471.4));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53783, 4825.7));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53871, 6871.5));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53876, 5082.3));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53877, 4758.5));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53879, 4315.0));
-
-  //beam off go into pp
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53098, 0.0));
-  m_run_ZDC_map_pp.insert(std::pair<int, float>(53271, 0.0));
-
-  m_run_ZDC_map_auau.insert(std::pair<int, float>(54966, 12400.));
-  m_run_ZDC_map_auau.insert(std::pair<int, float>(54967, 11600.));
-  m_run_ZDC_map_auau.insert(std::pair<int, float>(54968, 10500.));
-  m_run_ZDC_map_auau.insert(std::pair<int, float>(54969, 9680.));
-  */
-
-  /*
-  for(int module=0; module<4; module++)
-  {
-    double spacing[nRadii];
-    for(int j=0; j<nRadii; j++)
-    {
-      spacing[j] = 2.0 * ((dw_mult * diffwidth / RValues[module][j]) + (pr_mult * phi_petal / nPads[module]));
-    }
-    double phiTmp = 0.0;
-    for(int j=0; j<nRadii; j++)
-    {
-      for(int k=keepThisAndAfter[j]; k<keepUntil[module][j]; k++)
-      {
-        if(j % 2 == 0)
-        {
-          phiTmp = k * spacing[j] + (spacing[j] / 2.0) - adjust;
-        }
-        else
-        {
-          phiTmp = (k + 1) * spacing[j] - adjust;
-        }
-
-        double phi[2] = {phiTmp - (M_PI / 18), acos(-cos(phiTmp))};
-        for(int s=0; s<2; s++)
-        {
-          while(phi[s] < m_phiModMin[s])
-          {
-            phi[s] += M_PI / 9;
-          }
-          while(phi[s] > m_phiModMax[s])
-          {
-            phi[s] -= M_PI / 9;
-          }
-          m_truthR[s].push_back(RValues[module][j]);
-          m_truthPhi[s].push_back(phi[s]);
-        }
-
-      }
-    }
-  }
-  */
   CDBTTree *cdbttree = new CDBTTree(m_stripePatternFile);
   cdbttree->LoadCalibrations();
   auto cdbMap = cdbttree->GetDoubleEntryMap();
@@ -217,32 +141,6 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
     std::cerr << "stripe pattern file passed has no stripes on one side. Exiting" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  /*
-  for(int i=0; i<32; i++)
-  {
-    for(int j=0; j<11; j++)
-    {
-      int index0 = 18 + i*100 + j;
-      int index1 = i*100 + j;
-
-      double R0 = cdbttree->GetDoubleValue(index0, "truthR");
-      double Phi0 = cdbttree->GetDoubleValue(index0, "truthPhi");
-      if(!std::isnan(R0) && !std::isnan(Phi0))
-      {
-        m_truthR[0].push_back(R0);
-        m_truthPhi[0].push_back(Phi0);
-      }
-
-      double R1 = cdbttree->GetDoubleValue(index1, "truthR");
-      double Phi1 = cdbttree->GetDoubleValue(index1, "truthPhi");
-      if(!std::isnan(R1) && !std::isnan(Phi1))
-      {
-        m_truthR[1].push_back(R1);
-        m_truthPhi[1].push_back(Phi1);
-      }
-    }
-  }
-  */
 
   int ret = GetNodes(topNode);
   return ret;
@@ -251,13 +149,31 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
 //______________________________________
 int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
 {
-  //m_correctedCMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LAMINATION_CLUSTER");
   m_correctedCMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LASER_CLUSTER");
   if (!m_correctedCMcluster_map)
   {
     std::cout << PHWHERE << "CORRECTED_CM_CLUSTER Node missing, abort." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+
+  /*
+  m_geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  if (!m_geom_container)
+  {
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if (!m_tGeometry)
+  {
+    std::cout << PHWHERE << "ActsGeometry not found on node tree. Exiting" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  */
+
+  m_laserClusterHelper.set_useZ(m_useZ);
+  m_laserClusterHelper.loadNodes(topNode);
 
   m_dcc_in_module_edge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
   if (m_dcc_in_module_edge)
@@ -399,7 +315,16 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
   {
     const auto &[cmkey, cmclus_orig] = *cmitr;
     LaserCluster *cmclus = cmclus_orig;
+
+    bool side = (bool) TpcDefs::getSide(cmkey);
+    double weight = 1.0;
+    if(m_adcWeight)
+    {
+      weight = 1.0*cmclus->getAdc();
+    }
+
     //const unsigned int adc = cmclus->getAdc();
+    /*
     bool side = (bool) TpcDefs::getSide(cmkey);
     if (cmclus->getNLayers() < m_nLayerCut)
     {
@@ -412,9 +337,65 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
       weight = 1.0*cmclus->getAdc();
     }
 
+    double meanR = 0.0;
+    double meanPhi = 0.0;
+    double meanZ = 0.0;
+    double meanAdc = 0.0;
+    for(int i=0; i<(int)cmclus->getNhits(); i++)
+    {
+      LaserClusterHitInfo LCHI = cmclus->getHit(i);
+      int layer = TrkrDefs::getLayer(LCHI.hitsetkey);
+      PHG4TpcGeom *layer_geom = m_geom_container->GetLayerCellGeom(layer);
+      double radius = layer_geom->get_radius();
+      double phi = layer_geom->get_phi(TpcDefs::getTBin(LCHI.hitkey), TpcDefs::getSide(LCHI.hitsetkey));
+
+      double tdriftmax = layer_geom->get_max_driftlength() / m_tGeometry->get_drift_velocity();
+
+      double zdriftlength = layer_geom->get_zcenter(TpcDefs::getPad(LCHI.hitkey)) * m_tGeometry->get_drift_velocity();
+      // convert z drift length to z position in the TPC
+      double env_z = tdriftmax * m_tGeometry->get_drift_velocity() - zdriftlength;
+      if (TpcDefs::getSide(LCHI.hitsetkey) == 0)
+      {
+        env_z = -env_z;
+      }
+
+      double env_x = radius * cos(phi);
+      double env_y = radius * sin(phi);
+
+      //hard code at 0 until better z coordinate calibration is determined
+      env_z = 0.0;
+
+      Acts::Vector3 env_global(env_x, env_y, env_z);
+      Acts::Vector3 global = m_tGeometry->transformTpcEnvelopeToWorld(env_global);
+
+      double global_x = global.x();
+      double global_y = global.y();
+      double global_z = global.z();
+
+      double global_R = sqrt(global_x*global_x + global_y*global_y);
+      double global_phi = atan2(global_y, global_x);
+
+      meanR += global_R * LCHI.adc;
+      meanPhi += global_phi * LCHI.adc;
+      meanZ += global_z * LCHI.adc;
+      meanAdc += LCHI.adc;
+    }
+    
+    meanR /= meanAdc;
+    meanPhi /= meanAdc;
+    meanZ /= meanAdc;
     
     //Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
-    Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), (side ? 1.0 : -1.0));
+    //Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), (side ? 1.0 : -1.0));
+    Acts::Vector3 pos(meanR * cos(meanPhi), meanR * sin(meanPhi), meanZ);
+    */
+
+    Acts::Vector3 pos = m_laserClusterHelper.getClusterCentroid(cmclus);
+    if(pos.hasNaN())
+    {
+      continue;
+    }
+
     if (m_dcc_in_module_edge)
     {
       pos = m_distortionCorrection.get_corrected_position(pos, m_dcc_in_module_edge);

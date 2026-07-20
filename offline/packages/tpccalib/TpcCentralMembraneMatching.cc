@@ -1494,7 +1494,8 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     // Do the static + average distortion corrections if the container was found
     // since incorrect z values are in cluster do to wrong t0 of laser flash, fixing based on the side for now
     // Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
-    Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), (side ? 1.0 : -1.0));
+    Acts::Vector3 pos = m_laserClusterHelper.getClusterCentroid(cmclus);
+    //Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), (side ? 1.0 : -1.0));
     TVector3 tmp_raw(pos[0], pos[1], pos[2]);
     if (m_dcc_in_module_edge)
     {
@@ -1579,12 +1580,12 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 
     if (Verbosity() > 2)
     {
-      double raw_rad = std::sqrt(cmclus->getX() * cmclus->getX() + cmclus->getY() * cmclus->getY());
+      double raw_rad = std::sqrt(tmp_raw.X() * tmp_raw.X() + tmp_raw.Y() * tmp_raw.Y());
       double static_rad = sqrt(tmp_static.X() * tmp_static.X() + tmp_static.Y() * tmp_static.Y());
       double corr_rad = sqrt(tmp_pos.X() * tmp_pos.X() + tmp_pos.Y() * tmp_pos.Y());
       std::cout << "cluster " << clusterIndex << std::endl;
       clusterIndex++;
-      std::cout << "found raw cluster " << cmkey << " side " << side << " with x " << cmclus->getX() << " y " << cmclus->getY() << " z " << cmclus->getZ() << " radius " << raw_rad << std::endl;
+      std::cout << "found raw cluster " << cmkey << " side " << side << " with x " << tmp_raw.X() << " y " << tmp_raw.Y() << " z " << tmp_raw.Z() << " radius " << raw_rad << std::endl;
       std::cout << "        --- static corrected positions: " << tmp_static.X() << "  " << tmp_static.Y() << "  " << tmp_static.Z() << " radius " << static_rad << std::endl;
       std::cout << "                --- corrected positions: " << tmp_pos.X() << "  " << tmp_pos.Y() << "  " << tmp_pos.Z() << " radius " << corr_rad << std::endl;
     }
@@ -2786,6 +2787,9 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
     std::cout << PHWHERE << "CORRECTED_CM_CLUSTER Node missing, abort." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+
+  m_laserClusterHelper.set_useZ(m_useZ);
+  m_laserClusterHelper.loadNodes(topNode);
 
   // input tpc distortion correction module edge
   m_dcc_in_module_edge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");

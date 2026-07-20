@@ -28,6 +28,7 @@ libtpcqa_la_SOURCES = \
 libtpcqa_la_LIBADD = \
   -lphool \
   -lSubsysReco \
+  -lg4detectors_io \
   -lg4tpc \
   -ltrack_io \
   -ltrackbase_historic_io \
