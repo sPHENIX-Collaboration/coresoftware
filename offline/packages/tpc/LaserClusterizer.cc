@@ -431,7 +431,9 @@ namespace
   void calc_cluster_parameter(std::vector<hitData> &clusHits, thread_data &my_data, std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey> maxADCKey)
   {
     findConnectedRegions3(clusHits, maxADCKey, my_data.Verbosity);
-
+    
+    unsigned int nHits = clusHits.size();
+    if(nHits == 0) return;
 
     double layerSum = 0.0;
     double iphiSum = 0.0;
@@ -443,8 +445,6 @@ namespace
     TrkrDefs::hitsetkey maxKey = 0;
     //double secondmaxAdc = 0.0;
     //TrkrDefs::hitsetkey secondmaxKey = 0;
-
-    unsigned int nHits = clusHits.size();
 
     auto *clus = new LaserClusterv3;
 
@@ -550,6 +550,7 @@ namespace
 
     if (nHits == 0 || clus->getNhits() == 0)
     {
+      delete clus;
       return;
     }
 

@@ -123,17 +123,17 @@ int TpcLaserQA::process_event(PHCompositeNode *topNode)
       nS++;
     }
 
+
     const unsigned int nhits = cmclus->getNhits();
     for (unsigned int i = 0; i < nhits; i++)
-    {
-      Acts::Vector3 global = m_laserClusterHelper.getClusterCentroid(cmclus);
+    {        
+      LaserClusterHitInfo LCHI = cmclus->getHit(i);
 
-      if(global.hasNaN())
+      Acts::Vector3 hitGlobal = m_laserClusterHelper.getHitGlobalPosition(LCHI.hitsetkey, LCHI.hitkey);
+      if(hitGlobal.hasNaN())
       {
         continue;
-      }
-
-      LaserClusterHitInfo LCHI = cmclus->getHit(i);
+      }    
 
       float layer = 1.0*TrkrDefs::getLayer(LCHI.hitsetkey);
       float hitAdc = 1.0*LCHI.adc;
@@ -143,7 +143,7 @@ int TpcLaserQA::process_event(PHCompositeNode *topNode)
       //float hitAdc = cmclus->getHitAdc(i);
       //float hitIT = cmclus->getHitIT(i);
 
-      double phi = std::atan2(global(1), global(0));
+      double phi = std::atan2(hitGlobal(1), hitGlobal(0));
       if (phi < -M_PI / 12.) { phi += 2 * M_PI;
 }
 

@@ -69,11 +69,11 @@ class LaserCluster : public PHObject
   virtual float getIT() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void setIT(float) {}
 
-  virtual unsigned int getLayerInt() const { return std::numeric_limits<unsigned int>::quiet_NaN(); }
+  virtual unsigned int getLayerInt() const { return std::numeric_limits<unsigned int>::max(); }
   virtual void setLayerInt(unsigned int) {}
-  virtual unsigned int getIPhiInt() const { return std::numeric_limits<unsigned int>::quiet_NaN(); }
+  virtual unsigned int getIPhiInt() const { return std::numeric_limits<unsigned int>::max(); }
   virtual void setIPhiInt(unsigned int) {}
-  virtual unsigned int getITInt() const { return std::numeric_limits<unsigned int>::quiet_NaN(); }
+  virtual unsigned int getITInt() const { return std::numeric_limits<unsigned int>::max(); }
   virtual void setITInt(unsigned int) {}
 
   //
