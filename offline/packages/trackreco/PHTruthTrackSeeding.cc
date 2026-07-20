@@ -120,7 +120,10 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
   std::vector<TrkrDefs::cluskey> ClusterKeyListSilicon;
   std::vector<TrkrDefs::cluskey> ClusterKeyListTpc;
 
-  PHG4TruthInfoContainer::ConstRange range = m_g4truth_container->GetPrimaryParticleRange();
+  PHG4TruthInfoContainer::ConstRange range =
+      m_include_secondaries
+          ? m_g4truth_container->GetParticleRange()
+          : m_g4truth_container->GetPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
        iter != range.second;
        ++iter)
