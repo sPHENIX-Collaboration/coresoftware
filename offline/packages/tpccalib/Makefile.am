@@ -32,12 +32,15 @@ libtpccalib_la_LIBADD = \
   -lodbc++ \
   -lSubsysReco \
   -lg4detectors_io \
+  -lmicromegas_io \
   -ltrack_io \
   -ltrackbase_historic_io \
   -ltrack_reco \
   -ltpc_io
 
 pkginclude_HEADERS = \
+  MicromegasDriftEvaluator.h \
+  SiliconDriftEvaluator.h \
   TpcDirectLaserReconstruction.h \
   TpcSpaceChargeMatrixContainer.h \
   TpcSpaceChargeMatrixContainerv1.h \
@@ -50,12 +53,16 @@ pkginclude_HEADERS = \
 
 
 ROOTDICTS = \
+  MicromegasDriftEvaluator_Dict.cc \
+  SiliconDriftEvaluator_Dict.cc \
   TpcSpaceChargeMatrixContainer_Dict.cc \
   TpcSpaceChargeMatrixContainerv1_Dict.cc \
   TpcSpaceChargeMatrixContainerv2_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  MicromegasDriftEvaluator_Dict_rdict.pcm \
+  SiliconDriftEvaluator_Dict_rdict.pcm \
   TpcSpaceChargeMatrixContainer_Dict_rdict.pcm \
   TpcSpaceChargeMatrixContainerv1_Dict_rdict.pcm \
   TpcSpaceChargeMatrixContainerv2_Dict_rdict.pcm
@@ -66,6 +73,8 @@ libtpccalib_io_la_SOURCES = \
   TpcSpaceChargeMatrixContainerv2.cc
 
 libtpccalib_la_SOURCES = \
+  MicromegasDriftEvaluator.cc \
+  SiliconDriftEvaluator.cc \
   TpcDirectLaserReconstruction.cc \
   TpcSpaceChargeMatrixInversion.cc \
   TpcSpaceChargeReconstructionHelper.cc \

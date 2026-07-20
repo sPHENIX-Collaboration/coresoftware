@@ -5,6 +5,7 @@
  * Bade Sayki June 16th, 2026 -- LANL
  * This module is created to calibrate the drift velocity in the TPC by projecting the silicon seeds and the TPC seeds to the beam axis and calculating the z residuals.
  * This is heavily inspired by and distilled from Dr. Hugo Pereira Da Costa's TrackingEvaluator_hp module. It is meant to be a more lightweight and specialized version.
+ * Claude tool was used to format and comment this module.
  */
  
 #include <fun4all/SubsysReco.h>
@@ -115,56 +116,43 @@ class SiliconDriftEvaluator : public SubsysReco
   };
  
   //! track map name
-  void set_trackmapname( const std::string& value )
-  { m_trackmapname = value; }
+  void set_trackmapname( const std::string& value )  { m_trackmapname = value; }
  
   // initial drift velocity (cm/ns); used as starting point for the fit and for the crossing correction
-  void set_drift_velocity( double value )
-  { m_drift_velocity = value; }
+  void set_drift_velocity( double value )  { m_drift_velocity = value; }
  
   // bunch-crossing interval in ns (default: 106.65237 ns)
-  void set_crossing_interval( double value )
-  { m_crossing_interval = value; }
+  void set_crossing_interval( double value )  { m_crossing_interval = value; }
  
   // minimum pT cut on tracks (GeV)
-  void set_min_pt( double value )
-  { m_min_pt = value; }
+  void set_min_pt( double value )  { m_min_pt = value; }
  
   // minimum number of TPC clusters required
-  void set_min_nclusters_tpc( unsigned int value )
-  { m_min_nclusters_tpc = value; }
+  void set_min_nclusters_tpc( unsigned int value )  { m_min_nclusters_tpc = value; }
  
   // minimum number of MVTX clusters required
-  void set_min_nclusters_mvtx( unsigned int value )
-  { m_min_nclusters_mvtx = value; }
+  void set_min_nclusters_mvtx( unsigned int value )  { m_min_nclusters_mvtx = value; }
  
   // minimum number of INTT clusters required
-  void set_min_nclusters_intt( unsigned int value )
-  { m_min_nclusters_intt = value; }
+  void set_min_nclusters_intt( unsigned int value )  { m_min_nclusters_intt = value; }
  
   // maximum abs(eta) of TPC seed accepted
-  void set_max_eta( double value )
-  { m_max_eta = value; }
+  void set_max_eta( double value )  { m_max_eta = value; }
  
   // half-range of the z_si histogram axis (cm)
-  void set_max_z( double value )
-  { m_max_z = value; }
+  void set_max_z( double value )  { m_max_z = value; }
  
   // half-range of the dz histogram axis (cm)
-  void set_max_dz( double value )
-  { m_max_dz = value; }
+  void set_max_dz( double value )  { m_max_dz = value; }
  
   //! minimum entries per z slice required by FitSlicesY
-  void set_min_slice_entries( int value )
-  { m_min_slice_entries = value; }
+  void set_min_slice_entries( int value )  { m_min_slice_entries = value; }
  
   // output drift plot filename. Do this in your macro. 
-  void set_plot_filename( const std::string& value )
-  { m_plot_filename = value; }
+  void set_plot_filename( const std::string& value )  { m_plot_filename = value; }
  
   // output ROOT filename for histograms and fit results. Do this in your macro. 
-  void set_root_filename( const std::string& value )
-  { m_root_filename = value; }
+  void set_root_filename( const std::string& value )  { m_root_filename = value; }
  
   private:
  

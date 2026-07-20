@@ -7,6 +7,7 @@
  * This is heavily inspired by and distilled from Dr. Hugo Pereira Da Costa's MicromegasTrackEvaluator_hp module. It is meant to be a more lightweight and specialized version.
  * It accumulates a TH3F(tile, z_track, dz) histogram during process_event, then in End() fits a piecewise function to suggest an updated drift velocity.
  * If you have any questions, please feel free to message me on mattermost. 
+ * Claude Code tool was used to format and comment this module.
  */
 
 #include <fun4all/SubsysReco.h>
@@ -93,32 +94,32 @@ class MicromegasDriftEvaluator : public SubsysReco
     ClassDefOverride(Container, 1)
   };
 
-  void set_trackmapname(const std::string& v) { m_trackmapname = v; }
+  void set_trackmapname(const std::string& value) { m_trackmapname = value; }
 
   /// This function is specifically used to give the fitting function a starting point. Use the initial drift velocity you used when reconstructing.
-  void set_drift_velocity(double v) { m_drift_velocity = v; }
+  void set_drift_velocity(double value) { m_drift_velocity = value; }
 
   /// TPC layer range used for the helix fit. The default is R3, but this is an area with huge static distortions. It can easily be adjusted in the Fun4All macro with these functions.
-  void set_min_tpc_layer(unsigned int v) { m_min_tpc_layer = v; }
-  void set_max_tpc_layer(unsigned int v) { m_max_tpc_layer = v; }
+  void set_min_tpc_layer(unsigned int value) { m_min_tpc_layer = value; }
+  void set_max_tpc_layer(unsigned int value) { m_max_tpc_layer = value; }
 
   /// This one rejects track states near tile edge
-  void set_y_local_cut(double v) { m_y_local_cut = v; }
+  void set_y_local_cut(double value) { m_y_local_cut = value; }
 
   /// Search window to match a Micromegas cluster to the prediction
-  void set_z_search_window(double v) { m_z_search_win = v; }
+  void set_z_search_window(double value) { m_z_search_win = value; }
 
   /// Output filename for the QA plot. Make this a .png
-  void set_plot_filename(const std::string& v) { m_plot_filename = v; }
+  void set_plot_filename(const std::string& value) { m_plot_filename = value; }
 
-  /// Output ROOT filename for histograms and fit results. Set empty to disable.
-  void set_root_filename(const std::string& v) { m_root_filename = v; }
+  /// Output ROOT filename for histograms and fit results.
+  void set_root_filename(const std::string& value) { m_root_filename = value; }
 
   /// If true (default), append -<runnumber>-<segment> to output filenames, following sPHENIX convention
-  void set_add_run_segment(bool v) { m_add_run_segment = v; }
+  void set_add_run_segment(bool value) { m_add_run_segment = value; }
 
   /// Manually set the segment number used in output filenames (otherwise parsed from the input filename)
-  void set_segment(int v) { m_segment = v; }
+  void set_segment(int value) { m_segment = value; }
 
   private:
 
@@ -136,13 +137,13 @@ class MicromegasDriftEvaluator : public SubsysReco
   std::string  m_trackmapname   = "SvtxTrackMap";
 
   //These are all adjustable in your F4A macro. You should probably put in a better m_plot_filename.
-  double       m_drift_velocity = 0.00745; 
+  double       m_drift_velocity = 0.00747; 
   unsigned int m_min_tpc_layer  = 39;
   unsigned int m_max_tpc_layer  = 55;
   double       m_y_local_cut    = 22.0;
   double       m_z_search_win   = 3.0;
-  std::string  m_plot_filename  = "drift_calib_QA.png";
-  std::string  m_root_filename  = "drift_calib_QA.root";
+  std::string  m_plot_filename  = "micromegas_drift_calib.png";
+  std::string  m_root_filename  = "micromegas_drift_calib.root";
   bool         m_add_run_segment = true;
   int          m_segment        = -1;
 
