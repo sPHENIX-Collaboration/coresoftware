@@ -6,7 +6,6 @@
 #include <fun4all/SubsysReco.h>
 
 #include <array>
-#include <cstddef>
 #include <string>
 
 class PHCompositeNode;
@@ -35,11 +34,10 @@ class PHG4GeantinoIonization : public SubsysReco
   void set_intt_enabled(bool value) { m_detectorConfigs[1].enabled = value; }
   void set_tpc_enabled(bool value) { m_detectorConfigs[2].enabled = value; }
   void set_micromegas_enabled(bool value) { m_detectorConfigs[3].enabled = value; }
+  void set_tpot_enabled(bool value) { set_micromegas_enabled(value); }
 
-  void set_mvtx_mip_dedx(double value) { m_detectorConfigs[0].mipDedx = value; }
-  void set_intt_mip_dedx(double value) { m_detectorConfigs[1].mipDedx = value; }
-  void set_tpc_mip_dedx(double value) { m_detectorConfigs[2].mipDedx = value; }
-  void set_micromegas_mip_dedx(double value) { m_detectorConfigs[3].mipDedx = value; }
+  void set_mvtx_mip_dedx(double value);
+  void set_intt_mip_dedx(double value);
 
   /**
    * Configure the TPC mean MIP stopping power from the same gas fractions
@@ -52,27 +50,41 @@ class PHG4GeantinoIonization : public SubsysReco
       double nitrogen,
       double isobutane);
 
+  void set_tpot_gas_fractions(
+      double neon,
+      double argon,
+      double cf4,
+      double nitrogen,
+      double isobutane);
+
+  void set_tpot_gas_fractions(double argon, double isobutane)
+  {
+    set_tpot_gas_fractions(0, argon, 0, 0, isobutane);
+  }
+
  private:
+  enum class DetectorId
+  {
+    mvtx,
+    intt,
+    tpc,
+    tpot
+  };
+
   struct DetectorConfig
   {
+    DetectorId detector;
     std::string name;
     std::string hitNodeName;
-    double mipDedx = 0;  // GeV/cm
     bool enabled = true;
   };
 
-  struct DetectorCounters
-  {
-    std::size_t inspected = 0;
-    std::size_t modified = 0;
-    std::size_t missingParticle = 0;
-    std::size_t invalidPath = 0;
-  };
-
-  DetectorCounters process_detector(
+  void process_detector(
       PHG4HitContainer* hits,
       const PHG4TruthInfoContainer* truthInfo,
       const DetectorConfig& config) const;
+
+  static double mip_dedx(DetectorId detector);
 
   std::array<DetectorConfig, 4> m_detectorConfigs;
   std::string m_particleName = "chargedgeantino";
