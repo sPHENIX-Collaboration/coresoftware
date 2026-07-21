@@ -54,18 +54,6 @@ int TpcLaserQA::InitRun(PHCompositeNode* topNode)
     }
   }
 
-  m_tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
-  if(!m_tGeometry)
-  {
-      std::cout << "LaserClusterHelper::loadNodes - ActsGeometry not found on node tree" << std::endl;
-  }
-
-  m_geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
-  if(!m_geom_container)
-  {
-      std::cout << "LaserClusterHelper::loadNodes - TPCGEOMCONTAINER not found on node tree" << std::endl;
-  }
-
   m_laserClusterHelper.set_useZ(m_useZ);
   m_laserClusterHelper.loadNodes(topNode);
 

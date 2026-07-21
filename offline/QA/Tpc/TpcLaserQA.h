@@ -5,9 +5,6 @@
 
 #include <tpc/LaserClusterHelper.h>
 
-#include <g4detectors/PHG4TpcGeom.h>
-#include <g4detectors/PHG4TpcGeomContainer.h>
-
 #include <string>
 
 class PHCompositeNode;
@@ -41,9 +38,6 @@ class TpcLaserQA : public SubsysReco
   TH1* m_sample_R1[2][12]{{nullptr}};
   TH1* m_sample_R2[2][12]{{nullptr}};
   TH1* m_sample_R3[2][12]{{nullptr}};
-
-  ActsGeometry *m_tGeometry{nullptr};
-  PHG4TpcGeomContainer *m_geom_container{nullptr};
 
   LaserClusterHelper m_laserClusterHelper;
   bool m_useZ{false};
