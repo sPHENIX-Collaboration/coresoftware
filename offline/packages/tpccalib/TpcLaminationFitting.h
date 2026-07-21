@@ -2,14 +2,14 @@
 #define TPCCALIB_TPCLAMINATIONFITTING_H
 
 
-#include <g4detectors/PHG4TpcGeom.h>
-#include <g4detectors/PHG4TpcGeomContainer.h>
+//#include <g4detectors/PHG4TpcGeom.h>
+//#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <tpc/LaserClusterHelper.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
-#include <trackbase/ActsGeometry.h>
+//#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
 
@@ -197,14 +197,11 @@ class TpcLaminationFitting : public SubsysReco
   const double adjust = 0.015;
   */
 
-  std::vector<double> m_truthR[2];
-  std::vector<double> m_truthPhi[2];
+  std::vector<double> m_truthR[2]{};
+  std::vector<double> m_truthPhi[2]{};
 
   double m_phiModMin[2]{-M_PI/18, 0.0};
   double m_phiModMax[2]{M_PI/18, M_PI/9};
-
-  ActsGeometry *m_tGeometry {nullptr};
-  PHG4TpcGeomContainer *m_geom_container {nullptr};
 
   LaserClusterHelper m_laserClusterHelper;
   bool m_useZ{false};

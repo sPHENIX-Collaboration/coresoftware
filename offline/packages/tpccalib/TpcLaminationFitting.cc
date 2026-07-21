@@ -76,7 +76,7 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
     //m_parameterScan[s] = new TH2D((boost::format("parameterScan_%s") %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("TPC %s Lamination Parameter Scan;A (asymptote);C (decay constant)") %(s == 1 ? "North" : "South")).str().c_str(), 101, -1.005, 0.005, 101, -0.0025, 0.5025);
 
 
-    clusterMap[s] = new TH2D((boost::format("clusterMap_%s") %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("TPC %s;#phi;R [cm]") %(s == 1 ? "North" : "South")).str().c_str(), 2000, 0.0, 2*TMath::Pi(), 2000, 28, 80);
+    clusterMap[s] = new TH2D((boost::format("clusterMap_%s") %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("TPC %s;#phi;R [cm]") %(s == 1 ? "North" : "South")).str().c_str(), 20000, 0.0, 2*TMath::Pi(), 2000, 28, 80);
 
     for (int l = 0; l < 18; l++)
     {
@@ -316,6 +316,8 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
     const auto &[cmkey, cmclus_orig] = *cmitr;
     LaserCluster *cmclus = cmclus_orig;
 
+    if(cmclus->getNLayers() <= m_nLayerCut) continue;
+
     bool side = (bool) TpcDefs::getSide(cmkey);
     double weight = 1.0;
     if(m_adcWeight)
@@ -409,7 +411,6 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
 
     if(cmclus->getNLayers() > m_nLayerCut && (!m_useSDLayerCut || cmclus->getSDWeightedLayer() > 0.5))
     {
-      clusterMap[side]->Fill(tmp_pos.Phi(), tmp_pos.Perp(), weight);
       for (int l = 0; l < 18; l++)
       {
 	      double shift = m_laminationIdeal[l][side];
@@ -435,12 +436,15 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
     {
       continue;
     }
-    
+
     double phi2pimod = tmp_pos.Phi();
     if (phi2pimod < 0.0)
     {
       phi2pimod += 2 * M_PI;
     }
+
+    clusterMap[side]->Fill(phi2pimod, tmp_pos.Perp(), weight);    
+
     while(side && phi2pimod > M_PI / 9)
     {
       phi2pimod -= M_PI / 9;
@@ -1161,7 +1165,6 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
   
   for(int s=0; s<2; s++)
   {
-    clusterMap[s]->Write();
     for(int l=0; l<18; l++)
     {
       m_side = s;
@@ -1198,6 +1201,7 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
   outputfile->cd();
   for (int s = 0; s < 2; s++)
   {
+    clusterMap[s]->Write();
     for (const auto &h : {m_dcc_out->m_hDRint[s], m_dcc_out->m_hDPint[s], m_dcc_out->m_hDZint[s], m_dcc_out->m_hentries[s]})
     {
       if (h)

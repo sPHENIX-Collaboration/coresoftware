@@ -14,6 +14,13 @@
 #include <iostream>
 #include <limits>
 
+namespace
+{
+  Acts::Vector3 invalid(std::numeric_limits<double>::quiet_NaN(),
+                        std::numeric_limits<double>::quiet_NaN(),
+                        std::numeric_limits<double>::quiet_NaN());
+}
+
 //____________________________________________________________________________
 void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
 {
@@ -33,9 +40,9 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
 //____________________________________________________________________________
 Acts::Vector3 LaserClusterHelper::getHitGlobalPosition(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::hitkey hitkey) const
 {
-    const Acts::Vector3 invalid(std::numeric_limits<double>::quiet_NaN(),
-                                std::numeric_limits<double>::quiet_NaN(),
-                                std::numeric_limits<double>::quiet_NaN());
+    //const Acts::Vector3 invalid(std::numeric_limits<double>::quiet_NaN(),
+    //                            std::numeric_limits<double>::quiet_NaN(),
+    //                            std::numeric_limits<double>::quiet_NaN());
 
     if(!m_tGeometry || !m_geom_container)
     {
@@ -82,9 +89,9 @@ Acts::Vector3 LaserClusterHelper::getHitGlobalPosition(TrkrDefs::hitsetkey hitse
 //____________________________________________________________________________
 Acts::Vector3 LaserClusterHelper::getClusterCentroid(LaserCluster* cluster) const
 {
-    const Acts::Vector3 invalid(std::numeric_limits<double>::quiet_NaN(),
-                                std::numeric_limits<double>::quiet_NaN(),
-                                std::numeric_limits<double>::quiet_NaN());
+    //const Acts::Vector3 invalid(std::numeric_limits<double>::quiet_NaN(),
+    //                            std::numeric_limits<double>::quiet_NaN(),
+    //                            std::numeric_limits<double>::quiet_NaN());
     
     if(!cluster)
     {
