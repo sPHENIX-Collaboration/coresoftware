@@ -6,7 +6,7 @@
  * This module is created to calibrate the drift velocity in the TPC by fitting a helix to the clusters within a certain layer range, and projecting it to the TPOT z view module plane. The default layers in the TPC are set to be 39-55, which correspond to R3.
  * This is heavily inspired by and distilled from Dr. Hugo Pereira Da Costa's MicromegasTrackEvaluator_hp module. It is meant to be a more lightweight and specialized version.
  * It accumulates a TH3F(tile, z_track, dz) histogram during process_event, then in End() fits a piecewise function to suggest an updated drift velocity.
- * If you have any questions, please feel free to message me on mattermost. 
+ * If you have any questions, please feel free to message me on mattermost.
  * Claude Code tool was used to format and comment this module.
  */
 
@@ -29,9 +29,8 @@ class SvtxTrackMap;
 
 class MicromegasDriftEvaluator : public SubsysReco
 {
-  public:
-
-  explicit MicromegasDriftEvaluator( const std::string& name = "MicromegasDriftEvaluator" );
+ public:
+  explicit MicromegasDriftEvaluator(const std::string& name = "MicromegasDriftEvaluator");
 
   int Init(PHCompositeNode*) override;
   int InitRun(PHCompositeNode*) override;
@@ -40,40 +39,38 @@ class MicromegasDriftEvaluator : public SubsysReco
 
   struct TrackStateStruct
   {
-    unsigned short _layer  = 0; 
-    unsigned short _tile   = 0;
-    double         _z      = 0;  
-    double         _y_local = 0; 
+    unsigned short _layer = 0;
+    unsigned short _tile = 0;
+    double _z = 0;
+    double _y_local = 0;
   };
 
   struct ClusterStruct
   {
-    unsigned short _layer = 0; 
-    unsigned short _tile  = 0;
-    double         _z     = 0;
+    unsigned short _layer = 0;
+    unsigned short _tile = 0;
+    double _z = 0;
   };
 
   struct TrackStruct
   {
     float _chisquare = 0;
-    int   _ndf       = 0;
+    int _ndf = 0;
 
-    unsigned int _nclusters_tpc        = 0;
-    unsigned int _nclusters_mvtx       = 0;
-    unsigned int _nclusters_intt       = 0;
+    unsigned int _nclusters_tpc = 0;
+    unsigned int _nclusters_mvtx = 0;
+    unsigned int _nclusters_intt = 0;
     unsigned int _nclusters_micromegas = 0;
 
-    TrackStateStruct _trk_state_z; 
-    ClusterStruct    _found_cluster_z;
+    TrackStateStruct _trk_state_z;
+    ClusterStruct _found_cluster_z;
 
     using List = std::vector<TrackStruct>;
   };
 
-
   class Container : public PHObject
   {
-    public:
-
+   public:
     explicit Container() = default;
     Container(const Container&) = delete;
     Container& operator=(const Container&) = delete;
@@ -81,15 +78,14 @@ class MicromegasDriftEvaluator : public SubsysReco
     void Reset() override { _tracks.clear(); }
 
     const TrackStruct::List& tracks() const { return _tracks; }
-    void add_track(const TrackStruct& t)    { _tracks.push_back(t); }
-    void clear_tracks()                     { _tracks.clear(); }
+    void add_track(const TrackStruct& t) { _tracks.push_back(t); }
+    void clear_tracks() { _tracks.clear(); }
 
-    private:
-
+   private:
     TrackStruct::List _tracks;
 
     TrackStateStruct _unused_state;
-    ClusterStruct    _unused_cluster;
+    ClusterStruct _unused_cluster;
 
     ClassDefOverride(Container, 1)
   };
@@ -121,31 +117,30 @@ class MicromegasDriftEvaluator : public SubsysReco
   /// Manually set the segment number used in output filenames (otherwise parsed from the input filename)
   void set_segment(int value) { m_segment = value; }
 
-  private:
-
-  int  load_nodes(PHCompositeNode*);
+ private:
+  int load_nodes(PHCompositeNode*);
   std::string make_output_filename(const std::string&) const;
   void evaluate_tracks();
 
-  Container*                 m_container             = nullptr;
-  ActsGeometry*              m_tGeometry             = nullptr;
-  TpcGlobalPositionWrapper   m_globalPositionWrapper;
+  Container* m_container = nullptr;
+  ActsGeometry* m_tGeometry = nullptr;
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
   PHG4CylinderGeomContainer* m_micromegas_geomcontainer = nullptr;
-  TrkrClusterContainer*      m_cluster_map           = nullptr;
-  SvtxTrackMap*              m_track_map             = nullptr;
+  TrkrClusterContainer* m_cluster_map = nullptr;
+  SvtxTrackMap* m_track_map = nullptr;
 
-  std::string  m_trackmapname   = "SvtxTrackMap";
+  std::string m_trackmapname = "SvtxTrackMap";
 
-  //These are all adjustable in your F4A macro. You should probably put in a better m_plot_filename.
-  double       m_drift_velocity = 0.00747; 
-  unsigned int m_min_tpc_layer  = 39;
-  unsigned int m_max_tpc_layer  = 55;
-  double       m_y_local_cut    = 22.0;
-  double       m_z_search_win   = 3.0;
-  std::string  m_plot_filename  = "micromegas_drift_calib.png";
-  std::string  m_root_filename  = "micromegas_drift_calib.root";
-  bool         m_add_run_segment = true;
-  int          m_segment        = -1;
+  // These are all adjustable in your F4A macro. You should probably put in a better m_plot_filename.
+  double m_drift_velocity = 0.00747;
+  unsigned int m_min_tpc_layer = 39;
+  unsigned int m_max_tpc_layer = 55;
+  double m_y_local_cut = 22.0;
+  double m_z_search_win = 3.0;
+  std::string m_plot_filename = "micromegas_drift_calib.png";
+  std::string m_root_filename = "micromegas_drift_calib.root";
+  bool m_add_run_segment = true;
+  int m_segment = -1;
 
   TH3F* m_hist3D = nullptr;
 };
