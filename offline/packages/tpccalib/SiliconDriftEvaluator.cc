@@ -77,7 +77,7 @@ int SiliconDriftEvaluator::Init(PHCompositeNode* topNode)
 {
   // find DST node
   PHNodeIterator iter(topNode);
-  auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  auto* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << "SiliconDriftEvaluator::Init - DST Node missing" << std::endl;
@@ -86,7 +86,7 @@ int SiliconDriftEvaluator::Init(PHCompositeNode* topNode)
 
   // get EVAL node
   iter = PHNodeIterator(dstNode);
-  auto evalNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "EVAL"));
+  auto* evalNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "EVAL"));
   if (!evalNode)
   {
     // create
@@ -96,7 +96,7 @@ int SiliconDriftEvaluator::Init(PHCompositeNode* topNode)
   }
 
   // add container to output tree
-  auto newNode = new PHIODataNode<PHObject>(new Container, "SiliconDriftEvaluator::Container", "PHObject");
+  auto* newNode = new PHIODataNode<PHObject>(new Container, "SiliconDriftEvaluator::Container", "PHObject");
 
   // overwrite split level for easier offline browsing
   newNode->SplitLevel(99);
@@ -123,10 +123,10 @@ int SiliconDriftEvaluator::process_event(PHCompositeNode* topNode)
 {
   // load nodes
   const auto res = load_nodes(topNode);
-  if (res != Fun4AllReturnCodes::EVENT_OK) return res;
+  if (res != Fun4AllReturnCodes::EVENT_OK) {return res;}
 
   // cleanup output
-  if (m_container) m_container->Reset();
+  if (m_container) {m_container->Reset();}
 
   evaluate_tracks();
 
@@ -147,7 +147,7 @@ int SiliconDriftEvaluator::End(PHCompositeNode*)
 
   // build mean-dz TH2F via FitSlicesY, one eta bin at a time
   // x = eta bin [0,2), y = z_si (cm), content = mean dz (cm)
-  auto h_fit = new TH2F("h_fit_silicon", "",
+  auto* h_fit = new TH2F("h_fit_silicon", "",
                         2, 0, 2,
                         200, -m_max_z, m_max_z);
   h_fit->SetDirectory(nullptr);
@@ -155,13 +155,13 @@ int SiliconDriftEvaluator::End(PHCompositeNode*)
   for (int ieta = 0; ieta < 2; ++ieta)
   {
     m_hist3D->GetXaxis()->SetRange(ieta + 1, ieta + 1);
-    auto h2d = static_cast<TH2F*>(m_hist3D->Project3D("zy"));
+    auto* h2d = static_cast<TH2F*>(m_hist3D->Project3D("zy"));
     h2d->SetName(Form("h2d_etabin_%i", ieta));
     h2d->SetDirectory(nullptr);
 
     // fit vertical slices; require a minimum of m_min_slice_entries per slice
     h2d->FitSlicesY(nullptr, 0, -1, m_min_slice_entries);
-    auto h_mean = static_cast<TH1F*>(gDirectory->Get(Form("h2d_etabin_%i_1", ieta)));
+    auto* h_mean = static_cast<TH1F*>(gDirectory->Get(Form("h2d_etabin_%i_1", ieta)));
 
     if (!h_mean)
     {
@@ -184,8 +184,8 @@ int SiliconDriftEvaluator::End(PHCompositeNode*)
   m_hist3D->GetXaxis()->SetRange(0, 0);
 
   // 2D piecewise fit: shared slope + per-eta offset
-  auto fit2d = new TF2("fit2d_silicon", fit_function_2d, 0, 2, -m_max_z, m_max_z, 3);
-  for (int i = 0; i < 3; ++i) fit2d->SetParameter(i, 0.0);
+  auto* fit2d = new TF2("fit2d_silicon", fit_function_2d, 0, 2, -m_max_z, m_max_z, 3);
+  for (int i = 0; i < 3; ++i) {fit2d->SetParameter(i, 0.0);}
   h_fit->Fit(fit2d, "0R");
 
   const double slope = fit2d->GetParameter(0);
@@ -200,7 +200,7 @@ int SiliconDriftEvaluator::End(PHCompositeNode*)
   std::cout << Name() << "::End" << " slope=" << slope << " dv_in=" << m_drift_velocity << " cm/ns" << " dv_new=" << dv_new << " +/- " << dv_err << " cm/ns" << " t0_new=" << t0_new << " ns" << std::endl;
 
   // draw the plot
-  auto canvas = new TCanvas("silicon_drift_calib", "Silicon drift velocity calibration", 1400, 700);
+  auto* canvas = new TCanvas("silicon_drift_calib", "Silicon drift velocity calibration", 1400, 700);
   canvas->Divide(2, 1);
 
   for (int ieta = 0; ieta < 2; ++ieta)
@@ -211,14 +211,14 @@ int SiliconDriftEvaluator::End(PHCompositeNode*)
 
     // 2D distribution for this eta bin
     m_hist3D->GetXaxis()->SetRange(ieta + 1, ieta + 1);
-    auto h2d = static_cast<TH2F*>(m_hist3D->Project3D("zy"));
+    auto* h2d = static_cast<TH2F*>(m_hist3D->Project3D("zy"));
     h2d->SetName(Form("hplot_etabin_%i", ieta));
     h2d->SetTitle(";z_{silicon} (cm);#Deltaz_{TPC-silicon} (cm)");
     h2d->SetStats(0);
     h2d->Draw("COLZ");
 
     // mean-dz points from FitSlicesY
-    auto h_fit_proj = h_fit->ProjectionY(Form("h_fit_proj_%i", ieta), ieta + 1, ieta + 1);
+    auto* h_fit_proj = h_fit->ProjectionY(Form("h_fit_proj_%i", ieta), ieta + 1, ieta + 1);
     h_fit_proj->SetMarkerStyle(20);
     h_fit_proj->SetMarkerSize(0.6);
     h_fit_proj->SetMarkerColor(kRed);
@@ -226,7 +226,7 @@ int SiliconDriftEvaluator::End(PHCompositeNode*)
     h_fit_proj->Draw("same P");
 
     // 1D fit line for this eta bin
-    auto f1d = new TF1(Form("f1d_etabin_%i", ieta), linear_function, -m_max_z, m_max_z, 2);
+    auto* f1d = new TF1(Form("f1d_etabin_%i", ieta), linear_function, -m_max_z, m_max_z, 2);
     f1d->SetParameter(0, slope);
     f1d->SetParameter(1, (ieta == 0) ? off_neg : off_pos);
     f1d->SetLineColor(kGreen + 2);
@@ -234,12 +234,12 @@ int SiliconDriftEvaluator::End(PHCompositeNode*)
     f1d->Draw("same");
 
     // reference line at dz = 0
-    auto zero = new TLine(-m_max_z, 0, m_max_z, 0);
+    auto* zero = new TLine(-m_max_z, 0, m_max_z, 0);
     zero->SetLineStyle(2);
     zero->SetLineColor(kGray + 1);
     zero->Draw();
 
-    auto leg = new TLegend(0.13, 0.76, 0.82, 0.95);
+    auto* leg = new TLegend(0.13, 0.76, 0.82, 0.95);
     leg->SetBorderSize(0);
     leg->SetFillStyle(0);
     leg->SetTextSize(0.033);
@@ -304,7 +304,7 @@ int SiliconDriftEvaluator::load_nodes(PHCompositeNode* topNode)
 //_____________________________________________________________________
 void SiliconDriftEvaluator::evaluate_tracks()
 {
-  if (!(m_track_map && m_container && m_hist3D)) return;
+  if (!(m_track_map && m_container && m_hist3D)) {return;}
 
   // clear array
   m_container->clearTracks();

@@ -65,8 +65,8 @@ namespace
 
   double normalize_angle(double phi)
   {
-    while (phi < 0) phi += 2 * M_PI;
-    while (phi >= 2 * M_PI) phi -= 2 * M_PI;
+    while (phi < 0) {phi += 2 * M_PI;}
+    while (phi >= 2 * M_PI) {phi -= 2 * M_PI;}
     return phi;
   }
 
@@ -126,7 +126,7 @@ namespace
       {
         double ft = f(t);
         double dft = df(t);
-        if (std::abs(dft) < 1e-8) return false;
+        if (std::abs(dft) < 1e-8) {return false;}
         double t_new = t - ft / dft;
 
         double x = X0 + R * std::cos(t_new);
@@ -152,8 +152,8 @@ namespace
 
     auto wrap = [&](double t)
     {
-      while (t > t_max) t -= 2 * M_PI;
-      while (t < t_min) t += 2 * M_PI;
+      while (t > t_max) {t -= 2 * M_PI;}
+      while (t < t_min) {t += 2 * M_PI;}
       return t;
     };
 
@@ -214,7 +214,7 @@ int MicromegasDriftEvaluator::Init(PHCompositeNode* topNode)
             << std::endl;
 
   PHNodeIterator iter(topNode);
-  auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  auto* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cerr << Name() << "::Init - DST node missing" << std::endl;
@@ -222,14 +222,14 @@ int MicromegasDriftEvaluator::Init(PHCompositeNode* topNode)
   }
 
   iter = PHNodeIterator(dstNode);
-  auto evalNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "EVAL"));
+  auto* evalNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "EVAL"));
   if (!evalNode)
   {
     evalNode = new PHCompositeNode("EVAL");
     dstNode->addNode(evalNode);
   }
 
-  auto newNode = new PHIODataNode<PHObject>(new Container, "MicromegasDriftEvaluator::Container", "PHObject");
+  auto* newNode = new PHIODataNode<PHObject>(new Container, "MicromegasDriftEvaluator::Container", "PHObject");
   newNode->SplitLevel(99);
   evalNode->addNode(newNode);
 
@@ -249,9 +249,9 @@ int MicromegasDriftEvaluator::InitRun(PHCompositeNode* topNode)
 int MicromegasDriftEvaluator::process_event(PHCompositeNode* topNode)
 {
   const auto res = load_nodes(topNode);
-  if (res != Fun4AllReturnCodes::EVENT_OK) return res;
+  if (res != Fun4AllReturnCodes::EVENT_OK) {return res;}
 
-  if (m_container) m_container->Reset();
+  if (m_container) {m_container->Reset();}
   evaluate_tracks();
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -269,19 +269,19 @@ int MicromegasDriftEvaluator::End(PHCompositeNode*)
   const int nEntries = static_cast<int>(m_hist3D->GetEntries());
   std::cout << Name() << "::End - fitting " << nEntries << " entries" << std::endl;
 
-  auto h_fit = new TH2F("h_fit", "", 8, 0, 8, 220, -110, 110);
+  auto* h_fit = new TH2F("h_fit", "", 8, 0, 8, 220, -110, 110);
   h_fit->SetDirectory(nullptr);
 
   for (int j = 0; j < 8; ++j)
   {
     m_hist3D->GetXaxis()->SetRange(j + 1, j + 1);
-    auto h2d = static_cast<TH2F*>(m_hist3D->Project3D("zy"));
+    auto* h2d = static_cast<TH2F*>(m_hist3D->Project3D("zy"));
     h2d->SetName(Form("h_%s", k_tile_names[j]));
     h2d->SetDirectory(nullptr);
 
     // Fit vertical slices; require a minimum of 10 entries per slice
     h2d->FitSlicesY(nullptr, 0, -1, 10);
-    auto h_mean = static_cast<TH1F*>(gDirectory->Get(Form("h_%s_1", k_tile_names[j])));
+    auto* h_mean = static_cast<TH1F*>(gDirectory->Get(Form("h_%s_1", k_tile_names[j])));
 
     if (!h_mean)
     {
@@ -303,8 +303,8 @@ int MicromegasDriftEvaluator::End(PHCompositeNode*)
   m_hist3D->GetXaxis()->SetRange(0, 0);
 
   // This part fits the 8 micromegas modules one at a time but constrains the slopes to be identical. This eliminates the need for perfect translational TPOT alignment
-  auto fit2d = new TF2("fit2d", fit_function_2d, 0, 8, -110, 110, 9);
-  for (int i = 0; i < 9; ++i) fit2d->SetParameter(i, 0.0);
+  auto* fit2d = new TF2("fit2d", fit_function_2d, 0, 8, -110, 110, 9);
+  for (int i = 0; i < 9; ++i) {fit2d->SetParameter(i, 0.0);}
 
   h_fit->Fit(fit2d, "0R");
 
@@ -316,7 +316,7 @@ int MicromegasDriftEvaluator::End(PHCompositeNode*)
   std::cout << Name() << "::End" << " slope=" << slope << " input_drift=" << m_drift_velocity << " cm/ns" << " new_drift=" << new_drift << " cm/ns +/- " << drift_err << " cm/ns" << std::endl;
 
   // Plot the whole thing
-  auto canvas = new TCanvas("drift_calib", "Drift velocity calibration", 2000, 1000);
+  auto* canvas = new TCanvas("drift_calib", "Drift velocity calibration", 2000, 1000);
   canvas->Divide(4, 2);
 
   for (int j = 0; j < 8; ++j)
@@ -324,25 +324,25 @@ int MicromegasDriftEvaluator::End(PHCompositeNode*)
     canvas->cd(j + 1);
 
     m_hist3D->GetXaxis()->SetRange(j + 1, j + 1);
-    auto h2d = static_cast<TH2F*>(m_hist3D->Project3D("zy"));
+    auto* h2d = static_cast<TH2F*>(m_hist3D->Project3D("zy"));
     h2d->SetName(Form("hplot_%s", k_tile_names[j]));
     h2d->SetTitle(Form("%s;z_{track} (cm);#Deltaz (track#minuscluster) (cm)", k_tile_names[j]));
     h2d->SetStats(0);
     h2d->Draw("COLZ");
 
-    auto h_fit_proj = h_fit->ProjectionY(Form("h_fit_proj_%i", j), j + 1, j + 1);  // These give you the Gaussian means for each slice
+    auto* h_fit_proj = h_fit->ProjectionY(Form("h_fit_proj_%i", j), j + 1, j + 1);  // These give you the Gaussian means for each slice
     h_fit_proj->SetMarkerStyle(20);
     h_fit_proj->SetMarkerColor(kRed);
     h_fit_proj->SetLineColor(kBlack);
 
-    auto f1d = new TF1(Form("f1d_%i", j), linear_function, -110, 110, 2);
+    auto* f1d = new TF1(Form("f1d_%i", j), linear_function, -110, 110, 2);
     f1d->SetParameter(0, slope);
     f1d->SetParameter(1, fit2d->GetParameter(j + 1));
     f1d->SetLineColor(kGreen + 2);
     f1d->SetLineWidth(2);
     f1d->Draw("same");
 
-    auto leg = new TLegend(0.35, 0.75, 0.92, 0.92);
+    auto* leg = new TLegend(0.35, 0.75, 0.92, 0.92);
     leg->SetHeader(Form("%i entries, v_{in}=%.2f m/ms", nEntries, m_drift_velocity * 1e4), "C");
     leg->AddEntry(h_fit_proj, "Gaussian slice mean", "p");
     leg->AddEntry(f1d, Form("slope=%.4f  v_{new}=%.3f#pm%.3f m/ms", slope, new_drift * 1e4, drift_err * 1e4), "l");
@@ -410,7 +410,7 @@ int MicromegasDriftEvaluator::load_nodes(PHCompositeNode* topNode)
 // ---------------------------------------------------------------------------
 void MicromegasDriftEvaluator::evaluate_tracks()
 {
-  if (!(m_tGeometry && m_micromegas_geomcontainer && m_track_map && m_cluster_map && m_container && m_hist3D)) return;
+  if (!(m_tGeometry && m_micromegas_geomcontainer && m_track_map && m_cluster_map && m_container && m_hist3D)) {return;}
 
   m_container->clear_tracks();
 
@@ -443,7 +443,7 @@ void MicromegasDriftEvaluator::evaluate_tracks()
           ++n_tpc;
           if (layer >= m_min_tpc_layer && layer < m_max_tpc_layer)
           {
-            const auto cl = m_cluster_map->findCluster(ckey);
+            auto *const cl = m_cluster_map->findCluster(ckey);
             if (cl)
             {
               tpc_positions.push_back(
@@ -479,7 +479,7 @@ void MicromegasDriftEvaluator::evaluate_tracks()
     const auto mm_range = m_micromegas_geomcontainer->get_begin_end();
     for (const auto& [mm_layer, base_layergeom] : range_adaptor(mm_range))
     {
-      const auto layergeom = static_cast<const CylinderGeomMicromegas*>(base_layergeom);
+      const auto* layergeom = static_cast<const CylinderGeomMicromegas*>(base_layergeom);
       assert(layergeom);
 
       // skip the phi layer. Only the z-view layer matters here
