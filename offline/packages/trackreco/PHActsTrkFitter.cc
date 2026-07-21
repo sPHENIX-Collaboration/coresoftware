@@ -620,6 +620,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
             }
           }
         }
+        // With an empty ACTS material map, m_materialSurfaces is empty.
+        // Use the measurement surfaces directly for directed navigation.
+        if (surfaces.empty())
+        {
+          surfaces = surfaces_tmp;
+        }
+
         checkSurfaceVec(surfaces);
         if (Verbosity() > 1)
         {
@@ -1014,6 +1021,11 @@ SurfacePtrVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
 
 void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
 {
+  if (surfaces.size() < 2)
+  {
+    return;
+  }
+
   // Do not assume volume id has the correct layer, check the surface radius
 
   for (unsigned int i = 0; i < surfaces.size() - 1; i++)
@@ -1027,7 +1039,7 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
     const auto* nextSurface = surfaces.at(i + 1);
     const auto nextVolume = nextSurface->geometryId().volume();
 
-    const Acts::Vector3 next_center = surface->center(m_tGeometry->geometry().getGeoContext());
+    const Acts::Vector3 next_center = nextSurface->center(m_tGeometry->geometry().getGeoContext());
     double nextRadius = sqrt(next_center.x()*next_center.x()+next_center.y()*next_center.y());
     
     /// Implement a check to ensure surfaces are sorted
