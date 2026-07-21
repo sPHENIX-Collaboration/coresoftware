@@ -39,6 +39,9 @@ pkginclude_HEADERS = \
   Tpc_PolyClusterContainerv1.h \
   Tpc_PolyClusterizer.h \
   Tpc_PolyTrackReco.h \
+  TpcTrackFit.h \
+  TpcTrackHelixFitter.h \
+  TpcTrackKalmanFitter.h \
   Tpc_FittingTools.h \
   IdealPadMap.h
 
@@ -104,6 +107,8 @@ libtpctrackreco_la_SOURCES = \
   Tpc_PolyClusterContainerv1.cc \
   Tpc_PolyClusterizer.cc \
   Tpc_PolyTrackReco.cc \
+  TpcTrackHelixFitter.cc \
+  TpcTrackKalmanFitter.cc \
   Tpc_FittingTools.cc \
   IdealPadMap.cc \
   $(ROOTDICTS)
