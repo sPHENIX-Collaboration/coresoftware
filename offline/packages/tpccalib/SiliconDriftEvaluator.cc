@@ -24,6 +24,7 @@
 #include <cassert>
 #include <climits>
 #include <cmath>
+#include <format>
 #include <iostream>
 #include <memory>
 
@@ -56,6 +57,7 @@ namespace
   }
 
   //! 1D version used to draw per-eta overlay lines on QA canvas
+  // NOLINTNEXTLINE(readability-non-const-parameter): ROOT TF1 requires this exact signature
   double linear_function(double* x, double* par)
   {
     return par[0] * x[0] + par[1];
@@ -123,10 +125,16 @@ int SiliconDriftEvaluator::process_event(PHCompositeNode* topNode)
 {
   // load nodes
   const auto res = load_nodes(topNode);
-  if (res != Fun4AllReturnCodes::EVENT_OK) {return res;}
+  if (res != Fun4AllReturnCodes::EVENT_OK)
+  {
+    return res;
+  }
 
   // cleanup output
-  if (m_container) {m_container->Reset();}
+  if (m_container)
+  {
+    m_container->Reset();
+  }
 
   evaluate_tracks();
 
@@ -134,7 +142,7 @@ int SiliconDriftEvaluator::process_event(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int SiliconDriftEvaluator::End(PHCompositeNode*)
+int SiliconDriftEvaluator::End(PHCompositeNode* /*topNode*/)
 {
   if (!m_hist3D)
   {
@@ -148,20 +156,20 @@ int SiliconDriftEvaluator::End(PHCompositeNode*)
   // build mean-dz TH2F via FitSlicesY, one eta bin at a time
   // x = eta bin [0,2), y = z_si (cm), content = mean dz (cm)
   auto* h_fit = new TH2F("h_fit_silicon", "",
-                        2, 0, 2,
-                        200, -m_max_z, m_max_z);
+                         2, 0, 2,
+                         200, -m_max_z, m_max_z);
   h_fit->SetDirectory(nullptr);
 
   for (int ieta = 0; ieta < 2; ++ieta)
   {
     m_hist3D->GetXaxis()->SetRange(ieta + 1, ieta + 1);
     auto* h2d = static_cast<TH2F*>(m_hist3D->Project3D("zy"));
-    h2d->SetName(Form("h2d_etabin_%i", ieta));
+    h2d->SetName(std::format("h2d_etabin_{}", ieta).c_str());
     h2d->SetDirectory(nullptr);
 
     // fit vertical slices; require a minimum of m_min_slice_entries per slice
     h2d->FitSlicesY(nullptr, 0, -1, m_min_slice_entries);
-    auto* h_mean = static_cast<TH1F*>(gDirectory->Get(Form("h2d_etabin_%i_1", ieta)));
+    auto* h_mean = static_cast<TH1F*>(gDirectory->Get(std::format("h2d_etabin_{}_1", ieta).c_str()));
 
     if (!h_mean)
     {
@@ -185,7 +193,10 @@ int SiliconDriftEvaluator::End(PHCompositeNode*)
 
   // 2D piecewise fit: shared slope + per-eta offset
   auto* fit2d = new TF2("fit2d_silicon", fit_function_2d, 0, 2, -m_max_z, m_max_z, 3);
-  for (int i = 0; i < 3; ++i) {fit2d->SetParameter(i, 0.0);}
+  for (int i = 0; i < 3; ++i)
+  {
+    fit2d->SetParameter(i, 0.0);
+  }
   h_fit->Fit(fit2d, "0R");
 
   const double slope = fit2d->GetParameter(0);
@@ -212,13 +223,13 @@ int SiliconDriftEvaluator::End(PHCompositeNode*)
     // 2D distribution for this eta bin
     m_hist3D->GetXaxis()->SetRange(ieta + 1, ieta + 1);
     auto* h2d = static_cast<TH2F*>(m_hist3D->Project3D("zy"));
-    h2d->SetName(Form("hplot_etabin_%i", ieta));
+    h2d->SetName(std::format("hplot_etabin_{}", ieta).c_str());
     h2d->SetTitle(";z_{silicon} (cm);#Deltaz_{TPC-silicon} (cm)");
-    h2d->SetStats(0);
+    h2d->SetStats(false);
     h2d->Draw("COLZ");
 
     // mean-dz points from FitSlicesY
-    auto* h_fit_proj = h_fit->ProjectionY(Form("h_fit_proj_%i", ieta), ieta + 1, ieta + 1);
+    auto* h_fit_proj = h_fit->ProjectionY(std::format("h_fit_proj_{}", ieta).c_str(), ieta + 1, ieta + 1);
     h_fit_proj->SetMarkerStyle(20);
     h_fit_proj->SetMarkerSize(0.6);
     h_fit_proj->SetMarkerColor(kRed);
@@ -226,7 +237,7 @@ int SiliconDriftEvaluator::End(PHCompositeNode*)
     h_fit_proj->Draw("same P");
 
     // 1D fit line for this eta bin
-    auto* f1d = new TF1(Form("f1d_etabin_%i", ieta), linear_function, -m_max_z, m_max_z, 2);
+    auto* f1d = new TF1(std::format("f1d_etabin_{}", ieta).c_str(), linear_function, -m_max_z, m_max_z, 2);
     f1d->SetParameter(0, slope);
     f1d->SetParameter(1, (ieta == 0) ? off_neg : off_pos);
     f1d->SetLineColor(kGreen + 2);
@@ -243,11 +254,12 @@ int SiliconDriftEvaluator::End(PHCompositeNode*)
     leg->SetBorderSize(0);
     leg->SetFillStyle(0);
     leg->SetTextSize(0.033);
-    leg->SetHeader(Form("%s   entries: %i   v_{in}=%.4f cm/ns",
-                        k_eta_labels[ieta], nEntries, m_drift_velocity),
+    leg->SetHeader(std::format("{}   entries: {}   v_{{in}}={:.4f} cm/ns",
+                               k_eta_labels[ieta], nEntries, m_drift_velocity)
+                       .c_str(),
                    "C");
     leg->AddEntry(h_fit_proj, "Gaussian slice mean", "p");
-    leg->AddEntry(f1d, Form("slope=%.4f  v_{new}=%.4f#pm%.4f cm/ns  t_{0}=%.1f ns", slope, dv_new, dv_err, t0_new), "l");
+    leg->AddEntry(f1d, std::format("slope={:.4f}  v_{{new}}={:.4f}#pm{:.4f} cm/ns  t_{{0}}={:.1f} ns", slope, dv_new, dv_err, t0_new).c_str(), "l");
     leg->Draw();
   }
 
@@ -304,7 +316,10 @@ int SiliconDriftEvaluator::load_nodes(PHCompositeNode* topNode)
 //_____________________________________________________________________
 void SiliconDriftEvaluator::evaluate_tracks()
 {
-  if (!(m_track_map && m_container && m_hist3D)) {return;}
+  if (!(m_track_map && m_container && m_hist3D))
+  {
+    return;
+  }
 
   // clear array
   m_container->clearTracks();
@@ -322,7 +337,10 @@ void SiliconDriftEvaluator::evaluate_tracks()
     // require both seeds
     const auto* si_seed = track->get_silicon_seed();
     const auto* tpc_seed = track->get_tpc_seed();
-    if (!si_seed || !tpc_seed) continue;
+    if (!si_seed || !tpc_seed)
+    {
+      continue;
+    }
 
     // count clusters per subsystem
     unsigned int n_tpc = 0;
@@ -331,7 +349,10 @@ void SiliconDriftEvaluator::evaluate_tracks()
 
     for (const auto* seed : {track->get_silicon_seed(), track->get_tpc_seed()})
     {
-      if (!seed) continue;
+      if (!seed)
+      {
+        continue;
+      }
       for (auto it = seed->begin_cluster_keys(); it != seed->end_cluster_keys(); ++it)
       {
         switch (TrkrDefs::getTrkrId(*it))
@@ -352,15 +373,30 @@ void SiliconDriftEvaluator::evaluate_tracks()
     }
 
     // apply selection cuts
-    if (n_tpc < m_min_nclusters_tpc) continue;
-    if (n_mvtx < m_min_nclusters_mvtx) continue;
-    if (n_intt < m_min_nclusters_intt) continue;
+    if (n_tpc < m_min_nclusters_tpc)
+    {
+      continue;
+    }
+    if (n_mvtx < m_min_nclusters_mvtx)
+    {
+      continue;
+    }
+    if (n_intt < m_min_nclusters_intt)
+    {
+      continue;
+    }
 
     const float eta = tpc_seed->get_eta();
-    if (std::abs(eta) > m_max_eta) continue;
+    if (std::abs(eta) > m_max_eta)
+    {
+      continue;
+    }
 
     const float pt = get_pt(track->get_px(), track->get_py());
-    if (pt < m_min_pt) continue;
+    if (pt < m_min_pt)
+    {
+      continue;
+    }
 
     // get seed z positions at POCA
     const auto si_pos = TrackSeedHelper::get_xyz(si_seed);
