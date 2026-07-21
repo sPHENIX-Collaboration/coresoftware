@@ -410,7 +410,7 @@ int MicromegasDriftEvaluator::load_nodes(PHCompositeNode* topNode)
 // ---------------------------------------------------------------------------
 void MicromegasDriftEvaluator::evaluate_tracks()
 {
-  if (!(m_track_map && m_cluster_map && m_container && m_hist3D)) return;
+  if (!(m_tGeometry && m_micromegas_geomcontainer && m_track_map && m_cluster_map && m_container && m_hist3D)) return;
 
   m_container->clear_tracks();
 
