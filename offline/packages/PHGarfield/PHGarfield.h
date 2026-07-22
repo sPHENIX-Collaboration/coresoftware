@@ -31,7 +31,7 @@ class PHGarfield : public SubsysReco
   ~PHGarfield() override;
 
   int InitRun(PHCompositeNode *) override;
-  int process_event(PHCompositeNode * topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
   bool StopHere(const double x, const double y, const double z, const double zPrevious);
 
@@ -59,11 +59,12 @@ class PHGarfield : public SubsysReco
   // coordinates to keep the Garfield gas tables valid.
   TPolyLine3D *ReverseDriftGlobalCoords(double x_cm, double y_cm, double z_cm, double step_ns = 50.0);
 
-  double GetRadius(size_t index) const {return radii.at(index);}
+  double GetRadius(size_t index) const { return radii.at(index); }
 
   // ROOT map must contain QA/hErDefault and QA/hEzDefault.
   // The histograms are expected in cm on the axes and V/m in the bins.
-  void SetElectricFieldMap(const std::string &filename) { m_electricFieldMap = filename; }void SetSpaceChargeScale(double value)
+  void SetElectricFieldMap(const std::string &filename) { m_electricFieldMap = filename; }
+  void SetSpaceChargeScale(double value)
   {
     m_spaceChargeScale_side0 = value;
     m_spaceChargeScale_side1 = value;
@@ -78,7 +79,7 @@ class PHGarfield : public SubsysReco
  private:
   void GetMagneticFieldTesla(double x_cm, double y_cm, double z_cm, double &bx_t, double &by_t, double &bz_t) const;      // Feeds magnetic field to Garfield
   void GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, double &ex_vcm, double &ey_vcm, double &ez_vcm) const;  // Feeds electric field to Garfield
-  void InitializeGas(const std::string &name);  // Accepts a file or a directory
+  void InitializeGas(const std::string &name);                                                                            // Accepts a file or a directory
   bool LoadElectricFieldCorrections(const std::string &filename);
   double InterpolateCorrectionVcm(const TH2 *hist, double r_cm, double abs_z_cm) const;
   TVector3 TpcPointToGlobalPoint(double x_cm, double y_cm, double z_cm) const;
@@ -109,9 +110,9 @@ class PHGarfield : public SubsysReco
   std::string m_electricFieldMap;
   double m_spaceChargeScale_side0{1.0};  // south, z < 0
   double m_spaceChargeScale_side1{1.0};  // north, z > 0
-  double m_CMVoltageDefault{432.8};  // V/cm, nominal TPC field
-  TH2 *m_erCorrection{nullptr};  // radial correction, input bins in V/m
-  TH2 *m_ezCorrection{nullptr};  // local longitudinal correction, input bins in V/m
+  double m_CMVoltageDefault{432.8};      // V/cm, nominal TPC field
+  TH2 *m_erCorrection{nullptr};          // radial correction, input bins in V/m
+  TH2 *m_ezCorrection{nullptr};          // local longitudinal correction, input bins in V/m
 
   //  These are utilities for a spot check of the overall routine:
   // std::string calibdir;

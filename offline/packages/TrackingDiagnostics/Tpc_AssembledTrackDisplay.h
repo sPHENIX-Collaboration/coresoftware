@@ -16,9 +16,9 @@ class Tpc_AssembledTrackDisplay : public SubsysReco
 {
  public:
   Tpc_AssembledTrackDisplay(const std::string& name = "Tpc_AssembledTrackDisplay",
-                   const std::string& outfilename = "tpc_assembledtrack_display.root",
-                   const std::string& trackNodeName = "TPC_ASSEMBLEDTRACKS",
-                   unsigned int maxEventDisplays = 5);
+                            const std::string& outfilename = "tpc_assembledtrack_display.root",
+                            const std::string& trackNodeName = "TPC_ASSEMBLEDTRACKS",
+                            unsigned int maxEventDisplays = 5);
   ~Tpc_AssembledTrackDisplay() override;
 
   int Init(PHCompositeNode* topNode) override;

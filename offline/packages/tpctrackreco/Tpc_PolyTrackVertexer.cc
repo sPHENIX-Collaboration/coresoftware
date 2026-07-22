@@ -24,10 +24,14 @@ namespace
 {
   double wrap_phi(double phi)
   {
-    while (phi > TMath::Pi()) { phi -= 2.0 * TMath::Pi();
-}
-    while (phi <= -TMath::Pi()) { phi += 2.0 * TMath::Pi();
-}
+    while (phi > TMath::Pi())
+    {
+      phi -= 2.0 * TMath::Pi();
+    }
+    while (phi <= -TMath::Pi())
+    {
+      phi += 2.0 * TMath::Pi();
+    }
     return phi;
   }
 
@@ -35,7 +39,7 @@ namespace
   {
     return std::isfinite(x) && std::fabs(x) < 1.0e30;
   }
-}
+}  // namespace
 
 Tpc_PolyTrackVertexer::Tpc_PolyTrackVertexer(const std::string& name)
   : SubsysReco(name)
@@ -46,8 +50,10 @@ Tpc_PolyTrackVertexer::Tpc_PolyTrackVertexer(const std::string& name)
 
 int Tpc_PolyTrackVertexer::InitRun(PHCompositeNode* topNode)
 {
-  if (!createNodes(topNode)) { return Fun4AllReturnCodes::ABORTRUN;
-}
+  if (!createNodes(topNode))
+  {
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -57,19 +63,20 @@ bool Tpc_PolyTrackVertexer::getNodes(PHCompositeNode* topNode)
   if (!m_polyTracks)
   {
     const char* candidate_names[] = {
-      "TPC_POLYTRACKS",
-      "Tpc_PolyTracks",
-      "Tpc_PolyTrackContainer",
-      "TPC_POLYTRACKCONTAINER"
-    };
+        "TPC_POLYTRACKS",
+        "Tpc_PolyTracks",
+        "Tpc_PolyTrackContainer",
+        "TPC_POLYTRACKCONTAINER"};
 
     for (unsigned int i = 0;
          i < sizeof(candidate_names) / sizeof(candidate_names[0]) && !m_polyTracks;
          ++i)
     {
       m_polyTracks = findNode::getClass<Tpc_PolyTrackContainer>(topNode, candidate_names[i]);
-      if (m_polyTracks) { m_inputNodeName = candidate_names[i];
-}
+      if (m_polyTracks)
+      {
+        m_inputNodeName = candidate_names[i];
+      }
     }
   }
 
@@ -108,8 +115,10 @@ Tpc_PolyTrackVertexer::TrackVertexFit
 Tpc_PolyTrackVertexer::fitTrack(const Tpc_PolyTrack* trk) const
 {
   TrackVertexFit fit;
-  if (!trk || trk->get_fit_status() <= 0) { return fit;
-}
+  if (!trk || trk->get_fit_status() <= 0)
+  {
+    return fit;
+  }
 
   const double x = trk->get_x();
   const double y = trk->get_y();
@@ -125,8 +134,10 @@ Tpc_PolyTrackVertexer::fitTrack(const Tpc_PolyTrack* trk) const
   }
 
   const double pt2 = px * px + py * py;
-  if (pt2 <= 1.0e-20) { return fit;
-}
+  if (pt2 <= 1.0e-20)
+  {
+    return fit;
+  }
   const double pt = std::sqrt(pt2);
 
   if (std::fabs(charge * m_magneticFieldTesla) < 1.0e-12)
@@ -141,8 +152,10 @@ Tpc_PolyTrackVertexer::fitTrack(const Tpc_PolyTrack* trk) const
   {
     const double signed_radius = pt / (0.003 * charge * m_magneticFieldTesla);
     const double radius = std::fabs(signed_radius);
-    if (!good(radius) || radius <= 0.0) { return fit;
-}
+    if (!good(radius) || radius <= 0.0)
+    {
+      return fit;
+    }
 
     const double tx = px / pt;
     const double ty = py / pt;
@@ -150,8 +163,10 @@ Tpc_PolyTrackVertexer::fitTrack(const Tpc_PolyTrack* trk) const
     const double xc = x + sign * radius * ty;
     const double yc = y - sign * radius * tx;
     const double dc = std::hypot(xc, yc);
-    if (!good(dc) || dc <= 1.0e-12) { return fit;
-}
+    if (!good(dc) || dc <= 1.0e-12)
+    {
+      return fit;
+    }
 
     fit.pca_x = xc * (1.0 - radius / dc);
     fit.pca_y = yc * (1.0 - radius / dc);
@@ -190,8 +205,10 @@ Tpc_PolyTrackVertexer::CollisionFit
 Tpc_PolyTrackVertexer::fitCollision(const std::vector<TrackVertexFit>& tracks) const
 {
   CollisionFit fit;
-  if (tracks.size() < 2) { return fit;
-}
+  if (tracks.size() < 2)
+  {
+    return fit;
+  }
 
   double sum_w = 0.0;
   double sum_x = 0.0;
@@ -199,8 +216,10 @@ Tpc_PolyTrackVertexer::fitCollision(const std::vector<TrackVertexFit>& tracks) c
   double sum_z = 0.0;
   for (const TrackVertexFit& trk : tracks)
   {
-    if (!trk.ok) { continue;
-}
+    if (!trk.ok)
+    {
+      continue;
+    }
     const double w = std::max(1.0, static_cast<double>(trk.nclusters));
     sum_w += w;
     sum_x += w * trk.pca_x;
@@ -208,8 +227,10 @@ Tpc_PolyTrackVertexer::fitCollision(const std::vector<TrackVertexFit>& tracks) c
     sum_z += w * trk.z0;
   }
 
-  if (sum_w <= 0.0) { return fit;
-}
+  if (sum_w <= 0.0)
+  {
+    return fit;
+  }
   fit.x = sum_x / sum_w;
   fit.y = sum_y / sum_w;
   fit.z = sum_z / sum_w;
@@ -218,16 +239,20 @@ Tpc_PolyTrackVertexer::fitCollision(const std::vector<TrackVertexFit>& tracks) c
   unsigned int nvalid = 0;
   for (const TrackVertexFit& trk : tracks)
   {
-    if (!trk.ok) { continue;
-}
+    if (!trk.ok)
+    {
+      continue;
+    }
     const double w = std::max(1.0, static_cast<double>(trk.nclusters));
     const double dz = trk.z0 - fit.z;
     sum_res2 += w * dz * dz;
     ++nvalid;
   }
 
-  if (nvalid < 2) { return fit;
-}
+  if (nvalid < 2)
+  {
+    return fit;
+  }
   fit.z_rms = std::sqrt(sum_res2 / sum_w);
   fit.ntracks = nvalid;
   fit.ok = good(fit.x) && good(fit.y) && good(fit.z) && good(fit.z_rms);
@@ -244,8 +269,10 @@ Tpc_PolyTrackVertexer::fitCollisions(std::vector<TrackVertexFit> tracks) const
                                 return !trk.ok;
                               }),
                tracks.end());
-  if (tracks.size() < 2) { return collisions;
-}
+  if (tracks.size() < 2)
+  {
+    return collisions;
+  }
 
   std::sort(tracks.begin(), tracks.end(),
             [](const TrackVertexFit& a, const TrackVertexFit& b)
@@ -267,8 +294,10 @@ Tpc_PolyTrackVertexer::fitCollisions(std::vector<TrackVertexFit> tracks) const
     if (!cluster.empty() && trk.z0 - cluster_z >= separation)
     {
       const CollisionFit collision = fitCollision(cluster);
-      if (collision.ok) { collisions.push_back(collision);
-}
+      if (collision.ok)
+      {
+        collisions.push_back(collision);
+      }
       cluster.clear();
       cluster_sum_w = 0.0;
       cluster_sum_z = 0.0;
@@ -280,8 +309,10 @@ Tpc_PolyTrackVertexer::fitCollisions(std::vector<TrackVertexFit> tracks) const
   }
 
   const CollisionFit collision = fitCollision(cluster);
-  if (collision.ok) { collisions.push_back(collision);
-}
+  if (collision.ok)
+  {
+    collisions.push_back(collision);
+  }
   return collisions;
 }
 
@@ -289,8 +320,10 @@ int Tpc_PolyTrackVertexer::process_event(PHCompositeNode* topNode)
 {
   if (!m_polyTracks || !m_vertices)
   {
-    if (!getNodes(topNode) || !createNodes(topNode)) { return Fun4AllReturnCodes::EVENT_OK;
-}
+    if (!getNodes(topNode) || !createNodes(topNode))
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
   }
 
   m_vertices->Reset();
@@ -301,8 +334,10 @@ int Tpc_PolyTrackVertexer::process_event(PHCompositeNode* topNode)
   {
     const Tpc_PolyTrack* trk = m_polyTracks->get_track(itrk);
     const TrackVertexFit fit = fitTrack(trk);
-    if (!fit.ok) { continue;
-}
+    if (!fit.ok)
+    {
+      continue;
+    }
 
     Tpc_PolyTrackVertexv1* out = new Tpc_PolyTrackVertexv1();
     out->set_track_id(fit.track_id);
@@ -317,8 +352,10 @@ int Tpc_PolyTrackVertexer::process_event(PHCompositeNode* topNode)
     out->set_pca_phi(fit.pca_phi);
     m_vertices->add_vertex(out);
 
-    if (fit.nclusters >= m_collisionMinClusters) { collision_tracks.push_back(fit);
-}
+    if (fit.nclusters >= m_collisionMinClusters)
+    {
+      collision_tracks.push_back(fit);
+    }
   }
 
   const std::vector<CollisionFit> collisions = fitCollisions(collision_tracks);

@@ -2,7 +2,7 @@
 
 ClassImp(Tpc_AssembledTrackv1)
 
-Tpc_AssembledTrackv1::Tpc_AssembledTrackv1()
+    Tpc_AssembledTrackv1::Tpc_AssembledTrackv1()
 {
   Reset();
 }

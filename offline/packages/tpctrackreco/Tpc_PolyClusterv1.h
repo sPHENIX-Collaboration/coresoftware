@@ -69,21 +69,21 @@ class Tpc_PolyClusterv1 : public Tpc_PolyCluster
   const std::vector<HitIndex>& get_hit_indices() const override { return m_hit_indices; }
 
  private:
-  unsigned int m_event {0};
-  unsigned int m_cluster_id {0};
-  unsigned int m_source_assembled_track_id {0};
-  int m_side {0};
+  unsigned int m_event{0};
+  unsigned int m_cluster_id{0};
+  unsigned int m_source_assembled_track_id{0};
+  int m_side{0};
 
-  double m_centroid_x {0.0};
-  double m_centroid_y {0.0};
-  double m_centroid_z {0.0};
-  double m_rms_x {0.0};
-  double m_rms_y {0.0};
-  double m_rms_z {0.0};
-  double m_adc {0.0};
-  unsigned int m_phi_width {0};
-  unsigned int m_time_width {0};
-  double m_phase {0.0};
+  double m_centroid_x{0.0};
+  double m_centroid_y{0.0};
+  double m_centroid_z{0.0};
+  double m_rms_x{0.0};
+  double m_rms_y{0.0};
+  double m_rms_z{0.0};
+  double m_adc{0.0};
+  unsigned int m_phi_width{0};
+  unsigned int m_time_width{0};
+  double m_phase{0.0};
 
   std::vector<HitIndex> m_hit_indices;
   std::vector<double> m_hit_x;

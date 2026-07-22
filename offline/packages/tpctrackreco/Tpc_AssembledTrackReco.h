@@ -23,7 +23,7 @@ class Tpc_AssembledTrackReco : public SubsysReco
 {
  public:
   explicit Tpc_AssembledTrackReco(const std::string& name = "Tpc_AssembledTrackReco",
-                              const std::string& filename = "Tpc_AssembledTracks.root");
+                                  const std::string& filename = "Tpc_AssembledTracks.root");
   ~Tpc_AssembledTrackReco() override;
 
   int Init(PHCompositeNode*) override;
@@ -31,23 +31,23 @@ class Tpc_AssembledTrackReco : public SubsysReco
   int process_event(PHCompositeNode*) override;
   int End(PHCompositeNode*) override;
 
-  void setInputNodeName(const std::string& n)  { m_inputNodeName  = n; }
+  void setInputNodeName(const std::string& n) { m_inputNodeName = n; }
   void setOutputNodeName(const std::string& n) { m_outputNodeName = n; }
   void setDebugOutputFileName(const std::string& n) { m_debugOutputFileName = n; }
 
-  void setConnectMaxLayerGap(unsigned int n)   { m_connectMaxLayerGap = n; }
+  void setConnectMaxLayerGap(unsigned int n) { m_connectMaxLayerGap = n; }
 
   // Connection window in global phi radians and tbin units at the match radius.
   void setConnectWindow(double dphi, double dtbin)
   {
-    m_connect_dphi  = dphi;
+    m_connect_dphi = dphi;
     m_connect_dtbin = dtbin;
   }
 
   // Slope windows: d(phi)/d(radius) and d(tbin)/d(radius).
   void setConnectSlopeWindow(double dphi_slope, double dtbin_slope)
   {
-    m_connect_dphi_slope  = dphi_slope;
+    m_connect_dphi_slope = dphi_slope;
     m_connect_dtbin_slope = dtbin_slope;
   }
 
@@ -78,7 +78,7 @@ class Tpc_AssembledTrackReco : public SubsysReco
     unsigned int event;
     unsigned int region;
     unsigned int sector;
-    int          side;
+    int side;
 
     unsigned int first_layer;
     unsigned int last_layer;
@@ -103,7 +103,7 @@ class Tpc_AssembledTrackReco : public SubsysReco
     std::vector<double> weights;
 
     std::vector<TrkrDefs::hitsetkey> hitsetkeys;
-    std::vector<TrkrDefs::hitkey>    hitkeys;
+    std::vector<TrkrDefs::hitkey> hitkeys;
   };
 
   // ---------------------------------------------------------------
@@ -112,14 +112,14 @@ class Tpc_AssembledTrackReco : public SubsysReco
   // ---------------------------------------------------------------
   struct SeedParameters
   {
-    bool ok {false};
-    double x {0.0};
-    double y {0.0};
-    double z {0.0};
-    double px {0.0};
-    double py {0.0};
-    double pz {0.0};
-    double cov[6][6] {};
+    bool ok{false};
+    double x{0.0};
+    double y{0.0};
+    double z{0.0};
+    double px{0.0};
+    double py{0.0};
+    double pz{0.0};
+    double cov[6][6]{};
   };
 
   struct Candidate
@@ -127,7 +127,7 @@ class Tpc_AssembledTrackReco : public SubsysReco
     Candidate();
 
     unsigned int event;
-    int          side;
+    int side;
     unsigned int first_layer;
     unsigned int last_layer;
     unsigned int first_sector;
@@ -151,17 +151,17 @@ class Tpc_AssembledTrackReco : public SubsysReco
     double tbin_intercept_r;
     double chi2_phi;
     double chi2_tbin;
-    int    ndof_phi;
-    int    ndof_tbin;
+    int ndof_phi;
+    int ndof_tbin;
 
-    std::vector<unsigned int>        piece_indices;
+    std::vector<unsigned int> piece_indices;
     std::vector<TrkrDefs::hitsetkey> hitsetkeys;
-    std::vector<TrkrDefs::hitkey>    hitkeys;
+    std::vector<TrkrDefs::hitkey> hitkeys;
   };
 
  private:
-  int  getNodes(PHCompositeNode*);
-  int  createNodes(PHCompositeNode*);
+  int getNodes(PHCompositeNode*);
+  int createNodes(PHCompositeNode*);
   void reset_tree_vars();
   void create_debug_histograms();
   void write_debug_histograms();
@@ -180,21 +180,21 @@ class Tpc_AssembledTrackReco : public SubsysReco
 
   // Check whether piece b can be appended to candidate a.
   bool candidates_can_connect(const Candidate& a,
-                               const Piece&     b,
-                               double&          score,
-                               double&          b_phi_intercept_shifted) const;
+                              const Piece& b,
+                              double& score,
+                              double& b_phi_intercept_shifted) const;
   bool candidates_can_connect(const Candidate& a,
-                               const Candidate& b,
-                               double&          score) const;
+                              const Candidate& b,
+                              double& score) const;
 
   void connect_sector_pieces(const std::vector<Piece>& pieces,
-                              int side,
-                              unsigned int sector,
-                              std::vector<Candidate>& output) const;
+                             int side,
+                             unsigned int sector,
+                             std::vector<Candidate>& output) const;
   void connect_side_candidates(const std::vector<Piece>& pieces,
-                                const std::vector<Candidate>& seeds,
-                                int side,
-                                std::vector<Candidate>& output) const;
+                               const std::vector<Candidate>& seeds,
+                               int side,
+                               std::vector<Candidate>& output) const;
   SeedParameters make_seed_parameters(const Candidate& c) const;
 
   // ---------------------------------------------------------------
@@ -208,24 +208,24 @@ class Tpc_AssembledTrackReco : public SubsysReco
   TTree* m_tree;
 
   Tpc_ModuleTrackContainer* m_tpcModuleTrackContainer;
-  Tpc_AssembledTrackContainer*     m_assembledTrackContainer;
-  TrkrHitSetContainer*    m_hits;
+  Tpc_AssembledTrackContainer* m_assembledTrackContainer;
+  TrkrHitSetContainer* m_hits;
 
-  int          m_event;
+  int m_event;
   IdealPadMap* m_idealPadMap;
 
   unsigned int m_connectMaxLayerGap;
-  double       m_connect_dphi;
-  double       m_connect_dtbin;
-  double       m_connect_dphi_slope;
-  double       m_connect_dtbin_slope;
-  bool         m_useSagittaPhiFit;
-  double       m_seedSigmaX;
-  double       m_seedSigmaY;
-  double       m_seedSigmaZ;
-  double       m_seedSigmaPx;
-  double       m_seedSigmaPy;
-  double       m_seedSigmaPz;
+  double m_connect_dphi;
+  double m_connect_dtbin;
+  double m_connect_dphi_slope;
+  double m_connect_dtbin_slope;
+  bool m_useSagittaPhiFit;
+  double m_seedSigmaX;
+  double m_seedSigmaY;
+  double m_seedSigmaZ;
+  double m_seedSigmaPx;
+  double m_seedSigmaPy;
+  double m_seedSigmaPz;
 
   // Debug matching histograms
   TH1D* m_h_dphi;
@@ -250,26 +250,26 @@ class Tpc_AssembledTrackReco : public SubsysReco
   // ---------------------------------------------------------------
   // TTree branches
   // ---------------------------------------------------------------
-  int                        m_tree_event{};
-  std::vector<unsigned int>  m_tree_track_id;
-  std::vector<int>           m_tree_side;
-  std::vector<unsigned int>  m_tree_nsegments;
-  std::vector<unsigned int>  m_tree_nblobs;
-  std::vector<unsigned int>  m_tree_nrawhits;
-  std::vector<unsigned int>  m_tree_first_layer;
-  std::vector<unsigned int>  m_tree_last_layer;
-  std::vector<unsigned int>  m_tree_first_sector;
-  std::vector<unsigned int>  m_tree_last_sector;
-  std::vector<unsigned int>  m_tree_first_region;
-  std::vector<unsigned int>  m_tree_last_region;
+  int m_tree_event{};
+  std::vector<unsigned int> m_tree_track_id;
+  std::vector<int> m_tree_side;
+  std::vector<unsigned int> m_tree_nsegments;
+  std::vector<unsigned int> m_tree_nblobs;
+  std::vector<unsigned int> m_tree_nrawhits;
+  std::vector<unsigned int> m_tree_first_layer;
+  std::vector<unsigned int> m_tree_last_layer;
+  std::vector<unsigned int> m_tree_first_sector;
+  std::vector<unsigned int> m_tree_last_sector;
+  std::vector<unsigned int> m_tree_first_region;
+  std::vector<unsigned int> m_tree_last_region;
 
-  std::vector<unsigned int>  m_tree_source_assembled_track_id;
-  std::vector<unsigned int>  m_tree_source_inmodule_track_id;
-  std::vector<unsigned int>  m_tree_source_region;
-  std::vector<unsigned int>  m_tree_source_sector;
-  std::vector<int>           m_tree_source_side;
+  std::vector<unsigned int> m_tree_source_assembled_track_id;
+  std::vector<unsigned int> m_tree_source_inmodule_track_id;
+  std::vector<unsigned int> m_tree_source_region;
+  std::vector<unsigned int> m_tree_source_sector;
+  std::vector<int> m_tree_source_side;
 
-  std::vector<unsigned int>       m_tree_hit_assembled_track_id;
+  std::vector<unsigned int> m_tree_hit_assembled_track_id;
   std::vector<unsigned long long> m_tree_hit_hitsetkey;
   std::vector<unsigned long long> m_tree_hit_hitkey;
 };

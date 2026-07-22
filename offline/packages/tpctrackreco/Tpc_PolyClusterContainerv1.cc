@@ -3,7 +3,7 @@
 
 ClassImp(Tpc_PolyClusterContainerv1)
 
-Tpc_PolyClusterContainerv1::Tpc_PolyClusterContainerv1()
+    Tpc_PolyClusterContainerv1::Tpc_PolyClusterContainerv1()
 {
   Reset();
 }
@@ -20,8 +20,10 @@ void Tpc_PolyClusterContainerv1::identify(std::ostream& os) const
 
 void Tpc_PolyClusterContainerv1::Reset()
 {
-  for (auto & m_cluster : m_clusters) { delete m_cluster;
-}
+  for (auto& m_cluster : m_clusters)
+  {
+    delete m_cluster;
+  }
   m_clusters.clear();
 }
 
@@ -35,8 +37,10 @@ PHObject* Tpc_PolyClusterContainerv1::CloneMe() const
   Tpc_PolyClusterContainerv1* copy = new Tpc_PolyClusterContainerv1();
   for (auto m_cluster : m_clusters)
   {
-    if (m_cluster) { copy->m_clusters.push_back(static_cast<Tpc_PolyCluster*>(m_cluster->CloneMe()));
-}
+    if (m_cluster)
+    {
+      copy->m_clusters.push_back(static_cast<Tpc_PolyCluster*>(m_cluster->CloneMe()));
+    }
   }
   return copy;
 }

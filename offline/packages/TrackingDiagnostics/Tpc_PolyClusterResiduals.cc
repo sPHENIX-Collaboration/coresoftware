@@ -1,11 +1,11 @@
 #include "Tpc_PolyClusterResiduals.h"
 
+#include "tpctrackreco/Tpc_PolyCluster.h"
+#include "tpctrackreco/Tpc_PolyClusterContainer.h"
 #include "tpctrackreco/Tpc_PolyTrack.h"
 #include "tpctrackreco/Tpc_PolyTrackContainer.h"
 #include "tpctrackreco/Tpc_PolyTrackVertex.h"
 #include "tpctrackreco/Tpc_PolyTrackVertexContainer.h"
-#include "tpctrackreco/Tpc_PolyCluster.h"
-#include "tpctrackreco/Tpc_PolyClusterContainer.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -28,31 +28,37 @@ namespace
   double wrap_phi(double phi)
   {
     const double pi = std::acos(-1.0);
-    while (phi > pi) { phi -= 2.0 * pi;
-}
-    while (phi <= -pi) { phi += 2.0 * pi;
-}
+    while (phi > pi)
+    {
+      phi -= 2.0 * pi;
+    }
+    while (phi <= -pi)
+    {
+      phi += 2.0 * pi;
+    }
     return phi;
   }
 
   struct HelixCircle
   {
-    bool ok {false};
-    double xc {0.0};
-    double yc {0.0};
-    double radius {0.0};
-    double sign {0.0};
-    double phi0 {0.0};
-    double z0 {0.0};
-    double dzds {0.0};
+    bool ok{false};
+    double xc{0.0};
+    double yc{0.0};
+    double radius{0.0};
+    double sign{0.0};
+    double phi0{0.0};
+    double z0{0.0};
+    double dzds{0.0};
   };
 
   HelixCircle make_track_circle(const Tpc_PolyTrack* trk,
                                 const double magnetic_field_tesla)
   {
     HelixCircle circle;
-    if (!trk || trk->get_fit_status() == 0) { return circle;
-}
+    if (!trk || trk->get_fit_status() == 0)
+    {
+      return circle;
+    }
 
     const double x = trk->get_x();
     const double y = trk->get_y();
@@ -69,13 +75,17 @@ namespace
     }
 
     const double pt = std::hypot(px, py);
-    if (pt <= 0.0 || std::fabs(charge * magnetic_field_tesla) < 1.0e-12) { return circle;
-}
+    if (pt <= 0.0 || std::fabs(charge * magnetic_field_tesla) < 1.0e-12)
+    {
+      return circle;
+    }
 
     const double signed_radius = pt / (0.003 * charge * magnetic_field_tesla);
     circle.radius = std::fabs(signed_radius);
-    if (circle.radius <= 0.0 || !std::isfinite(circle.radius)) { return circle;
-}
+    if (circle.radius <= 0.0 || !std::isfinite(circle.radius))
+    {
+      return circle;
+    }
 
     const double tx = px / pt;
     const double ty = py / pt;
@@ -96,14 +106,18 @@ namespace
                                 const double vertex_y,
                                 double& z_at_dca)
   {
-    if (!circle.ok) { return false;
-}
+    if (!circle.ok)
+    {
+      return false;
+    }
 
     const double dx = vertex_x - circle.xc;
     const double dy = vertex_y - circle.yc;
     const double dc = std::hypot(dx, dy);
-    if (!std::isfinite(dc) || dc <= 1.0e-12) { return false;
-}
+    if (!std::isfinite(dc) || dc <= 1.0e-12)
+    {
+      return false;
+    }
 
     const double pca_x = circle.xc + circle.radius * dx / dc;
     const double pca_y = circle.yc + circle.radius * dy / dc;
@@ -134,8 +148,10 @@ namespace
                          const double arc_direction,
                          double& z_state)
   {
-    if (!circle.ok) { return false;
-}
+    if (!circle.ok)
+    {
+      return false;
+    }
 
     const double center_r = std::hypot(circle.xc, circle.yc);
     if (!std::isfinite(target_r) || !std::isfinite(center_r) ||
@@ -146,14 +162,18 @@ namespace
 
     const double radius_sum = target_r + circle.radius;
     const double radius_diff = std::fabs(target_r - circle.radius);
-    if (center_r > radius_sum || center_r < radius_diff) { return false;
-}
+    if (center_r > radius_sum || center_r < radius_diff)
+    {
+      return false;
+    }
 
     const double a = (target_r * target_r - circle.radius * circle.radius + center_r * center_r) /
                      (2.0 * center_r);
     const double h2 = target_r * target_r - a * a;
-    if (h2 < -1.0e-8) { return false;
-}
+    if (h2 < -1.0e-8)
+    {
+      return false;
+    }
 
     const double h = std::sqrt(std::max(0.0, h2));
     const double ux = circle.xc / center_r;
@@ -182,8 +202,10 @@ namespace
       }
     }
 
-    if (best_abs_dz == std::numeric_limits<double>::max()) { return false;
-}
+    if (best_abs_dz == std::numeric_limits<double>::max())
+    {
+      return false;
+    }
 
     z_state = best_z;
     return std::isfinite(z_state);
@@ -195,8 +217,10 @@ namespace
                                double& vertex_y,
                                double& vertex_z)
   {
-    if (!vertices || !vertices->get_collision_vertex_valid() || !circle.ok) { return false;
-}
+    if (!vertices || !vertices->get_collision_vertex_valid() || !circle.ok)
+    {
+      return false;
+    }
 
     double best_dz = std::numeric_limits<double>::max();
     const unsigned int nvertices = vertices->get_collision_vertex_count();
@@ -205,12 +229,16 @@ namespace
       const double x = vertices->get_collision_x(ivtx);
       const double y = vertices->get_collision_y(ivtx);
       const double z = vertices->get_collision_z(ivtx);
-      if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z)) { continue;
-}
+      if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z))
+      {
+        continue;
+      }
 
       double z_at_dca = 0.0;
-      if (!helix_z_at_dca_to_vertex(circle, x, y, z_at_dca)) { continue;
-}
+      if (!helix_z_at_dca_to_vertex(circle, x, y, z_at_dca))
+      {
+        continue;
+      }
 
       const double dz = std::fabs(z - z_at_dca);
       if (dz < best_dz)
@@ -231,8 +259,10 @@ namespace
                     double& x_state,
                     double& y_state)
   {
-    if (!trk || trk->get_fit_status() == 0 || !std::isfinite(z)) { return false;
-}
+    if (!trk || trk->get_fit_status() == 0 || !std::isfinite(z))
+    {
+      return false;
+    }
 
     const double x0 = trk->get_x();
     const double y0 = trk->get_y();
@@ -259,8 +289,10 @@ namespace
                         const double arc_direction,
                         double& z_state)
   {
-    if (!trk || trk->get_fit_status() == 0 || !std::isfinite(target_r) || target_r <= 0.0) { return false;
-}
+    if (!trk || trk->get_fit_status() == 0 || !std::isfinite(target_r) || target_r <= 0.0)
+    {
+      return false;
+    }
 
     const double x0 = trk->get_x();
     const double y0 = trk->get_y();
@@ -280,12 +312,16 @@ namespace
     const double a = ax * ax + ay * ay;
     const double b = 2.0 * (x0 * ax + y0 * ay);
     const double c = x0 * x0 + y0 * y0 - target_r * target_r;
-    if (a < 1.0e-20) { return false;
-}
+    if (a < 1.0e-20)
+    {
+      return false;
+    }
 
     const double disc = b * b - 4.0 * a * c;
-    if (disc < -1.0e-8) { return false;
-}
+    if (disc < -1.0e-8)
+    {
+      return false;
+    }
     const double root = std::sqrt(std::max(0.0, disc));
     const double dz1 = (-b - root) / (2.0 * a);
     const double dz2 = (-b + root) / (2.0 * a);
@@ -302,8 +338,10 @@ namespace
                                double& z_at_dca,
                                double& dca_xy)
   {
-    if (!trk || trk->get_fit_status() == 0) { return false;
-}
+    if (!trk || trk->get_fit_status() == 0)
+    {
+      return false;
+    }
 
     const double x0 = trk->get_x();
     const double y0 = trk->get_y();
@@ -321,8 +359,10 @@ namespace
     const double ax = arc_direction * px / pz;
     const double ay = arc_direction * py / pz;
     const double den = ax * ax + ay * ay;
-    if (den < 1.0e-20) { return false;
-}
+    if (den < 1.0e-20)
+    {
+      return false;
+    }
     const double dz = ((vertex_x - x0) * ax + (vertex_y - y0) * ay) / den;
     const double x_at_dca = x0 + ax * dz;
     const double y_at_dca = y0 + ay * dz;
@@ -339,8 +379,10 @@ namespace
                                     double& vertex_z,
                                     double& rdca)
   {
-    if (!vertices || !vertices->get_collision_vertex_valid() || !trk) { return false;
-}
+    if (!vertices || !vertices->get_collision_vertex_valid() || !trk)
+    {
+      return false;
+    }
 
     double best_dz = std::numeric_limits<double>::max();
     const unsigned int nvertices = vertices->get_collision_vertex_count();
@@ -349,13 +391,17 @@ namespace
       const double x = vertices->get_collision_x(ivtx);
       const double y = vertices->get_collision_y(ivtx);
       const double z = vertices->get_collision_z(ivtx);
-      if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z)) { continue;
-}
+      if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z))
+      {
+        continue;
+      }
 
       double z_at_dca = 0.0;
       double dca_xy = 0.0;
-      if (!line_z_at_dca_to_vertex(trk, x, y, arc_direction, z_at_dca, dca_xy)) { continue;
-}
+      if (!line_z_at_dca_to_vertex(trk, x, y, arc_direction, z_at_dca, dca_xy))
+      {
+        continue;
+      }
 
       const double dz = std::fabs(z - z_at_dca);
       if (dz < best_dz)
@@ -373,16 +419,20 @@ namespace
 
   unsigned int cluster_sector(const Tpc_PolyCluster* cluster)
   {
-    if (!cluster || cluster->size_hits() == 0) { return 0xffffffffU;
-}
+    if (!cluster || cluster->size_hits() == 0)
+    {
+      return 0xffffffffU;
+    }
     const Tpc_PolyCluster::HitIndex hit_index = cluster->get_hit_index(0);
     return TpcDefs::getSectorId(hit_index.first);
   }
 
   unsigned int cluster_layer(const Tpc_PolyCluster* cluster)
   {
-    if (!cluster || cluster->size_hits() == 0) { return 0xffffffffU;
-}
+    if (!cluster || cluster->size_hits() == 0)
+    {
+      return 0xffffffffU;
+    }
     const Tpc_PolyCluster::HitIndex hit_index = cluster->get_hit_index(0);
     return TrkrDefs::getLayer(hit_index.first);
   }
@@ -395,8 +445,10 @@ namespace
                           double& x_state,
                           double& y_state)
   {
-    if (!trk || trk->get_fit_status() == 0) { return false;
-}
+    if (!trk || trk->get_fit_status() == 0)
+    {
+      return false;
+    }
 
     const double x0 = trk->get_x();
     const double y0 = trk->get_y();
@@ -419,13 +471,17 @@ namespace
     }
 
     const double pt = std::hypot(px, py);
-    if (pt <= 0.0 || std::fabs(pz) < 1.0e-12) { return false;
-}
+    if (pt <= 0.0 || std::fabs(pz) < 1.0e-12)
+    {
+      return false;
+    }
 
     const double signed_radius = pt / (0.003 * charge * magnetic_field_tesla);
     const double radius = std::fabs(signed_radius);
-    if (radius <= 0.0 || !std::isfinite(radius)) { return false;
-}
+    if (radius <= 0.0 || !std::isfinite(radius))
+    {
+      return false;
+    }
 
     const double tx = px / pt;
     const double ty = py / pt;
@@ -434,8 +490,10 @@ namespace
     const double yc = y0 - sign * radius * tx;
     const double phi0 = std::atan2(y0 - yc, x0 - xc);
     const double dzds = pz / pt;
-    if (std::fabs(dzds) < 1.0e-12) { return false;
-}
+    if (std::fabs(dzds) < 1.0e-12)
+    {
+      return false;
+    }
 
     const double arc = arc_direction * (z - z0) / dzds;
     const double phi = phi0 - sign * arc / radius;
@@ -450,25 +508,33 @@ namespace
                                 const double arc_direction,
                                 const bool use_straight_line)
   {
-    if (!poly_track || clusters.empty()) { return std::numeric_limits<double>::max();
-}
+    if (!poly_track || clusters.empty())
+    {
+      return std::numeric_limits<double>::max();
+    }
 
     double sum = 0.0;
     unsigned int n = 0;
     for (const Tpc_PolyCluster* cluster : clusters)
     {
-      if (!cluster || !cluster->isValid()) { continue;
-}
+      if (!cluster || !cluster->isValid())
+      {
+        continue;
+      }
       const double cx = cluster->get_centroid_x();
       const double cy = cluster->get_centroid_y();
       const double cz = cluster->get_centroid_z();
-      if (!std::isfinite(cx) || !std::isfinite(cy) || !std::isfinite(cz)) { continue;
-}
+      if (!std::isfinite(cx) || !std::isfinite(cy) || !std::isfinite(cz))
+      {
+        continue;
+      }
 
       double x = 0.0;
       double y = 0.0;
-      if (!project_track_to_z(poly_track, cz, magnetic_field_tesla, arc_direction, use_straight_line, x, y)) { continue;
-}
+      if (!project_track_to_z(poly_track, cz, magnetic_field_tesla, arc_direction, use_straight_line, x, y))
+      {
+        continue;
+      }
 
       const double dx = x - cx;
       const double dy = y - cy;
@@ -479,10 +545,10 @@ namespace
     return n > 0 ? sum / static_cast<double>(n) : std::numeric_limits<double>::max();
   }
 
-}
+}  // namespace
 
 Tpc_PolyClusterResiduals::Tpc_PolyClusterResiduals(const std::string& name,
-                                                 const std::string& outfilename)
+                                                   const std::string& outfilename)
   : SubsysReco(name)
   , m_outfilename(outfilename)
   , m_clusterNodeName("TPC_POLYCLUSTERS")
@@ -645,10 +711,14 @@ void Tpc_PolyClusterResiduals::reset_tree_values()
 int Tpc_PolyClusterResiduals::process_event(PHCompositeNode* topNode)
 {
   ++m_evt;
-  if (!get_nodes(topNode)) { return Fun4AllReturnCodes::EVENT_OK;
-}
-  if (!m_tree) { return Fun4AllReturnCodes::EVENT_OK;
-}
+  if (!get_nodes(topNode))
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+  if (!m_tree)
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   std::map<unsigned int, std::vector<const Tpc_PolyCluster*> > clusters_by_source_assembled_track_id;
   std::map<unsigned int, const Tpc_PolyTrackVertex*> track_vertices_by_track_id;
@@ -656,8 +726,10 @@ int Tpc_PolyClusterResiduals::process_event(PHCompositeNode* topNode)
   for (unsigned int icluster = 0; icluster < m_clusters->size(); ++icluster)
   {
     const Tpc_PolyCluster* cluster = m_clusters->get_cluster(icluster);
-    if (!cluster || !cluster->isValid()) { continue;
-}
+    if (!cluster || !cluster->isValid())
+    {
+      continue;
+    }
     clusters_by_source_assembled_track_id[cluster->get_source_assembled_track_id()].push_back(cluster);
   }
 
@@ -666,8 +738,10 @@ int Tpc_PolyClusterResiduals::process_event(PHCompositeNode* topNode)
     for (unsigned int ivtx = 0; ivtx < m_finalTrackVertices->size(); ++ivtx)
     {
       const Tpc_PolyTrackVertex* vtx = m_finalTrackVertices->get_vertex(ivtx);
-      if (!vtx) { continue;
-}
+      if (!vtx)
+      {
+        continue;
+      }
       track_vertices_by_track_id[vtx->get_track_id()] = vtx;
       track_vertices_by_source_assembled_track_id[vtx->get_source_assembled_track_id()] = vtx;
     }
@@ -678,8 +752,10 @@ int Tpc_PolyClusterResiduals::process_event(PHCompositeNode* topNode)
   for (unsigned int ifinal = 0; ifinal < npoly_tracks; ++ifinal)
   {
     const Tpc_PolyTrack* poly_track = m_finalTracks->get_track(ifinal);
-    if (!poly_track || !poly_track->isValid()) { continue;
-}
+    if (!poly_track || !poly_track->isValid())
+    {
+      continue;
+    }
 
     const double px = poly_track->get_px();
     const double py = poly_track->get_py();
@@ -687,8 +763,10 @@ int Tpc_PolyClusterResiduals::process_event(PHCompositeNode* topNode)
     const double charge = poly_track->get_charge();
     const bool use_straight_line = m_useStraightLineTracks || std::fabs(charge * m_magneticFieldTesla) < 1.0e-12;
     const double pt = std::hypot(px, py);
-    if (!std::isfinite(pt) || (!use_straight_line && (pt < m_minPt || pt > m_maxPt))) { continue;
-}
+    if (!std::isfinite(pt) || (!use_straight_line && (pt < m_minPt || pt > m_maxPt)))
+    {
+      continue;
+    }
 
     const double eta = (pt > 0.0 && std::isfinite(pz)) ? std::asinh(pz / pt) : std::numeric_limits<double>::quiet_NaN();
     const double theta = (pt > 0.0 && std::isfinite(pz)) ? std::atan2(pt, pz) : std::numeric_limits<double>::quiet_NaN();
@@ -697,8 +775,10 @@ int Tpc_PolyClusterResiduals::process_event(PHCompositeNode* topNode)
     const double quality = (std::isfinite(chi2) && std::isfinite(ndf) && ndf > 0.0) ? chi2 / ndf : std::numeric_limits<double>::quiet_NaN();
 
     const auto cluster_iter = clusters_by_source_assembled_track_id.find(poly_track->get_source_assembled_track_id());
-    if (cluster_iter == clusters_by_source_assembled_track_id.end()) { continue;
-}
+    if (cluster_iter == clusters_by_source_assembled_track_id.end())
+    {
+      continue;
+    }
 
     const std::vector<const Tpc_PolyCluster*>& track_clusters = cluster_iter->second;
     const Tpc_PolyTrackVertex* track_vertex = nullptr;
@@ -716,8 +796,10 @@ int Tpc_PolyClusterResiduals::process_event(PHCompositeNode* topNode)
       }
     }
     const unsigned int ntpc_clusters = track_clusters.size();
-    if (ntpc_clusters < m_minTpcClusters || ntpc_clusters > m_maxTpcClusters) { continue;
-}
+    if (ntpc_clusters < m_minTpcClusters || ntpc_clusters > m_maxTpcClusters)
+    {
+      continue;
+    }
 
     const double forward_residual2 = cluster_line_residual2(poly_track, track_clusters, m_magneticFieldTesla, 1.0, use_straight_line);
     const double reverse_residual2 = cluster_line_residual2(poly_track, track_clusters, m_magneticFieldTesla, -1.0, use_straight_line);
@@ -793,26 +875,30 @@ int Tpc_PolyClusterResiduals::process_event(PHCompositeNode* topNode)
     m_rzSlope = circle.ok ? circle.dzds : ((use_straight_line && pt > 0.0) ? pz / pt : std::numeric_limits<double>::quiet_NaN());
     for (const Tpc_PolyCluster* cluster : track_clusters)
     {
-      if (!cluster || !cluster->isValid()) { continue;
-}
+      if (!cluster || !cluster->isValid())
+      {
+        continue;
+      }
       const double cluster_x = cluster->get_centroid_x();
       const double cluster_y = cluster->get_centroid_y();
       const double cluster_z = cluster->get_centroid_z();
-      if (!std::isfinite(cluster_x) || !std::isfinite(cluster_y) || !std::isfinite(cluster_z)) { continue;
-}
+      if (!std::isfinite(cluster_x) || !std::isfinite(cluster_y) || !std::isfinite(cluster_z))
+      {
+        continue;
+      }
 
       double state_x = 0.0;
       double state_y = 0.0;
-      if (!project_track_to_z(poly_track, cluster_z, m_magneticFieldTesla, arc_direction, use_straight_line, state_x, state_y)) { continue;
-}
+      if (!project_track_to_z(poly_track, cluster_z, m_magneticFieldTesla, arc_direction, use_straight_line, state_x, state_y))
+      {
+        continue;
+      }
 
       const int cluster_side = cluster->get_side();
       double state_z = std::numeric_limits<double>::quiet_NaN();
       double residual_z = std::numeric_limits<double>::quiet_NaN();
       const double cluster_r_for_state = std::hypot(cluster_x, cluster_y);
-      const bool have_state_z = use_straight_line ?
-        line_z_at_radius(poly_track, cluster_r_for_state, cluster_z, arc_direction, state_z) :
-        helix_z_at_radius(circle, cluster_r_for_state, cluster_z, arc_direction, state_z);
+      const bool have_state_z = use_straight_line ? line_z_at_radius(poly_track, cluster_r_for_state, cluster_z, arc_direction, state_z) : helix_z_at_radius(circle, cluster_r_for_state, cluster_z, arc_direction, state_z);
       if (have_state_z)
       {
         residual_z = cluster_z - state_z;
@@ -866,8 +952,10 @@ int Tpc_PolyClusterResiduals::End(PHCompositeNode* /*unused*/)
   if (m_outfile)
   {
     m_outfile->cd();
-    if (m_tree) { m_tree->Write();
-}
+    if (m_tree)
+    {
+      m_tree->Write();
+    }
     m_outfile->Close();
     delete m_outfile;
     m_outfile = nullptr;

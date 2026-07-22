@@ -8,52 +8,73 @@ namespace
 {
   double wrap_pi(double phi)
   {
-    while (phi > M_PI) { phi -= 2.0 * M_PI;
-}
-    while (phi <= -M_PI) { phi += 2.0 * M_PI;
-}
+    while (phi > M_PI)
+    {
+      phi -= 2.0 * M_PI;
+    }
+    while (phi <= -M_PI)
+    {
+      phi += 2.0 * M_PI;
+    }
     return phi;
   }
 
   double unwrap_near(double phi, const double ref)
   {
-    while (phi - ref > M_PI) { phi -= 2.0 * M_PI;
-}
-    while (phi - ref < -M_PI) { phi += 2.0 * M_PI;
-}
+    while (phi - ref > M_PI)
+    {
+      phi -= 2.0 * M_PI;
+    }
+    while (phi - ref < -M_PI)
+    {
+      phi += 2.0 * M_PI;
+    }
     return phi;
   }
 
   bool solve_3x3(double A[3][3], double b[3], double x[3])
   {
     double M[3][4] = {
-      {A[0][0], A[0][1], A[0][2], b[0]},
-      {A[1][0], A[1][1], A[1][2], b[1]},
-      {A[2][0], A[2][1], A[2][2], b[2]}
-    };
+        {A[0][0], A[0][1], A[0][2], b[0]},
+        {A[1][0], A[1][1], A[1][2], b[1]},
+        {A[2][0], A[2][1], A[2][2], b[2]}};
     for (int col = 0; col < 3; ++col)
     {
       int pivot = col;
-      for (int row = col + 1; row < 3; ++row) {
-        if (std::fabs(M[row][col]) > std::fabs(M[pivot][col])) { pivot = row;
-}
-}
-      if (std::fabs(M[pivot][col]) < 1.0e-20) { return false;
-}
-      if (pivot != col) {
-        for (int k = col; k < 4; ++k) { std::swap(M[col][k], M[pivot][k]);
-}
-}
+      for (int row = col + 1; row < 3; ++row)
+      {
+        if (std::fabs(M[row][col]) > std::fabs(M[pivot][col]))
+        {
+          pivot = row;
+        }
+      }
+      if (std::fabs(M[pivot][col]) < 1.0e-20)
+      {
+        return false;
+      }
+      if (pivot != col)
+      {
+        for (int k = col; k < 4; ++k)
+        {
+          std::swap(M[col][k], M[pivot][k]);
+        }
+      }
       const double div = M[col][col];
-      for (int k = col; k < 4; ++k) { M[col][k] /= div;
-}
+      for (int k = col; k < 4; ++k)
+      {
+        M[col][k] /= div;
+      }
       for (int row = 0; row < 3; ++row)
       {
-        if (row == col) { continue;
-}
+        if (row == col)
+        {
+          continue;
+        }
         const double factor = M[row][col];
-        for (int k = col; k < 4; ++k) { M[row][k] -= factor * M[col][k];
-}
+        for (int k = col; k < 4; ++k)
+        {
+          M[row][k] -= factor * M[col][k];
+        }
       }
     }
     x[0] = M[0][3];
@@ -65,8 +86,10 @@ namespace
   bool line_fit(const std::vector<double>& x, const std::vector<double>& y,
                 double& slope, double& intercept, double& chi2, int& ndof)
   {
-    if (x.size() < 2 || x.size() != y.size()) { return false;
-}
+    if (x.size() < 2 || x.size() != y.size())
+    {
+      return false;
+    }
     double S = 0.0;
     double Sx = 0.0;
     double Sy = 0.0;
@@ -81,8 +104,10 @@ namespace
       Sxy += x[i] * y[i];
     }
     const double den = S * Sxx - Sx * Sx;
-    if (std::fabs(den) < 1.0e-20) { return false;
-}
+    if (std::fabs(den) < 1.0e-20)
+    {
+      return false;
+    }
     slope = (S * Sxy - Sx * Sy) / den;
     intercept = (Sy - slope * Sx) / S;
     chi2 = 0.0;
@@ -94,27 +119,53 @@ namespace
     ndof = static_cast<int>(x.size()) - 2;
     return true;
   }
-}
-
+}  // namespace
 
 Tpc_FittingTools::FitPoint::FitPoint()
-  : x(0.0), y(0.0), w(1.0) {}
+  : x(0.0)
+  , y(0.0)
+  , w(1.0)
+{
+}
 
 Tpc_FittingTools::FitPoint::FitPoint(double x_, double y_, double w_)
-  : x(x_), y(y_), w(w_) {}
+  : x(x_)
+  , y(y_)
+  , w(w_)
+{
+}
 
 Tpc_FittingTools::LineFit::LineFit()
-  : ok(false), slope(0.0), intercept(0.0), chi2(0.0), ndof(0) {}
+  : ok(false)
+  , slope(0.0)
+  , intercept(0.0)
+  , chi2(0.0)
+  , ndof(0)
+{
+}
 
 Tpc_FittingTools::SagittaFit::SagittaFit()
-  : ok(false), S(0.0), x0(0.0), invR(0.0), theta(0.0), b(0.0), chi2(0.0), ndof(0) {}
+  : ok(false)
+  , S(0.0)
+  , x0(0.0)
+  , invR(0.0)
+  , theta(0.0)
+  , b(0.0)
+  , chi2(0.0)
+  , ndof(0)
+{
+}
 
 double Tpc_FittingTools::adcWeight(double adc, double maxadc, double power, double floor_frac)
 {
-  if (adc <= 0.0) { return 0.0;
-}
-  if (maxadc <= 0.0) { return 1.0;
-}
+  if (adc <= 0.0)
+  {
+    return 0.0;
+  }
+  if (maxadc <= 0.0)
+  {
+    return 1.0;
+  }
 
   double w = std::pow(adc / maxadc, power);
   w = std::max(w, floor_frac);
@@ -122,16 +173,17 @@ double Tpc_FittingTools::adcWeight(double adc, double maxadc, double power, doub
 }
 
 bool Tpc_FittingTools::weightedLineFit(const std::vector<double>& x,
-                                         const std::vector<double>& y,
-                                         const std::vector<double>& w,
-                                         double& m,
-                                         double& b,
-                                         double& chi2,
-                                         int& ndof)
+                                       const std::vector<double>& y,
+                                       const std::vector<double>& w,
+                                       double& m,
+                                       double& b,
+                                       double& chi2,
+                                       int& ndof)
 {
-  if (x.size() < 2 || x.size() != y.size() || x.size() != w.size()) {
+  if (x.size() < 2 || x.size() != y.size() || x.size() != w.size())
+  {
     return false;
-}
+  }
 
   double S = 0.0;
   double Sx = 0.0;
@@ -142,16 +194,18 @@ bool Tpc_FittingTools::weightedLineFit(const std::vector<double>& x,
   for (unsigned int i = 0; i < x.size(); ++i)
   {
     const double wi = w[i] > 0.0 ? w[i] : 1.0;
-    S   += wi;
-    Sx  += wi * x[i];
-    Sy  += wi * y[i];
+    S += wi;
+    Sx += wi * x[i];
+    Sy += wi * y[i];
     Sxx += wi * x[i] * x[i];
     Sxy += wi * x[i] * y[i];
   }
 
   const double den = S * Sxx - Sx * Sx;
-  if (std::fabs(den) < 1.0e-12) { return false;
-}
+  if (std::fabs(den) < 1.0e-12)
+  {
+    return false;
+  }
 
   m = (S * Sxy - Sx * Sy) / den;
   b = (Sy - m * Sx) / S;
@@ -178,7 +232,7 @@ Tpc_FittingTools::LineFit Tpc_FittingTools::fitLine(const std::vector<FitPoint>&
   y.reserve(points.size());
   w.reserve(points.size());
 
-  for (const auto & point : points)
+  for (const auto& point : points)
   {
     x.push_back(point.x);
     y.push_back(point.y);
@@ -190,41 +244,40 @@ Tpc_FittingTools::LineFit Tpc_FittingTools::fitLine(const std::vector<FitPoint>&
 }
 
 double Tpc_FittingTools::sagittaModel(const double xrot,
-                                        const double S,
-                                        const double x0,
-                                        const double invR)
+                                      const double S,
+                                      const double x0,
+                                      const double invR)
 {
   const double dx = xrot - x0;
   const double invR2 = invR * invR;
   const double dx2 = dx * dx;
 
-  return S
-    - 0.5 * invR * dx2
-    - 0.125 * invR * invR2 * dx2 * dx2
-    - 0.0625 * invR * invR2 * invR2 * dx2 * dx2 * dx2;
+  return S - 0.5 * invR * dx2 - 0.125 * invR * invR2 * dx2 * dx2 - 0.0625 * invR * invR2 * invR2 * dx2 * dx2 * dx2;
 }
 
 bool Tpc_FittingTools::weightedSagittaFit(const std::vector<double>& local_x,
-                                            const std::vector<double>& local_y,
-                                            const std::vector<double>& w,
-                                            double& S,
-                                            double& x0,
-                                            double& invR,
-                                            double& theta,
-                                            double& bline,
-                                            double& chi2,
-                                            int& ndof)
+                                          const std::vector<double>& local_y,
+                                          const std::vector<double>& w,
+                                          double& S,
+                                          double& x0,
+                                          double& invR,
+                                          double& theta,
+                                          double& bline,
+                                          double& chi2,
+                                          int& ndof)
 {
-  if (local_x.size() < 3 || local_x.size() != local_y.size() || local_x.size() != w.size()) {
+  if (local_x.size() < 3 || local_x.size() != local_y.size() || local_x.size() != w.size())
+  {
     return false;
-}
+  }
 
   double mline = 0.0;
   double line_chi2 = 0.0;
   int line_ndof = 0;
-  if (!weightedLineFit(local_x, local_y, w, mline, bline, line_chi2, line_ndof)) {
+  if (!weightedLineFit(local_x, local_y, w, mline, bline, line_chi2, line_ndof))
+  {
     return false;
-}
+  }
 
   theta = std::atan(mline);
   const double c = std::cos(theta);
@@ -243,7 +296,7 @@ bool Tpc_FittingTools::weightedSagittaFit(const std::vector<double>& local_x,
   {
     const double wi = w[i] > 0.0 ? w[i] : 1.0;
     const double yy = local_y[i] - bline;
-    const double xr =  c * local_x[i] + s * yy;
+    const double xr = c * local_x[i] + s * yy;
     const double yr = -s * local_x[i] + c * yy;
 
     xrot.push_back(xr);
@@ -254,11 +307,13 @@ bool Tpc_FittingTools::weightedSagittaFit(const std::vector<double>& local_x,
     sy += wi * yr;
   }
 
-  if (sw <= 0.0) { return false;
-}
+  if (sw <= 0.0)
+  {
+    return false;
+  }
 
   x0 = sx / sw;
-  S  = sy / sw;
+  S = sy / sw;
 
   std::vector<double> dx2;
   dx2.reserve(xrot.size());
@@ -316,10 +371,7 @@ bool Tpc_FittingTools::weightedSagittaFit(const std::vector<double>& local_x,
       const double invR4 = invR2 * invR2;
       const double invR5 = invR4 * invR;
 
-      const double f = S
-        - 0.5 * invR * dx2v
-        - 0.125 * invR3 * dx4
-        - 0.0625 * invR5 * dx6;
+      const double f = S - 0.5 * invR * dx2v - 0.125 * invR3 * dx4 - 0.0625 * invR5 * dx6;
 
       const double resid = yrot[i] - f;
 
@@ -331,9 +383,10 @@ bool Tpc_FittingTools::weightedSagittaFit(const std::vector<double>& local_x,
       for (int a = 0; a < 3; ++a)
       {
         bvec[a] += wi * J[a] * resid;
-        for (int b = 0; b < 3; ++b) {
+        for (int b = 0; b < 3; ++b)
+        {
           A[a][b] += wi * J[a] * J[b];
-}
+        }
       }
     }
 
@@ -342,8 +395,10 @@ bool Tpc_FittingTools::weightedSagittaFit(const std::vector<double>& local_x,
     A[2][2] += lambda;
 
     double delta[3] = {0.0, 0.0, 0.0};
-    if (!solve_3x3(A, bvec, delta)) { break;
-}
+    if (!solve_3x3(A, bvec, delta))
+    {
+      break;
+    }
 
     delta[0] = std::min(delta[0], 10.0);
     delta[0] = std::max(delta[0], -10.0);
@@ -377,9 +432,10 @@ bool Tpc_FittingTools::weightedSagittaFit(const std::vector<double>& local_x,
 
       if (std::fabs(delta[0]) < 1.0e-6 &&
           std::fabs(delta[1]) < 1.0e-6 &&
-          std::fabs(delta[2]) < 1.0e-8) {
+          std::fabs(delta[2]) < 1.0e-8)
+      {
         break;
-}
+      }
     }
     else
     {
@@ -401,7 +457,7 @@ Tpc_FittingTools::SagittaFit Tpc_FittingTools::fitSagitta(const std::vector<FitP
   y.reserve(points.size());
   w.reserve(points.size());
 
-  for (const auto & point : points)
+  for (const auto& point : points)
   {
     x.push_back(point.x);
     y.push_back(point.y);
@@ -414,13 +470,14 @@ Tpc_FittingTools::SagittaFit Tpc_FittingTools::fitSagitta(const std::vector<FitP
   return fit;
 }
 
-
 bool Tpc_FittingTools::fitLine3D(const std::vector<Point>& points, FitResult& fit)
 {
   fit = FitResult();
   fit.is_line = true;
-  if (points.size() < 2) { return false;
-}
+  if (points.size() < 2)
+  {
+    return false;
+  }
 
   double cx = 0.0;
   double cy = 0.0;
@@ -465,12 +522,16 @@ bool Tpc_FittingTools::fitLine3D(const std::vector<Point>& points, FitResult& fi
       vy = p.y - cy;
       vz = p.z - cz;
       vnorm = std::sqrt(vx * vx + vy * vy + vz * vz);
-      if (vnorm > 1.0e-20) { break;
-}
+      if (vnorm > 1.0e-20)
+      {
+        break;
+      }
     }
   }
-  if (vnorm <= 1.0e-20) { return false;
-}
+  if (vnorm <= 1.0e-20)
+  {
+    return false;
+  }
   vx /= vnorm;
   vy /= vnorm;
   vz /= vnorm;
@@ -481,8 +542,10 @@ bool Tpc_FittingTools::fitLine3D(const std::vector<Point>& points, FitResult& fi
     const double ny = cov[1][0] * vx + cov[1][1] * vy + cov[1][2] * vz;
     const double nz = cov[2][0] * vx + cov[2][1] * vy + cov[2][2] * vz;
     const double nnorm = std::sqrt(nx * nx + ny * ny + nz * nz);
-    if (nnorm <= 1.0e-20) { return false;
-}
+    if (nnorm <= 1.0e-20)
+    {
+      return false;
+    }
     vx = nx / nnorm;
     vy = ny / nnorm;
     vz = nz / nnorm;
@@ -530,8 +593,10 @@ bool Tpc_FittingTools::fitLine3D(const std::vector<Point>& points, FitResult& fi
 bool Tpc_FittingTools::fit(const std::vector<Point>& points, FitResult& fit)
 {
   fit = FitResult();
-  if (points.size() < 3) { return false;
-}
+  if (points.size() < 3)
+  {
+    return false;
+  }
 
   double A[3][3] = {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}};
   double b[3] = {0.0, 0.0, 0.0};
@@ -542,24 +607,32 @@ bool Tpc_FittingTools::fit(const std::vector<Point>& points, FitResult& fit)
     for (int i = 0; i < 3; ++i)
     {
       b[i] += row[i] * rhs;
-      for (int j = 0; j < 3; ++j) { A[i][j] += row[i] * row[j];
-}
+      for (int j = 0; j < 3; ++j)
+      {
+        A[i][j] += row[i] * row[j];
+      }
     }
   }
 
   double sol[3] = {0.0, 0.0, 0.0};
-  if (!solve_3x3(A, b, sol)) { return false;
-}
+  if (!solve_3x3(A, b, sol))
+  {
+    return false;
+  }
 
   const double xc = -0.5 * sol[0];
   const double yc = -0.5 * sol[1];
   const double r2 = xc * xc + yc * yc - sol[2];
-  if (r2 <= 0.0) { return false;
-}
+  if (r2 <= 0.0)
+  {
+    return false;
+  }
   const double R = std::sqrt(r2);
   const double dc = std::hypot(xc, yc);
-  if (R <= 0.0 || dc <= 1.0e-12) { return false;
-}
+  if (R <= 0.0 || dc <= 1.0e-12)
+  {
+    return false;
+  }
 
   const Point& first = points.front();
   const Point& mid = points[points.size() / 2];
@@ -575,7 +648,7 @@ bool Tpc_FittingTools::fit(const std::vector<Point>& points, FitResult& fit)
   const double rx = px - xc;
   const double ry = py - yc;
   const double tx = -sign * ry / R;
-  const double ty =  sign * rx / R;
+  const double ty = sign * rx / R;
   fit.phi0 = wrap_pi(std::atan2(ty, tx));
 
   const double phi_perigee = std::atan2(ry, rx);
@@ -590,8 +663,10 @@ bool Tpc_FittingTools::fit(const std::vector<Point>& points, FitResult& fit)
     angle = unwrap_near(angle, prev_angle);
     prev_angle = angle;
     double dangle = angle - phi_perigee;
-    if (sign * dangle < 0.0) { dangle += sign * 2.0 * M_PI;
-}
+    if (sign * dangle < 0.0)
+    {
+      dangle += sign * 2.0 * M_PI;
+    }
     svals.push_back(std::fabs(R * dangle));
     zvals.push_back(p.z);
 
@@ -600,8 +675,10 @@ bool Tpc_FittingTools::fit(const std::vector<Point>& points, FitResult& fit)
   }
 
   double dzds = 0.0;
-  if (!line_fit(svals, zvals, dzds, fit.z0, fit.chi2_z, fit.ndof_z)) { return false;
-}
+  if (!line_fit(svals, zvals, dzds, fit.z0, fit.chi2_z, fit.ndof_z))
+  {
+    return false;
+  }
   fit.theta = std::atan2(1.0, dzds);
   fit.ndof_xy = static_cast<int>(points.size()) - 3;
   fit.ok = true;

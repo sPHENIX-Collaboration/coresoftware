@@ -3,7 +3,7 @@
 
 ClassImp(Tpc_AssembledTrackContainerv1)
 
-Tpc_AssembledTrackContainerv1::Tpc_AssembledTrackContainerv1()
+    Tpc_AssembledTrackContainerv1::Tpc_AssembledTrackContainerv1()
 {
   Reset();
 }
@@ -23,7 +23,7 @@ void Tpc_AssembledTrackContainerv1::identify(std::ostream& os) const
 
 void Tpc_AssembledTrackContainerv1::Reset()
 {
-  for (auto & m_track : m_tracks)
+  for (auto& m_track : m_tracks)
   {
     delete m_track;
   }

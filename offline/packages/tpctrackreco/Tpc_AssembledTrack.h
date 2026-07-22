@@ -1,7 +1,7 @@
 #pragma once
 
-#include <trackbase/TrkrDefs.h>
 #include <phool/PHObject.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <iostream>
 #include <utility>
@@ -112,7 +112,7 @@ class Tpc_AssembledTrack : public PHObject
   virtual void set_seed_py(double) {}
   virtual void set_seed_pz(double) {}
   virtual void set_seed_cov(unsigned int, unsigned int, double) {}
-  
+
   // Source Tpc_ModuleTrack ids used by this assembled track.
   virtual void add_source_track(unsigned int /*track_id*/,
                                 unsigned int /*region*/,

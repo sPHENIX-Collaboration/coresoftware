@@ -161,45 +161,45 @@ class Tpc_AssembledTrackv1 : public Tpc_AssembledTrack
   }
 
  private:
-  unsigned int m_event {0};
-  unsigned int m_track_id {0};
-  int m_side {0};
+  unsigned int m_event{0};
+  unsigned int m_track_id{0};
+  int m_side{0};
 
-  unsigned int m_nsegments {0};
-  unsigned int m_nblobs {0};
-  unsigned int m_nrawhits {0};
-  unsigned int m_first_layer {0};
-  unsigned int m_last_layer {0};
-  unsigned int m_first_sector {0};
-  unsigned int m_last_sector {0};
-  unsigned int m_first_region {0};
-  unsigned int m_last_region {0};
+  unsigned int m_nsegments{0};
+  unsigned int m_nblobs{0};
+  unsigned int m_nrawhits{0};
+  unsigned int m_first_layer{0};
+  unsigned int m_last_layer{0};
+  unsigned int m_first_sector{0};
+  unsigned int m_last_sector{0};
+  unsigned int m_first_region{0};
+  unsigned int m_last_region{0};
 
-  double m_phi_slope {0.0};
-  double m_phi_intercept {0.0};
-  double m_tbin_slope {0.0};
-  double m_tbin_intercept {0.0};
-  double m_chi2_phi {0.0};
-  double m_chi2_tbin {0.0};
-  int m_ndof_phi {0};
-  int m_ndof_tbin {0};
+  double m_phi_slope{0.0};
+  double m_phi_intercept{0.0};
+  double m_tbin_slope{0.0};
+  double m_tbin_intercept{0.0};
+  double m_chi2_phi{0.0};
+  double m_chi2_tbin{0.0};
+  int m_ndof_phi{0};
+  int m_ndof_tbin{0};
 
-  int m_vertex_valid {0};
-  double m_vertex_x {0.0};
-  double m_vertex_y {0.0};
-  double m_vertex_r {0.0};
-  double m_vertex_phi {0.0};
-  double m_vertex_tbin {0.0};
-  unsigned int m_vertex_npairs {0};
-  double m_vertex_quality {0.0};
+  int m_vertex_valid{0};
+  double m_vertex_x{0.0};
+  double m_vertex_y{0.0};
+  double m_vertex_r{0.0};
+  double m_vertex_phi{0.0};
+  double m_vertex_tbin{0.0};
+  unsigned int m_vertex_npairs{0};
+  double m_vertex_quality{0.0};
 
-  int m_seed_valid {0};
-  double m_seed_x {0.0};
-  double m_seed_y {0.0};
-  double m_seed_z {0.0};
-  double m_seed_px {0.0};
-  double m_seed_py {0.0};
-  double m_seed_pz {0.0};
+  int m_seed_valid{0};
+  double m_seed_x{0.0};
+  double m_seed_y{0.0};
+  double m_seed_z{0.0};
+  double m_seed_px{0.0};
+  double m_seed_py{0.0};
+  double m_seed_pz{0.0};
   std::vector<double> m_seed_cov;
 
   std::vector<unsigned int> m_source_track_ids;

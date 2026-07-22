@@ -5,7 +5,7 @@
 
 ClassImp(Tpc_PolyTrackv1)
 
-Tpc_PolyTrackv1::Tpc_PolyTrackv1()
+    Tpc_PolyTrackv1::Tpc_PolyTrackv1()
 {
   Reset();
 }
@@ -51,5 +51,7 @@ int Tpc_PolyTrackv1::isValid() const
 {
   return (m_fit_status != 0 && m_nclusters > 0 &&
           std::isfinite(m_x) && std::isfinite(m_y) && std::isfinite(m_z) &&
-          std::isfinite(m_px) && std::isfinite(m_py) && std::isfinite(m_pz)) ? 1 : 0;
+          std::isfinite(m_px) && std::isfinite(m_py) && std::isfinite(m_pz))
+             ? 1
+             : 0;
 }

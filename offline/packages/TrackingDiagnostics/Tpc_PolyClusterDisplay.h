@@ -15,9 +15,9 @@ class Tpc_PolyClusterDisplay : public SubsysReco
 {
  public:
   Tpc_PolyClusterDisplay(const std::string& name = "Tpc_PolyClusterDisplay",
-                        const std::string& outfilename = "tpc_polycluster_display.root",
-                        const std::string& clusterNodeName = "TPC_POLYCLUSTERS",
-                        unsigned int maxEventDisplays = 5);
+                         const std::string& outfilename = "tpc_polycluster_display.root",
+                         const std::string& clusterNodeName = "TPC_POLYCLUSTERS",
+                         unsigned int maxEventDisplays = 5);
   ~Tpc_PolyClusterDisplay() override;
 
   int Init(PHCompositeNode*) override;
@@ -28,8 +28,16 @@ class Tpc_PolyClusterDisplay : public SubsysReco
   void setTpc_PolyTrackNodeName(const std::string& n) { m_finalTrackNodeName = n; }
   void setTpc_PolyTrackVertexNodeName(const std::string& n) { m_finalTrackVertexNodeName = n; }
   void setMagneticFieldTesla(double b) { m_magneticFieldTesla = b; }
-  void setZRange(double zmin, double zmax) { m_zmin = zmin; m_zmax = zmax; }
-  void setTrackVertexZRange(double zmin, double zmax) { m_trackVertexZMin = zmin; m_trackVertexZMax = zmax; }
+  void setZRange(double zmin, double zmax)
+  {
+    m_zmin = zmin;
+    m_zmax = zmax;
+  }
+  void setTrackVertexZRange(double zmin, double zmax)
+  {
+    m_trackVertexZMin = zmin;
+    m_trackVertexZMax = zmax;
+  }
   void setXYRange(double xymax) { m_xymax = xymax; }
   void setUseStraightLineTracks(bool v) { m_useStraightLineTracks = v; }
 

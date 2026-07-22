@@ -3,7 +3,7 @@
 
 ClassImp(Tpc_PolyTrackVertexContainerv1)
 
-Tpc_PolyTrackVertexContainerv1::Tpc_PolyTrackVertexContainerv1()
+    Tpc_PolyTrackVertexContainerv1::Tpc_PolyTrackVertexContainerv1()
 {
   Reset();
 }
@@ -22,8 +22,10 @@ void Tpc_PolyTrackVertexContainerv1::identify(std::ostream& os) const
 
 void Tpc_PolyTrackVertexContainerv1::Reset()
 {
-  for (Tpc_PolyTrackVertex* vtx : m_vertices) { delete vtx;
-}
+  for (Tpc_PolyTrackVertex* vtx : m_vertices)
+  {
+    delete vtx;
+  }
   m_vertices.clear();
   m_collision_vertex_valid = 0;
   clear_collision_vertices();
@@ -46,58 +48,74 @@ PHObject* Tpc_PolyTrackVertexContainerv1::CloneMe() const
   copy->m_collision_min_clusters = m_collision_min_clusters;
   for (Tpc_PolyTrackVertex* vtx : m_vertices)
   {
-    if (vtx) { copy->m_vertices.push_back(static_cast<Tpc_PolyTrackVertex*>(vtx->CloneMe()));
-}
+    if (vtx)
+    {
+      copy->m_vertices.push_back(static_cast<Tpc_PolyTrackVertex*>(vtx->CloneMe()));
+    }
   }
   return copy;
 }
 
 const Tpc_PolyTrackVertex* Tpc_PolyTrackVertexContainerv1::get_vertex(unsigned int i) const
 {
-  if (i >= m_vertices.size()) { return nullptr;
-}
+  if (i >= m_vertices.size())
+  {
+    return nullptr;
+  }
   return m_vertices[i];
 }
 
 Tpc_PolyTrackVertex* Tpc_PolyTrackVertexContainerv1::get_vertex(unsigned int i)
 {
-  if (i >= m_vertices.size()) { return nullptr;
-}
+  if (i >= m_vertices.size())
+  {
+    return nullptr;
+  }
   return m_vertices[i];
 }
 
 double Tpc_PolyTrackVertexContainerv1::get_collision_x(unsigned int i) const
 {
-  if (i >= m_collision_x.size()) { return 0.0;
-}
+  if (i >= m_collision_x.size())
+  {
+    return 0.0;
+  }
   return m_collision_x[i];
 }
 
 double Tpc_PolyTrackVertexContainerv1::get_collision_y(unsigned int i) const
 {
-  if (i >= m_collision_y.size()) { return 0.0;
-}
+  if (i >= m_collision_y.size())
+  {
+    return 0.0;
+  }
   return m_collision_y[i];
 }
 
 double Tpc_PolyTrackVertexContainerv1::get_collision_z(unsigned int i) const
 {
-  if (i >= m_collision_z.size()) { return 0.0;
-}
+  if (i >= m_collision_z.size())
+  {
+    return 0.0;
+  }
   return m_collision_z[i];
 }
 
 double Tpc_PolyTrackVertexContainerv1::get_collision_z_rms(unsigned int i) const
 {
-  if (i >= m_collision_z_rms.size()) { return 0.0;
-}
+  if (i >= m_collision_z_rms.size())
+  {
+    return 0.0;
+  }
   return m_collision_z_rms[i];
 }
 
 unsigned int Tpc_PolyTrackVertexContainerv1::get_collision_ntracks(unsigned int i) const
 {
-  if (i >= m_collision_ntracks.size()) { return 0;
-}
+  if (i >= m_collision_ntracks.size())
+  {
+    return 0;
+  }
   return m_collision_ntracks[i];
 }
 

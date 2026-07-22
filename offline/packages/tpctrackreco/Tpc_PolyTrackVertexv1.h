@@ -38,16 +38,16 @@ class Tpc_PolyTrackVertexv1 : public Tpc_PolyTrackVertex
   void set_pca_phi(double v) override { m_pca_phi = v; }
 
  private:
-  unsigned int m_track_id {0};
-  unsigned int m_source_assembled_track_id {0};
-  double m_dca2d {0.0};
-  double m_z0 {0.0};
-  int m_pca_valid {0};
-  double m_pca_x {0.0};
-  double m_pca_y {0.0};
-  double m_pca_z {0.0};
-  double m_pca_radius {0.0};
-  double m_pca_phi {0.0};
+  unsigned int m_track_id{0};
+  unsigned int m_source_assembled_track_id{0};
+  double m_dca2d{0.0};
+  double m_z0{0.0};
+  int m_pca_valid{0};
+  double m_pca_x{0.0};
+  double m_pca_y{0.0};
+  double m_pca_z{0.0};
+  double m_pca_radius{0.0};
+  double m_pca_phi{0.0};
 
   ClassDefOverride(Tpc_PolyTrackVertexv1, 1)
 };

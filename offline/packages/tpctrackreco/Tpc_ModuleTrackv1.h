@@ -69,18 +69,18 @@ class Tpc_ModuleTrackv1 : public Tpc_ModuleTrack
   }
 
  private:
-  unsigned int m_event {0};
-  unsigned int m_track_id {0};
+  unsigned int m_event{0};
+  unsigned int m_track_id{0};
 
-  unsigned int m_region {0};
-  unsigned int m_sector {0};
-  int m_side {0};
+  unsigned int m_region{0};
+  unsigned int m_sector{0};
+  int m_side{0};
 
-  unsigned int m_nblobs {0};
-  unsigned int m_nrawhits {0};
+  unsigned int m_nblobs{0};
+  unsigned int m_nrawhits{0};
 
-  unsigned int m_first_layer {0};
-  unsigned int m_last_layer {0};
+  unsigned int m_first_layer{0};
+  unsigned int m_last_layer{0};
 
   std::vector<HitIndex> m_hit_indices;
 

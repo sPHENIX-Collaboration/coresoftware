@@ -1,6 +1,6 @@
 #include "PHGarfield.h"
-#include <phool/phool.h>
 #include <cdbobjects/CDBTTree.h>
+#include <phool/phool.h>
 
 #include <phfield/PHField3DCartesian.h>
 
@@ -8,32 +8,32 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <TAxis.h>
+#include <TFile.h>
+#include <TH2.h>
 #include <TPolyLine3D.h>
 #include <TRotation.h>
 #include <TVector3.h>
-#include <TFile.h>
-#include <TH2.h>
-#include <TAxis.h>
 
 #include <CLHEP/Units/SystemOfUnits.h>
 
 #include <Garfield/ComponentUser.hh>
 #include <Garfield/MediumMagboltz.hh>
 
+#include <algorithm>
 #include <cmath>
-#include <limits>
 #include <filesystem>
 #include <functional>
+#include <iomanip>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>  // for basic_ostream, operat...
-#include <vector>
 #include <regex>
+#include <sstream>
 #include <string>
 #include <utility>
-#include <sstream>
-#include <iomanip>
-#include <algorithm>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -41,11 +41,11 @@ PHGarfield::PHGarfield(const std::string& name,
                        const std::string& electricFieldMap,
                        double spaceChargeScale_side0,
                        double spaceChargeScale_side1)
-  : SubsysReco(name),
-    m_defaultGasfile("/sphenix/user/hemmick/gasfiles_20260624"),
-    m_electricFieldMap(electricFieldMap),
-    m_spaceChargeScale_side0(spaceChargeScale_side0),
-    m_spaceChargeScale_side1(spaceChargeScale_side1)
+  : SubsysReco(name)
+  , m_defaultGasfile("/sphenix/user/hemmick/gasfiles_20260624")
+  , m_electricFieldMap(electricFieldMap)
+  , m_spaceChargeScale_side0(spaceChargeScale_side0)
+  , m_spaceChargeScale_side1(spaceChargeScale_side1)
 {
 }
 
@@ -98,11 +98,11 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
   // Here we fetch the gas from the CDB
   std::string gasfile = m_cdb->getUrl("PHGARFIELD_GAS");
   if (gasfile.empty() || !fs::exists(gasfile))
-    {
-      std::cerr << PHWHERE << " Missing CDB gasfile: " << gasfile << std::endl;
-      std::cerr << PHWHERE << " Using default gasfile: " << m_defaultGasfile << std::endl;
-      gasfile = m_defaultGasfile;
-    }
+  {
+    std::cerr << PHWHERE << " Missing CDB gasfile: " << gasfile << std::endl;
+    std::cerr << PHWHERE << " Using default gasfile: " << m_defaultGasfile << std::endl;
+    gasfile = m_defaultGasfile;
+  }
   InitializeGas(gasfile);
 
   //  Diagnostic during code development...
@@ -170,20 +170,20 @@ void PHGarfield::PrintGarfield(double x, double y, double z) const
 void PHGarfield::PrintGasSummary() const
 {
   if (!m_GasFilesLoaded)
-    {
-      std::cerr << PHWHERE << "No Gas File(s) have been successfully loaded." << std::endl;
-      return;
-    }
+  {
+    std::cerr << PHWHERE << "No Gas File(s) have been successfully loaded." << std::endl;
+    return;
+  }
 
   std::vector<double> nE;
   std::vector<double> nB;
   std::vector<double> nA;
   m_gas->GetFieldGrid(nE, nB, nA);
-  
+
   std::cout << "Gas File Grid Dimensions: " << std::endl;
-  std::cout << nE.size() << " E-fields ranging from " << nE.front() << " to " << nE.back() << std::endl; 
-  std::cout << nB.size() << " B-fields ranging from " << nB.front() << " to " << nB.back() << std::endl; 
-  std::cout << nA.size() << " Angles   ranging from " << nA.front() << " to " << nA.back() << std::endl; 
+  std::cout << nE.size() << " E-fields ranging from " << nE.front() << " to " << nE.back() << std::endl;
+  std::cout << nB.size() << " B-fields ranging from " << nB.front() << " to " << nB.back() << std::endl;
+  std::cout << nA.size() << " Angles   ranging from " << nA.front() << " to " << nA.back() << std::endl;
 }
 
 void PHGarfield::PrintMaps() const
@@ -232,7 +232,6 @@ void PHGarfield::PrintMaps() const
     }
   }
 }
-
 
 void PHGarfield::MoveMagnet(double x_cm, double y_cm, double z_cm)
 {
@@ -397,10 +396,14 @@ bool PHGarfield::LoadElectricFieldCorrections(const std::string& filename)
   auto* ez = dynamic_cast<TH2*>(input->Get("QA/hEzDefault"));
 
   // Also allow maps written at the ROOT-file top level.
-  if (!er) { er = dynamic_cast<TH2*>(input->Get("hErDefault"));
-}
-  if (!ez) { ez = dynamic_cast<TH2*>(input->Get("hEzDefault"));
-}
+  if (!er)
+  {
+    er = dynamic_cast<TH2*>(input->Get("hErDefault"));
+  }
+  if (!ez)
+  {
+    ez = dynamic_cast<TH2*>(input->Get("hEzDefault"));
+  }
 
   if (!er || !ez)
   {
@@ -430,9 +433,9 @@ bool PHGarfield::LoadElectricFieldCorrections(const std::string& filename)
   std::cout << "Loaded axisymmetric electric-field corrections from "
             << filename << std::endl;
   std::cout << "  scale k_eff side0/south/z<0 = "
-          << m_spaceChargeScale_side0 << std::endl;
+            << m_spaceChargeScale_side0 << std::endl;
   std::cout << "  scale k_eff side1/north/z>0 = "
-          << m_spaceChargeScale_side1 << std::endl;
+            << m_spaceChargeScale_side1 << std::endl;
   std::cout << "  r range [cm] = ["
             << m_erCorrection->GetXaxis()->GetXmin() << ", "
             << m_erCorrection->GetXaxis()->GetXmax() << "]" << std::endl;
@@ -482,7 +485,7 @@ double PHGarfield::InterpolateCorrectionVcm(
   return 0.01 * hist->Interpolate(r_eval, z_eval);
 }
 
-void PHGarfield::InitializeGas(const std::string &name)
+void PHGarfield::InitializeGas(const std::string& name)
 {
   //  Create and fill the gas object so that we can trace particles through the gas...
   m_gas = new Garfield::MediumMagboltz();
@@ -494,56 +497,56 @@ void PHGarfield::InitializeGas(const std::string &name)
   }
 
   if (fs::is_regular_file(name))
+  {
+    std::cout << "Loading Garfield gas from file: " << name << std::endl;
+    if (!m_gas->LoadGasFile(name))
     {
-      std::cout << "Loading Garfield gas from file: " << name << std::endl;
-      if (!m_gas->LoadGasFile(name))
-	{
-	  std::cerr << "Failed to load " << name << std::endl;
-	  return;
-	}
-      m_GasFilesLoaded = true;
+      std::cerr << "Failed to load " << name << std::endl;
+      return;
     }
+    m_GasFilesLoaded = true;
+  }
   else if (fs::is_directory(name))
-    {
-      std::cout << "Loading Garfield gas from directory: " << name << std::endl;
-      std::regex filePattern(R"(^MERGED_E([0-9]{3})\.gas$)");
-      std::smatch matchResults;
+  {
+    std::cout << "Loading Garfield gas from directory: " << name << std::endl;
+    std::regex filePattern(R"(^MERGED_E([0-9]{3})\.gas$)");
+    std::smatch matchResults;
 
-      // Iterate through all items in the directory
-      // NOTE:  Map assures that files are properly ordered when merged...
-      std::map<unsigned int, std::string> FilesToMerge;
-      for (const auto& entry : fs::directory_iterator(name))
-	{
-	  // Only process regular files
-	  if (entry.is_regular_file())
-	    {
-	      std::string filepath = entry.path().string();
-	      std::string filename = entry.path().filename().string();
-	      
-	      // Check if the filename matches our target pattern
-	      if (std::regex_match(filename, matchResults, filePattern))
-		{
-		  //std::cout << "matchResults: " << matchResults[1].str() << std::endl;
-		  FilesToMerge[std::stoul( matchResults[1].str() )]=filepath;
-		}
-	    }
-	}
-      bool firstE = true;
-      for (const auto& [key, filepath] : FilesToMerge)
-	{
-	  if (firstE)
-	    {
-	      m_gas->LoadGasFile(filepath);
-	      firstE = false;
-	      m_GasFilesLoaded = true;
-	    }
-	  else
-	    {
-	      m_gas->MergeGasFile(filepath, true);
-	      m_GasFilesLoaded = true;
-	    }
-	}
+    // Iterate through all items in the directory
+    // NOTE:  Map assures that files are properly ordered when merged...
+    std::map<unsigned int, std::string> FilesToMerge;
+    for (const auto& entry : fs::directory_iterator(name))
+    {
+      // Only process regular files
+      if (entry.is_regular_file())
+      {
+        std::string filepath = entry.path().string();
+        std::string filename = entry.path().filename().string();
+
+        // Check if the filename matches our target pattern
+        if (std::regex_match(filename, matchResults, filePattern))
+        {
+          // std::cout << "matchResults: " << matchResults[1].str() << std::endl;
+          FilesToMerge[std::stoul(matchResults[1].str())] = filepath;
+        }
+      }
     }
+    bool firstE = true;
+    for (const auto& [key, filepath] : FilesToMerge)
+    {
+      if (firstE)
+      {
+        m_gas->LoadGasFile(filepath);
+        firstE = false;
+        m_GasFilesLoaded = true;
+      }
+      else
+      {
+        m_gas->MergeGasFile(filepath, true);
+        m_GasFilesLoaded = true;
+      }
+    }
+  }
 
   PrintGasSummary();
 }
@@ -639,7 +642,7 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
 
   // Keep all stored points, including the initial point.  This avoids returning
   // an empty TPolyLine3D if the starting point is already outside the active volume.
-    // Drop the final point. It is the first point that triggered StopHere
+  // Drop the final point. It is the first point that triggered StopHere
   // on the next loop iteration, for example after crossing the central membrane.
   // This restores the old PHGarfield behavior.
   const size_t nGoodPoints = (xlist.size() > 1) ? xlist.size() - 1 : xlist.size();
@@ -681,7 +684,6 @@ TPolyLine3D* PHGarfield::ReverseDriftGlobalCoords(double x_cm, double y_cm, doub
 
   return poly;
 }
-
 
 bool PHGarfield::StopHere(const double x, const double y, const double z,
                           const double zPrevious)

@@ -3,7 +3,7 @@
 
 ClassImp(Tpc_PolyTrackContainerv1)
 
-Tpc_PolyTrackContainerv1::Tpc_PolyTrackContainerv1()
+    Tpc_PolyTrackContainerv1::Tpc_PolyTrackContainerv1()
 {
   Reset();
 }
@@ -20,8 +20,10 @@ void Tpc_PolyTrackContainerv1::identify(std::ostream& os) const
 
 void Tpc_PolyTrackContainerv1::Reset()
 {
-  for (auto & m_track : m_tracks) { delete m_track;
-}
+  for (auto& m_track : m_tracks)
+  {
+    delete m_track;
+  }
   m_tracks.clear();
 }
 
@@ -35,8 +37,10 @@ PHObject* Tpc_PolyTrackContainerv1::CloneMe() const
   Tpc_PolyTrackContainerv1* copy = new Tpc_PolyTrackContainerv1();
   for (auto m_track : m_tracks)
   {
-    if (m_track) { copy->m_tracks.push_back(static_cast<Tpc_PolyTrack*>(m_track->CloneMe()));
-}
+    if (m_track)
+    {
+      copy->m_tracks.push_back(static_cast<Tpc_PolyTrack*>(m_track->CloneMe()));
+    }
   }
   return copy;
 }

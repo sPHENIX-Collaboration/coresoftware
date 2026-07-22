@@ -39,13 +39,13 @@ class Tpc_PolyTrackVertexContainerv1 : public Tpc_PolyTrackVertexContainer
 
  private:
   std::vector<Tpc_PolyTrackVertex*> m_vertices;
-  int m_collision_vertex_valid {0};
+  int m_collision_vertex_valid{0};
   std::vector<double> m_collision_x;
   std::vector<double> m_collision_y;
   std::vector<double> m_collision_z;
   std::vector<double> m_collision_z_rms;
   std::vector<unsigned int> m_collision_ntracks;
-  unsigned int m_collision_min_clusters {0};
+  unsigned int m_collision_min_clusters{0};
 
   ClassDefOverride(Tpc_PolyTrackVertexContainerv1, 1)
 };

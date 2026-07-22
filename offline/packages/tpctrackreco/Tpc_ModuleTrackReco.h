@@ -3,7 +3,6 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
-
 #include <string>
 #include <vector>
 
@@ -92,7 +91,6 @@ struct InModuleThreadData
   int side;
   TrkrDefs::hitsetkey module_key;
 
-
   // General configuration
   double pedestal;
   int verbosity;
@@ -138,7 +136,7 @@ class Tpc_ModuleTrackReco : public SubsysReco
 {
  public:
   explicit Tpc_ModuleTrackReco(const std::string& name = "Tpc_ModuleTrackReco",
-                          const std::string& filename = "Tpc_ModuleTrackReco.root");
+                               const std::string& filename = "Tpc_ModuleTrackReco.root");
 
   virtual ~Tpc_ModuleTrackReco();
 

@@ -62,21 +62,21 @@ class Tpc_PolyTrackv1 : public Tpc_PolyTrack
   }
 
  private:
-  unsigned int m_event {0};
-  unsigned int m_track_id {0};
-  unsigned int m_source_assembled_track_id {0};
-  int m_fit_status {0};
-  unsigned int m_nclusters {0};
-  double m_x {0.0};
-  double m_y {0.0};
-  double m_z {0.0};
-  double m_px {0.0};
-  double m_py {0.0};
-  double m_pz {0.0};
-  double m_charge {0.0};
-  double m_chi2 {0.0};
-  double m_ndf {0.0};
-  double m_dedx {0.0};
+  unsigned int m_event{0};
+  unsigned int m_track_id{0};
+  unsigned int m_source_assembled_track_id{0};
+  int m_fit_status{0};
+  unsigned int m_nclusters{0};
+  double m_x{0.0};
+  double m_y{0.0};
+  double m_z{0.0};
+  double m_px{0.0};
+  double m_py{0.0};
+  double m_pz{0.0};
+  double m_charge{0.0};
+  double m_chi2{0.0};
+  double m_ndf{0.0};
+  double m_dedx{0.0};
   std::vector<double> m_cov;
 
   ClassDefOverride(Tpc_PolyTrackv1, 2)

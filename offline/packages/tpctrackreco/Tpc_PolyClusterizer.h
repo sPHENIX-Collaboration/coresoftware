@@ -47,48 +47,48 @@ class Tpc_PolyClusterizer : public SubsysReco
  private:
   struct Point
   {
-    TrkrDefs::hitsetkey hitsetkey {0};
-    TrkrDefs::hitkey hitkey {0};
-    unsigned int layer {0};
-    unsigned int side {0};
-    unsigned int pad {0};
-    unsigned int tbin {0};
-    double adc {0.0};
-    double x {0.0};
-    double y {0.0};
-    double z {0.0};
+    TrkrDefs::hitsetkey hitsetkey{0};
+    TrkrDefs::hitkey hitkey{0};
+    unsigned int layer{0};
+    unsigned int side{0};
+    unsigned int pad{0};
+    unsigned int tbin{0};
+    double adc{0.0};
+    double x{0.0};
+    double y{0.0};
+    double z{0.0};
   };
 
   struct Centroid
   {
-    bool ok {false};
-    unsigned int layer {0};
-    double x {0.0};
-    double y {0.0};
-    double z {0.0};
-    double rms_x {0.0};
-    double rms_y {0.0};
-    double rms_z {0.0};
+    bool ok{false};
+    unsigned int layer{0};
+    double x{0.0};
+    double y{0.0};
+    double z{0.0};
+    double rms_x{0.0};
+    double rms_y{0.0};
+    double rms_z{0.0};
   };
 
   struct ClusterParameters
   {
-    double adc {0.0};
-    unsigned int phi_width {0};
-    unsigned int time_width {0};
-    double phase {0.0};
+    double adc{0.0};
+    unsigned int phi_width{0};
+    unsigned int time_width{0};
+    double phase{0.0};
   };
 
   struct DriftPoint
   {
-    float delta_r {0.0F};
-    float delta_phi {0.0F};
-    float z {0.0F};
+    float delta_r{0.0F};
+    float delta_phi{0.0F};
+    float z{0.0F};
   };
 
   struct DriftPolyline
   {
-    double phi {0.0};
+    double phi{0.0};
     std::vector<DriftPoint> points;
   };
 
@@ -109,21 +109,21 @@ class Tpc_PolyClusterizer : public SubsysReco
   static unsigned int drift_lookup_index(unsigned int layer_index, unsigned int side, unsigned int sector, unsigned int sample);
   std::string m_inputNodeName;
   std::string m_outputNodeName;
-  Tpc_AssembledTrackContainer* m_assembledTracks {nullptr};
-  Tpc_PolyClusterContainer* m_clusters {nullptr};
-  TrkrHitSetContainer* m_hits {nullptr};
-  IdealPadMap* m_idealPadMap {nullptr};
-  PHGarfield* m_garfield {nullptr};
+  Tpc_AssembledTrackContainer* m_assembledTracks{nullptr};
+  Tpc_PolyClusterContainer* m_clusters{nullptr};
+  TrkrHitSetContainer* m_hits{nullptr};
+  IdealPadMap* m_idealPadMap{nullptr};
+  PHGarfield* m_garfield{nullptr};
   std::array<DriftPolyline, 48 * 2 * 12 * NPhiSamples> m_driftLookup;
-  unsigned int m_event {0};
-  double m_t0 {8};
-  double m_tpcAdcClock {56.881262};
-  double m_reverseDriftStepNs {56.881262};
-  double m_startZSouth {-102.325};
-  double m_startZNorth {102.325};
-  double m_kEffSide0 {0.0};
-  double m_kEffSide1 {-1.5};
-  double m_cmVoltageDefault {380.0};
-  std::array<double, 3> m_tpcMove {{0.0, 0.0 , 0.0}}; //{{-0.16775, -0.0337, -0.71365}};
-  std::array<std::array<double, 3>, 2> m_tpcRotations {{{{0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}}}}; //{{{{0.0, 0.01485 / 10.0, 0.0}}, {{0.0298 / 8.0, 0.0, 0.0}}}};
+  unsigned int m_event{0};
+  double m_t0{8};
+  double m_tpcAdcClock{56.881262};
+  double m_reverseDriftStepNs{56.881262};
+  double m_startZSouth{-102.325};
+  double m_startZNorth{102.325};
+  double m_kEffSide0{0.0};
+  double m_kEffSide1{-1.5};
+  double m_cmVoltageDefault{380.0};
+  std::array<double, 3> m_tpcMove{{0.0, 0.0, 0.0}};                                             //{{-0.16775, -0.0337, -0.71365}};
+  std::array<std::array<double, 3>, 2> m_tpcRotations{{{{0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}}}};  //{{{{0.0, 0.01485 / 10.0, 0.0}}, {{0.0298 / 8.0, 0.0, 0.0}}}};
 };

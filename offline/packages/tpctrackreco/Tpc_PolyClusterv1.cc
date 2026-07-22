@@ -4,7 +4,7 @@
 
 ClassImp(Tpc_PolyClusterv1)
 
-Tpc_PolyClusterv1::Tpc_PolyClusterv1()
+    Tpc_PolyClusterv1::Tpc_PolyClusterv1()
 {
   Reset();
 }
@@ -57,5 +57,7 @@ int Tpc_PolyClusterv1::isValid() const
   return (!m_hit_indices.empty() &&
           std::isfinite(m_centroid_x) &&
           std::isfinite(m_centroid_y) &&
-          std::isfinite(m_centroid_z)) ? 1 : 0;
+          std::isfinite(m_centroid_z))
+             ? 1
+             : 0;
 }

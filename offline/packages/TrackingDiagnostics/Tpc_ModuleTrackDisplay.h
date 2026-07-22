@@ -16,9 +16,9 @@ class Tpc_ModuleTrackDisplay : public SubsysReco
 {
  public:
   Tpc_ModuleTrackDisplay(const std::string& name = "Tpc_ModuleTrackDisplay",
-                       const std::string& outfilename = "tpc_moduletrack_display.root",
-                       const std::string& trackNodeName = "TPC_MODULETRACKS",
-                       unsigned int maxEventDisplays = 5);
+                         const std::string& outfilename = "tpc_moduletrack_display.root",
+                         const std::string& trackNodeName = "TPC_MODULETRACKS",
+                         unsigned int maxEventDisplays = 5);
   ~Tpc_ModuleTrackDisplay() override;
 
   int Init(PHCompositeNode* topNode) override;

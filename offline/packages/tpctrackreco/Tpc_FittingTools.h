@@ -7,7 +7,7 @@ class Tpc_FittingTools
  public:
   enum FitMode
   {
-    FIT_LINEAR  = 0,
+    FIT_LINEAR = 0,
     FIT_SAGITTA = 1
   };
 
@@ -48,30 +48,30 @@ class Tpc_FittingTools
 
   struct Point
   {
-    double x {0.0};
-    double y {0.0};
-    double z {0.0};
+    double x{0.0};
+    double y{0.0};
+    double z{0.0};
   };
 
   struct FitResult
   {
-    bool ok {false};
-    bool is_line {false};
-    double d0 {0.0};
-    double z0 {0.0};
-    double phi0 {0.0};
-    double theta {0.0};
-    double curvature {0.0};
-    double line_x {0.0};
-    double line_y {0.0};
-    double line_z {0.0};
-    double line_dx {0.0};
-    double line_dy {0.0};
-    double line_dz {0.0};
-    double chi2_xy {0.0};
-    double chi2_z {0.0};
-    int ndof_xy {0};
-    int ndof_z {0};
+    bool ok{false};
+    bool is_line{false};
+    double d0{0.0};
+    double z0{0.0};
+    double phi0{0.0};
+    double theta{0.0};
+    double curvature{0.0};
+    double line_x{0.0};
+    double line_y{0.0};
+    double line_z{0.0};
+    double line_dx{0.0};
+    double line_dy{0.0};
+    double line_dz{0.0};
+    double chi2_xy{0.0};
+    double chi2_z{0.0};
+    int ndof_xy{0};
+    int ndof_z{0};
   };
 
   static double adcWeight(double adc, double maxadc, double power, double floor_frac);

@@ -42,15 +42,15 @@ class Tpc_PolyTrackReco : public SubsysReco
                    bool fit_ok) const;
   void fillTpc_PolyTrack(unsigned int source_assembled_track_id,
                          const std::vector<const Tpc_PolyCluster*>& clusters,
-                      const Tpc_FittingTools::FitResult& fit,
-                      bool fit_ok);
+                         const Tpc_FittingTools::FitResult& fit,
+                         bool fit_ok);
 
   std::string m_inputNodeName;
   std::string m_outputNodeName;
-  Tpc_PolyClusterContainer* m_clusters {nullptr};
-  Tpc_PolyTrackContainer* m_polyTracks {nullptr};
-  IdealPadMap* m_idealPadMap {nullptr};
-  unsigned int m_event {0};
-  double m_magneticFieldTesla {1.4};
-  FitMode m_fitMode {FitMode::Helix};
+  Tpc_PolyClusterContainer* m_clusters{nullptr};
+  Tpc_PolyTrackContainer* m_polyTracks{nullptr};
+  IdealPadMap* m_idealPadMap{nullptr};
+  unsigned int m_event{0};
+  double m_magneticFieldTesla{1.4};
+  FitMode m_fitMode{FitMode::Helix};
 };
