@@ -7,9 +7,11 @@
 #ifndef TRACKBASE_LASERCLUSTER_H
 #define TRACKBASE_LASERCLUSTER_H
 
+#include "TpcDefs.h"
+
 #include <phool/PHObject.h>
 
-#include <trackbase/TpcDefs.h>
+
 
 #include <iostream>
 #include <limits>
