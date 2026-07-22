@@ -35,16 +35,20 @@ namespace
 {
   double wrap_phi(double phi)
   {
-    while (phi > TMath::Pi()) phi -= 2.0 * TMath::Pi();
-    while (phi <= -TMath::Pi()) phi += 2.0 * TMath::Pi();
+    while (phi > TMath::Pi()) { phi -= 2.0 * TMath::Pi();
+}
+    while (phi <= -TMath::Pi()) { phi += 2.0 * TMath::Pi();
+}
     return phi;
   }
 
   double unwrap_phi_near(const double phi, const double reference)
   {
     double out = phi;
-    while (out - reference > TMath::Pi()) out -= 2.0 * TMath::Pi();
-    while (out - reference < -TMath::Pi()) out += 2.0 * TMath::Pi();
+    while (out - reference > TMath::Pi()) { out -= 2.0 * TMath::Pi();
+}
+    while (out - reference < -TMath::Pi()) { out += 2.0 * TMath::Pi();
+}
     return out;
   }
 
@@ -71,7 +75,8 @@ namespace
 
   void style_fit_line_3d(TPolyLine3D* line, const int color)
   {
-    if (!line) return;
+    if (!line) { return;
+}
     line->SetLineColor(color);
     line->SetLineWidth(4);
     line->SetLineStyle(1);
@@ -104,10 +109,12 @@ namespace
       const double g = yrot - f;
       const double df = sagitta_model_derivative(xrot, fit.x0, fit.invR);
       const double dg = c - df * s;
-      if (std::fabs(dg) < 1.0e-12) break;
+      if (std::fabs(dg) < 1.0e-12) { break;
+}
       const double step = g / dg;
       yy -= step;
-      if (std::fabs(step) < 1.0e-10) break;
+      if (std::fabs(step) < 1.0e-10) { break;
+}
     }
 
     return fit.b + yy;
@@ -121,7 +128,8 @@ namespace
     {
       const Tpc_AssembledTrackDisplay::HitPoint& pa = (*pts)[a];
       const Tpc_AssembledTrackDisplay::HitPoint& pb = (*pts)[b];
-      if (pa.radius != pb.radius) return pa.radius < pb.radius;
+      if (pa.radius != pb.radius) { return pa.radius < pb.radius;
+}
       return pa.tbin < pb.tbin;
     }
   };
@@ -135,8 +143,8 @@ namespace
       , phi_intercept(0.0)
       , tbin_slope(0.0)
       , tbin_intercept(0.0)
-      , phi_sagitta()
-      , rmin(0.0)
+      , 
+       rmin(0.0)
       , rmax(0.0)
     {}
 
@@ -157,16 +165,20 @@ namespace
                                   const double weight_floor_frac)
   {
     FitResult result;
-    if (pts.size() < 2) return result;
+    if (pts.size() < 2) { return result;
+}
 
     std::vector<unsigned int> order;
     order.reserve(pts.size());
-    for (unsigned int i = 0; i < pts.size(); ++i) order.push_back(i);
+    for (unsigned int i = 0; i < pts.size(); ++i) { order.push_back(i);
+}
     std::sort(order.begin(), order.end(), RadiusSort(&pts));
 
     double max_adc = 0.0;
-    for (const auto& p : pts) max_adc = std::max(max_adc, static_cast<double>(p.adc));
-    if (max_adc <= 0.0) max_adc = 1.0;
+    for (const auto& p : pts) { max_adc = std::max(max_adc, static_cast<double>(p.adc));
+}
+    if (max_adc <= 0.0) { max_adc = 1.0;
+}
 
     std::vector<Tpc_FittingTools::FitPoint> radius_phi_points;
     std::vector<Tpc_FittingTools::FitPoint> radius_tbin_points;
@@ -178,10 +190,11 @@ namespace
     result.rmin = std::numeric_limits<double>::max();
     result.rmax = -std::numeric_limits<double>::max();
 
-    for (unsigned int io = 0; io < order.size(); ++io)
+    for (unsigned int io : order)
     {
-      const Tpc_AssembledTrackDisplay::HitPoint& p = pts[order[io]];
-      if (!is_good_number(p.radius) || !is_good_number(p.global_phi)) continue;
+      const Tpc_AssembledTrackDisplay::HitPoint& p = pts[io];
+      if (!is_good_number(p.radius) || !is_good_number(p.global_phi)) { continue;
+}
 
       double phi = p.global_phi;
       if (first)
@@ -203,11 +216,13 @@ namespace
       result.rmax = std::max(result.rmax, p.radius);
     }
 
-    if (radius_phi_points.size() < 2 || radius_tbin_points.size() < 2) return result;
+    if (radius_phi_points.size() < 2 || radius_tbin_points.size() < 2) { return result;
+}
 
     const Tpc_FittingTools::LineFit phi_fit = Tpc_FittingTools::fitLine(radius_phi_points);
     const Tpc_FittingTools::LineFit tbin_fit = Tpc_FittingTools::fitLine(radius_tbin_points);
-    if (!phi_fit.ok || !tbin_fit.ok) return result;
+    if (!phi_fit.ok || !tbin_fit.ok) { return result;
+}
 
     result.ok = true;
     result.phi_slope = phi_fit.slope;
@@ -226,19 +241,22 @@ namespace
 
   double fit_direction(const FitResult& fit)
   {
-    if (!fit.ok) return 0.0;
+    if (!fit.ok) { return 0.0;
+}
     return fit.use_sagitta ? fit.phi_sagitta.theta : std::atan(fit.phi_slope);
   }
 
   double fit_theta(const FitResult& fit)
   {
-    if (!fit.ok) return 0.0;
+    if (!fit.ok) { return 0.0;
+}
     return std::atan(fit.tbin_slope);
   }
 
   double fit_curvature(const FitResult& fit)
   {
-    if (!fit.ok) return 0.0;
+    if (!fit.ok) { return 0.0;
+}
     return fit.use_sagitta ? fit.phi_sagitta.invR : 0.0;
   }
 
@@ -284,7 +302,8 @@ namespace
                      const int color,
                      const bool draw_xy)
   {
-    if (!fit.ok || fit.rmax <= fit.rmin) return;
+    if (!fit.ok || fit.rmax <= fit.rmin) { return;
+}
 
     const int npts = 120;
     std::vector<double> seg_tbin;
@@ -302,7 +321,8 @@ namespace
       phi = wrap_phi(phi);
       const double tbin = fit.tbin_slope * radius + fit.tbin_intercept;
 
-      if (!is_good_number(phi) || !is_good_number(tbin) || !is_good_number(radius)) continue;
+      if (!is_good_number(phi) || !is_good_number(tbin) || !is_good_number(radius)) { continue;
+}
 
       const bool crosses_phi_edge = have_previous && std::fabs(phi - previous_phi) > TMath::Pi();
       if (crosses_phi_edge)
@@ -371,7 +391,7 @@ Tpc_AssembledTrackDisplay::~Tpc_AssembledTrackDisplay()
   m_idealPadMap = nullptr;
 }
 
-int Tpc_AssembledTrackDisplay::Init(PHCompositeNode*)
+int Tpc_AssembledTrackDisplay::Init(PHCompositeNode* /*unused*/)
 {
   m_outfile = new TFile(m_outfilename.c_str(), "RECREATE");
   if (!m_outfile || m_outfile->IsZombie())
@@ -381,7 +401,8 @@ int Tpc_AssembledTrackDisplay::Init(PHCompositeNode*)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if (!m_idealPadMap) m_idealPadMap = new IdealPadMap();
+  if (!m_idealPadMap) { m_idealPadMap = new IdealPadMap();
+}
   if (!m_idealPadMap->is_loaded() && m_idealPadMap->load_from_cdb(Verbosity()) != 0)
   {
     std::cerr << "Tpc_AssembledTrackDisplay::Init - failed to load IdealPadMap from CDB" << std::endl;
@@ -400,13 +421,16 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
 {
   ++m_evt;
 
-  if (!get_nodes(topNode)) return Fun4AllReturnCodes::EVENT_OK;
-  if (!m_outfile || m_eventsSaved >= m_maxEventDisplays) return Fun4AllReturnCodes::EVENT_OK;
+  if (!get_nodes(topNode)) { return Fun4AllReturnCodes::EVENT_OK;
+}
+  if (!m_outfile || m_eventsSaved >= m_maxEventDisplays) { return Fun4AllReturnCodes::EVENT_OK;
+}
 
   const unsigned int ntracks = m_tracks ? m_tracks->size() : 0;
 
   TDirectory* eventsTop = m_outfile->GetDirectory("events");
-  if (!eventsTop) eventsTop = m_outfile->mkdir("events");
+  if (!eventsTop) { eventsTop = m_outfile->mkdir("events");
+}
   eventsTop->cd();
 
   TDirectory* eventDir = eventsTop->mkdir(Form("event_%06u", m_evt));
@@ -437,7 +461,7 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
                         512, -0.5, 511.5,
                         720, -TMath::Pi(), TMath::Pi(),
                         100, 30, 80.0);
-    h3[side]->SetStats(0);
+    h3[side]->SetStats(false);
     h3[side]->SetDirectory(nullptr);
 
     h3xy[side] = new TH3D(Form("h3_evt%06u_tpc_assembledtrack_hits_xy_side%u", m_evt, side),
@@ -445,7 +469,7 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
                           512, -0.5, 511.5,
                           160, -80.0, 80.0,
                           160, -80.0, 80.0);
-    h3xy[side]->SetStats(0);
+    h3xy[side]->SetStats(false);
     h3xy[side]->SetDirectory(nullptr);
 
     h3_single[side] = new TH3D(Form("h3_evt%06u_single_module_tpc_assembledtrack_hits_side%u", m_evt, side),
@@ -453,7 +477,7 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
                                512, -0.5, 511.5,
                                720, -TMath::Pi(), TMath::Pi(),
                                100, 30, 80.0);
-    h3_single[side]->SetStats(0);
+    h3_single[side]->SetStats(false);
     h3_single[side]->SetDirectory(nullptr);
 
     h3xy_single[side] = new TH3D(Form("h3_evt%06u_single_module_tpc_assembledtrack_hits_xy_side%u", m_evt, side),
@@ -461,22 +485,25 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
                                  512, -0.5, 511.5,
                                  160, -80.0, 80.0,
                                  160, -80.0, 80.0);
-    h3xy_single[side]->SetStats(0);
+    h3xy_single[side]->SetStats(false);
     h3xy_single[side]->SetDirectory(nullptr);
   }
 
   for (unsigned int itrk = 0; itrk < ntracks; ++itrk)
   {
     const Tpc_AssembledTrack* trk = m_tracks->get_track(itrk);
-    if (!trk) continue;
+    if (!trk) { continue;
+}
 
     const int trk_side = trk->get_side();
-    if (trk_side < 0 || trk_side > 1) continue;
+    if (trk_side < 0 || trk_side > 1) { continue;
+}
     const unsigned int side = static_cast<unsigned int>(trk_side);
     const bool single_module_track = (trk->get_nsegments() == 1U);
 
     const unsigned int nmodules = trk->get_nsegments();
-    if (nmodules < m_plotMinModules || nmodules > m_plotMaxModules) continue;
+    if (nmodules < m_plotMinModules || nmodules > m_plotMaxModules) { continue;
+}
 
     std::vector<HitPoint> pts;
     pts.reserve(trk->size_hit_indices());
@@ -485,23 +512,27 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
     {
       const Tpc_AssembledTrack::HitIndex idx = trk->get_hit_index(ih);
       const HitPoint p = make_hit_point(idx.first, idx.second);
-      if (!p.ok) continue;
+      if (!p.ok) { continue;
+}
       pts.push_back(p);
     }
 
     const FitResult fit = fit_assembled_track_points(pts, m_fitMode, m_fitWeightPower, m_fitWeightFloorFrac);
-    if (!fit.ok) continue;
+    if (!fit.ok) { continue;
+}
 
     const double direction = fit_direction(fit);
     const double theta = fit_theta(fit);
     const double curvature = fit_curvature(fit);
-    if (direction < m_plotMinDirection || direction > m_plotMaxDirection) continue;
-    if (theta < m_plotMinTheta || theta > m_plotMaxTheta) continue;
-    if (curvature < m_plotMinCurvature || curvature > m_plotMaxCurvature) continue;
+    if (direction < m_plotMinDirection || direction > m_plotMaxDirection) { continue;
+}
+    if (theta < m_plotMinTheta || theta > m_plotMaxTheta) { continue;
+}
+    if (curvature < m_plotMinCurvature || curvature > m_plotMaxCurvature) { continue;
+}
 
-    for (unsigned int ip = 0; ip < pts.size(); ++ip)
+    for (const auto & p : pts)
     {
-      const HitPoint& p = pts[ip];
       const unsigned long long uid = make_unique_hit_id(p.hitsetkey, p.hitkey);
       const double phi = wrap_phi(p.global_phi);
       const double x = p.radius * std::cos(p.global_phi);
@@ -537,9 +568,10 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
                               Form("event %u side %u assembled-track hits and display fits", m_evt, side),
                               1200, 900);
     h3[side]->Draw("BOX2Z");
-    for (unsigned int iline = 0; iline < fit_lines_tpr[side].size(); ++iline)
+    for (auto & iline : fit_lines_tpr[side])
     {
-      if (fit_lines_tpr[side][iline]) fit_lines_tpr[side][iline]->Draw("same");
+      if (iline) { iline->Draw("same");
+}
     }
     c3->Modified();
     c3->Update();
@@ -549,9 +581,10 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
                                 Form("event %u side %u assembled-track hits and display fits", m_evt, side),
                                 1200, 900);
     h3xy[side]->Draw("BOX2Z");
-    for (unsigned int iline = 0; iline < fit_lines_txy[side].size(); ++iline)
+    for (auto & iline : fit_lines_txy[side])
     {
-      if (fit_lines_txy[side][iline]) fit_lines_txy[side][iline]->Draw("same");
+      if (iline) { iline->Draw("same");
+}
     }
     c3xy->Modified();
     c3xy->Update();
@@ -561,9 +594,10 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
                                      Form("event %u side %u single-module assembled-track hits and display fits", m_evt, side),
                                      1200, 900);
     h3_single[side]->Draw("BOX2Z");
-    for (unsigned int iline = 0; iline < fit_lines_tpr_single[side].size(); ++iline)
+    for (auto & iline : fit_lines_tpr_single[side])
     {
-      if (fit_lines_tpr_single[side][iline]) fit_lines_tpr_single[side][iline]->Draw("same");
+      if (iline) { iline->Draw("same");
+}
     }
     c3_single->Modified();
     c3_single->Update();
@@ -590,7 +624,7 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int Tpc_AssembledTrackDisplay::End(PHCompositeNode*)
+int Tpc_AssembledTrackDisplay::End(PHCompositeNode* /*unused*/)
 {
   if (m_outfile)
   {
@@ -609,7 +643,7 @@ int Tpc_AssembledTrackDisplay::End(PHCompositeNode*)
 bool Tpc_AssembledTrackDisplay::get_nodes(PHCompositeNode* topNode)
 {
   m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  m_tracks = findNode::getClass<Tpc_AssembledTrackContainer>(topNode, m_trackNodeName.c_str());
+  m_tracks = findNode::getClass<Tpc_AssembledTrackContainer>(topNode, m_trackNodeName);
 
   if (!m_tracks)
   {
@@ -626,11 +660,13 @@ bool Tpc_AssembledTrackDisplay::get_nodes(PHCompositeNode* topNode)
          ++i)
     {
       m_tracks = findNode::getClass<Tpc_AssembledTrackContainer>(topNode, candidate_names[i]);
-      if (m_tracks) m_trackNodeName = candidate_names[i];
+      if (m_tracks) { m_trackNodeName = candidate_names[i];
+}
     }
   }
 
-  if (!m_idealPadMap) m_idealPadMap = new IdealPadMap();
+  if (!m_idealPadMap) { m_idealPadMap = new IdealPadMap();
+}
 
   if (!m_tracks)
   {
@@ -660,10 +696,12 @@ Tpc_AssembledTrackDisplay::make_hit_point(const TrkrDefs::hitsetkey hsk,
   HitPoint p;
 
   TrkrHitSet* hitset = m_hits ? m_hits->findHitSet(hsk) : nullptr;
-  if (!hitset) return p;
+  if (!hitset) { return p;
+}
 
   TrkrHit* hit = hitset->getHit(hk);
-  if (!hit) return p;
+  if (!hit) { return p;
+}
 
   p.hitsetkey = hsk;
   p.hitkey = hk;
@@ -673,18 +711,22 @@ Tpc_AssembledTrackDisplay::make_hit_point(const TrkrDefs::hitsetkey hsk,
   p.tbin = TpcDefs::getTBin(hk);
   p.adc = hit->getAdc();
 
-  if (p.layer < 7 || p.layer > 54) return p;
+  if (p.layer < 7 || p.layer > 54) { return p;
+}
   p.region = static_cast<unsigned int>((p.layer - 7) / 16);
 
-  if (!m_idealPadMap) return p;
+  if (!m_idealPadMap) { return p;
+}
   const unsigned int pads_per_sector = m_idealPadMap->get_pads_per_sector_for_layer(p.layer);
-  if (pads_per_sector == 0U) return p;
+  if (pads_per_sector == 0U) { return p;
+}
 
   p.sector = (p.pad / pads_per_sector) % 12U;
   p.radius = m_idealPadMap->get_radius(p.layer);
   p.global_phi = wrap_phi(m_idealPadMap->get_phi(static_cast<unsigned int>(p.side), p.layer, p.pad));
 
-  if (!is_good_number(p.radius) || !is_good_number(p.global_phi)) return p;
+  if (!is_good_number(p.radius) || !is_good_number(p.global_phi)) { return p;
+}
 
   p.ok = true;
   return p;

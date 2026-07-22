@@ -20,7 +20,8 @@ void Tpc_PolyTrackContainerv1::identify(std::ostream& os) const
 
 void Tpc_PolyTrackContainerv1::Reset()
 {
-  for (unsigned int i = 0; i < m_tracks.size(); ++i) delete m_tracks[i];
+  for (auto & m_track : m_tracks) { delete m_track;
+}
   m_tracks.clear();
 }
 
@@ -32,9 +33,10 @@ int Tpc_PolyTrackContainerv1::isValid() const
 PHObject* Tpc_PolyTrackContainerv1::CloneMe() const
 {
   Tpc_PolyTrackContainerv1* copy = new Tpc_PolyTrackContainerv1();
-  for (unsigned int i = 0; i < m_tracks.size(); ++i)
+  for (auto m_track : m_tracks)
   {
-    if (m_tracks[i]) copy->m_tracks.push_back(static_cast<Tpc_PolyTrack*>(m_tracks[i]->CloneMe()));
+    if (m_track) { copy->m_tracks.push_back(static_cast<Tpc_PolyTrack*>(m_track->CloneMe()));
+}
   }
   return copy;
 }

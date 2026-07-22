@@ -37,8 +37,10 @@ Tpc_PolyTrackReco::~Tpc_PolyTrackReco()
 
 int Tpc_PolyTrackReco::InitRun(PHCompositeNode* topNode)
 {
-  if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) return Fun4AllReturnCodes::ABORTRUN;
-  if (createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) return Fun4AllReturnCodes::ABORTRUN;
+  if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) { return Fun4AllReturnCodes::ABORTRUN;
+}
+  if (createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) { return Fun4AllReturnCodes::ABORTRUN;
+}
 
   delete m_idealPadMap;
   m_idealPadMap = new IdealPadMap();
@@ -72,7 +74,8 @@ double Tpc_PolyTrackReco::calc_dedx(const std::vector<const Tpc_PolyCluster*>& c
   dedxlist.reserve(clusters.size());
   for (const Tpc_PolyCluster* cluster : clusters)
   {
-    if (!cluster || cluster->size_hits() == 0) continue;
+    if (!cluster || cluster->size_hits() == 0) { continue;
+}
     const unsigned int layer = TrkrDefs::getLayer(cluster->get_hit_index(0).first);
     double thick = std::numeric_limits<double>::quiet_NaN();
     if (layer < 23U)
@@ -87,12 +90,14 @@ double Tpc_PolyTrackReco::calc_dedx(const std::vector<const Tpc_PolyCluster*>& c
     {
       thick = thickness_per_region[3];
     }
-    if (!std::isfinite(thick) || thick <= 0.0) continue;
+    if (!std::isfinite(thick) || thick <= 0.0) { continue;
+}
 
     const double x = cluster->get_centroid_x();
     const double y = cluster->get_centroid_y();
     const double r = std::hypot(x, y);
-    if (!std::isfinite(r)) continue;
+    if (!std::isfinite(r)) { continue;
+}
 
     double adc = cluster->get_adc() / thick;
     if (!fit.is_line && std::isfinite(fit.curvature))
@@ -107,7 +112,8 @@ double Tpc_PolyTrackReco::calc_dedx(const std::vector<const Tpc_PolyCluster*>& c
     }
 
     adc *= std::clamp(std::sin(fit.theta), 0.0, 4.0);
-    if (std::isfinite(adc)) dedxlist.push_back(adc);
+    if (std::isfinite(adc)) { dedxlist.push_back(adc);
+}
   }
 
   if (dedxlist.empty())
@@ -230,7 +236,8 @@ int Tpc_PolyTrackReco::process_event(PHCompositeNode* topNode)
   for (unsigned int icluster = 0; icluster < nclusters; ++icluster)
   {
     const Tpc_PolyCluster* cluster = m_clusters->get_cluster(icluster);
-    if (!cluster) continue;
+    if (!cluster) { continue;
+}
     clusters_by_track[cluster->get_source_assembled_track_id()].push_back(cluster);
   }
 
@@ -241,12 +248,14 @@ int Tpc_PolyTrackReco::process_event(PHCompositeNode* topNode)
     fit_points.reserve(clusters.size());
     for (const Tpc_PolyCluster* cluster : clusters)
     {
-      if (!cluster) continue;
+      if (!cluster) { continue;
+}
       Tpc_FittingTools::Point fp;
       fp.x = cluster->get_centroid_x();
       fp.y = cluster->get_centroid_y();
       fp.z = cluster->get_centroid_z();
-      if (std::isfinite(fp.x) && std::isfinite(fp.y) && std::isfinite(fp.z)) fit_points.push_back(fp);
+      if (std::isfinite(fp.x) && std::isfinite(fp.y) && std::isfinite(fp.z)) { fit_points.push_back(fp);
+}
     }
 
     Tpc_FittingTools::FitResult fit;

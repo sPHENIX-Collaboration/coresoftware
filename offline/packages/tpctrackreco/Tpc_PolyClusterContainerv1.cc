@@ -20,7 +20,8 @@ void Tpc_PolyClusterContainerv1::identify(std::ostream& os) const
 
 void Tpc_PolyClusterContainerv1::Reset()
 {
-  for (unsigned int i = 0; i < m_clusters.size(); ++i) delete m_clusters[i];
+  for (auto & m_cluster : m_clusters) { delete m_cluster;
+}
   m_clusters.clear();
 }
 
@@ -32,9 +33,10 @@ int Tpc_PolyClusterContainerv1::isValid() const
 PHObject* Tpc_PolyClusterContainerv1::CloneMe() const
 {
   Tpc_PolyClusterContainerv1* copy = new Tpc_PolyClusterContainerv1();
-  for (unsigned int i = 0; i < m_clusters.size(); ++i)
+  for (auto m_cluster : m_clusters)
   {
-    if (m_clusters[i]) copy->m_clusters.push_back(static_cast<Tpc_PolyCluster*>(m_clusters[i]->CloneMe()));
+    if (m_cluster) { copy->m_clusters.push_back(static_cast<Tpc_PolyCluster*>(m_cluster->CloneMe()));
+}
   }
   return copy;
 }

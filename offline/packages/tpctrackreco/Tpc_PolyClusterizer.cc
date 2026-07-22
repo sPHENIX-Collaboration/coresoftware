@@ -44,15 +44,19 @@ namespace
 
   double wrap_phi(double phi)
   {
-    while (phi > M_PI) phi -= 2.0 * M_PI;
-    while (phi <= -M_PI) phi += 2.0 * M_PI;
+    while (phi > M_PI) { phi -= 2.0 * M_PI;
+}
+    while (phi <= -M_PI) { phi += 2.0 * M_PI;
+}
     return phi;
   }
 
   double unwrap_phi_near(double phi, const double reference)
   {
-    while (phi - reference > M_PI) phi -= 2.0 * M_PI;
-    while (phi - reference <= -M_PI) phi += 2.0 * M_PI;
+    while (phi - reference > M_PI) { phi -= 2.0 * M_PI;
+}
+    while (phi - reference <= -M_PI) { phi += 2.0 * M_PI;
+}
     return phi;
   }
 
@@ -63,7 +67,8 @@ namespace
 
   double phi_sample_fraction(const unsigned int sample)
   {
-    if (Tpc_PolyClusterizer::NPhiSamples <= 1U) return 0.0;
+    if (Tpc_PolyClusterizer::NPhiSamples <= 1U) { return 0.0;
+}
     return static_cast<double>(sample) / static_cast<double>(Tpc_PolyClusterizer::NPhiSamples - 1U);
   }
 }
@@ -85,8 +90,10 @@ Tpc_PolyClusterizer::~Tpc_PolyClusterizer()
 
 int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
 {
-  if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) return Fun4AllReturnCodes::ABORTRUN;
-  if (createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) return Fun4AllReturnCodes::ABORTRUN;
+  if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) { return Fun4AllReturnCodes::ABORTRUN;
+}
+  if (createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) { return Fun4AllReturnCodes::ABORTRUN;
+}
 
   delete m_idealPadMap;
   m_idealPadMap = new IdealPadMap();
@@ -110,7 +117,8 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if (!build_drift_lookup()) return Fun4AllReturnCodes::ABORTRUN;
+  if (!build_drift_lookup()) { return Fun4AllReturnCodes::ABORTRUN;
+}
 
   m_event = 0;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -118,7 +126,8 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
 
 void Tpc_PolyClusterizer::configure_garfield(PHGarfield* garfield) const
 {
-  if (!garfield) return;
+  if (!garfield) { return;
+}
 
   garfield->MoveTpc(m_tpcMove[0], m_tpcMove[1], m_tpcMove[2]);
   for (const auto& rotation : m_tpcRotations)
@@ -179,8 +188,10 @@ unsigned int Tpc_PolyClusterizer::drift_lookup_index(const unsigned int layer_in
 
 bool Tpc_PolyClusterizer::build_drift_lookup()
 {
-  if (!m_idealPadMap || !m_garfield) return false;
-  if (m_reverseDriftStepNs <= 0.0 || !std::isfinite(m_reverseDriftStepNs)) return false;
+  if (!m_idealPadMap || !m_garfield) { return false;
+}
+  if (m_reverseDriftStepNs <= 0.0 || !std::isfinite(m_reverseDriftStepNs)) { return false;
+}
 
   for (DriftPolyline& polyline : m_driftLookup)
   {
@@ -351,34 +362,44 @@ bool Tpc_PolyClusterizer::sample_drift_lookup(const unsigned int layer,
                                               double& y,
                                               double& z) const
 {
-  if (!m_idealPadMap) return false;
-  if (layer < FirstLayer || layer > LastLayer) return false;
-  if (side >= NSides) return false;
-  if (m_reverseDriftStepNs <= 0.0 || !std::isfinite(m_reverseDriftStepNs)) return false;
+  if (!m_idealPadMap) { return false;
+}
+  if (layer < FirstLayer || layer > LastLayer) { return false;
+}
+  if (side >= NSides) { return false;
+}
+  if (m_reverseDriftStepNs <= 0.0 || !std::isfinite(m_reverseDriftStepNs)) { return false;
+}
 
   const unsigned int pads_per_sector = m_idealPadMap->get_pads_per_sector_for_layer(layer);
-  if (pads_per_sector == 0U) return false;
+  if (pads_per_sector == 0U) { return false;
+}
 
   const unsigned int sector = pad / pads_per_sector;
-  if (sector >= NSectors) return false;
+  if (sector >= NSectors) { return false;
+}
 
   const double hit_radius = m_idealPadMap->get_radius(layer);
   const double hit_phi = m_idealPadMap->get_phi(side, layer, pad);
-  if (!std::isfinite(hit_radius) || !std::isfinite(hit_phi)) return false;
+  if (!std::isfinite(hit_radius) || !std::isfinite(hit_phi)) { return false;
+}
 
   const double corrected_tbin = static_cast<double>(tbin) - m_t0;
   const double target_time_ns = corrected_tbin * m_tpcAdcClock;
-  if (target_time_ns <= 0.0 || !std::isfinite(target_time_ns)) return false;
+  if (target_time_ns <= 0.0 || !std::isfinite(target_time_ns)) { return false;
+}
 
   const unsigned int layer_index = layer - FirstLayer;
-  std::array<const DriftPolyline*, NPhiSamples> samples;
-  std::array<double, NPhiSamples> sample_phi;
+  std::array<const DriftPolyline*, NPhiSamples> samples{};
+  std::array<double, NPhiSamples> sample_phi{};
   for (unsigned int sample = 0; sample < NPhiSamples; ++sample)
   {
     samples[sample] = &m_driftLookup[drift_lookup_index(layer_index, side, sector, sample)];
-    if (samples[sample]->points.empty()) return false;
+    if (samples[sample]->points.empty()) { return false;
+}
     sample_phi[sample] = samples[sample]->phi;
-    if (sample > 0U) sample_phi[sample] = unwrap_phi_near(sample_phi[sample], sample_phi[sample - 1U]);
+    if (sample > 0U) { sample_phi[sample] = unwrap_phi_near(sample_phi[sample], sample_phi[sample - 1U]);
+}
   }
 
   const double unwrapped_hit_phi = unwrap_phi_near(hit_phi, sample_phi[NPhiSamples / 2U]);
@@ -408,7 +429,8 @@ bool Tpc_PolyClusterizer::sample_drift_lookup(const unsigned int layer,
       const bool in_interval = increasing ?
           (unwrapped_hit_phi >= sample_phi[sample] && unwrapped_hit_phi <= sample_phi[sample + 1U]) :
           (unwrapped_hit_phi <= sample_phi[sample] && unwrapped_hit_phi >= sample_phi[sample + 1U]);
-      if (!in_interval) continue;
+      if (!in_interval) { continue;
+}
 
       sample0 = sample;
       sample1 = sample + 1U;
@@ -429,7 +451,8 @@ bool Tpc_PolyClusterizer::sample_drift_lookup(const unsigned int layer,
               << " hit_phi " << hit_phi
               << " unwrapped_hit_phi " << unwrapped_hit_phi
               << " sample_phi";
-    for (unsigned int sample = 0; sample < NPhiSamples; ++sample) std::cerr << " " << sample_phi[sample];
+    for (unsigned int sample = 0; sample < NPhiSamples; ++sample) { std::cerr << " " << sample_phi[sample];
+}
     std::cerr << std::endl;
     return false;
   }
@@ -440,10 +463,12 @@ bool Tpc_PolyClusterizer::sample_drift_lookup(const unsigned int layer,
                                             double& point_z) -> bool
   {
     const int npoints = static_cast<int>(polyline.points.size());
-    if (npoints <= 0) return false;
+    if (npoints <= 0) { return false;
+}
 
     const double max_time_ns = static_cast<double>(npoints - 1) * m_reverseDriftStepNs;
-    if (target_time_ns > max_time_ns) return false;
+    if (target_time_ns > max_time_ns) { return false;
+}
 
     const double fbin = target_time_ns / m_reverseDriftStepNs;
     const int i0 = std::min(static_cast<int>(std::floor(fbin)), npoints - 1);
@@ -477,7 +502,8 @@ bool Tpc_PolyClusterizer::sample_drift_lookup(const unsigned int layer,
     z1 = z0;
   }
 
-  if (!valid0 && !valid1) return false;
+  if (!valid0 && !valid1) { return false;
+}
 
   double delta_r = 0.0;
   double delta_phi = 0.0;
@@ -512,12 +538,15 @@ bool Tpc_PolyClusterizer::make_xyz_point(TrkrDefs::hitsetkey hsk,
                                          TrkrDefs::hitkey hk,
                                          Point& p) const
 {
-  if (!m_hits || !m_idealPadMap) return false;
+  if (!m_hits || !m_idealPadMap) { return false;
+}
 
   TrkrHitSet* hitset = m_hits->findHitSet(hsk);
-  if (!hitset) return false;
+  if (!hitset) { return false;
+}
   TrkrHit* hit = hitset->getHit(hk);
-  if (!hit) return false;
+  if (!hit) { return false;
+}
 
   const unsigned int layer = TrkrDefs::getLayer(hsk);
   const unsigned int hit_side = TpcDefs::getSide(hsk);
@@ -528,7 +557,8 @@ bool Tpc_PolyClusterizer::make_xyz_point(TrkrDefs::hitsetkey hsk,
   double x = 0.0;
   double y = 0.0;
   double z = 0.0;
-  if (!sample_drift_lookup(layer, hit_side, pad, tbin, x, y, z)) return false;
+  if (!sample_drift_lookup(layer, hit_side, pad, tbin, x, y, z)) { return false;
+}
 
   p.hitsetkey = hsk;
   p.hitkey = hk;
@@ -549,7 +579,8 @@ Tpc_PolyClusterizer::make_cluster_parameters(const std::vector<Point>& points,
                                             const int side) const
 {
   ClusterParameters params;
-  if (points.empty() || !centroid.ok || !m_idealPadMap) return params;
+  if (points.empty() || !centroid.ok || !m_idealPadMap) { return params;
+}
 
   std::set<unsigned int> pads;
   std::set<unsigned int> tbins;
@@ -592,7 +623,8 @@ Tpc_PolyClusterizer::Centroid
 Tpc_PolyClusterizer::make_centroid(const std::vector<Point>& points)
 {
   Centroid c;
-  if (points.empty()) return c;
+  if (points.empty()) { return c;
+}
 
   double sx = 0.0;
   double sy = 0.0;
@@ -630,9 +662,10 @@ Tpc_PolyClusterizer::make_centroid(const std::vector<Point>& points)
   return c;
 }
 
-int Tpc_PolyClusterizer::process_event(PHCompositeNode*)
+int Tpc_PolyClusterizer::process_event(PHCompositeNode* /*unused*/)
 {
-  if (!m_assembledTracks || !m_clusters || !m_garfield) return Fun4AllReturnCodes::EVENT_OK;
+  if (!m_assembledTracks || !m_clusters || !m_garfield) { return Fun4AllReturnCodes::EVENT_OK;
+}
   m_clusters->Reset();
 
   const unsigned int nassembled = m_assembledTracks->size();
@@ -645,26 +678,33 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode*)
       for (unsigned int iassembled = 0; iassembled < nassembled; ++iassembled)
       {
         const Tpc_AssembledTrack* assembled = m_assembledTracks->get_track(iassembled);
-        if (!assembled) continue;
-        if (assembled->get_side() != side) continue;
-        if (assembled->get_first_sector() % 12U != sector) continue;
+        if (!assembled) { continue;
+}
+        if (assembled->get_side() != side) { continue;
+}
+        if (assembled->get_first_sector() % 12U != sector) { continue;
+}
 
         std::map<unsigned int, std::vector<Point>> points_by_layer;
         for (unsigned int ih = 0; ih < assembled->size_hit_indices(); ++ih)
         {
           const Tpc_AssembledTrack::HitIndex hi = assembled->get_hit_index(ih);
-          if (TpcDefs::getSide(hi.first) != static_cast<unsigned int>(side)) continue;
+          if (TpcDefs::getSide(hi.first) != static_cast<unsigned int>(side)) { continue;
+}
 
           Point p;
-          if (make_xyz_point(hi.first, hi.second, p)) points_by_layer[p.layer].push_back(p);
+          if (make_xyz_point(hi.first, hi.second, p)) { points_by_layer[p.layer].push_back(p);
+}
         }
-        if (points_by_layer.empty()) continue;
+        if (points_by_layer.empty()) { continue;
+}
 
         for (const auto& layer_points : points_by_layer)
         {
           const std::vector<Point>& points = layer_points.second;
           const Centroid centroid = make_centroid(points);
-          if (!centroid.ok) continue;
+          if (!centroid.ok) { continue;
+}
 
           Tpc_PolyClusterv1* out = new Tpc_PolyClusterv1();
           out->set_event(m_event);
@@ -683,7 +723,8 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode*)
           out->set_phi_width(params.phi_width);
           out->set_time_width(params.time_width);
           out->set_phase(params.phase);
-          for (const Point& p : points) out->add_hit(p.hitsetkey, p.hitkey, p.x, p.y, p.z);
+          for (const Point& p : points) { out->add_hit(p.hitsetkey, p.hitkey, p.x, p.y, p.z);
+}
           if (out->size_hits() == 0)
           {
             delete out;

@@ -62,10 +62,10 @@ class IdealPadMap
 
   // Indexed by layer-7.  Each layer vector is one sector worth of CDB pads.
   std::array<std::vector<double>, N_LAYERS> m_cdb_phi_by_layer;
-  std::array<double, N_LAYERS> m_radius_cm_by_layer;
+  std::array<double, N_LAYERS> m_radius_cm_by_layer{};
 
   // Indexed by 256*fee + channel. -1 means no valid TPC layer.
-  std::array<int, N_FEE * N_CH> m_layer_by_key;
+  std::array<int, N_FEE * N_CH> m_layer_by_key{};
 };
 
 #endif

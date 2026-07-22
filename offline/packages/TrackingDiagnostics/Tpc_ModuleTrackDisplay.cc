@@ -46,7 +46,8 @@ namespace
 
   int layer_to_module(const unsigned int layer)
   {
-    if (layer < 7 || layer > 54) return -1;
+    if (layer < 7 || layer > 54) { return -1;
+}
     const int module = static_cast<int>((layer - 7) / 16);
     return (module >= 0 && module < 3) ? module : -1;
   }
@@ -67,8 +68,10 @@ namespace
   double unwrap_phi_near(const double phi, const double reference)
   {
     double out = phi;
-    while (out - reference > TMath::Pi()) out -= 2.0 * TMath::Pi();
-    while (out - reference < -TMath::Pi()) out += 2.0 * TMath::Pi();
+    while (out - reference > TMath::Pi()) { out -= 2.0 * TMath::Pi();
+}
+    while (out - reference < -TMath::Pi()) { out += 2.0 * TMath::Pi();
+}
     return out;
   }
 
@@ -77,10 +80,12 @@ namespace
                       const Tpc_FittingTools::SagittaFit& fit,
                       double& y_out)
   {
-    if (!fit.ok || !is_good_number(x) || !is_good_number(mean_y)) return false;
+    if (!fit.ok || !is_good_number(x) || !is_good_number(mean_y)) { return false;
+}
     if (!is_good_number(fit.S) || !is_good_number(fit.x0) ||
         !is_good_number(fit.invR) || !is_good_number(fit.theta) ||
-        !is_good_number(fit.b)) return false;
+        !is_good_number(fit.b)) { return false;
+}
 
     const double c = std::cos(fit.theta);
     const double st = std::sin(fit.theta);
@@ -173,7 +178,8 @@ namespace
 
   void style_hit_graph(TGraph* g, const int color)
   {
-    if (!g) return;
+    if (!g) { return;
+}
     g->SetMarkerStyle(20);
     g->SetMarkerSize(0.8);
     g->SetMarkerColor(color);
@@ -183,7 +189,8 @@ namespace
 
   void style_fit_graph(TGraph* g, const int color)
   {
-    if (!g) return;
+    if (!g) { return;
+}
     g->SetMarkerStyle(1);
     g->SetMarkerSize(0.0);
     g->SetLineColor(color);
@@ -193,7 +200,8 @@ namespace
 
   void style_fit_line_3d(TPolyLine3D* line, const int color)
   {
-    if (!line) return;
+    if (!line) { return;
+}
     line->SetLineColor(color);
     line->SetLineWidth(4);
     line->SetLineStyle(1);
@@ -211,8 +219,10 @@ namespace
 
     bool operator<(const GroupKey& rhs) const
     {
-      if (side != rhs.side) return side < rhs.side;
-      if (sector != rhs.sector) return sector < rhs.sector;
+      if (side != rhs.side) { return side < rhs.side;
+}
+      if (sector != rhs.sector) { return sector < rhs.sector;
+}
       return module < rhs.module;
     }
   };
@@ -226,8 +236,8 @@ namespace
       , phi_intercept(0.0)
       , tbin_slope(0.0)
       , tbin_intercept(0.0)
-      , phi_sagitta()
-      , mean_phi(0.0)
+      , 
+       mean_phi(0.0)
       , rmin(0.0)
       , rmax(0.0)
     {}
@@ -253,8 +263,8 @@ namespace
       , pad_intercept(0.0)
       , tbin_slope(0.0)
       , tbin_intercept(0.0)
-      , pad_sagitta()
-      , mean_pad(0.0)
+      , 
+       mean_pad(0.0)
       , layer_min(0.0)
       , layer_max(0.0)
     {}
@@ -324,7 +334,8 @@ namespace
                           const unsigned int evt,
                           const IdealPadMap* idealPadMap)
   {
-    if (!idealPadMap) return;
+    if (!idealPadMap) { return;
+}
 
     const TString tag = Form("s%d_sec%02d_mod%d", key.side, key.sector, key.module);
 
@@ -368,7 +379,8 @@ namespace
     const unsigned int pads_per_sector =
       idealPadMap->get_pads_per_sector(static_cast<unsigned int>(key.module));
 
-    if (pads_per_sector < 2U) return;
+    if (pads_per_sector < 2U) { return;
+}
 
     const unsigned int nPads = pads_per_sector;
     const int pad_min = static_cast<int>(nPads) * key.sector;
@@ -393,7 +405,8 @@ namespace
 
     double phi_min = phi_first - 0.5 * dphi;
     double phi_max = phi_last + 0.5 * dphi;
-    if (phi_max < phi_min) std::swap(phi_min, phi_max);
+    if (phi_max < phi_min) { std::swap(phi_min, phi_max);
+}
     b.phi_reference = 0.5 * (phi_min + phi_max);
 
     b.h3_hardware_hits = new TH3D(Form("h3_%s_hardware_hits", tag.Data()),
@@ -402,7 +415,7 @@ namespace
                                   512, -0.5, 511.5,
                                   static_cast<int>(nPads), static_cast<double>(pad_min) - 0.5, static_cast<double>(pad_max) + 0.5,
                                   16, static_cast<double>(layer_min) - 0.5, static_cast<double>(layer_max) + 0.5);
-    b.h3_hardware_hits->SetStats(0);
+    b.h3_hardware_hits->SetStats(false);
 
     b.h3_adc_hits = new TH3D(Form("h3_%s_adc_hits", tag.Data()),
                              Form("event %u side %d sector %d module %d associated hits;timebin;#phi;radius [cm]",
@@ -410,7 +423,7 @@ namespace
                              512, -0.5, 511.5,
                              static_cast<int>(nPads), phi_min, phi_max,
                              20, radius_min_guess, radius_max_guess);
-    b.h3_adc_hits->SetStats(0);
+    b.h3_adc_hits->SetStats(false);
 
     b.h3_adc_unassociated_hits = new TH3D(Form("h3_%s_adc_unassociated_hits", tag.Data()),
               Form("event %u side %d sector %d module %d unassociated hits;timebin;#phi;radius [cm]",
@@ -418,7 +431,7 @@ namespace
               512, -0.5, 511.5,
               static_cast<int>(nPads), phi_min, phi_max,
               16, radius_min_guess, radius_max_guess);
-    b.h3_adc_unassociated_hits->SetStats(0);
+    b.h3_adc_unassociated_hits->SetStats(false);
 
   }
 
@@ -444,11 +457,14 @@ namespace
                                                const double weight_floor_frac)
   {
     HardwareFitResult result;
-    if (pts.size() < 2) return result;
+    if (pts.size() < 2) { return result;
+}
 
     double max_adc = 0.0;
-    for (const auto& p : pts) max_adc = std::max(max_adc, static_cast<double>(p.adc));
-    if (max_adc <= 0.0) max_adc = 1.0;
+    for (const auto& p : pts) { max_adc = std::max(max_adc, static_cast<double>(p.adc));
+}
+    if (max_adc <= 0.0) { max_adc = 1.0;
+}
 
     std::vector<Tpc_FittingTools::FitPoint> layer_pad_points;
     std::vector<Tpc_FittingTools::FitPoint> layer_tbin_points;
@@ -479,7 +495,8 @@ namespace
     const Tpc_FittingTools::LineFit pad_fit = Tpc_FittingTools::fitLine(layer_pad_points);
     const Tpc_FittingTools::LineFit tbin_fit = Tpc_FittingTools::fitLine(layer_tbin_points);
 
-    if (!pad_fit.ok || !tbin_fit.ok) return result;
+    if (!pad_fit.ok || !tbin_fit.ok) { return result;
+}
 
     result.ok = true;
     result.pad_slope = pad_fit.slope;
@@ -502,11 +519,14 @@ namespace
                              const double weight_floor_frac)
   {
     FitResult result;
-    if (pts.size() < 2) return result;
+    if (pts.size() < 2) { return result;
+}
 
     double max_adc = 0.0;
-    for (const auto& p : pts) max_adc = std::max(max_adc, static_cast<double>(p.adc));
-    if (max_adc <= 0.0) max_adc = 1.0;
+    for (const auto& p : pts) { max_adc = std::max(max_adc, static_cast<double>(p.adc));
+}
+    if (max_adc <= 0.0) { max_adc = 1.0;
+}
 
     const double phi_ref = pts.front().phi;
     std::vector<Tpc_FittingTools::FitPoint> radius_phi_points;
@@ -520,7 +540,8 @@ namespace
 
     for (const auto& p : pts)
     {
-      if (!is_good_number(p.radius) || !is_good_number(p.phi)) continue;
+      if (!is_good_number(p.radius) || !is_good_number(p.phi)) { continue;
+}
       const double w = Tpc_FittingTools::adcWeight(static_cast<double>(p.adc), max_adc,
                                          weight_power, weight_floor_frac);
       const double phi_unwrapped = unwrap_phi_near(p.phi, phi_ref);
@@ -531,13 +552,15 @@ namespace
       result.rmax = std::max(result.rmax, p.radius);
     }
 
-    if (radius_phi_points.empty()) return result;
+    if (radius_phi_points.empty()) { return result;
+}
     result.mean_phi /= static_cast<double>(radius_phi_points.size());
 
     const Tpc_FittingTools::LineFit phi_fit = Tpc_FittingTools::fitLine(radius_phi_points);
     const Tpc_FittingTools::LineFit tbin_fit = Tpc_FittingTools::fitLine(radius_tbin_points);
 
-    if (!phi_fit.ok || !tbin_fit.ok) return result;
+    if (!phi_fit.ok || !tbin_fit.ok) { return result;
+}
 
     result.ok = true;
     result.phi_slope = phi_fit.slope;
@@ -561,7 +584,8 @@ namespace
                        const int color,
                        const FitResult& fit)
   {
-    if (!fit.ok || fit.rmax <= fit.rmin) return;
+    if (!fit.ok || fit.rmax <= fit.rmin) { return;
+}
 
     const TString tag = Form("s%d_sec%02d_mod%d_trk%u", key.side, key.sector, key.module, tid);
 
@@ -592,7 +616,8 @@ namespace
       if (fit.use_sagitta)
       {
         double phi_sagitta = 0.0;
-        if (sagitta_y_at_x(r, fit.mean_phi, fit.phi_sagitta, phi_sagitta)) phi = phi_sagitta;
+        if (sagitta_y_at_x(r, fit.mean_phi, fit.phi_sagitta, phi_sagitta)) { phi = phi_sagitta;
+}
       }
       const double tbin = fit.tbin_slope * r + fit.tbin_intercept;
       const double phi_draw = unwrap_phi_near(phi, b.phi_reference);
@@ -618,7 +643,8 @@ namespace
                                 const int color,
                                 const HardwareFitResult& fit)
   {
-    if (!fit.ok || fit.layer_max <= fit.layer_min) return;
+    if (!fit.ok || fit.layer_max <= fit.layer_min) { return;
+}
 
     const TString tag = Form("s%d_sec%02d_mod%d_trk%u", key.side, key.sector, key.module, tid);
 
@@ -634,7 +660,8 @@ namespace
       if (fit.use_sagitta)
       {
         double pad_sagitta = 0.0;
-        if (sagitta_y_at_x(layer, fit.mean_pad, fit.pad_sagitta, pad_sagitta)) pad = pad_sagitta;
+        if (sagitta_y_at_x(layer, fit.mean_pad, fit.pad_sagitta, pad_sagitta)) { pad = pad_sagitta;
+}
       }
       const double tbin = fit.tbin_slope * layer + fit.tbin_intercept;
       line3->SetPoint(i, tbin, pad, layer);
@@ -656,10 +683,11 @@ namespace
                                                  key.side, key.sector, key.module),
                                             1200, 900);
       b.h3_hardware_hits->Draw("BOX2Z");
-      for (unsigned int i = 0; i < b.hardware_fit_lines_3d.size(); ++i)
+      for (auto & i : b.hardware_fit_lines_3d)
       {
-        if (!b.hardware_fit_lines_3d[i]) continue;
-        b.hardware_fit_lines_3d[i]->Draw("same");
+        if (!i) { continue;
+}
+        i->Draw("same");
       }
       b.c3_hardware_hits_fits->Modified();
       b.c3_hardware_hits_fits->Update();
@@ -673,10 +701,11 @@ namespace
                                             key.side, key.sector, key.module),
                                        1200, 900);
       b.h3_adc_hits->Draw("BOX2Z");
-      for (unsigned int i = 0; i < b.fit_lines_3d.size(); ++i)
+      for (auto & i : b.fit_lines_3d)
       {
-        if (!b.fit_lines_3d[i]) continue;
-        b.fit_lines_3d[i]->Draw("same");
+        if (!i) { continue;
+}
+        i->Draw("same");
         //b.fit_lines_3d[i]->Write(b.fit_line_names_3d[i].c_str());
       }
       b.c3_adc_hits_fits->Modified();
@@ -747,7 +776,7 @@ Tpc_ModuleTrackDisplay::~Tpc_ModuleTrackDisplay()
   m_idealPadMap = nullptr;
 }
 
-int Tpc_ModuleTrackDisplay::Init(PHCompositeNode*)
+int Tpc_ModuleTrackDisplay::Init(PHCompositeNode* /*unused*/)
 {
   m_outfile = new TFile(m_outfilename.c_str(), "RECREATE");
   if (!m_outfile || m_outfile->IsZombie())
@@ -780,13 +809,16 @@ int Tpc_ModuleTrackDisplay::process_event(PHCompositeNode* topNode)
 {
   ++m_evt;
 
-  if (!get_nodes(topNode)) return Fun4AllReturnCodes::EVENT_OK;
+  if (!get_nodes(topNode)) { return Fun4AllReturnCodes::EVENT_OK;
+}
 
   const unsigned int ntracks = m_tracks ? m_tracks->size() : 0;
-  if (m_eventsSaved >= m_maxEventDisplays) return Fun4AllReturnCodes::EVENT_OK;
+  if (m_eventsSaved >= m_maxEventDisplays) { return Fun4AllReturnCodes::EVENT_OK;
+}
 
   TDirectory* eventsTop = m_outfile->GetDirectory("events");
-  if (!eventsTop) eventsTop = m_outfile->mkdir("events");
+  if (!eventsTop) { eventsTop = m_outfile->mkdir("events");
+}
 
   eventsTop->cd();
   TDirectory* eventDir = eventsTop->mkdir(Form("event_%06u", m_evt));
@@ -804,7 +836,8 @@ int Tpc_ModuleTrackDisplay::process_event(PHCompositeNode* topNode)
   for (unsigned int itrk = 0; itrk < ntracks; ++itrk)
   {
     const Tpc_ModuleTrack* trk = m_tracks->get_track(itrk);
-    if (!trk) continue;
+    if (!trk) { continue;
+}
 
     const unsigned int tid = trk->get_track_id();
     const int color = track_color(itrk);
@@ -815,23 +848,25 @@ int Tpc_ModuleTrackDisplay::process_event(PHCompositeNode* topNode)
     {
       const Tpc_ModuleTrack::HitIndex idx = trk->get_hit_index(ih);
       const HitPoint p = make_hit_point(idx.first, idx.second);
-      if (!p.ok) continue;
+      if (!p.ok) { continue;
+}
 
       associated_hit_ids.insert(make_unique_hit_id(p.hitsetkey, p.hitkey));
 
       const int module = layer_to_module(p.layer);
-      if (module < 0) continue;
+      if (module < 0) { continue;
+}
 
       const GroupKey key(p.side, static_cast<int>(p.sector), module);
       points_by_group[key].push_back(p);
     }
 
-    for (std::map<GroupKey, std::vector<HitPoint> >::iterator pg = points_by_group.begin();
-         pg != points_by_group.end(); ++pg)
+    for (auto & pg : points_by_group)
     {
-      const GroupKey& key = pg->first;
-      const std::vector<HitPoint>& pts = pg->second;
-      if (pts.empty()) continue;
+      const GroupKey& key = pg.first;
+      const std::vector<HitPoint>& pts = pg.second;
+      if (pts.empty()) { continue;
+}
 
       GraphBundle& b = get_bundle(bundles, key, m_evt, m_idealPadMap);
 
@@ -853,9 +888,8 @@ int Tpc_ModuleTrackDisplay::process_event(PHCompositeNode* topNode)
       g_tbin_phi_hits->SetTitle(Form("event %u track %u hits;timebin;#phi", m_evt, tid));
       style_hit_graph(g_tbin_phi_hits, color);
 
-      for (unsigned int ip = 0; ip < pts.size(); ++ip)
+      for (const auto & p : pts)
       {
-        const HitPoint& p = pts[ip];
         const int n = g_phi_radius_hits->GetN();
         const double phi_draw = unwrap_phi_near(p.phi, b.phi_reference);
 
@@ -902,12 +936,14 @@ int Tpc_ModuleTrackDisplay::process_event(PHCompositeNode* topNode)
        hsiter != hitset_range.second; ++hsiter)
   {
     TrkrHitSet* hitset = hsiter->second;
-    if (!hitset) continue;
+    if (!hitset) { continue;
+}
 
     const TrkrDefs::hitsetkey hsk = hsiter->first;
     const unsigned int layer = TrkrDefs::getLayer(hsk);
     const int module = layer_to_module(layer);
-    if (module < 0) continue;
+    if (module < 0) { continue;
+}
 
     const int side = static_cast<int>(TpcDefs::getSide(hsk));
     const int sector = static_cast<int>(TpcDefs::getSectorId(hsk));
@@ -920,10 +956,12 @@ int Tpc_ModuleTrackDisplay::process_event(PHCompositeNode* topNode)
     {
       const TrkrDefs::hitkey hk = hiter->first;
       const unsigned long long uid = make_unique_hit_id(hsk, hk);
-      if (associated_hit_ids.find(uid) != associated_hit_ids.end()) continue;
+      if (associated_hit_ids.contains(uid)) { continue;
+}
 
       const HitPoint p = make_hit_point(hsk, hk);
-      if (!p.ok) continue;
+      if (!p.ok) { continue;
+}
 
       if (b.h3_adc_unassociated_hits)
       {
@@ -935,11 +973,10 @@ int Tpc_ModuleTrackDisplay::process_event(PHCompositeNode* topNode)
     }
   }
 
-  for (std::map<GroupKey, GraphBundle>::iterator ib = bundles.begin();
-       ib != bundles.end(); ++ib)
+  for (auto & bundle : bundles)
   {
     eventDir->cd();
-    write_bundle(ib->second, ib->first);
+    write_bundle(bundle.second, bundle.first);
   }
 
   std::cout << "Tpc_ModuleTrackDisplay - saved event "
@@ -951,7 +988,7 @@ int Tpc_ModuleTrackDisplay::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int Tpc_ModuleTrackDisplay::End(PHCompositeNode*)
+int Tpc_ModuleTrackDisplay::End(PHCompositeNode* /*unused*/)
 {
   if (m_outfile)
   {
@@ -970,7 +1007,7 @@ int Tpc_ModuleTrackDisplay::End(PHCompositeNode*)
 bool Tpc_ModuleTrackDisplay::get_nodes(PHCompositeNode* topNode)
 {
   m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  m_tracks = findNode::getClass<Tpc_ModuleTrackContainer>(topNode, m_trackNodeName.c_str());
+  m_tracks = findNode::getClass<Tpc_ModuleTrackContainer>(topNode, m_trackNodeName);
 
   if (!m_tracks)
   {
@@ -987,7 +1024,8 @@ bool Tpc_ModuleTrackDisplay::get_nodes(PHCompositeNode* topNode)
          ++i)
     {
       m_tracks = findNode::getClass<Tpc_ModuleTrackContainer>(topNode, candidate_names[i]);
-      if (m_tracks) m_trackNodeName = candidate_names[i];
+      if (m_tracks) { m_trackNodeName = candidate_names[i];
+}
     }
   }
 
@@ -1027,10 +1065,12 @@ Tpc_ModuleTrackDisplay::make_hit_point(const TrkrDefs::hitsetkey hsk,
   HitPoint p;
 
   TrkrHitSet* hitset = m_hits ? m_hits->findHitSet(hsk) : nullptr;
-  if (!hitset) return p;
+  if (!hitset) { return p;
+}
 
   TrkrHit* hit = hitset->getHit(hk);
-  if (!hit) return p;
+  if (!hit) { return p;
+}
 
   p.hitsetkey = hsk;
   p.hitkey = hk;
@@ -1041,12 +1081,14 @@ Tpc_ModuleTrackDisplay::make_hit_point(const TrkrDefs::hitsetkey hsk,
   p.tbin = TpcDefs::getTBin(hk);
   p.adc = hit->getAdc();
 
-  if (layer_to_module(p.layer) < 0) return p;
+  if (layer_to_module(p.layer) < 0) { return p;
+}
 
   p.radius = ideal_radius(p.layer);
   p.phi = ideal_phi(p.side, p.sector, p.layer, p.pad);
 
-  if (!is_good_number(p.radius) || !is_good_number(p.phi)) return p;
+  if (!is_good_number(p.radius) || !is_good_number(p.phi)) { return p;
+}
 
   p.ok = true;
   return p;
@@ -1054,7 +1096,8 @@ Tpc_ModuleTrackDisplay::make_hit_point(const TrkrDefs::hitsetkey hsk,
 
 double Tpc_ModuleTrackDisplay::ideal_radius(const unsigned int layer) const
 {
-  if (!m_idealPadMap) return 0.0;
+  if (!m_idealPadMap) { return 0.0;
+}
 
   // IdealPadMap is intentionally the only geometry source used by this display.
   // If your IdealPadMap method names differ, this is the only radius call to adjust.
@@ -1066,12 +1109,14 @@ double Tpc_ModuleTrackDisplay::ideal_phi(const int side,
                                        const unsigned int layer,
                                        const unsigned int pad) const
 {
-  if (!m_idealPadMap) return 0.0;
+  if (!m_idealPadMap) { return 0.0;
+}
 
   // Keep HitPoint::pad in raw hardware coordinates for display, but IdealPadMap
   // expects the pad index local to the sector.
   const unsigned int pads_per_sector = m_idealPadMap->get_pads_per_sector_for_layer(layer);
-  if (pads_per_sector == 0U) return 0.0;
+  if (pads_per_sector == 0U) { return 0.0;
+}
   const unsigned int local_pad = pad % pads_per_sector;
   return m_idealPadMap->get_phi(side, sector, layer, local_pad);
 }

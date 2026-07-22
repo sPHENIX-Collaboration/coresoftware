@@ -31,7 +31,7 @@
 #include <iostream>
 #include <limits>
 #include <map>
-#include <stdint.h>
+#include <cstdint>
 #include <utility>
 #include <vector>
 
@@ -43,7 +43,7 @@ namespace
   struct BlobAdcSort
   {
     const std::vector<InModuleThreadData::Blob>* blobs;
-    BlobAdcSort(const std::vector<InModuleThreadData::Blob>* b) : blobs(b) {}
+    explicit BlobAdcSort(const std::vector<InModuleThreadData::Blob>* b) : blobs(b) {}
     bool operator()(unsigned int a, unsigned int b) const
     {
       return (*blobs)[a].adc > (*blobs)[b].adc;
@@ -59,38 +59,51 @@ namespace
                             double floor_frac,
                             InModuleThreadData::Track& trk)
   {
-    if (idx.size() < 2) return false;
+    if (idx.size() < 2) { return false;
+}
 
     double maxadc = 0.0;
-    for (unsigned int i = 0; i < idx.size(); ++i)
-      if (blobs[idx[i]].adc > maxadc) maxadc = blobs[idx[i]].adc;
+    for (unsigned int i = 0; i < idx.size(); ++i) {
+      maxadc = std::max(blobs[idx[i]].adc, maxadc);
+}
 
-    std::vector<double> x, pad, tbin, w;
+    std::vector<double> x;
+    std::vector<double> pad;
+    std::vector<double> tbin;
+    std::vector<double> w;
     x.reserve(idx.size());
     pad.reserve(idx.size());
     tbin.reserve(idx.size());
     w.reserve(idx.size());
 
-    unsigned int first_layer = 999999, last_layer = 0;
+    unsigned int first_layer = 999999;
+    unsigned int last_layer = 0;
 
-    for (unsigned int i = 0; i < idx.size(); ++i)
+    for (unsigned int i : idx)
     {
-      const InModuleThreadData::Blob& bl = blobs[idx[i]];
+      const InModuleThreadData::Blob& bl = blobs[i];
       x.push_back(static_cast<double>(bl.layer));
       pad.push_back(bl.pad);
       tbin.push_back(bl.tbin);
       w.push_back(Tpc_FittingTools::adcWeight(bl.adc, maxadc, weight_power, floor_frac));
 
-      if (bl.layer < first_layer) first_layer = bl.layer;
-      if (bl.layer > last_layer)  last_layer  = bl.layer;
+      first_layer = std::min(bl.layer, first_layer);
+      last_layer = std::max(bl.layer, last_layer);
     }
 
-    double mp = 0.0, bp = 0.0, cp = 0.0;
-    double mt = 0.0, bt = 0.0, ct = 0.0;
-    int ndp = 0, ndt = 0;
+    double mp = 0.0;
+    double bp = 0.0;
+    double cp = 0.0;
+    double mt = 0.0;
+    double bt = 0.0;
+    double ct = 0.0;
+    int ndp = 0;
+    int ndt = 0;
 
-    if (!Tpc_FittingTools::weightedLineFit(x, pad,  w, mp, bp, cp, ndp)) return false;
-    if (!Tpc_FittingTools::weightedLineFit(x, tbin, w, mt, bt, ct, ndt)) return false;
+    if (!Tpc_FittingTools::weightedLineFit(x, pad,  w, mp, bp, cp, ndp)) { return false;
+}
+    if (!Tpc_FittingTools::weightedLineFit(x, tbin, w, mt, bt, ct, ndt)) { return false;
+}
 
     trk.first_layer    = first_layer;
     trk.last_layer     = last_layer;
@@ -111,11 +124,12 @@ namespace
                                            std::vector<unsigned int>& raw_idx)
   {
     raw_idx.clear();
-    for (unsigned int ib = 0; ib < blob_idx.size(); ++ib)
+    for (unsigned int ib : blob_idx)
     {
-      const InModuleThreadData::Blob& bl = blobs[blob_idx[ib]];
-      for (unsigned int ir = 0; ir < bl.raw_hit_indices.size(); ++ir)
-        raw_idx.push_back(bl.raw_hit_indices[ir]);
+      const InModuleThreadData::Blob& bl = blobs[ib];
+      for (unsigned int raw_hit_indice : bl.raw_hit_indices) {
+        raw_idx.push_back(raw_hit_indice);
+}
     }
   }
 
@@ -126,19 +140,21 @@ namespace
                                   double floor_frac,
                                   InModuleThreadData::Track& trk)
   {
-    if (!fit_track_from_blobs(blobs, blob_idx, weight_power, floor_frac, trk)) return false;
+    if (!fit_track_from_blobs(blobs, blob_idx, weight_power, floor_frac, trk)) { return false;
+}
 
     std::vector<unsigned int> raw_idx;
     collect_raw_indices_from_blob_chain(blobs, blob_idx, raw_idx);
-    if (raw_idx.empty()) return false;
+    if (raw_idx.empty()) { return false;
+}
 
     unsigned int first_layer = 999999;
     unsigned int last_layer = 0;
-    for (unsigned int i = 0; i < raw_idx.size(); ++i)
+    for (unsigned int i : raw_idx)
     {
-      const InModuleThreadData::RawHit& rh = raw_hits[raw_idx[i]];
-      if (rh.layer < first_layer) first_layer = rh.layer;
-      if (rh.layer > last_layer)  last_layer  = rh.layer;
+      const InModuleThreadData::RawHit& rh = raw_hits[i];
+      first_layer = std::min(rh.layer, first_layer);
+      last_layer = std::max(rh.layer, last_layer);
     }
 
     trk.first_layer = first_layer;
@@ -157,13 +173,15 @@ namespace
   struct TrackStartSort
   {
     const std::vector<InModuleThreadData::Track>* tracks;
-    TrackStartSort(const std::vector<InModuleThreadData::Track>* t) : tracks(t) {}
+    explicit TrackStartSort(const std::vector<InModuleThreadData::Track>* t) : tracks(t) {}
     bool operator()(unsigned int a, unsigned int b) const
     {
       const InModuleThreadData::Track& ta = (*tracks)[a];
       const InModuleThreadData::Track& tb = (*tracks)[b];
-      if (ta.first_layer != tb.first_layer) return ta.first_layer < tb.first_layer;
-      if (ta.last_layer  != tb.last_layer)  return ta.last_layer  < tb.last_layer;
+      if (ta.first_layer != tb.first_layer) { return ta.first_layer < tb.first_layer;
+}
+      if (ta.last_layer  != tb.last_layer) {  return ta.last_layer  < tb.last_layer;
+}
       return ta.nrawhits > tb.nrawhits;
     }
   };
@@ -171,9 +189,11 @@ namespace
   void append_unique_blob_indices(std::vector<unsigned int>& dst,
                                   const std::vector<unsigned int>& src)
   {
-    for (unsigned int i = 0; i < src.size(); ++i)
-      if (std::find(dst.begin(), dst.end(), src[i]) == dst.end())
-        dst.push_back(src[i]);
+    for (unsigned int i : src) {
+      if (std::find(dst.begin(), dst.end(), i) == dst.end()) {
+        dst.push_back(i);
+}
+}
   }
 
   bool tracks_can_connect(const InModuleThreadData::Track& a,
@@ -187,10 +207,12 @@ namespace
   {
     score = std::numeric_limits<double>::max();
 
-    if (a.last_layer >= b.first_layer) return false;
+    if (a.last_layer >= b.first_layer) { return false;
+}
 
     const unsigned int gap = b.first_layer - a.last_layer - 1;
-    if (gap > connect_max_layer_gap) return false;
+    if (gap > connect_max_layer_gap) { return false;
+}
 
     const double lmatch = 0.5 * (static_cast<double>(a.last_layer) +
                                  static_cast<double>(b.first_layer));
@@ -205,10 +227,14 @@ namespace
     const double dmp = std::fabs(a.pad_slope  - b.pad_slope);
     const double dmt = std::fabs(a.tbin_slope - b.tbin_slope);
 
-    if (dp  > connect_dp)         return false;
-    if (dt  > connect_dt)         return false;
-    if (dmp > connect_dpad_slope) return false;
-    if (dmt > connect_dtbin_slope) return false;
+    if (dp  > connect_dp) {         return false;
+}
+    if (dt  > connect_dt) {         return false;
+}
+    if (dmp > connect_dpad_slope) { return false;
+}
+    if (dmt > connect_dtbin_slope) { return false;
+}
 
     score = (dp  / connect_dp)         * (dp  / connect_dp)
           + (dt  / connect_dt)         * (dt  / connect_dt)
@@ -221,7 +247,8 @@ namespace
 
   void connect_track_pieces_in_module(InModuleThreadData* d)
   {
-    if (!d || d->tracks.size() < 2) return;
+    if (!d || d->tracks.size() < 2) { return;
+}
 
     std::vector<InModuleThreadData::Track> pieces = d->tracks;
     std::vector<InModuleThreadData::Track> output;
@@ -229,13 +256,15 @@ namespace
 
     std::vector<unsigned int> order;
     order.reserve(pieces.size());
-    for (unsigned int i = 0; i < pieces.size(); ++i) order.push_back(i);
+    for (unsigned int i = 0; i < pieces.size(); ++i) { order.push_back(i);
+}
     std::sort(order.begin(), order.end(), TrackStartSort(&pieces));
 
     for (unsigned int io = 0; io < order.size(); ++io)
     {
       const unsigned int iseed = order[io];
-      if (used[iseed]) continue;
+      if (used[iseed]) { continue;
+}
 
       InModuleThreadData::Track current = pieces[iseed];
       used[iseed] = 1;
@@ -247,10 +276,10 @@ namespace
         int best_j = -1;
         double best_score = std::numeric_limits<double>::max();
 
-        for (unsigned int jo = 0; jo < order.size(); ++jo)
+        for (unsigned int j : order)
         {
-          const unsigned int j = order[jo];
-          if (used[j]) continue;
+          if (used[j]) { continue;
+}
 
           double score = 0.0;
           if (!tracks_can_connect(current, pieces[j],
@@ -259,7 +288,8 @@ namespace
                                   d->connect_dt,
                                   d->connect_dpad_slope,
                                   d->connect_dtbin_slope,
-                                  score)) continue;
+                                  score)) { continue;
+}
 
           if (score < best_score) { best_score = score; best_j = static_cast<int>(j); }
         }
@@ -285,8 +315,9 @@ namespace
       output.push_back(current);
     }
 
-    for (unsigned int i = 0; i < output.size(); ++i)
+    for (unsigned int i = 0; i < output.size(); ++i) {
       output[i].track_id = i;
+}
 
     if (d->verbosity > 1)
     {
@@ -306,24 +337,28 @@ namespace
   struct RawHitTimeSort
   {
     const std::vector<InModuleThreadData::RawHit>* raw_hits;
-    RawHitTimeSort(const std::vector<InModuleThreadData::RawHit>* h) : raw_hits(h) {}
+    explicit RawHitTimeSort(const std::vector<InModuleThreadData::RawHit>* h) : raw_hits(h) {}
     bool operator()(unsigned int a, unsigned int b) const
     {
       const InModuleThreadData::RawHit& ha = (*raw_hits)[a];
       const InModuleThreadData::RawHit& hb = (*raw_hits)[b];
-      if (ha.tbin != hb.tbin) return ha.tbin < hb.tbin;
+      if (ha.tbin != hb.tbin) { return ha.tbin < hb.tbin;
+}
       return ha.adc > hb.adc;
     }
   };
 
   void reject_long_pad_noise(InModuleThreadData* d)
   {
-    if (!d) return;
-    if (d->noise_max_consecutive_timebins <= 0) return;
-    if (d->noise_keep_first_timebins < 0) d->noise_keep_first_timebins = 0;
-    if (d->raw_hits.empty()) return;
+    if (!d) { return;
+}
+    if (d->noise_max_consecutive_timebins <= 0) { return;
+}
+    d->noise_keep_first_timebins = std::max(d->noise_keep_first_timebins, 0);
+    if (d->raw_hits.empty()) { return;
+}
 
-    typedef std::pair<unsigned int, unsigned short> LayerPadKey;
+    using LayerPadKey = std::pair<unsigned int, unsigned short>;
     std::map<LayerPadKey, std::vector<unsigned int> > by_layer_pad;
 
     for (unsigned int i = 0; i < d->raw_hits.size(); ++i)
@@ -335,11 +370,11 @@ namespace
     std::vector<int> remove(d->raw_hits.size(), 0);
     unsigned int nremoved = 0;
 
-    for (std::map<LayerPadKey, std::vector<unsigned int> >::iterator it = by_layer_pad.begin();
-         it != by_layer_pad.end(); ++it)
+    for (auto & it : by_layer_pad)
     {
-      std::vector<unsigned int>& idx = it->second;
-      if (idx.size() <= static_cast<unsigned int>(d->noise_max_consecutive_timebins)) continue;
+      std::vector<unsigned int>& idx = it.second;
+      if (idx.size() <= static_cast<unsigned int>(d->noise_max_consecutive_timebins)) { continue;
+}
 
       std::sort(idx.begin(), idx.end(), RawHitTimeSort(&d->raw_hits));
 
@@ -351,7 +386,8 @@ namespace
         {
           const unsigned short t0 = d->raw_hits[idx[run_end]].tbin;
           const unsigned short t1 = d->raw_hits[idx[run_end + 1]].tbin;
-          if (static_cast<int>(t1) != static_cast<int>(t0) + 1) break;
+          if (static_cast<int>(t1) != static_cast<int>(t0) + 1) { break;
+}
           ++run_end;
         }
 
@@ -364,7 +400,8 @@ namespace
           //bool in_non_increasing_tail = true;
           for (unsigned int ir = run_start; ir <= run_end; ++ir)
           {
-            if (ir < keep_until) continue;
+            if (ir < keep_until) { continue;
+}
 
             const unsigned int cur_idx  = idx[ir];
             const unsigned int prev_idx = idx[ir - 1];
@@ -399,13 +436,15 @@ namespace
       }
     }
 
-    if (nremoved == 0) return;
+    if (nremoved == 0) { return;
+}
 
     std::vector<InModuleThreadData::RawHit> kept;
     kept.reserve(d->raw_hits.size() - nremoved);
     for (unsigned int i = 0; i < d->raw_hits.size(); ++i)
     {
-      if (!remove[i]) kept.push_back(d->raw_hits[i]);
+      if (!remove[i]) { kept.push_back(d->raw_hits[i]);
+}
     }
 
     d->raw_hits.swap(kept);
@@ -426,20 +465,23 @@ namespace
     for (unsigned int ihs = 0; ihs < d->layer_hitsets.size(); ++ihs)
     {
       TrkrHitSet* hitset = d->layer_hitsets[ihs].hitset;
-      if (!hitset) continue;
+      if (!hitset) { continue;
+}
 
       TrkrHitSet::ConstRange range = hitset->getHits();
       for (TrkrHitSet::ConstIterator hitr = range.first; hitr != range.second; ++hitr)
       {
         const TrkrDefs::hitkey hitkey = hitr->first;
         const TrkrHit* hit = hitr->second;
-        if (!hit) continue;
+        if (!hit) { continue;
+}
 
         const unsigned short pad    = TpcDefs::getPad(hitkey);
         const unsigned short tbin   = TpcDefs::getTBin(hitkey);
         const unsigned short rawAdc = hit->getAdc();
         const double fadc = static_cast<double>(rawAdc) - d->pedestal;
-        if (fadc <= 0.0) continue;
+        if (fadc <= 0.0) { continue;
+}
 
         InModuleThreadData::RawHit rh;
         rh.layer        = d->layer_hitsets[ihs].layer;
@@ -461,13 +503,16 @@ namespace
 
     for (unsigned int i = 0; i < n; ++i)
     {
-      if (used[i]) continue;
+      if (used[i]) { continue;
+}
 
       used[i] = 1;
       std::deque<unsigned int> q;
       q.push_back(i);
 
-      double sw = 0.0, sp = 0.0, st = 0.0;
+      double sw = 0.0;
+      double sp = 0.0;
+      double st = 0.0;
       unsigned int nh = 0;
       const unsigned int layer = d->raw_hits[i].layer;
 
@@ -488,9 +533,11 @@ namespace
 
         for (unsigned int j = 0; j < n; ++j)
         {
-          if (used[j]) continue;
+          if (used[j]) { continue;
+}
           const InModuleThreadData::RawHit& hb = d->raw_hits[j];
-          if (hb.layer != layer) continue;
+          if (hb.layer != layer) { continue;
+}
 
           const int dp = std::abs(static_cast<int>(hb.pad)  - static_cast<int>(ha.pad));
           const int dt = std::abs(static_cast<int>(hb.tbin) - static_cast<int>(ha.tbin));
@@ -502,7 +549,8 @@ namespace
         }
       }
 
-      if (sw <= 0.0) continue;
+      if (sw <= 0.0) { continue;
+}
 
       bl.layer  = layer;
       bl.pad    = sp / sw;
@@ -525,13 +573,17 @@ namespace
     for (unsigned int i = 0; i < d->blobs.size(); ++i)
     {
       const InModuleThreadData::Blob& bl = d->blobs[i];
-      if (bl.used) continue;
-      if (bl.layer != target_layer) continue;
+      if (bl.used) { continue;
+}
+      if (bl.layer != target_layer) { continue;
+}
 
       const double dp = bl.pad  - pred_pad;
       const double dt = bl.tbin - pred_tbin;
-      if (std::fabs(dp) > d->search_dp) continue;
-      if (std::fabs(dt) > d->search_dt) continue;
+      if (std::fabs(dp) > d->search_dp) { continue;
+}
+      if (std::fabs(dt) > d->search_dt) { continue;
+}
 
       const double score = (dp * dp) / (d->search_dp * d->search_dp + 1.0e-9)
                          + (dt * dt) / (d->search_dt * d->search_dt + 1.0e-9)
@@ -549,10 +601,13 @@ namespace
     while (true)
     {
       unsigned int edge_layer = d->blobs[chain.back()].layer;
-      if (direction < 0) edge_layer = d->blobs[chain.front()].layer;
+      if (direction < 0) { edge_layer = d->blobs[chain.front()].layer;
+}
 
-      if (direction > 0 && edge_layer >= 54) break;
-      if (direction < 0 && edge_layer <= 7)  break;
+      if (direction > 0 && edge_layer >= 54) { break;
+}
+      if (direction < 0 && edge_layer <= 7) {  break;
+}
 
       const unsigned int target_layer =
         static_cast<unsigned int>(static_cast<int>(edge_layer) + direction);
@@ -577,13 +632,15 @@ namespace
       }
 
       const int ibest = find_best_blob_on_layer(d, target_layer, pred_pad, pred_tbin);
-      if (ibest < 0) break;
+      if (ibest < 0) { break;
+}
 
       d->blobs[ibest].used = 1;
-      if (direction > 0)
+      if (direction > 0) {
         chain.push_back(static_cast<unsigned int>(ibest));
-      else
+      } else {
         chain.insert(chain.begin(), static_cast<unsigned int>(ibest));
+}
     }
   }
 
@@ -593,14 +650,15 @@ namespace
 
     std::vector<unsigned int> order;
     order.reserve(d->blobs.size());
-    for (unsigned int i = 0; i < d->blobs.size(); ++i) order.push_back(i);
+    for (unsigned int i = 0; i < d->blobs.size(); ++i) { order.push_back(i);
+}
     std::sort(order.begin(), order.end(), BlobAdcSort(&d->blobs));
 
     unsigned int tid = 0;
-    for (unsigned int io = 0; io < order.size(); ++io)
+    for (unsigned int seed : order)
     {
-      const unsigned int seed = order[io];
-      if (d->blobs[seed].used) continue;
+      if (d->blobs[seed].used) { continue;
+}
 
       std::vector<unsigned int> chain;
       chain.push_back(seed);
@@ -611,8 +669,9 @@ namespace
 
       if (chain.size() < d->min_track_blobs)
       {
-        for (unsigned int k = 0; k < chain.size(); ++k)
-          d->blobs[chain[k]].used = 0;
+        for (unsigned int k : chain) {
+          d->blobs[k].used = 0;
+}
         continue;
       }
 
@@ -633,7 +692,8 @@ namespace
   void* ProcessModule(void* arg)
   {
     InModuleThreadData* d = static_cast<InModuleThreadData*>(arg);
-    if (!d) return 0;
+    if (!d) { return nullptr;
+}
 
     collect_raw_hits(d);
     reject_long_pad_noise(d);
@@ -650,7 +710,7 @@ namespace
                 << " tracks="   << d->tracks.size() << std::endl;
     }
 
-    return 0;
+    return nullptr;
   }
 
 } // anonymous namespace
@@ -659,7 +719,7 @@ namespace
 // Struct constructors
 // ===================================================================
 InModuleThreadData::LayerHitSet::LayerHitSet()
-  : layer(0), hitsetkey(0), hitset(0) {}
+  : layer(0), hitsetkey(0), hitset(nullptr) {}
 
 InModuleThreadData::RawHit::RawHit()
   : layer(0), hitsetkey(0), hitkey(0),
@@ -693,10 +753,10 @@ Tpc_ModuleTrackReco::Tpc_ModuleTrackReco(const std::string& name,
                                const std::string& filename)
   : SubsysReco(name),
     m_outputFileName(filename),
-    m_outputFile(0),
-    m_tree(0),
-    m_hits(0),
-    m_tpcModuleTrackContainer(0),
+    m_outputFile(nullptr),
+    m_tree(nullptr),
+    m_hits(nullptr),
+    m_tpcModuleTrackContainer(nullptr),
     m_event(0),
     m_maxThreads(72),
     m_pedestal(0.0),
@@ -723,7 +783,7 @@ Tpc_ModuleTrackReco::~Tpc_ModuleTrackReco()
   {
     m_outputFile->Close();
     delete m_outputFile;
-    m_outputFile = 0;
+    m_outputFile = nullptr;
   }
 }
 
@@ -732,9 +792,10 @@ void Tpc_ModuleTrackReco::setMaxThreads(unsigned int n)
   m_maxThreads = (n == 0) ? 1 : n;
 }
 
-int Tpc_ModuleTrackReco::Init(PHCompositeNode*)
+int Tpc_ModuleTrackReco::Init(PHCompositeNode* /*unused*/)
 {
-  if (Verbosity() <= 0) return Fun4AllReturnCodes::EVENT_OK;
+  if (Verbosity() <= 0) { return Fun4AllReturnCodes::EVENT_OK;
+}
 
   m_outputFile = new TFile(m_outputFileName.c_str(), "RECREATE");
   if (!m_outputFile || m_outputFile->IsZombie())
@@ -774,22 +835,25 @@ int Tpc_ModuleTrackReco::Init(PHCompositeNode*)
 
 int Tpc_ModuleTrackReco::InitRun(PHCompositeNode* topNode)
 {
-  if (getNodes(topNode)    != Fun4AllReturnCodes::EVENT_OK) return Fun4AllReturnCodes::ABORTRUN;
-  if (createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) return Fun4AllReturnCodes::ABORTRUN;
+  if (getNodes(topNode)    != Fun4AllReturnCodes::EVENT_OK) { return Fun4AllReturnCodes::ABORTRUN;
+}
+  if (createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) { return Fun4AllReturnCodes::ABORTRUN;
+}
 
   m_event = 0;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int Tpc_ModuleTrackReco::End(PHCompositeNode*)
+int Tpc_ModuleTrackReco::End(PHCompositeNode* /*unused*/)
 {
   if (m_outputFile)
   {
     m_outputFile->cd();
-    if (m_tree) m_tree->Write();
+    if (m_tree) { m_tree->Write();
+}
     m_outputFile->Close();
     delete m_outputFile;
-    m_outputFile = 0;
+    m_outputFile = nullptr;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -861,11 +925,12 @@ void Tpc_ModuleTrackReco::reset_tree_vars()
   m_tree_hit_hitkey.clear();
 }
 
-int Tpc_ModuleTrackReco::process_event(PHCompositeNode*)
+int Tpc_ModuleTrackReco::process_event(PHCompositeNode* /*unused*/)
 {
   reset_tree_vars();
 
-  if (m_tpcModuleTrackContainer) m_tpcModuleTrackContainer->Reset();
+  if (m_tpcModuleTrackContainer) { m_tpcModuleTrackContainer->Reset();
+}
 
   std::vector<InModuleThreadData> tdata;
   tdata.reserve(72);
@@ -904,7 +969,8 @@ int Tpc_ModuleTrackReco::process_event(PHCompositeNode*)
           const unsigned int layer = region * 16 + l + 7;
           const TrkrDefs::hitsetkey hitset_key = TpcDefs::genHitSetKey(layer, sector, side);
           TrkrHitSet* hitset = m_hits->findHitSet(hitset_key);
-          if (!hitset) continue;
+          if (!hitset) { continue;
+}
 
           InModuleThreadData::LayerHitSet lhs;
           lhs.layer     = layer;
@@ -913,7 +979,8 @@ int Tpc_ModuleTrackReco::process_event(PHCompositeNode*)
           td.layer_hitsets.push_back(lhs);
         }
 
-        if (!td.layer_hitsets.empty()) tdata.push_back(td);
+        if (!td.layer_hitsets.empty()) { tdata.push_back(td);
+}
       }
     }
   }
@@ -921,7 +988,7 @@ int Tpc_ModuleTrackReco::process_event(PHCompositeNode*)
   std::cout << Name() << "::process_event - event " << m_event
             << " has " << tdata.size() << " non-empty modules" << std::endl;
 
-  const unsigned int maxLive = std::max(1u,
+  const unsigned int maxLive = std::max(1U,
     std::min(m_maxThreads, static_cast<unsigned int>(tdata.size())));
 
   for (unsigned int start = 0; start < static_cast<unsigned int>(tdata.size()); start += maxLive)
@@ -936,7 +1003,7 @@ int Tpc_ModuleTrackReco::process_event(PHCompositeNode*)
     for (unsigned int i = 0; i < nLive; ++i)
     {
       const unsigned int idx = start + i;
-      const int rc = pthread_create(&threads[i], 0, ProcessModule,
+      const int rc = pthread_create(&threads[i], nullptr, ProcessModule,
                                     static_cast<void*>(&tdata[idx]));
       if (rc != 0)
       {
@@ -951,15 +1018,15 @@ int Tpc_ModuleTrackReco::process_event(PHCompositeNode*)
       }
     }
 
-    for (unsigned int i = 0; i < nLive; ++i)
-      if (thread_ok[i]) pthread_join(threads[i], 0);
+    for (unsigned int i = 0; i < nLive; ++i) {
+      if (thread_ok[i]) { pthread_join(threads[i], nullptr);
+}
+}
   }
 
   // Harvest results from all modules
-  for (unsigned int im = 0; im < tdata.size(); ++im)
+  for (const auto & td : tdata)
   {
-    const InModuleThreadData& td = tdata[im];
-
     for (unsigned int it = 0; it < td.tracks.size(); ++it)
     {
       const InModuleThreadData::Track& tr = td.tracks[it];
@@ -993,9 +1060,9 @@ int Tpc_ModuleTrackReco::process_event(PHCompositeNode*)
       m_tree_last_layer.push_back(tr.last_layer);
 
       // Hit references: (hitsetkey, hitkey) only — no data copy
-      for (unsigned int ih = 0; ih < tr.raw_hit_indices.size(); ++ih)
+      for (unsigned int raw_hit_indice : tr.raw_hit_indices)
       {
-        const InModuleThreadData::RawHit& rh = td.raw_hits[tr.raw_hit_indices[ih]];
+        const InModuleThreadData::RawHit& rh = td.raw_hits[raw_hit_indice];
 
         outTrack->add_hit_index(rh.hitsetkey, rh.hitkey);
 
@@ -1009,14 +1076,16 @@ int Tpc_ModuleTrackReco::process_event(PHCompositeNode*)
         m_tree_hit_hitkey.push_back(static_cast<unsigned long long>(rh.hitkey));
       }
 
-      if (m_tpcModuleTrackContainer)
+      if (m_tpcModuleTrackContainer) {
         m_tpcModuleTrackContainer->add_track(outTrack);
-      else
+      } else {
         delete outTrack;
+}
     }
   }
 
-  if (m_tree) m_tree->Fill();
+  if (m_tree) { m_tree->Fill();
+}
 
   if (Verbosity() > 0)
   {
@@ -1024,14 +1093,16 @@ int Tpc_ModuleTrackReco::process_event(PHCompositeNode*)
               << " tracks=" << m_tree_track_id.size()
               << " track-raw-hits=" << m_tree_hit_track_id.size() << std::endl;
   }
-  if (m_tpcModuleTrackContainer && Verbosity() > 0)
+  if (m_tpcModuleTrackContainer && Verbosity() > 0) {
     m_tpcModuleTrackContainer->identify();
+}
   if (m_tpcModuleTrackContainer && Verbosity() > 1)
   {
     for (unsigned int i = 0; i < m_tpcModuleTrackContainer->size(); ++i)
     {
       const Tpc_ModuleTrack* trk = m_tpcModuleTrackContainer->get_track(i);
-      if (trk) trk->identify();
+      if (trk) { trk->identify();
+}
     }
   }
 

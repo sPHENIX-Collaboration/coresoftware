@@ -34,7 +34,6 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
-#include <cmath>
 
 namespace fs = std::filesystem;
 
@@ -398,8 +397,10 @@ bool PHGarfield::LoadElectricFieldCorrections(const std::string& filename)
   auto* ez = dynamic_cast<TH2*>(input->Get("QA/hEzDefault"));
 
   // Also allow maps written at the ROOT-file top level.
-  if (!er) er = dynamic_cast<TH2*>(input->Get("hErDefault"));
-  if (!ez) ez = dynamic_cast<TH2*>(input->Get("hEzDefault"));
+  if (!er) { er = dynamic_cast<TH2*>(input->Get("hErDefault"));
+}
+  if (!ez) { ez = dynamic_cast<TH2*>(input->Get("hEzDefault"));
+}
 
   if (!er || !ez)
   {

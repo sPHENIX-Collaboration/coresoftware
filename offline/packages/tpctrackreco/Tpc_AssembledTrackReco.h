@@ -250,7 +250,7 @@ class Tpc_AssembledTrackReco : public SubsysReco
   // ---------------------------------------------------------------
   // TTree branches
   // ---------------------------------------------------------------
-  int                        m_tree_event;
+  int                        m_tree_event{};
   std::vector<unsigned int>  m_tree_track_id;
   std::vector<int>           m_tree_side;
   std::vector<unsigned int>  m_tree_nsegments;
