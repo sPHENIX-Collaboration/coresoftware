@@ -26,6 +26,7 @@ class PHG4GeantinoIonization : public SubsysReco
   explicit PHG4GeantinoIonization(const std::string& name = "PHG4GeantinoIonization");
   ~PHG4GeantinoIonization() override = default;
 
+  int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
 
   void set_particle_name(const std::string& name) { m_particleName = name; }
@@ -38,29 +39,6 @@ class PHG4GeantinoIonization : public SubsysReco
 
   void set_mvtx_mip_dedx(double value);
   void set_intt_mip_dedx(double value);
-
-  /**
-   * Configure the TPC mean MIP stopping power from the same gas fractions
-   * passed to PHG4TpcElectronDrift. Fractions are expected to sum to one.
-   */
-  void set_tpc_gas_fractions(
-      double neon,
-      double argon,
-      double cf4,
-      double nitrogen,
-      double isobutane);
-
-  void set_tpot_gas_fractions(
-      double neon,
-      double argon,
-      double cf4,
-      double nitrogen,
-      double isobutane);
-
-  void set_tpot_gas_fractions(double argon, double isobutane)
-  {
-    set_tpot_gas_fractions(0, argon, 0, 0, isobutane);
-  }
 
  private:
   enum class DetectorId
@@ -84,10 +62,11 @@ class PHG4GeantinoIonization : public SubsysReco
       const PHG4TruthInfoContainer* truthInfo,
       const DetectorConfig& config) const;
 
-  static double mip_dedx(DetectorId detector);
+  double mip_dedx(DetectorId detector) const;
 
   std::array<DetectorConfig, 4> m_detectorConfigs;
   std::string m_particleName = "chargedgeantino";
+  double m_tpcMipDedx = 0;
 };
 
 #endif  // G4DETECTORS_PHG4GEANTINOIONIZATION_H

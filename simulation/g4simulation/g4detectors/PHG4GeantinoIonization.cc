@@ -7,6 +7,9 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <phparameter/PHParameters.h>
+#include <phparameter/PHParametersContainer.h>
+
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
@@ -16,15 +19,6 @@
 
 namespace
 {
-  struct GasFractions
-  {
-    double neon = 0;
-    double argon = 0;
-    double cf4 = 0;
-    double nitrogen = 0;
-    double isobutane = 0;
-  };
-
   // Pure-gas MIP stopping powers in keV/cm. They match the values used by
   // the current TPC and Micromegas hit-reconstruction modules.
   constexpr double neonMipDedx = 1.56;
@@ -39,17 +33,10 @@ namespace
   double mvtxMipDedx = 0.00384;
   double inttMipDedx = 0.00387;
 
-  GasFractions tpcGasFractions{0.00, 0.75, 0.20, 0.00, 0.05};
-  GasFractions tpotGasFractions{0.00, 0.90, 0.00, 0.00, 0.10};
-
-  double calculateMipDedx(const GasFractions& fractions)
-  {
-    return fractions.neon * neonMipDedx +
-           fractions.argon * argonMipDedx +
-           fractions.cf4 * cf4MipDedx +
-           fractions.nitrogen * nitrogenMipDedx +
-           fractions.isobutane * isobutaneMipDedx;
-  }
+  // PHG4MicromegasDetector and PHG4MicromegasHitReco both use a fixed
+  // Ar/isobutane 90/10 gas mixture.
+  constexpr double tpotMipDedx =
+      1e-6 * (0.9 * argonMipDedx + 0.1 * isobutaneMipDedx);
 }  // namespace
 
 PHG4GeantinoIonization::PHG4GeantinoIonization(const std::string& name)
@@ -62,6 +49,58 @@ PHG4GeantinoIonization::PHG4GeantinoIonization(const std::string& name)
 {
 }
 
+int PHG4GeantinoIonization::InitRun(PHCompositeNode* topNode)
+{
+  if (!m_detectorConfigs[2].enabled)
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
+  // Read the gas fractions from the TPC geometry parameters, as is done in
+  // PHG4TpcElectronDrift. This keeps the synthetic ionization consistent with
+  // the geometry built by the macro or loaded from the CDB.
+  const auto* tpcParamsContainer =
+      findNode::getClass<PHParametersContainer>(topNode, "G4GEO_TPC");
+  if (!tpcParamsContainer)
+  {
+    std::cout << PHWHERE << " Missing G4GEO_TPC" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  const PHParameters* tpcParams = tpcParamsContainer->GetParameters(0);
+  if (!tpcParams)
+  {
+    std::cout << PHWHERE << " Missing TPC geometry parameters" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  const double neonFraction = tpcParams->get_double_param("Ne_frac");
+  const double argonFraction = tpcParams->get_double_param("Ar_frac");
+  const double cf4Fraction = tpcParams->get_double_param("CF4_frac");
+  const double nitrogenFraction = tpcParams->get_double_param("N2_frac");
+  const double isobutaneFraction = tpcParams->get_double_param("isobutane_frac");
+
+  m_tpcMipDedx =
+      1e-6 * (neonFraction * neonMipDedx +
+              argonFraction * argonMipDedx +
+              cf4Fraction * cf4MipDedx +
+              nitrogenFraction * nitrogenMipDedx +
+              isobutaneFraction * isobutaneMipDedx);
+
+  if (Verbosity() > 0)
+  {
+    std::cout << Name()
+              << " TPC gas fractions (Ne/Ar/CF4/N2/isobutane): "
+              << neonFraction << "/" << argonFraction << "/"
+              << cf4Fraction << "/" << nitrogenFraction << "/"
+              << isobutaneFraction
+              << ", MIP dE/dx: " << m_tpcMipDedx << " GeV/cm"
+              << std::endl;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
 void PHG4GeantinoIonization::set_mvtx_mip_dedx(const double value)
 {
   mvtxMipDedx = value;
@@ -72,27 +111,7 @@ void PHG4GeantinoIonization::set_intt_mip_dedx(const double value)
   inttMipDedx = value;
 }
 
-void PHG4GeantinoIonization::set_tpc_gas_fractions(
-    const double neon,
-    const double argon,
-    const double cf4,
-    const double nitrogen,
-    const double isobutane)
-{
-  tpcGasFractions = {neon, argon, cf4, nitrogen, isobutane};
-}
-
-void PHG4GeantinoIonization::set_tpot_gas_fractions(
-    const double neon,
-    const double argon,
-    const double cf4,
-    const double nitrogen,
-    const double isobutane)
-{
-  tpotGasFractions = {neon, argon, cf4, nitrogen, isobutane};
-}
-
-double PHG4GeantinoIonization::mip_dedx(const DetectorId detector)
+double PHG4GeantinoIonization::mip_dedx(const DetectorId detector) const
 {
   switch (detector)
   {
@@ -101,9 +120,9 @@ double PHG4GeantinoIonization::mip_dedx(const DetectorId detector)
   case DetectorId::intt:
     return inttMipDedx;
   case DetectorId::tpc:
-    return 1e-6 * calculateMipDedx(tpcGasFractions);
+    return m_tpcMipDedx;
   case DetectorId::tpot:
-    return 1e-6 * calculateMipDedx(tpotGasFractions);
+    return tpotMipDedx;
   }
 
   return 0;
