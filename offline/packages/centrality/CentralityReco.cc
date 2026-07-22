@@ -258,10 +258,13 @@ int CentralityReco::process_event(PHCompositeNode *topNode)
   }
 
   // Get Nodes from the Tree
-  if (GetNodes(topNode))
+  int ret = GetNodes(topNode);
+  if (ret != Fun4AllReturnCodes::EVENT_OK)
   {
-    return Fun4AllReturnCodes::ABORTRUN;
+    return ret;
   }
+
+  m_central->Reset();
 
   if (!m_mb_info->isAuAuMinimumBias())
   {

@@ -42,44 +42,24 @@ int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
 
-  if (m_species == MinimumBiasInfo::SPECIES::AUAU)
-  {
-    m_useZDC          = true;
-    m_box_cut         = true;
-    m_hit_cut         = 2;
-    m_max_charge_cut  = 2100;
-    m_mbd_charge_cut  = 0.5;
-    m_mbd_time_cut    = 25.;
-    m_z_vtx_cut       = 60.;
-    m_mbd_north_cut   = 10.;
-    m_mbd_south_cut   = 150.;
-    m_zdc_cut         = 60.;
-  }
   if (m_species == MinimumBiasInfo::SPECIES::OO)
   {
-    m_useZDC          = false;
-    m_box_cut         = false;
-    m_hit_cut         = 1;
-    m_max_charge_cut  = 400;
-    m_mbd_charge_cut  = 0.4;
-    m_mbd_time_cut    = 20.;
-    m_z_vtx_cut       = 150.;
-    m_mbd_north_cut   = 10.;
-    m_mbd_south_cut   = 150.;
-    m_zdc_cut         = 60.;
+    m_useZDC         = false;
+    m_box_cut        = false;
+    m_hit_cut        = 1;
+    m_max_charge_cut = 400;
+    m_mbd_charge_cut = 0.4;
+    m_mbd_time_cut   = 20.;
+    m_z_vtx_cut      = 150.;
   }
-  if (m_species == MinimumBiasInfo::SPECIES::PP)
+  else if (m_species == MinimumBiasInfo::SPECIES::PP)
   {
-    m_useZDC          = false;
-    m_box_cut         = false;
-    m_hit_cut         = 1;
-    m_max_charge_cut  = 300;
-    m_mbd_charge_cut  = 0.4;
-    m_mbd_time_cut    = 20.;
-    m_z_vtx_cut       = 60.;
-    m_mbd_north_cut   = 10.;
-    m_mbd_south_cut   = 150.;
-    m_zdc_cut         = 60.;
+    m_useZDC         = false;
+    m_box_cut        = false;
+    m_hit_cut        = 1;
+    m_max_charge_cut = 300;
+    m_mbd_charge_cut = 0.4;
+    m_mbd_time_cut   = 20.;
   }
 
   CDBInterface *m_cdb = CDBInterface::instance();
@@ -289,9 +269,10 @@ int MinimumBiasClassifier::process_event(PHCompositeNode *topNode)
   }
 
   // Get Nodes from the Tree
-  if (GetNodes(topNode))
+  int ret = GetNodes(topNode);
+  if (ret != Fun4AllReturnCodes::EVENT_OK)
   {
-    return Fun4AllReturnCodes::EVENT_OK;
+    return ret;
   }
 
   if (FillMinimumBiasInfo())
@@ -376,7 +357,6 @@ void MinimumBiasClassifier::CreateNodes(PHCompositeNode *topNode)
   PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", "GLOBAL"));
   if (!detNode)
   {
-    std::cout << PHWHERE << "Detector Node missing, making one" << std::endl;
     detNode = new PHCompositeNode("GLOBAL");
     dstNode->addNode(detNode);
   }

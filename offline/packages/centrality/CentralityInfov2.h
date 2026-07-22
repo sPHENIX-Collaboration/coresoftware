@@ -13,7 +13,7 @@ class CentralityInfov2 : public CentralityInfov1
   ~CentralityInfov2() override = default;
 
   void identify(std::ostream &os = std::cout) const override;
-  void Reset() override {}
+  void Reset() override;
 
   PHObject* CloneMe() const override { return new CentralityInfov2(*this); }
   void CopyTo(CentralityInfo *info) override;
