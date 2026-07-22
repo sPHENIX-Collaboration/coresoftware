@@ -10,6 +10,11 @@
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 
+#include <pdbcalbase/PdbParameterMapContainer.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHDataNode.h>
+#include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
@@ -59,12 +64,46 @@ int PHG4GeantinoIonization::InitRun(PHCompositeNode* topNode)
   // Read the gas fractions from the TPC geometry parameters, as is done in
   // PHG4TpcElectronDrift. This keeps the synthetic ionization consistent with
   // the geometry built by the macro or loaded from the CDB.
-  const auto* tpcParamsContainer =
+  auto* tpcParamsContainer =
       findNode::getClass<PHParametersContainer>(topNode, "G4GEO_TPC");
   if (!tpcParamsContainer)
   {
-    std::cout << PHWHERE << " Missing G4GEO_TPC" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    // Tracking geometry loaded from the CDB initially provides the serialized
+    // RUN-node parameters. Rebuild G4GEO_TPC from them before TPC hit
+    // reconstruction, following PHG4TpcElectronDrift::InitRun.
+    auto* tpcPdbParams =
+        findNode::getClass<PdbParameterMapContainer>(topNode, "G4GEOPARAM_TPC");
+    if (!tpcPdbParams)
+    {
+      std::cout << PHWHERE
+                << " Missing both G4GEO_TPC and G4GEOPARAM_TPC"
+                << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+    PHNodeIterator topIter(topNode);
+    auto* parNode = dynamic_cast<PHCompositeNode*>(
+        topIter.findFirst("PHCompositeNode", "PAR"));
+    if (!parNode)
+    {
+      std::cout << PHWHERE << " Missing PAR node" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+    PHNodeIterator parIter(parNode);
+    auto* parTpcNode = dynamic_cast<PHCompositeNode*>(
+        parIter.findFirst("PHCompositeNode", "TPC"));
+    if (!parTpcNode)
+    {
+      parTpcNode = new PHCompositeNode("TPC");
+      parNode->addNode(parTpcNode);
+    }
+
+    tpcParamsContainer = new PHParametersContainer("TPC");
+    tpcParamsContainer->CreateAndFillFrom(tpcPdbParams, "TPC");
+    parTpcNode->addNode(
+        new PHDataNode<PHParametersContainer>(
+            tpcParamsContainer, "G4GEO_TPC"));
   }
 
   const PHParameters* tpcParams = tpcParamsContainer->GetParameters(0);
