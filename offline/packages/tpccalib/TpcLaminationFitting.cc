@@ -316,7 +316,10 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
     const auto &[cmkey, cmclus_orig] = *cmitr;
     LaserCluster *cmclus = cmclus_orig;
 
-    if(cmclus->getNLayers() <= m_nLayerCut) continue;
+    if(cmclus->getNLayers() <= m_nLayerCut)
+    {
+      continue;
+    }
 
     bool side = (bool) TpcDefs::getSide(cmkey);
     double weight = 1.0;
