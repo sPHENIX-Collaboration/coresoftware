@@ -13,6 +13,7 @@
 #include <limits>
 #include <map>
 #include <set>
+#include <string>
 #include <vector>
 
 class Jet;
@@ -122,6 +123,22 @@ class JetContainer : public PHObject
 
   virtual void set_rho_median(float /**/){};
   virtual float get_rho_median() const { return std::numeric_limits<float>::quiet_NaN(); };
+
+  // ---------------------------------------------------------------------------------------
+  // z-vertex used in the jet reconstruction, recorded from the jet inputs.
+  // The type is the GlobalVertex::VTXTYPE name selected with
+  // TowerJetInput::set_GlobalVertexType() ("MBD", "SVTX", ...), "UNDEFINED" when
+  // no type selection was applied, or "" when the inputs did not use a vertex.
+  // The z is the value actually used in the reconstruction: 0 when the vertex
+  // was NaN or missing, NaN only when the inputs did not use a vertex at all.
+  // ---------------------------------------------------------------------------------------
+  virtual bool has_zvertex() const { return false; };
+
+  virtual void set_vertex_type(const std::string& /**/){};
+  virtual std::string get_vertex_type() const { return ""; };
+
+  virtual void set_vertex_z(float /**/){};
+  virtual float get_vertex_z() const { return std::numeric_limits<float>::quiet_NaN(); };
 
  private:
   ClassDefOverride(JetContainer, 1);

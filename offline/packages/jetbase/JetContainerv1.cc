@@ -14,8 +14,12 @@ JetContainerv1::JetContainerv1() : m_clones(new TClonesArray("Jetv2", 50))
 
 void JetContainerv1::identify(std::ostream& os) const
 {
-  os << "JetContainerv1: size = " << m_clones->GetEntriesFast() << std::endl
-     << "  Contains jets with the following properties:" << std::endl;
+  os << "JetContainerv1: size = " << m_clones->GetEntriesFast() << std::endl;
+  if (!m_vertex_type.empty())
+  {
+    os << "  reconstructed with vertex type " << m_vertex_type << " at z = " << m_vertex_z << std::endl;
+  }
+  os << "  Contains jets with the following properties:" << std::endl;
   print_property_types(os);
   return;
 }
@@ -25,8 +29,10 @@ JetContainerv1::JetContainerv1(const JetContainer& rhs)
   , m_pindex{rhs.property_indices()}
   , m_psize{rhs.size_properties()}
   , m_RhoMedian{rhs.get_rho_median()}
+  , m_vertex_type{rhs.get_vertex_type()}
+  , m_vertex_z{rhs.get_vertex_z()}
 {
-  
+
 
   for (auto src = rhs.begin_src(); src != rhs.end_src(); ++src)
   {
@@ -47,6 +53,8 @@ void JetContainerv1::Reset()
   m_clones->Clear("C");
   m_njets = 0;
   m_RhoMedian = std::numeric_limits<float>::quiet_NaN();
+  m_vertex_type.clear();
+  m_vertex_z = std::numeric_limits<float>::quiet_NaN();
 }
 
 Jet* JetContainerv1::add_jet()
@@ -200,6 +208,8 @@ std::string JetContainerv1::str_Jet_PROPERTY(Jet::PROPERTY prop)
     return "JetHadronZT";
   case Jet::PROPERTY::prop_area:
     return "area";
+  case Jet::PROPERTY::prop_t:
+    return "t";
   default:
     return "no_property";
   }

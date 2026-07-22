@@ -93,6 +93,16 @@ class JetContainerv1 : public JetContainer
   void set_rho_median(float _) override { m_RhoMedian = _; };
   float get_rho_median() const override { return m_RhoMedian; };
 
+  // z-vertex used in the jet reconstruction
+  // (a set vertex type marks that the jet inputs used a z-vertex)
+  bool has_zvertex() const override { return !m_vertex_type.empty(); };
+
+  void set_vertex_type(const std::string& type) override { m_vertex_type = type; };
+  std::string get_vertex_type() const override { return m_vertex_type; };
+
+  void set_vertex_z(float z) override { m_vertex_z = z; };
+  float get_vertex_z() const override { return m_vertex_z; };
+
  private:
   static std::string str_Jet_PROPERTY(Jet::PROPERTY) ;
 
@@ -113,7 +123,11 @@ class JetContainerv1 : public JetContainer
 
   float m_RhoMedian{std::numeric_limits<float>::signaling_NaN()};
 
-  ClassDefOverride(JetContainerv1, 1);
+  // z-vertex used in the jet reconstruction
+  std::string m_vertex_type;
+  float m_vertex_z{std::numeric_limits<float>::quiet_NaN()};
+
+  ClassDefOverride(JetContainerv1, 2);
 };
 
 #endif

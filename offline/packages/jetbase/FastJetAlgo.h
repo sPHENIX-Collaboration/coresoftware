@@ -46,6 +46,10 @@ class FastJetAlgo : public JetAlgo
   void set_SoftDrop_zcut(float zcut) { m_opt.SD_zcut = zcut; }
   //--end-legacy-code-interface-------------------------------------------
 
+  // calculate the EMCal/iHCal/oHCal energy fractions (layer energy / jet total
+  // energy), read back with Jet::get_emcal_frac() etc.; on by default
+  void set_calc_calo_fractions(bool b) { m_opt.calc_calo_fracs = b; }
+
   std::vector<Jet*> get_jets(std::vector<Jet*> particles) override;
   void cluster_and_fill(std::vector<Jet*>& particles, JetContainer* jetcont) override;
 

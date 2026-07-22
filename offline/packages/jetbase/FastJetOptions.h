@@ -95,6 +95,11 @@ struct FastJetOptions
 
   bool save_jet_components{true};
 
+  // calculate calorimeter energy fractions (layer energy / jet total energy),
+  // stored in the jet and read back with Jet::get_emcal_frac()/get_ihcal_frac()/get_ohcal_frac().
+  // Toggle with set_calc_calo_fractions(bool) on FastJetAlgo/FastJetAlgoSub.
+  bool calc_calo_fracs{true};
+
   // softdrop
   bool doSoftDrop{false};
   float SD_beta{0};

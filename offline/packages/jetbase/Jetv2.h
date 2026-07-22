@@ -75,6 +75,16 @@ class Jetv2 : public Jet
   float get_e() const override { return _e; }
   void set_e(float e) override { _e = e; }
 
+  // calorimeter energy fractions (layer energy / jet total energy)
+  float get_emcal_frac() const override { return _emcal_frac; }
+  void set_emcal_frac(float frac) override { _emcal_frac = frac; }
+
+  float get_ihcal_frac() const override { return _ihcal_frac; }
+  void set_ihcal_frac(float frac) override { _ihcal_frac = frac; }
+
+  float get_ohcal_frac() const override { return _ohcal_frac; }
+  void set_ohcal_frac(float frac) override { _ohcal_frac = frac; }
+
   float get_eta() const override;
 
   int get_isCalib()  override {return _isCalib;}
@@ -133,6 +143,11 @@ class Jetv2 : public Jet
   /// jet energy
   float _e {std::numeric_limits<float>::quiet_NaN()};
 
+  /// calorimeter energy fractions (layer energy / jet total energy)
+  float _emcal_frac{std::numeric_limits<float>::quiet_NaN()};
+  float _ihcal_frac{std::numeric_limits<float>::quiet_NaN()};
+  float _ohcal_frac{std::numeric_limits<float>::quiet_NaN()};
+
   /// calibration flag
   int _isCalib{0};
   /// source id -> component id
@@ -166,7 +181,7 @@ class Jetv2 : public Jet
   void erase_comp(Iter /*iter*/) override;
   void erase_comp(Iter /*first*/, Iter /*last*/) override;
 
-  ClassDefOverride(Jetv2, 1);
+  ClassDefOverride(Jetv2, 2);
 };
 
 #endif  // JETBASE_JETV2_H

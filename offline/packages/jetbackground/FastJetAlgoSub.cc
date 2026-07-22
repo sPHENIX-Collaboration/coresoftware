@@ -14,6 +14,58 @@
 #include <sstream>  // for basic_ostringstream
 #include <vector>
 
+namespace
+{
+  // which calorimeter layer a jet input source belongs to,
+  // for the EMCal/iHCal/oHCal jet energy fractions
+  enum class CaloLayer
+  {
+    NONE,
+    EMCAL,
+    IHCAL,
+    OHCAL
+  };
+
+  CaloLayer get_calo_layer(Jet::SRC src)
+  {
+    switch (src)
+    {
+    case Jet::CEMC_TOWER:
+    case Jet::CEMC_CLUSTER:
+    case Jet::CEMC_TOWER_RETOWER:
+    case Jet::CEMC_TOWER_SUB1:
+    case Jet::CEMC_TOWER_SUB1CS:
+    case Jet::CEMC_TOWERINFO:
+    case Jet::CEMC_TOWERINFO_RETOWER:
+    case Jet::CEMC_TOWERINFO_SUB1:
+    case Jet::CEMC_TOWERINFO_EMBED:
+    case Jet::CEMC_TOWERINFO_SIM:
+    case Jet::ECAL_TOPO_CLUSTER:
+      return CaloLayer::EMCAL;
+    case Jet::HCALIN_TOWER:
+    case Jet::HCALIN_CLUSTER:
+    case Jet::HCALIN_TOWER_SUB1:
+    case Jet::HCALIN_TOWER_SUB1CS:
+    case Jet::HCALIN_TOWERINFO:
+    case Jet::HCALIN_TOWERINFO_SUB1:
+    case Jet::HCALIN_TOWERINFO_EMBED:
+    case Jet::HCALIN_TOWERINFO_SIM:
+      return CaloLayer::IHCAL;
+    case Jet::HCALOUT_TOWER:
+    case Jet::HCALOUT_CLUSTER:
+    case Jet::HCALOUT_TOWER_SUB1:
+    case Jet::HCALOUT_TOWER_SUB1CS:
+    case Jet::HCALOUT_TOWERINFO:
+    case Jet::HCALOUT_TOWERINFO_SUB1:
+    case Jet::HCALOUT_TOWERINFO_EMBED:
+    case Jet::HCALOUT_TOWERINFO_SIM:
+      return CaloLayer::OHCAL;
+    default:
+      return CaloLayer::NONE;
+    }
+  }
+}  // namespace
+
 FastJetAlgoSub::FastJetAlgoSub(const FastJetOptions& options)
   : m_opt{options}
 {
@@ -140,6 +192,9 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
     float total_e = 0;
     float w_t_sum = 0;
     float w_e_sum = 0;
+    float emcal_e = 0;
+    float ihcal_e = 0;
+    float ohcal_e = 0;
     // copy components into output jet
     std::vector<fastjet::PseudoJet> comps = fastjets[ijet].constituents();
     for (auto& comp : comps)
@@ -150,6 +205,23 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
       total_py += particle->get_py();
       total_pz += particle->get_pz();
       total_e += particle->get_e();
+      if (m_opt.calc_calo_fracs && !particle->get_comp_vec().empty())
+      {
+        switch (get_calo_layer(particle->get_comp_vec().front().first))
+        {
+        case CaloLayer::EMCAL:
+          emcal_e += particle->get_e();
+          break;
+        case CaloLayer::IHCAL:
+          ihcal_e += particle->get_e();
+          break;
+        case CaloLayer::OHCAL:
+          ohcal_e += particle->get_e();
+          break;
+        case CaloLayer::NONE:
+          break;
+        }
+      }
       if(particle->size_properties() > Jet::PROPERTY::prop_t)
 	{
 	  if(!std::isnan(particle->get_property(Jet::PROPERTY::prop_t)))
@@ -167,7 +239,7 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
     jet->set_property(Jet::PROPERTY::prop_t,w_t_sum/w_e_sum); //This intentionally becomes nan (0/0) if the
                                                               //value has not been filled at all so that
                                                               //the jet auto-fails timing cuts if necessary
-      
+
     jet->set_comp_sort_flag();  // make sure jet know comps might not be sorted
                                 // alternatively can just ommit the `true`
                                 // in insert_comp call above
@@ -176,6 +248,14 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
     jet->set_pz(total_pz);
     jet->set_e(total_e);
     jet->set_id(ijet);
+
+    // calo energy fractions: original tower energy per layer / jet total energy
+    if (m_opt.calc_calo_fracs && jet->get_e() != 0)
+    {
+      jet->set_emcal_frac(emcal_e / jet->get_e());
+      jet->set_ihcal_frac(ihcal_e / jet->get_e());
+      jet->set_ohcal_frac(ohcal_e / jet->get_e());
+    }
 
     if (m_opt.verbosity > 5 && fastjets[ijet].perp() > 15)
     {
