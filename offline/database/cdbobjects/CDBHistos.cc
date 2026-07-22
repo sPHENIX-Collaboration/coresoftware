@@ -36,7 +36,8 @@ void CDBHistos::WriteCDBHistos()
     return;
   }
   std::string currdir = gDirectory->GetPath();
-  TFile *f = TFile::Open(m_Filename.c_str(), "RECREATE");
+  std::string reproducible_TFile_name = PHUtils::CreateReproducibleTFileName(m_Filename);
+  TFile *f = TFile::Open(reproducible_TFile_name.c_str(), "RECREATE");
   for (auto &iter : m_HistoMap)
   {
     iter.second->Write();

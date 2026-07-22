@@ -15,6 +15,9 @@ libcdbobjects_la_SOURCES = \
   CDBTTree.cc
 
 libcdbobjects_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  -lphool \
   `root-config --libs`
 
 ##############################################
