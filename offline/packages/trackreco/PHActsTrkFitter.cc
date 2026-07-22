@@ -1039,7 +1039,7 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
     const auto* nextSurface = surfaces.at(i + 1);
     const auto nextVolume = nextSurface->geometryId().volume();
 
-    const Acts::Vector3 next_center = nextSurface->center(m_tGeometry->geometry().getGeoContext());
+    const Acts::Vector3 next_center = surface->center(m_tGeometry->geometry().getGeoContext());
     double nextRadius = sqrt(next_center.x()*next_center.x()+next_center.y()*next_center.y());
     
     /// Implement a check to ensure surfaces are sorted
