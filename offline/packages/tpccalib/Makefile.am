@@ -60,12 +60,8 @@ ROOTDICTS = \
   TpcSpaceChargeMatrixContainerv2_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  MicromegasDriftEvaluator_Dict_rdict.pcm \
-  SiliconDriftEvaluator_Dict_rdict.pcm \
-  TpcSpaceChargeMatrixContainer_Dict_rdict.pcm \
-  TpcSpaceChargeMatrixContainerv1_Dict_rdict.pcm \
-  TpcSpaceChargeMatrixContainerv2_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libtpccalib_io_la_SOURCES = \
   $(ROOTDICTS) \
