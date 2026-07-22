@@ -1,5 +1,7 @@
 #include "CDBHistos.h"
 
+#include <phool/PHUtils.h>
+
 #include <TClass.h>       // for TClass
 #include <TCollection.h>  // for TIter
 #include <TDirectory.h>   // for TDirectoryAtomicAdapter, TDirectory, gDirec...
