@@ -57,7 +57,6 @@ public:
 private:
   uint32_t n_eventcounter{0};
   uint32_t n_skimcounter{0};
-  uint32_t n_notowernodecounter{0};
 
   bool b_produce_QA_histograms{false};
 
@@ -90,6 +89,9 @@ private:
   //Event counter histograms
   TH1* h_calo_nEvents = nullptr;
 
+  // print out the missing sEPD and ZDC towers only Once.
+  bool b_printed_missing_sEPD_towers = false;
+  bool b_printed_missing_ZDC_towers = false;
 };
 
 #endif // CALOSTATUSSKIMMER_H

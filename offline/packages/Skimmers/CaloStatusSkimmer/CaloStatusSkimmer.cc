@@ -44,14 +44,13 @@ int CaloStatusSkimmer::Init([[maybe_unused]] PHCompositeNode *topNode)
     h_ZDC_nTowers_notinstr = new TH1F("h_ZDC_nTowers_notinstr", "Number of not-instrumented(empty/missing pckt) towers in ZDC; nNotInstrTowers; Counts", 53, -0.5, 52.5);
     h_ZDC_nTowers_notinstr->SetDirectory(nullptr);
 
-    h_calo_nEvents = new TH1F("h_calo_nEvents", "Number of events", 7, 0.5, 7.5);
+    h_calo_nEvents = new TH1F("h_calo_nEvents", "Number of events", 6, 0.5, 6.5);
     h_calo_nEvents->GetXaxis()->SetBinLabel(1, "Total events processed");
     h_calo_nEvents->GetXaxis()->SetBinLabel(2, "Total events skimmed");
     h_calo_nEvents->GetXaxis()->SetBinLabel(3, "EMCal above not-instr threshold");
     h_calo_nEvents->GetXaxis()->SetBinLabel(4, "HCal above not-instr threshold");
     h_calo_nEvents->GetXaxis()->SetBinLabel(5, "sEPD above not-instr threshold");
     h_calo_nEvents->GetXaxis()->SetBinLabel(6, "ZDC above not-instr threshold");
-    h_calo_nEvents->GetXaxis()->SetBinLabel(7, "No TowerInfo nodes found");
     h_calo_nEvents->SetDirectory(nullptr);
 
     hm->registerHisto(h_calo_nEvents);
@@ -77,11 +76,9 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
 
   if (m_EMC_skim_threshold > 0)
   {
-    TowerInfoContainer *towers =
-        findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_CEMC");
+    TowerInfoContainer *towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_CEMC");
     if (!towers)
     {
-      n_notowernodecounter++;
       if (Verbosity() > 0)
       {
         std::cout << PHWHERE << "CaloStatusSkimmer::process_event: missing TOWERS_CEMC" << std::endl;
@@ -119,7 +116,6 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
     TowerInfoContainer *hcalout_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALOUT");
     if (!hcalin_towers || !hcalout_towers)
     {
-      n_notowernodecounter++;
       if (Verbosity() > 0)
       {
         std::cout << PHWHERE << "CaloStatusSkimmer::process_event: missing TOWERS_HCALIN or TOWERS_HCALOUT" << std::endl;
@@ -165,16 +161,18 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
     }
   }
 
+  // special handling of the sEPD and ZDC because of DST format changes.
+
   if (m_sEPD_skim_threshold > 0)
   {
-    TowerInfoContainer *sepd_towers =
-        findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_SEPD");
+    TowerInfoContainer *sepd_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_SEPD");
+
     if (!sepd_towers)
     {
-      n_notowernodecounter++;
-      if (Verbosity() > 0)
+      if (Verbosity() > 0 && !b_printed_missing_sEPD_towers)
       {
-        std::cout << PHWHERE << "CaloStatusSkimmer::process_event: missing TOWERS_SEPD" << std::endl;
+        b_printed_missing_sEPD_towers = true;
+        std::cout << PHWHERE << "CaloStatusSkimmer::process_event: missing TOWERS_SEPD. Further warnings will be suppressed." << std::endl;
       }
       // Temporarily turned off the event abort because the sEPD towers were removed from calofitting dsts.
       // return Fun4AllReturnCodes::ABORTEVENT;
@@ -210,40 +208,43 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
 
   if (m_ZDC_skim_threshold > 0)
   {
-    TowerInfoContainer *zdc_towers =
-        findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_ZDC");
+    TowerInfoContainer *zdc_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_ZDC");
     if (!zdc_towers)
     {
-      n_notowernodecounter++;
-      if (Verbosity() > 0)
+      if (Verbosity() > 0 && !b_printed_missing_ZDC_towers)
       {
-        std::cout << PHWHERE << "CaloStatusSkimmer::process_event: missing TOWERS_ZDC" << std::endl;
+        b_printed_missing_ZDC_towers = true;
+        std::cout << PHWHERE << "CaloStatusSkimmer::process_event: missing TOWERS_ZDC. Further warnings will be suppressed." << std::endl;
       }
-      return Fun4AllReturnCodes::ABORTEVENT;
+      // Temporarily turned off the event abort because the ZDC towers were removed from calofitting dsts.
+      // return Fun4AllReturnCodes::ABORTEVENT;
     }
-    const uint32_t ntowers = zdc_towers->size();
-    for (uint32_t ch = 0; ch < ntowers; ++ch)
+    if (zdc_towers)
     {
-      TowerInfo *tower = zdc_towers->get_tower_at_channel(ch);
-      if (tower->get_isNotInstr())
+      const uint32_t ntowers = zdc_towers->size();
+      for (uint32_t ch = 0; ch < ntowers; ++ch)
       {
-        ++notinstr_ZDC;
+        TowerInfo *tower = zdc_towers->get_tower_at_channel(ch);
+        if (tower->get_isNotInstr())
+        {
+          ++notinstr_ZDC;
+        }
       }
-    }
 
-    if (Verbosity() > 9)
-    {
-      std::cout << "CaloStatusSkimmer::process_event: event " << n_eventcounter << ", ntowers in ZDC = " << ntowers << ", not-instrumented(empty/missing pckt) towers in ZDC = " << notinstr_ZDC << std::endl;
-    }
+      if (Verbosity() > 9)
+      {
+        std::cout << "CaloStatusSkimmer::process_event: event " << n_eventcounter << ", ntowers in ZDC = " << ntowers << ", not-instrumented(empty/missing pckt) towers in ZDC = " << notinstr_ZDC << std::endl;
+      }
 
-    if (b_produce_QA_histograms)
-    {
-      h_ZDC_nTowers_notinstr->Fill(notinstr_ZDC);
-    }
+      if (b_produce_QA_histograms)
+      {
+        h_ZDC_nTowers_notinstr->Fill(notinstr_ZDC);
+      }
 
-    if (notinstr_ZDC >= m_ZDC_skim_threshold)
-    {
-      ZDC_skim_count++;
+      if (notinstr_ZDC >= m_ZDC_skim_threshold)
+      {
+        ZDC_skim_count++;
+      }
     }
   }
 
@@ -263,7 +264,6 @@ int CaloStatusSkimmer::End([[maybe_unused]] PHCompositeNode *topNode)
   std::cout << "CaloStatusSkimmer::End(PHCompositeNode *topNode) This is the End..." << std::endl;
   std::cout << "CaloStatusSkimmer::End Total events processed: " << n_eventcounter << std::endl;
   std::cout << "CaloStatusSkimmer::End Total events skimmed: " << n_skimcounter << std::endl;
-  std::cout << "CaloStatusSkimmer::End Total events with missing tower nodes: " << n_notowernodecounter << std::endl;
 
   if (b_produce_QA_histograms)
   {
@@ -273,7 +273,6 @@ int CaloStatusSkimmer::End([[maybe_unused]] PHCompositeNode *topNode)
     h_calo_nEvents->SetBinContent(4, HCal_skim_count);
     h_calo_nEvents->SetBinContent(5, sEPD_skim_count);
     h_calo_nEvents->SetBinContent(6, ZDC_skim_count);
-    h_calo_nEvents->SetBinContent(7, n_notowernodecounter);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
