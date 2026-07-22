@@ -1,5 +1,5 @@
-#ifndef G4EVAL_MicromegasDriftEvaluator_H
-#define G4EVAL_MicromegasDriftEvaluator_H
+#ifndef TPCCALIB_MICROMEGASDRIFTEVALUATOR_H
+#define TPCCALIB_MICROMEGASDRIFTEVALUATOR_H
 
 /*
  * Bade Sayki June 10th, 2026 -- LANL
@@ -22,7 +22,7 @@
 
 class ActsGeometry;
 class PHG4CylinderGeomContainer;
-class TH3F;
+class TH3;
 class TrkrCluster;
 class TrkrClusterContainer;
 class SvtxTrackMap;
@@ -39,28 +39,28 @@ class MicromegasDriftEvaluator : public SubsysReco
 
   struct TrackStateStruct
   {
-    unsigned short _layer = 0;
-    unsigned short _tile = 0;
-    double _z = 0;
-    double _y_local = 0;
+    unsigned short _layer {0};
+    unsigned short _tile {0};
+    double _z {0};
+    double _y_local {0};
   };
 
   struct ClusterStruct
   {
-    unsigned short _layer = 0;
-    unsigned short _tile = 0;
-    double _z = 0;
+    unsigned short _layer {0};
+    unsigned short _tile {0};
+    double _z {0};
   };
 
   struct TrackStruct
   {
-    float _chisquare = 0;
-    int _ndf = 0;
+    float _chisquare {0};
+    int _ndf {0};
 
-    unsigned int _nclusters_tpc = 0;
-    unsigned int _nclusters_mvtx = 0;
-    unsigned int _nclusters_intt = 0;
-    unsigned int _nclusters_micromegas = 0;
+    unsigned int _nclusters_tpc {0};
+    unsigned int _nclusters_mvtx {0};
+    unsigned int _nclusters_intt {0};
+    unsigned int _nclusters_micromegas {0};
 
     TrackStateStruct _trk_state_z;
     ClusterStruct _found_cluster_z;
@@ -122,27 +122,27 @@ class MicromegasDriftEvaluator : public SubsysReco
   std::string make_output_filename(const std::string&) const;
   void evaluate_tracks();
 
-  Container* m_container = nullptr;
-  ActsGeometry* m_tGeometry = nullptr;
+  Container* m_container {nullptr};
+  ActsGeometry* m_tGeometry {nullptr};
   TpcGlobalPositionWrapper m_globalPositionWrapper;
-  PHG4CylinderGeomContainer* m_micromegas_geomcontainer = nullptr;
-  TrkrClusterContainer* m_cluster_map = nullptr;
-  SvtxTrackMap* m_track_map = nullptr;
+  PHG4CylinderGeomContainer* m_micromegas_geomcontainer {nullptr};
+  TrkrClusterContainer* m_cluster_map {nullptr};
+  SvtxTrackMap* m_track_map {nullptr};
 
-  std::string m_trackmapname = "SvtxTrackMap";
+  std::string m_trackmapname {"SvtxTrackMap"};
 
   // These are all adjustable in your F4A macro. You should probably put in a better m_plot_filename.
-  double m_drift_velocity = 0.00747;
-  unsigned int m_min_tpc_layer = 39;
-  unsigned int m_max_tpc_layer = 55;
-  double m_y_local_cut = 22.0;
-  double m_z_search_win = 3.0;
-  std::string m_plot_filename = "micromegas_drift_calib.png";
-  std::string m_root_filename = "micromegas_drift_calib.root";
-  bool m_add_run_segment = true;
-  int m_segment = -1;
+  double m_drift_velocity {0.00747};
+  unsigned int m_min_tpc_layer {39};
+  unsigned int m_max_tpc_layer {55};
+  double m_y_local_cut {22.0};
+  double m_z_search_win {3.0};
+  std::string m_plot_filename {"micromegas_drift_calib.png"};
+  std::string m_root_filename {"micromegas_drift_calib.root"};
+  bool m_add_run_segment {true};
+  int m_segment {-1};
 
-  TH3F* m_hist3D = nullptr;
+  TH3* m_hist3D {nullptr};
 };
 
 #endif

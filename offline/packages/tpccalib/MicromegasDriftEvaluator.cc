@@ -21,9 +21,9 @@
 #include <TF1.h>
 #include <TF2.h>
 #include <TFile.h>
-#include <TH1F.h>
-#include <TH2F.h>
-#include <TH3F.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
 #include <TLegend.h>
 #include <TParameter.h>
 #include <TVector3.h>
@@ -208,7 +208,9 @@ namespace
     return par[itile + 1] + par[0] * z;
   }
 
-  double linear_function(double* x, double* par)
+// root fitting does not like const parameters suggested by clang-tidy
+// using NOLINT to suppress this warning
+  double linear_function(double* x, double* par) // NOLINT(readability-non-const-parameter)
   {
     return par[0] * x[0] + par[1];
   }
