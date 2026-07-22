@@ -63,8 +63,8 @@ class KFParticle_truthAndDetTools
   void fillHepMCBranch(HepMC::GenParticle *particle, int daughter_id);
   int getHepMCInfo(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
 
-  void initializeCaloBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
-  void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch, const KFParticle &vertex);
+  virtual void initializeCaloBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
+  virtual void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch, const KFParticle &vertex);
   void Get5x5CellInfo(RawClusterDefs::keytype key_in, int daughter_id);
 
   void initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
