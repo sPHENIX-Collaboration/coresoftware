@@ -568,6 +568,7 @@ Tpc_PolyClusterResiduals::~Tpc_PolyClusterResiduals()
 
 int Tpc_PolyClusterResiduals::Init(PHCompositeNode* /*unused*/)
 {
+  // cppcheck-suppress publicAllocationError
   m_outfile = new TFile(m_outfilename.c_str(), "RECREATE");
   if (!m_outfile || m_outfile->IsZombie())
   {

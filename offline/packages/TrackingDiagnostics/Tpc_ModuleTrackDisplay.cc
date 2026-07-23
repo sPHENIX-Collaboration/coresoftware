@@ -441,7 +441,7 @@ namespace
                              layer_ref,
                              pads_per_sector - 1);
 
-    const double phi_last = unwrap_phi_near(phi_last_wrapped, phi_first);
+    const double phi_last = unwrap_phi_near(phi_last_wrapped, phi_first);  // NOLINT(readability-suspicious-call-argument)
     const double dphi = (phi_last - phi_first) / static_cast<double>(pads_per_sector - 1);
 
     double phi_min = phi_first - 0.5 * dphi;
@@ -860,6 +860,7 @@ Tpc_ModuleTrackDisplay::~Tpc_ModuleTrackDisplay()
 
 int Tpc_ModuleTrackDisplay::Init(PHCompositeNode* /*unused*/)
 {
+  // cppcheck-suppress publicAllocationError
   m_outfile = new TFile(m_outfilename.c_str(), "RECREATE");
   if (!m_outfile || m_outfile->IsZombie())
   {

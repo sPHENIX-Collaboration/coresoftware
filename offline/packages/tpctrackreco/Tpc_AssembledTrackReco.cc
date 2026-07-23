@@ -936,7 +936,7 @@ bool Tpc_AssembledTrackReco::candidates_can_connect(const Candidate& a, const Pi
   const double rmatch = 0.5 * (ra + rb);
   const double phi_a = predict_phi(a, rmatch);
   const double phi_b_raw = predict_phi(b, rmatch);
-  const double phi_b = unwrap_phi_to_reference(phi_b_raw, phi_a);
+  const double phi_b = unwrap_phi_to_reference(phi_b_raw, phi_a);  // NOLINT(readability-suspicious-call-argument)
   b_phi_intercept_shifted = b.phi_intercept + (phi_b - phi_b_raw);
 
   const double tbin_a = a.tbin_slope_r * rmatch + a.tbin_intercept_r;

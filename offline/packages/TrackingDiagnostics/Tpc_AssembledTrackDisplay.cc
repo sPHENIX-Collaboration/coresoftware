@@ -438,6 +438,7 @@ Tpc_AssembledTrackDisplay::~Tpc_AssembledTrackDisplay()
 
 int Tpc_AssembledTrackDisplay::Init(PHCompositeNode* /*unused*/)
 {
+  // cppcheck-suppress publicAllocationError
   m_outfile = new TFile(m_outfilename.c_str(), "RECREATE");
   if (!m_outfile || m_outfile->IsZombie())
   {
