@@ -82,7 +82,7 @@ class ActsPropagator
 
   /// get sphenix layer from acts volume and layer from sphenix layer. Returns true on success
   /** this is the opposite transformation as checkLayer */
-  bool checkSphenixLayer( const unsigned int /*actsvolume*/, const unsigned int /*actslayer*/, unsigned int& /*sphenixlayer*/ ) const;
+  static bool checkSphenixLayer( const unsigned int /*actsvolume*/, const unsigned int /*actslayer*/, unsigned int& /*sphenixlayer*/ );
 
   void verbosity(int verb) { m_verbosity = verb; }
   void setConstFieldValue(float field) { m_fieldval = field; }

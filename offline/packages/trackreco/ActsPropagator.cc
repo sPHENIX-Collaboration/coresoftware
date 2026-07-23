@@ -321,7 +321,6 @@ bool ActsPropagator::checkLayer(const unsigned int sphenixlayer,
    * So we convert the sPHENIX layer number here to the Acts volume and
    * layer number that can interpret where to navigate to in the propagation.
    * The only exception is the TPOT, which is interpreted as a single layer.
-   * TODO: this is all hardcoded. should at least use properly defined constexpr variables. Ideally build on the fly
    */
 
   /// mvtx
@@ -382,7 +381,7 @@ bool ActsPropagator::checkLayer(const unsigned int sphenixlayer,
 }
 
 //____________________________________________________________________
-bool ActsPropagator::checkSphenixLayer( const unsigned int actsvolume, const unsigned int actslayer, unsigned int& sphenixlayer ) const
+bool ActsPropagator::checkSphenixLayer( const unsigned int actsvolume, const unsigned int actslayer, unsigned int& sphenixlayer )
 {
 
   /*
@@ -392,7 +391,6 @@ bool ActsPropagator::checkSphenixLayer( const unsigned int actsvolume, const uns
    * So we convert the sPHENIX layer number here to the Acts volume and
    * layer number that can interpret where to navigate to in the propagation.
    * The only exception is the TPOT, which is interpreted as a single layer.
-   * TODO: this is all hardcoded. should at least use properly defined constexpr variables. Ideally build on the fly
    */
 
   if( actsvolume == kMvtxVolumeId )
