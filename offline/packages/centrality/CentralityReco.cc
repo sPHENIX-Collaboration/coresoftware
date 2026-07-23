@@ -264,8 +264,6 @@ int CentralityReco::process_event(PHCompositeNode *topNode)
     return ret;
   }
 
-  m_central->Reset();
-
   if (!m_mb_info->isAuAuMinimumBias())
   {
     return Fun4AllReturnCodes::EVENT_OK;
