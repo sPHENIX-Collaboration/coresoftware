@@ -78,16 +78,16 @@ class PHActsTrkFitter : public SubsysReco
   }
 
   /// FOR ALIGNMENT STUDIES ONLY, USE AT OWN RISK. With direct navigation, force a fit with only silicon hits and a full
-  /// matched (si+tpc track seed). This requires a standard track fit to be run first, followed by refit configured with 
+  /// matched (si+tpc track seed). This requires a standard track fit to be run first, followed by refit configured with
   /// the option below. NOTE this uses the TPC track seed pT for the final pT value, to compensate for poor pt resolution
-  /// with the silicon seeds only. 
+  /// with the silicon seeds only.
   void forceSiOnlyFit(bool forceSiOnlyFit)
   {
     m_forceSiOnlyFit = forceSiOnlyFit;
   }
 
   /// FOR ALIGNMENT STUDIES ONLY, USE AT OWN RISK. With direct navigation, force a fit with only tpc hits and a full
-  /// matched (si+tpc track seed). This requires a standard track fit to be run first, followed by refit configured with 
+  /// matched (si+tpc track seed). This requires a standard track fit to be run first, followed by refit configured with
   /// the option below. NOTE this has poor pointing as the Si is not used for an initial guess of the track pointing
   void forceTpcOnlyFit(bool forceTpcOnlyFit)
   {
@@ -225,7 +225,6 @@ class PHActsTrkFitter : public SubsysReco
   /// Boolean to use normal tracking geometry navigator or the
   /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
   bool m_fitSiliconMMs = false;
-
   bool m_forceSiOnlyFit = false;
   bool m_forceTpcOnlyFit = false;
 
@@ -245,6 +244,7 @@ class PHActsTrkFitter : public SubsysReco
   /// Flag for pp running
   bool m_pp_mode = false;
 
+  /// direct navigation, in acts
   bool m_directNavigation = true;
 
   // do we have a constant field
@@ -258,6 +258,7 @@ class PHActsTrkFitter : public SubsysReco
   std::string m_clusterContainerName = "TRKR_CLUSTER";
 
   int m_cluster_edge_rejection = 0;
+
   //!@name evaluator
   //@{
   bool m_actsEvaluator = false;

@@ -69,11 +69,116 @@ namespace
   {
     return !(std::isnan(vec.x()) || std::isnan(vec.y()) || std::isnan(vec.z()));
   }
+
+  // square
   template <class T>
   inline T square(const T& x)
   {
     return x * x;
   }
+
+  // find nearest parameter in trajectory before a given sPhenix layer
+  [[maybe_unused]] std::optional<Acts::BoundTrackParameters> find_nearest_params_before(
+    const Acts::VectorMultiTrajectory& traj,
+    const size_t trackTip,
+    const unsigned int layer )
+  {
+    bool found = false;
+    auto s = traj.getTrackState(trackTip);
+    traj.visitBackwards(trackTip, [&found, &s, &layer](const auto& state )
+    {
+      /// Only fill the track states with non-outlier measurement
+      if (!state.typeFlags().isMeasurement()) {return true;}
+
+      // only fill for state vectors with proper smoothed parameters
+      if( !state.hasSmoothed()) {return true;}
+
+      // get sphenix layer from acst volume and layer
+      unsigned int currentLayer = 0;
+      if( !ActsPropagator::checkSphenixLayer(
+        state.referenceSurface().getSharedPtr()->geometryId().volume(),
+        state.referenceSurface().getSharedPtr()->geometryId().layer(),
+        currentLayer ) ) { return true; }
+
+      // check layer
+      if( currentLayer >= layer ) { return true; }
+
+      // found correct state
+      /* store and abort loop */
+      s = state;
+      found = true;
+      return false;
+
+    });
+
+    if( found )
+    {
+
+      // get smoothed fitted parameters
+      return Acts::BoundTrackParameters(
+        s.referenceSurface().getSharedPtr(),
+        s.smoothed(),
+        s.smoothedCovariance(),
+        Acts::ParticleHypothesis::pion());
+
+    } else {
+
+      return std::nullopt;
+
+    }
+  };
+
+  // find nearest parameter in trajectory after a given sPhenix layer
+  [[maybe_unused]] std::optional<Acts::BoundTrackParameters> find_nearest_params_after(
+    const Acts::VectorMultiTrajectory& traj,
+    const size_t trackTip,
+    const unsigned int layer )
+  {
+    bool found = false;
+    auto s = traj.getTrackState(trackTip);
+    traj.visitBackwards(trackTip, [&found, &s, &layer](const auto& state )
+    {
+      /// Only fill the track states with non-outlier measurement
+      if (!state.typeFlags().isMeasurement()) {return true;}
+
+      // only fill for state vectors with proper smoothed parameters
+      if( !state.hasSmoothed()) {return true;}
+
+      // get sphenix layer from acst volume and layer
+      unsigned int currentLayer = 0;
+      if( !ActsPropagator::checkSphenixLayer(
+        state.referenceSurface().getSharedPtr()->geometryId().volume(),
+        state.referenceSurface().getSharedPtr()->geometryId().layer(),
+        currentLayer ) ) { return true; }
+
+      // check layer
+      if( currentLayer > layer ) {
+        s = state;
+        found = true;
+        return true;
+      } else {
+        return false;
+      }
+
+    });
+
+    if( found )
+    {
+
+      // get smoothed fitted parameters
+      return Acts::BoundTrackParameters(
+        s.referenceSurface().getSharedPtr(),
+        s.smoothed(),
+        s.smoothedCovariance(),
+        Acts::ParticleHypothesis::pion());
+
+    } else {
+
+      return std::nullopt;
+
+    }
+  };
+
 }  // namespace
 
 #include <trackbase/alignmentTransformationContainer.h>
@@ -82,8 +187,7 @@ namespace
 
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : SubsysReco(name)
-{
-}
+{}
 
 int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
 {
@@ -941,7 +1045,7 @@ bool PHActsTrkFitter::getTrackFitResult(
     {
       h_updateTime->Fill(updateTime);
     }
-    
+
     if (m_actsEvaluator)
     {
       m_evaluator->evaluateTrackFit(tracks, trackTips, indexedParams, track,
@@ -1030,18 +1134,18 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
 
   for (unsigned int i = 0; i < surfaces.size() - 1; i++)
   {
-    
+
     const auto& surface = surfaces.at(i);
     if (std::find(m_materialSurfaces.begin(), m_materialSurfaces.end(), surface) != m_materialSurfaces.end())
     {
       continue;
     }
- 
+
     const auto thisVolume = surface->geometryId().volume();
 
     const Acts::Vector3 this_center = surface->center(m_tGeometry->geometry().getGeoContext());
     double thisRadius = sqrt(this_center.x()*this_center.x()+this_center.y()*this_center.y());
-    
+
     const auto* nextSurface = surfaces.at(i + 1);
     const auto nextVolume = nextSurface->geometryId().volume();
 
@@ -1052,6 +1156,7 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
     {
       continue;
     }
+
     /// Implement a check to ensure surfaces are sorted
     if (nextVolume == thisVolume)
     {
@@ -1124,8 +1229,7 @@ void PHActsTrkFitter::updateSvtxTrack(
   out.set_z(0.0);
   track->insert_state(&out);
 
-  auto trajState =
-      Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
+  auto trajState = Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
 
   const auto& params = paramsMap.find(trackTip)->second;
 
@@ -1135,7 +1239,7 @@ void PHActsTrkFitter::updateSvtxTrack(
   track->set_z(params.position(m_transient_geocontext)(2) / Acts::UnitConstants::cm);
 
   auto* seed = track->get_tpc_seed();
-  
+
   if(!m_forceSiOnlyFit)
   {
     track->set_px(params.momentum()(0));
@@ -1182,11 +1286,86 @@ void PHActsTrkFitter::updateSvtxTrack(
 
   // in using silicon mm fit also extrapolate track parameters to all TPC surfaces with clusters
   // get all tpc clusters
-  
+
   if (m_fitSiliconMMs && seed)
   {
     // acts propagator
     ActsPropagator propagator(m_tGeometry);
+
+    // find Acts track state closest to the TPC and create the corresponding parameter
+    ActsTrackFittingAlgorithm::TrackParameters nearest_params_forward = params;
+    bool found_forward = false;
+    mj.visitBackwards(trackTip, [&nearest_params_forward, &found_forward](const auto& state)
+    {
+      /// Only fill the track states with non-outlier measurement
+      if (!state.typeFlags().isMeasurement())
+      { return true; }
+
+      // only fill for state vectors with proper smoothed parameters
+      if( !state.hasSmoothed()) { return true;  }
+
+      // create svtx state vector with relevant pathlength
+      const float pathlength_local = state.pathLength() / Acts::UnitConstants::cm;
+      if( pathlength_local > 20. ) return true;
+
+      // get sphenix layer from acst volume and layer
+      unsigned int sphenixlayer = 0;
+      if( ActsPropagator().checkSphenixLayer(
+        state.referenceSurface().getSharedPtr()->geometryId().volume(),
+        state.referenceSurface().getSharedPtr()->geometryId().layer(),
+        sphenixlayer ) )
+      { std::cout << "PHActsTrkFitter::updateSvtxTrack - layer: " << (int) sphenixlayer << std::endl; }
+
+      // get smoothed fitted parameters
+      nearest_params_forward = Acts::BoundTrackParameters(
+        state.referenceSurface().getSharedPtr(),
+        state.smoothed(),
+        state.smoothedCovariance(),
+        Acts::ParticleHypothesis::pion());
+      found_forward = true;
+
+      return false;
+    });
+
+    // find Acts track state closest to the TPC and create the corresponding parameter
+    ActsTrackFittingAlgorithm::TrackParameters nearest_params_backward = params;
+    bool found_backward = false;
+    mj.visitBackwards(trackTip, [&nearest_params_backward, &found_backward](const auto& state)
+    {
+      /// Only fill the track states with non-outlier measurement
+      if (!state.typeFlags().isMeasurement())
+      { return true; }
+
+      // only fill for state vectors with proper smoothed parameters
+      if( !state.hasSmoothed()) { return true;  }
+
+      // create svtx state vector with relevant pathlength
+      const float pathlength_local = state.pathLength() / Acts::UnitConstants::cm;
+      if( pathlength_local > 50 )
+      {
+        // get smoothed fitted parameters and store
+        nearest_params_backward = Acts::BoundTrackParameters(
+          state.referenceSurface().getSharedPtr(),
+          state.smoothed(),
+          state.smoothedCovariance(),
+          Acts::ParticleHypothesis::pion());
+        found_backward = true;
+
+        // get sphenix layer from acst volume and layer
+        unsigned int sphenixlayer = 0;
+        if( ActsPropagator().checkSphenixLayer(
+          state.referenceSurface().getSharedPtr()->geometryId().volume(),
+          state.referenceSurface().getSharedPtr()->geometryId().layer(),
+          sphenixlayer ) )
+        { std::cout << "PHActsTrkFitter::updateSvtxTrack - layer: " << (int) sphenixlayer << std::endl; }
+
+        return true;
+      } else {
+        // stop here
+        return false;
+      }
+
+    });
 
     // loop over cluster keys associated to TPC seed
     for (auto key_iter = seed->begin_cluster_keys(); key_iter != seed->end_cluster_keys(); ++key_iter)
@@ -1202,18 +1381,51 @@ void PHActsTrkFitter::updateSvtxTrack(
 
       // get layer, propagate
       const auto layer = TrkrDefs::getLayer(cluskey);
-      auto result = propagator.propagateTrack(params, layer);
-      if (!result.ok())
+
+      // extrapolate track parameter
+      auto extrapolate_parameters = [this, &propagator, &layer]( const ActsTrackFittingAlgorithm::TrackParameters& p, Acts::Direction direction = Acts::Direction::Positive() )
       {
-        continue;
+
+        auto result = propagator.propagateTrack(p, layer, direction);
+        if (result.ok())
+        {
+          auto& [pathLength, trackStateParams] = result.value();
+          const auto global = trackStateParams.position(m_transient_geocontext);
+          std::cout << "PHActsTrkFitter::updateSvtxTrack - extrapolated: ("
+            << global.x() / Acts::UnitConstants::cm << ", "
+            << global.y() / Acts::UnitConstants::cm << ", "
+            << global.z() / Acts::UnitConstants::cm << ")"
+            << std::endl;
+        }
+
+        return result;
+      };
+
+      {
+        auto result = extrapolate_parameters( params );
+        if( result.ok() )
+        {
+          // get path length and extrapolated parameters
+          auto& [pathLength, trackStateParams] = result.value();
+          pathLength /= Acts::UnitConstants::cm;
+          transformer.addTrackState(track, cluskey, pathLength, trackStateParams, m_transient_geocontext);
+        }
       }
 
-      // get path length and extrapolated parameters
-      auto& [pathLength, trackStateParams] = result.value();
-      pathLength /= Acts::UnitConstants::cm;
+      if( found_forward )
+      {
+        // forward extrapolation
+        extrapolate_parameters( nearest_params_forward );
+      }
 
-      // create track state and add to track
-      transformer.addTrackState(track, cluskey, pathLength, trackStateParams, m_transient_geocontext);
+      if( found_backward )
+      {
+        // backward extrapolation
+        extrapolate_parameters( nearest_params_backward, Acts::Direction::Negative() );
+      }
+
+      std::cout << std::endl;
+
     }
   }
 
