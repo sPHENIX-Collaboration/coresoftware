@@ -27,11 +27,11 @@
 #include <TFile.h>
 #include <TH1D.h>
 #include <TH2D.h>
-#include <TString.h>
 #include <TTree.h>
 
 #include <algorithm>
 #include <cmath>
+#include <format>
 #include <functional>
 #include <iostream>
 #include <limits>
@@ -41,6 +41,7 @@
 
 namespace
 {
+  // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
   struct PieceStartSort
   {
     const std::vector<Tpc_AssembledTrackReco::Piece>* pieces;
@@ -104,6 +105,7 @@ namespace
     }
     bool operator()(unsigned int a, unsigned int b) const { return (*radius)[a] < (*radius)[b]; }
   };
+  // NOLINTEND(misc-non-private-member-variables-in-classes)
 
   double unwrap_phi_to_reference(double phi, const double ref)
   {
@@ -529,15 +531,15 @@ void Tpc_AssembledTrackReco::create_debug_histograms()
   }
   m_debugOutputFile->cd();
 
-  m_h_dphi = new TH1D("h_dphi", Form("#Delta#phi at match point, cut=%.4g;|#Delta#phi| [rad];tested pairs", m_connect_dphi), 200, 0.0, std::max(0.2, 5.0 * m_connect_dphi));
-  m_h_dtbin = new TH1D("h_dtbin", Form("#Deltatbin at match point, cut=%.4g;|#Deltatbin|;tested pairs", m_connect_dtbin), 200, 0.0, std::max(50.0, 5.0 * m_connect_dtbin));
-  m_h_dmphi = new TH1D("h_dmphi", Form("#Delta(d#phi/dr), cut=%.4g;|#Delta(d#phi/dr)| [rad/cm];tested pairs", m_connect_dphi_slope), 200, 0.0, std::max(0.08, 5.0 * m_connect_dphi_slope));
-  m_h_dmtbin = new TH1D("h_dmtbin", Form("#Delta(dtbin/dr), cut=%.4g;|#Delta(dtbin/dr)| [tbin/cm];tested pairs", m_connect_dtbin_slope), 200, 0.0, std::max(20.0, 5.0 * m_connect_dtbin_slope));
+  m_h_dphi = new TH1D("h_dphi", std::format("#Delta#phi at match point, cut={:.4g};|#Delta#phi| [rad];tested pairs", m_connect_dphi).c_str(), 200, 0.0, std::max(0.2, 5.0 * m_connect_dphi));
+  m_h_dtbin = new TH1D("h_dtbin", std::format("#Deltatbin at match point, cut={:.4g};|#Deltatbin|;tested pairs", m_connect_dtbin).c_str(), 200, 0.0, std::max(50.0, 5.0 * m_connect_dtbin));
+  m_h_dmphi = new TH1D("h_dmphi", std::format("#Delta(d#phi/dr), cut={:.4g};|#Delta(d#phi/dr)| [rad/cm];tested pairs", m_connect_dphi_slope).c_str(), 200, 0.0, std::max(0.08, 5.0 * m_connect_dphi_slope));
+  m_h_dmtbin = new TH1D("h_dmtbin", std::format("#Delta(dtbin/dr), cut={:.4g};|#Delta(dtbin/dr)| [tbin/cm];tested pairs", m_connect_dtbin_slope).c_str(), 200, 0.0, std::max(20.0, 5.0 * m_connect_dtbin_slope));
   m_h_score = new TH1D("h_score", "accepted connection score;score;accepted connections", 200, 0.0, 20.0);
 
-  m_h_dphi_vs_dtbin = new TH2D("h_dphi_vs_dtbin", Form("#Delta#phi vs #Deltatbin, cuts #Delta#phi<%.4g #Deltatbin<%.4g;|#Delta#phi| [rad];|#Deltatbin|", m_connect_dphi, m_connect_dtbin), 160, 0.0, std::max(0.2, 5.0 * m_connect_dphi), 160, 0.0, std::max(50.0, 5.0 * m_connect_dtbin));
-  m_h_dmphi_vs_dmtbin = new TH2D("h_dmphi_vs_dmtbin", Form("slope residuals, cuts #Delta(d#phi/dr)<%.4g #Delta(dtbin/dr)<%.4g;|#Delta(d#phi/dr)| [rad/cm];|#Delta(dtbin/dr)| [tbin/cm]", m_connect_dphi_slope, m_connect_dtbin_slope), 160, 0.0, std::max(0.08, 5.0 * m_connect_dphi_slope), 160, 0.0, std::max(20.0, 5.0 * m_connect_dtbin_slope));
-  m_h_dphi_vs_dmphi = new TH2D("h_dphi_vs_dmphi", Form("#phi position vs slope residual, cuts #Delta#phi<%.4g #Delta(d#phi/dr)<%.4g;|#Delta#phi| [rad];|#Delta(d#phi/dr)| [rad/cm]", m_connect_dphi, m_connect_dphi_slope), 160, 0.0, std::max(0.2, 5.0 * m_connect_dphi), 160, 0.0, std::max(0.08, 5.0 * m_connect_dphi_slope));
+  m_h_dphi_vs_dtbin = new TH2D("h_dphi_vs_dtbin", std::format("#Delta#phi vs #Deltatbin, cuts #Delta#phi<{:.4g} #Deltatbin<{:.4g};|#Delta#phi| [rad];|#Deltatbin|", m_connect_dphi, m_connect_dtbin).c_str(), 160, 0.0, std::max(0.2, 5.0 * m_connect_dphi), 160, 0.0, std::max(50.0, 5.0 * m_connect_dtbin));
+  m_h_dmphi_vs_dmtbin = new TH2D("h_dmphi_vs_dmtbin", std::format("slope residuals, cuts #Delta(d#phi/dr)<{:.4g} #Delta(dtbin/dr)<{:.4g};|#Delta(d#phi/dr)| [rad/cm];|#Delta(dtbin/dr)| [tbin/cm]", m_connect_dphi_slope, m_connect_dtbin_slope).c_str(), 160, 0.0, std::max(0.08, 5.0 * m_connect_dphi_slope), 160, 0.0, std::max(20.0, 5.0 * m_connect_dtbin_slope));
+  m_h_dphi_vs_dmphi = new TH2D("h_dphi_vs_dmphi", std::format("#phi position vs slope residual, cuts #Delta#phi<{:.4g} #Delta(d#phi/dr)<{:.4g};|#Delta#phi| [rad];|#Delta(d#phi/dr)| [rad/cm]", m_connect_dphi, m_connect_dphi_slope).c_str(), 160, 0.0, std::max(0.2, 5.0 * m_connect_dphi), 160, 0.0, std::max(0.08, 5.0 * m_connect_dphi_slope));
 
   m_h_tbin_slope_vs_first_tbin = new TH2D("h_tbin_slope_vs_first_tbin", "tested connection dtbin/dr vs first timebin;first timebin;dtbin/dr [tbin/cm]", 200, 0.0, 600.0, 200, -20.0, 20.0);
   m_h_tbin_slope_vs_last_tbin = new TH2D("h_tbin_slope_vs_last_tbin", "tested connection dtbin/dr vs last timebin;last timebin;dtbin/dr [tbin/cm]", 200, 0.0, 600.0, 200, -20.0, 20.0);

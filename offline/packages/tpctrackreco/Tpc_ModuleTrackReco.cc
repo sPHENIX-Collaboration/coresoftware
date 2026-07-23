@@ -40,6 +40,7 @@
 // ===================================================================
 namespace
 {
+  // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
   struct BlobAdcSort
   {
     const std::vector<InModuleThreadData::Blob>* blobs;
@@ -398,6 +399,7 @@ namespace
       return ha.adc > hb.adc;
     }
   };
+  // NOLINTEND(misc-non-private-member-variables-in-classes)
 
   void reject_long_pad_noise(InModuleThreadData* d)
   {

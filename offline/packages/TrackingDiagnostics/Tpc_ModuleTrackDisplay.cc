@@ -441,8 +441,7 @@ namespace
                              layer_ref,
                              pads_per_sector - 1);
 
-    const double phi_reference_for_unwrap = phi_first;
-    const double phi_last = unwrap_phi_near(phi_last_wrapped, phi_reference_for_unwrap);
+    const double phi_last = unwrap_phi_near(phi_last_wrapped, phi_first);
     const double dphi = (phi_last - phi_first) / static_cast<double>(pads_per_sector - 1);
 
     double phi_min = phi_first - 0.5 * dphi;
