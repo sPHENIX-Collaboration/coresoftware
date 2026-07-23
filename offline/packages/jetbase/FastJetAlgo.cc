@@ -37,6 +37,58 @@
 #include <utility>  // for pair
 #include <vector>
 
+namespace
+{
+  // which calorimeter layer a jet input source belongs to,
+  // for the EMCal/iHCal/oHCal jet energy fractions
+  enum class CaloLayer
+  {
+    NONE,
+    EMCAL,
+    IHCAL,
+    OHCAL
+  };
+
+  CaloLayer get_calo_layer(Jet::SRC src)
+  {
+    switch (src)
+    {
+    case Jet::CEMC_TOWER:
+    case Jet::CEMC_CLUSTER:
+    case Jet::CEMC_TOWER_RETOWER:
+    case Jet::CEMC_TOWER_SUB1:
+    case Jet::CEMC_TOWER_SUB1CS:
+    case Jet::CEMC_TOWERINFO:
+    case Jet::CEMC_TOWERINFO_RETOWER:
+    case Jet::CEMC_TOWERINFO_SUB1:
+    case Jet::CEMC_TOWERINFO_EMBED:
+    case Jet::CEMC_TOWERINFO_SIM:
+    case Jet::ECAL_TOPO_CLUSTER:
+      return CaloLayer::EMCAL;
+    case Jet::HCALIN_TOWER:
+    case Jet::HCALIN_CLUSTER:
+    case Jet::HCALIN_TOWER_SUB1:
+    case Jet::HCALIN_TOWER_SUB1CS:
+    case Jet::HCALIN_TOWERINFO:
+    case Jet::HCALIN_TOWERINFO_SUB1:
+    case Jet::HCALIN_TOWERINFO_EMBED:
+    case Jet::HCALIN_TOWERINFO_SIM:
+      return CaloLayer::IHCAL;
+    case Jet::HCALOUT_TOWER:
+    case Jet::HCALOUT_CLUSTER:
+    case Jet::HCALOUT_TOWER_SUB1:
+    case Jet::HCALOUT_TOWER_SUB1CS:
+    case Jet::HCALOUT_TOWERINFO:
+    case Jet::HCALOUT_TOWERINFO_SUB1:
+    case Jet::HCALOUT_TOWERINFO_EMBED:
+    case Jet::HCALOUT_TOWERINFO_SIM:
+      return CaloLayer::OHCAL;
+    default:
+      return CaloLayer::NONE;
+    }
+  }
+}  // namespace
+
 FastJetAlgo::FastJetAlgo(const FastJetOptions& options)
   : m_opt{options}
 {
@@ -376,33 +428,51 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
     }
 
     // Count clustered components. If desired, put original components into the output jet.
+    // If desired, also sum the constituent energy per calorimeter layer for the energy fractions.
     //    int n_clustered = 0;
+    float emcal_e = 0.;
+    float ihcal_e = 0.;
+    float ohcal_e = 0.;
     std::vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
-    if (m_opt.calc_area)
+    for (auto& comp : constituents)
     {
-      for (auto& comp : constituents)
+      if (m_opt.calc_area && comp.is_pure_ghost())
       {
-        if (comp.is_pure_ghost())
-        {
-          continue;
-        }
-        //        ++n_clustered;
-        if (m_opt.save_jet_components)
-        {
-          jet->insert_comp(particles[comp.user_index()]->get_comp_vec(), true);
-        }
-      }  // end loop over all constituents
-    }
-    else
-    {  // didn't calculate jet area
-       //      n_clustered += constituents.size();
+        continue;
+      }
+      //        ++n_clustered;
       if (m_opt.save_jet_components)
       {
-        for (auto& comp : constituents)
+        jet->insert_comp(particles[comp.user_index()]->get_comp_vec(), true);
+      }
+      if (m_opt.calc_calo_fracs)
+      {
+        auto& src_comps = particles[comp.user_index()]->get_comp_vec();
+        if (!src_comps.empty())
         {
-          jet->insert_comp(particles[comp.user_index()]->get_comp_vec(), true);
+          switch (get_calo_layer(src_comps.front().first))
+          {
+          case CaloLayer::EMCAL:
+            emcal_e += comp.e();
+            break;
+          case CaloLayer::IHCAL:
+            ihcal_e += comp.e();
+            break;
+          case CaloLayer::OHCAL:
+            ohcal_e += comp.e();
+            break;
+          case CaloLayer::NONE:
+            break;
+          }
         }
       }
+    }  // end loop over all constituents
+
+    if (m_opt.calc_calo_fracs && jet->get_e() != 0.)
+    {
+      jet->set_emcal_frac(emcal_e / jet->get_e());
+      jet->set_ihcal_frac(ihcal_e / jet->get_e());
+      jet->set_ohcal_frac(ohcal_e / jet->get_e());
     }
     jet->set_comp_sort_flag();  // make surce comp knows it might not be sorted
   }

@@ -28,6 +28,10 @@ class FastJetAlgoSub : public JetAlgo
   Jet::ALGO get_algo() override { return m_opt.algo; }
   float get_par() override { return m_opt.jet_R; }
 
+  // calculate the EMCal/iHCal/oHCal energy fractions (layer energy / jet total
+  // energy), read back with Jet::get_emcal_frac() etc.; on by default
+  void set_calc_calo_fractions(bool b) { m_opt.calc_calo_fracs = b; }
+
   /* std::vector<Jet*> get_jets(std::vector<Jet*> particles) override; */
   void cluster_and_fill(std::vector<Jet*>& particles, JetContainer* jetcont) override;
 

@@ -18,6 +18,7 @@
 #include <cassert>
 #include <cmath>  // for asinh, atan2, cos, cosh
 #include <iostream>
+#include <limits>
 #include <map>      // for _Rb_tree_const_iterator
 #include <utility>  // for pair
 #include <vector>
@@ -65,6 +66,8 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     std::cout << "TowerJetInput::process_event -- entered" << std::endl;
   }
   float vtxz = 0;  // default to 0
+  m_used_vertex_type = "UNDEFINED";
+  m_used_vertex_z = std::numeric_limits<float>::quiet_NaN();
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
   {
@@ -90,6 +93,16 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	    if(vertices.at(0))
 	      {
 		vtxz = vertices.at(0)->get_z();
+		// record which of the requested vertex types the chosen vertex actually contains
+		for (auto type : m_vertex_type)
+		  {
+		    auto iter = vertices.at(0)->find_vertexes(type);
+		    if (iter != vertices.at(0)->end_vertexes() && iter->first == type)
+		      {
+			m_used_vertex_type = get_vtxtype_name(type);
+			break;
+		      }
+		  }
 	      }
 	    if(vertices.size() > 1 && Verbosity() > 0)
 	      {
@@ -128,6 +141,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     }
     vtxz = 0;
   }
+  m_used_vertex_z = vtxz;  // the z the tower kinematics are computed with
 
   m_use_towerinfo = false;
 

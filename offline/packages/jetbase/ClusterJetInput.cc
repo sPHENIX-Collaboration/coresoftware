@@ -15,6 +15,7 @@
 // standard includes
 #include <cassert>
 #include <iostream>
+#include <limits>
 #include <map>      // for _Rb_tree_const_iterator
 #include <utility>  // for pair
 #include <vector>
@@ -54,6 +55,8 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
   }
 
   CLHEP::Hep3Vector vertex(0, 0, 0);
+  m_used_vertex_type = "UNDEFINED";
+  m_used_vertex_z = std::numeric_limits<float>::quiet_NaN();
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
   {
@@ -90,6 +93,7 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
               continue;
             }
             vertex.set(v->get_x(), v->get_y(), v->get_z());
+            m_used_vertex_type = get_vtxtype_name(m_vertex_type);
           }
         }
       }
@@ -104,6 +108,7 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
       vertex.set(0, 0, 0);
     }
   }
+  m_used_vertex_z = vertex.z();  // the z the cluster kinematics are computed with
 
   RawClusterContainer *clusters = nullptr;
   if (m_Input == Jet::CEMC_CLUSTER)
