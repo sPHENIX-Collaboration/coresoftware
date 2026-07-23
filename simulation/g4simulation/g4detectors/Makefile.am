@@ -79,6 +79,7 @@ pkginclude_HEADERS = \
   PHG4DetectorSubsystem.h \
   PHG4DetectorGroupSubsystem.h \
   PHG4FullProjSpacalCellReco.h \
+  PHG4GeantinoIonization.h \
   PHG4GDMLSubsystem.h \
   PHG4HcalDefs.h \
   PHG4HcalCellReco.h \
@@ -222,6 +223,7 @@ libg4detectors_la_SOURCES = \
   PHG4FullProjSpacalDetector.cc \
   PHG4FullProjTiltedSpacalDetector.cc \
   PHG4FullProjSpacalCellReco.cc \
+  PHG4GeantinoIonization.cc \
   PHG4GenHit.cc \
   PHG4HcalCellReco.cc \
   PHG4HcalDetector.cc \
