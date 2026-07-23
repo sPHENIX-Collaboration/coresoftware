@@ -61,16 +61,15 @@ class ActsPropagator
   /// and GeV. For an example of how to unpack this, see
   /// PHActsTrackProjection::propagateTrack and
   /// PHActsTrackProjection::updateSvtxTrack
-  BTPPairResult propagateTrack(const Acts::BoundTrackParameters& params,
-                                       const unsigned int sphenixLayer);
-  BTPPairResult propagateTrack(const Acts::BoundTrackParameters& params,
-                                       const SurfacePtr& surface);
+  BTPPairResult propagateTrack(const Acts::BoundTrackParameters&, const unsigned int /*layer*/, Acts::Direction = Acts::Direction::Positive());
+
+  BTPPairResult propagateTrack(const Acts::BoundTrackParameters&, const SurfacePtr&);
+
   /// The following function takes the track parameters at the vertex and
   /// propagates them in isolation to the requested surface, i.e. it does
   /// NOT stop at each layer in the sPHENIX detector on the way to the
   /// target surface
-  BTPPairResult propagateTrackFast(const Acts::BoundTrackParameters& params,
-                                           const SurfacePtr& surface);
+  BTPPairResult propagateTrackFast(const Acts::BoundTrackParameters&, const SurfacePtr&);
 
   bool checkLayer(const unsigned int& sphenixlayer,
                   unsigned int& actsvolume,
@@ -79,7 +78,11 @@ class ActsPropagator
   void setConstFieldValue(float field) { m_fieldval = field; }
   void constField() { m_constField = true; }
   void setOverstepLimit(const double overstep) { m_overstepLimit = overstep; }
-  SphenixPropagator makePropagator();
+
+  // create propagator
+  SphenixPropagator makePropagator( Acts::Logging::Level = Acts::Logging::FATAL);
+
+  // create propagator
   FastPropagator makeFastPropagator();
 
  private:
