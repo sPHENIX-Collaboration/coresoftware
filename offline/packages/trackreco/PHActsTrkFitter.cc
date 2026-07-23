@@ -57,6 +57,10 @@
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 
+#include <trackbase/alignmentTransformationContainer.h>
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+
 #include <cmath>
 #include <filesystem>
 #include <iostream>
@@ -181,10 +185,7 @@ namespace
 
 }  // namespace
 
-#include <trackbase/alignmentTransformationContainer.h>
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
-
+//___________________________________________________________________________
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : SubsysReco(name)
 {}
@@ -1292,80 +1293,6 @@ void PHActsTrkFitter::updateSvtxTrack(
     // acts propagator
     ActsPropagator propagator(m_tGeometry);
 
-    // find Acts track state closest to the TPC and create the corresponding parameter
-    ActsTrackFittingAlgorithm::TrackParameters nearest_params_forward = params;
-    bool found_forward = false;
-    mj.visitBackwards(trackTip, [&nearest_params_forward, &found_forward](const auto& state)
-    {
-      /// Only fill the track states with non-outlier measurement
-      if (!state.typeFlags().isMeasurement())
-      { return true; }
-
-      // only fill for state vectors with proper smoothed parameters
-      if( !state.hasSmoothed()) { return true;  }
-
-      // create svtx state vector with relevant pathlength
-      const float pathlength_local = state.pathLength() / Acts::UnitConstants::cm;
-      if( pathlength_local > 20. ) return true;
-
-      // get sphenix layer from acst volume and layer
-      unsigned int sphenixlayer = 0;
-      if( ActsPropagator().checkSphenixLayer(
-        state.referenceSurface().getSharedPtr()->geometryId().volume(),
-        state.referenceSurface().getSharedPtr()->geometryId().layer(),
-        sphenixlayer ) )
-      { std::cout << "PHActsTrkFitter::updateSvtxTrack - layer: " << (int) sphenixlayer << std::endl; }
-
-      // get smoothed fitted parameters
-      nearest_params_forward = Acts::BoundTrackParameters(
-        state.referenceSurface().getSharedPtr(),
-        state.smoothed(),
-        state.smoothedCovariance(),
-        Acts::ParticleHypothesis::pion());
-      found_forward = true;
-
-      return false;
-    });
-
-    // find Acts track state closest to the TPC and create the corresponding parameter
-    ActsTrackFittingAlgorithm::TrackParameters nearest_params_backward = params;
-    bool found_backward = false;
-    mj.visitBackwards(trackTip, [&nearest_params_backward, &found_backward](const auto& state)
-    {
-      /// Only fill the track states with non-outlier measurement
-      if (!state.typeFlags().isMeasurement())
-      { return true; }
-
-      // only fill for state vectors with proper smoothed parameters
-      if( !state.hasSmoothed()) { return true;  }
-
-      // create svtx state vector with relevant pathlength
-      const float pathlength_local = state.pathLength() / Acts::UnitConstants::cm;
-      if( pathlength_local > 50 )
-      {
-        // get smoothed fitted parameters and store
-        nearest_params_backward = Acts::BoundTrackParameters(
-          state.referenceSurface().getSharedPtr(),
-          state.smoothed(),
-          state.smoothedCovariance(),
-          Acts::ParticleHypothesis::pion());
-        found_backward = true;
-
-        // get sphenix layer from acst volume and layer
-        unsigned int sphenixlayer = 0;
-        if( ActsPropagator().checkSphenixLayer(
-          state.referenceSurface().getSharedPtr()->geometryId().volume(),
-          state.referenceSurface().getSharedPtr()->geometryId().layer(),
-          sphenixlayer ) )
-        { std::cout << "PHActsTrkFitter::updateSvtxTrack - layer: " << (int) sphenixlayer << std::endl; }
-
-        return true;
-      } else {
-        // stop here
-        return false;
-      }
-
-    });
 
     // loop over cluster keys associated to TPC seed
     for (auto key_iter = seed->begin_cluster_keys(); key_iter != seed->end_cluster_keys(); ++key_iter)
@@ -1412,16 +1339,18 @@ void PHActsTrkFitter::updateSvtxTrack(
         }
       }
 
-      if( found_forward )
+      // forward extrapolation
+      const auto& nearest_params_forward = find_nearest_params_before( mj, trackTip, layer );
+      if( nearest_params_forward )
       {
-        // forward extrapolation
-        extrapolate_parameters( nearest_params_forward );
+        extrapolate_parameters( *nearest_params_forward );
       }
 
-      if( found_backward )
+      // backward extrapolation
+      const auto& nearest_params_backward = find_nearest_params_after( mj, trackTip, layer );
+      if( nearest_params_backward )
       {
-        // backward extrapolation
-        extrapolate_parameters( nearest_params_backward, Acts::Direction::Negative() );
+        extrapolate_parameters( *nearest_params_backward, Acts::Direction::Negative() );
       }
 
       std::cout << std::endl;
