@@ -39,19 +39,22 @@ class ActsPropagator
   using FastPropagator = Acts::Propagator<Stepper>;
   using SphenixPropagator = Acts::Propagator<Stepper, Acts::Navigator>;
 
-  ActsPropagator() {}
+  // default constructor
+  ActsPropagator() = default;
+
+  // constructor with gemotry pointer
   ActsPropagator(ActsGeometry* geometry)
     : m_geometry(geometry)
-  {
-  }
-  ~ActsPropagator() {}
+  {}
 
   /// Helper functions for creating needed input for track propagation
   /// functions below
   SurfacePtr makeVertexSurface(const SvtxVertex* vertex);
+
   SurfacePtr makeVertexSurface(const Acts::Vector3& vertex);
-  BoundTrackParamResult makeTrackParams(SvtxTrack* track,
-					SvtxVertexMap* vertexMap);
+
+  BoundTrackParamResult makeTrackParams(SvtxTrack* track, SvtxVertexMap* vertexMap);
+
   BoundTrackParamResult makeTrackParams(SvtxTrackState* state,
 					int trackCharge,
 					SurfacePtr surf);
@@ -71,9 +74,16 @@ class ActsPropagator
   /// target surface
   BTPPairResult propagateTrackFast(const Acts::BoundTrackParameters&, const SurfacePtr&);
 
-  bool checkLayer(const unsigned int& sphenixlayer,
-                  unsigned int& actsvolume,
-                  unsigned int& actslayer);
+  /// get acts volume and layer from sphenix layer. Returns true on success
+  bool checkLayer(
+    const unsigned int sphenixlayer,
+    unsigned int& actsvolume,
+    unsigned int& actslayer) const;
+
+  /// get sphenix layer from acts volume and layer from sphenix layer. Returns true on success
+  /** this is the opposite transformation as checkLayer */
+  bool checkSphenixLayer( const unsigned int /*actsvolume*/, const unsigned int /*actslayer*/, unsigned int& /*sphenixlayer*/ ) const;
+
   void verbosity(int verb) { m_verbosity = verb; }
   void setConstFieldValue(float field) { m_fieldval = field; }
   void constField() { m_constField = true; }
