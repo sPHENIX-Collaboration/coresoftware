@@ -77,13 +77,13 @@ namespace
   {
     PHG4TpcGeomContainer *geom_container = nullptr;
     ActsGeometry *tGeometry = nullptr;
-    std::vector<TrkrHitSet *> hitsets = {};
-    std::vector<unsigned int> layers = {};
+    std::vector<TrkrHitSet *> hitsets;
+    std::vector<unsigned int> layers;
     bool side = false;
     unsigned int sector = 0;
     unsigned int module = 0;
-    std::vector<LaserCluster *> cluster_vector = {};
-    std::vector<TrkrDefs::cluskey> cluster_key_vector = {};
+    std::vector<LaserCluster *> cluster_vector;
+    std::vector<TrkrDefs::cluskey> cluster_key_vector;
     double adc_threshold = 74.4;
     int peakTimeBin = 325;
     int layerMin = 1;
