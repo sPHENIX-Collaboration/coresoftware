@@ -620,6 +620,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
             }
           }
         }
+        // With an empty ACTS material map, m_materialSurfaces is empty.
+        // Use the measurement surfaces directly for directed navigation.
+        if (surfaces.empty())
+        {
+          surfaces = surfaces_tmp;
+        }
+
         checkSurfaceVec(surfaces);
         if (Verbosity() > 1)
         {
@@ -1014,11 +1021,22 @@ SurfacePtrVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
 
 void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
 {
+  if (surfaces.size() < 2)
+  {
+    return;
+  }
+
   // Do not assume volume id has the correct layer, check the surface radius
 
   for (unsigned int i = 0; i < surfaces.size() - 1; i++)
   {
+    
     const auto& surface = surfaces.at(i);
+    if (std::find(m_materialSurfaces.begin(), m_materialSurfaces.end(), surface) != m_materialSurfaces.end())
+    {
+      continue;
+    }
+ 
     const auto thisVolume = surface->geometryId().volume();
 
     const Acts::Vector3 this_center = surface->center(m_tGeometry->geometry().getGeoContext());
@@ -1027,9 +1045,13 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
     const auto* nextSurface = surfaces.at(i + 1);
     const auto nextVolume = nextSurface->geometryId().volume();
 
-    const Acts::Vector3 next_center = surface->center(m_tGeometry->geometry().getGeoContext());
+    const Acts::Vector3 next_center = nextSurface->center(m_tGeometry->geometry().getGeoContext());
     double nextRadius = sqrt(next_center.x()*next_center.x()+next_center.y()*next_center.y());
-    
+
+    if (surface->geometryId().approach() == 2 || nextSurface->geometryId().approach() == 2)
+    {
+      continue;
+    }
     /// Implement a check to ensure surfaces are sorted
     if (nextVolume == thisVolume)
     {
@@ -1040,7 +1062,8 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
             << "PHActsTrkFitter::checkSurfaceVec - "
             << "Surface not in order... removing surface"
             << surface->geometryId() << " with radius " << thisRadius << std::endl;
-
+            std::cout << "   approach " << nextSurface->geometryId().approach() << " volume " << nextSurface->geometryId().volume() << " layer " << nextSurface->geometryId().layer() << std::endl;
+        std::cout << "    Next surface is " << nextSurface->geometryId() << " with radius " << nextRadius << std::endl;
         surfaces.erase(surfaces.begin() + i);
 
         /// Subtract one so we don't skip a surface

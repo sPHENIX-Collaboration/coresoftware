@@ -1,5 +1,6 @@
 #include "CDBTTree.h"
 
+#include <phool/PHUtils.h>
 #include <phool/phool.h>
 
 #include <TBranch.h>      // for TBranch
@@ -470,8 +471,8 @@ void CDBTTree::WriteCDBTTree()
   }
 
   std::string currdir = gDirectory->GetPath();
-
-  TFile *f = TFile::Open(m_Filename.c_str(), "RECREATE");
+  std::string reproducible_TFile_name = PHUtils::CreateReproducibleTFileName(m_Filename);
+  TFile *f = TFile::Open(reproducible_TFile_name.c_str(), "RECREATE");
   if (!empty_single)
   {
     WriteSingleCDBTTree();

@@ -9,6 +9,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHTimeStamp.h>
+#include <phool/PHUtils.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
@@ -148,7 +149,8 @@ int PHParametersContainer::WriteToFile(const std::string &extension, const std::
 
   PdbParameterMapContainer *myparm = new PdbParameterMapContainer();
   CopyToPdbParameterMapContainer(myparm);
-  TFile *f = TFile::Open(fullpath.str().c_str(), "recreate");
+  std::string reproducible_TFile_name = PHUtils::CreateReproducibleTFileName(fullpath.str());
+  TFile *f = TFile::Open(reproducible_TFile_name.c_str(), "RECREATE");
   // force xml file writing to use extended precision shown experimentally
   // to not modify input parameters (.15e)
   std::string floatformat = TBufferXML::GetFloatFormat();

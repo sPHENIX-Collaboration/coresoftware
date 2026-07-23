@@ -146,8 +146,8 @@ void KFParticle_truthAndDetTools::initializeTruthBranches(TTree *m_tree, int dau
   m_tree->Branch((daughter_number + "_true_ID").c_str(), &m_true_daughter_id[daughter_id], (daughter_number + "_true_ID/I").c_str());
   if (m_constrain_to_vertex_truthMatch)
   {
-    m_tree->Branch((daughter_number + "_true_IP").c_str(), &m_true_daughter_ip[daughter_id], (daughter_number + "_true_IP/F").c_str());
-    m_tree->Branch((daughter_number + "_true_IP_xy").c_str(), &m_true_daughter_ip_xy[daughter_id], (daughter_number + "_true_IP_xy/F").c_str());
+    m_tree->Branch((daughter_number + "_true_PV_DCA").c_str(), &m_true_daughter_ip[daughter_id], (daughter_number + "_true_PV_DCA/F").c_str());
+    m_tree->Branch((daughter_number + "_true_PV_DCA_xy").c_str(), &m_true_daughter_ip_xy[daughter_id], (daughter_number + "_true_PV_DCA_xy/F").c_str());
   }
   m_tree->Branch((daughter_number + "_true_px").c_str(), &m_true_daughter_px[daughter_id], (daughter_number + "_true_px/F").c_str());
   m_tree->Branch((daughter_number + "_true_py").c_str(), &m_true_daughter_py[daughter_id], (daughter_number + "_true_py/F").c_str());
@@ -289,8 +289,7 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
 
     if (truePoint == nullptr && isParticleValid)
     {
-      // PHG4Particle *g4mother = m_truthinfo->GetParticle(g4particle->get_parent_id());
-      PHG4Particle *g4mother = m_truthinfo->GetPrimaryParticle(g4particle->get_parent_id());
+      PHG4Particle *g4mother = trutheval->get_parent_particle(g4particle);
       if (!g4mother)
       {
         std::cout << "KFParticle truth matching: True mother not found!\n";
@@ -299,7 +298,7 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
       }
       else
       {
-        truePoint = m_truthinfo->GetVtx(g4mother->get_vtx_id());  // Note, this may not be the PV for a decay with tertiaries
+        truePoint = trutheval->get_vertex(g4mother);
       }
     }
 
@@ -352,7 +351,6 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
 void KFParticle_truthAndDetTools::fillGeant4Branch(PHG4Particle *particle, int daughter_id)
 {
   Float_t pT = sqrt(pow(particle->get_px(), 2) + pow(particle->get_py(), 2));
-
   m_true_daughter_track_history_PDG_ID[daughter_id].push_back(particle->get_pid());
   m_true_daughter_track_history_PDG_mass[daughter_id].push_back(0);
   m_true_daughter_track_history_px[daughter_id].push_back((Float_t) particle->get_px());
@@ -1502,19 +1500,19 @@ void KFParticle_truthAndDetTools::allPVInfo(PHCompositeNode *topNode,
     allPV_y.push_back(primaryVertice.GetY());
     allPV_z.push_back(primaryVertice.GetZ());
 
-    allPV_mother_IP.push_back(motherParticle.GetDistanceFromVertex(primaryVertice));
-    allPV_mother_IPchi2.push_back(motherParticle.GetDeviationFromVertex(primaryVertice));
+    allPV_mother_PV_DCA.push_back(motherParticle.GetDistanceFromVertex(primaryVertice));
+    allPV_mother_PV_DCA_StdDev.push_back(motherParticle.GetDeviationFromVertex(primaryVertice));
 
     for (unsigned int j = 0; j < daughters.size(); ++j)
     {
-      allPV_daughter_IP[j].push_back(daughters[j].GetDistanceFromVertex(primaryVertice));
-      allPV_daughter_IPchi2[j].push_back(daughters[j].GetDeviationFromVertex(primaryVertice));
+      allPV_daughter_PV_DCA[j].push_back(daughters[j].GetDistanceFromVertex(primaryVertice));
+      allPV_daughter_PV_DCA_StdDev[j].push_back(daughters[j].GetDeviationFromVertex(primaryVertice));
     }
 
     for (unsigned int j = 0; j < intermediates.size(); ++j)
     {
-      allPV_intermediates_IP[j].push_back(intermediates[j].GetDistanceFromVertex(primaryVertice));
-      allPV_intermediates_IPchi2[j].push_back(intermediates[j].GetDeviationFromVertex(primaryVertice));
+      allPV_intermediates_PV_DCA[j].push_back(intermediates[j].GetDistanceFromVertex(primaryVertice));
+      allPV_intermediates_PV_DCA_StdDev[j].push_back(intermediates[j].GetDeviationFromVertex(primaryVertice));
     }
   }
 }
@@ -1550,8 +1548,8 @@ void KFParticle_truthAndDetTools::clearVectors()
     detector_nStates_TPOT[i] = 0;
 
     // PV vectors
-    allPV_daughter_IP[i].clear();
-    allPV_daughter_IPchi2[i].clear();
+    allPV_daughter_PV_DCA[i].clear();
+    allPV_daughter_PV_DCA_StdDev[i].clear();
 
     // Detailed Calo
     if (m_get_detailed_calorimetry)
@@ -1567,12 +1565,12 @@ void KFParticle_truthAndDetTools::clearVectors()
   allPV_z.clear();
   allPV_z.clear();
 
-  allPV_mother_IP.clear();
-  allPV_mother_IPchi2.clear();
+  allPV_mother_PV_DCA.clear();
+  allPV_mother_PV_DCA_StdDev.clear();
 
   for (int i = 0; i < m_num_intermediate_states_nTuple; ++i)
   {
-    allPV_intermediates_IP[i].clear();
-    allPV_intermediates_IPchi2[i].clear();
+    allPV_intermediates_PV_DCA[i].clear();
+    allPV_intermediates_PV_DCA_StdDev[i].clear();
   }
 }

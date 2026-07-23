@@ -13,6 +13,8 @@
 #ifndef FUN4ALL_PHTFILESERVER_H
 #define FUN4ALL_PHTFILESERVER_H
 
+#include <phool/PHUtils.h>
+
 #include <TFile.h>
 
 #include <map>
@@ -71,7 +73,7 @@ class PHTFileServer
    public:
     //! constructor
     SafeTFile(const std::string& filename, const std::string& type = "RECREATE")
-      : TFile(filename.c_str(), type.c_str())
+      : TFile(PHUtils::CreateReproducibleTFileName(filename).c_str(), type.c_str())
       , _filename(filename)
       , _counter(1)
     {

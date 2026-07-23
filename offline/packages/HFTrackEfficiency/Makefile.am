@@ -24,7 +24,8 @@ libhftrackefficiency_la_LIBADD = \
   -ldecayfinder_io \
   -ltrackbase_historic_io \
   -lphg4hit \
-  -lphhepmc
+  -lphhepmc \
+  -lg4eval
 
 ################################################
 # linking tests

@@ -60,6 +60,7 @@ libphool_la_SOURCES = \
   PHTimer.cc \
   PHTimeServer.cc \
   PHTimeStamp.cc \
+  PHUtils.cc \
   recoConsts.cc
 
 pkginclude_HEADERS =  \
@@ -87,6 +88,7 @@ pkginclude_HEADERS =  \
   PHTimeServer.h \
   PHTimeStamp.h \
   PHTypedNodeIterator.h \
+  PHUtils.h \
   recoConsts.h \
   RunnumberRange.h \
   sphenix_constants.h

@@ -63,8 +63,8 @@ class KFParticle_truthAndDetTools
   void fillHepMCBranch(HepMC::GenParticle *particle, int daughter_id);
   int getHepMCInfo(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
 
-  void initializeCaloBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
-  void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch, const KFParticle &vertex);
+  virtual void initializeCaloBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
+  virtual void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch, const KFParticle &vertex);
   void Get5x5CellInfo(RawClusterDefs::keytype key_in, int daughter_id);
 
   void initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
@@ -226,12 +226,12 @@ class KFParticle_truthAndDetTools
   std::vector<float> allPV_x;
   std::vector<float> allPV_y;
   std::vector<float> allPV_z;
-  std::vector<float> allPV_mother_IP;
-  std::vector<float> allPV_mother_IPchi2;
-  std::vector<float> allPV_daughter_IP[max_tracks];
-  std::vector<float> allPV_daughter_IPchi2[max_tracks];
-  std::vector<float> allPV_intermediates_IP[max_tracks];
-  std::vector<float> allPV_intermediates_IPchi2[max_tracks];
+  std::vector<float> allPV_mother_PV_DCA;
+  std::vector<float> allPV_mother_PV_DCA_StdDev;
+  std::vector<float> allPV_daughter_PV_DCA[max_tracks];
+  std::vector<float> allPV_daughter_PV_DCA_StdDev[max_tracks];
+  std::vector<float> allPV_intermediates_PV_DCA[max_tracks];
+  std::vector<float> allPV_intermediates_PV_DCA_StdDev[max_tracks];
 
   PHG4TruthInfoContainer *m_truthinfo{nullptr};
   PHHepMCGenEventMap *m_geneventmap{nullptr};
