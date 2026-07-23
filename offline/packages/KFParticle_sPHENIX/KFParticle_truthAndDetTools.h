@@ -226,12 +226,12 @@ class KFParticle_truthAndDetTools
   std::vector<float> allPV_x;
   std::vector<float> allPV_y;
   std::vector<float> allPV_z;
-  std::vector<float> allPV_mother_IP;
-  std::vector<float> allPV_mother_IPchi2;
-  std::vector<float> allPV_daughter_IP[max_tracks];
-  std::vector<float> allPV_daughter_IPchi2[max_tracks];
-  std::vector<float> allPV_intermediates_IP[max_tracks];
-  std::vector<float> allPV_intermediates_IPchi2[max_tracks];
+  std::vector<float> allPV_mother_PV_DCA;
+  std::vector<float> allPV_mother_PV_DCA_StdDev;
+  std::vector<float> allPV_daughter_PV_DCA[max_tracks];
+  std::vector<float> allPV_daughter_PV_DCA_StdDev[max_tracks];
+  std::vector<float> allPV_intermediates_PV_DCA[max_tracks];
+  std::vector<float> allPV_intermediates_PV_DCA_StdDev[max_tracks];
 
   PHG4TruthInfoContainer *m_truthinfo{nullptr};
   PHHepMCGenEventMap *m_geneventmap{nullptr};

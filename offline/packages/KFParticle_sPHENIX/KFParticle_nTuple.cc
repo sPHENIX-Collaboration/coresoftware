@@ -84,15 +84,15 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
     m_tree->Branch(TString(mother_name) + "_DIRA", &m_calculated_mother_dira, TString(mother_name) + "_DIRA/F");
     m_tree->Branch(TString(mother_name) + "_DIRA_xy", &m_calculated_mother_dira_xy, TString(mother_name) + "_DIRA_xy/F");
     m_tree->Branch(TString(mother_name) + "_FDchi2", &m_calculated_mother_fdchi2, TString(mother_name) + "_FDchi2/F");
-    m_tree->Branch(TString(mother_name) + "_IP", &m_calculated_mother_ip, TString(mother_name) + "_IP/F");
-    m_tree->Branch(TString(mother_name) + "_IPchi2", &m_calculated_mother_ipchi2, TString(mother_name) + "_IPchi2/F");
-    m_tree->Branch(TString(mother_name) + "_IPErr", &m_calculated_mother_ip_err, TString(mother_name) + "_IPErr/F");
-    m_tree->Branch(TString(mother_name) + "_IP_xy", &m_calculated_mother_ip_xy, TString(mother_name) + "_IP_xy/F");
+    m_tree->Branch(TString(mother_name) + "_PV_DCA", &m_calculated_mother_PV_dca, TString(mother_name) + "_PV_DCA/F");
+    m_tree->Branch(TString(mother_name) + "_PV_DCA_StdDev", &m_calculated_mother_PV_dca_sig, TString(mother_name) + "_PV_DCA_StdDev/F");
+    m_tree->Branch(TString(mother_name) + "_PV_DCA_Err", &m_calculated_mother_PV_dca_err, TString(mother_name) + "_PV_DCA_Err/F");
+    m_tree->Branch(TString(mother_name) + "_PV_DCA_xy", &m_calculated_mother_PV_dca_xy, TString(mother_name) + "_PV_DCA_xy/F");
   }
   if (m_get_all_PVs)
   {
-    m_tree->Branch(TString(mother_name) + "_IP_allPV", &allPV_mother_IP);
-    m_tree->Branch(TString(mother_name) + "_IPchi2_allPV", &allPV_mother_IPchi2);
+    m_tree->Branch(TString(mother_name) + "_PV_DCA_allPV", &allPV_mother_PV_DCA);
+    m_tree->Branch(TString(mother_name) + "_PV_DCA_StdDev_allPV", &allPV_mother_PV_DCA_StdDev);
   }
   m_tree->Branch(TString(mother_name) + "_x", &m_calculated_mother_x, TString(mother_name) + "_x/F");
   m_tree->Branch(TString(mother_name) + "_y", &m_calculated_mother_y, TString(mother_name) + "_y/F");
@@ -144,15 +144,15 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
       m_tree->Branch(TString(intermediate_name) + "_FDchi2", &m_calculated_intermediate_fdchi2[i], TString(intermediate_name) + "_FDchi2/F");
       if (m_constrain_to_vertex_nTuple)
       {
-        m_tree->Branch(TString(intermediate_name) + "_IP", &m_calculated_intermediate_ip[i], TString(intermediate_name) + "_IP/F");
-        m_tree->Branch(TString(intermediate_name) + "_IPchi2", &m_calculated_intermediate_ipchi2[i], TString(intermediate_name) + "_IPchi2/F");
-        m_tree->Branch(TString(intermediate_name) + "_IPErr", &m_calculated_intermediate_ip_err[i], TString(intermediate_name) + "_IPErr/F");
-        m_tree->Branch(TString(intermediate_name) + "_IP_xy", &m_calculated_intermediate_ip_xy[i], TString(intermediate_name) + "_IP_xy/F");
+        m_tree->Branch(TString(intermediate_name) + "_PV_DCA", &m_calculated_intermediate_PV_dca[i], TString(intermediate_name) + "_PV_DCA/F");
+        m_tree->Branch(TString(intermediate_name) + "_PV_DCA_StdDev", &m_calculated_intermediate_PV_dca_sig[i], TString(intermediate_name) + "_PV_DCA_StdDev/F");
+        m_tree->Branch(TString(intermediate_name) + "_PV_DCA_Err", &m_calculated_intermediate_PV_dca_err[i], TString(intermediate_name) + "_PV_DCA_Err/F");
+        m_tree->Branch(TString(intermediate_name) + "_PV_DCA_xy", &m_calculated_intermediate_PV_dca_xy[i], TString(intermediate_name) + "_PV_DCA_xy/F");
       }
       if (m_get_all_PVs)
       {
-        m_tree->Branch(TString(intermediate_name) + "_IP_allPV", &allPV_intermediates_IP[i]);
-        m_tree->Branch(TString(intermediate_name) + "_IPchi2_allPV", &allPV_intermediates_IPchi2[i]);
+        m_tree->Branch(TString(intermediate_name) + "_PV_DCA_allPV", &allPV_intermediates_PV_DCA[i]);
+        m_tree->Branch(TString(intermediate_name) + "_PV_DCA_StdDev_allPV", &allPV_intermediates_PV_DCA_StdDev[i]);
       }
       m_tree->Branch(TString(intermediate_name) + "_x", &m_calculated_intermediate_x[i], TString(intermediate_name) + "_x/F");
       m_tree->Branch(TString(intermediate_name) + "_y", &m_calculated_intermediate_y[i], TString(intermediate_name) + "_y/F");
@@ -201,17 +201,16 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
     m_tree->Branch(TString(daughter_number) + "_mass", &m_calculated_daughter_mass[i], TString(daughter_number) + "_mass/F");
     if (m_constrain_to_vertex_nTuple)
     {
-      m_tree->Branch(TString(daughter_number) + "_IP", &m_calculated_daughter_ip[i], TString(daughter_number) + "_IP/F");
-      m_tree->Branch(TString(daughter_number) + "_IPchi2", &m_calculated_daughter_ipchi2[i], TString(daughter_number) + "_IPchi2/F");
-      m_tree->Branch(TString(daughter_number) + "_IPErr", &m_calculated_daughter_ip_err[i], TString(daughter_number) + "_IPErr/F");
-      m_tree->Branch(TString(daughter_number) + "_IP_xy", &m_calculated_daughter_ip_xy[i], TString(daughter_number) + "_IP_xy/F");
-      m_tree->Branch(TString(daughter_number) + "_DCA_sig", &m_calculated_daughter_PV_dca_sig[i], TString(daughter_number) + "_DCA_sig/F");
-      m_tree->Branch(TString(daughter_number) + "_DCA_sig_xy", &m_calculated_daughter_PV_dca_xy_sig[i], TString(daughter_number) + "_DCA_sig_xy/F");
+      m_tree->Branch(TString(daughter_number) + "_PV_DCA", &m_calculated_daughter_PV_dca[i], TString(daughter_number) + "_PV_DCA/F");
+      m_tree->Branch(TString(daughter_number) + "_PV_DCA_Err", &m_calculated_daughter_PV_dca_err[i], TString(daughter_number) + "_PV_DCA_Err/F");
+      m_tree->Branch(TString(daughter_number) + "_PV_DCA_xy", &m_calculated_daughter_PV_dca_xy[i], TString(daughter_number) + "_PV_DCA_xy/F");
+      m_tree->Branch(TString(daughter_number) + "_PV_DCA_sig", &m_calculated_daughter_PV_dca_sig[i], TString(daughter_number) + "_PV_DCA_sig/F");
+      m_tree->Branch(TString(daughter_number) + "_PV_DCA_sig_xy", &m_calculated_daughter_PV_dca_xy_sig[i], TString(daughter_number) + "_PV_DCA_sig_xy/F");
     }
     if (m_get_all_PVs)
     {
-      m_tree->Branch(TString(daughter_number) + "_IP_allPV", &allPV_daughter_IP[i]);
-      m_tree->Branch(TString(daughter_number) + "_IPchi2_allPV", &allPV_daughter_IPchi2[i]);
+      m_tree->Branch(TString(daughter_number) + "_PV_DCA_allPV", &allPV_daughter_PV_DCA[i]);
+      m_tree->Branch(TString(daughter_number) + "_PV_DCA_StdDev_allPV", &allPV_daughter_PV_DCA_StdDev[i]);
     }
     m_tree->Branch(TString(daughter_number) + "_x", &m_calculated_daughter_x[i], TString(daughter_number) + "_x/F");
     m_tree->Branch(TString(daughter_number) + "_y", &m_calculated_daughter_y[i], TString(daughter_number) + "_y/F");
@@ -412,10 +411,10 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_calculated_mother_dira = kfpTupleTools.eventDIRA(motherParticle, vertex_fillbranch);
     m_calculated_mother_dira_xy = kfpTupleTools.eventDIRA(motherParticle, vertex_fillbranch, false);
     m_calculated_mother_fdchi2 = kfpTupleTools.flightDistanceChi2(motherParticle, vertex_fillbranch);
-    m_calculated_mother_ip = motherParticle.GetDistanceFromVertex(vertex_fillbranch);
-    m_calculated_mother_ipchi2 = motherParticle.GetDeviationFromVertex(vertex_fillbranch);
-    m_calculated_mother_ip_err = m_calculated_mother_ip / std::sqrt(m_calculated_mother_ipchi2);
-    m_calculated_mother_ip_xy = motherParticle.GetDistanceFromVertexXY(vertex_fillbranch);
+    m_calculated_mother_PV_dca = motherParticle.GetDistanceFromVertex(vertex_fillbranch);
+    m_calculated_mother_PV_dca_sig = motherParticle.GetDeviationFromVertex(vertex_fillbranch);
+    m_calculated_mother_PV_dca_err = m_calculated_mother_PV_dca / std::sqrt(m_calculated_mother_PV_dca_sig);
+    m_calculated_mother_PV_dca_xy = motherParticle.GetDistanceFromVertexXY(vertex_fillbranch);
   }
   m_calculated_mother_x = motherParticle.GetX();
   m_calculated_mother_y = motherParticle.GetY();
@@ -454,10 +453,10 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_calculated_intermediate_fdchi2[i] = kfpTupleTools.flightDistanceChi2(intermediateArray[i], motherParticle);
       if (m_constrain_to_vertex_nTuple)
       {
-        m_calculated_intermediate_ip[i] = intermediateArray[i].GetDistanceFromVertex(vertex_fillbranch);
-        m_calculated_intermediate_ipchi2[i] = intermediateArray[i].GetDeviationFromVertex(vertex_fillbranch);
-        m_calculated_intermediate_ip_err[i] = m_calculated_intermediate_ip[i] / std::sqrt(m_calculated_intermediate_ipchi2[i]);
-        m_calculated_intermediate_ip_xy[i] = intermediateArray[i].GetDistanceFromVertexXY(vertex_fillbranch);
+        m_calculated_intermediate_PV_dca[i] = intermediateArray[i].GetDistanceFromVertex(vertex_fillbranch);
+        m_calculated_intermediate_PV_dca_sig[i] = intermediateArray[i].GetDeviationFromVertex(vertex_fillbranch);
+        m_calculated_intermediate_PV_dca_err[i] = m_calculated_intermediate_PV_dca[i] / std::sqrt(m_calculated_intermediate_PV_dca_sig[i]);
+        m_calculated_intermediate_PV_dca_xy[i] = intermediateArray[i].GetDistanceFromVertexXY(vertex_fillbranch);
       }
       m_calculated_intermediate_x[i] = intermediateArray[i].GetX();
       m_calculated_intermediate_y[i] = intermediateArray[i].GetY();
@@ -502,10 +501,10 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_calculated_daughter_mass[i] = daughterArray[i].GetMass();
     if (m_constrain_to_vertex_nTuple)
     {
-      m_calculated_daughter_ip[i] = daughterArray[i].GetDistanceFromVertex(vertex_fillbranch);
-      m_calculated_daughter_ipchi2[i] = daughterArray[i].GetDeviationFromVertex(vertex_fillbranch);
-      m_calculated_daughter_ip_err[i] = m_calculated_daughter_ip[i] / std::sqrt(m_calculated_daughter_ipchi2[i]);
-      m_calculated_daughter_ip_xy[i] = daughterArray[i].GetDistanceFromVertexXY(vertex_fillbranch);
+      m_calculated_daughter_PV_dca[i] = daughterArray[i].GetDistanceFromVertex(vertex_fillbranch);
+      m_calculated_daughter_PV_dca_sig[i] = daughterArray[i].GetDeviationFromVertex(vertex_fillbranch);
+      m_calculated_daughter_PV_dca_err[i] = m_calculated_daughter_PV_dca[i] / std::sqrt(m_calculated_daughter_PV_dca_sig[i]);
+      m_calculated_daughter_PV_dca_xy[i] = daughterArray[i].GetDistanceFromVertexXY(vertex_fillbranch);
       m_calculated_daughter_PV_dca_sig[i] = daughterArray[i].GetDeviationFromVertex(vertex_fillbranch);
       m_calculated_daughter_PV_dca_xy_sig[i] = daughterArray[i].GetDeviationFromVertexXY(vertex_fillbranch);
     }
