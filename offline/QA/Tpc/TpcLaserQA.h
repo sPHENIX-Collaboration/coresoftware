@@ -3,6 +3,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <tpc/LaserClusterHelper.h>
+
 #include <string>
 
 class PHCompositeNode;
@@ -19,6 +21,8 @@ class TpcLaserQA : public SubsysReco
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
 
+  void set_useZ(bool use) { m_useZ = use; }
+
  private:
   void createHistos();
   std::string getHistoPrefix() const;
@@ -34,6 +38,9 @@ class TpcLaserQA : public SubsysReco
   TH1* m_sample_R1[2][12]{{nullptr}};
   TH1* m_sample_R2[2][12]{{nullptr}};
   TH1* m_sample_R3[2][12]{{nullptr}};
+
+  LaserClusterHelper m_laserClusterHelper;
+  bool m_useZ{false};
 };
 
 #endif
