@@ -21,10 +21,10 @@
 #include <TH3D.h>
 #include <TMath.h>
 #include <TPolyLine3D.h>
-#include <TString.h>
 
 #include <algorithm>
 #include <cmath>
+#include <format>
 #include <iostream>
 #include <limits>
 #include <set>
@@ -76,7 +76,7 @@ namespace
   unsigned long long make_unique_hit_id(const TrkrDefs::hitsetkey hsk,
                                         const TrkrDefs::hitkey hk)
   {
-    return (static_cast<unsigned long long>(hsk) << 32) |
+    return (static_cast<unsigned long long>(hsk) << 32U) |
            static_cast<unsigned long long>(hk);
   }
 
@@ -133,6 +133,7 @@ namespace
     return fit.b + yy;
   }
 
+  // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
   struct RadiusSort
   {
     const std::vector<Tpc_AssembledTrackDisplay::HitPoint>* pts;
@@ -176,6 +177,8 @@ namespace
     double rmin;
     double rmax;
   };
+
+  // NOLINTEND(misc-non-private-member-variables-in-classes)
 
   FitResult fit_assembled_track_points(const std::vector<Tpc_AssembledTrackDisplay::HitPoint>& pts,
                                        const int fit_mode,
@@ -483,7 +486,7 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
   }
   eventsTop->cd();
 
-  TDirectory* eventDir = eventsTop->mkdir(Form("event_%06u", m_evt));
+  TDirectory* eventDir = eventsTop->mkdir(std::format("event_{:06}", m_evt).c_str());
   if (!eventDir)
   {
     std::cerr << "Tpc_AssembledTrackDisplay::process_event - failed to create event directory" << std::endl;
@@ -506,32 +509,32 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
 
   for (unsigned int side = 0; side < 2; ++side)
   {
-    h3[side] = new TH3D(Form("h3_evt%06u_tpc_assembledtrack_hits_side%u", m_evt, side),
-                        Form("event %u side %u assembled tracks;timebin;global #phi;radius [cm]", m_evt, side),
+    h3[side] = new TH3D(std::format("h3_evt{:06}_tpc_assembledtrack_hits_side{}", m_evt, side).c_str(),
+                        std::format("event {} side {} assembled tracks;timebin;global #phi;radius [cm]", m_evt, side).c_str(),
                         512, -0.5, 511.5,
                         720, -TMath::Pi(), TMath::Pi(),
                         100, 30, 80.0);
     h3[side]->SetStats(false);
     h3[side]->SetDirectory(nullptr);
 
-    h3xy[side] = new TH3D(Form("h3_evt%06u_tpc_assembledtrack_hits_xy_side%u", m_evt, side),
-                          Form("event %u side %u assembled tracks;timebin;x [cm];y [cm]", m_evt, side),
+    h3xy[side] = new TH3D(std::format("h3_evt{:06}_tpc_assembledtrack_hits_xy_side{}", m_evt, side).c_str(),
+                          std::format("event {} side {} assembled tracks;timebin;x [cm];y [cm]", m_evt, side).c_str(),
                           512, -0.5, 511.5,
                           160, -80.0, 80.0,
                           160, -80.0, 80.0);
     h3xy[side]->SetStats(false);
     h3xy[side]->SetDirectory(nullptr);
 
-    h3_single[side] = new TH3D(Form("h3_evt%06u_single_module_tpc_assembledtrack_hits_side%u", m_evt, side),
-                               Form("event %u side %u single-module assembled tracks;timebin;global #phi;radius [cm]", m_evt, side),
+    h3_single[side] = new TH3D(std::format("h3_evt{:06}_single_module_tpc_assembledtrack_hits_side{}", m_evt, side).c_str(),
+                               std::format("event {} side {} single-module assembled tracks;timebin;global #phi;radius [cm]", m_evt, side).c_str(),
                                512, -0.5, 511.5,
                                720, -TMath::Pi(), TMath::Pi(),
                                100, 30, 80.0);
     h3_single[side]->SetStats(false);
     h3_single[side]->SetDirectory(nullptr);
 
-    h3xy_single[side] = new TH3D(Form("h3_evt%06u_single_module_tpc_assembledtrack_hits_xy_side%u", m_evt, side),
-                                 Form("event %u side %u single-module assembled tracks;timebin;x [cm];y [cm]", m_evt, side),
+    h3xy_single[side] = new TH3D(std::format("h3_evt{:06}_single_module_tpc_assembledtrack_hits_xy_side{}", m_evt, side).c_str(),
+                                 std::format("event {} side {} single-module assembled tracks;timebin;x [cm];y [cm]", m_evt, side).c_str(),
                                  512, -0.5, 511.5,
                                  160, -80.0, 80.0,
                                  160, -80.0, 80.0);
@@ -630,8 +633,8 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
 
   for (unsigned int side = 0; side < 2; ++side)
   {
-    TCanvas* c3 = new TCanvas(Form("c3_evt%06u_timebin_phi_radius_fits_side%u", m_evt, side),
-                              Form("event %u side %u assembled-track hits and display fits", m_evt, side),
+    TCanvas* c3 = new TCanvas(std::format("c3_evt{:06}_timebin_phi_radius_fits_side{}", m_evt, side).c_str(),
+                              std::format("event {} side {} assembled-track hits and display fits", m_evt, side).c_str(),
                               1200, 900);
     h3[side]->Draw("BOX2Z");
     for (auto& iline : fit_lines_tpr[side])
@@ -645,8 +648,8 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
     c3->Update();
     c3->Write();
 
-    TCanvas* c3xy = new TCanvas(Form("c3_evt%06u_timebin_x_y_fits_side%u", m_evt, side),
-                                Form("event %u side %u assembled-track hits and display fits", m_evt, side),
+    TCanvas* c3xy = new TCanvas(std::format("c3_evt{:06}_timebin_x_y_fits_side{}", m_evt, side).c_str(),
+                                std::format("event {} side {} assembled-track hits and display fits", m_evt, side).c_str(),
                                 1200, 900);
     h3xy[side]->Draw("BOX2Z");
     for (auto& iline : fit_lines_txy[side])
@@ -660,8 +663,8 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
     c3xy->Update();
     c3xy->Write();
 
-    TCanvas* c3_single = new TCanvas(Form("c3_evt%06u_timebin_phi_radius_fits_single_module_side%u", m_evt, side),
-                                     Form("event %u side %u single-module assembled-track hits and display fits", m_evt, side),
+    TCanvas* c3_single = new TCanvas(std::format("c3_evt{:06}_timebin_phi_radius_fits_single_module_side{}", m_evt, side).c_str(),
+                                     std::format("event {} side {} single-module assembled-track hits and display fits", m_evt, side).c_str(),
                                      1200, 900);
     h3_single[side]->Draw("BOX2Z");
     for (auto& iline : fit_lines_tpr_single[side])
@@ -675,8 +678,8 @@ int Tpc_AssembledTrackDisplay::process_event(PHCompositeNode* topNode)
     c3_single->Update();
     c3_single->Write();
     /*
-        TCanvas* c3xy_single = new TCanvas(Form("c3_evt%06u_timebin_x_y_fits_single_module_side%u", m_evt, side),
-                                           Form("event %u side %u single-module assembled-track hits and display fits", m_evt, side),
+        TCanvas* c3xy_single = new TCanvas(std::format("c3_evt{:06}_timebin_x_y_fits_single_module_side{}", m_evt, side).c_str(),
+                   std::format("event {} side {} single-module assembled-track hits and display fits", m_evt, side).c_str(),
                                            1200, 900);
         h3xy_single[side]->Draw("BOX2Z");
         for (unsigned int iline = 0; iline < fit_lines_txy_single[side].size(); ++iline)

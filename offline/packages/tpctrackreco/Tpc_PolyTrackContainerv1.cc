@@ -35,7 +35,7 @@ int Tpc_PolyTrackContainerv1::isValid() const
 PHObject* Tpc_PolyTrackContainerv1::CloneMe() const
 {
   Tpc_PolyTrackContainerv1* copy = new Tpc_PolyTrackContainerv1();
-  for (auto m_track : m_tracks)
+  for (auto* m_track : m_tracks)
   {
     if (m_track)
     {

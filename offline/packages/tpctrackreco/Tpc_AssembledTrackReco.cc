@@ -1369,9 +1369,9 @@ Tpc_AssembledTrackReco::make_seed_parameters(const Candidate& c) const
 
   for (auto& i : seed.cov)
   {
-    for (unsigned int j = 0; j < 6; ++j)
+    for (double& j : i)
     {
-      i[j] = 0.0;
+      j = 0.0;
     }
   }
   seed.cov[0][0] = m_seedSigmaX * m_seedSigmaX;

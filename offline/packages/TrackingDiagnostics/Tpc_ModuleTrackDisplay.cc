@@ -22,10 +22,10 @@
 #include <TMath.h>
 #include <TMultiGraph.h>
 #include <TPolyLine3D.h>
-#include <TString.h>
 
 #include <algorithm>
 #include <cmath>
+#include <format>
 #include <iostream>
 #include <map>
 #include <set>
@@ -56,7 +56,7 @@ namespace
   unsigned long long make_unique_hit_id(const TrkrDefs::hitsetkey hsk,
                                         const TrkrDefs::hitkey hk)
   {
-    return (static_cast<unsigned long long>(hsk) << 32) |
+    return (static_cast<unsigned long long>(hsk) << 32U) |
            static_cast<unsigned long long>(hk);
   }
 
@@ -221,6 +221,7 @@ namespace
     line->SetLineStyle(1);
   }
 
+  // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
   struct GroupKey
   {
     GroupKey()
@@ -357,6 +358,8 @@ namespace
     std::set<unsigned long long> filled_hit_ids;
   };
 
+  // NOLINTEND(misc-non-private-member-variables-in-classes)
+
   void make_bundle_graphs(GraphBundle& b,
                           const GroupKey& key,
                           const unsigned int evt,
@@ -367,37 +370,43 @@ namespace
       return;
     }
 
-    const TString tag = Form("s%d_sec%02d_mod%d", key.side, key.sector, key.module);
+    const std::string tag = std::format("s{}_sec{:02}_mod{}", key.side, key.sector, key.module);
 
     b.mg_phi_radius_hits = new TMultiGraph();
-    b.mg_phi_radius_hits->SetName(Form("mg_%s_phi_radius_hits", tag.Data()));
-    b.mg_phi_radius_hits->SetTitle(Form("event %u side %d sector %d module %d hits;#phi;radius [cm]",
-                                        evt, key.side, key.sector, key.module));
+    b.mg_phi_radius_hits->SetName(std::format("mg_{}_phi_radius_hits", tag).c_str());
+    b.mg_phi_radius_hits->SetTitle(std::format("event {} side {} sector {} module {} hits;#phi;radius [cm]",
+                                               evt, key.side, key.sector, key.module)
+                                       .c_str());
 
     b.mg_tbin_radius_hits = new TMultiGraph();
-    b.mg_tbin_radius_hits->SetName(Form("mg_%s_tbin_radius_hits", tag.Data()));
-    b.mg_tbin_radius_hits->SetTitle(Form("event %u side %d sector %d module %d hits;timebin;radius [cm]",
-                                         evt, key.side, key.sector, key.module));
+    b.mg_tbin_radius_hits->SetName(std::format("mg_{}_tbin_radius_hits", tag).c_str());
+    b.mg_tbin_radius_hits->SetTitle(std::format("event {} side {} sector {} module {} hits;timebin;radius [cm]",
+                                                evt, key.side, key.sector, key.module)
+                                        .c_str());
 
     b.mg_tbin_phi_hits = new TMultiGraph();
-    b.mg_tbin_phi_hits->SetName(Form("mg_%s_tbin_phi_hits", tag.Data()));
-    b.mg_tbin_phi_hits->SetTitle(Form("event %u side %d sector %d module %d hits;timebin;#phi",
-                                      evt, key.side, key.sector, key.module));
+    b.mg_tbin_phi_hits->SetName(std::format("mg_{}_tbin_phi_hits", tag).c_str());
+    b.mg_tbin_phi_hits->SetTitle(std::format("event {} side {} sector {} module {} hits;timebin;#phi",
+                                             evt, key.side, key.sector, key.module)
+                                     .c_str());
 
     b.mg_phi_radius_fits = new TMultiGraph();
-    b.mg_phi_radius_fits->SetName(Form("mg_%s_phi_radius_fits", tag.Data()));
-    b.mg_phi_radius_fits->SetTitle(Form("event %u side %d sector %d module %d display fits;#phi;radius [cm]",
-                                        evt, key.side, key.sector, key.module));
+    b.mg_phi_radius_fits->SetName(std::format("mg_{}_phi_radius_fits", tag).c_str());
+    b.mg_phi_radius_fits->SetTitle(std::format("event {} side {} sector {} module {} display fits;#phi;radius [cm]",
+                                               evt, key.side, key.sector, key.module)
+                                       .c_str());
 
     b.mg_tbin_radius_fits = new TMultiGraph();
-    b.mg_tbin_radius_fits->SetName(Form("mg_%s_tbin_radius_fits", tag.Data()));
-    b.mg_tbin_radius_fits->SetTitle(Form("event %u side %d sector %d module %d display fits;timebin;radius [cm]",
-                                         evt, key.side, key.sector, key.module));
+    b.mg_tbin_radius_fits->SetName(std::format("mg_{}_tbin_radius_fits", tag).c_str());
+    b.mg_tbin_radius_fits->SetTitle(std::format("event {} side {} sector {} module {} display fits;timebin;radius [cm]",
+                                                evt, key.side, key.sector, key.module)
+                                        .c_str());
 
     b.mg_tbin_phi_fits = new TMultiGraph();
-    b.mg_tbin_phi_fits->SetName(Form("mg_%s_tbin_phi_fits", tag.Data()));
-    b.mg_tbin_phi_fits->SetTitle(Form("event %u side %d sector %d module %d display fits;timebin;#phi",
-                                      evt, key.side, key.sector, key.module));
+    b.mg_tbin_phi_fits->SetName(std::format("mg_{}_tbin_phi_fits", tag).c_str());
+    b.mg_tbin_phi_fits->SetTitle(std::format("event {} side {} sector {} module {} display fits;timebin;#phi",
+                                             evt, key.side, key.sector, key.module)
+                                     .c_str());
 
     const int layer_min = 7 + 16 * key.module;
     const int layer_max = layer_min + 15;
@@ -432,7 +441,8 @@ namespace
                              layer_ref,
                              pads_per_sector - 1);
 
-    const double phi_last = unwrap_phi_near(phi_last_wrapped, phi_first);
+    const double phi_reference_for_unwrap = phi_first;
+    const double phi_last = unwrap_phi_near(phi_last_wrapped, phi_reference_for_unwrap);
     const double dphi = (phi_last - phi_first) / static_cast<double>(pads_per_sector - 1);
 
     double phi_min = phi_first - 0.5 * dphi;
@@ -443,25 +453,28 @@ namespace
     }
     b.phi_reference = 0.5 * (phi_min + phi_max);
 
-    b.h3_hardware_hits = new TH3D(Form("h3_%s_hardware_hits", tag.Data()),
-                                  Form("event %u side %d sector %d module %d associated hits;timebin;pad;layer",
-                                       evt, key.side, key.sector, key.module),
+    b.h3_hardware_hits = new TH3D(std::format("h3_{}_hardware_hits", tag).c_str(),
+                                  std::format("event {} side {} sector {} module {} associated hits;timebin;pad;layer",
+                                              evt, key.side, key.sector, key.module)
+                                      .c_str(),
                                   512, -0.5, 511.5,
                                   static_cast<int>(nPads), static_cast<double>(pad_min) - 0.5, static_cast<double>(pad_max) + 0.5,
                                   16, static_cast<double>(layer_min) - 0.5, static_cast<double>(layer_max) + 0.5);
     b.h3_hardware_hits->SetStats(false);
 
-    b.h3_adc_hits = new TH3D(Form("h3_%s_adc_hits", tag.Data()),
-                             Form("event %u side %d sector %d module %d associated hits;timebin;#phi;radius [cm]",
-                                  evt, key.side, key.sector, key.module),
+    b.h3_adc_hits = new TH3D(std::format("h3_{}_adc_hits", tag).c_str(),
+                             std::format("event {} side {} sector {} module {} associated hits;timebin;#phi;radius [cm]",
+                                         evt, key.side, key.sector, key.module)
+                                 .c_str(),
                              512, -0.5, 511.5,
                              static_cast<int>(nPads), phi_min, phi_max,
                              20, radius_min_guess, radius_max_guess);
     b.h3_adc_hits->SetStats(false);
 
-    b.h3_adc_unassociated_hits = new TH3D(Form("h3_%s_adc_unassociated_hits", tag.Data()),
-                                          Form("event %u side %d sector %d module %d unassociated hits;timebin;#phi;radius [cm]",
-                                               evt, key.side, key.sector, key.module),
+    b.h3_adc_unassociated_hits = new TH3D(std::format("h3_{}_adc_unassociated_hits", tag).c_str(),
+                                          std::format("event {} side {} sector {} module {} unassociated hits;timebin;#phi;radius [cm]",
+                                                      evt, key.side, key.sector, key.module)
+                                              .c_str(),
                                           512, -0.5, 511.5,
                                           static_cast<int>(nPads), phi_min, phi_max,
                                           16, radius_min_guess, radius_max_guess);
@@ -642,26 +655,26 @@ namespace
       return;
     }
 
-    const TString tag = Form("s%d_sec%02d_mod%d_trk%u", key.side, key.sector, key.module, tid);
+    const std::string tag = std::format("s{}_sec{:02}_mod{}_trk{}", key.side, key.sector, key.module, tid);
 
     TGraph* g_phi_radius_fit = new TGraph();
-    g_phi_radius_fit->SetName(Form("g_%s_phi_radius_fit", tag.Data()));
-    g_phi_radius_fit->SetTitle(Form("event %u track %u fit;#phi;radius [cm]", evt, tid));
+    g_phi_radius_fit->SetName(std::format("g_{}_phi_radius_fit", tag).c_str());
+    g_phi_radius_fit->SetTitle(std::format("event {} track {} fit;#phi;radius [cm]", evt, tid).c_str());
     style_fit_graph(g_phi_radius_fit, color);
 
     TGraph* g_tbin_radius_fit = new TGraph();
-    g_tbin_radius_fit->SetName(Form("g_%s_tbin_radius_fit", tag.Data()));
-    g_tbin_radius_fit->SetTitle(Form("event %u track %u fit;timebin;radius [cm]", evt, tid));
+    g_tbin_radius_fit->SetName(std::format("g_{}_tbin_radius_fit", tag).c_str());
+    g_tbin_radius_fit->SetTitle(std::format("event {} track {} fit;timebin;radius [cm]", evt, tid).c_str());
     style_fit_graph(g_tbin_radius_fit, color);
 
     TGraph* g_tbin_phi_fit = new TGraph();
-    g_tbin_phi_fit->SetName(Form("g_%s_tbin_phi_fit", tag.Data()));
-    g_tbin_phi_fit->SetTitle(Form("event %u track %u fit;timebin;#phi", evt, tid));
+    g_tbin_phi_fit->SetName(std::format("g_{}_tbin_phi_fit", tag).c_str());
+    g_tbin_phi_fit->SetTitle(std::format("event {} track {} fit;timebin;#phi", evt, tid).c_str());
     style_fit_graph(g_tbin_phi_fit, color);
 
     const int npts = 51;
     TPolyLine3D* line3 = new TPolyLine3D(npts);
-    const std::string line_name = Form("line3_%s_tbin_phi_radius_fit", tag.Data());
+    const std::string line_name = std::format("line3_{}_tbin_phi_radius_fit", tag);
 
     for (int i = 0; i < npts; ++i)
     {
@@ -705,11 +718,11 @@ namespace
       return;
     }
 
-    const TString tag = Form("s%d_sec%02d_mod%d_trk%u", key.side, key.sector, key.module, tid);
+    const std::string tag = std::format("s{}_sec{:02}_mod{}_trk{}", key.side, key.sector, key.module, tid);
 
     const int npts = 51;
     TPolyLine3D* line3 = new TPolyLine3D(npts);
-    const std::string line_name = Form("line3_%s_layer_pad_tbin_fit", tag.Data());
+    const std::string line_name = std::format("line3_{}_layer_pad_tbin_fit", tag);
 
     for (int i = 0; i < npts; ++i)
     {
@@ -735,13 +748,14 @@ namespace
 
   void write_bundle(GraphBundle& b, const GroupKey& key)
   {
-    const TString tag = Form("s%d_sec%02d_mod%d", key.side, key.sector, key.module);
+    const std::string tag = std::format("s{}_sec{:02}_mod{}", key.side, key.sector, key.module);
 
     if (b.h3_hardware_hits)
     {
-      b.c3_hardware_hits_fits = new TCanvas(Form("c3_%s_hardware_hits_fits", tag.Data()),
-                                            Form("side %d sector %d module %d hardware hits and display fits",
-                                                 key.side, key.sector, key.module),
+      b.c3_hardware_hits_fits = new TCanvas(std::format("c3_{}_hardware_hits_fits", tag).c_str(),
+                                            std::format("side {} sector {} module {} hardware hits and display fits",
+                                                        key.side, key.sector, key.module)
+                                                .c_str(),
                                             1200, 900);
       b.h3_hardware_hits->Draw("BOX2Z");
       for (auto& i : b.hardware_fit_lines_3d)
@@ -759,9 +773,10 @@ namespace
 
     if (b.h3_adc_hits)
     {
-      b.c3_adc_hits_fits = new TCanvas(Form("c3_%s_adc_hits_fits", tag.Data()),
-                                       Form("side %d sector %d module %d ADC hits and display fits",
-                                            key.side, key.sector, key.module),
+      b.c3_adc_hits_fits = new TCanvas(std::format("c3_{}_adc_hits_fits", tag).c_str(),
+                                       std::format("side {} sector {} module {} ADC hits and display fits",
+                                                   key.side, key.sector, key.module)
+                                           .c_str(),
                                        1200, 900);
       b.h3_adc_hits->Draw("BOX2Z");
       for (auto& i : b.fit_lines_3d)
@@ -780,9 +795,10 @@ namespace
 
     if (b.h3_adc_unassociated_hits)
     {
-      b.c3_adc_unassociated_hits = new TCanvas(Form("c3_%s_adc_unassociated_hits", tag.Data()),
-                                               Form("side %d sector %d module %d unassociated ADC hits",
-                                                    key.side, key.sector, key.module),
+      b.c3_adc_unassociated_hits = new TCanvas(std::format("c3_{}_adc_unassociated_hits", tag).c_str(),
+                                               std::format("side {} sector {} module {} unassociated ADC hits",
+                                                           key.side, key.sector, key.module)
+                                                   .c_str(),
                                                1200, 900);
       b.h3_adc_unassociated_hits->Draw("BOX2Z");
       b.c3_adc_unassociated_hits->Modified();
@@ -894,7 +910,7 @@ int Tpc_ModuleTrackDisplay::process_event(PHCompositeNode* topNode)
   }
 
   eventsTop->cd();
-  TDirectory* eventDir = eventsTop->mkdir(Form("event_%06u", m_evt));
+  TDirectory* eventDir = eventsTop->mkdir(std::format("event_{:06}", m_evt).c_str());
   if (!eventDir)
   {
     std::cerr << "Tpc_ModuleTrackDisplay::process_event - failed to create event directory"
@@ -952,21 +968,24 @@ int Tpc_ModuleTrackDisplay::process_event(PHCompositeNode* topNode)
       GraphBundle& b = get_bundle(bundles, key, m_evt, m_idealPadMap);
 
       TGraph* g_phi_radius_hits = new TGraph();
-      g_phi_radius_hits->SetName(Form("g_s%d_sec%02d_mod%d_trk%u_phi_radius_hits",
-                                      key.side, key.sector, key.module, tid));
-      g_phi_radius_hits->SetTitle(Form("event %u track %u hits;#phi;radius [cm]", m_evt, tid));
+      g_phi_radius_hits->SetName(std::format("g_s{}_sec{:02}_mod{}_trk{}_phi_radius_hits",
+                                             key.side, key.sector, key.module, tid)
+                                     .c_str());
+      g_phi_radius_hits->SetTitle(std::format("event {} track {} hits;#phi;radius [cm]", m_evt, tid).c_str());
       style_hit_graph(g_phi_radius_hits, color);
 
       TGraph* g_tbin_radius_hits = new TGraph();
-      g_tbin_radius_hits->SetName(Form("g_s%d_sec%02d_mod%d_trk%u_tbin_radius_hits",
-                                       key.side, key.sector, key.module, tid));
-      g_tbin_radius_hits->SetTitle(Form("event %u track %u hits;timebin;radius [cm]", m_evt, tid));
+      g_tbin_radius_hits->SetName(std::format("g_s{}_sec{:02}_mod{}_trk{}_tbin_radius_hits",
+                                              key.side, key.sector, key.module, tid)
+                                      .c_str());
+      g_tbin_radius_hits->SetTitle(std::format("event {} track {} hits;timebin;radius [cm]", m_evt, tid).c_str());
       style_hit_graph(g_tbin_radius_hits, color);
 
       TGraph* g_tbin_phi_hits = new TGraph();
-      g_tbin_phi_hits->SetName(Form("g_s%d_sec%02d_mod%d_trk%u_tbin_phi_hits",
-                                    key.side, key.sector, key.module, tid));
-      g_tbin_phi_hits->SetTitle(Form("event %u track %u hits;timebin;#phi", m_evt, tid));
+      g_tbin_phi_hits->SetName(std::format("g_s{}_sec{:02}_mod{}_trk{}_tbin_phi_hits",
+                                           key.side, key.sector, key.module, tid)
+                                   .c_str());
+      g_tbin_phi_hits->SetTitle(std::format("event {} track {} hits;timebin;#phi", m_evt, tid).c_str());
       style_hit_graph(g_tbin_phi_hits, color);
 
       for (const auto& p : pts)

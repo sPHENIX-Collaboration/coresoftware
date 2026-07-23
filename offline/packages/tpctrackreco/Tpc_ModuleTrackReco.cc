@@ -67,9 +67,9 @@ namespace
     }
 
     double maxadc = 0.0;
-    for (unsigned int i = 0; i < idx.size(); ++i)
+    for (unsigned int i : idx)
     {
-      maxadc = std::max(blobs[idx[i]].adc, maxadc);
+      maxadc = std::max(blobs[i].adc, maxadc);
     }
 
     std::vector<double> x;

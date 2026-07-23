@@ -17,10 +17,10 @@
 #include <TH3D.h>
 #include <TPolyLine3D.h>
 #include <TPolyMarker3D.h>
-#include <TString.h>
 
 #include <algorithm>
 #include <cmath>
+#include <format>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -436,15 +436,15 @@ int Tpc_PolyClusterDisplay::process_event(PHCompositeNode* topNode)
   }
   eventsTop->cd();
 
-  TDirectory* eventDir = eventsTop->mkdir(Form("event_%06u", m_evt));
+  TDirectory* eventDir = eventsTop->mkdir(std::format("event_{:06}", m_evt).c_str());
   if (!eventDir)
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
   eventDir->cd();
 
-  TH3D* h3 = new TH3D(Form("h3_evt%06u_tpc_polycluster_centroids_bothsides", m_evt),
-                      Form("event %u both sides Tpc_PolyCluster centroids;z [cm];x [cm];y [cm]", m_evt),
+  TH3D* h3 = new TH3D(std::format("h3_evt{:06}_tpc_polycluster_centroids_bothsides", m_evt).c_str(),
+                      std::format("event {} both sides Tpc_PolyCluster centroids;z [cm];x [cm];y [cm]", m_evt).c_str(),
                       204, m_zmin, m_zmax,
                       170, -m_xymax, m_xymax,
                       170, -m_xymax, m_xymax);
@@ -584,8 +584,8 @@ int Tpc_PolyClusterDisplay::process_event(PHCompositeNode* topNode)
     }
   }
 
-  TCanvas* c3 = new TCanvas(Form("c3_evt%06u_tpc_polycluster_z_x_y_centroids_bothsides", m_evt),
-                            Form("event %u both sides Tpc_PolyCluster centroids", m_evt),
+  TCanvas* c3 = new TCanvas(std::format("c3_evt{:06}_tpc_polycluster_z_x_y_centroids_bothsides", m_evt).c_str(),
+                            std::format("event {} both sides Tpc_PolyCluster centroids", m_evt).c_str(),
                             1200, 900);
   h3->Draw();
   for (TPolyLine3D* line : lines)

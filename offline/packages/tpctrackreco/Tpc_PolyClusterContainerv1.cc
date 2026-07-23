@@ -35,7 +35,7 @@ int Tpc_PolyClusterContainerv1::isValid() const
 PHObject* Tpc_PolyClusterContainerv1::CloneMe() const
 {
   Tpc_PolyClusterContainerv1* copy = new Tpc_PolyClusterContainerv1();
-  for (auto m_cluster : m_clusters)
+  for (auto* m_cluster : m_clusters)
   {
     if (m_cluster)
     {

@@ -872,7 +872,9 @@ int Tpc_PolyClusterResiduals::process_event(PHCompositeNode* topNode)
     m_rDCAZero = rdca_zero;
     m_zDCA = zdca;
     m_R = circle.ok ? circle.radius : std::numeric_limits<double>::quiet_NaN();
-    m_rzSlope = circle.ok ? circle.dzds : ((use_straight_line && pt > 0.0) ? pz / pt : std::numeric_limits<double>::quiet_NaN());
+    const double straight_line_slope =
+        (use_straight_line && pt > 0.0) ? pz / pt : std::numeric_limits<double>::quiet_NaN();
+    m_rzSlope = circle.ok ? circle.dzds : straight_line_slope;
     for (const Tpc_PolyCluster* cluster : track_clusters)
     {
       if (!cluster || !cluster->isValid())
