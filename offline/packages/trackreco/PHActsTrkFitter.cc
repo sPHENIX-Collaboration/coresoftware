@@ -82,7 +82,7 @@ namespace
   }
 
   // find nearest parameter in trajectory before a given sPhenix layer
-  [[maybe_unused]] std::optional<Acts::BoundTrackParameters> find_nearest_params_before(
+  [[maybe_unused]] std::optional<ActsPropagator::BoundTrackParamPair> find_nearest_params_before(
     const Acts::VectorMultiTrajectory& traj,
     const size_t trackTip,
     const unsigned int layer )
@@ -119,11 +119,12 @@ namespace
     {
 
       // get smoothed fitted parameters
-      return Acts::BoundTrackParameters(
+      Acts::BoundTrackParameters p(
         s.referenceSurface().getSharedPtr(),
         s.smoothed(),
         s.smoothedCovariance(),
         Acts::ParticleHypothesis::pion());
+      return std::make_pair( s.pathLength(), p );
 
     } else {
 
@@ -133,7 +134,7 @@ namespace
   };
 
   // find nearest parameter in trajectory after a given sPhenix layer
-  [[maybe_unused]] std::optional<Acts::BoundTrackParameters> find_nearest_params_after(
+  [[maybe_unused]] std::optional<ActsPropagator::BoundTrackParamPair> find_nearest_params_after(
     const Acts::VectorMultiTrajectory& traj,
     const size_t trackTip,
     const unsigned int layer )
@@ -170,11 +171,12 @@ namespace
     {
 
       // get smoothed fitted parameters
-      return Acts::BoundTrackParameters(
+      Acts::BoundTrackParameters p(
         s.referenceSurface().getSharedPtr(),
         s.smoothed(),
         s.smoothedCovariance(),
         Acts::ParticleHypothesis::pion());
+      return std::make_pair( s.pathLength(), p );
 
     } else {
 
@@ -258,19 +260,12 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
 
   if (m_timeAnalysis)
   {
-    m_timeFile = new TFile(std::string(Name() + ".root").c_str(),
-                           "RECREATE");
-    h_eventTime = new TH1F("h_eventTime", ";time [ms]",
-                           100000, 0, 10000);
-    h_fitTime = new TH2F("h_fitTime", ";p_{T} [GeV];time [ms]",
-                         80, 0, 40, 100000, 0, 1000);
-    h_updateTime = new TH1F("h_updateTime", ";time [ms]",
-                            100000, 0, 1000);
-
-    h_rotTime = new TH1F("h_rotTime", ";time [ms]",
-                         100000, 0, 1000);
-    h_stateTime = new TH1F("h_stateTime", ";time [ms]",
-                           100000, 0, 1000);
+    m_timeFile = new TFile(std::string(Name() + ".root").c_str(), "RECREATE");
+    h_eventTime = new TH1F("h_eventTime", ";time [ms]", 100000, 0, 10000);
+    h_fitTime = new TH2F("h_fitTime", ";p_{T} [GeV];time [ms]", 80, 0, 40, 100000, 0, 1000);
+    h_updateTime = new TH1F("h_updateTime", ";time [ms]", 100000, 0, 1000);
+    h_rotTime = new TH1F("h_rotTime", ";time [ms]", 100000, 0, 1000);
+    h_stateTime = new TH1F("h_stateTime", ";time [ms]", 100000, 0, 1000);
   }
 
   if (m_actsEvaluator)
@@ -624,7 +619,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         // add tpc sourcelinks to silicon source links
         sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
       }
+
       Acts::GeometryContext geoContext{m_alignmentTransformationMapTransient};
+
       // copy transient map for this track into transient geoContext
       m_transient_geocontext = geoContext;
 
@@ -1293,7 +1290,6 @@ void PHActsTrkFitter::updateSvtxTrack(
     // acts propagator
     ActsPropagator propagator(m_tGeometry);
 
-
     // loop over cluster keys associated to TPC seed
     for (auto key_iter = seed->begin_cluster_keys(); key_iter != seed->end_cluster_keys(); ++key_iter)
     {
@@ -1309,11 +1305,56 @@ void PHActsTrkFitter::updateSvtxTrack(
       // get layer, propagate
       const auto layer = TrkrDefs::getLayer(cluskey);
 
+//       if( m_extrapolation_mode == ExtrapolationMode::Default )
+//       {
+//
+//         auto result = propagator.propagateTrack(params, layer, Acts::Direction::Positive() );
+//         if( result.ok() )
+//         {
+//           // get path length and extrapolated parameters
+//           auto& [pathLength, trackStateParams] = result.value();
+//           pathLength /= Acts::UnitConstants::cm;
+//           transformer.addTrackState(track, cluskey, pathLength, trackStateParams, m_transient_geocontext);
+//         }
+//
+//       } else {
+//
+//         // get before and after nearesst parameters
+//         const auto& nearest_params_forward = find_nearest_params_before( mj, trackTip, layer );
+//         const auto& nearest_params_backward = find_nearest_params_after( mj, trackTip, layer );
+//
+//         // forward extrapolation
+//         if( m_extrapolation_mode == ExtrapolationMode::Forward && nearest_params_forward )
+//         {
+//           auto result = propagator.propagateTrack(*nearest_params_forward, layer, Acts::Direction::Positive() );
+//           if( result.ok() )
+//           {
+//             // get path length and extrapolated parameters
+//             auto& [pathLength, trackStateParams] = result.value();
+//             pathLength /= Acts::UnitConstants::cm;
+//             transformer.addTrackState(track, cluskey, pathLength, trackStateParams, m_transient_geocontext);
+//           }
+//         }
+//
+//         // backward extrapolation
+//         if( m_extrapolation_mode == ExtrapolationMode::Backward && nearest_params_backward )
+//         {
+//           auto result = propagator.propagateTrack(*nearest_params_backward, layer, Acts::Direction::Positive() );
+//           if( result.ok() )
+//           {
+//             // get path length and extrapolated parameters
+//             auto& [pathLength, trackStateParams] = result.value();
+//             pathLength /= Acts::UnitConstants::cm;
+//             transformer.addTrackState(track, cluskey, pathLength, trackStateParams, m_transient_geocontext);
+//           }
+//         }
+//       }
+
       // extrapolate track parameter
-      auto extrapolate_parameters = [this, &propagator, &layer]( const ActsTrackFittingAlgorithm::TrackParameters& p, Acts::Direction direction = Acts::Direction::Positive() )
+      auto extrapolate_parameters = [this, &propagator, &layer]( const ActsPropagator::BoundTrackParamPair& p, Acts::Direction direction = Acts::Direction::Positive() )
       {
 
-        auto result = propagator.propagateTrack(p, layer, direction);
+        auto result = propagator.propagateTrack(p.second, layer, direction);
         if (result.ok())
         {
           auto& [pathLength, trackStateParams] = result.value();
@@ -1322,6 +1363,7 @@ void PHActsTrkFitter::updateSvtxTrack(
             << global.x() / Acts::UnitConstants::cm << ", "
             << global.y() / Acts::UnitConstants::cm << ", "
             << global.z() / Acts::UnitConstants::cm << ")"
+            << " pathlength: " << pathLength+p.first
             << std::endl;
         }
 
@@ -1329,7 +1371,7 @@ void PHActsTrkFitter::updateSvtxTrack(
       };
 
       {
-        auto result = extrapolate_parameters( params );
+        auto result = extrapolate_parameters( {0,params} );
         if( result.ok() )
         {
           // get path length and extrapolated parameters
