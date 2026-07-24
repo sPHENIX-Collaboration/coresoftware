@@ -183,17 +183,9 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params, const u
   options.direction = direction;
 
   auto result = propagator.propagate(params, options);
+  if (result.ok()) { return Acts::Result<BoundTrackParamPair>::success({result.value().pathLength,*result.value().endParameters}); }
+  else { return result.error(); }
 
-  if (result.ok())
-  {
-    auto finalparams = *result.value().endParameters; // NOLINT(bugprone-unchecked-optional-access)
-    auto pathlength = result.value().pathLength;
-    auto pair = std::make_pair(pathlength, finalparams);
-
-    return Acts::Result<BoundTrackParamPair>::success(pair);
-  }
-
-  return result.error();
 }
 
 //____________________________________________________________________
