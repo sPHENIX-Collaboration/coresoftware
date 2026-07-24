@@ -1305,99 +1305,53 @@ void PHActsTrkFitter::updateSvtxTrack(
       // get layer, propagate
       const auto layer = TrkrDefs::getLayer(cluskey);
 
-//       if( m_extrapolation_mode == ExtrapolationMode::Default )
-//       {
-//
-//         auto result = propagator.propagateTrack(params, layer, Acts::Direction::Positive() );
-//         if( result.ok() )
-//         {
-//           // get path length and extrapolated parameters
-//           auto& [pathLength, trackStateParams] = result.value();
-//           pathLength /= Acts::UnitConstants::cm;
-//           transformer.addTrackState(track, cluskey, pathLength, trackStateParams, m_transient_geocontext);
-//         }
-//
-//       } else {
-//
-//         // get before and after nearesst parameters
-//         const auto& nearest_params_forward = find_nearest_params_before( mj, trackTip, layer );
-//         const auto& nearest_params_backward = find_nearest_params_after( mj, trackTip, layer );
-//
-//         // forward extrapolation
-//         if( m_extrapolation_mode == ExtrapolationMode::Forward && nearest_params_forward )
-//         {
-//           auto result = propagator.propagateTrack(*nearest_params_forward, layer, Acts::Direction::Positive() );
-//           if( result.ok() )
-//           {
-//             // get path length and extrapolated parameters
-//             auto& [pathLength, trackStateParams] = result.value();
-//             pathLength /= Acts::UnitConstants::cm;
-//             transformer.addTrackState(track, cluskey, pathLength, trackStateParams, m_transient_geocontext);
-//           }
-//         }
-//
-//         // backward extrapolation
-//         if( m_extrapolation_mode == ExtrapolationMode::Backward && nearest_params_backward )
-//         {
-//           auto result = propagator.propagateTrack(*nearest_params_backward, layer, Acts::Direction::Positive() );
-//           if( result.ok() )
-//           {
-//             // get path length and extrapolated parameters
-//             auto& [pathLength, trackStateParams] = result.value();
-//             pathLength /= Acts::UnitConstants::cm;
-//             transformer.addTrackState(track, cluskey, pathLength, trackStateParams, m_transient_geocontext);
-//           }
-//         }
-//       }
-
-      // extrapolate track parameter
-      auto extrapolate_parameters = [this, &propagator, &layer]( const ActsPropagator::BoundTrackParamPair& p, Acts::Direction direction = Acts::Direction::Positive() )
+      if( m_extrapolation_mode == ExtrapolationMode::Default )
       {
 
-        auto result = propagator.propagateTrack(p.second, layer, direction);
-        if (result.ok())
-        {
-          auto& [pathLength, trackStateParams] = result.value();
-          const auto global = trackStateParams.position(m_transient_geocontext);
-          std::cout << "PHActsTrkFitter::updateSvtxTrack - extrapolated: ("
-            << global.x() / Acts::UnitConstants::cm << ", "
-            << global.y() / Acts::UnitConstants::cm << ", "
-            << global.z() / Acts::UnitConstants::cm << ")"
-            << " pathlength: " << pathLength+p.first
-            << std::endl;
-        }
-
-        return result;
-      };
-
-      {
-        auto result = extrapolate_parameters( {0,params} );
+        auto result = propagator.propagateTrack(params, layer, Acts::Direction::Positive() );
         if( result.ok() )
         {
           // get path length and extrapolated parameters
-          auto& [pathLength, trackStateParams] = result.value();
-          pathLength /= Acts::UnitConstants::cm;
-          transformer.addTrackState(track, cluskey, pathLength, trackStateParams, m_transient_geocontext);
+          const auto& [pathLength, trackStateParams] = result.value();
+          transformer.addTrackState(track, cluskey, pathLength/Acts::UnitConstants::cm, trackStateParams, m_transient_geocontext);
+        }
+
+      } else {
+
+        // get before and after nearesst parameters
+        const auto& nearest_params_forward = find_nearest_params_before( mj, trackTip, layer );
+        const auto& nearest_params_backward = find_nearest_params_after( mj, trackTip, layer );
+
+        // forward extrapolation
+        if( m_extrapolation_mode == ExtrapolationMode::Forward && nearest_params_forward )
+        {
+          // get source pathlength and parameters
+          const auto& [source_pathlength, source_param] = *nearest_params_forward;
+          auto result = propagator.propagateTrack(source_param, layer, Acts::Direction::Positive() );
+          if( result.ok() )
+          {
+            // get extrapolation pathlength and extrapolated parameters
+            const auto& [pathLength, trackStateParams] = result.value();
+            transformer.addTrackState(track, cluskey, (source_pathlength+pathLength)/Acts::UnitConstants::cm, trackStateParams, m_transient_geocontext);
+          }
+        }
+
+        // forward extrapolation
+        if( m_extrapolation_mode == ExtrapolationMode::Backward && nearest_params_backward )
+        {
+          // get source pathlength and parameters
+          const auto& [source_pathlength, source_param] = *nearest_params_backward;
+          auto result = propagator.propagateTrack(source_param, layer, Acts::Direction::Backward() );
+          if( result.ok() )
+          {
+            // get extrapolation pathlength and extrapolated parameters
+            const auto& [pathLength, trackStateParams] = result.value();
+            transformer.addTrackState(track, cluskey, (source_pathlength+pathLength)/Acts::UnitConstants::cm, trackStateParams, m_transient_geocontext);
+          }
         }
       }
-
-      // forward extrapolation
-      const auto& nearest_params_forward = find_nearest_params_before( mj, trackTip, layer );
-      if( nearest_params_forward )
-      {
-        extrapolate_parameters( *nearest_params_forward );
-      }
-
-      // backward extrapolation
-      const auto& nearest_params_backward = find_nearest_params_after( mj, trackTip, layer );
-      if( nearest_params_backward )
-      {
-        extrapolate_parameters( *nearest_params_backward, Acts::Direction::Negative() );
-      }
-
-      std::cout << std::endl;
-
     }
+
   }
 
   // also propagate to Micromegas if not used for the fit

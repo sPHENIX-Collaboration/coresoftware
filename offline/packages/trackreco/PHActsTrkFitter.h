@@ -161,8 +161,7 @@ class PHActsTrkFitter : public SubsysReco
   {
     Default, // the default extrapolation mode, using fitter track parameters at origin
     Forward, // uses the track state vector closest to the requested layer, before
-    Backward, // uses the track state vector closest to the requested layer, after
-    Both // uses the weighted average of forward and backward extrapolation
+    Backward // uses the track state vector closest to the requested layer, after
   };
 
   /// extrapolation mode
