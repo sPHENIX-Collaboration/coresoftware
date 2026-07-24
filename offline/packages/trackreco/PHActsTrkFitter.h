@@ -155,7 +155,21 @@ class PHActsTrkFitter : public SubsysReco
   void setTrkrClusterContainerName(const std::string& name) { m_clusterContainerName = name; }
   void setDirectNavigation(bool flag) { m_directNavigation = flag; }
   void setClusterEdgeRejection(int edge ) { m_cluster_edge_rejection = edge; }
- private:
+
+  /// extrapolation mode
+  enum class ExtrapolationMode
+  {
+    Default, // the default extrapolation mode, using fitter track parameters at origin
+    Forward, // uses the track state vector closest to the requested layer, before
+    Backward, // uses the track state vector closest to the requested layer, after
+    Both // uses the weighted average of forward and backward extrapolation
+  };
+
+  /// extrapolation mode
+  void setExtrapolationMode( const ExtrapolationMode value )
+  { m_extrapolation_mode = value; }
+
+  private:
   /// Get all the nodes
   int getNodes(PHCompositeNode* topNode);
 
@@ -257,7 +271,11 @@ class PHActsTrkFitter : public SubsysReco
   // name of TRKR_CLUSTER container
   std::string m_clusterContainerName = "TRKR_CLUSTER";
 
+  /// true if clusters on edge are removed from the fit
   int m_cluster_edge_rejection = 0;
+
+  /// extrapolation mode
+  ExtrapolationMode m_extrapolation_mode = ExtrapolationMode::Default;
 
   //!@name evaluator
   //@{
