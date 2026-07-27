@@ -474,8 +474,8 @@ void PHGenFitTrkFitter::set_use_micromegas(bool value)
   m_use_micromegas = value;
 
   // disable the two micromegas layers from the fit
-  disable_layer(55, value);
-  disable_layer(56, value);
+  disable_layer(55, !value);
+  disable_layer(56, !value);
 
 }
 
