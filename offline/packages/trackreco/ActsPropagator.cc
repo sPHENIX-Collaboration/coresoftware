@@ -56,7 +56,7 @@ namespace
   };
 
   // some definition for maping acts volume/layer to sphenix layer
-  constexpr unsigned int kFirstMvtxLayer = 0;
+  /* constexpr unsigned int kFirstMvtxLayer = 0; */
   constexpr unsigned int kFirstInttLayer = 3;
   constexpr unsigned int kFirstTpcLayer = 7;
   constexpr unsigned int kFirstTpotLayer = 55;
@@ -183,8 +183,12 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params, const u
   options.direction = direction;
 
   auto result = propagator.propagate(params, options);
-  if (result.ok()) { return Acts::Result<BoundTrackParamPair>::success({result.value().pathLength,*result.value().endParameters}); }
-  else { return result.error(); }
+  if( result.ok() && result.value().endParameters )
+  {
+    return Acts::Result<BoundTrackParamPair>::success({result.value().pathLength,*result.value().endParameters});
+  }
+
+  return result.error();
 
 }
 

@@ -126,11 +126,10 @@ namespace
         Acts::ParticleHypothesis::pion());
       return std::make_pair( s.pathLength(), p );
 
-    } else {
-
-      return std::nullopt;
-
     }
+
+    return std::nullopt;
+
   };
 
   // find nearest parameter in trajectory after a given sPhenix layer
@@ -161,9 +160,9 @@ namespace
         s = state;
         found = true;
         return true;
-      } else {
-        return false;
       }
+
+      return false;
 
     });
 
@@ -178,11 +177,9 @@ namespace
         Acts::ParticleHypothesis::pion());
       return std::make_pair( s.pathLength(), p );
 
-    } else {
-
-      return std::nullopt;
-
     }
+
+    return std::nullopt;
   };
 
 
@@ -1360,7 +1357,7 @@ void PHActsTrkFitter::updateSvtxTrack(
       // get layer, propagate
       /* this code is quite complicated. See to simplify */
       const auto layer = TrkrDefs::getLayer(cluskey);
-      auto extrapolate = [&]( ActsPropagator::BoundTrackParamPair p, uint8_t l, Acts::Direction direction )
+      auto extrapolate = [&]( const ActsPropagator::BoundTrackParamPair& p, uint8_t l, Acts::Direction direction )
       {
 
         const auto& [source_pathlength, source_param] = p;
