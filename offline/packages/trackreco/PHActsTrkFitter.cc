@@ -185,6 +185,51 @@ namespace
     }
   };
 
+
+  // calculate average track parameters
+  /* return the first, forward parameters in case of failure */
+  [[maybe_unused]] Acts::BoundTrackParameters calculateAverageParameters( const Acts::BoundTrackParameters& forward, const Acts::BoundTrackParameters& backward )
+  {
+    // check that surfaces are identical
+    if( forward.referenceSurface() != backward.referenceSurface() )
+    {
+      std::cout << "PHActsTrkFitter::calculateAverageParameters - surfaces are different. not averaging" << std::endl;
+      return forward;
+    }
+
+    // check particle hypothesis
+    if( forward.particleHypothesis() != backward.particleHypothesis() )
+    {
+      std::cout << "PHActsTrkFitter::calculateAverageParameters - particle hypotheses are different. not averaging" << std::endl;
+      return forward;
+    }
+
+    // check covariance matrices
+    if( !forward.covariance() )
+    {
+      std::cout << "PHActsTrkFitter::calculateAverageParameters - invalid forward covariance. not averaging" << std::endl;
+      return forward;
+    }
+
+    // check covariance matrices
+    if( !backward.covariance() )
+    {
+      std::cout << "PHActsTrkFitter::calculateAverageParameters - invalid backward covariance. not averaging" << std::endl;
+      return forward;
+    }
+
+    // perform the averaging
+    const auto forwardCovInv = forward.covariance().value().inverse();
+    const auto backwardCovInv = backward.covariance().value().inverse();
+    const auto covInv = forwardCovInv+backwardCovInv;
+    const auto cov = covInv.inverse();
+
+    const auto parameters = cov*(forwardCovInv*forward.parameters() + backwardCovInv*backward.parameters());
+
+    // assign
+    return Acts::BoundTrackParameters(forward.referenceSurface().getSharedPtr(), parameters, cov, forward.particleHypothesis() );
+  }
+
 }  // namespace
 
 //___________________________________________________________________________
@@ -192,12 +237,13 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : SubsysReco(name)
 {}
 
+//___________________________________________________________________________
 int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 1)
-  {
-    std::cout << "Setup PHActsTrkFitter" << std::endl;
-  }
+
+  std::cout << "PHActsTrkFitter::InitRun - m_fitSiliconMMs: " << m_fitSiliconMMs << std::endl;
+  std::cout << "PHActsTrkFitter::InitRun - m_useMicromegas: " << m_useMicromegas << std::endl;
+  std::cout << "PHActsTrkFitter::InitRun - m_extrapolation_mode: " << (int)(m_extrapolation_mode) << std::endl;
 
   if (createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
@@ -993,13 +1039,13 @@ bool PHActsTrkFitter::getTrackFitResult(
     Trajectory::IndexedParameters indexedParams;
 
     // retrieve track parameters from fit result
-    Acts::BoundTrackParameters parameters = ActsExamples::TrackParameters(outtrack.referenceSurface().getSharedPtr(),
-                                                                          outtrack.parameters(), outtrack.covariance(), outtrack.particleHypothesis());
+    const Acts::BoundTrackParameters parameters(
+      outtrack.referenceSurface().getSharedPtr(),
+      outtrack.parameters(),
+      outtrack.covariance(),
+      outtrack.particleHypothesis());
 
-    indexedParams.emplace(
-        outtrack.tipIndex(),
-        ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
-                                      outtrack.parameters(), outtrack.covariance(), outtrack.particleHypothesis()});
+    indexedParams.emplace( outtrack.tipIndex(),parameters );
 
     if (Verbosity() > 2)
     {
@@ -1217,9 +1263,7 @@ void PHActsTrkFitter::updateSvtxTrack(
 
   // create a state at pathlength = 0.0
   // This state holds the track parameters, which will be updated below
-  float pathlength = 0.0;
-  //  SvtxTrackState_v1 out(pathlength);
-  SvtxTrackState_v3 out(pathlength);
+  SvtxTrackState_v3 out( 0.0 );
   out.set_localX(0.0);
   out.set_localY(0.0);
   out.set_x(0.0);
@@ -1303,18 +1347,25 @@ void PHActsTrkFitter::updateSvtxTrack(
       }
 
       // get layer, propagate
+      /* this code is quite complicated. See to simplify */
       const auto layer = TrkrDefs::getLayer(cluskey);
+      auto extrapolate = [&]( ActsPropagator::BoundTrackParamPair p, uint8_t l, Acts::Direction direction )
+      {
+
+        const auto& [source_pathlength, source_param] = p;
+        auto result = propagator.propagateTrack(source_param, l, direction);
+        if( result.ok() )
+        {
+          const auto& [pathLength, trackStateParams] = result.value();
+          transformer.addTrackState(track, cluskey, (source_pathlength+pathLength)/Acts::UnitConstants::cm, trackStateParams, m_transient_geocontext);
+        }
+      };
 
       if( m_extrapolation_mode == ExtrapolationMode::Default )
       {
 
-        auto result = propagator.propagateTrack(params, layer, Acts::Direction::Positive() );
-        if( result.ok() )
-        {
-          // get path length and extrapolated parameters
-          const auto& [pathLength, trackStateParams] = result.value();
-          transformer.addTrackState(track, cluskey, pathLength/Acts::UnitConstants::cm, trackStateParams, m_transient_geocontext);
-        }
+        // extrapolate from track parameters
+        extrapolate( {0,params}, layer, Acts::Direction::Positive() );
 
       } else {
 
@@ -1325,31 +1376,51 @@ void PHActsTrkFitter::updateSvtxTrack(
         // forward extrapolation
         if( m_extrapolation_mode == ExtrapolationMode::Forward && nearest_params_forward )
         {
-          // get source pathlength and parameters
-          const auto& [source_pathlength, source_param] = *nearest_params_forward;
-          auto result = propagator.propagateTrack(source_param, layer, Acts::Direction::Positive() );
-          if( result.ok() )
-          {
-            // get extrapolation pathlength and extrapolated parameters
-            const auto& [pathLength, trackStateParams] = result.value();
-            transformer.addTrackState(track, cluskey, (source_pathlength+pathLength)/Acts::UnitConstants::cm, trackStateParams, m_transient_geocontext);
-          }
+          // extrapolate from nearest forward parameters
+          extrapolate( nearest_params_forward.value(), layer, Acts::Direction::Positive() );
         }
 
         // forward extrapolation
         if( m_extrapolation_mode == ExtrapolationMode::Backward && nearest_params_backward )
         {
-          // get source pathlength and parameters
-          const auto& [source_pathlength, source_param] = *nearest_params_backward;
-          auto result = propagator.propagateTrack(source_param, layer, Acts::Direction::Backward() );
-          if( result.ok() )
+          // extrapolate from nearest backward parameters
+          extrapolate( nearest_params_backward.value(), layer, Acts::Direction::Negative() );
+        }
+
+        // bidirectional extrapolation
+        if( m_extrapolation_mode == ExtrapolationMode::Bidirectional && ( nearest_params_forward || nearest_params_backward ) )
+        {
+
+          if( nearest_params_forward && nearest_params_backward )
           {
-            // get extrapolation pathlength and extrapolated parameters
-            const auto& [pathLength, trackStateParams] = result.value();
-            transformer.addTrackState(track, cluskey, (source_pathlength+pathLength)/Acts::UnitConstants::cm, trackStateParams, m_transient_geocontext);
+
+            const auto result_forward = propagator.propagateTrack(nearest_params_forward.value().second, layer, Acts::Direction::Positive());
+            const auto result_backward = propagator.propagateTrack(nearest_params_backward.value().second, layer, Acts::Direction::Negative());
+
+            if( result_forward.ok() && result_backward.ok() )
+            {
+              // calculate pathlenght (using the forward extrapolation only) and the weighted average track parameters
+              const auto pathlength = nearest_params_forward.value().first + result_forward.value().first;
+              const auto averaged_param = calculateAverageParameters( result_forward.value().second, result_backward.value().second );
+
+              // assign
+              transformer.addTrackState(track, cluskey, pathlength/Acts::UnitConstants::cm, averaged_param, m_transient_geocontext);
+            }
+
+          } else if( nearest_params_forward ) {
+
+            // extrapolate from nearest forward parameters
+            extrapolate( nearest_params_forward.value(), layer, Acts::Direction::Positive() );
+
+          } else {
+
+            // extrapolate from nearest backward parameters
+            extrapolate( nearest_params_backward.value(), layer, Acts::Direction::Negative() );
+
           }
         }
       }
+
     }
 
   }
