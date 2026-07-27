@@ -222,7 +222,19 @@ namespace
     const auto forwardCovInv = forward.covariance().value().inverse();
     const auto backwardCovInv = backward.covariance().value().inverse();
     const auto covInv = forwardCovInv+backwardCovInv;
+    if (!covInv.allFinite() || std::abs(covInv.determinant()) < std::numeric_limits<double>::epsilon())
+    {
+      std::cout << "PHActsTrkFitter::calculateAverageParameters - combined information matrix is singular. not averaging" << std::endl;
+      return forward;
+    }
+
     const auto cov = covInv.inverse();
+    if (!cov.allFinite())
+    {
+      std::cout << "PHActsTrkFitter::calculateAverageParameters - averaged covariance is not finite. not averaging" << std::endl;
+      return forward;
+    }
+
     const auto parameters = cov*(forwardCovInv*forward.parameters() + backwardCovInv*backward.parameters());
 
     // assign
