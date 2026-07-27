@@ -1120,6 +1120,10 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
         }
       }
 
+      // if no track state was found after current, abort backward extrapolation
+      if( m_extrapolation_mode == ExtrapolationMode::Backward && id >= gftrack->getNumPointsWithMeasurement() )
+      { continue; }
+
       // also extrapolate backward from next state if any
       // and take the weighted average between both points
       if (id > 0 && id < gftrack->getNumPointsWithMeasurement() &&
