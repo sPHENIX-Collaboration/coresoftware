@@ -223,7 +223,6 @@ namespace
     const auto backwardCovInv = backward.covariance().value().inverse();
     const auto covInv = forwardCovInv+backwardCovInv;
     const auto cov = covInv.inverse();
-
     const auto parameters = cov*(forwardCovInv*forward.parameters() + backwardCovInv*backward.parameters());
 
     // assign
@@ -1418,12 +1417,14 @@ void PHActsTrkFitter::updateSvtxTrack(
             extrapolate( nearest_params_backward.value(), layer, Acts::Direction::Negative() );
 
           }
-        }
-      }
 
-    }
+        } // bidirectional extrapolation
 
-  }
+      } // forward/backward or bidirectional extrapolation
+
+    } // cluster loop
+
+  } // silicon-MM fitting.
 
   // also propagate to Micromegas if not used for the fit
   /* this is be used to get unbiased residuals in TPOT */
