@@ -39,19 +39,22 @@ class ActsPropagator
   using FastPropagator = Acts::Propagator<Stepper>;
   using SphenixPropagator = Acts::Propagator<Stepper, Acts::Navigator>;
 
-  ActsPropagator() {}
+  // default constructor
+  ActsPropagator() = default;
+
+  // constructor with gemotry pointer
   ActsPropagator(ActsGeometry* geometry)
     : m_geometry(geometry)
-  {
-  }
-  ~ActsPropagator() {}
+  {}
 
   /// Helper functions for creating needed input for track propagation
   /// functions below
   SurfacePtr makeVertexSurface(const SvtxVertex* vertex);
+
   SurfacePtr makeVertexSurface(const Acts::Vector3& vertex);
-  BoundTrackParamResult makeTrackParams(SvtxTrack* track,
-					SvtxVertexMap* vertexMap);
+
+  BoundTrackParamResult makeTrackParams(SvtxTrack* track, SvtxVertexMap* vertexMap);
+
   BoundTrackParamResult makeTrackParams(SvtxTrackState* state,
 					int trackCharge,
 					SurfacePtr surf);
@@ -61,25 +64,35 @@ class ActsPropagator
   /// and GeV. For an example of how to unpack this, see
   /// PHActsTrackProjection::propagateTrack and
   /// PHActsTrackProjection::updateSvtxTrack
-  BTPPairResult propagateTrack(const Acts::BoundTrackParameters& params,
-                                       const unsigned int sphenixLayer);
-  BTPPairResult propagateTrack(const Acts::BoundTrackParameters& params,
-                                       const SurfacePtr& surface);
+  BTPPairResult propagateTrack(const Acts::BoundTrackParameters&, const unsigned int /*layer*/, Acts::Direction = Acts::Direction::Positive());
+
+  BTPPairResult propagateTrack(const Acts::BoundTrackParameters&, const SurfacePtr&);
+
   /// The following function takes the track parameters at the vertex and
   /// propagates them in isolation to the requested surface, i.e. it does
   /// NOT stop at each layer in the sPHENIX detector on the way to the
   /// target surface
-  BTPPairResult propagateTrackFast(const Acts::BoundTrackParameters& params,
-                                           const SurfacePtr& surface);
+  BTPPairResult propagateTrackFast(const Acts::BoundTrackParameters&, const SurfacePtr&);
 
-  bool checkLayer(const unsigned int& sphenixlayer,
-                  unsigned int& actsvolume,
-                  unsigned int& actslayer);
+  /// get acts volume and layer from sphenix layer. Returns true on success
+  bool checkLayer(
+    const unsigned int sphenixlayer,
+    unsigned int& actsvolume,
+    unsigned int& actslayer) const;
+
+  /// get sphenix layer from acts volume and layer from sphenix layer. Returns true on success
+  /** this is the opposite transformation as checkLayer */
+  static bool checkSphenixLayer( const unsigned int /*actsvolume*/, const unsigned int /*actslayer*/, unsigned int& /*sphenixlayer*/ );
+
   void verbosity(int verb) { m_verbosity = verb; }
   void setConstFieldValue(float field) { m_fieldval = field; }
   void constField() { m_constField = true; }
   void setOverstepLimit(const double overstep) { m_overstepLimit = overstep; }
-  SphenixPropagator makePropagator();
+
+  // create propagator
+  SphenixPropagator makePropagator( Acts::Logging::Level = Acts::Logging::FATAL);
+
+  // create propagator
   FastPropagator makeFastPropagator();
 
  private:

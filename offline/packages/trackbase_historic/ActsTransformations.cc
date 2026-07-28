@@ -299,27 +299,28 @@ void ActsTransformations::fillSvtxTrackStates(
     { return true; }
 
     // only fill for state vectors with proper smoothed parameters
-    if( !state.hasSmoothed()) { return true;
-  }
+    if( !state.hasSmoothed()) { return true;  }
 
-  // create svtx state vector with relevant pathlength
-  const float pathlength = state.pathLength() / Acts::UnitConstants::cm;
+    // create svtx state vector with relevant pathlength
+    const float pathlength = state.pathLength() / Acts::UnitConstants::cm;
 
-  // get smoothed fitted parameters
-  const Acts::BoundTrackParameters params(
-    state.referenceSurface().getSharedPtr(),
-    state.smoothed(),
-    state.smoothedCovariance(),
-    Acts::ParticleHypothesis::pion());
+    // get smoothed fitted parameters
+    const Acts::BoundTrackParameters params(
+      state.referenceSurface().getSharedPtr(),
+      state.smoothed(),
+      state.smoothedCovariance(),
+      Acts::ParticleHypothesis::pion());
 
-  // get source link and key
-  const auto sourceLink = state.getUncalibratedSourceLink().template get<ActsSourceLink>();
-  const auto key = sourceLink.cluskey();
+    // get source link and key
+    const auto sourceLink = state.getUncalibratedSourceLink().template get<ActsSourceLink>();
+    const auto key = sourceLink.cluskey();
 
-  // add track state
-  addTrackState( svtxTrack,key,pathlength,params, geoContext );
+    // add track state
+    addTrackState( svtxTrack,key,pathlength,params, geoContext );
 
-  return true; });
+    return true;
+  });
+
 }
 
 //_______________________________________________________________________________________________________

@@ -132,10 +132,7 @@ class PHGenFitTrkFitter : public SubsysReco
   void set_fit_silicon_mms(bool);
 
   /// require micromegas in SiliconMM fits
-  void set_use_micromegas(bool value)
-  {
-    m_use_micromegas = value;
-  }
+  void set_use_micromegas(bool);
 
   void set_svtx_seed_map_name(const std::string &name) {_seedMap_name = name;}
   void set_svtx_track_map_name(const std::string &name) {_trackMap_name = name;}
