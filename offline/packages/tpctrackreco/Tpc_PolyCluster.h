@@ -20,7 +20,6 @@ class Tpc_PolyCluster : public PHObject
   {
     os << "Tpc_PolyCluster base class" << std::endl;
   }
-  void Reset() override {}
   int isValid() const override { return 0; }
 
   using HitIndex = std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>;

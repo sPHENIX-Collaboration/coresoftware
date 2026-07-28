@@ -17,7 +17,6 @@ class Tpc_PolyTrackVertex : public PHObject
   {
     os << "Tpc_PolyTrackVertex base class" << std::endl;
   }
-  void Reset() override {}
   int isValid() const override { return 0; }
 
   virtual unsigned int get_track_id() const { return 0; }

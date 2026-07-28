@@ -24,7 +24,6 @@ class Tpc_AssembledTrack : public PHObject
   {
     os << "Tpc_AssembledTrack base class" << std::endl;
   }
-  void Reset() override {}
   int isValid() const override { return 0; }
 
   // --- Identity ---

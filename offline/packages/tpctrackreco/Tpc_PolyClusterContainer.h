@@ -19,7 +19,6 @@ class Tpc_PolyClusterContainer : public PHObject
   {
     os << "Tpc_PolyClusterContainer base class" << std::endl;
   }
-  void Reset() override {}
   int isValid() const override { return 0; }
 
   virtual unsigned int size() const { return 0; }

@@ -21,7 +21,6 @@ class Tpc_ModuleTrackContainer : public PHObject
   {
     os << "Tpc_ModuleTrackContainer base class" << std::endl;
   }
-  void Reset() override {}
   int isValid() const override { return 0; }
 
   virtual unsigned int size() const { return 0; }

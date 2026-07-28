@@ -17,7 +17,6 @@ class Tpc_PolyTrack : public PHObject
   {
     os << "Tpc_PolyTrack base class" << std::endl;
   }
-  void Reset() override {}
   int isValid() const override { return 0; }
 
   virtual unsigned int get_event() const { return 0; }

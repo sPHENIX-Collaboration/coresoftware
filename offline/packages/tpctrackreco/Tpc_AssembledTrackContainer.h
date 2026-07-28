@@ -19,7 +19,6 @@ class Tpc_AssembledTrackContainer : public PHObject
   {
     os << "Tpc_AssembledTrackContainer base class" << std::endl;
   }
-  void Reset() override {}
   int isValid() const override { return 0; }
 
   virtual unsigned int size() const { return 0; }
