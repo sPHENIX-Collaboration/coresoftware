@@ -34,7 +34,7 @@
 
 void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 {
-  localVerbosity = 1;
+  localVerbosity = 0;
   // The default is to use translation parameters that are in global coordinates
   std::cout << "AlignmentTransformation: use INTT survey geometry = " << use_intt_survey_geometry << std::endl;
   std::cout << "AlignmentTransformation: localVerbosity = " << localVerbosity << std::endl;
@@ -285,7 +285,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	  {
 	    double phis = min_phi + is*dphi + dphi/2.0;
 	    double radius = layergeom->get_radius();
-	    double zcenter = 51.0;
+	    double zcenter = 51.0;  // not used, make something up
 	    if(side == 0)
 	      {
 		zcenter *= -1;
@@ -317,6 +317,9 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 		double this_radius = std::sqrt(this_center_envelope[0] * this_center_envelope[0] + this_center_envelope[1] * this_center_envelope[1]);
 		float moduleRadius = TpcModuleRadii[side][sector][this_region];                                     // radius of the center of the module in cm
 		localFrameTranslation = getTpcLocalFrameTranslation(moduleRadius, this_radius, sensorAngles) * 10;  // cm to mm
+
+		std::cout << "      mod tilt: ModuleRadius " << moduleRadius << " this_layer " << this_layer << " this_radius " << this_radius
+			  << " sensorAngles " << sensorAngles[0] << "  " << sensorAngles[1] << "  " << sensorAngles[2] << std::endl;
 
 		// set this flag for later use
 		use_module_tilt = true;
@@ -717,7 +720,7 @@ double AlignmentTransformation::extractModuleCenter(TrkrDefs::hitsetkey hitsetke
   unsigned int side = TpcDefs::getSide(hitsetkey);
   if(side ==0)
     {
-      z = -10.0;
+      z = -10.0;  // not used, just make something up
     }
 
   Acts::Vector3 world_envelope(x, y, z);

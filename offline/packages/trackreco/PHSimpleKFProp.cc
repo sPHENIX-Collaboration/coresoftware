@@ -430,6 +430,16 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 Acts::Vector3 PHSimpleKFProp::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster) const
 {
   // get global position from Acts transform
+
+  /*
+  Acts::Vector3 global = _pp_mode ?
+    m_tgeometry->getGlobalPosition(key, cluster):
+    m_globalPositionWrapper.getGlobalPositionDistortionCorrected( key, cluster, 0 );    
+  // convert to envelope coordinates
+  Acts::Vector3 envelope_global = m_tgeometry->transformTpcWorldToEnvelope(global);
+  return envelope_global;
+  */
+  
   return _pp_mode ?
     m_tgeometry->getGlobalPosition(key, cluster):
     m_globalPositionWrapper.getGlobalPositionDistortionCorrected( key, cluster, 0 );

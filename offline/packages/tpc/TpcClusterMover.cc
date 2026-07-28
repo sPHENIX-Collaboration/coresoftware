@@ -90,10 +90,11 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
 {
   // Get the global positions of the TPC clusters for this track, already corrected for distortions, and move them to the surfaces
   // The input object contains all clusters for the track in world coordinates
-  // The surface radii are in global coordinates. Needed bexcause we are dealing with aligned surfaces
+  // The surface radii are in global coordinates. Needed because we are dealing with aligned surfaces
 
   auto *cluster_map = findNode::getClass<TrkrClusterContainer>(_topNode, "TRKR_CLUSTER");
-  
+  auto surfMaps = _tGeometry->maps();
+    
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_moved;
 
   std::vector<Acts::Vector3> tpc_global_vec;
@@ -134,13 +135,10 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
   for (unsigned int i = 0; i < tpc_global_vec.size(); ++i)
   {
     TrkrDefs::cluskey cluskey = tpc_cluskey_vec[i];
-    unsigned int layer = TrkrDefs::getLayer(cluskey);
     Acts::Vector3 global = tpc_global_vec[i];
 
     // get target surface radius in global coordinates
-    TrkrDefs::hitsetkey hkey= TrkrDefs:: getHitSetKeyFromClusKey(cluskey);
     auto cluster = cluster_map->findCluster(cluskey);
-    auto surfMaps = _tGeometry->maps();
     auto surface = surfMaps.getSurface(cluskey, cluster);
     auto surfcent = surface->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // the aligned geometry
     
@@ -170,23 +168,28 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
     double znew = global[2] - (_z_start - _z_proj);
 
     // now move the cluster to the surface radius
-    // we keep the cluster key fixed, change the surface if necessary
+    // we keep the cluster key fixed, change the surface later if necessary
 
     Acts::Vector3 global_new(xnew, ynew, znew);
 
-    // Check if the subsurface changed
-    TrkrDefs::subsurfkey new_subsurfkey = 0;
-    auto new_surf = _tGeometry->get_tpc_surface_from_coords(hkey, global_new, new_subsurfkey);
-    
-    if(_verbosity > 2 && layer == 28)
+    if(_verbosity > 2)
       {
-	unsigned int sskey = cluster->getSubSurfKey();
-	double new_radius = sqrt(xnew*xnew+ynew*ynew);
-	std::cout << "   layer " << layer << " clusterkey " << cluskey << " hitsetkey " << hkey << " subsurfkey in " << sskey << " new " << new_subsurfkey << std::endl;
-	std::cout << "        global_in " << global[0] << "  " << global[1] << "  " << global[2]  << " clus_radius " << cluster_radius <<  " target radius " << target_radius << std::endl;
-	std::cout << "        global_moved " << global_new[0] << "  " << global_new[1] << "  " << global_new[2]  << " global_new radius " << new_radius << std::endl;
-	std::cout << "        xstart " << _x_start << " xproj " << _x_proj << " ystart " << _y_start << " yproj " << _y_proj << " zstart " << _z_start << " zproj " << _z_proj << std::endl;
-	std::cout << "        phi_in      " << atan2(global[1], global[0]) << " phi_moved " << atan2(global_new[1], global_new[0]) << std::endl;
+	unsigned int layer = TrkrDefs::getLayer(cluskey);
+	if(layer == 28)
+	  {
+	    unsigned int sskey = cluster->getSubSurfKey();
+	    double new_radius = sqrt(xnew*xnew+ynew*ynew);
+	    // Check if the subsurface changed
+	    TrkrDefs::hitsetkey hkey= TrkrDefs:: getHitSetKeyFromClusKey(cluskey);
+	    TrkrDefs::subsurfkey new_subsurfkey = 0;
+	    auto new_surf = _tGeometry->get_tpc_surface_from_coords(hkey, global_new, new_subsurfkey);
+	    
+	    std::cout << "   layer " << layer << " clusterkey " << cluskey << " hitsetkey " << hkey << " subsurfkey in " << sskey << " new " << new_subsurfkey << std::endl;
+	    std::cout << "        global_in " << global[0] << "  " << global[1] << "  " << global[2]  << " clus_radius " << cluster_radius <<  " target radius " << target_radius << std::endl;
+	    std::cout << "        global_moved " << global_new[0] << "  " << global_new[1] << "  " << global_new[2]  << " global_new radius " << new_radius << std::endl;
+	    std::cout << "        xstart " << _x_start << " xproj " << _x_proj << " ystart " << _y_start << " yproj " << _y_proj << " zstart " << _z_start << " zproj " << _z_proj << std::endl;
+	    std::cout << "        phi_in      " << atan2(global[1], global[0]) << " phi_moved " << atan2(global_new[1], global_new[0]) << std::endl;
+	  }
       }
     
     // now we add the new position and surface to the return object

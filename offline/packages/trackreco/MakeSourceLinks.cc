@@ -360,6 +360,11 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
        ++clusIter)
   {
     auto key = *clusIter;
+
+    unsigned int test_layer = TrkrDefs::getLayer(key);    
+    const unsigned int trkrid = TrkrDefs::getTrkrId(key);
+    //    std::cout << "   SL 1:  layer " << test_layer << " cluster key " << key << " trkrid " << trkrid << " crossing " << crossing << std::endl;
+    
     auto* cluster = clusterContainer->findCluster(key);
     if (!cluster)
     {
@@ -374,6 +379,8 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       continue;
     }
 
+    //    std::cout << "   SL 2:  layer " << test_layer << " cluster key " << key << " trkrid " << trkrid << " crossing " << crossing << std::endl;
+	
     /// Make a safety check for clusters that couldn't be attached
     /// to a surface
     auto surf = tGeometry->maps().getSurface(key, cluster);
@@ -382,11 +389,12 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       continue;
     }
 
-    const unsigned int trkrid = TrkrDefs::getTrkrId(key);
+    //    unsigned int test_layer = TrkrDefs::getLayer(key);    
+    // const unsigned int trkrid = TrkrDefs::getTrkrId(key);
 
     if (m_verbosity > 1)
     {
-      std::cout << "    Cluster key " << key << " trkrid " << trkrid << " crossing " << crossing << std::endl;
+      std::cout << "   SL:  layer " << test_layer << " cluster key " << key << " trkrid " << trkrid << " crossing " << crossing << std::endl;
     }
 
     // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset

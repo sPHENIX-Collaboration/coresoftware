@@ -30,7 +30,6 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-//#include <g4detectors/PHG4TpcGeomv1.h>
 #include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
 
