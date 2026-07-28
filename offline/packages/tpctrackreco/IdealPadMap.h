@@ -1,5 +1,7 @@
-#ifndef IDEALPADMAP_H
-#define IDEALPADMAP_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_IDEALPADMAP_H
+#define TPCTRACKRECO_IDEALPADMAP_H
 
 #include <array>
 #include <string>

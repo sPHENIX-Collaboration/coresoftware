@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCPOLYTRACKVERTEXCONTAINERV1_H
+#define TPCTRACKRECO_TPCPOLYTRACKVERTEXCONTAINERV1_H
 
 #include "Tpc_PolyTrackVertexContainer.h"
 
@@ -49,3 +52,4 @@ class Tpc_PolyTrackVertexContainerv1 : public Tpc_PolyTrackVertexContainer
 
   ClassDefOverride(Tpc_PolyTrackVertexContainerv1, 1)
 };
+#endif

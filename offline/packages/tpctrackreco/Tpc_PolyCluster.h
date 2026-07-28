@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCPOLYCLUSTER_H
+#define TPCTRACKRECO_TPCPOLYCLUSTER_H
 
 #include <phool/PHObject.h>
 #include <trackbase/TrkrDefs.h>
@@ -70,3 +73,4 @@ class Tpc_PolyCluster : public PHObject
  private:
   ClassDefOverride(Tpc_PolyCluster, 0)
 };
+#endif

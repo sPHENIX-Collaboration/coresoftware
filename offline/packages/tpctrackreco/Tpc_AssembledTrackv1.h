@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCASSEMBLEDTRACKV1_H
+#define TPCTRACKRECO_TPCASSEMBLEDTRACKV1_H
 
 #include "Tpc_AssembledTrack.h"
 
@@ -209,3 +212,4 @@ class Tpc_AssembledTrackv1 : public Tpc_AssembledTrack
 
   ClassDefOverride(Tpc_AssembledTrackv1, 2)
 };
+#endif

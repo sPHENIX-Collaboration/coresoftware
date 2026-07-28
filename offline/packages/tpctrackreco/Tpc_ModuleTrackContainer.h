@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCMODULETRACKCONTAINER_H
+#define TPCTRACKRECO_TPCMODULETRACKCONTAINER_H
 
 #include <phool/PHObject.h>
 
@@ -31,3 +34,4 @@ class Tpc_ModuleTrackContainer : public PHObject
  private:
   ClassDefOverride(Tpc_ModuleTrackContainer, 0)
 };
+#endif
