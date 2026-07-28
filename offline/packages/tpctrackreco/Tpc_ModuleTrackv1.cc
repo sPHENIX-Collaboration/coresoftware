@@ -1,8 +1,6 @@
 #include "Tpc_ModuleTrackv1.h"
 
-ClassImp(Tpc_ModuleTrackv1)
-
-    Tpc_ModuleTrackv1::Tpc_ModuleTrackv1()
+Tpc_ModuleTrackv1::Tpc_ModuleTrackv1()
 {
   Reset();
 }

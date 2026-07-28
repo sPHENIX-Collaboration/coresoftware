@@ -45,10 +45,12 @@ namespace
       const auto& layerno = state.navigation.currentSurface->geometryId().layer();
       const auto& sensitive = state.navigation.currentSurface->geometryId().sensitive();
 
+
       /// Check that we are in the proper layer and that we've also reached
       /// a sensitive surface
       if (layerno == abortlayer && volumeno == abortvolume && sensitive != 0)
       { return true; }
+
 
       return false;
     }

@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCPOLYTRACKVERTEXCONTAINER_H
+#define TPCTRACKRECO_TPCPOLYTRACKVERTEXCONTAINER_H
 
 #include <phool/PHObject.h>
 
@@ -16,7 +19,6 @@ class Tpc_PolyTrackVertexContainer : public PHObject
   {
     os << "Tpc_PolyTrackVertexContainer base class" << std::endl;
   }
-  void Reset() override {}
   int isValid() const override { return 0; }
 
   virtual unsigned int size() const { return 0; }
@@ -41,3 +43,4 @@ class Tpc_PolyTrackVertexContainer : public PHObject
  private:
   ClassDefOverride(Tpc_PolyTrackVertexContainer, 0)
 };
+#endif

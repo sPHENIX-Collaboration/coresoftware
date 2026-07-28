@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCFITTINGTOOLS_H
+#define TPCTRACKRECO_TPCFITTINGTOOLS_H
 
 #include <vector>
 
@@ -104,3 +107,4 @@ class Tpc_FittingTools
   static bool fit(const std::vector<Point>& points, FitResult& fit);
   static bool fitLine3D(const std::vector<Point>& points, FitResult& fit);
 };
+#endif
