@@ -1,8 +1,7 @@
 #include "Tpc_PolyClusterContainerv1.h"
 #include "Tpc_PolyCluster.h"
 
-
-    Tpc_PolyClusterContainerv1::Tpc_PolyClusterContainerv1()
+Tpc_PolyClusterContainerv1::Tpc_PolyClusterContainerv1()
 {
   Reset();
 }

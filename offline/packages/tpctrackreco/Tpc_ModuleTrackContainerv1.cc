@@ -1,8 +1,7 @@
 #include "Tpc_ModuleTrackContainerv1.h"
 #include "Tpc_ModuleTrack.h"
 
-
-    Tpc_ModuleTrackContainerv1::Tpc_ModuleTrackContainerv1()
+Tpc_ModuleTrackContainerv1::Tpc_ModuleTrackContainerv1()
 {
   Reset();
 }

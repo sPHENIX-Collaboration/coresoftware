@@ -1,8 +1,7 @@
 #include "Tpc_AssembledTrackContainerv1.h"
 #include "Tpc_AssembledTrack.h"
 
-
-    Tpc_AssembledTrackContainerv1::Tpc_AssembledTrackContainerv1()
+Tpc_AssembledTrackContainerv1::Tpc_AssembledTrackContainerv1()
 {
   Reset();
 }

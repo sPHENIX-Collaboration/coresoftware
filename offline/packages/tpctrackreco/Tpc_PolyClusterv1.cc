@@ -2,8 +2,7 @@
 
 #include <cmath>
 
-
-    Tpc_PolyClusterv1::Tpc_PolyClusterv1()
+Tpc_PolyClusterv1::Tpc_PolyClusterv1()
 {
   Reset();
 }
