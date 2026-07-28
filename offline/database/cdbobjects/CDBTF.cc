@@ -1,5 +1,7 @@
 #include "CDBTF.h"
 
+#include <phool/PHUtils.h>
+
 #include <TClass.h>       // for TClass
 #include <TCollection.h>  // for TIter
 #include <TDirectory.h>   // for TDirectoryAtomicAdapter, TDirectory, gDirec...
@@ -36,7 +38,8 @@ void CDBTF::WriteCDBTF()
     return;
   }
   std::string currdir = gDirectory->GetPath();
-  TFile *f = TFile::Open(m_Filename.c_str(), "RECREATE");
+  std::string reproducible_TFile_name = PHUtils::CreateReproducibleTFileName(m_Filename);
+  TFile *f = TFile::Open(reproducible_TFile_name.c_str(), "RECREATE");
   for (auto &iter : m_TFMap)
   {
     iter.second->Write();

@@ -9,6 +9,7 @@
  * \author Tony Frawley <frawley@fsunuc.physics.fsu.edu>, Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
+#include <tpc/LaserClusterHelper.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
@@ -126,6 +127,7 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   void set_phiHistInRad(bool rad){ m_phiHist_in_rad = rad; }
 
+  void set_useZ(bool use) { m_useZ = use; }
 
   // void set_laminationFile(const std::string& filename)
   //{
@@ -423,6 +425,9 @@ class TpcCentralMembraneMatching : public SubsysReco
   std::vector<int> m_reco_RMatches[2];
 
   double m_recoRotation[2][3]{{-999, -999, -999}, {-999, -999, -999}};
+
+  LaserClusterHelper m_laserClusterHelper;
+  bool m_useZ{false};
 };
 
 #endif  // PHTPCCENTRALMEMBRANEMATCHER_H

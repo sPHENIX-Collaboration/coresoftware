@@ -186,13 +186,13 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMaximumTrackPTchi2(float ptchi2) { m_track_ptchi2 = ptchi2; }
 
-  void setMinimumTrackIP_XY(float ip) { m_track_ip_xy = ip; }
+  void setMinimumTrackPV_DCA_XY(float ip) { m_track_PV_dca_xy = ip; }
 
-  void setMinimumTrackIPchi2_XY(float ipchi2) { m_track_ipchi2_xy = ipchi2; }
+  void setMinimumTrackPV_DCA_StdDev_XY(float ip_significance) { m_track_PV_dca_stddev_xy = ip_significance; }
 
-  void setMinimumTrackIP(float ip) { m_track_ip = ip; }
+  void setMinimumTrackPV_DCA(float ip) { m_track_PV_dca = ip; }
 
-  void setMinimumTrackIPchi2(float ipchi2) { m_track_ipchi2 = ipchi2; }
+  void setMinimumTrackPV_DCA_StdDev(float ip_significance) { m_track_PV_dca_stddev = ip_significance; }
 
   void setMaximumTrackchi2nDOF(float trackchi2ndof) { m_track_chi2ndof = trackchi2ndof; }
 
@@ -202,7 +202,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMinTPChits(int nHits) { m_nTPCStates = nHits; } //Actually state counting but use this for backwards compatibility!
 
-  void setMinTPOThits(int nHits) { m_nTPCStates = nHits; } //Actually state counting but use this for backwards compatibility!
+  void setMinTPOThits(int nHits) { m_nTPOTStates = nHits; } //Actually state counting but use this for backwards compatibility!
 
   void setMaximumDaughterDCA_XY(float dca) { m_comb_DCA_xy = dca; }
 
@@ -224,13 +224,13 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMotherPT(float mother_pt) { m_mother_pt = mother_pt; }
 
-  void setMotherIP(float mother_ip) { m_mother_ip = mother_ip; }
+  void setMotherPV_DCA(float mother_PV_dca) { m_mother_PV_dca = mother_PV_dca; }
 
-  void setMotherIP_XY(float mother_ip) { m_mother_ip_xy = mother_ip; }
+  void setMotherPV_DCA_XY(float mother_PV_dca) { m_mother_PV_dca_xy = mother_PV_dca; }
 
-  void setMotherIPchi2(float mother_ipchi2) { m_mother_ipchi2 = mother_ipchi2; }
+  void setMotherPV_DCA_StdDev(float mother_PV_dca_stddev) { m_mother_PV_dca_stddev = mother_PV_dca_stddev; }
 
-  void setMotherIPchi2_XY(float mother_ipchi2) { m_mother_ipchi2_xy = mother_ipchi2; }
+  void setMotherPV_DCA_StdDev_XY(float mother_PV_dca_stddev) { m_mother_PV_dca_stddev_xy = mother_PV_dca_stddev; }
 
   void setMaximumMotherVertexVolume(float vertexvol) { m_mother_vertex_volume = vertexvol; }
 
@@ -275,59 +275,59 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_intermediate_min_pt = intermediate_min_pt;
   }
 
-  void setIntermediateMinIP_XY(const std::vector<float> &intermediate_min_IP)
+  void setIntermediateMinPV_DCA_XY(const std::vector<float> &intermediate_min_PV_DCA)
   {
-    for (unsigned int i = 0; i < intermediate_min_IP.size(); ++i) m_intermediate_min_ip_xy.push_back(intermediate_min_IP[i]);
+    for (unsigned int i = 0; i < intermediate_min_PV_DCA.size(); ++i) m_intermediate_min_PV_dca_xy.push_back(intermediate_min_PV_DCA[i]);
   }
 
-  void setIntermediateIPRange_XY(const std::vector<std::pair<float, float> /*unused*/> &intermediate_IP_range)
+  void setIntermediatePV_DCARange_XY(const std::vector<std::pair<float, float> /*unused*/> &intermediate_PV_DCA_range)
   {
-    for (unsigned int i = 0; i < intermediate_IP_range.size(); ++i)
+    for (unsigned int i = 0; i < intermediate_PV_DCA_range.size(); ++i)
     {
-      m_intermediate_min_ip_xy.push_back(intermediate_IP_range[i].first);
-      m_intermediate_max_ip_xy.push_back(intermediate_IP_range[i].second);
+      m_intermediate_min_PV_dca_xy.push_back(intermediate_PV_DCA_range[i].first);
+      m_intermediate_max_PV_dca_xy.push_back(intermediate_PV_DCA_range[i].second);
     }
   }
 
-  void setIntermediateMinIP(const std::vector<float> &intermediate_min_IP)
+  void setIntermediateMinPV_DCA(const std::vector<float> &intermediate_min_PV_DCA)
   {
-    for (unsigned int i = 0; i < intermediate_min_IP.size(); ++i) m_intermediate_min_ip.push_back(intermediate_min_IP[i]);
+    for (unsigned int i = 0; i < intermediate_min_PV_DCA.size(); ++i) m_intermediate_min_PV_dca.push_back(intermediate_min_PV_DCA[i]);
   }
 
-  void setIntermediateIPRange(const std::vector<std::pair<float, float> /*unused*/> &intermediate_IP_range)
+  void setIntermediatePV_DCARange(const std::vector<std::pair<float, float> /*unused*/> &intermediate_PV_DCA_range)
   {
-    for (unsigned int i = 0; i < intermediate_IP_range.size(); ++i)
+    for (unsigned int i = 0; i < intermediate_PV_DCA_range.size(); ++i)
     {
-      m_intermediate_min_ip.push_back(intermediate_IP_range[i].first);
-      m_intermediate_max_ip.push_back(intermediate_IP_range[i].second);
+      m_intermediate_min_PV_dca.push_back(intermediate_PV_DCA_range[i].first);
+      m_intermediate_max_PV_dca.push_back(intermediate_PV_DCA_range[i].second);
     }
   }
 
-  void setIntermediateMinIPchi2_XY(const std::vector<float> &intermediate_min_IPchi2)
+  void setIntermediateMinPV_DCA_StdDev_XY(const std::vector<float> &intermediate_min_PV_DCA_StdDev)
   {
-    for (unsigned int i = 0; i < intermediate_min_IPchi2.size(); ++i) m_intermediate_min_ipchi2_xy.push_back(intermediate_min_IPchi2[i]);
+    for (unsigned int i = 0; i < intermediate_min_PV_DCA_StdDev.size(); ++i) m_intermediate_min_PV_dca_stddev_xy.push_back(intermediate_min_PV_DCA_StdDev[i]);
   }
 
-  void setIntermediateIPchi2Range_XY(const std::vector<std::pair<float, float> /*unused*/> &intermediate_IPchi2_range)
+  void setIntermediatePV_DCA_StdDevRange_XY(const std::vector<std::pair<float, float> /*unused*/> &intermediate_PV_DCA_StdDev_range)
   {
-    for (unsigned int i = 0; i < intermediate_IPchi2_range.size(); ++i)
+    for (unsigned int i = 0; i < intermediate_PV_DCA_StdDev_range.size(); ++i)
     {
-      m_intermediate_min_ipchi2_xy.push_back(intermediate_IPchi2_range[i].first);
-      m_intermediate_max_ipchi2_xy.push_back(intermediate_IPchi2_range[i].second);
+      m_intermediate_min_PV_dca_stddev_xy.push_back(intermediate_PV_DCA_StdDev_range[i].first);
+      m_intermediate_max_PV_dca_stddev_xy.push_back(intermediate_PV_DCA_StdDev_range[i].second);
     }
   }
 
-  void setIntermediateMinIPchi2(const std::vector<float> &intermediate_min_IPchi2)
+  void setIntermediateMinPV_DCA_StdDev(const std::vector<float> &intermediate_min_PV_DCA_StdDev)
   {
-    for (unsigned int i = 0; i < intermediate_min_IPchi2.size(); ++i) m_intermediate_min_ipchi2.push_back(intermediate_min_IPchi2[i]);
+    for (unsigned int i = 0; i < intermediate_min_PV_DCA_StdDev.size(); ++i) m_intermediate_min_PV_dca_stddev.push_back(intermediate_min_PV_DCA_StdDev[i]);
   }
 
-  void setIntermediateIPchi2Range(const std::vector<std::pair<float, float> /*unused*/> &intermediate_IPchi2_range)
+  void setIntermediatePV_DCA_StdDevRange(const std::vector<std::pair<float, float> /*unused*/> &intermediate_PV_DCA_StdDev_range)
   {
-    for (unsigned int i = 0; i < intermediate_IPchi2_range.size(); ++i)
+    for (unsigned int i = 0; i < intermediate_PV_DCA_StdDev_range.size(); ++i)
     {
-      m_intermediate_min_ipchi2.push_back(intermediate_IPchi2_range[i].first);
-      m_intermediate_max_ipchi2.push_back(intermediate_IPchi2_range[i].second);
+      m_intermediate_min_PV_dca_stddev.push_back(intermediate_PV_DCA_StdDev_range[i].first);
+      m_intermediate_max_PV_dca_stddev.push_back(intermediate_PV_DCA_StdDev_range[i].second);
     }
   }
 

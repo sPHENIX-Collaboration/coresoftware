@@ -3,6 +3,7 @@
 #include "PdbParameterMap.h"
 
 #include <phool/PHTimeStamp.h>
+#include <phool/PHUtils.h>
 #include <phool/phool.h>
 
 #include <TBufferXML.h>
@@ -111,7 +112,8 @@ int PdbParameterMapContainer::WriteToFile(const std::string &detector_name,
   std::cout << "PdbParameterMapContainer::WriteToFile - save to " << fullpath.str()
             << std::endl;
 
-  TFile *f = TFile::Open(fullpath.str().c_str(), "recreate");
+  std::string reproducible_TFile_name = PHUtils::CreateReproducibleTFileName(fullpath.str());
+  TFile *f = TFile::Open(reproducible_TFile_name.c_str(), "RECREATE");
 
   PdbParameterMapContainer *container = new PdbParameterMapContainer();
   for (std::map<int, PdbParameterMap *>::const_iterator it =

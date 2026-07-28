@@ -77,6 +77,12 @@ class MakeActsGeometry : public SubsysReco
     m_magFieldRescale = magFieldRescale;
   }
 
+  /// enable or disable the ACTS surface and volume material map
+  void setUseActsMaterialMap(bool value)
+  {
+    m_useActsMaterialMap = value;
+  }
+
   // void useInttSurveyGeom(const bool useSurveyGeom) { m_useInttSurveyGeom = useSurveyGeom; }
 
   void setMvtxDev(double array[6])
@@ -182,7 +188,7 @@ private:
   void makeGeometry(int argc, char *argv[], const std::string& responseFile, const std::string& materialFile);
 
   void setMaterialResponseFile(std::string &responseFile,
-                               std::string &materialFile);
+                               std::string &materialFile) const;
 
   /// Get hitsetkey from TGeoNode for each detector geometry
   void getInttKeyFromNode(TGeoNode *gnode);
@@ -231,6 +237,7 @@ private:
   std::vector<double> v_globaldisplacement = {0., 0., 0.};
 
   bool m_useField = true;
+  bool m_useActsMaterialMap = true;
   std::map<uint8_t, double> m_misalignmentFactor;
 
   /// Several maps that connect Acts world to sPHENIX G4 world
