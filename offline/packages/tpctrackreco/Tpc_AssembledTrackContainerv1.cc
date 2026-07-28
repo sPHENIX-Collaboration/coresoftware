@@ -1,7 +1,6 @@
 #include "Tpc_AssembledTrackContainerv1.h"
 #include "Tpc_AssembledTrack.h"
 
-ClassImp(Tpc_AssembledTrackContainerv1)
 
     Tpc_AssembledTrackContainerv1::Tpc_AssembledTrackContainerv1()
 {

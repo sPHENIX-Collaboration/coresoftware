@@ -2,7 +2,6 @@
 
 #include <cmath>
 
-ClassImp(Tpc_PolyTrackVertexv1)
 
     Tpc_PolyTrackVertexv1::Tpc_PolyTrackVertexv1()
 {

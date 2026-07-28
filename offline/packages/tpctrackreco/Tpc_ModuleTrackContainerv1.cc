@@ -1,7 +1,6 @@
 #include "Tpc_ModuleTrackContainerv1.h"
 #include "Tpc_ModuleTrack.h"
 
-ClassImp(Tpc_ModuleTrackContainerv1)
 
     Tpc_ModuleTrackContainerv1::Tpc_ModuleTrackContainerv1()
 {

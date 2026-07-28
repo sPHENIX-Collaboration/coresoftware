@@ -2,7 +2,6 @@
 
 #include <cmath>
 
-ClassImp(Tpc_PolyClusterv1)
 
     Tpc_PolyClusterv1::Tpc_PolyClusterv1()
 {

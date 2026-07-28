@@ -1,7 +1,6 @@
 #include "Tpc_PolyTrackVertexContainerv1.h"
 #include "Tpc_PolyTrackVertex.h"
 
-ClassImp(Tpc_PolyTrackVertexContainerv1)
 
     Tpc_PolyTrackVertexContainerv1::Tpc_PolyTrackVertexContainerv1()
 {
