@@ -210,6 +210,6 @@ class Tpc_AssembledTrackv1 : public Tpc_AssembledTrack
   std::vector<unsigned int> m_source_sectors;
   std::vector<HitIndex> m_hit_indices;
 
-  ClassDefOverride(Tpc_AssembledTrackv1, 2)
+  ClassDefOverride(Tpc_AssembledTrackv1, 1)
 };
 #endif

@@ -82,6 +82,6 @@ class Tpc_PolyTrackv1 : public Tpc_PolyTrack
   double m_dedx{0.0};
   std::vector<double> m_cov;
 
-  ClassDefOverride(Tpc_PolyTrackv1, 2)
+  ClassDefOverride(Tpc_PolyTrackv1, 1)
 };
 #endif
