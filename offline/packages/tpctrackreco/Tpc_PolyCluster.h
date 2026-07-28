@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCPOLYCLUSTER_H
+#define TPCTRACKRECO_TPCPOLYCLUSTER_H
 
 #include <phool/PHObject.h>
 #include <trackbase/TrkrDefs.h>
@@ -17,7 +20,6 @@ class Tpc_PolyCluster : public PHObject
   {
     os << "Tpc_PolyCluster base class" << std::endl;
   }
-  void Reset() override {}
   int isValid() const override { return 0; }
 
   using HitIndex = std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>;
@@ -70,3 +72,4 @@ class Tpc_PolyCluster : public PHObject
  private:
   ClassDefOverride(Tpc_PolyCluster, 0)
 };
+#endif

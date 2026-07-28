@@ -1,9 +1,7 @@
 #include "Tpc_PolyTrackContainerv1.h"
 #include "Tpc_PolyTrack.h"
 
-ClassImp(Tpc_PolyTrackContainerv1)
-
-    Tpc_PolyTrackContainerv1::Tpc_PolyTrackContainerv1()
+Tpc_PolyTrackContainerv1::Tpc_PolyTrackContainerv1()
 {
   Reset();
 }

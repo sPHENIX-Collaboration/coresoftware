@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCPOLYTRACKV1_H
+#define TPCTRACKRECO_TPCPOLYTRACKV1_H
 
 #include "Tpc_PolyTrack.h"
 
@@ -79,5 +82,6 @@ class Tpc_PolyTrackv1 : public Tpc_PolyTrack
   double m_dedx{0.0};
   std::vector<double> m_cov;
 
-  ClassDefOverride(Tpc_PolyTrackv1, 2)
+  ClassDefOverride(Tpc_PolyTrackv1, 1)
 };
+#endif

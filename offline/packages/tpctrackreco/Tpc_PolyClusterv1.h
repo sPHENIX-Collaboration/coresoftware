@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCPOLYCLUSTERV1_H
+#define TPCTRACKRECO_TPCPOLYCLUSTERV1_H
 
 #include "Tpc_PolyCluster.h"
 
@@ -92,3 +95,4 @@ class Tpc_PolyClusterv1 : public Tpc_PolyCluster
 
   ClassDefOverride(Tpc_PolyClusterv1, 1)
 };
+#endif

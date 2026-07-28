@@ -44,7 +44,7 @@ struct ActsAborter
 
     /// Check that we are in the proper layer and that we've also reached
     /// a sensitive surface
-    if (layerno == abortlayer and volumeno == abortvolume and sensitive != 0)
+    if (layerno == abortlayer && volumeno == abortvolume && sensitive != 0)
     { return true; }
 
     return false;

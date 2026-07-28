@@ -3,9 +3,7 @@
 #include <cmath>
 #include <limits>
 
-ClassImp(Tpc_PolyTrackv1)
-
-    Tpc_PolyTrackv1::Tpc_PolyTrackv1()
+Tpc_PolyTrackv1::Tpc_PolyTrackv1()
 {
   Reset();
 }

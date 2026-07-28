@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCPOLYTRACKRECO_H
+#define TPCTRACKRECO_TPCPOLYTRACKRECO_H
 
 #include "Tpc_FittingTools.h"
 
@@ -54,3 +57,4 @@ class Tpc_PolyTrackReco : public SubsysReco
   double m_magneticFieldTesla{1.4};
   FitMode m_fitMode{FitMode::Helix};
 };
+#endif
