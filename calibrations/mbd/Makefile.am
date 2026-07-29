@@ -24,7 +24,8 @@ libmbdcalib_la_LIBADD = \
   -lSubsysReco \
   -lglobalvertex_io \
   -lffarawobjects \
-  -lffaobjects
+  -lffaobjects \
+  -lmbd
 
 BUILT_SOURCES = testexternals.cc
 
