@@ -9,6 +9,7 @@
 #include <ffarawobjects/Gl1Packet.h>
 
 #include <ffaobjects/EventHeader.h>
+#include <ffaobjects/RunHeader.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
@@ -16,6 +17,8 @@
 #include <globalvertex/MbdVertexMap.h>
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
+
+#include <mbd/MbdOut.h>
 
 constexpr GlobalVertex::VTXTYPE trkType = GlobalVertex::SVTX;
 constexpr GlobalVertex::VTXTYPE mbdType = GlobalVertex::MBD;
@@ -42,12 +45,17 @@ int MbdTrackVertex::Init(PHCompositeNode * /*topNode*/)
     outTree->OptimizeBaskets();
     outTree->SetAutoSave(-5e6);
 
+    outTree->Branch("run", &_run, "run/I");
     outTree->Branch("evt", &_evt, "evt/I");
     outTree->Branch("mbdz", &_mbdVertex, "mbdz/F");
     outTree->Branch("trkz", &_trackerVertex, "trkz/F");
-    outTree->Branch("ntrks", &_nTracks, "ntrks/i");
     outTree->Branch("nbz", &_nMBDVertex, "nbz/i");
     outTree->Branch("ntz", &_nTRKVertex, "ntz/i");
+    outTree->Branch("ntrks", &_nTracks, "ntrks/i");
+    outTree->Branch("bns", &_nMBD[0], "bns/S");
+    outTree->Branch("bnn", &_nMBD[1], "bnn/S");
+    outTree->Branch("bqs", &_qMBD[0], "bqs/F");
+    outTree->Branch("bqn", &_qMBD[1], "bqn/F");
   }
 
   // h_mbdtrkz: dz = _mbdVertex - trackerVertex, range (-15,15) cm, 0.25 cm bins → 120 bins
@@ -69,6 +77,9 @@ int MbdTrackVertex::Init(PHCompositeNode * /*topNode*/)
 //____________________________________________________________________________..
 int MbdTrackVertex::process_event(PHCompositeNode *topNode)
 {
+  RunHeader *runheader = findNode::getClass<RunHeader>(topNode, "RunHeader");
+  _run = runheader ? runheader->get_RunNumber() : -1;
+
   EventHeader *eventheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
   _evt = eventheader ? eventheader->get_EvtSequence() : -1;
 
@@ -89,11 +100,12 @@ int MbdTrackVertex::process_event(PHCompositeNode *topNode)
     }
   }
 
+  MbdOut *mbdout = findNode::getClass<MbdOut>(topNode, "MbdOut");
   MbdVertexMap *m_dst_mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
   SvtxVertexMap *m_dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-
   GlobalVertexMap *globalvertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
-  if (!m_dst_mbdvertexmap || !m_dst_vertexmap || !globalvertexmap)
+
+  if (!m_dst_mbdvertexmap || !m_dst_vertexmap || !globalvertexmap || !mbdout)
   {
     std::cout << PHWHERE << " missing required vertex node(s)" << std::endl;
     return Fun4AllReturnCodes::DISCARDEVENT;
@@ -101,6 +113,21 @@ int MbdTrackVertex::process_event(PHCompositeNode *topNode)
 
   _mbdVertex = _trackerVertex = std::numeric_limits<float>::quiet_NaN();
   _nTracks = _nMBDVertex = _nTRKVertex = std::numeric_limits<unsigned int>::quiet_NaN();
+
+  if ( mbdout )
+  {
+    _nMBD[0] = mbdout->get_npmt(0);
+    _nMBD[1] = mbdout->get_npmt(1);
+    _qMBD[0] = mbdout->get_q(0);
+    _qMBD[1] = mbdout->get_q(1);
+  }
+  else
+  {
+    _nMBD[0] = std::numeric_limits<Short_t>::quiet_NaN();
+    _nMBD[1] = std::numeric_limits<Short_t>::quiet_NaN();
+    _qMBD[0] = std::numeric_limits<Float_t>::quiet_NaN();
+    _qMBD[1] = std::numeric_limits<Float_t>::quiet_NaN();
+  }
 
   _hasMBD = false;
   _hasTRK = false;
