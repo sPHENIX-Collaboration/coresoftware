@@ -822,8 +822,6 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
   double du2 = gf_state_beam_line_ca->getCov()[3][3];
   double dv2 = gf_state_beam_line_ca->getCov()[4][4];
-  // std::cout << PHWHERE << "        u " << u << " v " << v << " du2 " << du2 << " dv2 " << dv2 << " dvr2 " << dvr2 << std::endl;
-  // delete gf_state_beam_line_ca;
 
   // create new track
   auto out_track = std::make_shared<SvtxTrack_v4>(*svtx_track);
@@ -981,26 +979,24 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       continue;
     }
 
-    std::optional<genfit::MeasuredStateOnPlane> gf_state;
+    std::optional<genfit::MeasuredStateOnPlane> gf_state{};
     try
     {
-      *gf_state = kfi->getFittedState(true);
+      gf_state = kfi->getFittedState();
     }
     catch (...)
     {
       if (Verbosity() >= 1)
-        LogWarning("Exrapolation failed!");
-    }
-    if (!gf_state)
-    {
-      if (Verbosity() >= 1)
-        LogWarning("Exrapolation failed!");
+      { LogWarning("Exrapolation failed!"); }
       continue;
     }
 
-    // calculate path length
-    auto temp = gf_state.value();
-    const float pathlength = -temp.extrapolateToPoint(vertex_position);
+//     // calculate path length by extrapolating backward to vertex position
+//     auto temp = gf_state.value();
+//     const float pathlength = -temp.extrapolateToPoint(vertex_position);
+
+    genfit::MeasuredStateOnPlane temp;
+    float pathlength = -phgf_track->extrapolateToPoint(temp, vertex_position, id);
 
     // create new svtx state and add to track
     auto state = create_track_state(pathlength, gf_state.value());
@@ -1031,7 +1027,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       // get position
       const auto globalPosition = m_globalPositionWrapper.getGlobalPositionDistortionCorrected( cluster_key, cluster, crossing );
       const TVector3 pos_A(globalPosition.x(), globalPosition.y(), globalPosition.z() );
-      const float r_cluster = std::sqrt( square(globalPosition.x()) + square(globalPosition.y()) );
+      const auto r_cluster = get_r(globalPosition.x(),globalPosition.y());
 
       // loop over states
       /* find first state whose radius is larger than that of cluster if any */
@@ -1051,21 +1047,17 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
         }
         catch (...)
         {
-          if (Verbosity())
-          {
-            LogWarning("Failed to get kf fitted state");
-          }
+          if (Verbosity()) { LogWarning("Failed to get kf fitted state"); }
+          continue;
         }
 
-        if (!gf_state) continue;
-
-        float r_track = std::sqrt(square(gf_state->getPos().x()) + square(gf_state->getPos().y()));
+        const auto r_track = get_r( gf_state->getPos().x(), gf_state->getPos().y());
         if (r_track > r_cluster) break;
       }
 
       // forward extrapolation
-      std::optional<genfit::MeasuredStateOnPlane> gf_state_forward;
-      std::optional<genfit::MeasuredStateOnPlane> gf_state_backward;
+      std::optional<genfit::MeasuredStateOnPlane> gf_state_forward{};
+      std::optional<genfit::MeasuredStateOnPlane> gf_state_backward{};
 
       float pathlength_forward = 0;
       float pathlength_backward = 0;
@@ -1080,7 +1072,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
         if( !trpoint ) { throw std::logic_error( "invalid argument" ); }
 
         auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
-        *gf_state_forward = kfi->getFittedState();
+        gf_state_forward = kfi->getFittedState();
         pathlength_forward = gf_state_forward->extrapolateToPoint( pos_A );
 
         auto tmp = kfi->getFittedState();
@@ -1104,7 +1096,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
           if( !trpoint ) { throw std::logic_error( "invalid argument" ); }
 
           auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
-          *gf_state_backward = kfi->getFittedState();
+          gf_state_backward = kfi->getFittedState();
 
           pathlength_backward = gf_state_backward->extrapolateToPoint( pos_A );
 
@@ -1140,17 +1132,18 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
         if( gf_state_forward && gf_state_backward )
         {
+          try {
+            // extrapolate backward state to the same plane as forward
+            gf_state_backward->extrapolateToPlane(gf_state_forward->getPlane());
 
-          // extrapolate backward state to the same plane as forward
-          gf_state_backward->extrapolateToPlane(gf_state_forward->getPlane());
+            // calculate weighted average
+            auto gf_state = genfit::calcAverageState(gf_state_forward.value(), gf_state_backward.value());
 
-          // calculate weighted average
-          auto gf_state = genfit::calcAverageState(gf_state_forward.value(), gf_state_backward.value());
-
-          // assign to track
-          auto state = create_track_state(pathlength_forward, gf_state);
-          state.set_cluskey(cluster_key);
-          out_track->insert_state(&state);
+            // assign to track
+            auto state = create_track_state(pathlength_forward, gf_state);
+            state.set_cluskey(cluster_key);
+            out_track->insert_state(&state);
+          } catch( ... ) {}
 
         } else if( gf_state_forward ) {
 
