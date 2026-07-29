@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCPOLYTRACKVERTEXER_H
+#define TPCTRACKRECO_TPCPOLYTRACKVERTEXER_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -65,3 +68,4 @@ class Tpc_PolyTrackVertexer : public SubsysReco
   double m_collisionZSeparation{10.0};
   double m_magneticFieldTesla{1.4};
 };
+#endif

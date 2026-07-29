@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCASSEMBLEDTRACKCONTAINER_H
+#define TPCTRACKRECO_TPCASSEMBLEDTRACKCONTAINER_H
 
 #include <phool/PHObject.h>
 
@@ -16,7 +19,6 @@ class Tpc_AssembledTrackContainer : public PHObject
   {
     os << "Tpc_AssembledTrackContainer base class" << std::endl;
   }
-  void Reset() override {}
   int isValid() const override { return 0; }
 
   virtual unsigned int size() const { return 0; }
@@ -27,3 +29,4 @@ class Tpc_AssembledTrackContainer : public PHObject
  private:
   ClassDefOverride(Tpc_AssembledTrackContainer, 0)
 };
+#endif

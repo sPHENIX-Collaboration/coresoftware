@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCASSEMBLEDTRACKRECO_H
+#define TPCTRACKRECO_TPCASSEMBLEDTRACKRECO_H
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
@@ -273,3 +276,4 @@ class Tpc_AssembledTrackReco : public SubsysReco
   std::vector<unsigned long long> m_tree_hit_hitsetkey;
   std::vector<unsigned long long> m_tree_hit_hitkey;
 };
+#endif

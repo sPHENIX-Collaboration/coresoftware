@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCMODULETRACKV1_H
+#define TPCTRACKRECO_TPCMODULETRACKV1_H
 
 #include "Tpc_ModuleTrack.h"
 
@@ -86,3 +89,4 @@ class Tpc_ModuleTrackv1 : public Tpc_ModuleTrack
 
   ClassDefOverride(Tpc_ModuleTrackv1, 3)
 };
+#endif

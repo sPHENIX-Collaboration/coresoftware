@@ -8,6 +8,7 @@ AM_CPPFLAGS = \
   -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include \
   -fopenmp
+
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
@@ -39,6 +40,9 @@ pkginclude_HEADERS = \
   Tpc_PolyClusterContainerv1.h \
   Tpc_PolyClusterizer.h \
   Tpc_PolyTrackReco.h \
+  TpcTrackFit.h \
+  TpcTrackHelixFitter.h \
+  TpcTrackKalmanFitter.h \
   Tpc_FittingTools.h \
   IdealPadMap.h
 
@@ -66,27 +70,8 @@ ROOTDICTS = \
   Tpc_PolyTrackv1_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  Tpc_AssembledTrack_Dict_rdict.pcm \
-  Tpc_AssembledTrackContainer_Dict_rdict.pcm \
-  Tpc_AssembledTrackContainerv1_Dict_rdict.pcm \
-  Tpc_AssembledTrackv1_Dict_rdict.pcm \
-  Tpc_ModuleTrack_Dict_rdict.pcm \
-  Tpc_ModuleTrackContainer_Dict_rdict.pcm \
-  Tpc_ModuleTrackContainerv1_Dict_rdict.pcm \
-  Tpc_ModuleTrackv1_Dict_rdict.pcm \
-  Tpc_PolyCluster_Dict_rdict.pcm \
-  Tpc_PolyClusterContainer_Dict_rdict.pcm \
-  Tpc_PolyClusterContainerv1_Dict_rdict.pcm \
-  Tpc_PolyClusterv1_Dict_rdict.pcm \
-  Tpc_PolyTrack_Dict_rdict.pcm \
-  Tpc_PolyTrackContainer_Dict_rdict.pcm \
-  Tpc_PolyTrackContainerv1_Dict_rdict.pcm \
-  Tpc_PolyTrackVertex_Dict_rdict.pcm \
-  Tpc_PolyTrackVertexContainer_Dict_rdict.pcm \
-  Tpc_PolyTrackVertexContainerv1_Dict_rdict.pcm \
-  Tpc_PolyTrackVertexv1_Dict_rdict.pcm \
-  Tpc_PolyTrackv1_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libtpctrackreco_la_SOURCES = \
   Tpc_ModuleTrackReco.cc \
@@ -104,6 +89,8 @@ libtpctrackreco_la_SOURCES = \
   Tpc_PolyClusterContainerv1.cc \
   Tpc_PolyClusterizer.cc \
   Tpc_PolyTrackReco.cc \
+  TpcTrackHelixFitter.cc \
+  TpcTrackKalmanFitter.cc \
   Tpc_FittingTools.cc \
   IdealPadMap.cc \
   $(ROOTDICTS)
@@ -135,7 +122,7 @@ libtpctrackreco_la_LIBADD = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

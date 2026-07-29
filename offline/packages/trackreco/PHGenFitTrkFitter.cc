@@ -468,6 +468,17 @@ void PHGenFitTrkFitter::set_fit_silicon_mms(bool value)
   }
 }
 
+//______________________________________________________
+void PHGenFitTrkFitter::set_use_micromegas(bool value)
+{
+  m_use_micromegas = value;
+
+  // disable the two micromegas layers from the fit
+  disable_layer(55, !value);
+  disable_layer(56, !value);
+
+}
+
 /*
  * GetNodes():
  *  Get all the all the required nodes off the node tree

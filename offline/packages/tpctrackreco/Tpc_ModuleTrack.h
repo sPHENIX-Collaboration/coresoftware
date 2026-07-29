@@ -1,4 +1,7 @@
-#pragma once
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCTRACKRECO_TPCMODULETRACK_H
+#define TPCTRACKRECO_TPCMODULETRACK_H
 
 #include <trackbase/TrkrDefs.h>
 
@@ -22,7 +25,6 @@ class Tpc_ModuleTrack : public PHObject
   {
     os << "Tpc_ModuleTrack base class" << std::endl;
   }
-  void Reset() override {}
   int isValid() const override { return 0; }
 
   // --- Identity ---
@@ -73,5 +75,6 @@ class Tpc_ModuleTrack : public PHObject
   }
 
  private:
-  ClassDefOverride(Tpc_ModuleTrack, 1)
+  ClassDefOverride(Tpc_ModuleTrack, 0)
 };
+#endif
