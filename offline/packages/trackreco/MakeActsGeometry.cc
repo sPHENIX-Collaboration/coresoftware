@@ -911,9 +911,11 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
     for (auto &j : surfaceVector)
     {
       auto surf = j->getSharedPtr();
+      alignmentTransformationContainer::use_alignment = false;  // we want the unaligned center
       auto vec3d = surf->center(m_geoCtxt);
+      alignmentTransformationContainer::use_alignment = true;
       vec3d /= 10.0;
-      auto vec3d_envelope = m_tpc_world_envelope_transform * vec3d;  // needs to be in TPC envelope coordinates due to tilt in sims
+      auto vec3d_envelope = m_tpc_world_envelope_transform * vec3d;  // needs to be in TPC envelope coordinates due to tilt, displacement,  in sims
 
       std::vector<double> world_center = {vec3d_envelope(0),
                                           vec3d_envelope(1),
@@ -923,22 +925,19 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
       unsigned int layer = TrkrDefs::getLayer(hitsetkey);
       // unsigned int sector = TpcDefs::getSectorId(hitsetkey);
       // unsigned int side = TpcDefs::getSide(hitsetkey);
+
       // If there is already an entry for this hitsetkey, add the surface
       // to its corresponding vector
-      // std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
       std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
-      // mapIter = m_clusterSurfaceMapTpcEdit.find(hitsetkey);
       mapIter = m_clusterSurfaceMapTpcEdit.find(layer);
 
       if (mapIter != m_clusterSurfaceMapTpcEdit.end())
       {
-	//std::cout << "  Adding surface to map with layer " << layer << " side " << side << " sector " << sector << std::endl;
         mapIter->second.push_back(surf);
       }
       else
       {
         // Otherwise make a new map entry
-	//	std::cout << "Starting new surfvec for layer " << layer << " side " << side << " sector " << sector << std::endl;
         std::vector<Surface> dumvec;
         dumvec.push_back(surf);
         std::pair<unsigned int, std::vector<Surface>> tmp =

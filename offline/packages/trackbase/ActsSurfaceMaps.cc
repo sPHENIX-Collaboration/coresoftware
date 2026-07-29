@@ -7,6 +7,7 @@
 #include "ActsSurfaceMaps.h"
 #include "InttDefs.h"
 #include "MvtxDefs.h"
+#include "TpcDefs.h"
 #include "TrkrCluster.h"
 
 #include <Acts/Definitions/Units.hpp>
@@ -112,7 +113,7 @@ Surface ActsSurfaceMaps::getTpcSurface(TrkrDefs::hitsetkey hitsetkey,
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   const auto iter = m_tpcSurfaceMap.find(layer);
-
+   
   if (iter != m_tpcSurfaceMap.end())
   {
     auto surfvec = iter->second;

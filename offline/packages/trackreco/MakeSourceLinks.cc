@@ -360,10 +360,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
        ++clusIter)
   {
     auto key = *clusIter;
-
-    unsigned int test_layer = TrkrDefs::getLayer(key);    
-    const unsigned int trkrid = TrkrDefs::getTrkrId(key);
-    //    std::cout << "   SL 1:  layer " << test_layer << " cluster key " << key << " trkrid " << trkrid << " crossing " << crossing << std::endl;
     
     auto* cluster = clusterContainer->findCluster(key);
     if (!cluster)
@@ -379,8 +375,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       continue;
     }
 
-    //    std::cout << "   SL 2:  layer " << test_layer << " cluster key " << key << " trkrid " << trkrid << " crossing " << crossing << std::endl;
-	
     /// Make a safety check for clusters that couldn't be attached
     /// to a surface
     auto surf = tGeometry->maps().getSurface(key, cluster);
@@ -389,18 +383,11 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       continue;
     }
 
-    //    unsigned int test_layer = TrkrDefs::getLayer(key);    
-    // const unsigned int trkrid = TrkrDefs::getTrkrId(key);
-
-    if (m_verbosity > 1)
-    {
-      std::cout << "   SL:  layer " << test_layer << " cluster key " << key << " trkrid " << trkrid << " crossing " << crossing << std::endl;
-    }
-
     // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset
     // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks
     const Acts::Vector3 global = globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, crossing);
 
+    const unsigned int trkrid = TrkrDefs::getTrkrId(key);
     if (trkrid == TrkrDefs::tpcId)
     {
       if (m_verbosity > 2)
@@ -443,8 +430,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
   // loop over global positions returned by cluster mover
   for (auto&& [cluskey, global] : global_moved)
   {
-    // std::cout << "Global moved: " << global.x() << "  " <<  global.y() << "  " << global.z() << std::endl;
-
     if (m_ignoreLayer.contains(TrkrDefs::getLayer(cluskey)))
     {
       if (m_verbosity > 3)

@@ -215,31 +215,7 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode* topNode)
 
 Acts::Vector3 PHCASeeding::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster) const
 {
-
-  Acts::Vector3 global =  _pp_mode ? m_tGeometry->getGlobalPosition(key, cluster) : m_globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, 0);
-
-  // translate tpc center to zero for seeding
-  //  Acts::Vector3 tpc_survey_center(-1.6775/10.0, -0.336/10.0, -7.1365/10.0);
-  Acts::Vector3 tpc_survey_center(0.0, 0.0, 0.0);
-  Acts::Vector3 envelope_global = global - tpc_survey_center;
-  /*
-  unsigned int layer =  TrkrDefs::getLayer(key);
-  unsigned int side =  TpcDefs::getSide(key);
-  unsigned int sector =  TpcDefs::getSectorId(key);
-  std::cout << " _pp_mode = " << _pp_mode
-	    << " layer " << layer
-	    << " side " << side
-	    << " sector " << sector
-	    << " subsurfkey " << cluster->getSubSurfKey()
-	    << " global " << global[0] << "  " << global[1] << "  " << global[2]
-	    << " envelope global " << envelope_global[0] << "  " << envelope_global[1] << "  " << envelope_global[2]
-	    << std::endl;
-  */
-  return envelope_global;
-
-  
-  //  return _pp_mode ? m_tGeometry->getGlobalPosition(key, cluster) : m_globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, 0);
-  
+  return _pp_mode ? m_tGeometry->getGlobalPosition(key, cluster) : m_globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, 0);
 }
 
 void PHCASeeding::QueryTree(const bgi::rtree<PHCASeeding::pointKey, bgi::quadratic<16>>& rtree, double phimin, double z_min, double phimax, double z_max, std::vector<pointKey>& returned_values) const

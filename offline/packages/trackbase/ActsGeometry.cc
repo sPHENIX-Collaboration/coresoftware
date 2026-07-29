@@ -111,18 +111,6 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
 
   auto surface = m_surfMaps.getSurface(key, cluster);
 
-  unsigned int sskey = cluster->getSubSurfKey();
-  unsigned int layer = TrkrDefs::getLayer(key);
-  unsigned int side = TpcDefs::getSide(key);
-  unsigned int sector = TpcDefs::getSectorId(key);
-  //  std::cout << " getGlobalPositionTpc transform for layer " << layer << " side " << side << " sector " << sector << " sskey " << sskey << " is: " << std::endl
-  //	    <<  surface->localToGlobalTransform(m_tGeometry.getGeoContext()).matrix()
-  //	    << std::endl;
-  alignmentTransformationContainer::use_alignment = false;
-  Acts::Vector3 ideal_center = surface->center(m_tGeometry.getGeoContext()) * 0.1;
- alignmentTransformationContainer::use_alignment = true;  
-  Acts::Vector3 sensorCenter = surface->center(m_tGeometry.getGeoContext()) * 0.1;  // cm
-  
   if (!surface)
   {
     std::cerr << "Couldn't identify cluster surface. Returning NAN"
@@ -135,23 +123,33 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
 
   Acts::Vector2 local = getLocalCoords(key, cluster);  // no crossing correction here
 
-  alignmentTransformationContainer::use_alignment = false;
   glob = surface->localToGlobal(m_tGeometry.getGeoContext(),
                                 local * Acts::UnitConstants::cm,
                                 Acts::Vector3(1, 1, 1));
-  alignmentTransformationContainer::use_alignment = true;  
   glob /= Acts::UnitConstants::cm;
 
+  /*
+    // Leaving this here for now, since it gives comprehensive diagnostic info 
 
-  // std::cout << "  local " << local << std::endl;
-  // std::cout << "  glob " << glob << std::endl;
+    unsigned int sskey = cluster->getSubSurfKey();
+    unsigned int layer = TrkrDefs::getLayer(key);
+    unsigned int side = TpcDefs::getSide(key);
+    unsigned int sector = TpcDefs::getSectorId(key);
 
-  std::cout << "  layer " << layer << " side " << side << " sector " << sector << " sskey " << sskey
+    alignmentTransformationContainer::use_alignment = false;
+    Acts::Vector3 ideal_center = surface->center(m_tGeometry.getGeoContext()) * 0.1;
+    alignmentTransformationContainer::use_alignment = true;  
+    
+    Acts::Vector3 env_center = m_tpc_world_envelope_transform * ideal_center;
+    Acts::Vector3 sensorCenter = surface->center(m_tGeometry.getGeoContext()) * 0.1;  // cm
+
+    std::cout << "  layer " << layer << " side " << side << " sector " << sector << " sskey " << sskey
 	    << "  aligned global: " << glob[0] << "  " << glob[1] << "  " << glob[2]  
 	    << "  aligned surf: " << sensorCenter[0] << "  " << sensorCenter[1] << "  " << sensorCenter[2]
     	    << "  ideal surf: " << ideal_center[0] << "  " << ideal_center[1] << "  " << ideal_center[2]
+	    << "  env surf: " << env_center[0] << "  " << env_center[1] << "  " << env_center[2]
 	    << std::endl;
-
+  */
   
   return glob;
 }
@@ -187,7 +185,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   // convert global to mm for consistency with surface centers
   cluster *= 10.0;
   
-  // Apparently, tilting the TPC leads to the surfaces not being sorted in phi in the outer layers
+  // Apparently, tilting the TPC leads to the surfaces not being sorted in phi in some layers
   // just test all surfaces in each layer for now
   double min_dphi = 999.0;
   unsigned int min_surf_index = 999;
@@ -202,9 +200,9 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
       if(surf_side != side) { continue; }
       
       // the cluster coordinates are in the sPHENIX frame, where the TPC is tilted and alignment
-      // transforms are implemented on a module by module basis. We must convert the cluster  to tpc
-      // envelope coordinates, where we know where everything is.
-      //      transform:  cluster_aligned->local->cluster_noalign->envelope
+      // transforms are implemented. We must convert the cluster  to tpc envelope coordinates,
+      // where we know where the fake surfaces are located.
+      //    so, transform:  cluster_aligned->local->cluster_noalign->envelope
       
       Acts::Vector3 local = this_surf->localToGlobalTransform(m_tGeometry.getGeoContext()).inverse() * (cluster);
       // transform local to unaligned geometry (simulation) global
@@ -251,29 +249,15 @@ Surface ActsGeometry::get_clusterizer_tpc_surface(
     Acts::Vector3 clus_envelope,
     TrkrDefs::subsurfkey& subsurfkey) const
 {
-  // This method finds the subsurface for the clusterizer
+  // This method finds the subsurface for the clusterizer so the key can be added to the cluster
   // The input cluster position is in envelope coordinates
 
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   unsigned int side = TpcDefs::getSide(hitsetkey);
   unsigned int sector = TpcDefs::getSectorId(hitsetkey);
 
-  //  std::cout << " get_clusterizer_tpc_surface: layer " << layer << " side " << side << " sector " << sector << std::endl;
-  
   double surfStepPhi = m_tGeometry.tpcSurfStepPhi;
   
-    if(clus_envelope[2] == 0.0)
-    {
-      if(side == 0)
-	{
-	  clus_envelope[2] = -10.0;
-	}
-      else
-	{
-	  clus_envelope[2] = 10.0;
-	}
-    }
-
   // returns an iterator to all of the surfaces for this layer
   auto mapIter = m_surfMaps.m_tpcSurfaceMap.find(layer);
 
@@ -323,6 +307,7 @@ Surface ActsGeometry::get_clusterizer_tpc_surface(
       if(surf_center_noalign.z() > 0.0) { surf_side = 1; }
       if(surf_side != side) { continue; }
 
+      
       // transform simulation geometry global to envelope coords
       Acts::Vector3 surf_center_envelope = transformTpcWorldToEnvelope(surf_center_noalign/10.0) * 10.0;    // transform uses cm
       double surf_phi_envelope = atan2(surf_center_envelope[1], surf_center_envelope[0]);  
@@ -337,16 +322,6 @@ Surface ActsGeometry::get_clusterizer_tpc_surface(
   
   surf_index = min_surf_index;
   subsurfkey = min_surf_index;
-
-  /*
-  if(hitsetkey == 35588608)
-    {
-      std::cout << " Cluster surface finder: " << " hitsetkey " << hitsetkey << " layer " << layer << " side " << side << " sskey " << surf_index << std::endl;
-      auto surfcenter = surf_vec[surf_index]->center(m_tGeometry.getGeoContext()) * 0.1;  // cm
-      double surf_radius = sqrt(surfcenter[0]*surfcenter[0] + surfcenter[1]*surfcenter[1]);
-      std::cout << "      center: " << surfcenter[0] << "  " << surfcenter[1] << "  " << surfcenter[2] << " radius " << surf_radius << std::endl;
-    }
-  */
   
   if(min_dphi > surfStepPhi)
     {
@@ -359,7 +334,7 @@ Surface ActsGeometry::get_clusterizer_tpc_surface(
 		<< " hitsetkey " << hitsetkey << std::endl;
       return nullptr;
     }
-
+  
   return surf_vec[surf_index];
 }
 

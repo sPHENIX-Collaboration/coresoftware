@@ -263,14 +263,11 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
       unsigned int side = TpcDefs::getSide(hitsetkey);
       unsigned int sector = TpcDefs::getSectorId(hitsetkey);
-      //      std::cout << "New module hitsetkey " << hitsetkey << "test_layer " << test_layer <<  " side " << side << " sector " << sector << " nlayers " << nlayers << " layer_begin " << layer_begin << std::endl;
 
       // loop over layers in module
       for (unsigned int this_layer = layer_begin; this_layer < layer_begin + nlayers; ++this_layer)
       {
         TrkrDefs::hitsetkey this_hitsetkey = TpcDefs::genHitSetKey(this_layer, sector, side);
-
-	//   std::cout << " *** module hitsetkey " << hitsetkey << " this_hitsetkey " << this_hitsetkey << " this layer " << this_layer << " side " << side << " sector " << sector << std::endl;
 
 	// Each TPC hitsetkey has 12 fake surfaces associated with it
 	// We want to make a transform for every fake surface in this hitsetkey
@@ -298,12 +295,6 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 		std::cout << PHWHERE << "Failed to get surface for layer " << this_layer << " side " << side << " sector " << sector << "  quit!" << std::endl;
 		exit(1);
 	      }
-	    /*
-	    std::cout << " layer " << this_layer << " radius " << radius << " phis " << phis << " min_phi " << min_phi << " max_phi " << max_phi
-		      << " side " << side << " sector " << sector << " env_pos " << env_pos.x() << "  " << env_pos.y() << "  " << env_pos_pos.z()
-		      <<"  world_radius " << sqrt(env_pos.x() * env_pos.x() + env_pos.y() * env_pos.y())
-		      << " sskey " << sskey << std::endl;
-	    */
 
 	    Eigen::Vector3d localFrameTranslation(0, 0, 0);
 	    use_module_tilt = false;
@@ -317,9 +308,6 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 		double this_radius = std::sqrt(this_center_envelope[0] * this_center_envelope[0] + this_center_envelope[1] * this_center_envelope[1]);
 		float moduleRadius = TpcModuleRadii[side][sector][this_region];                                     // radius of the center of the module in cm
 		localFrameTranslation = getTpcLocalFrameTranslation(moduleRadius, this_radius, sensorAngles) * 10;  // cm to mm
-
-		std::cout << "      mod tilt: ModuleRadius " << moduleRadius << " this_layer " << this_layer << " this_radius " << this_radius
-			  << " sensorAngles " << sensorAngles[0] << "  " << sensorAngles[1] << "  " << sensorAngles[2] << std::endl;
 
 		// set this flag for later use
 		use_module_tilt = true;
