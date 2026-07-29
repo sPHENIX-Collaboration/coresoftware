@@ -1029,140 +1029,160 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       const TVector3 pos_A(globalPosition.x(), globalPosition.y(), globalPosition.z() );
       const auto r_cluster = get_r(globalPosition.x(),globalPosition.y());
 
-      // loop over states
-      /* find first state whose radius is larger than that of cluster if any */
-      unsigned int id = id_min;
-      for (; id < gftrack->getNumPointsWithMeasurement(); ++id)
+      if( m_extrapolation_mode == ExtrapolationMode::Default )
       {
-        auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, rep);
-        if (!trpoint) continue;
+          try
+          {
+            // copy state vector and extrapolate to cluster
+            auto tmp = *gf_state_vertex_ca;
+            auto pathlength = tmp.extrapolateToPoint(pos_A);
 
-        auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
-        if (!kfi) continue;
+            // create state and assign
+            auto state = create_track_state(pathlength, tmp );
+            state.set_cluskey(cluster_key);
+            out_track->insert_state(&state);
 
-        std::optional<genfit::MeasuredStateOnPlane> gf_state;
-        try
-        {
-          gf_state = kfi->getFittedState();
-        }
-        catch (...)
-        {
-          if (Verbosity()) { LogWarning("Failed to get kf fitted state"); }
-          continue;
-        }
+          } catch(...) {}
 
-        const auto r_track = get_r( gf_state->getPos().x(), gf_state->getPos().y());
-        if (r_track > r_cluster) break;
-      }
+      } else {
 
-      // forward extrapolation
-      std::optional<genfit::MeasuredStateOnPlane> gf_state_forward{};
-      std::optional<genfit::MeasuredStateOnPlane> gf_state_backward{};
-
-      float pathlength_forward = 0;
-      float pathlength_backward = 0;
-
-      // first point is previous, if valid
-      if (id > 0) { id_min = id - 1; }
-
-      // extrapolate forward
-      try
-      {
-        auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id_min, rep);
-        if( !trpoint ) { throw std::logic_error( "invalid argument" ); }
-
-        auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
-        gf_state_forward = kfi->getFittedState();
-        pathlength_forward = gf_state_forward->extrapolateToPoint( pos_A );
-
-        auto tmp = kfi->getFittedState();
-        pathlength_forward -= tmp.extrapolateToPoint(vertex_position);
-      }
-      catch (...)
-      {
-        if (Verbosity())
-        { std::cout << "PHGenFitTrkFitter::MakeSvtxTrack - Failed to forward extrapolate from id " << id_min << " to disabled layer " << layer << std::endl; }
-
-        gf_state_forward = std::nullopt;
-      }
-
-      // extrapolate backward if possible
-      if (id > 0 && id < gftrack->getNumPointsWithMeasurement() )
-      {
-
-        try
+        // loop over states
+        /* find first state whose radius is larger than that of cluster if any */
+        unsigned int id = id_min;
+        for (; id < gftrack->getNumPointsWithMeasurement(); ++id)
         {
           auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, rep);
+          if (!trpoint) continue;
+
+          auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
+          if (!kfi) continue;
+
+          std::optional<genfit::MeasuredStateOnPlane> gf_state;
+          try
+          {
+            gf_state = kfi->getFittedState();
+          }
+          catch (...)
+          {
+            if (Verbosity()) { LogWarning("Failed to get kf fitted state"); }
+            continue;
+          }
+
+          const auto r_track = get_r( gf_state->getPos().x(), gf_state->getPos().y());
+          if (r_track > r_cluster) break;
+        }
+
+        // forward extrapolation
+        std::optional<genfit::MeasuredStateOnPlane> gf_state_forward{};
+        std::optional<genfit::MeasuredStateOnPlane> gf_state_backward{};
+
+        float pathlength_forward = 0;
+        float pathlength_backward = 0;
+
+        // first point is previous, if valid
+        if (id > 0) { id_min = id - 1; }
+
+        // extrapolate forward
+        try
+        {
+          auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id_min, rep);
           if( !trpoint ) { throw std::logic_error( "invalid argument" ); }
 
           auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
-          gf_state_backward = kfi->getFittedState();
-
-          pathlength_backward = gf_state_backward->extrapolateToPoint( pos_A );
+          gf_state_forward = kfi->getFittedState();
+          pathlength_forward = gf_state_forward->extrapolateToPoint( pos_A );
 
           auto tmp = kfi->getFittedState();
-          pathlength_backward -= tmp.extrapolateToPoint(vertex_position);
+          pathlength_forward -= tmp.extrapolateToPoint(vertex_position);
         }
         catch (...)
         {
           if (Verbosity())
           { std::cout << "PHGenFitTrkFitter::MakeSvtxTrack - Failed to forward extrapolate from id " << id_min << " to disabled layer " << layer << std::endl; }
 
-          gf_state_backward = std::nullopt;
+          gf_state_forward = std::nullopt;
         }
-      }
 
-      // update state
-      if( m_extrapolation_mode == ExtrapolationMode::Forward && gf_state_forward )
-      {
-
-        // create new svtx state and add to track
-        auto state = create_track_state(pathlength_forward, gf_state_forward.value());
-        state.set_cluskey(cluster_key);
-        out_track->insert_state(&state);
-
-      } else if( m_extrapolation_mode == ExtrapolationMode::Backward && gf_state_backward ) {
-
-        // create new svtx state and add to track
-        auto state = create_track_state(pathlength_backward, gf_state_backward.value());
-        state.set_cluskey(cluster_key);
-        out_track->insert_state(&state);
-
-      } else if( m_extrapolation_mode == ExtrapolationMode::Bidirectional && ( gf_state_forward || gf_state_backward ) ) {
-
-        if( gf_state_forward && gf_state_backward )
+        // extrapolate backward if possible
+        if (id > 0 && id < gftrack->getNumPointsWithMeasurement() )
         {
-          try {
-            // extrapolate backward state to the same plane as forward
-            gf_state_backward->extrapolateToPlane(gf_state_forward->getPlane());
 
-            // calculate weighted average
-            auto gf_state = genfit::calcAverageState(gf_state_forward.value(), gf_state_backward.value());
+          try
+          {
+            auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, rep);
+            if( !trpoint ) { throw std::logic_error( "invalid argument" ); }
 
-            // assign to track
-            auto state = create_track_state(pathlength_forward, gf_state);
-            state.set_cluskey(cluster_key);
-            out_track->insert_state(&state);
-          } catch( ... ) {}
+            auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
+            gf_state_backward = kfi->getFittedState();
 
-        } else if( gf_state_forward ) {
+            pathlength_backward = gf_state_backward->extrapolateToPoint( pos_A );
 
-          // fall back to forward extrapolation
+            auto tmp = kfi->getFittedState();
+            pathlength_backward -= tmp.extrapolateToPoint(vertex_position);
+          }
+          catch (...)
+          {
+            if (Verbosity())
+            { std::cout << "PHGenFitTrkFitter::MakeSvtxTrack - Failed to forward extrapolate from id " << id_min << " to disabled layer " << layer << std::endl; }
+
+            gf_state_backward = std::nullopt;
+          }
+        }
+
+        // update state
+        if( m_extrapolation_mode == ExtrapolationMode::Forward && gf_state_forward )
+        {
+
           // create new svtx state and add to track
           auto state = create_track_state(pathlength_forward, gf_state_forward.value());
           state.set_cluskey(cluster_key);
           out_track->insert_state(&state);
 
-        } else {
+        } else if( m_extrapolation_mode == ExtrapolationMode::Backward && gf_state_backward ) {
 
-          // fall back to backward extrapolation
           // create new svtx state and add to track
           auto state = create_track_state(pathlength_backward, gf_state_backward.value());
           state.set_cluskey(cluster_key);
           out_track->insert_state(&state);
 
-        }
-      } // test extrapolation mode
+        } else if( m_extrapolation_mode == ExtrapolationMode::Bidirectional && ( gf_state_forward || gf_state_backward ) ) {
+
+          if( gf_state_forward && gf_state_backward )
+          {
+            try {
+              // extrapolate backward state to the same plane as forward
+              gf_state_backward->extrapolateToPlane(gf_state_forward->getPlane());
+
+              // calculate weighted average
+              auto gf_state = genfit::calcAverageState(gf_state_forward.value(), gf_state_backward.value());
+
+              // assign to track
+              auto state = create_track_state(pathlength_forward, gf_state);
+              state.set_cluskey(cluster_key);
+              out_track->insert_state(&state);
+            } catch( ... ) {}
+
+          } else if( gf_state_forward ) {
+
+            // fall back to forward extrapolation
+            // create new svtx state and add to track
+            auto state = create_track_state(pathlength_forward, gf_state_forward.value());
+            state.set_cluskey(cluster_key);
+            out_track->insert_state(&state);
+
+          } else {
+
+            // fall back to backward extrapolation
+            // create new svtx state and add to track
+            auto state = create_track_state(pathlength_backward, gf_state_backward.value());
+            state.set_cluskey(cluster_key);
+            out_track->insert_state(&state);
+
+          }
+        } // test extrapolation mode
+
+      }
+
     } // loop over clusters
   } // check on disabled layers
 
