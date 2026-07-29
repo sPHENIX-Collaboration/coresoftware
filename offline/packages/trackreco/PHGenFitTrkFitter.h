@@ -147,7 +147,7 @@ class PHGenFitTrkFitter : public SubsysReco
   {
     Default, // use track parameters at vertex for the extrapolation
     Forward, // uses the track state vector closest to the requested layer, before
-    Backward, // uses the track state vector closest to the requested layer, before
+    Backward, // uses the track state vector closest to the requested layer, after
     Bidirectional // uses the weighted average of the forward and backward extrapolation, when available
   };
 
