@@ -170,7 +170,7 @@ namespace
   }
   //______________________________________________________________________
   // convert local vector to global coordinates using a given surface and acts geometry
-  TVector3 get_world_from_local_vect( ActsGeometry* geometry, Surface surface, const TVector3& local_vect )
+  TVector3 get_world_from_local_vect( ActsGeometry* geometry, const Surface& surface, const TVector3& local_vect )
   {
 
     // get global vector from local, using ACTS surface
@@ -401,7 +401,7 @@ int PHGenFitTrkFitter::CreateNodes(PHCompositeNode* topNode)
   // create nodes...
   PHNodeIterator iter(topNode);
 
-  auto dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  auto* dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cerr << PHWHERE << "DST Node missing, doing nothing." << std::endl;
@@ -426,7 +426,7 @@ int PHGenFitTrkFitter::CreateNodes(PHCompositeNode* topNode)
   if (!m_trackMap)
   {
     m_trackMap = new SvtxTrackMap_v2;
-    auto node = new PHIODataNode<PHObject>(m_trackMap, _trackMap_name, "PHObject");
+    auto* node = new PHIODataNode<PHObject>(m_trackMap, _trackMap_name, "PHObject");
     svtx_node->addNode(node);
   }
 
@@ -960,11 +960,11 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
     }
   }
 
-  const auto gftrack = phgf_track->getGenFitTrack();
-  const auto rep = gftrack->getCardinalRep();
+  const auto* gftrack = phgf_track->getGenFitTrack();
+  const auto* rep = gftrack->getCardinalRep();
   for (unsigned int id = 0; id < gftrack->getNumPointsWithMeasurement(); ++id)
   {
-    auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, gftrack->getCardinalRep());
+    auto* trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, gftrack->getCardinalRep());
 
     if (!trpoint)
     {
@@ -972,7 +972,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       continue;
     }
 
-    auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
+    auto* kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
     if (!kfi)
     {
       if (Verbosity() > 1) LogWarning("!kfi");
@@ -1042,7 +1042,10 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
             state.set_cluskey(cluster_key);
             out_track->insert_state(&state);
 
-          } catch(...) {}
+          } catch(...) {
+            if( Verbosity() )
+            { LogWarning("extrapolateToPoint failed!"); }
+          }
 
       } else {
 
@@ -1051,11 +1054,11 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
         unsigned int id = id_min;
         for (; id < gftrack->getNumPointsWithMeasurement(); ++id)
         {
-          auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, rep);
-          if (!trpoint) continue;
+          auto* trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, rep);
+          if (!trpoint) { continue; }
 
-          auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
-          if (!kfi) continue;
+          auto* kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
+          if (!kfi) { continue; }
 
           std::optional<genfit::MeasuredStateOnPlane> gf_state;
           try
@@ -1069,7 +1072,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
           }
 
           const auto r_track = get_r( gf_state->getPos().x(), gf_state->getPos().y());
-          if (r_track > r_cluster) break;
+          if (r_track > r_cluster) { break; }
         }
 
         // forward extrapolation
@@ -1085,10 +1088,10 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
         // extrapolate forward
         try
         {
-          auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id_min, rep);
+          auto* trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id_min, rep);
           if( !trpoint ) { throw std::logic_error( "invalid argument" ); }
 
-          auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
+          auto* kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
           gf_state_forward = kfi->getFittedState();
           pathlength_forward = gf_state_forward->extrapolateToPoint( pos_A );
 
@@ -1106,13 +1109,12 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
         // extrapolate backward if possible
         if (id > 0 && id < gftrack->getNumPointsWithMeasurement() )
         {
-
           try
           {
-            auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, rep);
+            auto* trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, rep);
             if( !trpoint ) { throw std::logic_error( "invalid argument" ); }
 
-            auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
+            auto* kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
             gf_state_backward = kfi->getFittedState();
 
             pathlength_backward = gf_state_backward->extrapolateToPoint( pos_A );
@@ -1160,7 +1162,10 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
               auto state = create_track_state(pathlength_forward, gf_state);
               state.set_cluskey(cluster_key);
               out_track->insert_state(&state);
-            } catch( ... ) {}
+            } catch( ... ) {
+              if( Verbosity() )
+              { LogWarning("extrapolateToPoint failed!"); }
+            }
 
           } else if( gf_state_forward ) {
 
