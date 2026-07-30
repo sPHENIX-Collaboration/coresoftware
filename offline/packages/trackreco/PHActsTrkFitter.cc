@@ -341,7 +341,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   }
 
   _topNode = topNode;
-  
+
   if (Verbosity() > 1)
   {
     std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
@@ -1361,7 +1361,6 @@ void PHActsTrkFitter::updateSvtxTrack(
       }
 
       // get layer, propagate
-      /* this code is quite complicated. See to simplify */
       const auto layer = TrkrDefs::getLayer(cluskey);
       auto extrapolate = [&]( const ActsPropagator::BoundTrackParamPair& p, uint8_t l, Acts::Direction direction )
       {
@@ -1383,7 +1382,7 @@ void PHActsTrkFitter::updateSvtxTrack(
 
       } else {
 
-        // get before and after nearesst parameters
+        // get before and after nearest parameters
         const auto& nearest_params_forward = find_nearest_params_before( mj, trackTip, layer );
         const auto& nearest_params_backward = find_nearest_params_after( mj, trackTip, layer );
 
@@ -1451,6 +1450,7 @@ void PHActsTrkFitter::updateSvtxTrack(
     // loop over cluster keys associated to TPC seed
     for (auto key_iter = seed->begin_cluster_keys(); key_iter != seed->end_cluster_keys(); ++key_iter)
     {
+      // cluster key
       const auto& cluskey = *key_iter;
 
       // make sure cluster is from Micromegas (TPOT)
@@ -1458,23 +1458,61 @@ void PHActsTrkFitter::updateSvtxTrack(
       if (detId != TrkrDefs::micromegasId)
       { continue; }
 
+      // layer
+      const auto layer = TrkrDefs::getLayer(cluskey);
+
       // get corresponding surface
       const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
       const auto surface = m_tGeometry->maps().getMMSurface(hitsetkey);
       if (!surface) { continue; }
 
-      // propagate
-      auto result = propagator.propagateTrack(params, surface);
-      if (!result.ok()) { continue; }
+      // surface extrapolation
+      auto extrapolate = [&]( const ActsPropagator::BoundTrackParamPair& p, const Surface& s)
+      {
 
-      // get path length and extrapolated parameters
-      auto& [pathLength, trackStateParams] = result.value();
-      pathLength /= Acts::UnitConstants::cm;
+        const auto& [source_pathlength, source_param] = p;
+        auto result = propagator.propagateTrack(source_param, s);
+        if( result.ok() )
+        {
+          const auto& [pathLength, trackStateParams] = result.value();
+          transformer.addTrackState(track, cluskey, (source_pathlength+pathLength)/Acts::UnitConstants::cm, trackStateParams, m_transient_geocontext);
+        }
+      };
 
-      // create track state and add to track
-      transformer.addTrackState(track, cluskey, pathLength, trackStateParams, m_transient_geocontext);
-    }
-  }
+      switch( m_extrapolation_mode )
+      {
+        case ExtrapolationMode::Default:
+        {
+
+          // extrapolate from track parameters
+          extrapolate( {0,params}, surface );
+          break;
+        }
+
+        case ExtrapolationMode::Forward:
+        case ExtrapolationMode::Bidirectional:
+        {
+          // find nearest parameters before TPOT
+          const auto& nearest_params_forward = find_nearest_params_before( mj, trackTip, layer );
+
+          // perform extrapolation
+          if( nearest_params_forward )
+          {
+            // extrapolate from nearest forward parameters
+            extrapolate( nearest_params_forward.value(), surface );
+          }
+          break;
+        }
+
+        case ExtrapolationMode::Backward:
+        {
+          // cannot use backward extrapolation to TPOT since this is the outermost detector.
+          // doing nothing
+          break;
+        }
+      } // extrapolation mode
+    } // cluster loop
+  } // check on TPOT enabled
 
   trackStateTimer.stop();
   auto stateTime = trackStateTimer.get_accumulated_time();
