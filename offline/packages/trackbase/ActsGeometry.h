@@ -73,12 +73,12 @@ class ActsGeometry
 
   Surface get_tpc_surface_from_coords(
       TrkrDefs::hitsetkey hitsetkey,
-      Acts::Vector3 world,
+      Acts::Vector3 cluster,
       TrkrDefs::subsurfkey& subsurfkey) const ;
 
   Surface get_clusterizer_tpc_surface(
       TrkrDefs::hitsetkey hitsetkey,
-      Acts::Vector3 cluslocal,
+      Acts::Vector3 clus_envelope,
       TrkrDefs::subsurfkey& subsurfkey) const;
     
   Acts::Transform3 makeAffineTransform(Acts::Vector3 rotation, Acts::Vector3 translation) const;

@@ -724,7 +724,7 @@ double AlignmentTransformation::extractModuleCenter(TrkrDefs::hitsetkey hitsetke
     exit(1);
   }
 
-  Acts::GeometryIdentifier id = surface->geometryId();
+  // Acts::GeometryIdentifier id = surface->geometryId();
   //std::cout << " subsurfkey " << subsurfkey << " id " << id << std::endl;
 
   Acts::Vector3 surf_center = surface->center(m_tGeometry->geometry().getGeoContext());

@@ -128,28 +128,31 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
                                 Acts::Vector3(1, 1, 1));
   glob /= Acts::UnitConstants::cm;
 
-  /*
-    // Leaving this here for now, since it gives comprehensive diagnostic info 
+  bool debugging = false;
+  if(debugging)
+    {
+      // Leaving this here for now, since it gives comprehensive diagnostic info 
+      
+      unsigned int sskey = cluster->getSubSurfKey();
+      unsigned int layer = TrkrDefs::getLayer(key);
+      unsigned int side = TpcDefs::getSide(key);
+      unsigned int sector = TpcDefs::getSectorId(key);
 
-    unsigned int sskey = cluster->getSubSurfKey();
-    unsigned int layer = TrkrDefs::getLayer(key);
-    unsigned int side = TpcDefs::getSide(key);
-    unsigned int sector = TpcDefs::getSectorId(key);
-
-    alignmentTransformationContainer::use_alignment = false;
-    Acts::Vector3 ideal_center = surface->center(m_tGeometry.getGeoContext()) * 0.1;
-    alignmentTransformationContainer::use_alignment = true;  
-    
-    Acts::Vector3 env_center = m_tpc_world_envelope_transform * ideal_center;
-    Acts::Vector3 sensorCenter = surface->center(m_tGeometry.getGeoContext()) * 0.1;  // cm
-
-    std::cout << "  layer " << layer << " side " << side << " sector " << sector << " sskey " << sskey
-	    << "  aligned global: " << glob[0] << "  " << glob[1] << "  " << glob[2]  
-	    << "  aligned surf: " << sensorCenter[0] << "  " << sensorCenter[1] << "  " << sensorCenter[2]
-    	    << "  ideal surf: " << ideal_center[0] << "  " << ideal_center[1] << "  " << ideal_center[2]
-	    << "  env surf: " << env_center[0] << "  " << env_center[1] << "  " << env_center[2]
-	    << std::endl;
-  */
+      bool align_flag = alignmentTransformationContainer::use_alignment;
+      alignmentTransformationContainer::use_alignment = false;
+      Acts::Vector3 ideal_center = surface->center(m_tGeometry.getGeoContext()) * 0.1;
+      if(align_flag) {alignmentTransformationContainer::use_alignment = true; }
+      
+      Acts::Vector3 env_center = m_tpc_world_envelope_transform * ideal_center;
+      Acts::Vector3 sensorCenter = surface->center(m_tGeometry.getGeoContext()) * 0.1;  // cm
+      
+      std::cout << "  layer " << layer << " side " << side << " sector " << sector << " sskey " << sskey
+		<< "  aligned global: " << glob[0] << "  " << glob[1] << "  " << glob[2]  
+		<< "  aligned surf: " << sensorCenter[0] << "  " << sensorCenter[1] << "  " << sensorCenter[2]
+		<< "  ideal surf: " << ideal_center[0] << "  " << ideal_center[1] << "  " << ideal_center[2]
+		<< "  env surf: " << env_center[0] << "  " << env_center[1] << "  " << env_center[2]
+		<< std::endl;
+    }
   
   return glob;
 }
@@ -206,11 +209,15 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
       
       Acts::Vector3 local = this_surf->localToGlobalTransform(m_tGeometry.getGeoContext()).inverse() * (cluster);
       // transform local to unaligned geometry (simulation) global
+      bool align_flag = alignmentTransformationContainer::use_alignment;
       alignmentTransformationContainer::use_alignment = false;
       Acts::Vector3 cluster_noalign = this_surf->localToGlobalTransform(m_tGeometry.getGeoContext()) * (local);   
       auto surf_center_noalign = this_surf->center(m_tGeometry.getGeoContext());
-      alignmentTransformationContainer::use_alignment = true;
-
+      if(align_flag)
+	{
+	  alignmentTransformationContainer::use_alignment = true;
+	}
+      
       // transform simulation geometry global to envelope coords
       Acts::Vector3 cluster_envelope = transformTpcWorldToEnvelope(cluster_noalign/10.0) * 10.0;  // transform needs cm
       Acts::Vector3 surf_center_envelope = transformTpcWorldToEnvelope(surf_center_noalign/10.0) * 10.0;  
@@ -297,7 +304,7 @@ Surface ActsGeometry::get_clusterizer_tpc_surface(
 	}
       else
 	{
-	  // this will be the case when called from the clusterizer
+	  // this will be the case when called from the clusterizer, leave it alone 
 	  surf_center_noalign = this_surf->center(m_tGeometry.getGeoContext());
 	  surf_center_local = this_surf->localToGlobalTransform(m_tGeometry.getGeoContext()).inverse() * (surf_center_noalign);
 	}
@@ -326,7 +333,7 @@ Surface ActsGeometry::get_clusterizer_tpc_surface(
   if(min_dphi > surfStepPhi)
     {
       // too large to be due to cluster uncertainty
-      std::cout << "Error: surface not found in ActsGeometry::get_tpc_surface_from_coords "
+      std::cout << "Error: surface not found in ActsGeometry::get_clusterizer_tpc_surface "
 		<< " layer " << layer << " side " << side << " sector " << sector
 		<< " min_dphi " << min_dphi << " min_surf_index " << min_surf_index
 		<< " cluster[0]  " << clus_envelope[0] << " cluster[1] " << clus_envelope[1] << " cluster[2] " << clus_envelope[2] << " mm "

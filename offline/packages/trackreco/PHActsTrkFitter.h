@@ -327,7 +327,7 @@ class PHActsTrkFitter : public SubsysReco
 
   std::vector<const Acts::Surface*> m_materialSurfaces = {};
 
-  PHCompositeNode *_topNode;
+  PHCompositeNode *_topNode = nullptr;
 };
 
 #endif

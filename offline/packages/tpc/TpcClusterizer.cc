@@ -914,12 +914,12 @@ namespace
     // To get equivalent charge per T bin, so that summing ADC input voltage over all T bins returns total input charge, divide voltages by 2.4 for 80 ns SAMPA
     // Equivalent charge per T bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
 
-    /// convert to Acts units
-    env_pos *= Acts::UnitConstants::cm;
-    // std::cout << "transform" << std::endl;
-    Acts::Vector3 local = surface->localToGlobalTransform(my_data.tGeometry->geometry().getGeoContext()).inverse() * env_pos;
+    // convert envelope coords to simulation geometry coords - note alignment is turned off here
+    auto simgeom_pos = my_data.tGeometry->transformTpcEnvelopeToWorld(env_pos);    
+    simgeom_pos *= Acts::UnitConstants::cm;  // convert to Acts units
+    Acts::Vector3 local = surface->localToGlobalTransform(my_data.tGeometry->geometry().getGeoContext()).inverse() * simgeom_pos;
     local /= Acts::UnitConstants::cm;
-    // std::cout << "done transform" << std::endl;
+
     //  we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
 
     TrkrCluster *clus_base = nullptr;

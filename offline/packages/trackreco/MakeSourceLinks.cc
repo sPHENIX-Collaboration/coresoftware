@@ -53,7 +53,7 @@ namespace
 void MakeSourceLinks::initialize(PHG4TpcGeomContainer* cellgeo, ActsGeometry *tGeometry, PHCompositeNode *topNode)
 {
   // get the TPC layer radii from the geometry object
-  if (cellgeo && tGeometry)
+  if (cellgeo && tGeometry && topNode)
   {
     _clusterMover.initialize_geometry(cellgeo, tGeometry, topNode);
   }

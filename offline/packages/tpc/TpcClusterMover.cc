@@ -93,6 +93,12 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
   // The surface radii are in global coordinates. Needed because we are dealing with aligned surfaces
 
   auto *cluster_map = findNode::getClass<TrkrClusterContainer>(_topNode, "TRKR_CLUSTER");
+  if(!cluster_map)
+    {
+      std::cout << PHWHERE << " Did not find TRKR_CLUSTER node, quit." << std::endl;
+	exit(1);
+    }
+
   auto surfMaps = _tGeometry->maps();
     
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_moved;
@@ -138,8 +144,10 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
     Acts::Vector3 global = tpc_global_vec[i];
 
     // get target surface radius in global coordinates
-    auto cluster = cluster_map->findCluster(cluskey);
+    auto *cluster = cluster_map->findCluster(cluskey);
+    if(!cluster) { continue; }
     auto surface = surfMaps.getSurface(cluskey, cluster);
+    if(!surface) { continue; }
     auto surfcent = surface->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // the aligned geometry
     
     double target_radius = sqrt(surfcent[0]*surfcent[0]+surfcent[1]*surfcent[1]);	    

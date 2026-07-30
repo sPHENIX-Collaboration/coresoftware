@@ -238,7 +238,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   void fillVectors(TrackSeed* tpcseed, TrackSeed* siseed);
   ClusterErrorPara m_clusErrPara;
 
-  PHCompositeNode *m_topNode;
+  PHCompositeNode *m_topNode = nullptr;
 };
 
 #endif
