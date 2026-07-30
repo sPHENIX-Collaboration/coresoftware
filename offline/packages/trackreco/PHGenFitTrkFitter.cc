@@ -975,7 +975,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
     auto* kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
     if (!kfi)
     {
-      if (Verbosity() > 1) LogWarning("!kfi");
+      if (Verbosity() > 1) { LogWarning("!kfi"); }
       continue;
     }
 
