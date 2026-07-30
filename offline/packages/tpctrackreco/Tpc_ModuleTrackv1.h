@@ -87,6 +87,6 @@ class Tpc_ModuleTrackv1 : public Tpc_ModuleTrack
 
   std::vector<HitIndex> m_hit_indices;
 
-  ClassDefOverride(Tpc_ModuleTrackv1, 3)
+  ClassDefOverride(Tpc_ModuleTrackv1, 1)
 };
 #endif
