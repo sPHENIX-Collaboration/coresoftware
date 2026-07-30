@@ -430,6 +430,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 Acts::Vector3 PHSimpleKFProp::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster) const
 {
   // get global position from Acts transform
+  
   return _pp_mode ?
     m_tgeometry->getGlobalPosition(key, cluster):
     m_globalPositionWrapper.getGlobalPositionDistortionCorrected( key, cluster, 0 );

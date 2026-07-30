@@ -79,10 +79,12 @@ class TrackResiduals : public SubsysReco
   void fillResidualTreeKF(PHCompositeNode *topNode);
   void fillResidualTreeSeeds(PHCompositeNode *topNode);
   void fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack *track,
-                             const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global_moved,
+                             const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global,
+			     const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_moved,
                              PHCompositeNode *topNode);
   void fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTrack* track,
                                 const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global,
+				const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_moved,
                                 PHCompositeNode *topNode);
   void lineFitClusters(std::vector<TrkrDefs::cluskey> &keys, TrkrClusterContainer *clusters, const short int &crossing);
   void circleFitClusters(std::vector<TrkrDefs::cluskey> &keys, TrkrClusterContainer *clusters, const short int &crossing);

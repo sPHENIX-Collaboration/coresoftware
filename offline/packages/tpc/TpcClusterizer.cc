@@ -30,7 +30,6 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-//#include <g4detectors/PHG4TpcGeomv1.h>
 #include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
 
@@ -876,16 +875,15 @@ namespace
     {
       env_clusz = -env_clusz;
     }
+
     const double phi_cov = (iphi2_sum / adc_sum - square(clusiphi)) * pow(my_data.layergeom->get_phistep(), 2);
     const double t_cov = t2_sum / adc_sum - square(clust);
 
-    // get_tpc_surface_from_coords expects a world global position
-    Acts::Vector3 env_global(env_clusx, env_clusy, env_clusz);
-    Acts::Vector3 global = my_data.tGeometry->transformTpcEnvelopeToWorld(env_global);
+    Acts::Vector3 env_pos(env_clusx, env_clusy, env_clusz);
     TrkrDefs::subsurfkey subsurfkey = 0;
-    Surface surface = my_data.tGeometry->get_tpc_surface_from_coords(
+    Surface surface = my_data.tGeometry->get_clusterizer_tpc_surface(
         tpcHitSetKey,
-        global,
+        env_pos,
         subsurfkey);
 
     if (!surface)
@@ -916,12 +914,12 @@ namespace
     // To get equivalent charge per T bin, so that summing ADC input voltage over all T bins returns total input charge, divide voltages by 2.4 for 80 ns SAMPA
     // Equivalent charge per T bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
 
-    /// convert to Acts units
-    global *= Acts::UnitConstants::cm;
-    // std::cout << "transform" << std::endl;
-    Acts::Vector3 local = surface->localToGlobalTransform(my_data.tGeometry->geometry().getGeoContext()).inverse() * global;
+    // convert envelope coords to simulation geometry coords - note alignment is turned off here
+    auto simgeom_pos = my_data.tGeometry->transformTpcEnvelopeToWorld(env_pos);    
+    simgeom_pos *= Acts::UnitConstants::cm;  // convert to Acts units
+    Acts::Vector3 local = surface->localToGlobalTransform(my_data.tGeometry->geometry().getGeoContext()).inverse() * simgeom_pos;
     local /= Acts::UnitConstants::cm;
-    // std::cout << "done transform" << std::endl;
+
     //  we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
 
     TrkrCluster *clus_base = nullptr;
@@ -2155,3 +2153,4 @@ void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &db
   }
 
 }
+

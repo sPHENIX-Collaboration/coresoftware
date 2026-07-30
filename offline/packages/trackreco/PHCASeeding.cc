@@ -128,6 +128,7 @@ namespace
   inline double get_phi(const Acts::Vector3& position)
   {
     double phi = std::atan2(position.y(), position.x());
+
     if (phi < 0)
     {
       phi += 2. * M_PI;
@@ -214,17 +215,6 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode* topNode)
 
 Acts::Vector3 PHCASeeding::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster) const
 {
-  /*
-  unsigned int layer =  TrkrDefs::getLayer(key);
-  unsigned int side =  TpcDefs::getSide(key);
-  unsigned int sector =  TpcDefs::getSectorId(key);
-  std::cout << " _pp_mode = " << _pp_mode
-	    << " layer " << layer
-	    << " side " << side
-	    << " sector " << sector
-	    << " subsurfkey " << cluster->getSubSurfKey()
-	    << std::endl;
-  */
   return _pp_mode ? m_tGeometry->getGlobalPosition(key, cluster) : m_globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, 0);
 }
 
