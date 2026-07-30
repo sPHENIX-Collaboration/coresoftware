@@ -14,19 +14,21 @@ class SphenixClient : public nopayloadclient::NoPayloadClient
   SphenixClient() = default;
   explicit SphenixClient(const std::string& gt_name);
   virtual ~SphenixClient() = default;
-  // make clang happy, since we use our own without overriding the base class methods
+  // Keep the base overloads visible while adding sPHENIX convenience wrappers.
+  using nopayloadclient::NoPayloadClient::deletePayloadIOV;
   using nopayloadclient::NoPayloadClient::getPayloadIOVs;
+  using nopayloadclient::NoPayloadClient::lockGlobalTag;
+  using nopayloadclient::NoPayloadClient::unlockGlobalTag;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverloaded-virtual"
   nlohmann::json insertPayload(const std::string& pl_type, const std::string& file_url, long long iov_start);
   nlohmann::json getUrlDict(long long iov);
+  nlohmann::json getUrlDict(long long major_iov, long long minor_iov) override;
   nlohmann::json deletePayloadIOV(const std::string& pl_type, long long iov_start);
-#pragma GCC diagnostic pop
 
   nlohmann::json getPayloadIOVs(long long iov);
   nlohmann::json getUrl(const std::string& pl_type, long long iov);
   nlohmann::json insertPayload(const std::string& pl_type, const std::string& file_url, long long iov_start, long long iov_end) override;
+  nlohmann::json insertPayload(const std::string& pl_type, const std::string& file_url, long long major_iov_start, long long minor_iov_start, long long major_iov_end, long long minor_iov_end) override;
   nlohmann::json setGlobalTag(const std::string& name) override;
   std::string getCalibration(const std::string& pl_type, long long iov);
   nlohmann::json unlockGlobalTag(const std::string& gt_name) override;
