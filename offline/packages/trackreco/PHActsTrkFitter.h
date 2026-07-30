@@ -276,7 +276,7 @@ class PHActsTrkFitter : public SubsysReco
   int m_cluster_edge_rejection = 0;
 
   /// extrapolation mode
-  ExtrapolationMode m_extrapolation_mode = ExtrapolationMode::Default;
+  ExtrapolationMode m_extrapolation_mode = ExtrapolationMode::Bidirectional;
 
   //!@name evaluator
   //@{
