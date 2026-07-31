@@ -57,7 +57,7 @@ class ActsAlignmentStates
   std::pair<Acts::Vector3, Acts::Vector3> get_projectionXY(const Acts::Surface& surface, const Acts::Vector3& tangent);
 
   SvtxAlignmentState::GlobalMatrix makeGlobalDerivatives(const Acts::Vector3& OM, const std::pair<Acts::Vector3, Acts::Vector3>& projxy);
-
+  SvtxAlignmentState::LocalMatrix makeLocalDerivatives(const auto& H);
   //! verbosity
   int m_verbosity = 0;
 

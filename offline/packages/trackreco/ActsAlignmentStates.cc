@@ -213,7 +213,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(
     //! this is the derivative of the state wrt to Acts track parameters
     //! e.g. (d_0, z_0, phi, theta, q/p, t)
       //auto localDeriv = H * state.jacobian();
-      auto localDeriv = H * H;
+      auto localDeriv = makeLocalDerivatives(H);
       if (m_verbosity > 2)
       {
 	std::cout << "local deriv " << std::endl << localDeriv << std::endl;
@@ -267,6 +267,21 @@ ActsAlignmentStates::makeGlobalDerivatives(const Acts::Vector3& OM,
   globalder(1, 5) = unit.col(2).dot(projxy.second);
 
   return globalder;
+}
+
+SvtxAlignmentState::LocalMatrix
+ActsAlignmentStates::makeLocalDerivatives(const auto& H)
+{
+  SvtxAlignmentState::LocalMatrix localder = SvtxAlignmentState::LocalMatrix::Zero();
+  //std::cout<< "H is " << std::endl << H << std::endl;
+  for (int i = 0; i < SvtxAlignmentState::NRES; ++i)
+  {
+    for (int j = 0; j < SvtxAlignmentState::NLOC; ++j)
+    {
+      localder(i, j) = H(i, j);
+    }
+  }
+  return localder;
 }
 
 //______________________________________________________
