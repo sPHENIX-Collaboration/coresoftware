@@ -155,14 +155,15 @@ void PHActsTrackProjection::project_track( SvtxTrack* track ) const
   ActsPropagator propagator(m_tGeometry);
 
   // create relevant bound track parameters, depending on extrapolation mode
-  PHActsTrackProjection::BoundTrackParamResult parameters;
+  std::optional<Acts::BoundTrackParameters> parameters;
 
   float source_pathlength = 0;
   switch( m_extrapolation_mode )
   {
     case ExtrapolationMode::Default:
     {
-      parameters = propagator.makeTrackParams(track, m_vertexMap);
+      auto result = propagator.makeTrackParams(track, m_vertexMap);
+      if( result.ok() ) parameters = std::make_optional( std::move(result.value()) );
       break;
     }
 
@@ -189,7 +190,8 @@ void PHActsTrackProjection::project_track( SvtxTrack* track ) const
 
       if( state && surface )
       {
-        parameters = propagator.makeTrackParams(state, track->get_charge(), surface);
+        auto result = propagator.makeTrackParams(state, track->get_charge(), surface);
+        if( result.ok() ) parameters = std::make_optional( std::move(result.value()) );
       }
       break;
     }
