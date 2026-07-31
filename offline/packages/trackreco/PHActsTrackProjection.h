@@ -23,11 +23,12 @@
 
 class PHCompositeNode;
 class RawClusterContainer;
-class TowerInfoContainer;
 class RawTowerGeomContainer;
 class SvtxTrackMap;
 class SvtxTrack;
 class SvtxVertexMap;
+class TowerInfoContainer;
+class TrkrClusterContainer;
 
 /**
  * This class takes final fitted tracks from the Acts track fitting
@@ -52,16 +53,29 @@ class PHActsTrackProjection : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-  void useConstField(bool field) { m_constField = field; }
   void setConstFieldVal(float b) { m_constFieldVal = b; }
 
   /// Set an arbitrary radius to project to, in cm
   void setLayerRadius(SvtxTrack::CAL_LAYER layer, float rad)
   { m_caloRadii[layer] = rad; }
 
+  // extrapolation mode
+  enum class ExtrapolationMode
+  {
+    Default, // the default extrapolation mode, using fitter track parameters at origin
+    Forward // uses the track state vector closest to the requested layer, before
+  };
+
+  /// extrapolation mode
+  void setExtrapolationMode( const ExtrapolationMode value )
+  { m_extrapolation_mode = value; }
+
  private:
   int getNodes(PHCompositeNode *topNode);
   int projectTracks(SvtxTrack::CAL_LAYER);
+
+  // project a give track to all available calorimeter layers
+  void project_track( SvtxTrack* ) const;
 
   /// Propagate the fitted track parameters to a surface with Acts
   BoundTrackParamResult propagateTrack(
@@ -81,6 +95,9 @@ class PHActsTrackProjection : public SubsysReco
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
 
+  /// cluster container
+  TrkrClusterContainer *m_clusterContainer = nullptr;
+
   /// Objects to hold calorimeter information.
   std::map<SvtxTrack::CAL_LAYER, SurfacePtr> m_caloSurfaces;
 
@@ -88,11 +105,12 @@ class PHActsTrackProjection : public SubsysReco
   /// Results are written to the SvtxTrack based on the provided CAL_LAYER
   std::map<SvtxTrack::CAL_LAYER, float> m_caloRadii;
 
-  /// use constant field
-  bool m_constField = true;
-
   /// constant field value
   float m_constFieldVal = 1.4;
+
+  /// extrapolation mode
+  ExtrapolationMode m_extrapolation_mode = ExtrapolationMode::Default;
+
 };
 
 #endif

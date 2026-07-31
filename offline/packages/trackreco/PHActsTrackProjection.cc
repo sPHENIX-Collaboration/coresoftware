@@ -1,6 +1,7 @@
 #include "PHActsTrackProjection.h"
 
 #include <trackbase/ActsTrackFittingAlgorithm.h>
+#include <trackbase/TrkrClusterContainer.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -52,10 +53,12 @@ namespace
   };
 }
 
+//_______________________________________________________________________________________
 PHActsTrackProjection::PHActsTrackProjection(const std::string& name)
   : SubsysReco(name)
 {}
 
+//_______________________________________________________________________________________
 int PHActsTrackProjection::InitRun(PHCompositeNode* topNode)
 {
   if (Verbosity() > 1)
@@ -78,6 +81,7 @@ int PHActsTrackProjection::InitRun(PHCompositeNode* topNode)
   return ret;
 }
 
+//_______________________________________________________________________________________
 int PHActsTrackProjection::process_event(PHCompositeNode* /*topNode*/)
 {
 
@@ -96,17 +100,19 @@ int PHActsTrackProjection::process_event(PHCompositeNode* /*topNode*/)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
+//_______________________________________________________________________________________
 int PHActsTrackProjection::Init(PHCompositeNode* /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+//_______________________________________________________________________________________
 int PHActsTrackProjection::End(PHCompositeNode* /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+//_______________________________________________________________________________________
 int PHActsTrackProjection::projectTracks(SvtxTrack::CAL_LAYER caloLayer)
 {
 
@@ -139,6 +145,60 @@ int PHActsTrackProjection::projectTracks(SvtxTrack::CAL_LAYER caloLayer)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+//___________________________________________________________________________________
+void PHActsTrackProjection::project_track( SvtxTrack* track ) const
+{
+  // check track
+  if( !track ) return;
+
+  // create propagator
+  ActsPropagator propagator(m_tGeometry);
+
+  // create relevant bound track parameters, depending on extrapolation mode
+  PHActsTrackProjection::BoundTrackParamResult parameters;
+
+  float source_pathlength = 0;
+  switch( m_extrapolation_mode )
+  {
+    case ExtrapolationMode::Default:
+    {
+      parameters = propagator.makeTrackParams(track, m_vertexMap);
+      break;
+    }
+
+    case ExtrapolationMode::Forward:
+    {
+
+      SvtxTrackState* state{ nullptr };
+      ActsPropagator::SurfacePtr surface{ nullptr };
+
+      // get track parameters closest to calorimeters (TPOT or TPC last layer)
+      /* need to loop over all states and stop at either TPC or TPOT, to make sure previous extrapolation to calorimeters are not used */
+      for( auto iter = track->begin_states(); iter != track->end_states(); ++iter )
+      {
+        const auto& [pathlength, s] = *iter;
+        const auto ckey = s->get_cluskey();
+        TrkrCluster* cluster = m_clusterContainer ? m_clusterContainer->findCluster(ckey):nullptr;
+        const auto layer = TrkrDefs::getLayer( ckey );
+        if( layer <= 56 ){
+          source_pathlength = pathlength;
+          state = s;
+          surface = m_tGeometry->maps().getSurface(ckey, cluster);
+        }
+      }
+
+      if( state && surface )
+      {
+        parameters = propagator.makeTrackParams(state, track->get_charge(), surface);
+      }
+      break;
+    }
+  }
+
+  // loop over layers and extrpolate
+}
+
+//_______________________________________________________________________________________
 void PHActsTrackProjection::updateSvtxTrack(
     const ActsPropagator::BoundTrackParamPair& parameters,
     SvtxTrack* svtxTrack,
@@ -178,6 +238,7 @@ void PHActsTrackProjection::updateSvtxTrack(
   return;
 }
 
+//_______________________________________________________________________________________
 PHActsTrackProjection::BoundTrackParamResult
 PHActsTrackProjection::propagateTrack(
     const Acts::BoundTrackParameters& params,
@@ -191,6 +252,7 @@ PHActsTrackProjection::propagateTrack(
   return propagator.propagateTrackFast(params, targetSurf);
 }
 
+//_______________________________________________________________________________________
 int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode* topNode)
 {
   using calo_pair_t = std::pair<SvtxTrack::CAL_LAYER,SvtxTrack::CAL_LAYER>;
@@ -277,6 +339,7 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+//_______________________________________________________________________________________
 int PHActsTrackProjection::getNodes(PHCompositeNode* topNode)
 {
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
@@ -304,6 +367,9 @@ int PHActsTrackProjection::getNodes(PHCompositeNode* topNode)
               << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  // clusters
+  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
