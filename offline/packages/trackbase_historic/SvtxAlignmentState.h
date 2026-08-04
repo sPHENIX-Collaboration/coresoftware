@@ -20,6 +20,8 @@ class SvtxAlignmentState : public PHObject
 
   typedef Eigen::Matrix<double, NRES, NGL> GlobalMatrix;
   typedef Eigen::Matrix<double, NRES, NLOC> LocalMatrix;
+  typedef Eigen::Matrix<double, NRES, NLOC> LocalMatrixPsuedo;
+  typedef Eigen::Matrix<double, NRES, 1> LocalMeasErrPsuedo;
   typedef Eigen::Matrix<double, NRES, 1> ResidualVector;
   typedef Eigen::Matrix<double, NLOC, 1> ActsTrackParamsVector;
 
@@ -35,12 +37,18 @@ class SvtxAlignmentState : public PHObject
 
   virtual void set_residual(const ResidualVector&) {}
   virtual void set_local_derivative_matrix(const LocalMatrix&) {}
+  //Local derivative matrix psuedo measurement for ACTS -> Millepede 
+  virtual void set_local_derivative_psuedo_matrix(const LocalMatrix&) {}
+  //setter for eigen vals only called in above func for psuedo matrix
+  virtual void set_local_psuedo_measurement_err(const LocalMeasErrPsuedo&) {}
   virtual void set_global_derivative_matrix(const GlobalMatrix&) {}
   virtual void set_cluster_key(TrkrDefs::cluskey) {}
   virtual void set_acts_track_params(const ActsTrackParamsVector&) {}
 
   virtual const ResidualVector& get_residual() const;
   virtual const LocalMatrix& get_local_derivative_matrix() const;
+  virtual const LocalMatrixPsuedo& get_local_derivative_psuedo_matrix() const;
+  virtual const LocalMeasErrPsuedo& get_local_psuedo_measurement_err() const;
   virtual const GlobalMatrix& get_global_derivative_matrix() const;
   virtual TrkrDefs::cluskey get_cluster_key() const { return UINT_MAX; }
   virtual const ActsTrackParamsVector& get_acts_track_params() const;
