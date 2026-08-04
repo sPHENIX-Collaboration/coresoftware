@@ -184,13 +184,28 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
 
     Acts::Vector3 global_new(xnew, ynew, znew);
 
+    bool update_sskey = true;
+    if(update_sskey)
+      {
+	unsigned int sskey = cluster->getSubSurfKey();
+
+	TrkrDefs::hitsetkey hkey= TrkrDefs:: getHitSetKeyFromClusKey(cluskey);
+	TrkrDefs::subsurfkey new_subsurfkey = 0;
+	auto new_surf = _tGeometry->get_tpc_surface_from_coords(hkey, global_new, new_subsurfkey);
+	if(new_subsurfkey != sskey)
+	  {
+	    // std::cout << "    updating cluster subsurfkey from " << sskey << " to " << new_subsurfkey << std::endl;
+	    cluster->setSubSurfKey(new_subsurfkey);
+	  }
+      }
+    
     if(_verbosity > 2)
       {
 	unsigned int layer = TrkrDefs::getLayer(cluskey);
 	if(layer == 28)
 	  {
 	    unsigned int sskey = cluster->getSubSurfKey();
-	    double new_radius = sqrt(xnew*xnew+ynew*ynew);
+	      double new_radius = sqrt(xnew*xnew+ynew*ynew);
 	    // Check if the subsurface changed
 	    TrkrDefs::hitsetkey hkey= TrkrDefs:: getHitSetKeyFromClusKey(cluskey);
 	    TrkrDefs::subsurfkey new_subsurfkey = 0;
