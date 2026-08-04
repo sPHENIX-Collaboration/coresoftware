@@ -172,7 +172,7 @@ int NNScaleMap::process_event(PHCompositeNode* topNode)
 
     SvtxTrack_v4 corrected(*track);
 
-    if (pt <= 0.f)
+    if (pt <= 0.0F)
     {
       ++m_nTracksSkippedZeroPt;
     }
@@ -358,7 +358,7 @@ bool NNScaleMap::LoadLookupTable(const std::string& path)
   const char* required[] = {"q", "pT", "eta", "phi", "kappa"};
   for (const char* name : required)
   {
-    if (colIndex.find(name) == colIndex.end())
+    if (!colIndex.contains(name))
     {
       std::cout << PHWHERE << " kappa lookup file '" << path
                  << "' header is missing required column '" << name << "'" << std::endl;
@@ -431,8 +431,8 @@ bool NNScaleMap::LoadLookupTable(const std::string& path)
     return false;
   }
 
-  m_kappaGrid[0].assign(nPt * nEta * nPhi, 1.0f);
-  m_kappaGrid[1].assign(nPt * nEta * nPhi, 1.0f);
+  m_kappaGrid[0].assign(nPt * nEta * nPhi, 1.0F);
+  m_kappaGrid[1].assign(nPt * nEta * nPhi, 1.0F);
 
   size_t nBad = 0;
   for (size_t r = 0; r < qs.size(); ++r)
@@ -466,7 +466,7 @@ float NNScaleMap::GetKappa(int charge, float pt, float eta, float phi) const
 {
   if (m_ptEdges.empty())
   {
-    return 1.0f;
+    return 1.0F;
   }
 
   const int qIdx = (charge > 0) ? 1 : 0;
