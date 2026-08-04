@@ -92,11 +92,15 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
   // The input object contains all clusters for the track in world coordinates
   // The surface radii are in global coordinates. Needed because we are dealing with aligned surfaces
 
-  auto *cluster_map = findNode::getClass<TrkrClusterContainer>(_topNode, "TRKR_CLUSTER");
+  auto *cluster_map = findNode::getClass<TrkrClusterContainer>(_topNode, "TRKR_CLUSTER_SEED");
   if(!cluster_map)
     {
-      std::cout << PHWHERE << " Did not find TRKR_CLUSTER node, quit." << std::endl;
-	exit(1);
+      cluster_map = findNode::getClass<TrkrClusterContainer>(_topNode, "TRKR_CLUSTER");
+      if(!cluster_map)
+	{
+	  std::cout << PHWHERE << " Did not find TRKR_CLUSTER_SEED or TRKR_CLUSTER nodes, quit." << std::endl;
+	  exit(1);
+	}
     }
 
   auto surfMaps = _tGeometry->maps();
