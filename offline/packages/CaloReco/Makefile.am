@@ -108,8 +108,18 @@ endif
 ################################################
 # linking tests
 
+if USE_ONLINE
 noinst_PROGRAMS = \
   testexternals_calo_reco
+
+else
+noinst_PROGRAMS = \
+  testexternals_calo_reco \
+  testPhotonClusterBuilderTopoIso
+
+testPhotonClusterBuilderTopoIso_SOURCES = testPhotonClusterBuilderTopoIso.cc
+testPhotonClusterBuilderTopoIso_LDADD = libcalo_reco.la
+endif
 
 BUILT_SOURCES  = testexternals.cc
 
