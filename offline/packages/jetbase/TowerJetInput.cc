@@ -68,6 +68,13 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   float vtxz = 0;  // default to 0
   m_has_zvertex = false;
   m_used_vertex_type = "UNDEFINED";
+  if (m_use_vertextype && !m_vertex_type.empty())
+  {
+    // record the REQUESTED vertex type even when no vertex is found this event
+    // (so e.g. "MBD" with has_zvertex() == false means: MBD selection active,
+    // but no valid MBD vertex); "UNDEFINED" is left for no type selection.
+    m_used_vertex_type = get_vtxtype_name(m_vertex_type.at(0));
+  }
   m_used_vertex_z = std::numeric_limits<float>::quiet_NaN();
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)

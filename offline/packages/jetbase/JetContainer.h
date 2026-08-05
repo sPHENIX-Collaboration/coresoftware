@@ -130,8 +130,10 @@ class JetContainer : public PHObject
   // events without one the jets are reconstructed with z=0, has_zvertex() is
   // false and get_vertex_z() returns 0.
   // The type is the GlobalVertex::VTXTYPE name selected with
-  // TowerJetInput::set_GlobalVertexType() ("MBD", "SVTX", ...), "UNDEFINED" when
-  // no type selection was applied, or "" when the inputs did not use a vertex.
+  // TowerJetInput::set_GlobalVertexType() ("MBD", "SVTX", ...), reported whether
+  // or not a vertex was actually found this event (check has_zvertex() for that);
+  // "UNDEFINED" when no type selection was applied, or "" when the inputs did
+  // not use a vertex.
   // ---------------------------------------------------------------------------------------
   virtual void set_has_zvertex(bool /**/){};
   virtual bool has_zvertex() const { return false; };

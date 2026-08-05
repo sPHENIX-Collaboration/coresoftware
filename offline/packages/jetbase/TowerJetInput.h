@@ -63,7 +63,8 @@ class TowerJetInput : public JetInput
   // vertex actually used in the last get_input() call.
   // has_zvertex() is false when no valid vertex was found (empty map, NaN,
   // or oversized z); the z is then 0, the value the tower kinematics fell
-  // back to.
+  // back to. The type is the REQUESTED vertex type when a type selection is
+  // active (even if no vertex was found); "UNDEFINED" without a selection.
   bool has_zvertex() const override { return m_has_zvertex; }
   std::string get_vertex_type() const override { return m_used_vertex_type; }
   float get_vertex_z() const override { return m_used_vertex_z; }
