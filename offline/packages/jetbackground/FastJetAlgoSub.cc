@@ -14,57 +14,10 @@
 #include <sstream>  // for basic_ostringstream
 #include <vector>
 
-namespace
-{
-  // which calorimeter layer a jet input source belongs to,
-  // for the EMCal/iHCal/oHCal jet energy fractions
-  enum class CaloLayer
-  {
-    NONE,
-    EMCAL,
-    IHCAL,
-    OHCAL
-  };
-
-  CaloLayer get_calo_layer(Jet::SRC src)
-  {
-    switch (src)
-    {
-    case Jet::CEMC_TOWER:
-    case Jet::CEMC_CLUSTER:
-    case Jet::CEMC_TOWER_RETOWER:
-    case Jet::CEMC_TOWER_SUB1:
-    case Jet::CEMC_TOWER_SUB1CS:
-    case Jet::CEMC_TOWERINFO:
-    case Jet::CEMC_TOWERINFO_RETOWER:
-    case Jet::CEMC_TOWERINFO_SUB1:
-    case Jet::CEMC_TOWERINFO_EMBED:
-    case Jet::CEMC_TOWERINFO_SIM:
-    case Jet::ECAL_TOPO_CLUSTER:
-      return CaloLayer::EMCAL;
-    case Jet::HCALIN_TOWER:
-    case Jet::HCALIN_CLUSTER:
-    case Jet::HCALIN_TOWER_SUB1:
-    case Jet::HCALIN_TOWER_SUB1CS:
-    case Jet::HCALIN_TOWERINFO:
-    case Jet::HCALIN_TOWERINFO_SUB1:
-    case Jet::HCALIN_TOWERINFO_EMBED:
-    case Jet::HCALIN_TOWERINFO_SIM:
-      return CaloLayer::IHCAL;
-    case Jet::HCALOUT_TOWER:
-    case Jet::HCALOUT_CLUSTER:
-    case Jet::HCALOUT_TOWER_SUB1:
-    case Jet::HCALOUT_TOWER_SUB1CS:
-    case Jet::HCALOUT_TOWERINFO:
-    case Jet::HCALOUT_TOWERINFO_SUB1:
-    case Jet::HCALOUT_TOWERINFO_EMBED:
-    case Jet::HCALOUT_TOWERINFO_SIM:
-      return CaloLayer::OHCAL;
-    default:
-      return CaloLayer::NONE;
-    }
-  }
-}  // namespace
+// calorimeter-layer classification of jet input sources: shared with
+// FastJetAlgo in jetbase, single source of truth in jetbase/FastJetOptions.h
+using JetCalo::CaloLayer;
+using JetCalo::get_calo_layer;
 
 FastJetAlgoSub::FastJetAlgoSub(const FastJetOptions& options)
   : m_opt{options}
