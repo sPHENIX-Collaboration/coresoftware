@@ -43,14 +43,14 @@ class DSTClusterPruning : public SubsysReco
   DSTClusterPruning(const std::string& = "DSTClusterPruning");
 
   //! run initialization
-  //int Init(PHCompositeNode*) override;
+  // int Init(PHCompositeNode*) override;
   int InitRun(PHCompositeNode*) override;
 
   //! event processing
   int process_event(PHCompositeNode*) override;
 
   //! end of processing
-  //int End(PHCompositeNode*) override;
+  // int End(PHCompositeNode*) override;
 
   //! dump all clusters on all seeds out
   void pruneAllSeeds()
@@ -74,8 +74,8 @@ class DSTClusterPruning : public SubsysReco
   TrackSeedContainer* m_tpc_track_seed_container = nullptr;
   TrackSeedContainer* m_silicon_track_seed_container = nullptr;
 
-//! set to true if you want to dump out all clusters on all silicon
-//! and all tpc seeds individually
+  //! set to true if you want to dump out all clusters on all silicon
+  //! and all tpc seeds individually
   bool m_pruneAllSeeds = false;
   //@}
 

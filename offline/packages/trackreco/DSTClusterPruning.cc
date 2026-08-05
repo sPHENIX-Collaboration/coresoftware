@@ -151,51 +151,58 @@ void DSTClusterPruning::prune_clusters()
   // use this to create object that looks through both tracks and clusters and saves into new object
   // make sure clusters exist
   // make sure tracks exist
-  if (Verbosity() > 1){
+  if (Verbosity() > 1)
+  {
     std::cout << "In Prune clusters" << std::endl;
-    if(!m_cluster_map){
+    if (!m_cluster_map)
+    {
       std::cout << "No cluster map" << std::endl;
     }
-    if(!m_reduced_cluster_map){
+    if (!m_reduced_cluster_map)
+    {
       std::cout << "No reduced cluster map" << std::endl;
     }
-    if(!m_track_seed_container){
+    if (!m_track_seed_container)
+    {
       std::cout << "No track seed container" << std::endl;
     }
-    if(!m_silicon_track_seed_container){
+    if (!m_silicon_track_seed_container)
+    {
       std::cout << "No silicon track seed container" << std::endl;
     }
-    if(!m_tpc_track_seed_container){
+    if (!m_tpc_track_seed_container)
+    {
       std::cout << "No tpc track seed container" << std::endl;
     }
   }
-  
+
   if (!(m_cluster_map && m_reduced_cluster_map && m_track_seed_container && m_silicon_track_seed_container && m_tpc_track_seed_container))
   {
-    if (Verbosity() > 1){
+    if (Verbosity() > 1)
+    {
       std::cout << "Missing container" << std::endl;
     }
     return;
   }
-  if(m_pruneAllSeeds)
+  if (m_pruneAllSeeds)
   {
-    for(const auto& container : {m_tpc_track_seed_container, m_silicon_track_seed_container})
+    for (const auto& container : {m_tpc_track_seed_container, m_silicon_track_seed_container})
     {
       for (const auto& trackseed : *container)
       {
         if (!trackseed)
         {
-	  if(Verbosity() > 1)
-	    {
-	      std::cout << "No TrackSeed" << std::endl;
-	    }
-	  continue;
+          if (Verbosity() > 1)
+          {
+            std::cout << "No TrackSeed" << std::endl;
+          }
+          continue;
         }
 
         for (auto key_iter = trackseed->begin_cluster_keys(); key_iter != trackseed->end_cluster_keys(); ++key_iter)
         {
           const auto& cluster_key = *key_iter;
-          auto *cluster = m_cluster_map->findCluster(cluster_key);
+          auto* cluster = m_cluster_map->findCluster(cluster_key);
           if (!cluster)
           {
             std::cout << "DSTClusterPruning::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
