@@ -370,13 +370,24 @@ namespace TrackAnalysisUtils
       }
       Surface surf = geometry->maps().getSurface(ckey, cluster);
       Surface surf_ideal = geometry->maps().getSurface(ckey, cluster);  // Unchanged by distortion corrections
-      // if this is a TPC cluster, the crossing correction may have moved it across the central membrane, check the surface
       auto trkrid = TrkrDefs::getTrkrId(ckey);
       if (trkrid == TrkrDefs::tpcId)
       {
+	TrkrDefs::subsurfkey sskey = cluster->getSubSurfKey();
         TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
-        TrkrDefs::subsurfkey new_subsurfkey = 0;
-        surf = geometry->get_tpc_surface_from_coords(hitsetkey, clusglob_moved, new_subsurfkey);
+        TrkrDefs::subsurfkey new_sskey = 0;
+        surf = geometry->get_tpc_surface_from_coords(hitsetkey, clusglob_moved, new_sskey);
+	if (!surf)
+	  {
+	    std::cout << PHWHERE << " WARNING: failed to find moved-cluster surface for "
+		      << ckey << std::endl;
+	    continue;
+	  }
+	if(new_sskey != sskey)
+	  {
+	    // ClusterMover should have updated the subsurface key, so this should not happen
+	    std::cout << PHWHERE << " WARNING: subsurface key change from " << sskey << " to " << new_sskey << std::endl;
+	  }
       }
 
       auto loc = geometry->getLocalCoords(ckey, cluster, track->get_crossing());
