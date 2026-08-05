@@ -32,11 +32,12 @@ class JetInput
   virtual void Verbosity(int i) { m_Verbosity = i; }
 
   // vertex actually used by this input in the last get_input() call.
-  // has_zvertex() is true for inputs which use a z-vertex in their kinematics
-  // (e.g. TowerJetInput, ClusterJetInput). For those, get_vertex_z() returns
-  // the z value actually used (0 when the vertex was NaN or missing), and
-  // get_vertex_type() returns the GlobalVertex::VTXTYPE name ("MBD", "SVTX", ...)
-  // or "UNDEFINED" when no vertex type selection was applied.
+  // has_zvertex() is true only when a valid z-vertex was found and used;
+  // it is false when this input does not use a vertex at all, and also on
+  // events where no valid vertex was found (the kinematics then fall back
+  // to z=0 and get_vertex_z() returns 0). get_vertex_type() returns the
+  // GlobalVertex::VTXTYPE name ("MBD", "SVTX", ...), "UNDEFINED" when no
+  // vertex type selection was applied, or "" for inputs without vertexing.
   virtual bool has_zvertex() const { return false; }
   virtual std::string get_vertex_type() const { return ""; }
   virtual float get_vertex_z() const { return std::numeric_limits<float>::quiet_NaN(); }

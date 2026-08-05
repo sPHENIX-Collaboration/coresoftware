@@ -298,12 +298,15 @@ void JetReco::FillJetContainer(PHCompositeNode *topNode, int ipos, std::vector<J
     jetconn->insert_src(_input->get_src());
   }
 
-  // record the vertex used by the inputs (all vertex-using inputs are normally
-  // configured with the same vertex type, so the first one found is recorded)
+  // record the vertex used by the inputs; a non-empty vertex type marks inputs
+  // which use a vertex, whether or not one was found this event (all vertex-using
+  // inputs are normally configured with the same vertex type, so the first one
+  // found is recorded)
   for (auto &_input : _inputs)
   {
-    if (_input->has_zvertex())
+    if (!_input->get_vertex_type().empty())
     {
+      jetconn->set_has_zvertex(_input->has_zvertex());
       jetconn->set_vertex_type(_input->get_vertex_type());
       jetconn->set_vertex_z(_input->get_vertex_z());
       break;

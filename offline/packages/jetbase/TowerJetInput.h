@@ -61,9 +61,10 @@ class TowerJetInput : public JetInput
   void set_timing_e_threshold(float new_threshold) { m_timing_e_threshold = new_threshold; }
 
   // vertex actually used in the last get_input() call.
-  // The z is the value the tower kinematics were computed with, i.e. 0 when
-  // the vertex was NaN or missing.
-  bool has_zvertex() const override { return true; }
+  // has_zvertex() is false when no valid vertex was found (empty map, NaN,
+  // or oversized z); the z is then 0, the value the tower kinematics fell
+  // back to.
+  bool has_zvertex() const override { return m_has_zvertex; }
   std::string get_vertex_type() const override { return m_used_vertex_type; }
   float get_vertex_z() const override { return m_used_vertex_z; }
 
@@ -76,6 +77,7 @@ class TowerJetInput : public JetInput
   bool m_use_vertextype {false};
   std::vector<GlobalVertex::VTXTYPE> m_vertex_type{GlobalVertex::UNDEFINED};
   float m_timing_e_threshold{0.1};
+  bool m_has_zvertex{false};
   std::string m_used_vertex_type{"UNDEFINED"};
   float m_used_vertex_z{std::numeric_limits<float>::quiet_NaN()};
 };
