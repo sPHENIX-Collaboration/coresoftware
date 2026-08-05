@@ -192,7 +192,7 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
 	TrkrDefs::hitsetkey hkey= TrkrDefs:: getHitSetKeyFromClusKey(cluskey);
 	TrkrDefs::subsurfkey new_subsurfkey = 0;
 	auto new_surf = _tGeometry->get_tpc_surface_from_coords(hkey, global_new, new_subsurfkey);
-	if(new_subsurfkey != sskey)
+	if( new_surf && (new_subsurfkey != sskey) )
 	  {
 	    // std::cout << "    updating cluster subsurfkey from " << sskey << " to " << new_subsurfkey << std::endl;
 	    cluster->setSubSurfKey(new_subsurfkey);

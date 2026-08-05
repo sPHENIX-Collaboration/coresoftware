@@ -377,6 +377,12 @@ namespace TrackAnalysisUtils
         TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
         TrkrDefs::subsurfkey new_sskey = 0;
         surf = geometry->get_tpc_surface_from_coords(hitsetkey, clusglob_moved, new_sskey);
+	if (!surf)
+	  {
+	    std::cout << PHWHERE << " WARNING: failed to find moved-cluster surface for "
+		      << ckey << std::endl;
+	    continue;
+	  }
 	if(new_sskey != sskey)
 	  {
 	    // ClusterMover should have updated the subsurface key, so this should not happen
