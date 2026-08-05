@@ -81,8 +81,9 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_fixed_vtx(bool fixed_vtx) {m_fixed_vtx = fixed_vtx;}
   void set_fixed_vtx_x(float fixed_vtx_x) {m_fixed_vtx_x = fixed_vtx_x;}
   void set_fixed_vtx_y(float fixed_vtx_y) {m_fixed_vtx_y = fixed_vtx_y;}
+  //Fixes MVTX half in order to calculate projected residuals from east to west half or vice versa.
   //-1 is regular operation, 0 is east fixed, 1 is west fixed
-  void set_do_mvtx_half(int half) {do_mvtx_half = half; }
+  void set_do_mvtx_half(int half) {m_do_mvtx_half = half; }
   void set_is_cosmics() {is_cosmics=true;}
   void set_fitted_subsystems(bool si, bool tpc, bool full)
   {
@@ -235,10 +236,10 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   TFile* fout{nullptr};
 
   bool use_event_vertex{false};
-  bool use_intt_zfit{true};
+  bool use_intt_zfit{false};
   bool straight_line_fit = false;
-  int do_mvtx_half = -1;
-  bool is_cosmics = true;
+  int m_do_mvtx_half = -1;
+  bool is_cosmics {false};
 
   int event{0};
 

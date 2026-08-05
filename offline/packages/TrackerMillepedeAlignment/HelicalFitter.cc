@@ -321,9 +321,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     }
     else
     {
-      //std::cout<<"event: "<<event<<"  , trackid: "<<trackid-trkid_correction<<"  , nhits: "<<cluskey_vec.size()<< "  , crossing: "<<tracklet->get_crossing()<<std::endl;
-      //std::cout<<"tracklet size and nintt: "<<cluskey_vec.size()<<" : "<<nintt<<std::endl;
-      //if (fitsilicon && nintt < 1)
       if (fitsilicon && global_vec.size() < 4)
       {
         continue;  // discard incomplete seeds
@@ -545,24 +542,14 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     unsigned int abs_cross = newTrack.get_crossing();
     if (newTrack.get_crossing() < 0)
       abs_cross = INT_MAX;
-    //std::cout<<"HF trackid: "<<trackid-trkid_correction<<"  ,HF crossing: "<<newTrack.get_crossing()<<std::endl;
-    //std::cout<<" trk vtx "<<newTrack.get_x() << "  " << newTrack.get_y()<< "  " << newTrack.get_z()<< std::endl;
     if(use_event_vertex)
     {
       for (const auto& [vtxkey, vertex] : *m_vertexmap)
       {
-          //std::cout<<"event: "<<event<<"  , vtx crossing: "<<vertex->get_beam_crossing()<<std::endl;
-          //std::cout<< ", vtx position: "<<vertex->get_x()<<" , "<<vertex->get_y()<< " , "<<vertex->get_z()<<std::endl;
           for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
         {
-          //std::cout<<"vtx: "<<vertex->get_id()<<" , trackiter*: "<<*trackiter<<std::endl;
-          //SvtxTrack* vtxtrack = m_trackmap->get(*trackiter);
-          //if (vtxtrack)
-          //{
-            //unsigned int const vtxtrackid = vtxtrack->get_id();
             if (!m_acts_mode && (trackid-trkid_correction) == (*trackiter) && vertex->size_tracks()>3)//&&(newTrack.get_crossing())==short(vertex->get_beam_crossing()) )//&& vtxtrack->get_crossing()== newTrack.get_crossing())
             {
-                //std::cout<<"matched"<<std::endl;
               event_vtx(0) = vertex->get_x();
               event_vtx(1) = vertex->get_y();
               event_vtx(2) = vertex->get_z();
@@ -570,13 +557,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
               if (Verbosity() > 0)
               {
                 std::cout << "vtx crossing: "<<vertex->get_beam_crossing()<<"setting event_vertex for trackid " << trackid << " to vtxid " << vtxkey<< std::endl;
-                //std::cout  <<"crossing:" << vtxtrack->get_crossing()<<" vtx  " << event_vtx(0) << "  " << event_vtx(1) << "  " << event_vtx(2) << std::endl;
                 std::cout<< "crossing:" << newTrack.get_crossing()<<"trk vtx "<<newTrack.get_x() << "  " << newTrack.get_y()<< "  " << newTrack.get_z()<< std::endl;
               }
             }
             else if(m_acts_mode && (vertex->get_beam_crossing()) == short(abs_cross) && vertex->size_tracks()>2)
             {
-              //std::cout<<"matched"<<std::endl;
               event_vtx(0) = vertex->get_x();
               event_vtx(1) = vertex->get_y();
               event_vtx(2) = vertex->get_z();
@@ -590,8 +575,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       passed_vtx_flag=true;
     }
     
-     // std::cout<<std::endl;
-
     if(m_fixed_vtx)
     {
       event_vtx(0) = m_fixed_vtx_x;
@@ -599,11 +582,8 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     }
     if(!passed_vtx_flag)
     {
-      //std::cout<<"test"<<std::endl;
       continue;
     }
-
-    //std::cout<<"Saved Tracl  , event: "<<event<<"  , trackid: "<<trackid<<"  , cluskey_vec.size: "<<cluskey_vec.size()<<std::endl;
 
     cumulative_global_vec.push_back(global_vec);
     cumulative_cluskey_vec.push_back(cluskey_vec);
@@ -678,14 +658,9 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       else
       {
-        //std::cout<<"tracklet eta3: "<<std::endl;
-
         fitpoint = get_helix_surface_intersection(surf, fitpars, global, helix_pca, helix_tangent);
-        //std::cout<<"tracklet eta3.1: "<<fitpars_mvtx_half.size()<<std::endl;
         fitpoint_mvtx_half = get_helix_surface_intersection(surf, fitpars_mvtx_half, global, helix_pca, helix_tangent);
       }
-
-        //std::cout<<"tracklet eta3.2: "<<std::endl;
 
       // fitpoint is the point where the helical fit intersects the plane of the surface
       // Now transform the helix fitpoint to local coordinates to compare with cluster local coordinates
@@ -704,8 +679,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
 
       Acts::Vector2 residual(xloc - fitpoint_local(0), zloc - fitpoint_local(1));
-      //if(global_vec.size()==6)
-      //  std::cout<<"Look here 1: "<<event<<newTrack.id()<<" : "<<residual<<std::endl;
       unsigned int const layer = TrkrDefs::getLayer(cluskey_vec[ivec]);
 
       SvtxTrackState_v1 svtxstate(fitpoint.norm());
@@ -721,7 +694,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       {
         tangent = get_helix_tangent(fitpars, global, is_cosmics);
       }
-        //std::cout<<"tracklet eta4: "<<std::endl;
 
       svtxstate.set_px(someseed.get_p() * tangent.second.x());
       svtxstate.set_py(someseed.get_p() * tangent.second.y());
@@ -815,8 +787,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
 
       Acts::Vector2 residual(xloc - fitpoint_local(0), zloc - fitpoint_local(1));
-      //if(global_vec.size()==6)
-      //  std::cout<<"Look here 1: "<<event<<newTrack.id()<<" : "<<residual<<std::endl;
       unsigned int const layer = TrkrDefs::getLayer(cluskey_vec[ivec]);
       float const phi = atan2(global(1), global(0));
 
@@ -1117,48 +1087,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       continue;
     }
     // calculate vertex residual with perigee surface
-    //-------------------------------------------------------
-
-    //Acts::Vector3 event_vtx(averageVertex(0), averageVertex(1), averageVertex(2));
-
-    //if (m_vertexmap)
-    //{
-    //  for (const auto& [vtxkey, vertex] : *m_vertexmap)
-    //  {
-    //    for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
-    //    {
-    //      SvtxTrack* vtxtrack = m_trackmap->get(*trackiter);
-    //      if (vtxtrack)
-    //      {
-    //        unsigned int const vtxtrackid = vtxtrack->get_id();
-    //        if (trackid == vtxtrackid)
-    //        {
-    //          event_vtx(0) = vertex->get_x();
-    //          event_vtx(1) = vertex->get_y();
-    //          event_vtx(2) = vertex->get_z();
-    //          if (Verbosity() > 0)
-    //          {
-    //            std::cout << "     setting event_vertex for trackid " << trackid << " to vtxid " << vtxkey
-    //                      << " vtx " << event_vtx(0) << "  " << event_vtx(1) << "  " << event_vtx(2) << std::endl;
-    //          }
-    //        }
-    //      }
-    //      //std::cout<<"trackid: "<<trackid<<" , newTrack.get_id:"<<newTrack.get_id()<<", vtxtrackid: "<<vtxtrackid <<", trackid_test: "<<trackid_test<<std::endl;
-    //      //std::cout<<"vertex crossing:" << vertex->get_beam_crossing()<<" vtx  " << event_vtx(0) << "  " << event_vtx(1) << "  " << event_vtx(2) << std::endl;
-    //      //std::cout<< "track crossing:" << newTrack.get_crossing()<<" trk vtx "<<newTrack.get_x() << "  " << newTrack.get_y()<< "  " << newTrack.get_z()<< std::endl;
-    //      //std::cout<< "vtxtk crossing:" << vtxtrack->get_crossing()<<" trk vtx "<<vtxtrack->get_x() << "  " <<vtxtrack->get_y() << "  "<<vtxtrack->get_z() <<std::endl;
-    //    }
-    //  }
-    //  //std::cout<<"end vtx"<<std::endl;
-    //}
-
-    ////end loop for tracks with no track vtx association
-    //if (averageVertex(0)==event_vtx(0)&&averageVertex(1)==event_vtx(1))
-    //{
-    //  _mille->end();
-    //  continue;
-    //}
-
     // The residual for the vtx case is (event vtx - track vtx)
     // that is -dca
     float dca3dxy = 0;
@@ -1506,14 +1434,6 @@ Acts::Vector3 HelicalFitter::get_line_plane_intersection(const Acts::Vector3& PC
   // The solution is:
   float const d = (sensor_center - PCA).dot(sensor_normal) / tangent.dot(sensor_normal);
   Acts::Vector3 intersection = PCA + d * tangent;
-
-  /*
-  std::cout << "    sensor center " << sensor_center(0) << "  " << sensor_center(1) << "  " << sensor_center(2) << std::endl;
-  std::cout << "      intersection " << intersection(0) << "  " << intersection(1) << "  " << intersection(2) << std::endl;
-  std::cout << "      PCA " << PCA(0) << "  " << PCA(1) << "  " << PCA(2) << std::endl;
-  std::cout << "      tangent " << tangent(0) << "  " << tangent(1) << "  " << tangent(2) << std::endl;
-  std::cout << "            d " << d << std::endl;
-  */
 
   return intersection;
 }
