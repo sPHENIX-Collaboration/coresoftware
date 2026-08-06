@@ -97,6 +97,7 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
 
   // Here we fetch the gas from the CDB
   std::string gasfile = m_cdb->getUrl("PHGARFIELD_GAS");
+  //std::string gasfile("/gpfs/mnt/gpfs02/sphenix/user/hemmick/gasfiles_20260804/Ar75_CF20_iso5.gas");  // for testing only...
   if (gasfile.empty() || !fs::exists(gasfile))
   {
     std::cerr << PHWHERE << " Missing CDB gasfile: " << gasfile << std::endl;

@@ -11,6 +11,8 @@
 
 // finally system includes
 #include <iostream>  // for cout, ostream
+#include <limits>
+#include <string>
 #include <vector>
 
 // forward declarations
@@ -29,17 +31,27 @@ class ClusterJetInput : public JetInput
 
   std::vector<Jet*> get_input(PHCompositeNode* topNode) override;
 
-  void set_GlobalVertexType(GlobalVertex::VTXTYPE type) 
+  void set_GlobalVertexType(GlobalVertex::VTXTYPE type)
   {
     m_use_vertextype = true;
     m_vertex_type = type;
   }
+
+  // vertex actually used in the last get_input() call.
+  // has_zvertex() is false when no valid vertex was found (empty map or NaN);
+  // the z is then 0, the value the cluster kinematics fell back to.
+  bool has_zvertex() const override { return m_has_zvertex; }
+  std::string get_vertex_type() const override { return m_used_vertex_type; }
+  float get_vertex_z() const override { return m_used_vertex_z; }
 
  private:
   int m_Verbosity = 0;
   Jet::SRC m_Input = Jet::VOID;
   bool m_use_vertextype {false};
   GlobalVertex::VTXTYPE m_vertex_type = GlobalVertex::UNDEFINED;
+  bool m_has_zvertex{false};
+  std::string m_used_vertex_type{"UNDEFINED"};
+  float m_used_vertex_z{std::numeric_limits<float>::quiet_NaN()};
 };
 
 #endif
