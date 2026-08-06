@@ -189,7 +189,14 @@ void Tpc_PolyTrackReco::fillTpc_PolyTrack(unsigned int source_assembled_track_id
   out->set_track_id(m_polyTracks->size());
   out->set_source_assembled_track_id(source_assembled_track_id);
   out->set_fit_status(fit_ok ? 1 : 0);
-  out->set_nclusters(static_cast<unsigned int>(clusters.size()));
+  out->clear_cluster_keys();
+  for (const Tpc_PolyCluster* cluster : clusters)
+  {
+    if (!cluster) { continue;
+}
+    out->add_cluster_key(cluster->get_trkr_cluster_key());
+  }
+  out->set_nclusters(out->size_cluster_keys());
   out->set_dedx(calc_dedx(clusters, fit, fit_ok));
 
   if (fit_ok)
@@ -203,6 +210,12 @@ void Tpc_PolyTrackReco::fillTpc_PolyTrack(unsigned int source_assembled_track_id
       out->set_py(fit.line_dy);
       out->set_pz(fit.line_dz);
       out->set_charge(0.0);
+      out->set_seed_x0(fit.line_x);
+      out->set_seed_y0(fit.line_y);
+      out->set_seed_z0(fit.line_z);
+      out->set_seed_phi(fit.phi0);
+      out->set_seed_slope(std::fabs(std::tan(fit.theta)) > 1.0e-12 ? 1.0 / std::tan(fit.theta) : 0.0);
+      out->set_seed_q_over_r(0.0);
     }
     else
     {
@@ -221,12 +234,21 @@ void Tpc_PolyTrackReco::fillTpc_PolyTrack(unsigned int source_assembled_track_id
       out->set_pz(pz);
       double charge = fit.curvature >= 0.0 ? -1.0 : 1.0;
       out->set_charge(charge);
+      out->set_seed_x0(out->get_x());
+      out->set_seed_y0(out->get_y());
+      out->set_helix_x0(fit.cx);
+      out->set_helix_y0(fit.cy);
+      out->set_seed_z0(fit.z0);
+      out->set_seed_phi(fit.phi0);
+      out->set_seed_slope(std::fabs(std::tan(fit.theta)) > 1.0e-12 ? 1.0 / std::tan(fit.theta) : 0.0);
+      out->set_seed_q_over_r(charge * std::fabs(fit.curvature));
     }
     out->set_chi2(fit.chi2_xy + fit.chi2_z);
     out->set_ndf(static_cast<double>(fit.ndof_xy + fit.ndof_z));
   }
 
   m_polyTracks->add_track(out);
+  //out->identify();
 }
 
 int Tpc_PolyTrackReco::process_event(PHCompositeNode* topNode)
