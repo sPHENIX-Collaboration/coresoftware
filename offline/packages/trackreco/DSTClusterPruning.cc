@@ -151,51 +151,87 @@ void DSTClusterPruning::prune_clusters()
   // use this to create object that looks through both tracks and clusters and saves into new object
   // make sure clusters exist
   // make sure tracks exist
-  if (Verbosity() > 1){
+  if (Verbosity() > 1)
+  {
     std::cout << "In Prune clusters" << std::endl;
-    if(!m_cluster_map){
+    if (!m_cluster_map)
+    {
       std::cout << "No cluster map" << std::endl;
     }
-    if(!m_reduced_cluster_map){
+    if (!m_reduced_cluster_map)
+    {
       std::cout << "No reduced cluster map" << std::endl;
     }
-    if(!m_track_seed_container){
+    if (!m_track_seed_container)
+    {
       std::cout << "No track seed container" << std::endl;
     }
-    if(!m_silicon_track_seed_container){
+    if (!m_silicon_track_seed_container)
+    {
       std::cout << "No silicon track seed container" << std::endl;
     }
-    if(!m_tpc_track_seed_container){
+    if (!m_tpc_track_seed_container)
+    {
       std::cout << "No tpc track seed container" << std::endl;
     }
   }
-  
+
   if (!(m_cluster_map && m_reduced_cluster_map && m_track_seed_container && m_silicon_track_seed_container && m_tpc_track_seed_container))
   {
-    if (Verbosity() > 1){
+    if (Verbosity() > 1)
+    {
       std::cout << "Missing container" << std::endl;
     }
     return;
   }
-  if(m_pruneAllSeeds)
+  if (m_pruneAllSeeds)
   {
-    for(const auto& container : {m_tpc_track_seed_container, m_silicon_track_seed_container})
+    /**
+     * We want to dump out all clusters on track seeds
+     * Since the tpc-tpot matching requires drift velocity, we dump out all the tpot clusters
+     * so that the matching can be run in job c
+     * The additional data volume
+     * is minimal comparitvely and a worthwhile price to punt the calibration application to later
+     */
+    for (const auto& hitsetkey : m_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::micromegasId))
+    {
+      const auto& cluster_range = m_cluster_map->getClusters(hitsetkey);
+      for (auto cluster_iter = cluster_range.first; cluster_iter != cluster_range.second; ++cluster_iter)
+      {
+        const auto& cluster_key = cluster_iter->first;
+        const auto& cluster = cluster_iter->second;
+
+        if (!cluster)
+        {
+          continue;
+        }
+
+        if (!m_reduced_cluster_map->findCluster(cluster_key))
+        {
+          m_cluster = new TrkrClusterv5();
+          m_cluster->CopyFrom(cluster);
+          m_reduced_cluster_map->addClusterSpecifyKey(cluster_key, m_cluster);
+        }
+      }
+    }
+
+    for (const auto& container : {m_tpc_track_seed_container, m_silicon_track_seed_container})
     {
       for (const auto& trackseed : *container)
       {
         if (!trackseed)
         {
-	  if(Verbosity() > 1)
-	    {
-	      std::cout << "No TrackSeed" << std::endl;
-	    }
-	  continue;
+          if (Verbosity() > 1)
+          {
+            std::cout << "No TrackSeed" << std::endl;
+          }
+          continue;
         }
 
         for (auto key_iter = trackseed->begin_cluster_keys(); key_iter != trackseed->end_cluster_keys(); ++key_iter)
         {
           const auto& cluster_key = *key_iter;
-          auto *cluster = m_cluster_map->findCluster(cluster_key);
+          auto* cluster = m_cluster_map->findCluster(cluster_key);
           if (!cluster)
           {
             std::cout << "DSTClusterPruning::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
