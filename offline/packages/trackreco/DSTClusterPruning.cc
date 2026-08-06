@@ -186,6 +186,35 @@ void DSTClusterPruning::prune_clusters()
   }
   if (m_pruneAllSeeds)
   {
+    /**
+     * We want to dump out all clusters on track seeds
+     * Since the tpc-tpot matching requires drift velocity, we dump out all the tpot clusters
+     * so that the matching can be run in job c
+     * The additional data volume
+     * is minimal comparitvely and a worthwhile price to punt the calibration application to later
+     */
+    for (const auto& hitsetkey : m_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::micromegasId))
+    {
+      const auto& cluster_range = m_cluster_map->getClusters(hitsetkey);
+      for (auto cluster_iter = cluster_range.first; cluster_iter != cluster_range.second; ++cluster_iter)
+      {
+        const auto& cluster_key = cluster_iter->first;
+        const auto& cluster = cluster_iter->second;
+
+        if (!cluster)
+        {
+          continue;
+        }
+
+        if (!m_reduced_cluster_map->findCluster(cluster_key))
+        {
+          m_cluster = new TrkrClusterv5();
+          m_cluster->CopyFrom(cluster);
+          m_reduced_cluster_map->addClusterSpecifyKey(cluster_key, m_cluster);
+        }
+      }
+    }
+
     for (const auto& container : {m_tpc_track_seed_container, m_silicon_track_seed_container})
     {
       for (const auto& trackseed : *container)
