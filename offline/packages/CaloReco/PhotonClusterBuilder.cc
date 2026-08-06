@@ -30,9 +30,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdio>
 #include <iostream>
-#include <limits>
 #include <set>
 #include <stdexcept>
 
@@ -54,42 +52,11 @@ namespace
       ieta = -1;  // invalid
     }
   }
-
-  // Cone-radius suffix for isolation keys, matching the existing iso naming:
-  // 0.3 -> "03", 0.4 -> "04", 0.05 -> "005", 0.075 -> "0075"
-  std::string radius_key_suffix(float radius)
-  {
-    char text[32];
-    std::snprintf(text, sizeof(text), "%g", static_cast<double>(radius));
-    std::string suffix(text);
-    const std::string::size_type dot = suffix.find('.');
-    if (dot != std::string::npos)
-    {
-      suffix.erase(dot, 1);
-    }
-    return suffix;
-  }
 }  // namespace
 
 PhotonClusterBuilder::PhotonClusterBuilder(const std::string& name)
   : SubsysReco(name)
 {
-}
-
-void PhotonClusterBuilder::set_topocluster_iso_radii(const std::vector<float>& radii)
-{
-  if (radii.empty())
-  {
-    throw std::invalid_argument("PhotonClusterBuilder::set_topocluster_iso_radii requires at least one radius");
-  }
-  for (const float radius : radii)
-  {
-    if (!std::isfinite(radius) || radius <= 0.0f)
-    {
-      throw std::invalid_argument("PhotonClusterBuilder::set_topocluster_iso_radii requires positive finite radii");
-    }
-  }
-  m_topocluster_iso_radii = radii;
 }
 
 int PhotonClusterBuilder::InitRun(PHCompositeNode* topNode)
@@ -169,8 +136,7 @@ int PhotonClusterBuilder::InitRun(PHCompositeNode* topNode)
     if (!m_topocluster_container)
     {
       std::cout << Name() << ": topo-cluster isolation enabled but node '" << m_topocluster_node
-                << "' is missing; iso_topo_* values will remain at " << m_topo_iso_defval
-                << " until the node is available" << std::endl;
+                << "' is missing; iso_topo_* values will remain at " << m_topo_iso_defval << std::endl;
     }
   }
 
@@ -205,11 +171,6 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
       std::cerr << Name() << ": missing RawClusterContainer '" << m_input_cluster_node << "'" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-  }
-
-  if (m_do_topocluster_isolation && !m_topocluster_container)
-  {
-    m_topocluster_container = findNode::getClass<RawClusterContainer>(topNode, m_topocluster_node);
   }
 
   // init with NaN
@@ -635,17 +596,8 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   photon->set_shower_shape_parameter("w72", w72);
   photon->set_shower_shape_parameter("cluster_eta", cluster_eta);
   photon->set_shower_shape_parameter("cluster_phi", cluster_phi);
-  int maxiphi_wrapped = maxiphi;
-  while (maxiphi_wrapped < 0)
-  {
-    maxiphi_wrapped += 256;
-  }
-  while (maxiphi_wrapped >= 256)
-  {
-    maxiphi_wrapped -= 256;
-  }
-  photon->set_shower_shape_parameter("cluster_ietacent", static_cast<float>(maxieta));
-  photon->set_shower_shape_parameter("cluster_iphicent", static_cast<float>(maxiphi_wrapped));
+  photon->set_shower_shape_parameter("cluster_ietacent", showershape[4]);
+  photon->set_shower_shape_parameter("cluster_iphicent", showershape[5]);
   photon->set_shower_shape_parameter("mean_time", clusteravgtime);
   photon->set_shower_shape_parameter("detacog", detacog);
   photon->set_shower_shape_parameter("dphicog", dphicog);
@@ -853,48 +805,26 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
 
   if (m_do_topocluster_isolation)
   {
-    // Topo-cluster isolation cone axis: the shower CoG-tower center projected
-    // through the event vertex, so the axis and the topo-cluster constituents
-    // sit on the same reference surface. The cluster COG position lives at
-    // shower depth while tower/topo-cluster centers live at tower mid-depth;
-    // projected through a non-zero vertex z that radial mismatch shifts the
-    // axis in eta and biases small cones. Falls back to the cluster COG when
-    // the tower geometry lookup is unavailable.
     float iso_axis_eta = cluster_eta;
     float iso_axis_phi = cluster_phi;
-    if (showershape.size() >= 6)
+    if (maxieta >= 0 && maxieta < 96)
     {
-      int cog_ieta = static_cast<int>(std::floor(showershape[4] + 0.5F));
-      int cog_iphi = static_cast<int>(std::floor(showershape[5] + 0.5F));
-      while (cog_iphi < 0)
+      const int cog_iphi = (maxiphi % 256 + 256) % 256;
+      const auto cog_key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, maxieta, cog_iphi);
+      RawTowerGeom* cog_tower = m_geomEM->get_tower_geometry(cog_key);
+      if (cog_tower)
       {
-        cog_iphi += 256;
-      }
-      while (cog_iphi >= 256)
-      {
-        cog_iphi -= 256;
-      }
-      if (cog_ieta >= 0 && cog_ieta < 96)
-      {
-        const RawTowerDefs::keytype cog_key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, cog_ieta, cog_iphi);
-        RawTowerGeom* cog_tg = m_geomEM ? m_geomEM->get_tower_geometry(cog_key) : nullptr;
-        if (cog_tg)
-        {
-          iso_axis_eta = getTowerEta(cog_tg, 0, 0, m_vertex);
-          iso_axis_phi = cog_tg->get_phi();
-        }
+        iso_axis_eta = getTowerEta(cog_tower, 0, 0, m_vertex);
+        iso_axis_phi = cog_tower->get_phi();
       }
     }
 
-    bool topo_iso_valid = true;
-    for (const float radius : m_topocluster_iso_radii)
-    {
-      const float raw_iso = topocluster_raw_iso(m_topocluster_container, iso_axis_eta, iso_axis_phi, radius, m_vertex, ET);
-      const bool radius_valid = std::isfinite(raw_iso);
-      topo_iso_valid = topo_iso_valid && radius_valid;
-      photon->set_shower_shape_parameter("iso_topo_" + radius_key_suffix(radius), radius_valid ? raw_iso : m_topo_iso_defval);
-    }
-    photon->set_shower_shape_parameter("iso_topo_valid", topo_iso_valid ? 1.0F : 0.0F);
+    float iso03 = m_topo_iso_defval;
+    float iso04 = m_topo_iso_defval;
+    calculate_topocluster_iso(iso_axis_eta, iso_axis_phi, ET, iso03, iso04);
+    photon->set_shower_shape_parameter("iso_topo_03", iso03);
+    photon->set_shower_shape_parameter("iso_topo_04", iso04);
+    photon->set_shower_shape_parameter("iso_topo_valid", m_topocluster_container ? 1.0F : 0.0F);
   }
 }
 
@@ -1027,23 +957,17 @@ float PhotonClusterBuilder::calculate_layer_et(float seed_eta, float seed_phi, f
   return layer_et;
 }
 
-float PhotonClusterBuilder::topocluster_raw_iso(const RawClusterContainer* topoclusters,
-                                                float seed_eta, float seed_phi,
-                                                float radius, float vertex_z,
-                                                float candidate_et)
+void PhotonClusterBuilder::calculate_topocluster_iso(float eta, float phi, float candidate_et, float& iso03, float& iso04)
 {
-  if (!topoclusters ||
-      !std::isfinite(seed_eta) || !std::isfinite(seed_phi) ||
-      !std::isfinite(radius) || radius <= 0.0f ||
-      !std::isfinite(vertex_z) || !std::isfinite(candidate_et))
+  if (!m_topocluster_container)
   {
-    return std::numeric_limits<float>::quiet_NaN();
+    return;
   }
 
-  const CLHEP::Hep3Vector vertex(0, 0, vertex_z);
-  double cone_sum_et = 0;
-  RawClusterContainer::ConstRange range = topoclusters->getClusters();
-  for (RawClusterContainer::ConstIterator it = range.first; it != range.second; ++it)
+  iso03 = iso04 = 0.0F;
+  const CLHEP::Hep3Vector vertex(0, 0, m_vertex);
+  const auto range = m_topocluster_container->getClusters();
+  for (auto it = range.first; it != range.second; ++it)
   {
     const RawCluster* topo = it->second;
     if (!topo)
@@ -1051,30 +975,22 @@ float PhotonClusterBuilder::topocluster_raw_iso(const RawClusterContainer* topoc
       continue;
     }
 
-    const double topo_eta = RawClusterUtility::GetPseudorapidity(*topo, vertex);
-    const double topo_phi = RawClusterUtility::GetAzimuthAngle(*topo, vertex);
-    if (!std::isfinite(topo_eta) || !std::isfinite(topo_phi))
+    const float topo_eta = RawClusterUtility::GetPseudorapidity(*topo, vertex);
+    const float topo_phi = RawClusterUtility::GetAzimuthAngle(*topo, vertex);
+    const float topo_et = topo->get_energy() / std::cosh(topo_eta);  // signed, as in PPG12
+    const float dr = deltaR(eta, phi, topo_eta, topo_phi);
+    if (dr < 0.4F)
     {
-      continue;
-    }
-
-    // Signed ET on purpose: RawClusterBuilderTopo admits clusters by |E|, so
-    // a topo cluster can carry negative signed energy, and dropping it would
-    // bias the isolation upward.
-    const double topo_et = topo->get_energy() / std::cosh(topo_eta);
-    if (!std::isfinite(topo_et))
-    {
-      continue;
-    }
-
-    if (deltaR(seed_eta, seed_phi, topo_eta, topo_phi) < radius)
-    {
-      cone_sum_et += topo_et;
+      iso04 += topo_et;
+      if (dr < 0.3F)
+      {
+        iso03 += topo_et;
+      }
     }
   }
 
-  const double raw_iso = cone_sum_et - candidate_et;
-  return std::isfinite(raw_iso) ? static_cast<float>(raw_iso) : std::numeric_limits<float>::quiet_NaN();
+  iso03 -= candidate_et;
+  iso04 -= candidate_et;
 }
 
 float PhotonClusterBuilder::resolve_bdt_feature(const PhotonClusterv1* photon,

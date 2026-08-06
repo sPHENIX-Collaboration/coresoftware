@@ -45,36 +45,17 @@ class PhotonClusterBuilder : public SubsysReco
   void set_do_subtracted_iso(bool do_subtracted_iso) { m_do_subtracted_iso = do_subtracted_iso; }
   void set_do_topocluster_isolation(bool do_topo_iso) { m_do_topocluster_isolation = do_topo_iso; }
   void set_topocluster_node(const std::string& n) { m_topocluster_node = n; }
-  void set_topocluster_iso_radii(const std::vector<float>& radii);
   const std::vector<std::string>& get_bdt_feature_list() const { return m_bdt_feature_list; }
-
-  //! Raw topo-cluster isolation for one cone: signed sum of topo-cluster ET
-  //! (E/cosh(eta) w.r.t. the event vertex) over clusters within
-  //! delta-R < radius of the seed axis, minus the candidate ET exactly once.
-  //! Negative topo-cluster ET stays in the sum. Returns NaN when the
-  //! container or any input is unusable, so an unavailable measurement is
-  //! distinguishable from a real isolation value.
-  static float topocluster_raw_iso(const RawClusterContainer* topoclusters,
-                                   float seed_eta, float seed_phi,
-                                   float radius, float vertex_z,
-                                   float candidate_et);
-
-  //! Resolve one BDT input feature. An exact stored shower-shape key always
-  //! wins. On an exact miss, the PPG12/TMVA aliases cluster_Eta,
-  //! cluster_Phi, cluster_Et/cluster_et, ET, and vertex_z/vertexz are
-  //! supported, followed by cluster_ prefix fallback and _over_ ratios.
-  //! Missing inputs return NaN.
-  static float resolve_bdt_feature(const PhotonClusterv1* photon,
-                                   const std::string& feature,
-                                   float vertex_z);
 
  private:
   void CreateNodes(PHCompositeNode* topNode);
   void calculate_shower_shapes(RawCluster* rc, PhotonClusterv1* photon, float eta, float phi);
   void calculate_bdt_score(PhotonClusterv1* photon);
+  static float resolve_bdt_feature(const PhotonClusterv1* photon, const std::string& feature, float vertex_z);
+  void calculate_topocluster_iso(float eta, float phi, float candidate_et, float& iso03, float& iso04);
   double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz);
   std::vector<int> find_closest_hcal_tower(float eta, float phi, RawTowerGeomContainer* geom, TowerInfoContainer* towerContainer, float vertex_z, bool isihcal);
-  static double deltaR(double eta1, double phi1, double eta2, double phi2);
+  double deltaR(double eta1, double phi1, double eta2, double phi2);
   float calculate_layer_et(float seed_eta, float seed_phi, float radius, TowerInfoContainer* towerContainer, RawTowerGeomContainer* geomContainer, RawTowerDefs::CalorimeterId calo_id, float vertex_z);
   bool m_do_bdt{false};
   bool m_do_subtracted_iso{false};
@@ -83,7 +64,6 @@ class PhotonClusterBuilder : public SubsysReco
   std::string m_input_cluster_node{"CLUSTERINFO_CEMC"};
   std::string m_output_photon_node{"PHOTONCLUSTER_CEMC"};
   std::string m_topocluster_node{"TOPOCLUSTER_ALLCALO"};
-  std::vector<float> m_topocluster_iso_radii{0.3f, 0.4f};
   float m_min_cluster_et{5.0f};
   float m_shape_min_tower_E{0.070f};
   std::string m_bdt_model_file{"myBDT_5.root"};
