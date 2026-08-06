@@ -293,33 +293,7 @@ void PhotonClusterBuilder::calculate_bdt_score(PhotonClusterv1* photon)
   std::vector<float> x;
   for (const auto& feature : m_bdt_feature_list)
   {
-    if (feature == "vertex_z")
-    {
-      x.push_back(m_vertex);
-    }
-    else if (feature == "ET")
-    {
-      float E = photon->get_energy();
-      float ET = E / std::cosh(photon->get_shower_shape_parameter("cluster_eta"));
-      x.push_back(ET);
-    }
-    else
-    {
-      const std::string delim = "_over_";
-      const auto pos = feature.find(delim);
-      if (pos != std::string::npos)
-      {
-        const std::string num = feature.substr(0, pos);
-        const std::string den = feature.substr(pos + delim.size());
-        const float numerator = photon->get_shower_shape_parameter(num);
-        const float denominator = photon->get_shower_shape_parameter(den);
-        x.push_back((denominator > 0) ? (numerator / denominator) : 0.0F);
-      }
-      else
-      {
-        x.push_back(photon->get_shower_shape_parameter(feature));
-      }
-    }
+    x.push_back(resolve_bdt_feature(photon, feature, m_vertex));
     //check if the thing we pushed back is NaN
     if (std::isnan(x.back()))
     {
@@ -661,6 +635,17 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   photon->set_shower_shape_parameter("w72", w72);
   photon->set_shower_shape_parameter("cluster_eta", cluster_eta);
   photon->set_shower_shape_parameter("cluster_phi", cluster_phi);
+  int maxiphi_wrapped = maxiphi;
+  while (maxiphi_wrapped < 0)
+  {
+    maxiphi_wrapped += 256;
+  }
+  while (maxiphi_wrapped >= 256)
+  {
+    maxiphi_wrapped -= 256;
+  }
+  photon->set_shower_shape_parameter("cluster_ietacent", static_cast<float>(maxieta));
+  photon->set_shower_shape_parameter("cluster_iphicent", static_cast<float>(maxiphi_wrapped));
   photon->set_shower_shape_parameter("mean_time", clusteravgtime);
   photon->set_shower_shape_parameter("detacog", detacog);
   photon->set_shower_shape_parameter("dphicog", dphicog);
@@ -784,6 +769,7 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
 
   float E = photon->get_energy();
   float ET = E / std::cosh(cluster_eta);
+  photon->set_shower_shape_parameter("cluster_pt", ET);
 
   auto compute_layer_iso = [&](RawTowerDefs::CalorimeterId calo_id, float radius)
   {
@@ -1089,6 +1075,62 @@ float PhotonClusterBuilder::topocluster_raw_iso(const RawClusterContainer* topoc
 
   const double raw_iso = cone_sum_et - candidate_et;
   return std::isfinite(raw_iso) ? static_cast<float>(raw_iso) : std::numeric_limits<float>::quiet_NaN();
+}
+
+float PhotonClusterBuilder::resolve_bdt_feature(const PhotonClusterv1* photon,
+                                                const std::string& feature,
+                                                float vertex_z)
+{
+  if (!photon)
+  {
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+
+  // Exact stored keys are authoritative. In particular, lower-case
+  // cluster_* kinematics must not be rewritten before this lookup.
+  const auto& shower_shapes = photon->get_all_shower_shapes();
+  const auto exact = shower_shapes.find(feature);
+  if (exact != shower_shapes.end())
+  {
+    return exact->second;
+  }
+
+  if (feature == "vertex_z" || feature == "vertexz")
+  {
+    return vertex_z;
+  }
+  if (feature == "ET" || feature == "cluster_Et" || feature == "cluster_et")
+  {
+    const float eta = photon->get_shower_shape_parameter("cluster_eta");
+    const float et = photon->get_energy() / std::cosh(eta);
+    return std::isfinite(et) ? et : std::numeric_limits<float>::quiet_NaN();
+  }
+  if (feature == "cluster_Eta")
+  {
+    return photon->get_shower_shape_parameter("cluster_eta");
+  }
+  if (feature == "cluster_Phi")
+  {
+    return photon->get_shower_shape_parameter("cluster_phi");
+  }
+
+  const std::string delim = "_over_";
+  const auto pos = feature.find(delim);
+  if (pos != std::string::npos)
+  {
+    const std::string numerator_name = feature.substr(0, pos);
+    const std::string denominator_name = feature.substr(pos + delim.size());
+    const float numerator = resolve_bdt_feature(photon, numerator_name, vertex_z);
+    const float denominator = resolve_bdt_feature(photon, denominator_name, vertex_z);
+    return (denominator > 0) ? (numerator / denominator) : 0.0F;
+  }
+
+  if (feature.rfind("cluster_", 0) == 0)
+  {
+    return photon->get_shower_shape_parameter(feature.substr(8));
+  }
+
+  return photon->get_shower_shape_parameter(feature);
 }
 
 double PhotonClusterBuilder::deltaR(double eta1, double phi1, double eta2, double phi2)

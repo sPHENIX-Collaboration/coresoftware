@@ -1,5 +1,5 @@
 // Behavioral test for PhotonClusterBuilder::topocluster_raw_iso and the
-// exact-key shower-shape lookup contract used by calculate_bdt_score.
+// exact-first feature resolver used by calculate_bdt_score.
 //
 // Run manually after building the package:
 //   ./testPhotonClusterBuilderTopoIso
@@ -161,22 +161,56 @@ int main()
           "non-finite candidate ET yields NaN");
   }
 
-  // --- Exact-key shower-shape lookup contract (BDT feature access) ----------
+  // --- Exact-first BDT feature resolution -----------------------------------
   {
     PhotonClusterv1 photon;
+    photon.set_energy(9.0F);
     photon.set_shower_shape_parameter("cluster_eta", 0.42F);
+    photon.set_shower_shape_parameter("cluster_phi", -0.75F);
     photon.set_shower_shape_parameter("cluster_pt", 7.5F);
+    photon.set_shower_shape_parameter("cluster_ietacent", 41.0F);
+    photon.set_shower_shape_parameter("cluster_iphicent", 173.0F);
+    photon.set_shower_shape_parameter("eta", -9.0F);
+    photon.set_shower_shape_parameter("phi", -9.0F);
+    photon.set_shower_shape_parameter("pt", -9.0F);
+    photon.set_shower_shape_parameter("ietacent", -9.0F);
+    photon.set_shower_shape_parameter("iphicent", -9.0F);
+    photon.set_shower_shape_parameter("weta", 0.18F);
+    photon.set_shower_shape_parameter("e33", 6.0F);
 
-    check_close(photon.get_shower_shape_parameter("cluster_eta"), 0.42F,
-                "exact stored key 'cluster_eta' resolves to the stored value");
-    check_close(photon.get_shower_shape_parameter("cluster_pt"), 7.5F,
-                "exact stored key 'cluster_pt' resolves without prefix rewriting");
-    check(std::isnan(photon.get_shower_shape_parameter("pt")),
-          "stripped-prefix spelling of a stored key stays missing (NaN)");
-    check(std::isnan(photon.get_shower_shape_parameter("cluster_Eta")),
-          "different-case alias of a stored key stays missing (NaN)");
-    check(std::isnan(photon.get_shower_shape_parameter("weta77")),
-          "never-stored key stays missing (NaN)");
+    const float vertex_z = 12.5F;
+
+    check_close(PhotonClusterBuilder::resolve_bdt_feature(&photon, "cluster_eta", vertex_z), 0.42F,
+                "exact cluster_eta wins before cluster_ prefix fallback");
+    check_close(PhotonClusterBuilder::resolve_bdt_feature(&photon, "cluster_phi", vertex_z), -0.75F,
+                "exact cluster_phi wins before cluster_ prefix fallback");
+    check_close(PhotonClusterBuilder::resolve_bdt_feature(&photon, "cluster_pt", vertex_z), 7.5F,
+                "exact cluster_pt wins before cluster_ prefix fallback");
+    check_close(PhotonClusterBuilder::resolve_bdt_feature(&photon, "cluster_ietacent", vertex_z), 41.0F,
+                "exact cluster_ietacent wins before cluster_ prefix fallback");
+    check_close(PhotonClusterBuilder::resolve_bdt_feature(&photon, "cluster_iphicent", vertex_z), 173.0F,
+                "exact cluster_iphicent wins before cluster_ prefix fallback");
+
+    check_close(PhotonClusterBuilder::resolve_bdt_feature(&photon, "cluster_Eta", vertex_z), 0.42F,
+                "PPG12/TMVA cluster_Eta alias resolves after exact miss");
+    check_close(PhotonClusterBuilder::resolve_bdt_feature(&photon, "cluster_Phi", vertex_z), -0.75F,
+                "PPG12/TMVA cluster_Phi alias resolves after exact miss");
+    check_close(PhotonClusterBuilder::resolve_bdt_feature(&photon, "cluster_Et", vertex_z),
+                9.0F / std::cosh(0.42F), "PPG12/TMVA cluster_Et alias resolves after exact miss");
+    check_close(PhotonClusterBuilder::resolve_bdt_feature(&photon, "vertexz", vertex_z), vertex_z,
+                "vertexz alias resolves after exact miss");
+    check_close(PhotonClusterBuilder::resolve_bdt_feature(&photon, "cluster_weta", vertex_z), 0.18F,
+                "cluster_ prefix fallback resolves an unprefixed shower shape");
+    check_close(PhotonClusterBuilder::resolve_bdt_feature(&photon, "cluster_weta_over_e33", vertex_z), 0.03F,
+                "ratio inputs use the same alias and prefix resolution contract");
+
+    photon.set_shower_shape_parameter("cluster_Eta", 0.99F);
+    check_close(PhotonClusterBuilder::resolve_bdt_feature(&photon, "cluster_Eta", vertex_z), 0.99F,
+                "an exact stored key wins even when its spelling is also a known alias");
+    check(std::isnan(PhotonClusterBuilder::resolve_bdt_feature(&photon, "cluster_missing", vertex_z)),
+          "a missing exact key and missing fallback remain NaN");
+    check(std::isnan(PhotonClusterBuilder::resolve_bdt_feature(nullptr, "cluster_eta", vertex_z)),
+          "a null photon returns NaN");
   }
 
   if (failures)

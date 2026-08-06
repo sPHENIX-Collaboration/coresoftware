@@ -59,6 +59,15 @@ class PhotonClusterBuilder : public SubsysReco
                                    float radius, float vertex_z,
                                    float candidate_et);
 
+  //! Resolve one BDT input feature. An exact stored shower-shape key always
+  //! wins. On an exact miss, the PPG12/TMVA aliases cluster_Eta,
+  //! cluster_Phi, cluster_Et/cluster_et, ET, and vertex_z/vertexz are
+  //! supported, followed by cluster_ prefix fallback and _over_ ratios.
+  //! Missing inputs return NaN.
+  static float resolve_bdt_feature(const PhotonClusterv1* photon,
+                                   const std::string& feature,
+                                   float vertex_z);
+
  private:
   void CreateNodes(PHCompositeNode* topNode);
   void calculate_shower_shapes(RawCluster* rc, PhotonClusterv1* photon, float eta, float phi);
