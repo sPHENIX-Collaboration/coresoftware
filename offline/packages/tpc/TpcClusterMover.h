@@ -29,14 +29,8 @@ class TpcClusterMover
  private:
   int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xclus, double yclus, double &x, double &y) const;
 
-  double _z_start = 0.0;
-  double _y_start = 0.0;
-  double _x_start = 0.0;
-
-  double _z_proj = 0.0;
-  double _y_proj = 0.0;
-  double _x_proj = 0.0;
-
+  bool get_moved_position(TrkrDefs::cluskey cluskey, TrkrCluster *cluster, std::vector<float> &fitpars, Acts::Vector3 &global, Acts::Vector3 &global_new, TrkrDefs::subsurfkey &new_subsurfkey) const;
+    
   double layer_radius[48] = {0};
   double inner_tpc_min_radius = 30.0;
   double mid_tpc_min_radius = 40.0;
