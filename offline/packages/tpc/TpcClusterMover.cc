@@ -136,7 +136,14 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
   }
 
   std::vector<float> fitpars = TrackFitUtils::fitClusters(tpc_global_vec,  tpc_cluskey_vec, 0);
-  
+  if(fitpars.size() == 0)
+    {
+      if(_verbosity > 1)
+	{
+	  std::cout << PHWHERE << "Warning: fit failed, return input positions. " << std::endl;
+	}
+      return global_in;
+    }  
   // Now we need to move each TPC cluster associated with this track to the readout surface radius
   for (unsigned int i = 0; i < tpc_global_vec.size(); ++i)
   {
@@ -157,11 +164,12 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
     bool ret = get_moved_position(cluskey, cluster, fitpars, global, global_new, new_subsurfkey);
     if(!ret)
     {
-      global_moved.emplace_back(cluskey, global_new); 
+      global_moved.emplace_back(cluskey, global); 
       if(_verbosity > 1)
 	{
-	  std::cout << PHWHERE << "Warning: get_moved_position failed, it did nothing. " << std::endl;
+	  std::cout << PHWHERE << "Warning: get_moved_position failed, use input position. " << std::endl;
 	}
+      continue;
     }
     
     int iter = 0;
