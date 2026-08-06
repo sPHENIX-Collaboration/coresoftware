@@ -182,6 +182,17 @@ class Jet : public PHObject
   virtual float get_mass() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float get_mass2() const { return std::numeric_limits<float>::quiet_NaN(); }
 
+  // calorimeter energy fractions (layer energy / jet total energy),
+  // filled during jet reconstruction by FastJetAlgo/FastJetAlgoSub
+  virtual float get_emcal_frac() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_emcal_frac(float) { return; }
+
+  virtual float get_ihcal_frac() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_ihcal_frac(float) { return; }
+
+  virtual float get_ohcal_frac() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_ohcal_frac(float) { return; }
+
   // --------------------------------------------------------------------------
   // Functions for jet properties (always float values)
   // --------------------------------------------------------------------------

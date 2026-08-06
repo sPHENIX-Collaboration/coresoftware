@@ -8,6 +8,8 @@
 #include <globalvertex/GlobalVertex.h>
 
 #include <iostream>  // for cout, ostream
+#include <limits>
+#include <string>
 
 #include <vector>
 // forward declarations
@@ -55,8 +57,17 @@ class TowerJetInput : public JetInput
   }
 
   float get_timing_e_threshold() { return m_timing_e_threshold; }
-  
+
   void set_timing_e_threshold(float new_threshold) { m_timing_e_threshold = new_threshold; }
+
+  // vertex actually used in the last get_input() call.
+  // has_zvertex() is false when no valid vertex was found (empty map, NaN,
+  // or oversized z); the z is then 0, the value the tower kinematics fell
+  // back to. The type is the REQUESTED vertex type when a type selection is
+  // active (even if no vertex was found); "UNDEFINED" without a selection.
+  bool has_zvertex() const override { return m_has_zvertex; }
+  std::string get_vertex_type() const override { return m_used_vertex_type; }
+  float get_vertex_z() const override { return m_used_vertex_z; }
 
  private:
   Jet::SRC m_input;
@@ -67,6 +78,9 @@ class TowerJetInput : public JetInput
   bool m_use_vertextype {false};
   std::vector<GlobalVertex::VTXTYPE> m_vertex_type{GlobalVertex::UNDEFINED};
   float m_timing_e_threshold{0.1};
+  bool m_has_zvertex{false};
+  std::string m_used_vertex_type{"UNDEFINED"};
+  float m_used_vertex_z{std::numeric_limits<float>::quiet_NaN()};
 };
 
 #endif

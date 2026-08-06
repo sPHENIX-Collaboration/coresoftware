@@ -170,6 +170,7 @@ void FastJetOptions::print(std::ostream& os)
     }
     os << std::endl
      << " - save jet components ids: " << (save_jet_components ? "yes" : "no") << std::endl
+     << " - calo energy fractions (EMCal/iHCal/oHCal): " << (calc_calo_fracs ? "yes" : "no") << std::endl
      << " - verbosity: " << verbosity << std::endl;
   if (use_constituent_min_pt)
   {

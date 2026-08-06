@@ -18,6 +18,7 @@
 #include <cassert>
 #include <cmath>  // for asinh, atan2, cos, cosh
 #include <iostream>
+#include <limits>
 #include <map>      // for _Rb_tree_const_iterator
 #include <utility>  // for pair
 #include <vector>
@@ -65,6 +66,16 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     std::cout << "TowerJetInput::process_event -- entered" << std::endl;
   }
   float vtxz = 0;  // default to 0
+  m_has_zvertex = false;
+  m_used_vertex_type = "UNDEFINED";
+  if (m_use_vertextype && !m_vertex_type.empty())
+  {
+    // record the REQUESTED vertex type even when no vertex is found this event
+    // (so e.g. "MBD" with has_zvertex() == false means: MBD selection active,
+    // but no valid MBD vertex); "UNDEFINED" is left for no type selection.
+    m_used_vertex_type = get_vtxtype_name(m_vertex_type.at(0));
+  }
+  m_used_vertex_z = std::numeric_limits<float>::quiet_NaN();
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
   {
@@ -90,6 +101,17 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	    if(vertices.at(0))
 	      {
 		vtxz = vertices.at(0)->get_z();
+		m_has_zvertex = true;
+		// record which of the requested vertex types the chosen vertex actually contains
+		for (auto type : m_vertex_type)
+		  {
+		    auto iter = vertices.at(0)->find_vertexes(type);
+		    if (iter != vertices.at(0)->end_vertexes() && iter->first == type)
+		      {
+			m_used_vertex_type = get_vtxtype_name(type);
+			break;
+		      }
+		  }
 	      }
 	    if(vertices.size() > 1 && Verbosity() > 0)
 	      {
@@ -103,6 +125,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	if (vtx)
 	  {
 	    vtxz = vtx->get_z();
+	    m_has_zvertex = true;
 	  }
       }
   }
@@ -115,6 +138,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       std::cout << "TowerJetInput::get_input - WARNING - vertex is NAN. Continue with zvtx = 0 (further vertex warning will be suppressed)." << std::endl;
     }
     vtxz = 0;
+    m_has_zvertex = false;  // no valid vertex, jets are reconstructed with z=0
   }
 
   if (std::abs(vtxz) > 1e3)  // code crashes with very large z vertex, so skip these events
@@ -127,7 +151,9 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       std::cout << "TowerJetInput::get_input - WARNING - vertex is " << vtxz << ". Set vtxz = 0 (further vertex warning will be suppressed)." << std::endl;
     }
     vtxz = 0;
+    m_has_zvertex = false;  // no valid vertex, jets are reconstructed with z=0
   }
+  m_used_vertex_z = vtxz;  // the z the tower kinematics are computed with
 
   m_use_towerinfo = false;
 
