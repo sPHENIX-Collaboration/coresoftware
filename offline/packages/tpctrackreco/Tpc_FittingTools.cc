@@ -649,6 +649,8 @@ bool Tpc_FittingTools::fit(const std::vector<Point>& points, FitResult& fit)
   const double ry = py - yc;
   const double tx = -sign * ry / R;
   const double ty = sign * rx / R;
+  fit.cx = xc;
+  fit.cy = yc;
   fit.phi0 = wrap_pi(std::atan2(ty, tx));
 
   const double phi_perigee = std::atan2(ry, rx);
