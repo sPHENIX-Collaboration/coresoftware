@@ -15,7 +15,10 @@ class IdealPadMap;
 class PHCompositeNode;
 class PHGarfield;
 class Tpc_PolyClusterContainer;
+class TpcCrossingDecisionContainer;
 class TrkrHitSetContainer;
+class PHG4CylinderGeomContainer;
+class PHG4TpcGeomContainer;
 
 class Tpc_PolyClusterizer : public SubsysReco
 {
@@ -30,12 +33,16 @@ class Tpc_PolyClusterizer : public SubsysReco
 
   void setInputNodeName(const std::string& n) { m_inputNodeName = n; }
   void setOutputNodeName(const std::string& n) { m_outputNodeName = n; }
+  void setCrossingDecisionNodeName(const std::string& n) { m_crossingDecisionNodeName = n; }
+  void setMaxAcceptedTier(unsigned char v) { m_maxAcceptedTier = v; }
   void setT0(double v) { m_t0 = v; }
   void setTpcAdcClock(double v) { m_tpcAdcClock = v; }
+  void setCrossingPeriodNs(double v) { m_crossingPeriodNs = v; }
   void setReverseDriftStepNs(double v) { m_reverseDriftStepNs = v; }
   void setKEffSide0(double v) { m_kEffSide0 = v; }
   void setKEffSide1(double v) { m_kEffSide1 = v; }
   void setCMVoltageDefault(double v) { m_cmVoltageDefault = v; }
+  void setUseSurveyGeometry(bool v) { use_survey_geometry = v; }
   void setMoveTpc(double x, double y, double z) { m_tpcMove = {{x, y, z}}; }
   void setRotateTpc(unsigned int index, double x, double y, double z)
   {
@@ -97,12 +104,13 @@ class Tpc_PolyClusterizer : public SubsysReco
 
   int getNodes(PHCompositeNode*);
   int createNodes(PHCompositeNode*);
-  bool make_xyz_point(TrkrDefs::hitsetkey hsk, TrkrDefs::hitkey hk, Point& p) const;
+  bool make_xyz_point(TrkrDefs::hitsetkey hsk, TrkrDefs::hitkey hk, short crossing, Point& p) const;
   bool build_drift_lookup();
   bool sample_drift_lookup(unsigned int layer,
                            unsigned int side,
                            unsigned int pad,
                            unsigned int tbin,
+                           short crossing,
                            double& x,
                            double& y,
                            double& z) const;
@@ -112,21 +120,27 @@ class Tpc_PolyClusterizer : public SubsysReco
   static unsigned int drift_lookup_index(unsigned int layer_index, unsigned int side, unsigned int sector, unsigned int sample);
   std::string m_inputNodeName;
   std::string m_outputNodeName;
+  std::string m_crossingDecisionNodeName{"TPC_CROSSING_DECISIONS"};
+  unsigned char m_maxAcceptedTier{1};
   Tpc_AssembledTrackContainer* m_assembledTracks{nullptr};
   Tpc_PolyClusterContainer* m_clusters{nullptr};
+  TpcCrossingDecisionContainer* m_crossingDecisions {nullptr};
   TrkrHitSetContainer* m_hits{nullptr};
   IdealPadMap* m_idealPadMap{nullptr};
   PHGarfield* m_garfield{nullptr};
+  PHG4TpcGeomContainer* m_geomContainerTpc{nullptr};
   std::array<DriftPolyline, 48 * 2 * 12 * NPhiSamples> m_driftLookup;
   unsigned int m_event{0};
   double m_t0{8};
   double m_tpcAdcClock{56.881262};
+  double m_crossingPeriodNs {106.56};
   double m_reverseDriftStepNs{56.881262};
   double m_startZSouth{-102.325};
   double m_startZNorth{102.325};
   double m_kEffSide0{0.0};
   double m_kEffSide1{-1.5};
   double m_cmVoltageDefault{380.0};
+  bool use_survey_geometry = false;
   std::array<double, 3> m_tpcMove{{0.0, 0.0, 0.0}};                                             //{{-0.16775, -0.0337, -0.71365}};
   std::array<std::array<double, 3>, 2> m_tpcRotations{{{{0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}}}};  //{{{{0.0, 0.01485 / 10.0, 0.0}}, {{0.0298 / 8.0, 0.0, 0.0}}}};
 };

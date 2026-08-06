@@ -5,6 +5,8 @@
 #include "Tpc_AssembledTrackContainer.h"
 #include "Tpc_PolyClusterContainerv1.h"
 #include "Tpc_PolyClusterv1.h"
+#include "TpcCrossingDecision.h"
+#include "TpcCrossingDecisionContainer.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -19,6 +21,13 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+
+#include <trackbase/ActsGeometry.h>
+#include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
+
 
 #include <TPolyLine3D.h>
 #include <phgarfield/PHGarfield.h>
@@ -72,6 +81,11 @@ namespace
     return std::max(0.0, std::min(1.0, value));
   }
 
+  double square(const double value)
+  {
+    return value * value;
+  }
+
   double phi_sample_fraction(const unsigned int sample)
   {
     if (Tpc_PolyClusterizer::NPhiSamples <= 1U)
@@ -114,6 +128,19 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
   {
     std::cerr << Name() << "::InitRun - failed to load IdealPadMap" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  PHG4TpcGeom *layergeom = m_geomContainerTpc->GetLayerCellGeom(20); 
+  double rot_x = layergeom->get_rot_x();
+  double rot_y = layergeom->get_rot_y();
+  double rot_z = layergeom->get_rot_z();
+  double place_x = layergeom->get_place_x();
+  double place_y = layergeom->get_place_y();
+  double place_z = layergeom->get_place_z();
+  if (use_survey_geometry) 
+  {
+    m_tpcMove = {place_x, place_y, place_z};
+    m_tpcRotations = {{{rot_x, rot_y, rot_z}, {0.0, 0.0, 0.0}}};
   }
 
   delete m_garfield;
@@ -167,6 +194,20 @@ int Tpc_PolyClusterizer::getNodes(PHCompositeNode* topNode)
   if (!m_hits)
   {
     std::cerr << Name() << "::getNodes - missing TRKR_HITSET" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_crossingDecisions = findNode::getClass<TpcCrossingDecisionContainer>(topNode, m_crossingDecisionNodeName);
+  if (!m_crossingDecisions)
+  {
+    std::cerr << Name() << "::getNodes - missing " << m_crossingDecisionNodeName << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_geomContainerTpc = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  if (!m_geomContainerTpc)
+  {
+    std::cerr << Name() << "::getNodes - missing TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -379,6 +420,7 @@ bool Tpc_PolyClusterizer::sample_drift_lookup(const unsigned int layer,
                                               const unsigned int side,
                                               const unsigned int pad,
                                               const unsigned int tbin,
+                                              const short crossing,
                                               double& x,
                                               double& y,
                                               double& z) const
@@ -419,8 +461,7 @@ bool Tpc_PolyClusterizer::sample_drift_lookup(const unsigned int layer,
     return false;
   }
 
-  const double corrected_tbin = static_cast<double>(tbin) - m_t0;
-  const double target_time_ns = corrected_tbin * m_tpcAdcClock;
+  const double target_time_ns = (static_cast<double>(tbin) - m_t0) * m_tpcAdcClock - static_cast<double>(crossing) * m_crossingPeriodNs;
   if (target_time_ns <= 0.0 || !std::isfinite(target_time_ns))
   {
     return false;
@@ -585,6 +626,7 @@ bool Tpc_PolyClusterizer::sample_drift_lookup(const unsigned int layer,
 
 bool Tpc_PolyClusterizer::make_xyz_point(TrkrDefs::hitsetkey hsk,
                                          TrkrDefs::hitkey hk,
+                                         const short crossing,
                                          Point& p) const
 {
   if (!m_hits || !m_idealPadMap)
@@ -612,7 +654,7 @@ bool Tpc_PolyClusterizer::make_xyz_point(TrkrDefs::hitsetkey hsk,
   double x = 0.0;
   double y = 0.0;
   double z = 0.0;
-  if (!sample_drift_lookup(layer, hit_side, pad, tbin, x, y, z))
+  if (!sample_drift_lookup(layer, hit_side, pad, tbin, crossing, x, y, z))
   {
     return false;
   }
@@ -723,16 +765,21 @@ Tpc_PolyClusterizer::make_centroid(const std::vector<Point>& points)
   return c;
 }
 
-int Tpc_PolyClusterizer::process_event(PHCompositeNode* /*unused*/)
+int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
 {
-  if (!m_assembledTracks || !m_clusters || !m_garfield)
+  if (!m_assembledTracks || !m_clusters || !m_crossingDecisions || !m_garfield) { return Fun4AllReturnCodes::EVENT_OK;
+}
+
+  ActsGeometry* tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if (!tGeometry)
   {
-    return Fun4AllReturnCodes::EVENT_OK;
+    std::cerr << Name() << "::process_event - missing ActsGeometry, using RMS fallback for errors" << std::endl;
   }
   m_clusters->Reset();
 
   const unsigned int nassembled = m_assembledTracks->size();
   unsigned int nclusters = 0;
+  std::map<TrkrDefs::hitsetkey, unsigned int> next_cluster_index_by_hitset;
 
   for (int side = 0; side < 2; ++side)
   {
@@ -741,69 +788,127 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* /*unused*/)
       for (unsigned int iassembled = 0; iassembled < nassembled; ++iassembled)
       {
         const Tpc_AssembledTrack* assembled = m_assembledTracks->get_track(iassembled);
-        if (!assembled)
-        {
-          continue;
-        }
-        if (assembled->get_side() != side)
-        {
-          continue;
-        }
-        if (assembled->get_first_sector() % 12U != sector)
-        {
-          continue;
-        }
+        if (!assembled) { continue;
+}
+        if (assembled->get_side() != side) { continue;
+}
+        if (assembled->get_first_sector() % 12U != sector) { continue;
+}
+        const TpcCrossingDecision* crossing_decision = m_crossingDecisions->get_decision(assembled->get_track_id());
+        if (!crossing_decision) { continue;
+}
+        const unsigned char selected_tier = crossing_decision->get_selected_tier();
+        if (selected_tier > m_maxAcceptedTier) { continue;
+}
+        const short selected_crossing = crossing_decision->get_selected_crossing();
 
-        std::map<unsigned int, std::vector<Point>> points_by_layer;
+
+        std::map<TrkrDefs::hitsetkey, std::vector<Point>> points_by_hitset;
         for (unsigned int ih = 0; ih < assembled->size_hit_indices(); ++ih)
         {
           const Tpc_AssembledTrack::HitIndex hi = assembled->get_hit_index(ih);
-          if (TpcDefs::getSide(hi.first) != static_cast<unsigned int>(side))
-          {
-            continue;
-          }
+          if (TpcDefs::getSide(hi.first) != static_cast<unsigned int>(side)) { continue;
+}
 
           Point p;
-          if (make_xyz_point(hi.first, hi.second, p))
-          {
-            points_by_layer[p.layer].push_back(p);
-          }
+          if (make_xyz_point(hi.first, hi.second, selected_crossing, p)) { points_by_hitset[p.hitsetkey].push_back(p);
+}
         }
-        if (points_by_layer.empty())
-        {
-          continue;
-        }
+        if (points_by_hitset.empty()) { continue;
+}
 
-        for (const auto& layer_points : points_by_layer)
+        for (const auto& hitset_points : points_by_hitset)
         {
-          const std::vector<Point>& points = layer_points.second;
+          const TrkrDefs::hitsetkey cluster_hitsetkey = hitset_points.first;
+          const std::vector<Point>& points = hitset_points.second;
           const Centroid centroid = make_centroid(points);
-          if (!centroid.ok)
-          {
-            continue;
-          }
+          if (!centroid.ok) { continue;
+}
+
+          const unsigned int cluster_index = next_cluster_index_by_hitset[cluster_hitsetkey]++;
+          const TrkrDefs::cluskey trkr_cluster_key = TrkrDefs::genClusKey(cluster_hitsetkey, cluster_index);
 
           Tpc_PolyClusterv1* out = new Tpc_PolyClusterv1();
           out->set_event(m_event);
           out->set_cluster_id(m_clusters->size());
           out->set_source_assembled_track_id(assembled->get_track_id());
+          out->set_trkr_cluster_key(trkr_cluster_key);
           out->set_side(side);
           out->set_centroid_x(centroid.x);
           out->set_centroid_y(centroid.y);
           out->set_centroid_z(centroid.z);
-          out->set_rms_x(centroid.rms_x);
-          out->set_rms_y(centroid.rms_y);
-          out->set_rms_z(centroid.rms_z);
+
+          double phi_error = std::hypot(centroid.rms_x, centroid.rms_y);
+          double z_error = std::fabs(centroid.rms_z);
+          PHG4TpcGeom* layergeom = m_geomContainerTpc ? m_geomContainerTpc->GetLayerCellGeom(centroid.layer) : nullptr;
+          if (layergeom && tGeometry)
+          {
+            double adc_sum = 0.0;
+            double iphi_sum = 0.0;
+            double iphi2_sum = 0.0;
+            double t_sum = 0.0;
+            double t2_sum = 0.0;
+            int phibinhi = -1;
+            int phibinlo = std::numeric_limits<int>::max();
+            int tbinhi = -1;
+            int tbinlo = std::numeric_limits<int>::max();
+
+            for (const Point& p : points)
+            {
+              if (p.adc <= 0.0) { continue;
+}
+
+              const int iphi = static_cast<int>(p.pad);
+              const int it = static_cast<int>(p.tbin);
+              const double adc = p.adc;
+              phibinhi = std::max(iphi, phibinhi);
+              phibinlo = std::min(iphi, phibinlo);
+              tbinhi = std::max(it, tbinhi);
+              tbinlo = std::min(it, tbinlo);
+
+              iphi_sum += static_cast<double>(iphi) * adc;
+              iphi2_sum += square(static_cast<double>(iphi)) * adc;
+
+              const double t = layergeom->get_zcenter(it);
+              t_sum += t * adc;
+              t2_sum += square(t) * adc;
+              adc_sum += adc;
+            }
+
+            const double drift_velocity = tGeometry->get_drift_velocity();
+            if (adc_sum > 0.0 && std::isfinite(drift_velocity))
+            {
+              const double radius = layergeom->get_radius();
+              const double clusiphi = iphi_sum / adc_sum;
+              const double clust = t_sum / adc_sum;
+              const double phi_cov = std::max(0.0, (iphi2_sum / adc_sum - square(clusiphi)) * square(layergeom->get_phistep()));
+              const double t_cov = std::max(0.0, t2_sum / adc_sum - square(clust));
+              const double phi_err_square = (phibinhi == phibinlo) ?
+                  9.0 * (square(radius * layergeom->get_phistep()) / 12.0) :
+                  square(radius) * phi_cov / (adc_sum * 0.14);
+              const double t_err_square = (tbinhi == tbinlo) ?
+                  9.0 * (square(layergeom->get_zstep()) / 12.0) :
+                  t_cov / (adc_sum * 0.14);
+
+              if (phi_err_square >= 0.0 && std::isfinite(phi_err_square)) { phi_error = std::sqrt(phi_err_square);
+}
+              const double z_err_square = t_err_square * square(drift_velocity);
+              if (z_err_square >= 0.0 && std::isfinite(z_err_square)) { z_error = std::sqrt(z_err_square);
+}
+            }
+          }
+
+          out->set_rms_x(phi_error);
+          out->set_rms_y(0.0);
+          out->set_rms_z(z_error);
 
           const ClusterParameters params = make_cluster_parameters(points, centroid, static_cast<int>(points.front().side));
           out->set_adc(params.adc);
           out->set_phi_width(params.phi_width);
           out->set_time_width(params.time_width);
           out->set_phase(params.phase);
-          for (const Point& p : points)
-          {
-            out->add_hit(p.hitsetkey, p.hitkey, p.x, p.y, p.z);
-          }
+          for (const Point& p : points) { out->add_hit(p.hitsetkey, p.hitkey, p.x, p.y, p.z);
+}
           if (out->size_hits() == 0)
           {
             delete out;
