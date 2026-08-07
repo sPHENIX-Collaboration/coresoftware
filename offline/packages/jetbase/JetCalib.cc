@@ -3,11 +3,8 @@
 #include "Jet.h"
 #include "JetContainerv1.h"
 
-<<<<<<< Updated upstream
-=======
 #include <cdbobjects/CDBTF.h>  // for CDBTF1 (legacy method)
 
->>>>>>> Stashed changes
 #include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -29,7 +26,6 @@
 
 #include <algorithm>  // for std::max, std::min
 #include <cmath>
-#include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, basic_ostream
 
 JetCalib::JetCalib(const std::string &name)
@@ -48,6 +44,7 @@ JetCalib::~JetCalib()
     m_JetCalibFile->Close();
     delete m_JetCalibFile;
   }
+  delete m_LegacyCalibFile;
   if (Verbosity() > 0)
   {
     std::cout << "JetCalib::~JetCalib() : Calling dtor." << std::endl;
@@ -57,23 +54,13 @@ JetCalib::~JetCalib()
 int JetCalib::InitRun(PHCompositeNode *topNode)
 {
   // Create calib jet node.
-  CreateNodeTree(topNode);
-
-<<<<<<< Updated upstream
-  // Locate the calibration file: local override first, otherwise the CDB payload.
-  std::string calibFile = m_calibFileOverride.empty() ? fetchCalibDir("Default") : m_calibFileOverride;
-  if (calibFile.empty())
+  int ret = CreateNodeTree(topNode);
+  if (ret != Fun4AllReturnCodes::EVENT_OK)
   {
-    std::cout << "JetCalib::InitRun(PHCompositeNode *topNode) : No default calibration available! Will apply calib factor 1." << std::endl;
-    return Fun4AllReturnCodes::EVENT_OK;
+    return ret;
   }
 
-  m_JetCalibFile = TFile::Open(calibFile.c_str(), "READ");
-  if (!m_JetCalibFile || m_JetCalibFile->IsZombie())
-  {
-    std::cout << "JetCalib::InitRun(PHCompositeNode *topNode) : Could not open calibration file " << calibFile << "!" << std::endl;
-=======
-  int ret = m_useEMfracCalib ? initEMfracCalib() : initLegacyCalib();
+  ret = m_useEMfracCalib ? initEMfracCalib() : initLegacyCalib();
   if (ret != Fun4AllReturnCodes::EVENT_OK)
   {
     return ret;
@@ -106,8 +93,7 @@ int JetCalib::initEMfracCalib()
   if (!m_JetCalibFile || m_JetCalibFile->IsZombie())
   {
     std::cout << "JetCalib::initEMfracCalib() : Could not open calibration file " << calibFile << "!" << std::endl;
->>>>>>> Stashed changes
-    exit(1);
+    return Fun4AllReturnCodes::ABORTRUN;
   }
 
   int r_index = (int) (jet_radius * 10 + 0.1);
@@ -116,12 +102,8 @@ int JetCalib::initEMfracCalib()
   m_JesCalibMap = dynamic_cast<TH2 *>(m_JetCalibFile->Get(Form("h2d_jes_calib_r0%d", r_index)));
   if (!m_JesCalibMap)
   {
-<<<<<<< Updated upstream
-    std::cout << "JetCalib::InitRun(PHCompositeNode *topNode) : Could not find first-pass calibration map h2d_jes_calib_r0" << r_index << "!" << std::endl;
-=======
     std::cout << "JetCalib::initEMfracCalib() : Could not find first-pass calibration map h2d_jes_calib_r0" << r_index << "!" << std::endl;
->>>>>>> Stashed changes
-    exit(1);
+    return Fun4AllReturnCodes::ABORTRUN;
   }
 
   // Residual (z-vertex, eta) correction (map + no-vertex function).
@@ -131,11 +113,7 @@ int JetCalib::initEMfracCalib()
     m_NozCorrFunc = dynamic_cast<TF1 *>(m_JetCalibFile->Get(Form("f_zeta_noz_corr_r0%d", r_index)));
     if (!m_ZetaCorrMap || !m_NozCorrFunc)
     {
-<<<<<<< Updated upstream
-      std::cout << "JetCalib::InitRun(PHCompositeNode *topNode) : Could not find residual correction ("
-=======
       std::cout << "JetCalib::initEMfracCalib() : Could not find residual correction ("
->>>>>>> Stashed changes
                 << (m_ZetaCorrMap ? "" : Form("h2_zeta_corr_r0%d ", r_index))
                 << (m_NozCorrFunc ? "" : Form("f_zeta_noz_corr_r0%d", r_index))
                 << "); residual correction disabled." << std::endl;
@@ -147,12 +125,7 @@ int JetCalib::initEMfracCalib()
 
   if (Verbosity() > 0)
   {
-<<<<<<< Updated upstream
-    std::cout << "JetCalib::InitRun(PHCompositeNode *topNode) - InitRun with inputNode: " << m_inputNode
-              << " outputNode: " << m_outputNode << " calibFile: " << calibFile
-=======
     std::cout << "JetCalib::initEMfracCalib() : calibFile: " << calibFile
->>>>>>> Stashed changes
               << " residual: " << (m_ApplyResidualCalib ? "on" : "off") << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -192,7 +165,7 @@ int JetCalib::initLegacyCalib()
     if (!func_temp)
     {
       std::cout << "JetCalib::initLegacyCalib() : Could not find calibration function: " << JetCalibFunc_name << "_Default" << std::endl;
-      exit(1);
+      return Fun4AllReturnCodes::ABORTRUN;
     }
     m_JetCalibFunc[0][0] = func_temp;
   }
@@ -211,7 +184,7 @@ int JetCalib::initLegacyCalib()
       if (!func_temp)
       {
         std::cout << "JetCalib::initLegacyCalib() : Could not find calibration function: " << JetCalibFunc_name << "_Z" << iz << std::endl;
-        exit(1);
+        return Fun4AllReturnCodes::ABORTRUN;
       }
       m_JetCalibFunc[iz][0] = func_temp;
     }
@@ -221,6 +194,7 @@ int JetCalib::initLegacyCalib()
     if (!ApplyZvrtxDependentCalib)
     {
       std::cout << "JetCalib::initLegacyCalib() : Must apply Zvrtx dependent calibration to apply eta dependent calibration. Applying Zvrtx + eta dependent calibration." << std::endl;
+      ApplyZvrtxDependentCalib = true;
     }
     int nZvrtxBins = 5;
     int nEtaBins = 4;
@@ -239,7 +213,7 @@ int JetCalib::initLegacyCalib()
           if (!func_temp)
           {
             std::cout << "JetCalib::initLegacyCalib() : Could not find calibration function: " << JetCalibFunc_name << "_Z" << iz << "_Eta" << ieta << std::endl;
-            exit(1);
+            return Fun4AllReturnCodes::ABORTRUN;
           }
           m_JetCalibFunc[iz][ieta] = func_temp;
         }
@@ -252,7 +226,7 @@ int JetCalib::initLegacyCalib()
           if (!func_temp)
           {
             std::cout << "JetCalib::initLegacyCalib() : Could not find calibration function: " << JetCalibFunc_name << "_Z" << iz << std::endl;
-            exit(1);
+            return Fun4AllReturnCodes::ABORTRUN;
           }
           m_JetCalibFunc[iz][ieta] = func_temp;
         }
@@ -263,7 +237,7 @@ int JetCalib::initLegacyCalib()
         if (!func_temp)
         {
           std::cout << "JetCalib::initLegacyCalib() : Could not find calibration function: " << JetCalibFunc_name << "_Z" << iz << std::endl;
-          exit(1);
+          return Fun4AllReturnCodes::ABORTRUN;
         }
         m_JetCalibFunc[iz][0] = func_temp;
       }
@@ -289,21 +263,9 @@ int JetCalib::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-<<<<<<< Updated upstream
-  // z-vertex for the residual correction: taken from the raw jet container, i.e.
-  // the vertex that was ACTUALLY USED in the jet reconstruction (recorded from the
-  // jet inputs) -- not re-fetched from the GlobalVertexMap, which may differ from
-  // what the jets were built with. Events whose jets carry no z-vertex
-  // (has_zvertex() false) take the no-vertex correction path; get_vertex_z()
-  // alone cannot distinguish them, since the jet reco falls back to z = 0.
-  float zvertex = 0;
-  bool hasVertex = false;
-  if (m_ApplyResidualCalib)
-=======
   float zvertex = m_useEMfracCalib ? 0 : -999.0;
   bool hasVertex = false;
   if ((m_useEMfracCalib && m_ApplyResidualCalib) || (!m_useEMfracCalib && ApplyZvrtxDependentCalib))
->>>>>>> Stashed changes
   {
     hasVertex = _raw_jets->has_zvertex();
     if (hasVertex)
@@ -312,20 +274,12 @@ int JetCalib::process_event(PHCompositeNode *topNode)
       if (!std::isfinite(zvertex))
       {
         hasVertex = false;
-<<<<<<< Updated upstream
-        zvertex = 0;
-=======
         zvertex = m_useEMfracCalib ? 0 : -999.0;
->>>>>>> Stashed changes
       }
     }
     if (!hasVertex && Verbosity() > 0)
     {
-<<<<<<< Updated upstream
-      std::cout << "JetCalib::process_event(PHCompositeNode *topNode) : jets reconstructed without a z-vertex; applying the no-vertex correction." << std::endl;
-=======
       std::cout << "JetCalib::process_event(PHCompositeNode *topNode) : jets reconstructed without a z-vertex; applying the no-vertex treatment." << std::endl;
->>>>>>> Stashed changes
     }
   }
 
@@ -336,27 +290,7 @@ int JetCalib::process_event(PHCompositeNode *topNode)
     float pt = jet->get_pt();
     float eta = jet->get_eta();
     float phi = jet->get_phi();
-    float emfrac = jet->get_emcal_frac();
 
-    float calib_pt = pt;
-    if (m_JesCalibMap && std::isfinite(emfrac))
-    {
-      calib_pt = getFirstPassPt(pt, emfrac);
-      if (m_ApplyResidualCalib)
-      {
-        calib_pt *= getResidualScale(zvertex, hasVertex, eta);
-      }
-    }
-    else if (m_JesCalibMap && !m_warnedNoEmFrac)
-    {
-      std::cout << "JetCalib::process_event(PHCompositeNode *topNode) : Jet has no EMCal fraction stored"
-                << " (Jet::get_emcal_frac() is NaN; enable the calo fractions in the jet reco)."
-                << " Applying calib factor 1 to such jets." << std::endl;
-      m_warnedNoEmFrac = true;
-    }
-
-<<<<<<< Updated upstream
-=======
     float calib_pt = pt;
     if (m_useEMfracCalib)
     {
@@ -382,7 +316,6 @@ int JetCalib::process_event(PHCompositeNode *topNode)
       calib_pt = doCalibration(m_JetCalibFunc, pt, zvertex, eta);
     }
 
->>>>>>> Stashed changes
     auto *calib_jet = _calib_jets->add_jet();
     calib_jet->set_px(calib_pt * std::cos(phi));
     calib_jet->set_py(calib_pt * std::sin(phi));
@@ -455,11 +388,6 @@ std::string JetCalib::fetchCalibDir(const char *calibType)
   return CDBInterface::instance()->getUrl(calibName);
 }
 
-<<<<<<< Updated upstream
-// z-corrected eta acceptance window: intersection of the EMCal/IHCal/OHCal reach as
-// seen from the vertex, padded inward by the jet radius. Must match the derivation.
-void JetCalib::getEtaAcceptance(float zvrtx, float radius, float &minlimit, float &maxlimit)
-=======
 // ---------------------------------------------------------------------------
 // EMfrac method helpers.
 // ---------------------------------------------------------------------------
@@ -585,120 +513,95 @@ float JetCalib::getResidualScale(float zvrtx, bool hasVertex, float eta) const
 // ---------------------------------------------------------------------------
 
 static int getZvrtxBin(float zvrtx)
->>>>>>> Stashed changes
 {
-  // Calorimeter half-lengths [cm] and radii [cm].
-  const float minz_EM = -130.23, maxz_EM = 130.23, radius_EM = 93.5;
-  const float minz_IH = -170.299, maxz_IH = 170.299, radius_IH = 127.503;
-  const float minz_OH = -301.683, maxz_OH = 301.683, radius_OH = 225.87;
+  if (zvrtx >= -60.0 && zvrtx < -30.0)
+  {
+    return 1;  // -60 to -30
+  }
+  if (zvrtx >= -30.0 && zvrtx < 30.0)
+  {
+    return 0;  // -30 to 30
+  }
+  if (zvrtx >= 30.0 && zvrtx < 60)
+  {
+    return 2;  // 30 to 60
+  }
+  if ((zvrtx < -60.0 && zvrtx >= -900) || (zvrtx >= 60.0 && zvrtx < 900))
+  {
+    return 3;  // -inf to -60 or 60 to inf
+  }
+  if (zvrtx < -900)
+  {
+    return 4;  // -999 no zvertex
+  }
 
-  float emcal_min = std::asinh((minz_EM - zvrtx) / radius_EM);
-  float emcal_max = std::asinh((maxz_EM - zvrtx) / radius_EM);
-  float ihcal_min = std::asinh((minz_IH - zvrtx) / radius_IH);
-  float ihcal_max = std::asinh((maxz_IH - zvrtx) / radius_IH);
-  float ohcal_min = std::asinh((minz_OH - zvrtx) / radius_OH);
-  float ohcal_max = std::asinh((maxz_OH - zvrtx) / radius_OH);
-
-  minlimit = std::max({emcal_min, ihcal_min, ohcal_min}) + radius;
-  maxlimit = std::min({emcal_max, ihcal_max, ohcal_max}) - radius;
+  return 0;  // Default case, should not happen
 }
 
-<<<<<<< Updated upstream
-// Bilinear interpolation with both coordinates clamped to the bin-center range
-// (TH2::Interpolate is undefined outside it).
-float JetCalib::interpolateClamped(TH2 *h2, double x, double y)
-=======
 static int getEtaBin(int zvrtxbin, float eta, float jet_radius)
->>>>>>> Stashed changes
 {
-  TAxis *xa = h2->GetXaxis();
-  TAxis *ya = h2->GetYaxis();
-  double x_lo = xa->GetBinCenter(1);
-  double x_hi = xa->GetBinCenter(xa->GetNbins());
-  double y_lo = ya->GetBinCenter(1);
-  double y_hi = ya->GetBinCenter(ya->GetNbins());
-  if (x < x_lo)
+  float eta_low = 0;
+  float eta_high = 0;
+  if (zvrtxbin == 0)  // -30 < zvrtx < 30
   {
-    x = x_lo;
+    eta_low = -1.2 + jet_radius;
+    eta_high = 1.2 - jet_radius;
   }
-  if (x > x_hi)
+  else if (zvrtxbin == 1)  // -60 < zvrtx < -30
   {
-    x = x_hi;
+    eta_low = -0.95 + jet_radius;
+    eta_high = 1.25 - jet_radius;
   }
-  if (y < y_lo)
+  else if (zvrtxbin == 2)  // 30 < zvrtx < inf
   {
-    y = y_lo;
+    eta_low = -1.25 + jet_radius;
+    eta_high = 0.95 - jet_radius;
   }
-  if (y > y_hi)
+  else if (zvrtxbin == 3 || zvrtxbin == 4)
   {
-    y = y_hi;
+    return 0;
   }
-  return h2->Interpolate(x, y);
+
+  float threshold1 = eta_low + ((eta_high - eta_low) / 4.0);
+  float threshold2 = eta_low + ((eta_high - eta_low) / 2.0);
+  float threshold3 = eta_low + (3.0 * (eta_high - eta_low) / 4.0);
+
+  if (eta < threshold1)
+  {
+    return 0;  // -inf to threshold1
+  }
+  if (eta < threshold2)
+  {
+    return 1;  // threshold1 to threshold2
+  }
+  if (eta < threshold3)
+  {
+    return 2;  // threshold2 to threshold3
+  }
+
+  return 3;  // threshold3 to inf
 }
 
-// First pass: calibrated (truth-equivalent) pT from the inverted (reco pT, EMCal
-// fraction) map.
-float JetCalib::getFirstPassPt(float jetPt, float emFrac) const
+float JetCalib::doCalibration(const std::vector<std::vector<TF1 *>> &JetCalibFunc, float jetPt, float zvrtx, float eta) const
 {
-  if (!m_JesCalibMap)
+  float calib = jetPt;
+  int zvrtxbin = 0;
+  int etabin = 0;
+  if (ApplyZvrtxDependentCalib || ApplyEtaDependentCalib)
   {
-    return jetPt;
-  }
-  float calibPt = interpolateClamped(m_JesCalibMap, jetPt, emFrac);
-  if (!std::isfinite(calibPt) || calibPt <= 0)
-  {
-    return jetPt;  // unpopulated map region (no inversion solution): leave uncalibrated
-  }
-  return calibPt;
-}
-
-// Residual (z-vertex, eta) scale factor. With a vertex: the (signed z, f) map;
-// without: the no-vertex function evaluated at f computed with z = 0.
-float JetCalib::getResidualScale(float zvrtx, bool hasVertex, float eta) const
-{
-  if (hasVertex)
-  {
-    if (!m_ZetaCorrMap)
+    zvrtxbin = getZvrtxBin(zvrtx);
+    if (ApplyEtaDependentCalib)
     {
-      return 1.0;
+      if (zvrtxbin < 3)
+      {
+        etabin = getEtaBin(zvrtxbin, eta, jet_radius);
+      }
+      else
+      {
+        etabin = 0;
+      }
     }
-    float minlimit = 0;
-    float maxlimit = 0;
-    getEtaAcceptance(zvrtx, jet_radius, minlimit, maxlimit);
-    if (maxlimit <= minlimit)
-    {
-      return 1.0;  // acceptance closed at this z
-    }
-    double f = (eta - minlimit) / (double) (maxlimit - minlimit);
-    float scale = interpolateClamped(m_ZetaCorrMap, zvrtx, f);  // SIGNED z, no mirror
-    if (!std::isfinite(scale) || scale <= 0)
-    {
-      return 1.0;
-    }
-    return scale;
   }
-
-  // No reconstructed z-vertex: f at z = 0, 1D correction function.
-  if (!m_NozCorrFunc)
-  {
-    return 1.0;
-  }
-  float minlimit = 0;
-  float maxlimit = 0;
-  getEtaAcceptance(0.0, jet_radius, minlimit, maxlimit);
-  if (maxlimit <= minlimit)
-  {
-    return 1.0;
-  }
-  double f = (eta - minlimit) / (double) (maxlimit - minlimit);
-  if (f < 0 || f > 1)
-  {
-    return 1.0;  // outside the acceptance window
-  }
-  double scale = m_NozCorrFunc->Eval(f);
-  if (!std::isfinite(scale) || scale < 0.8 || scale > 1.2)
-  {
-    return 1.0;  // sanity guard
-  }
-  return (float) scale;
+  calib = JetCalibFunc[zvrtxbin][etabin]->Eval(jetPt);
+  return calib;
 }
