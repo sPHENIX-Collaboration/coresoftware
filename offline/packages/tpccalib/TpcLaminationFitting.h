@@ -73,6 +73,8 @@ class TpcLaminationFitting : public SubsysReco
   void set_lam_grid_dimensions(int phibins, int rbins);
 
   void set_useZ(bool use) { m_useZ = use; }
+  
+  void set_useGlobal(bool use) { m_useGlobal = use; }
 
   int InitRun(PHCompositeNode *topNode) override;
 
@@ -205,6 +207,7 @@ class TpcLaminationFitting : public SubsysReco
 
   LaserClusterHelper m_laserClusterHelper;
   bool m_useZ{false};
+  bool m_useGlobal{true};
 };
 
 #endif

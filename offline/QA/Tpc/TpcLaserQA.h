@@ -22,6 +22,7 @@ class TpcLaserQA : public SubsysReco
   int process_event(PHCompositeNode* topNode) override;
 
   void set_useZ(bool use) { m_useZ = use; }
+  void set_useGlobal(bool use) { m_useGlobal = use; }
 
  private:
   void createHistos();
@@ -41,6 +42,7 @@ class TpcLaserQA : public SubsysReco
 
   LaserClusterHelper m_laserClusterHelper;
   bool m_useZ{false};
+  bool m_useGlobal{true};
 };
 
 #endif

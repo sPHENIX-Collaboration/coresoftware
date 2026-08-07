@@ -38,7 +38,7 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
 }
 
 //____________________________________________________________________________
-Acts::Vector3 LaserClusterHelper::getHitGlobalPosition(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::hitkey hitkey) const
+Acts::Vector3 LaserClusterHelper::getHitPosition(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::hitkey hitkey) const
 {
     //const Acts::Vector3 invalid(std::numeric_limits<double>::quiet_NaN(),
     //                            std::numeric_limits<double>::quiet_NaN(),
@@ -83,6 +83,11 @@ Acts::Vector3 LaserClusterHelper::getHitGlobalPosition(TrkrDefs::hitsetkey hitse
     }
 
     Acts::Vector3 env_global(env_x, env_y, env_z);
+    if(!m_useGlobal)
+    {
+        return env_global;
+    }
+
     return m_tGeometry->transformTpcEnvelopeToWorld(env_global);
 }
 
@@ -105,13 +110,13 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroid(LaserCluster* cluster) cons
     for(unsigned int i=0; i<nhits; ++i)
     {
         const LaserClusterHitInfo hit= cluster->getHit(i);
-        const Acts::Vector3 global = getHitGlobalPosition(hit.hitsetkey, hit.hitkey);
-        if(global.hasNaN())
+        const Acts::Vector3 hitCoords = getHitPosition(hit.hitsetkey, hit.hitkey);
+        if(hitCoords.hasNaN())
         {
             continue;
         }
 
-        weightedSum += hit.adc * global;
+        weightedSum += hit.adc * hitCoords;
         adcSum += hit.adc;
     }
 

@@ -45,12 +45,12 @@ class LaserClusterv3 : public LaserCluster
   bool getFitMode() const override { return m_fitMode; }
   void setFitMode(bool fitMode) override { m_fitMode = fitMode; }
 
-  unsigned int getLayerInt() const override { return m_posHardware[0]; }
-  void setLayerInt(unsigned int layer) override { m_posHardware[0] = layer; }
-  unsigned int getIPhiInt() const override { return m_posHardware[1]; }
-  void setIPhiInt(unsigned int iphi) override { m_posHardware[1] = iphi; }
-  unsigned int getITInt() const override { return m_posHardware[2]; }
-  void setITInt(unsigned int it) override { m_posHardware[2] = it; }
+  float getLayer() const override { return m_posHardware[0]; }
+  void setLayer(float layer) override { m_posHardware[0] = layer; }
+  float getIPhi() const override { return m_posHardware[1]; }
+  void setIPhi(float iphi) override { m_posHardware[1] = iphi; }
+  float getIT() const override { return m_posHardware[2]; }
+  void setIT(float it) override { m_posHardware[2] = it; }
 
   unsigned int getNhits() const override {return (unsigned int)m_hits.size();}
 
@@ -95,7 +95,7 @@ class LaserClusterv3 : public LaserCluster
 
   std::vector<LaserClusterHitInfo> m_hits;
   
-  unsigned int m_posHardware[3] = {std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max()};
+  float m_posHardware[3] = {std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max()};
   bool m_fitMode{false};
 
   /// number of TPC clusters used to create this central mebrane cluster

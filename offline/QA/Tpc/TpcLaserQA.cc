@@ -55,6 +55,7 @@ int TpcLaserQA::InitRun(PHCompositeNode* topNode)
   }
 
   m_laserClusterHelper.set_useZ(m_useZ);
+  m_laserClusterHelper.set_useGlobal(m_useGlobal);
   m_laserClusterHelper.loadNodes(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -117,8 +118,8 @@ int TpcLaserQA::process_event(PHCompositeNode *topNode)
     {        
       LaserClusterHitInfo LCHI = cmclus->getHit(i);
 
-      Acts::Vector3 hitGlobal = m_laserClusterHelper.getHitGlobalPosition(LCHI.hitsetkey, LCHI.hitkey);
-      if(hitGlobal.hasNaN())
+      Acts::Vector3 hitCoords = m_laserClusterHelper.getHitPosition(LCHI.hitsetkey, LCHI.hitkey);
+      if(hitCoords.hasNaN())
       {
         continue;
       }    
@@ -131,7 +132,7 @@ int TpcLaserQA::process_event(PHCompositeNode *topNode)
       //float hitAdc = cmclus->getHitAdc(i);
       //float hitIT = cmclus->getHitIT(i);
 
-      double phi = std::atan2(hitGlobal(1), hitGlobal(0));
+      double phi = std::atan2(hitCoords(1), hitCoords(0));
       if (phi < -M_PI / 12.) { phi += 2 * M_PI;
 }
 
