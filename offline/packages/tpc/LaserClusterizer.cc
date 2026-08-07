@@ -592,9 +592,9 @@ namespace
     clus->setNLayers(usedLayer.size());
     clus->setNIPhi(usedIPhi.size());
     clus->setNIT(usedIT.size());
-    clus->setLayer(layerSum / adcSum);
-    clus->setIPhi(iphiSum / adcSum);
-    clus->setIT(itSum / adcSum);
+    clus->setLayerInt((unsigned int) round(layerSum / adcSum));
+    clus->setIPhiInt((unsigned int) round(iphiSum / adcSum));
+    clus->setITInt((unsigned int) round(itSum / adcSum));
     clus->setSDLayer(sqrt(sigmaLayer / nHits));
     clus->setSDIPhi(sqrt(sigmaIPhi / nHits));
     clus->setSDIT(sqrt(sigmaIT / nHits));
