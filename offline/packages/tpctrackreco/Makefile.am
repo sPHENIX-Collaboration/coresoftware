@@ -25,6 +25,11 @@ pkginclude_HEADERS = \
   Tpc_AssembledTrackContainer.h \
   Tpc_AssembledTrackContainerv1.h \
   Tpc_AssembledTrackReco.h \
+  TpcCrossingDecision.h \
+  TpcCrossingDecisionv1.h \
+  TpcCrossingDecisionContainer.h \
+  TpcCrossingDecisionContainerv1.h \
+  TpcCrossingFinder.h \
   Tpc_PolyTrack.h \
   Tpc_PolyTrackv1.h \
   Tpc_PolyTrackContainer.h \
@@ -43,6 +48,8 @@ pkginclude_HEADERS = \
   TpcTrackFit.h \
   TpcTrackHelixFitter.h \
   TpcTrackKalmanFitter.h \
+  TpcPolyTrackSeedConverter.h \
+  TpcPolyClusterTrkrClusterConverter.h \
   Tpc_FittingTools.h \
   IdealPadMap.h
 
@@ -52,6 +59,10 @@ ROOTDICTS = \
   Tpc_AssembledTrackContainer_Dict.cc \
   Tpc_AssembledTrackContainerv1_Dict.cc \
   Tpc_AssembledTrackv1_Dict.cc \
+  TpcCrossingDecision_Dict.cc \
+  TpcCrossingDecisionv1_Dict.cc \
+  TpcCrossingDecisionContainer_Dict.cc \
+  TpcCrossingDecisionContainerv1_Dict.cc \
   Tpc_ModuleTrack_Dict.cc \
   Tpc_ModuleTrackContainer_Dict.cc \
   Tpc_ModuleTrackContainerv1_Dict.cc \
@@ -80,6 +91,9 @@ libtpctrackreco_la_SOURCES = \
   Tpc_AssembledTrackv1.cc \
   Tpc_AssembledTrackContainerv1.cc \
   Tpc_AssembledTrackReco.cc \
+  TpcCrossingDecisionv1.cc \
+  TpcCrossingDecisionContainerv1.cc \
+  TpcCrossingFinder.cc \
   Tpc_PolyTrackv1.cc \
   Tpc_PolyTrackContainerv1.cc \
   Tpc_PolyTrackVertexv1.cc \
@@ -89,6 +103,8 @@ libtpctrackreco_la_SOURCES = \
   Tpc_PolyClusterContainerv1.cc \
   Tpc_PolyClusterizer.cc \
   Tpc_PolyTrackReco.cc \
+  TpcPolyTrackSeedConverter.cc \
+  TpcPolyClusterTrkrClusterConverter.cc \
   TpcTrackHelixFitter.cc \
   TpcTrackKalmanFitter.cc \
   Tpc_FittingTools.cc \

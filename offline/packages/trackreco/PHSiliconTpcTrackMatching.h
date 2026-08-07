@@ -139,6 +139,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_file_name(const std::string &name) { _file_name = name; }
   void set_pp_mode(const bool flag) { _pp_mode = flag; }
   void set_use_intt_crossing(const bool flag) { _use_intt_crossing = flag; }
+  void set_use_tpc_crossing(const bool flag) { _use_tpc_crossing = flag; }
   void set_cluster_map_name(const std::string &name)
   {
     _cluster_map_name = name;
@@ -209,6 +210,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   bool _test_windows = false;
   bool _pp_mode = false;
   bool _use_intt_crossing = true;  // should always be true except for testing
+  bool _use_tpc_crossing = false;
 
   int _n_iteration = 0;
   std::string _track_map_name = "TpcTrackSeedContainer";

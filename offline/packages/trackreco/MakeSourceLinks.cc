@@ -56,6 +56,7 @@ void MakeSourceLinks::initialize(PHG4TpcGeomContainer* cellgeo, ActsGeometry *tG
   if (cellgeo && tGeometry && topNode)
   {
     _clusterMover.initialize_geometry(cellgeo, tGeometry, topNode);
+    _clusterMover.set_verbosity(m_verbosity);
   }
 }
 
@@ -440,18 +441,23 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       continue;
     }
 
-    // clustermover updates the subsurface key after moving the clusters to the surface, so this is safe
-    auto* cluster = clusterContainer->findCluster(cluskey);
-    Surface surf = tGeometry->maps().getSurface(cluskey, cluster);
-
     if (std::isnan(global.x()) || std::isnan(global.y()))
     {
-      std::cout << "MakeSourceLinks::getSourceLinksClusterMover - invalid position"
-                << " key: " << cluskey
-                << " layer: " << (int) TrkrDefs::getLayer(cluskey)
-                << " position: " << global
-                << std::endl;
+      if (m_verbosity > 1)
+	{
+	  std::cout << "MakeSourceLinks::getSourceLinksClusterMover - invalid position"
+		    << " key: " << cluskey
+		    << " layer: " << (int) TrkrDefs::getLayer(cluskey)
+		    << " position: " << global
+		    << std::endl;
+	}
+      continue;
     }
+
+    // clustermover updates the subsurface key after moving the clusters to the surface, so this is safe
+    auto* cluster = clusterContainer->findCluster(cluskey);
+    if(!cluster) { continue; }
+    Surface surf = tGeometry->maps().getSurface(cluskey, cluster);
 
     auto trkrid = TrkrDefs::getTrkrId(cluskey);
     if (trkrid == TrkrDefs::tpcId)

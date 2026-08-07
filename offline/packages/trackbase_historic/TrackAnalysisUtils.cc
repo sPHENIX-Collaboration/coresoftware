@@ -275,7 +275,7 @@ namespace TrackAnalysisUtils
     rot(2, 2) = 1;
     return rot;
   }
-  std::vector<TrkrDefs::cluskey> get_cluster_keys(TrackSeed* seed)
+  std::vector<TrkrDefs::cluskey> get_cluster_keys(const TrackSeed* seed)
   {
     std::vector<TrkrDefs::cluskey> out;
 
@@ -286,8 +286,48 @@ namespace TrackAnalysisUtils
 
     return out;
   }
-
-  std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track)
+  std::tuple<int, int, int, int> get_cluster_counts(const SvtxTrack* track)
+  {
+    std::tuple<int, int, int, int> counts(0, 0, 0, 0);
+    for (const auto& key : get_cluster_keys(track))
+    {
+      auto trkrid = TrkrDefs::getTrkrId(key);
+      switch (trkrid)
+      {
+        case TrkrDefs::mvtxId:
+          std::get<0>(counts)++;
+          break;
+        case TrkrDefs::inttId:
+          std::get<1>(counts)++;
+          break;
+        case TrkrDefs::tpcId:
+          std::get<2>(counts)++;
+          break;
+        case TrkrDefs::micromegasId:
+          std::get<3>(counts)++;
+          break;
+        default:
+          break;
+      }
+    }
+    return counts;
+  }
+  int get_cluster_count(const TrackSeed* seed, const TrkrDefs::TrkrId& trkrid)
+  {
+    int count = 0;
+    if (seed)
+    {
+      for (const auto& key : get_cluster_keys(seed))
+      {
+        if (TrkrDefs::getTrkrId(key) == trkrid)
+        {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+  std::vector<TrkrDefs::cluskey> get_cluster_keys(const SvtxTrack* track)
   {
     std::vector<TrkrDefs::cluskey> out;
     for (const auto& seed : {track->get_silicon_seed(), track->get_tpc_seed()})

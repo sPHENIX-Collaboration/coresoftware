@@ -34,6 +34,21 @@ class Tpc_PolyTrackv1 : public Tpc_PolyTrack
   double get_chi2() const override { return m_chi2; }
   double get_ndf() const override { return m_ndf; }
   double get_dedx() const override { return m_dedx; }
+  double get_seed_x0() const override { return m_seed_x0; }
+  double get_seed_y0() const override { return m_seed_y0; }
+  double get_helix_x0() const override { return m_helix_x0; }
+  double get_helix_y0() const override { return m_helix_y0; }
+  double get_seed_z0() const override { return m_seed_z0; }
+  double get_seed_phi() const override { return m_seed_phi; }
+  double get_seed_slope() const override { return m_seed_slope; }
+  double get_seed_q_over_r() const override { return m_seed_q_over_r; }
+  unsigned int size_cluster_keys() const override { return static_cast<unsigned int>(m_cluster_keys.size()); }
+  TrkrDefs::cluskey get_cluster_key(unsigned int i) const override
+  {
+    if (i >= m_cluster_keys.size()) return TrkrDefs::CLUSKEYMAX;
+    return m_cluster_keys[i];
+  }
+  const std::vector<TrkrDefs::cluskey>& get_cluster_keys() const override { return m_cluster_keys; }
   double get_cov(unsigned int i, unsigned int j) const override
   {
     const unsigned int idx = 6 * i + j;
@@ -56,6 +71,24 @@ class Tpc_PolyTrackv1 : public Tpc_PolyTrack
   void set_chi2(double v) override { m_chi2 = v; }
   void set_ndf(double v) override { m_ndf = v; }
   void set_dedx(double v) override { m_dedx = v; }
+  void set_seed_x0(double v) override { m_seed_x0 = v; }
+  void set_seed_y0(double v) override { m_seed_y0 = v; }
+  void set_helix_x0(double v) override { m_helix_x0 = v; }
+  void set_helix_y0(double v) override { m_helix_y0 = v; }
+  void set_seed_z0(double v) override { m_seed_z0 = v; }
+  void set_seed_phi(double v) override { m_seed_phi = v; }
+  void set_seed_slope(double v) override { m_seed_slope = v; }
+  void set_seed_q_over_r(double v) override { m_seed_q_over_r = v; }
+  void add_cluster_key(TrkrDefs::cluskey v) override
+  {
+    m_cluster_keys.push_back(v);
+    m_nclusters = static_cast<unsigned int>(m_cluster_keys.size());
+  }
+  void clear_cluster_keys() override
+  {
+    m_cluster_keys.clear();
+    m_nclusters = 0;
+  }
   void set_cov(unsigned int i, unsigned int j, double v) override
   {
     if (i >= 6 || j >= 6) return;
@@ -80,6 +113,15 @@ class Tpc_PolyTrackv1 : public Tpc_PolyTrack
   double m_chi2{0.0};
   double m_ndf{0.0};
   double m_dedx{0.0};
+  double m_seed_x0 {0.0};
+  double m_seed_y0 {0.0};
+  double m_helix_x0 {0.0};
+  double m_helix_y0 {0.0};
+  double m_seed_z0 {0.0};
+  double m_seed_phi {0.0};
+  double m_seed_slope {0.0};
+  double m_seed_q_over_r {0.0};
+  std::vector<TrkrDefs::cluskey> m_cluster_keys;
   std::vector<double> m_cov;
 
   ClassDefOverride(Tpc_PolyTrackv1, 1)
