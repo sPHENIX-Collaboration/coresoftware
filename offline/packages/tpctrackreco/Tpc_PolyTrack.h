@@ -4,8 +4,10 @@
 #define TPCTRACKRECO_TPCPOLYTRACK_H
 
 #include <phool/PHObject.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <iostream>
+#include <vector>
 
 class Tpc_PolyTrack : public PHObject
 {
@@ -52,6 +54,32 @@ class Tpc_PolyTrack : public PHObject
   virtual void set_ndf(double) {}
   virtual void set_dedx(double) {}
   virtual void set_cov(unsigned int, unsigned int, double) {}
+
+  virtual double get_seed_x0() const { return 0.0; }
+  virtual double get_seed_y0() const { return 0.0; }
+  virtual double get_helix_x0() const { return 0.0; }
+  virtual double get_helix_y0() const { return 0.0; }
+  virtual double get_seed_z0() const { return 0.0; }
+  virtual double get_seed_phi() const { return 0.0; }
+  virtual double get_seed_slope() const { return 0.0; }
+  virtual double get_seed_q_over_r() const { return 0.0; }
+  virtual void set_seed_x0(double) {}
+  virtual void set_seed_y0(double) {}
+  virtual void set_helix_x0(double) {}
+  virtual void set_helix_y0(double) {}
+  virtual void set_seed_z0(double) {}
+  virtual void set_seed_phi(double) {}
+  virtual void set_seed_slope(double) {}
+  virtual void set_seed_q_over_r(double) {}
+  virtual unsigned int size_cluster_keys() const { return 0; }
+  virtual TrkrDefs::cluskey get_cluster_key(unsigned int) const { return TrkrDefs::CLUSKEYMAX; }
+  virtual const std::vector<TrkrDefs::cluskey>& get_cluster_keys() const
+  {
+    static const std::vector<TrkrDefs::cluskey> empty_keys;
+    return empty_keys;
+  }
+  virtual void add_cluster_key(TrkrDefs::cluskey) {}
+  virtual void clear_cluster_keys() {}
 
  private:
   ClassDefOverride(Tpc_PolyTrack, 0)

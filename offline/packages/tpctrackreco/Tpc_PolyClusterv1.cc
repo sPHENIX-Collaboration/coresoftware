@@ -13,6 +13,7 @@ void Tpc_PolyClusterv1::identify(std::ostream& os) const
      << " event=" << m_event
      << " cluster_id=" << m_cluster_id
      << " source_assembled_track_id=" << m_source_assembled_track_id
+     << " trkr_cluster_key=" << m_trkr_cluster_key
      << " side=" << m_side
      << " nhits=" << m_hit_indices.size()
      << " centroid_x=" << m_centroid_x
@@ -33,6 +34,7 @@ void Tpc_PolyClusterv1::Reset()
   m_event = 0;
   m_cluster_id = 0;
   m_source_assembled_track_id = 0;
+  m_trkr_cluster_key = TrkrDefs::CLUSKEYMAX;
   m_side = 0;
   m_centroid_x = 0.0;
   m_centroid_y = 0.0;

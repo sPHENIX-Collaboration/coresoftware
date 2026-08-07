@@ -69,6 +69,9 @@ class Tpc_PolyCluster : public PHObject
     return empty_indices;
   }
 
+  virtual TrkrDefs::cluskey get_trkr_cluster_key() const { return TrkrDefs::CLUSKEYMAX; }
+  virtual void set_trkr_cluster_key(TrkrDefs::cluskey) {}
+
  private:
   ClassDefOverride(Tpc_PolyCluster, 0)
 };

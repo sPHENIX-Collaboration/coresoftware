@@ -60,6 +60,8 @@ class Tpc_FittingTools
   {
     bool ok{false};
     bool is_line{false};
+    double cx{0.0};
+    double cy{0.0};
     double d0{0.0};
     double z0{0.0};
     double phi0{0.0};
