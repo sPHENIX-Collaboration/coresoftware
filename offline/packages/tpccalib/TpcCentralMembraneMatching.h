@@ -129,6 +129,8 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   void set_useZ(bool use) { m_useZ = use; }
 
+  void set_useGlobal(bool use) { m_useGlobal = use; }
+
   // void set_laminationFile(const std::string& filename)
   //{
   // m_lamfilename = filename;
@@ -428,6 +430,7 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   LaserClusterHelper m_laserClusterHelper;
   bool m_useZ{false};
+  bool m_useGlobal{true};
 };
 
 #endif  // PHTPCCENTRALMEMBRANEMATCHER_H
