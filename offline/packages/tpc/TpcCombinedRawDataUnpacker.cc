@@ -49,10 +49,17 @@ TpcCombinedRawDataUnpacker::TpcCombinedRawDataUnpacker(std::string const& name, 
 {
   // Do nothing
 }
+
 TpcCombinedRawDataUnpacker::~TpcCombinedRawDataUnpacker()
 {
   delete m_cdbttree;
+  for (auto& hiter2 : feeadc_map)
+  {
+    delete  hiter2.second;
+  }
+  feeadc_map.clear();
 }
+
 void TpcCombinedRawDataUnpacker::ReadZeroSuppressedData()
 {
   m_do_zs_emulation = true;
