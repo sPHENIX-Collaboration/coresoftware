@@ -139,6 +139,8 @@ class SvtxTrack_v5 : public SvtxTrack
   StateIter end_states() override { return _states.end(); }
 
  private:
+  static unsigned char compress_cluster_count(unsigned int nclusters);
+
   const SvtxTrackState* get_pca_state() const;
   SvtxTrackState* get_pca_state();
 
