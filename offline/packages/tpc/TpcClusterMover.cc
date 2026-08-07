@@ -179,37 +179,40 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
     }
 
     auto global_new_keep = global_new;
+    auto sskey_keep = sskey;
     int iter = 0;
     while (new_subsurfkey != sskey)
     {
-      iter++;
-      if (iter > 2)
-      {
-        // cluster has been updated with subsurfkey from last iteration, global_new is still from last iteration - move on
-        break;
-      }
+	iter++;
+	if(iter > 2)
+	  {
+	    // cluster has been updated with subsurfkey from last iteration, global_new is still from last iteration - move on
+	    break;
+	  }
 
-      // surface changed, cluster subsurface has been updated, redo with new surface
-      sskey = new_subsurfkey;
-      ret = get_moved_position(cluskey, cluster, fitpars, global, global_new, new_subsurfkey);
-      if (!ret)
-      {
-        global_new = global_new_keep;
-        break;
-      }
-      if (_verbosity > 2)
-      {
-        if (new_subsurfkey != sskey)
-        {
-          std::cout << PHWHERE << "Warning: subsurfkey changed on iteration " << iter << " from "
-                    << sskey << " to " << new_subsurfkey << std::endl;
-        }
-        else
-        {
-          std::cout << PHWHERE << "Good: subsurfkey unchanged on iteration " << iter << std::endl;
-        }
-      }
+	// surface changed, cluster subsurface has been updated, redo with new surface
+	sskey = new_subsurfkey;
+	ret = get_moved_position(cluskey, cluster, fitpars, global, global_new, new_subsurfkey);
+	if(!ret)
+	  {
+	    global_new = global_new_keep;
+	    cluster->setSubSurfKey(sskey_keep);
+	    break;
+	  }
+	if(_verbosity > 2)
+	  {
+	    if(new_subsurfkey != sskey)
+	      {
+		std::cout << PHWHERE << "Warning: subsurfkey changed on iteration " << iter << " from "
+			  << sskey << " to " << new_subsurfkey << std::endl;
+	      }
+	    else
+	      {
+		std::cout << PHWHERE << "Good: subsurfkey unchanged on iteration " << iter << std::endl;
+	      }
+	  }	
     }
+
 
     if (_verbosity > 2)
     {
