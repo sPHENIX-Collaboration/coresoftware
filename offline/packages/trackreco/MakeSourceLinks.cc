@@ -456,6 +456,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 
     // clustermover updates the subsurface key after moving the clusters to the surface, so this is safe
     auto* cluster = clusterContainer->findCluster(cluskey);
+    if(!cluster) { continue; }
     Surface surf = tGeometry->maps().getSurface(cluskey, cluster);
 
     auto trkrid = TrkrDefs::getTrkrId(cluskey);

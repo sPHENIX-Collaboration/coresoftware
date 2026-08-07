@@ -136,7 +136,7 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
   }
 
   std::vector<float> fitpars = TrackFitUtils::fitClusters(tpc_global_vec,  tpc_cluskey_vec, 0);
-  if(fitpars.size() == 0)
+  if(fitpars.size() < 5)
     {
       if(_verbosity > 1)
 	{
@@ -171,16 +171,26 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
 	}
       continue;
     }
-    
+
+    auto global_new_keep = global_new;
     int iter = 0;
     while(new_subsurfkey != sskey)
       {
 	iter++;
-	if(iter > 2) { break; }
+	if(iter > 2)
+	  {
+	    // cluster has been updated with subsurfkey from last iteration, global_new is still from last iteration - move on
+	    break;
+	  }
 
 	// surface changed, cluster subsurface has been updated, redo with new surface
 	sskey = new_subsurfkey;
-	ret = get_moved_position(cluskey, cluster, fitpars, global, global_new, new_subsurfkey);	  
+	ret = get_moved_position(cluskey, cluster, fitpars, global, global_new, new_subsurfkey);
+	if(!ret)
+	  {
+	    global_new = global_new_keep;
+	    break;
+	  }
 	if(_verbosity > 2)
 	  {
 	    if(new_subsurfkey != sskey)
@@ -193,7 +203,6 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
 		std::cout << PHWHERE << "Good: subsurfkey unchanged on iteration " << iter << std::endl;
 	      }
 	  }
-	
       }
 
     if(_verbosity > 2)
@@ -214,9 +223,9 @@ bool TpcClusterMover::get_moved_position(TrkrDefs::cluskey cluskey, TrkrCluster 
 {
   auto surfMaps = _tGeometry->maps();
   auto surface = surfMaps.getSurface(cluskey, cluster);
-      
+  if(!surface) { return false; }
+
   Acts::Vector3 surf_intercept = TrackFitUtils::get_helix_surface_intersection(surface,  fitpars, global, _tGeometry);
-  if(fitpars.size() == 0) { return false; }
   
   // get circle position at cluster radius
   double cluster_radius = sqrt(global[0] * global[0] + global[1] * global[1]);
