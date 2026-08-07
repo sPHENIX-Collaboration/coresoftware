@@ -130,6 +130,16 @@ int PhotonClusterBuilder::InitRun(PHCompositeNode* topNode)
     }
   }
 
+  if (m_do_topocluster_isolation)
+  {
+    m_topocluster_container = findNode::getClass<RawClusterContainer>(topNode, m_topocluster_node);
+    if (!m_topocluster_container)
+    {
+      std::cout << Name() << ": topo-cluster isolation enabled but node '" << m_topocluster_node
+                << "' is missing; iso_topo_* values will remain at " << m_topo_iso_defval << std::endl;
+    }
+  }
+
   CreateNodes(topNode);
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -244,33 +254,7 @@ void PhotonClusterBuilder::calculate_bdt_score(PhotonClusterv1* photon)
   std::vector<float> x;
   for (const auto& feature : m_bdt_feature_list)
   {
-    if (feature == "vertex_z")
-    {
-      x.push_back(m_vertex);
-    }
-    else if (feature == "ET")
-    {
-      float E = photon->get_energy();
-      float ET = E / std::cosh(photon->get_shower_shape_parameter("cluster_eta"));
-      x.push_back(ET);
-    }
-    else
-    {
-      const std::string delim = "_over_";
-      const auto pos = feature.find(delim);
-      if (pos != std::string::npos)
-      {
-        const std::string num = feature.substr(0, pos);
-        const std::string den = feature.substr(pos + delim.size());
-        const float numerator = photon->get_shower_shape_parameter(num);
-        const float denominator = photon->get_shower_shape_parameter(den);
-        x.push_back((denominator > 0) ? (numerator / denominator) : 0.0F);
-      }
-      else
-      {
-        x.push_back(photon->get_shower_shape_parameter(feature));
-      }
-    }
+    x.push_back(resolve_bdt_feature(photon, feature, m_vertex));
     //check if the thing we pushed back is NaN
     if (std::isnan(x.back()))
     {
@@ -612,6 +596,8 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   photon->set_shower_shape_parameter("w72", w72);
   photon->set_shower_shape_parameter("cluster_eta", cluster_eta);
   photon->set_shower_shape_parameter("cluster_phi", cluster_phi);
+  photon->set_shower_shape_parameter("cluster_ietacent", showershape[4]);
+  photon->set_shower_shape_parameter("cluster_iphicent", showershape[5]);
   photon->set_shower_shape_parameter("mean_time", clusteravgtime);
   photon->set_shower_shape_parameter("detacog", detacog);
   photon->set_shower_shape_parameter("dphicog", dphicog);
@@ -735,6 +721,7 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
 
   float E = photon->get_energy();
   float ET = E / std::cosh(cluster_eta);
+  photon->set_shower_shape_parameter("cluster_pt", ET);
 
   auto compute_layer_iso = [&](RawTowerDefs::CalorimeterId calo_id, float radius)
   {
@@ -814,6 +801,30 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
     photon->set_shower_shape_parameter("iso_sub_02_emcal", sub_emcal_et_02 - ET);
     photon->set_shower_shape_parameter("iso_sub_01_emcal", sub_emcal_et_01 - ET);
     photon->set_shower_shape_parameter("iso_sub_005_emcal", sub_emcal_et_005 - ET);
+  }
+
+  if (m_do_topocluster_isolation)
+  {
+    float iso_axis_eta = cluster_eta;
+    float iso_axis_phi = cluster_phi;
+    if (maxieta >= 0 && maxieta < 96)
+    {
+      const int cog_iphi = (maxiphi % 256 + 256) % 256;
+      const auto cog_key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, maxieta, cog_iphi);
+      RawTowerGeom* cog_tower = m_geomEM->get_tower_geometry(cog_key);
+      if (cog_tower)
+      {
+        iso_axis_eta = getTowerEta(cog_tower, 0, 0, m_vertex);
+        iso_axis_phi = cog_tower->get_phi();
+      }
+    }
+
+    float iso03 = m_topo_iso_defval;
+    float iso04 = m_topo_iso_defval;
+    calculate_topocluster_iso(iso_axis_eta, iso_axis_phi, ET, iso03, iso04);
+    photon->set_shower_shape_parameter("iso_topo_03", iso03);
+    photon->set_shower_shape_parameter("iso_topo_04", iso04);
+    photon->set_shower_shape_parameter("iso_topo_valid", m_topocluster_container ? 1.0F : 0.0F);
   }
 }
 
@@ -944,6 +955,98 @@ float PhotonClusterBuilder::calculate_layer_et(float seed_eta, float seed_phi, f
   }
 
   return layer_et;
+}
+
+void PhotonClusterBuilder::calculate_topocluster_iso(float eta, float phi, float candidate_et, float& iso03, float& iso04)
+{
+  if (!m_topocluster_container)
+  {
+    return;
+  }
+
+  iso03 = iso04 = 0.0F;
+  const CLHEP::Hep3Vector vertex(0, 0, m_vertex);
+  const auto range = m_topocluster_container->getClusters();
+  for (auto it = range.first; it != range.second; ++it)
+  {
+    const RawCluster* topo = it->second;
+    if (!topo)
+    {
+      continue;
+    }
+
+    const float topo_eta = RawClusterUtility::GetPseudorapidity(*topo, vertex);
+    const float topo_phi = RawClusterUtility::GetAzimuthAngle(*topo, vertex);
+    const float topo_et = topo->get_energy() / std::cosh(topo_eta);  // signed, as in PPG12
+    const float dr = deltaR(eta, phi, topo_eta, topo_phi);
+    if (dr < 0.4F)
+    {
+      iso04 += topo_et;
+      if (dr < 0.3F)
+      {
+        iso03 += topo_et;
+      }
+    }
+  }
+
+  iso03 -= candidate_et;
+  iso04 -= candidate_et;
+}
+
+float PhotonClusterBuilder::resolve_bdt_feature(const PhotonClusterv1* photon,
+                                                const std::string& feature,
+                                                float vertex_z)
+{
+  if (!photon)
+  {
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+
+  // Exact stored keys are authoritative. In particular, lower-case
+  // cluster_* kinematics must not be rewritten before this lookup.
+  const auto& shower_shapes = photon->get_all_shower_shapes();
+  const auto exact = shower_shapes.find(feature);
+  if (exact != shower_shapes.end())
+  {
+    return exact->second;
+  }
+
+  if (feature == "vertex_z" || feature == "vertexz")
+  {
+    return vertex_z;
+  }
+  if (feature == "ET" || feature == "cluster_Et" || feature == "cluster_et")
+  {
+    const float eta = photon->get_shower_shape_parameter("cluster_eta");
+    const float et = photon->get_energy() / std::cosh(eta);
+    return std::isfinite(et) ? et : std::numeric_limits<float>::quiet_NaN();
+  }
+  if (feature == "cluster_Eta")
+  {
+    return photon->get_shower_shape_parameter("cluster_eta");
+  }
+  if (feature == "cluster_Phi")
+  {
+    return photon->get_shower_shape_parameter("cluster_phi");
+  }
+
+  const std::string delim = "_over_";
+  const auto pos = feature.find(delim);
+  if (pos != std::string::npos)
+  {
+    const std::string numerator_name = feature.substr(0, pos);
+    const std::string denominator_name = feature.substr(pos + delim.size());
+    const float numerator = resolve_bdt_feature(photon, numerator_name, vertex_z);
+    const float denominator = resolve_bdt_feature(photon, denominator_name, vertex_z);
+    return (denominator > 0) ? (numerator / denominator) : 0.0F;
+  }
+
+  if (feature.rfind("cluster_", 0) == 0)
+  {
+    return photon->get_shower_shape_parameter(feature.substr(8));
+  }
+
+  return photon->get_shower_shape_parameter(feature);
 }
 
 double PhotonClusterBuilder::deltaR(double eta1, double phi1, double eta2, double phi2)
