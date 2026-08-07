@@ -7,10 +7,10 @@
 #include "TpcClusterMover.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TpcDefs.h>
-#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
 
 #include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
@@ -57,23 +57,23 @@ TpcClusterMover::TpcClusterMover()
   }
 }
 
-void TpcClusterMover::initialize_geometry(PHG4TpcGeomContainer* cellgeo, ActsGeometry *tGeometry, PHCompositeNode* topNode)
+void TpcClusterMover::initialize_geometry(PHG4TpcGeomContainer* cellgeo, ActsGeometry* tGeometry, PHCompositeNode* topNode)
 {
   _topNode = topNode;
-  
+
   if (_verbosity > 0)
   {
     std::cout << "TpcClusterMover: Getting ActsGeometry, and getting layer radii for Tpc from cell geometry object" << std::endl;
   }
 
-  if(!tGeometry || !cellgeo)
-    {
-      std::cout << PHWHERE << " Failed to get ActsGeometry or TPC cell geometry, cannot continue - quit!" << std::endl;
-	exit(1);
-    }
-  
+  if (!tGeometry || !cellgeo)
+  {
+    std::cout << PHWHERE << " Failed to get ActsGeometry or TPC cell geometry, cannot continue - quit!" << std::endl;
+    exit(1);
+  }
+
   _tGeometry = tGeometry;
-  
+
   int layer = 0;
   PHG4TpcGeomContainer::ConstRange layerrange = cellgeo->get_begin_end();
   for (PHG4TpcGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -92,19 +92,19 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
   // The input object contains all clusters for the track in world coordinates
   // The surface radii are in global coordinates. Needed because we are dealing with aligned surfaces
 
-  auto *cluster_map = findNode::getClass<TrkrClusterContainer>(_topNode, "TRKR_CLUSTER_SEED");
-  if(!cluster_map)
+  auto* cluster_map = findNode::getClass<TrkrClusterContainer>(_topNode, "TRKR_CLUSTER_SEED");
+  if (!cluster_map)
+  {
+    cluster_map = findNode::getClass<TrkrClusterContainer>(_topNode, "TRKR_CLUSTER");
+    if (!cluster_map)
     {
-      cluster_map = findNode::getClass<TrkrClusterContainer>(_topNode, "TRKR_CLUSTER");
-      if(!cluster_map)
-	{
-	  std::cout << PHWHERE << " Did not find TRKR_CLUSTER_SEED or TRKR_CLUSTER nodes, quit." << std::endl;
-	  exit(1);
-	}
+      std::cout << PHWHERE << " Did not find TRKR_CLUSTER_SEED or TRKR_CLUSTER nodes, quit." << std::endl;
+      exit(1);
     }
+  }
 
   auto surfMaps = _tGeometry->maps();
-    
+
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_moved;
 
   std::vector<Acts::Vector3> tpc_global_vec;
@@ -135,15 +135,15 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
     return global_in;
   }
 
-  std::vector<float> fitpars = TrackFitUtils::fitClusters(tpc_global_vec,  tpc_cluskey_vec, false);
-  if(fitpars.size() < 5)
+  std::vector<float> fitpars = TrackFitUtils::fitClusters(tpc_global_vec, tpc_cluskey_vec, false);
+  if (fitpars.size() < 5)
+  {
+    if (_verbosity > 1)
     {
-      if(_verbosity > 1)
-	{
-	  std::cout << PHWHERE << "Warning: fit failed, return input positions. " << std::endl;
-	}
-      return global_in;
-    }  
+      std::cout << PHWHERE << "Warning: fit failed, return input positions. " << std::endl;
+    }
+    return global_in;
+  }
   // Now we need to move each TPC cluster associated with this track to the readout surface radius
   for (unsigned int i = 0; i < tpc_global_vec.size(); ++i)
   {
@@ -151,82 +151,91 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
     Acts::Vector3 global = tpc_global_vec[i];
 
     // get target surface radius in global coordinates
-    auto *cluster = cluster_map->findCluster(cluskey);
-    if(!cluster) { continue; }
+    auto* cluster = cluster_map->findCluster(cluskey);
+    if (!cluster)
+    {
+      continue;
+    }
     auto surface = surfMaps.getSurface(cluskey, cluster);
-    if(!surface) { continue; }
-    
+    if (!surface)
+    {
+      continue;
+    }
+
     // Find the intersection of the helix fitted to the global cluster positions with
     // the surface associated with this cluster key
     TrkrDefs::subsurfkey sskey = cluster->getSubSurfKey();
-    Acts::Vector3 global_new= global;
+    Acts::Vector3 global_new = global;
     TrkrDefs::subsurfkey new_subsurfkey = sskey;
     bool ret = get_moved_position(cluskey, cluster, fitpars, global, global_new, new_subsurfkey);
-    if(!ret)
+    if (!ret)
     {
-      global_moved.emplace_back(cluskey, global); 
-      if(_verbosity > 1)
-	{
-	  std::cout << PHWHERE << "Warning: get_moved_position failed, use input position. " << std::endl;
-	}
+      global_moved.emplace_back(cluskey, global);
+      if (_verbosity > 1)
+      {
+        std::cout << PHWHERE << "Warning: get_moved_position failed, use input position. " << std::endl;
+      }
       continue;
     }
 
     auto global_new_keep = global_new;
     int iter = 0;
-    while(new_subsurfkey != sskey)
+    while (new_subsurfkey != sskey)
+    {
+      iter++;
+      if (iter > 2)
       {
-	iter++;
-	if(iter > 2)
-	  {
-	    // cluster has been updated with subsurfkey from last iteration, global_new is still from last iteration - move on
-	    break;
-	  }
-
-	// surface changed, cluster subsurface has been updated, redo with new surface
-	sskey = new_subsurfkey;
-	ret = get_moved_position(cluskey, cluster, fitpars, global, global_new, new_subsurfkey);
-	if(!ret)
-	  {
-	    global_new = global_new_keep;
-	    break;
-	  }
-	if(_verbosity > 2)
-	  {
-	    if(new_subsurfkey != sskey)
-	      {
-		std::cout << PHWHERE << "Warning: subsurfkey changed on iteration " << iter << " from "
-			  << sskey << " to " << new_subsurfkey << std::endl;
-	      }
-	    else
-	      {
-		std::cout << PHWHERE << "Good: subsurfkey unchanged on iteration " << iter << std::endl;
-	      }
-	  }
+        // cluster has been updated with subsurfkey from last iteration, global_new is still from last iteration - move on
+        break;
       }
 
-    if(_verbosity > 2)
+      // surface changed, cluster subsurface has been updated, redo with new surface
+      sskey = new_subsurfkey;
+      ret = get_moved_position(cluskey, cluster, fitpars, global, global_new, new_subsurfkey);
+      if (!ret)
       {
-	std::cout << "    iterations " << iter << " clusterkey " << cluskey << " subsurfkey in " << sskey << " new " << new_subsurfkey << std::endl;
-	std::cout << "        global_in " << global[0] << "  " << global[1] << "  " << global[2]  << std::endl;
-	std::cout << "        global_moved " << global_new[0] << "  " << global_new[1] << "  " << global_new[2]  << std::endl;
+        global_new = global_new_keep;
+        break;
       }
+      if (_verbosity > 2)
+      {
+        if (new_subsurfkey != sskey)
+        {
+          std::cout << PHWHERE << "Warning: subsurfkey changed on iteration " << iter << " from "
+                    << sskey << " to " << new_subsurfkey << std::endl;
+        }
+        else
+        {
+          std::cout << PHWHERE << "Good: subsurfkey unchanged on iteration " << iter << std::endl;
+        }
+      }
+    }
+
+    if (_verbosity > 2)
+    {
+      std::cout << "    iterations " << iter << " clusterkey " << cluskey << " subsurfkey in " << sskey << " new " << new_subsurfkey << std::endl;
+      std::cout << "        global_in " << global[0] << "  " << global[1] << "  " << global[2] << std::endl;
+      std::cout << "        global_moved " << global_new[0] << "  " << global_new[1] << "  " << global_new[2] << std::endl;
+    }
 
     // add the new position and surface to the return object
-    global_moved.emplace_back(cluskey, global_new); 
+    global_moved.emplace_back(cluskey, global_new);
   }
-  
+
   return global_moved;
 }
 
-bool TpcClusterMover::get_moved_position(TrkrDefs::cluskey cluskey, TrkrCluster *cluster, std::vector<float> &fitpars, Acts::Vector3 &global, Acts::Vector3 &global_new, TrkrDefs::subsurfkey &new_subsurfkey) const
+bool TpcClusterMover::get_moved_position(TrkrDefs::cluskey cluskey, TrkrCluster* cluster, std::vector<float>& fitpars, Acts::Vector3& global, Acts::Vector3& global_new, TrkrDefs::subsurfkey& new_subsurfkey) const
 {
   auto surfMaps = _tGeometry->maps();
   auto surface = surfMaps.getSurface(cluskey, cluster);
-  if(!surface) { return false; }
+  if (!surface)
+  {
+    return false;
+  }
 
-  Acts::Vector3 surf_intercept = TrackFitUtils::get_helix_surface_intersection(surface,  fitpars, global, _tGeometry);
-  
+  Acts::Vector3 surf_intercept = TrackFitUtils::get_helix_surface_intersection(surface, fitpars, global, _tGeometry);
+
   // get circle position at cluster radius
   double cluster_radius = sqrt(global[0] * global[0] + global[1] * global[1]);
   double R = fitpars[0];
@@ -236,38 +245,38 @@ bool TpcClusterMover::get_moved_position(TrkrDefs::cluskey cluskey, TrkrCluster 
   double y_start = 0.0;
   int ret = get_circle_circle_intersection(cluster_radius, R, X0, Y0, global[0], global[1], x_start, y_start);
   if (ret == Fun4AllReturnCodes::ABORTEVENT)
-    {
-      return false;  // skip to next cluster
-    }
+  {
+    return false;  // skip to next cluster
+  }
   // z projection is unique
   double A = fitpars[3];
   double B = fitpars[4];
   double z_start = B + A * cluster_radius;
-  
-  Acts::Vector3 start_point(x_start, y_start, z_start); 
-  
+
+  Acts::Vector3 start_point(x_start, y_start, z_start);
+
   // calculate dx, dy, dz along circle trajectory from cluster radius to surface radius
   double xnew = global[0] - (start_point.x() - surf_intercept.x());
   double ynew = global[1] - (start_point.y() - surf_intercept.y());
   double znew = global[2] - (start_point.z() - surf_intercept.z());
-  
+
   global_new(0) = xnew;
   global_new(1) = ynew;
   global_new(2) = znew;
-  
+
   bool update_sskey = true;
-  if(update_sskey)
+  if (update_sskey)
+  {
+    unsigned int sskey = cluster->getSubSurfKey();
+
+    TrkrDefs::hitsetkey hkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+    auto new_surf = _tGeometry->get_tpc_surface_from_coords(hkey, global_new, new_subsurfkey);
+    if (new_surf && (new_subsurfkey != sskey))
     {
-      unsigned int sskey = cluster->getSubSurfKey();
-      
-      TrkrDefs::hitsetkey hkey= TrkrDefs:: getHitSetKeyFromClusKey(cluskey);
-      auto new_surf = _tGeometry->get_tpc_surface_from_coords(hkey, global_new, new_subsurfkey);
-      if( new_surf && (new_subsurfkey != sskey) )
-	{
-	  cluster->setSubSurfKey(new_subsurfkey);
-	}
+      cluster->setSubSurfKey(new_subsurfkey);
     }
-  
+  }
+
   return true;
 }
 
