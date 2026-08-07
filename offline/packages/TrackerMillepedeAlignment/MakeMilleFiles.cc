@@ -539,6 +539,10 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
 
     float glbl_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NGL]{};
     float lcl_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC]{};
+    float lcl_derivative_psuedo[SvtxAlignmentState::NLOC][SvtxAlignmentState::NLOC]{};
+    float lcl_meas_psuedo[SvtxAlignmentState::NLOC]{};
+    float glbl_derivative_dummy_empty[SvtxAlignmentState::NGL]{};
+    int glbl_label_dummy_empty[SvtxAlignmentState::NGL]{};
     SvtxAlignmentState::ActsTrackParamsVector lcl_trackpars = state->get_acts_track_params();
     
     /// For N residual local coordinates x, z
@@ -548,7 +552,6 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
       for (int j = 0; j < SvtxAlignmentState::NGL; ++j)
       {
         glbl_derivative[i][j] = state->get_global_derivative_matrix()(i, j);
-
         if (is_layer_fixed(layer) ||
             is_layer_param_fixed(layer, j, fixed_layer_gparams))
         {
@@ -633,6 +636,18 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
 
         _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative[i], SvtxAlignmentState::NGL, glbl_derivative[i], glbl_label, residual(i), errinf * clus_sigma(i));
       }
+    }
+
+    // For 6 local track parameters, the associated psuedo mille measurements that complete the local derivative
+    for (int i = 0; i < SvtxAlignmentState::NLOC; ++i)
+    {
+      for (int j = 0; j < SvtxAlignmentState::NLOC; ++j)
+      {
+        lcl_derivative_psuedo[i][j] = state->get_local_derivative_psuedo_matrix()(i, j);
+      }
+      lcl_meas_psuedo[i] = state->get_local_psuedo_measurement_err()(i);
+
+      _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative_psuedo[i], SvtxAlignmentState::NGL, glbl_derivative_dummy_empty, glbl_label_dummy_empty, 0.0, lcl_meas_psuedo[i]);
     }
 
     float ntp_data[] = {

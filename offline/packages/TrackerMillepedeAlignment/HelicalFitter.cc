@@ -227,11 +227,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
   bool h2h_flag = false;
   bool mvtx_east_only = false;
   bool mvtx_west_only = false;
-  if (do_mvtx_half == 0)
+  if (m_do_mvtx_half == 0)
   {
     mvtx_east_only = true;
   }
-  if (do_mvtx_half == 1)
+  if (m_do_mvtx_half == 1)
   {
     mvtx_west_only = true;
   }
