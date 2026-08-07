@@ -395,6 +395,19 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
   // Per-tower G4-scaled, pre-fit energy (GeV-equivalent), masked by the
   // dead/hot tower map -- accumulated below, used only for CaloEtSum.
   std::vector<float> tower_prefit_energy(m_nchannels, 0.F);
+  // Same, but only the embedded-signal (e.g. PYTHIA8) contribution, tracked
+  // separately so CaloEtSum can also be split by origin (see
+  // CaloEtSum_<DET>_HIJING / _PYTHIA below). tower_prefit_energy above still
+  // holds the combined (background+signal) energy, unchanged.
+  std::vector<float> tower_prefit_energy_embedded(m_nchannels, 0.F);
+
+  // m_energy_scale is meant to rescale only the underlying-event (e.g.
+  // HIJING) truth energy, not any embedded signal (e.g. PYTHIA8) that may
+  // share the same G4Hit container after hit-level embedding. Hits whose
+  // originating track carries a nonzero embedding ID (see
+  // PHG4TruthInfoContainer::isEmbeded -- 0 means background/not embedded)
+  // are left unscaled.
+  PHG4TruthInfoContainer *truthinfo_embed = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   // loop over hits
   for (PHG4HitContainer::ConstIterator hititer = hits->getHits().first; hititer != hits->getHits().second; hititer++)
@@ -417,7 +430,11 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
     float e_vis = hit->get_light_yield();
     e_vis *= correction;
-    e_vis *= m_energy_scale;
+    bool hit_is_embedded_signal = truthinfo_embed && (truthinfo_embed->isEmbeded(hit->get_trkid()) != 0);
+    if (!hit_is_embedded_signal)
+    {
+      e_vis *= m_energy_scale;
+    }
     if (m_smear_const)
     {
       auto it = tbt_smear.find(key);
@@ -456,6 +473,10 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     if (!towerMasked)
     {
       tower_prefit_energy.at(tower_index) += e_dep;
+      if (hit_is_embedded_signal)
+      {
+        tower_prefit_energy_embedded.at(tower_index) += e_dep;
+      }
     }
 
     float ADC = (calibconst != 0) ? e_dep / calibconst : 0.;
@@ -524,6 +545,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     RawTowerDefs::CalorimeterId caloid = RawTowerDefs::convert_name_to_caloid(m_detector);
 
     float det_et = 0.;
+    float det_et_embedded = 0.;
     for (int idx = 0; idx < m_nchannels; idx++)
     {
       if (tower_prefit_energy.at(idx) == 0.F)
@@ -548,23 +570,46 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       double z = z0 - vtxz;
       double eta = std::asinh(z / r);  // eta after shift from the truth z vertex
       det_et += tower_prefit_energy.at(idx) / std::cosh(eta);
+      det_et_embedded += tower_prefit_energy_embedded.at(idx) / std::cosh(eta);
     }
     if (!geom && Verbosity() > 0)
     {
       std::cout << "CaloWaveformSim::process_event: TOWERGEOM_" << m_detector
                 << " missing, CaloEtSum_" << m_detector << " will be 0" << std::endl;
     }
+    // Et is a per-tower linear functional of energy (E/cosh(eta) with a
+    // fixed per-tower eta), so summing the combined and embedded-only
+    // per-tower sums separately and subtracting recovers the background
+    // (e.g. HIJING)-only Et exactly -- no need for a third accumulator.
+    float det_et_background = det_et - det_et_embedded;
 
     EventHeader *eventheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
     if (eventheader)
     {
       eventheader->set_floatval("CaloEtSum_" + m_detector, det_et);
+      eventheader->set_floatval("CaloEtSum_" + m_detector + "_HIJING", det_et_background);
+      eventheader->set_floatval("CaloEtSum_" + m_detector + "_PYTHIA", det_et_embedded);
+
       float priorTotal = eventheader->get_floatval("CaloEtSum_Total");
       if (!std::isfinite(priorTotal))
       {
         priorTotal = 0.F;
       }
       eventheader->set_floatval("CaloEtSum_Total", priorTotal + det_et);
+
+      float priorTotalHijing = eventheader->get_floatval("CaloEtSum_Total_HIJING");
+      if (!std::isfinite(priorTotalHijing))
+      {
+        priorTotalHijing = 0.F;
+      }
+      eventheader->set_floatval("CaloEtSum_Total_HIJING", priorTotalHijing + det_et_background);
+
+      float priorTotalPythia = eventheader->get_floatval("CaloEtSum_Total_PYTHIA");
+      if (!std::isfinite(priorTotalPythia))
+      {
+        priorTotalPythia = 0.F;
+      }
+      eventheader->set_floatval("CaloEtSum_Total_PYTHIA", priorTotalPythia + det_et_embedded);
     }
     else if (Verbosity() > 0)
     {
