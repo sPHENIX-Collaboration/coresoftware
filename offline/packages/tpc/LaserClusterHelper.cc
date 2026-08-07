@@ -83,7 +83,10 @@ Acts::Vector3 LaserClusterHelper::getHitPosition(TrkrDefs::hitsetkey hitsetkey, 
     }
 
     Acts::Vector3 env_global(env_x, env_y, env_z);
-    if(!m_useGlobal) return env_global;
+    if(!m_useGlobal)
+    {
+        return env_global;
+    }
 
     return m_tGeometry->transformTpcEnvelopeToWorld(env_global);
 }
