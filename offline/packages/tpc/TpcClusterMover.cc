@@ -135,7 +135,7 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
     return global_in;
   }
 
-  std::vector<float> fitpars = TrackFitUtils::fitClusters(tpc_global_vec,  tpc_cluskey_vec, 0);
+  std::vector<float> fitpars = TrackFitUtils::fitClusters(tpc_global_vec,  tpc_cluskey_vec, false);
   if(fitpars.size() < 5)
     {
       if(_verbosity > 1)
