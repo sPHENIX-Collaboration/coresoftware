@@ -76,7 +76,7 @@ class PHGarfield : public SubsysReco
   double GetSpaceChargeScaleSide0() const { return m_spaceChargeScale_side0; }
   double GetSpaceChargeScaleSide1() const { return m_spaceChargeScale_side1; }
 
-  void setZeroField(bool zerofield) { m_zerofield = zerofield; }
+  void SetZeroField(bool zerofield) { m_zerofield = zerofield; }
 
  private:
   void GetMagneticFieldTesla(double x_cm, double y_cm, double z_cm, double &bx_t, double &by_t, double &bz_t) const;      // Feeds magnetic field to Garfield
