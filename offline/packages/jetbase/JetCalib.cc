@@ -22,11 +22,11 @@
 #include <TF1.h>
 #include <TFile.h>
 #include <TH2.h>
-#include <TString.h>  // for Form
 
 #include <algorithm>  // for std::max, std::min
 #include <cmath>
 #include <iostream>  // for operator<<, basic_ostream
+#include <string>
 
 JetCalib::JetCalib(const std::string &name)
   : SubsysReco(name)
@@ -97,25 +97,29 @@ int JetCalib::initEMfracCalib()
   }
 
   int r_index = (int) (jet_radius * 10 + 0.1);
+  const std::string r_suffix = "_r0" + std::to_string(r_index);
+  const std::string jes_name = "h2d_jes_calib" + r_suffix;
+  const std::string zeta_name = "h2_zeta_corr" + r_suffix;
+  const std::string noz_name = "f_zeta_noz_corr" + r_suffix;
 
   // First-pass map (required).
-  m_JesCalibMap = dynamic_cast<TH2 *>(m_JetCalibFile->Get(Form("h2d_jes_calib_r0%d", r_index)));
+  m_JesCalibMap = dynamic_cast<TH2 *>(m_JetCalibFile->Get(jes_name.c_str()));
   if (!m_JesCalibMap)
   {
-    std::cout << "JetCalib::initEMfracCalib() : Could not find first-pass calibration map h2d_jes_calib_r0" << r_index << "!" << std::endl;
+    std::cout << "JetCalib::initEMfracCalib() : Could not find first-pass calibration map " << jes_name << "!" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   // Residual (z-vertex, eta) correction (map + no-vertex function).
   if (m_ApplyResidualCalib)
   {
-    m_ZetaCorrMap = dynamic_cast<TH2 *>(m_JetCalibFile->Get(Form("h2_zeta_corr_r0%d", r_index)));
-    m_NozCorrFunc = dynamic_cast<TF1 *>(m_JetCalibFile->Get(Form("f_zeta_noz_corr_r0%d", r_index)));
+    m_ZetaCorrMap = dynamic_cast<TH2 *>(m_JetCalibFile->Get(zeta_name.c_str()));
+    m_NozCorrFunc = dynamic_cast<TF1 *>(m_JetCalibFile->Get(noz_name.c_str()));
     if (!m_ZetaCorrMap || !m_NozCorrFunc)
     {
       std::cout << "JetCalib::initEMfracCalib() : Could not find residual correction ("
-                << (m_ZetaCorrMap ? "" : Form("h2_zeta_corr_r0%d ", r_index))
-                << (m_NozCorrFunc ? "" : Form("f_zeta_noz_corr_r0%d", r_index))
+                << (m_ZetaCorrMap ? std::string() : zeta_name + " ")
+                << (m_NozCorrFunc ? std::string() : noz_name)
                 << "); residual correction disabled." << std::endl;
       m_ZetaCorrMap = nullptr;
       m_NozCorrFunc = nullptr;
@@ -397,9 +401,15 @@ std::string JetCalib::fetchCalibDir(const char *calibType)
 void JetCalib::getEtaAcceptance(float zvrtx, float radius, float &minlimit, float &maxlimit)
 {
   // Calorimeter half-lengths [cm] and radii [cm].
-  const float minz_EM = -130.23, maxz_EM = 130.23, radius_EM = 93.5;
-  const float minz_IH = -170.299, maxz_IH = 170.299, radius_IH = 127.503;
-  const float minz_OH = -301.683, maxz_OH = 301.683, radius_OH = 225.87;
+  const float minz_EM = -130.23;
+  const float maxz_EM = 130.23;
+  const float radius_EM = 93.5;
+  const float minz_IH = -170.299;
+  const float maxz_IH = 170.299;
+  const float radius_IH = 127.503;
+  const float minz_OH = -301.683;
+  const float maxz_OH = 301.683;
+  const float radius_OH = 225.87;
 
   float emcal_min = std::asinh((minz_EM - zvrtx) / radius_EM);
   float emcal_max = std::asinh((maxz_EM - zvrtx) / radius_EM);
@@ -422,22 +432,10 @@ float JetCalib::interpolateClamped(TH2 *h2, double x, double y)
   double x_hi = xa->GetBinCenter(xa->GetNbins());
   double y_lo = ya->GetBinCenter(1);
   double y_hi = ya->GetBinCenter(ya->GetNbins());
-  if (x < x_lo)
-  {
-    x = x_lo;
-  }
-  if (x > x_hi)
-  {
-    x = x_hi;
-  }
-  if (y < y_lo)
-  {
-    y = y_lo;
-  }
-  if (y > y_hi)
-  {
-    y = y_hi;
-  }
+  x = std::max(x, x_lo);
+  x = std::min(x, x_hi);
+  y = std::max(y, y_lo);
+  y = std::min(y, y_hi);
   return h2->Interpolate(x, y);
 }
 
@@ -512,7 +510,9 @@ float JetCalib::getResidualScale(float zvrtx, bool hasVertex, float eta) const
 // Legacy method helpers (per-(z bin, eta bin) TF1 corrections versus pT).
 // ---------------------------------------------------------------------------
 
-static int getZvrtxBin(float zvrtx)
+namespace
+{
+int getZvrtxBin(float zvrtx)
 {
   if (zvrtx >= -60.0 && zvrtx < -30.0)
   {
@@ -538,7 +538,7 @@ static int getZvrtxBin(float zvrtx)
   return 0;  // Default case, should not happen
 }
 
-static int getEtaBin(int zvrtxbin, float eta, float jet_radius)
+int getEtaBin(int zvrtxbin, float eta, float jet_radius)
 {
   float eta_low = 0;
   float eta_high = 0;
@@ -581,6 +581,7 @@ static int getEtaBin(int zvrtxbin, float eta, float jet_radius)
 
   return 3;  // threshold3 to inf
 }
+}  // namespace
 
 float JetCalib::doCalibration(const std::vector<std::vector<TF1 *>> &JetCalibFunc, float jetPt, float zvrtx, float eta) const
 {
