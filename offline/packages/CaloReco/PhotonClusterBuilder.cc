@@ -271,6 +271,13 @@ void PhotonClusterBuilder::calculate_bdt_score(PhotonClusterv1* photon)
 
 void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonClusterv1* photon, float cluster_eta, float cluster_phi)
 {
+  if (m_do_topocluster_isolation)
+  {
+    photon->set_shower_shape_parameter("iso_topo_03", m_topo_iso_defval);
+    photon->set_shower_shape_parameter("iso_topo_04", m_topo_iso_defval);
+    photon->set_shower_shape_parameter("iso_topo_valid", 0.0F);
+  }
+
   std::vector<float> showershape = rc->get_shower_shapes(m_shape_min_tower_E);
   if (showershape.empty())
   {
@@ -805,26 +812,26 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
 
   if (m_do_topocluster_isolation)
   {
-    float iso_axis_eta = cluster_eta;
-    float iso_axis_phi = cluster_phi;
-    if (maxieta >= 0 && maxieta < 96)
+    if (m_topocluster_container && maxieta >= 0 && maxieta < 96)
     {
       const int cog_iphi = (maxiphi % 256 + 256) % 256;
       const auto cog_key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, maxieta, cog_iphi);
       RawTowerGeom* cog_tower = m_geomEM->get_tower_geometry(cog_key);
       if (cog_tower)
       {
-        iso_axis_eta = getTowerEta(cog_tower, 0, 0, m_vertex);
-        iso_axis_phi = cog_tower->get_phi();
+        const float iso_axis_eta = getTowerEta(cog_tower, 0, 0, m_vertex);
+        const float iso_axis_phi = cog_tower->get_phi();
+        if (std::isfinite(iso_axis_eta) && std::isfinite(iso_axis_phi))
+        {
+          float iso03 = m_topo_iso_defval;
+          float iso04 = m_topo_iso_defval;
+          calculate_topocluster_iso(iso_axis_eta, iso_axis_phi, ET, iso03, iso04);
+          photon->set_shower_shape_parameter("iso_topo_03", iso03);
+          photon->set_shower_shape_parameter("iso_topo_04", iso04);
+          photon->set_shower_shape_parameter("iso_topo_valid", 1.0F);
+        }
       }
     }
-
-    float iso03 = m_topo_iso_defval;
-    float iso04 = m_topo_iso_defval;
-    calculate_topocluster_iso(iso_axis_eta, iso_axis_phi, ET, iso03, iso04);
-    photon->set_shower_shape_parameter("iso_topo_03", iso03);
-    photon->set_shower_shape_parameter("iso_topo_04", iso04);
-    photon->set_shower_shape_parameter("iso_topo_valid", m_topocluster_container ? 1.0F : 0.0F);
   }
 }
 
