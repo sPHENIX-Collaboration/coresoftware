@@ -76,6 +76,8 @@ class PHGarfield : public SubsysReco
   double GetSpaceChargeScaleSide0() const { return m_spaceChargeScale_side0; }
   double GetSpaceChargeScaleSide1() const { return m_spaceChargeScale_side1; }
 
+  void SetZeroField(bool zerofield) { m_zerofield = zerofield; }
+
  private:
   void GetMagneticFieldTesla(double x_cm, double y_cm, double z_cm, double &bx_t, double &by_t, double &bz_t) const;      // Feeds magnetic field to Garfield
   void GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, double &ex_vcm, double &ey_vcm, double &ez_vcm) const;  // Feeds electric field to Garfield
@@ -111,6 +113,7 @@ class PHGarfield : public SubsysReco
   double m_spaceChargeScale_side0{1.0};  // south, z < 0
   double m_spaceChargeScale_side1{1.0};  // north, z > 0
   double m_CMVoltageDefault{432.8};      // V/cm, nominal TPC field
+  bool m_zerofield{false};
   TH2 *m_erCorrection{nullptr};          // radial correction, input bins in V/m
   TH2 *m_ezCorrection{nullptr};          // local longitudinal correction, input bins in V/m
 
