@@ -171,6 +171,7 @@ class KFParticle_truthAndDetTools
   float detector_emcal_deltaphi[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_emcal_deltaeta[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_emcal_deltaz[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_deltaz_projected[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_emcal_energy_3x3[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_emcal_energy_5x5[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_emcal_cluster_energy[max_tracks]{std::numeric_limits<float>::quiet_NaN()};

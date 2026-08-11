@@ -61,6 +61,56 @@
 #include <memory>     // for allocator_traits<>::va...
 #include <utility>    // for pair
 
+namespace
+{
+bool projectClusterZToCylinder(
+    const double vx, const double vy, const double vz,
+    const double cluster_x, const double cluster_y, const double cluster_z,
+    const double target_radius_sq, double &projected_cluster_z)
+{
+  // With delta = cluster - V, parameterize the ray from the primary vertex
+  // V = (vx, vy, vz) through the EMCal cluster as
+  //
+  //   x(lambda) = vx + lambda * delta_x
+  //   y(lambda) = vy + lambda * delta_y
+  //   z(lambda) = vz + lambda * delta_z.
+  //
+  // Here lambda = 0 is the primary vertex and lambda = 1 is the original
+  // cluster position.  Requiring the projected point to lie on the target
+  // cylinder gives
+  //
+  //   x(lambda)^2 + y(lambda)^2 = R_target^2,
+  //
+  // or A * lambda^2 + B * lambda + C = 0, where
+  //
+  //   A = delta_x^2 + delta_y^2,
+  //   B = 2 * (vx * delta_x + vy * delta_y),
+  //   C = vx^2 + vy^2 - R_target^2.
+  const double delta_x = cluster_x - vx;
+  const double delta_y = cluster_y - vy;
+  const double delta_z = cluster_z - vz;
+  const double quadratic_a = delta_x * delta_x + delta_y * delta_y;
+  const double quadratic_b = 2. * (vx * delta_x + vy * delta_y);
+  const double quadratic_c = vx * vx + vy * vy - target_radius_sq;
+  const double discriminant = quadratic_b * quadratic_b - 4. * quadratic_a * quadratic_c;
+  if (!(quadratic_a > 0.) || !(discriminant >= 0.))
+  {
+    return false;
+  }
+
+  // Take the forward intersection along the ray:
+  // lambda = (-B + sqrt(B^2 - 4*A*C)) / (2*A).
+  const double projection_scale = (-quadratic_b + std::sqrt(discriminant)) / (2. * quadratic_a);
+  if (!(projection_scale > 0.) || !std::isfinite(projection_scale))
+  {
+    return false;
+  }
+
+  projected_cluster_z = vz + projection_scale * delta_z;
+  return std::isfinite(projected_cluster_z);
+}
+}  // namespace
+
 std::map<std::string, int> Use =
     {
         {"MVTX", 1},
@@ -480,6 +530,7 @@ void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daug
   m_tree->Branch((daughter_number + "_EMCAL_DeltaPhi").c_str(), &detector_emcal_deltaphi[daughter_id], (daughter_number + "_EMCAL_DeltaPhi/F").c_str());
   m_tree->Branch((daughter_number + "_EMCAL_DeltaEta").c_str(), &detector_emcal_deltaeta[daughter_id], (daughter_number + "_EMCAL_DeltaEta/F").c_str());
   m_tree->Branch((daughter_number + "_EMCAL_DeltaZ").c_str(), &detector_emcal_deltaz[daughter_id], (daughter_number + "_EMCAL_DeltaZ/F").c_str());
+  m_tree->Branch((daughter_number + "_EMCAL_DeltaZ_Projected").c_str(), &detector_emcal_deltaz_projected[daughter_id], (daughter_number + "_EMCAL_DeltaZ_Projected/F").c_str());
   m_tree->Branch((daughter_number + "_EMCAL_energy_3x3").c_str(), &detector_emcal_energy_3x3[daughter_id], (daughter_number + "_EMCAL_energy_3x3/F").c_str());
   m_tree->Branch((daughter_number + "_EMCAL_energy_5x5").c_str(), &detector_emcal_energy_5x5[daughter_id], (daughter_number + "_EMCAL_energy_5x5/F").c_str());
   m_tree->Branch((daughter_number + "_EMCAL_energy_cluster").c_str(), &detector_emcal_cluster_energy[daughter_id], (daughter_number + "_EMCAL_energy_cluster/F").c_str());
@@ -650,6 +701,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   std::vector<float> v_emcal_deta;
   std::vector<float> v_emcal_dr;
   std::vector<float> v_emcal_dz;
+  std::vector<float> v_emcal_dz_projected;
   // std::vector<float> v_emcal_3x3;
   // std::vector<float> v_emcal_5x5;
 
@@ -711,10 +763,19 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
         continue;
       }
 
-      // CUT -- DZ
-      float clZ = cluster->get_z() - vz;
-      float dz = _track_z_emc - clZ;
-      if (dz > m_dz_cut_high || dz < m_dz_cut_low)
+      const double track_radius_sq = thisState->get_x() * thisState->get_x() + thisState->get_y() * thisState->get_y();
+      double projected_cluster_z = std::numeric_limits<double>::quiet_NaN();
+      if (!projectClusterZToCylinder(
+              vx, vy, vz,
+              cluster->get_x(), cluster->get_y(), cluster->get_z(),
+              track_radius_sq, projected_cluster_z))
+      {
+        continue;
+      }
+
+      const float dz = static_cast<float>(_track_z_emc - (cluster->get_z() - vz));
+      const float dz_projected = static_cast<float>(_track_z_emc - (projected_cluster_z - vz));
+      if (dz_projected > m_dz_cut_high || dz_projected < m_dz_cut_low)
       {
         continue;
       }
@@ -726,7 +787,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
 
       // Calculate dr
       float tmparg = caloRadiusEMCal * dphi;
-      float dr = std::sqrt((tmparg * tmparg) + (dz * dz));  // sqrt((R*dphi)^2 + (dz)^2
+      float dr = std::sqrt((tmparg * tmparg) + (dz_projected * dz_projected));  // sqrt((R*dphi)^2 + (dz)^2
       // float dr = sqrt((dphi*dphi + deta*deta)); //previous version
 
       // Detailed Calo Info
@@ -738,6 +799,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       v_emcal_clusE.push_back(cluster_energy);
       v_emcal_dphi.push_back(dphi);
       v_emcal_dz.push_back(dz);
+      v_emcal_dz_projected.push_back(dz_projected);
       v_emcal_deta.push_back(deta);
       v_emcal_dr.push_back(dr);
       // v_emcal_3x3.push_back(std::numeric_limits<float>::quiet_NaN());
@@ -789,7 +851,8 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   {
     detector_emcal_deltaphi[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_deltaeta[daughter_id] = std::numeric_limits<float>::quiet_NaN();
-    detector_emcal_deltaeta[daughter_id] = std::numeric_limits<float>::quiet_NaN();
+    detector_emcal_deltaz[daughter_id] = std::numeric_limits<float>::quiet_NaN();
+    detector_emcal_deltaz_projected[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_energy_3x3[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_energy_5x5[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_cluster_energy[daughter_id] = std::numeric_limits<float>::quiet_NaN();
@@ -808,6 +871,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     detector_emcal_deltaphi[daughter_id] = v_emcal_dphi[index];
     detector_emcal_deltaeta[daughter_id] = v_emcal_deta[index];
     detector_emcal_deltaz[daughter_id] = v_emcal_dz[index];
+    detector_emcal_deltaz_projected[daughter_id] = v_emcal_dz_projected[index];
     detector_emcal_energy_3x3[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_energy_5x5[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_cluster_energy[daughter_id] = v_emcal_clusE[index];
