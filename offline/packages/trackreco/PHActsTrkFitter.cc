@@ -471,7 +471,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     auto *tpcseed = m_tpcSeeds->get(tpcid);
 
     short int best_crossing = track->get_crossing();  // best crossing between INTT clusters and TPC seed
-    if(best_crossing == SHRT_MAX) { continue; }
 
     if(Verbosity() > 2 && siseed && tpcseed)
 	  {
@@ -507,13 +506,16 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       crossing = 0;
     }
 
+    // no path forward in this case, move on
+    if(crossing == SHRT_MAX && crossing_estimate == SHRT_MAX) { continue; }
+	
     /// Need to also check that the tpc seed wasn't removed by the ghost finder
     if (!tpcseed)
     {
       std::cout << "no tpc seed" << std::endl;
       continue;
     }
-    
+	
     if (Verbosity() > 0)
       {
 	if (siseed)
@@ -570,7 +572,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
       crossing_estimate = crossing;
     }
-
+	
     // Fit this track assuming either:
     //    crossing = best crossing value, if it exists (uses nvary = 0)
     //    crossing = crossing_estimate +/- max_bunch_search, if no INTT value exists and m_enable_crossing_estimate flag is set.

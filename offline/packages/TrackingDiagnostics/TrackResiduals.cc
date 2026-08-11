@@ -2133,9 +2133,9 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
     m_nmms = 0;
     m_nmmsstate = 0;
     m_silid = std::numeric_limits<unsigned int>::quiet_NaN();
-    m_silseed_crossing = std::numeric_limits<short int>::quiet_NaN();
+    m_silseed_crossing = SHRT_MAX;
     m_tpcid = std::numeric_limits<unsigned int>::quiet_NaN();
-    m_tpcseed_crossing = std::numeric_limits<short int>::quiet_NaN();
+    m_tpcseed_crossing = SHRT_MAX;
     m_silseedx = std::numeric_limits<float>::quiet_NaN();
     m_silseedy = std::numeric_limits<float>::quiet_NaN();
     m_silseedz = std::numeric_limits<float>::quiet_NaN();

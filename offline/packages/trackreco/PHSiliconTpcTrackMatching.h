@@ -144,6 +144,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   {
     _cluster_map_name = name;
   }
+  void set_max_crossing_diff(const short int diff) { _max_crossing_diff = diff; }
+
   int InitRun(PHCompositeNode *topNode) override;
 
   int process_event(PHCompositeNode *) override;
@@ -198,6 +200,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   int m_event = 0;
   std::map<unsigned int, double> _z_mismatch_map;
 
+  short int _max_crossing_diff = 5;
+  
   TpcClusterZCrossingCorrection _clusterCrossingCorrection;
   float _crossing_deltaz_max = 10.0;
   float _crossing_deltaz_min = 1.5;

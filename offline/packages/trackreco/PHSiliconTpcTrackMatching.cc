@@ -726,7 +726,7 @@ void PHSiliconTpcTrackMatching::checkZMatches(
 
     std::vector<short int> crossing_list = getBestCrossing(tpcid, si_id);
     short int crossing = crossing_list[3];        // the fourth entry is the best crossing choice
-    if(crossing == SHRT_MAX) { continue; }
+    if(crossing == SHRT_MAX) { continue; }  // no valid crossing
     
     float z_mismatch = tpc_z - si_z;
     float tpc_z_corrected = TpcClusterZCrossingCorrection::correctZ(tpc_z, this_side, crossing);
@@ -807,30 +807,30 @@ void PHSiliconTpcTrackMatching::checkZMatches(
 std::vector<short int>  PHSiliconTpcTrackMatching::getBestCrossing(unsigned int tpcid, unsigned int si_id)
 {
   // returns vector containing (intt,tpc,geometric,best) crossing list 
-  short int maxcrossdiff = 5;
   
   TrackSeed *tpc_track = _track_map->get(tpcid);
   TrackSeed *si_track = _track_map_silicon->get(si_id);
 
-  std::vector<short int> crossing_list;
-  
+  std::vector<short int> crossing_list;  
   short int intt_crossing = si_track->get_crossing();
   short int tpc_crossing = tpc_track->get_crossing();
   short int geom_crossing = findCrossingGeometrically(tpcid, si_id);
-
   crossing_list.emplace_back(intt_crossing);
   crossing_list.emplace_back(tpc_crossing);
   crossing_list.emplace_back(geom_crossing);
 
+  // get the best crossing reference for this track
+  
   short int crossing = SHRT_MAX;
 
-  // get the best crossing reference for this track
-  if (intt_crossing == SHRT_MAX && tpc_crossing == SHRT_MAX)
+  // discard the track if there is no input crossing, or no geometric reference
+  if ((intt_crossing == SHRT_MAX && tpc_crossing == SHRT_MAX) || geom_crossing == SHRT_MAX)
     {
       crossing_list.emplace_back(crossing);
       return crossing_list;
     }
-  
+
+  // decision tree
   if(intt_crossing == tpc_crossing)
     {
       crossing = intt_crossing;
@@ -839,7 +839,7 @@ std::vector<short int>  PHSiliconTpcTrackMatching::getBestCrossing(unsigned int 
     {
       short int inttdiff = intt_crossing - geom_crossing;
       short int tpcdiff = tpc_crossing - geom_crossing;
-      if( abs(inttdiff) < maxcrossdiff || abs(tpcdiff) < maxcrossdiff )
+      if( abs(inttdiff) < _max_crossing_diff || abs(tpcdiff) < _max_crossing_diff )
 	{
 	  crossing = ( abs(inttdiff) < abs(tpcdiff) ) ? (intt_crossing) : (tpc_crossing);
 	}
