@@ -22,9 +22,9 @@
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
 
-#include <TH1F.h>
-#include <TH2F.h>
 #include <TAxis.h>
+#include <TH1.h>
+#include <TH2.h>
 #include <TSystem.h>
 
 #include <cmath>
@@ -143,22 +143,22 @@ bool CaloTowerTimeCalibration::ResolveDetector()
 
 void CaloTowerTimeCalibration::ResolveNames()
 {
-  if (!m_useExactInputNodeName)
+  if (!m_inputNodePrefix.empty())
   {
     m_inputNodeName = m_inputNodePrefix + m_detector;
   }
 
-  if (!m_useExactOutputNodeName)
+  if (!m_outputNodePrefix.empty())
   {
     m_outputNodeName = m_outputNodePrefix + m_detector;
   }
 
-  if (!m_useCustomMeanTimeCalibName)
+  if (!m_meanTimeCalibName.empty())
   {
     m_meanTimeCalibName = m_detector + "_meanTime";
   }
 
-  if (!m_useCustomTimeCorrectionCalibName)
+  if (!m_timeCorrectionCalibName.empty())
   {
     // Central-CDB fallback used after an official domain is available.
     m_timeCorrectionCalibName = m_detector + "_timeCalib_MV_test";
@@ -167,8 +167,7 @@ void CaloTowerTimeCalibration::ResolveNames()
 
 std::string CaloTowerTimeCalibration::BuildLocalTimeCorrectionURL() const
 {
-  if (!m_useLocalTimeCorrectionFiles
-      || m_localTimeCorrectionDirectory.empty())
+  if (m_localTimeCorrectionDirectory.empty())
   {
     return {};
   }
@@ -214,14 +213,14 @@ int CaloTowerTimeCalibration::InitRun(PHCompositeNode *topNode)
   m_calibrationAvailable = false;
 
   const std::string meanTimeURL =
-      m_useDirectMeanTimeURL
+    !m_directMeanTimeURL.empty()
           ? m_directMeanTimeURL
           : CDBInterface::instance()->getUrl(m_meanTimeCalibName);
 
   std::string timeCorrectionURL;
   std::string attemptedLocalURL;
 
-  if (m_useDirectTimeCorrectionURL)
+  if (!m_directTimeCorrectionURL.empty())
   {
     timeCorrectionURL = m_directTimeCorrectionURL;
     std::cout << Name() << "::" << m_detector

@@ -12,8 +12,8 @@
 
 class CDBTTree;
 class PHCompositeNode;
-class TH1F;
-class TH2F;
+class TH1;
+class TH2;
 
 /**
  * Timing-only sidecar calibration for calibrated TowerInfo nodes.
@@ -72,43 +72,36 @@ class CaloTowerTimeCalibration : public SubsysReco
   void set_inputNodePrefix(const std::string &prefix)
   {
     m_inputNodePrefix = prefix;
-    m_useExactInputNodeName = false;
   }
 
   void set_outputNodePrefix(const std::string &prefix)
   {
     m_outputNodePrefix = prefix;
-    m_useExactOutputNodeName = false;
   }
 
   void set_inputNodeName(const std::string &name)
   {
     m_inputNodeName = name;
-    m_useExactInputNodeName = true;
   }
 
   void set_outputNodeName(const std::string &name)
   {
     m_outputNodeName = name;
-    m_useExactOutputNodeName = true;
   }
 
   void set_meanTimeCalibName(const std::string &name)
   {
     m_meanTimeCalibName = name;
-    m_useCustomMeanTimeCalibName = true;
   }
 
   void set_timeCorrectionCalibName(const std::string &name)
   {
     m_timeCorrectionCalibName = name;
-    m_useCustomTimeCorrectionCalibName = true;
   }
 
   void set_directURL_timeCorrection(const std::string &url)
   {
     m_directTimeCorrectionURL = url;
-    m_useDirectTimeCorrectionURL = true;
   }
 
   void set_localTimeCorrectionDirectory(const std::string &directory)
@@ -116,15 +109,9 @@ class CaloTowerTimeCalibration : public SubsysReco
     m_localTimeCorrectionDirectory = directory;
   }
 
-  void set_useLocalTimeCorrectionFiles(bool value = true)
-  {
-    m_useLocalTimeCorrectionFiles = value;
-  }
-
   void set_directURL_meanTime(const std::string &url)
   {
     m_directMeanTimeURL = url;
-    m_useDirectMeanTimeURL = true;
   }
 
   void set_doAbortMissingCalibration(bool value = true)
@@ -158,10 +145,10 @@ class CaloTowerTimeCalibration : public SubsysReco
 
   struct TowerQASet
   {
-    TH1F *hStandardTime{nullptr};
-    TH1F *hCorrectedTime{nullptr};
-    TH2F *hStandardEnergyVsTime{nullptr};
-    TH2F *hCorrectedEnergyVsTime{nullptr};
+    TH1 *hStandardTime{nullptr};
+    TH1 *hCorrectedTime{nullptr};
+    TH2 *hStandardEnergyVsTime{nullptr};
+    TH2 *hCorrectedEnergyVsTime{nullptr};
   };
 
   bool ResolveDetector();
@@ -178,23 +165,14 @@ class CaloTowerTimeCalibration : public SubsysReco
   std::string m_outputNodePrefix{"TOWERINFO_CALIB_TIMING_"};
   std::string m_inputNodeName;
   std::string m_outputNodeName;
-  bool m_useExactInputNodeName{false};
-  bool m_useExactOutputNodeName{false};
 
   std::string m_meanTimeCalibName;
   std::string m_timeCorrectionCalibName;
-  bool m_useCustomMeanTimeCalibName{false};
-  bool m_useCustomTimeCorrectionCalibName{false};
 
-  bool m_useDirectMeanTimeURL{false};
-  bool m_useDirectTimeCorrectionURL{false};
   std::string m_directMeanTimeURL;
   std::string m_directTimeCorrectionURL;
 
-  bool m_useLocalTimeCorrectionFiles{true};
-  std::string m_localTimeCorrectionDirectory{
-      "/gpfs/mnt/gpfs02/sphenix/user/dading/"
-      "my_tower_time_calibrations/macro/timing_cdb"};
+  std::string m_localTimeCorrectionDirectory;
 
   bool m_abortMissingCalibration{true};
   bool m_calibrationAvailable{false};
@@ -208,9 +186,9 @@ class CaloTowerTimeCalibration : public SubsysReco
   float m_qaEnergyThreshold;
 
   // ZS-tower QA. ZS timing is not custom-corrected.
-  TH1F *m_hZSTime{nullptr};
-  TH1F *m_hZSEnergy{nullptr};
-  TH2F *m_hZSEnergyVsTime{nullptr};
+  TH1 *m_hZSTime{nullptr};
+  TH1 *m_hZSEnergy{nullptr};
+  TH2 *m_hZSEnergyVsTime{nullptr};
 
   // Complete tower QA without a get_isGood() requirement.
   TowerQASet m_qaAllTowers;
