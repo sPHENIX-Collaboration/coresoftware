@@ -70,6 +70,7 @@ pkginclude_HEADERS = \
   LaserClusterv1.h \
   LaserClusterv2.h \
   LaserClusterv3.h \
+  LaserClusterv4.h \
   MaterialWiper.h \
   MagneticFieldOptions.h \
   MvtxDefs.h \
@@ -154,6 +155,7 @@ ROOTDICTS = \
   LaserClusterv1_Dict.cc \
   LaserClusterv2_Dict.cc \
   LaserClusterv3_Dict.cc \
+  LaserClusterv4_Dict.cc \
   MvtxEventInfo_Dict.cc \
   MvtxEventInfov1_Dict.cc \
   MvtxEventInfov2_Dict.cc \
@@ -244,6 +246,7 @@ libtrack_io_la_SOURCES = \
   LaserClusterv1.cc \
   LaserClusterv2.cc \
   LaserClusterv3.cc \
+  LaserClusterv4.cc \
   MvtxDefs.cc \
   MvtxEventInfo.cc \
   MvtxEventInfov1.cc \

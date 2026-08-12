@@ -1,11 +1,11 @@
 /**
- * @file trackbase/LaserClusterv3.h
+ * @file trackbase/LaserClusterv4.h
  * @author Ben Kimelman
  * @date July 2026
- * @brief Version 3 of CMFLashCluster
+ * @brief Version 4 of CMFLashCluster
  */
-#ifndef TRACKBASE_LASERCLUSTERV3_H
-#define TRACKBASE_LASERCLUSTERV3_H
+#ifndef TRACKBASE_LASERCLUSTERV4_H
+#define TRACKBASE_LASERCLUSTERV4_H
 
 #include "LaserCluster.h"
 
@@ -15,7 +15,7 @@
 class PHObject;
 
 /**
- * @brief Version 3 of LaserCluster
+ * @brief Version 4 of LaserCluster
  *
  * Note - D. McGlinchey June 2018:
  *   CINT does not like "override", so ignore where CINT
@@ -24,16 +24,16 @@ class PHObject;
  */
 
 
-class LaserClusterv3 : public LaserCluster
+class LaserClusterv4 : public LaserCluster
 {
  public:
   //! ctor
-  LaserClusterv3() = default;
+  LaserClusterv4() = default;
 
   // PHObject virtual overloads
   void Reset() override {}
   int isValid() const override;
-  PHObject* CloneMe() const override { return new LaserClusterv3(*this); }
+  PHObject* CloneMe() const override { return new LaserClusterv4(*this); }
  
   //! copy content from base class
   void CopyFrom( const LaserCluster& ) override;
@@ -45,12 +45,12 @@ class LaserClusterv3 : public LaserCluster
   bool getFitMode() const override { return m_fitMode; }
   void setFitMode(bool fitMode) override { m_fitMode = fitMode; }
 
-  unsigned int getLayerInt() const override { return m_posHardware[0]; }
-  void setLayerInt(unsigned int layer) override { m_posHardware[0] = layer; }
-  unsigned int getIPhiInt() const override { return m_posHardware[1]; }
-  void setIPhiInt(unsigned int iphi) override { m_posHardware[1] = iphi; }
-  unsigned int getITInt() const override { return m_posHardware[2]; }
-  void setITInt(unsigned int it) override { m_posHardware[2] = it; }
+  float getLayer() const override { return m_posHardware[0]; }
+  void setLayer(float layer) override { m_posHardware[0] = layer; }
+  float getIPhi() const override { return m_posHardware[1]; }
+  void setIPhi(float iphi) override { m_posHardware[1] = iphi; }
+  float getIT() const override { return m_posHardware[2]; }
+  void setIT(float it) override { m_posHardware[2] = it; }
 
   unsigned int getNhits() const override {return (unsigned int)m_hits.size();}
 
@@ -95,7 +95,7 @@ class LaserClusterv3 : public LaserCluster
 
   std::vector<LaserClusterHitInfo> m_hits;
   
-  unsigned int m_posHardware[3] = {std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max()};
+  float m_posHardware[3] = {std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max()};
   bool m_fitMode{false};
 
   /// number of TPC clusters used to create this central mebrane cluster
@@ -110,7 +110,7 @@ class LaserClusterv3 : public LaserCluster
   float m_SDWeightedIPhi = std::numeric_limits<float>::quiet_NaN();
   float m_SDWeightedIT = std::numeric_limits<float>::quiet_NaN();
 
-  ClassDefOverride(LaserClusterv3, 1)
+  ClassDefOverride(LaserClusterv4, 1)
 };
 
-#endif //TRACKBASE_LASERCLUSTERV3_H
+#endif //TRACKBASE_4_H
