@@ -33,7 +33,7 @@ class TH2;
  *   slew(E) = slew_p0 + slew_p1 * exp(slew_p2 * calibrated_energy)
  *
  *   corrected_time = raw_time
- *                  + phase1_shift
+ *                  + phase1_shift(sample alignment)
  *                  - sector_offset
  *                  - tower_offset
  *                  - slew(E)
@@ -60,6 +60,15 @@ class CaloTowerTimeCalibration : public SubsysReco
   explicit CaloTowerTimeCalibration(
       const std::string &name = "CaloTowerTimeCalibration");
   ~CaloTowerTimeCalibration() override;
+
+  CaloTowerTimeCalibration(const CaloTowerTimeCalibration &) = delete;
+
+  CaloTowerTimeCalibration &operator=(const CaloTowerTimeCalibration &) = delete;
+
+  CaloTowerTimeCalibration(CaloTowerTimeCalibration &&) = delete;
+
+  CaloTowerTimeCalibration &operator=(CaloTowerTimeCalibration &&) = delete;
+
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -104,19 +113,9 @@ class CaloTowerTimeCalibration : public SubsysReco
     m_directTimeCorrectionURL = url;
   }
 
-  void set_localTimeCorrectionDirectory(const std::string &directory)
-  {
-    m_localTimeCorrectionDirectory = directory;
-  }
-
   void set_directURL_meanTime(const std::string &url)
   {
     m_directMeanTimeURL = url;
-  }
-
-  void set_doAbortMissingCalibration(bool value = true)
-  {
-    m_abortMissingCalibration = value;
   }
 
   void set_doQA(bool value = true)
@@ -153,7 +152,6 @@ class CaloTowerTimeCalibration : public SubsysReco
 
   bool ResolveDetector();
   void ResolveNames();
-  std::string BuildLocalTimeCorrectionURL() const;
   void CreateNodeTree(PHCompositeNode *topNode);
   void LoadCalibration(PHCompositeNode *topNode);
   void CreateQAHistograms();
@@ -172,9 +170,6 @@ class CaloTowerTimeCalibration : public SubsysReco
   std::string m_directMeanTimeURL;
   std::string m_directTimeCorrectionURL;
 
-  std::string m_localTimeCorrectionDirectory;
-
-  bool m_abortMissingCalibration{true};
   bool m_calibrationAvailable{false};
 
   CDBTTree *m_meanTimeCDB{nullptr};

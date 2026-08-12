@@ -25,7 +25,6 @@
 #include <TAxis.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TSystem.h>
 
 #include <cmath>
 #include <iostream>
@@ -59,6 +58,8 @@ namespace
     {
       return;
     }
+
+    histogram->SetDirectory(nullptr);
 
     // Store HIST as the default ROOT draw option for every QA histogram.
     // This keeps bin outlines/steps visible instead of point/error-bar drawing
@@ -143,57 +144,30 @@ bool CaloTowerTimeCalibration::ResolveDetector()
 
 void CaloTowerTimeCalibration::ResolveNames()
 {
-  if (!m_inputNodePrefix.empty())
-  {
-    m_inputNodeName = m_inputNodePrefix + m_detector;
-  }
+ if (m_inputNodeName.empty())
+ {
+   m_inputNodeName = m_inputNodePrefix + m_detector;
+ }
 
-  if (!m_outputNodePrefix.empty())
-  {
-    m_outputNodeName = m_outputNodePrefix + m_detector;
-  }
+ if (m_outputNodeName.empty())
+ {
+   m_outputNodeName = m_outputNodePrefix + m_detector;
+ }
 
-  if (!m_meanTimeCalibName.empty())
-  {
-    m_meanTimeCalibName = m_detector + "_meanTime";
-  }
+ if (m_meanTimeCalibName.empty())
+ {
+   m_meanTimeCalibName = m_detector + "_meanTime";
+ }
 
-  if (!m_timeCorrectionCalibName.empty())
-  {
-    // Central-CDB fallback used after an official domain is available.
-    m_timeCorrectionCalibName = m_detector + "_timeCalib_MV_test";
-  }
+ if (m_timeCorrectionCalibName.empty())
+ {
+   // Official custom tower timing calibration CDB domain.
+   m_timeCorrectionCalibName =
+       m_detector + "_towerTimeCalib";
+ }
+
 }
 
-std::string CaloTowerTimeCalibration::BuildLocalTimeCorrectionURL() const
-{
-  if (m_localTimeCorrectionDirectory.empty())
-  {
-    return {};
-  }
-
-  recoConsts *recoConst = recoConsts::instance();
-  const uint64_t runnumber =
-      recoConst->get_uint64Flag("TIMESTAMP");
-
-  if (runnumber == 0)
-  {
-    return {};
-  }
-
-  std::string directory = m_localTimeCorrectionDirectory;
-  while (!directory.empty() && directory.back() == '/')
-  {
-    directory.pop_back();
-  }
-
-  return directory
-         + "/"
-         + m_detector
-         + "_timeCalib_MV_test_run"
-         + std::to_string(runnumber)
-         + ".root";
-}
 
 int CaloTowerTimeCalibration::InitRun(PHCompositeNode *topNode)
 {
@@ -217,69 +191,50 @@ int CaloTowerTimeCalibration::InitRun(PHCompositeNode *topNode)
           ? m_directMeanTimeURL
           : CDBInterface::instance()->getUrl(m_meanTimeCalibName);
 
-  std::string timeCorrectionURL;
-  std::string attemptedLocalURL;
+  const std::string timeCorrectionURL =
+      !m_directTimeCorrectionURL.empty()
+          ? m_directTimeCorrectionURL
+          : CDBInterface::instance()->getUrl(
+                m_timeCorrectionCalibName);
+
+  if (!m_directMeanTimeURL.empty())
+  {
+    std::cout << Name() << "::" << m_detector
+              << ": using direct mean-time payload "
+              << meanTimeURL
+              << std::endl;
+  }
 
   if (!m_directTimeCorrectionURL.empty())
   {
-    timeCorrectionURL = m_directTimeCorrectionURL;
     std::cout << Name() << "::" << m_detector
               << ": using direct custom timing payload "
-              << timeCorrectionURL << std::endl;
-  }
-  else
-  {
-    attemptedLocalURL = BuildLocalTimeCorrectionURL();
-
-    if (!attemptedLocalURL.empty()
-        && !gSystem->AccessPathName(attemptedLocalURL.c_str()))
-    {
-      timeCorrectionURL = attemptedLocalURL;
-      std::cout << Name() << "::" << m_detector
-                << ": using local custom timing payload "
-                << timeCorrectionURL << std::endl;
-    }
-    else
-    {
-      if (!attemptedLocalURL.empty())
-      {
-        std::cout << Name() << "::" << m_detector
-                  << ": local custom timing payload not found: "
-                  << attemptedLocalURL << std::endl;
-      }
-
-      // Future fallback after the payload has an official CDB domain.
-      timeCorrectionURL =
-          CDBInterface::instance()->getUrl(m_timeCorrectionCalibName);
-    }
+              << timeCorrectionURL
+              << std::endl;
   }
 
   if (meanTimeURL.empty() || timeCorrectionURL.empty())
   {
     std::cerr << Name() << "::" << m_detector
-              << ": missing required timing calibration" << std::endl
-              << "  mean-time CDB " << m_meanTimeCalibName
-              << FoundText(meanTimeURL) << std::endl;
+              << ": missing required timing calibration"
+              << std::endl
+              << "  mean-time CDB "
+              << m_meanTimeCalibName
+              << FoundText(meanTimeURL)
+              << std::endl
+              << "  custom timing CDB "
+              << m_timeCorrectionCalibName
+              << FoundText(timeCorrectionURL)
+              << std::endl;
 
-    if (!attemptedLocalURL.empty())
-    {
-      std::cerr << "  attempted local payload "
-                << attemptedLocalURL << " [missing]" << std::endl;
-    }
-
-    std::cerr << "  custom timing CDB " << m_timeCorrectionCalibName
-              << FoundText(timeCorrectionURL) << std::endl;
-
-    if (m_abortMissingCalibration)
-    {
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-
-    return Fun4AllReturnCodes::EVENT_OK;
+    return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_meanTimeCDB = new CDBTTree(meanTimeURL);
-  m_timeCorrectionCDB = new CDBTTree(timeCorrectionURL);
+  m_meanTimeCDB =
+      new CDBTTree(meanTimeURL);
+
+  m_timeCorrectionCDB =
+      new CDBTTree(timeCorrectionURL);
 
   try
   {
@@ -290,7 +245,9 @@ int CaloTowerTimeCalibration::InitRun(PHCompositeNode *topNode)
   catch (const std::exception &error)
   {
     std::cerr << Name() << "::" << m_detector
-              << ": " << error.what() << std::endl;
+              << ": " << error.what()
+              << std::endl;
+
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -299,6 +256,7 @@ int CaloTowerTimeCalibration::InitRun(PHCompositeNode *topNode)
   std::cout << Name() << "::" << m_detector
             << " input=" << m_inputNodeName
             << " output=" << m_outputNodeName
+            << " mean_time_payload=" << meanTimeURL
             << " custom_payload=" << timeCorrectionURL
             << std::endl;
 
@@ -325,8 +283,10 @@ void CaloTowerTimeCalibration::CreateNodeTree(PHCompositeNode *topNode)
         + "; register this subsystem after standard CaloTowerCalib");
   }
 
+  PHNodeIterator dstIterator(dstNode);
+
   PHCompositeNode *detectorNode = dynamic_cast<PHCompositeNode *>(
-      iterator.findFirst("PHCompositeNode", m_detector));
+      dstIterator.findFirst("PHCompositeNode", m_detector));
   if (!detectorNode)
   {
     detectorNode = new PHCompositeNode(m_detector);
@@ -380,7 +340,7 @@ void CaloTowerTimeCalibration::LoadCalibration(PHCompositeNode *topNode)
 
   recoConsts *recoConst = recoConsts::instance();
   const int requestedRun = static_cast<int>(
-      recoConst->get_uint64Flag("TIMESTAMP"));
+      recoConst->get_IntFlag("RUNNUMBER"));
 
   if (payloadTowerCount > 0
       && static_cast<unsigned int>(payloadTowerCount) != numberOfTowers)
@@ -393,7 +353,7 @@ void CaloTowerTimeCalibration::LoadCalibration(PHCompositeNode *topNode)
   {
     throw std::runtime_error(
         "payload run " + std::to_string(payloadRun)
-        + " does not match TIMESTAMP " + std::to_string(requestedRun));
+        + " does not match RUNNUMBER " + std::to_string(requestedRun));
   }
 
   unsigned int invalidTowers = 0;
@@ -609,16 +569,25 @@ int CaloTowerTimeCalibration::process_event(PHCompositeNode *topNode)
     const auto fillTowerQA =
         [&](TowerQASet &qa)
         {
-          qa.hStandardTime->Fill(standardTime);
-          qa.hCorrectedTime->Fill(correctedTime);
+	 if (qa.hStandardTime)
+	 {
+     qa.hStandardTime->Fill(standardTime);
+	 }
 
-          // Time is always the x axis.
-          qa.hStandardEnergyVsTime->Fill(
-              standardTime,
-              calibratedEnergy);
-          qa.hCorrectedEnergyVsTime->Fill(
-              correctedTime,
-              calibratedEnergy);
+	 if (qa.hCorrectedTime)
+	 {
+     qa.hCorrectedTime->Fill(correctedTime);
+	 }
+
+	 if (qa.hStandardEnergyVsTime)
+	 {
+     qa.hStandardEnergyVsTime->Fill(standardTime, calibratedEnergy);
+	 }
+
+	 if (qa.hCorrectedEnergyVsTime)
+	 {
+     qa.hCorrectedEnergyVsTime->Fill(correctedTime, calibratedEnergy);
+	 }
 
         };
 
