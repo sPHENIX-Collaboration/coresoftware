@@ -11,7 +11,7 @@
 class PHCompositeNode;
 class RawClusterContainer;
 class RawCluster;
-class PhotonCluster;
+class RawCluster;
 class TowerInfoContainer;
 class RawTowerGeomContainer;
 class RawTowerGeom;
@@ -49,9 +49,9 @@ class PhotonClusterBuilder : public SubsysReco
 
  private:
   void CreateNodes(PHCompositeNode* topNode);
-  void calculate_shower_shapes(RawCluster* rc, PhotonCluster* photon, float eta, float phi);
-  void calculate_bdt_score(PhotonCluster* photon);
-  static float resolve_bdt_feature(const PhotonCluster* photon, const std::string& feature, float vertex_z);
+  void calculate_shower_shapes(RawCluster* rc, RawCluster* photon, float eta, float phi);
+  void calculate_bdt_score(RawCluster* photon);
+  static float resolve_bdt_feature(const RawCluster* photon, const std::string& feature, float vertex_z);
   void calculate_topocluster_iso(float eta, float phi, float candidate_et, float& iso03, float& iso04);
   double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz);
   std::vector<int> find_closest_hcal_tower(float eta, float phi, RawTowerGeomContainer* geom, TowerInfoContainer* towerContainer, float vertex_z, bool isihcal);

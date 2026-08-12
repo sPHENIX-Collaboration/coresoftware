@@ -229,7 +229,7 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    PhotonCluster* photon = new PhotonClusterv1(*rc);
+    RawCluster* photon = new PhotonClusterv1(*rc);
 
     calculate_shower_shapes(rc, photon, eta, phi);
     //this is defensive coding, if do bdt is set false the bdt object should be nullptr
@@ -244,7 +244,7 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PhotonClusterBuilder::calculate_bdt_score(PhotonCluster* photon)
+void PhotonClusterBuilder::calculate_bdt_score(RawCluster* photon)
 {
   if (!m_bdt)
   {
@@ -269,7 +269,7 @@ void PhotonClusterBuilder::calculate_bdt_score(PhotonCluster* photon)
   photon->set_shower_shape_parameter("bdt_score", bdt_score);
 }
 
-void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster* photon, float cluster_eta, float cluster_phi)
+void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, RawCluster* photon, float cluster_eta, float cluster_phi)
 {
   if (m_do_topocluster_isolation)
   {
@@ -1000,7 +1000,7 @@ void PhotonClusterBuilder::calculate_topocluster_iso(float eta, float phi, float
   iso04 -= candidate_et;
 }
 
-float PhotonClusterBuilder::resolve_bdt_feature(const PhotonCluster* photon,
+float PhotonClusterBuilder::resolve_bdt_feature(const RawCluster* photon,
                                                 const std::string& feature,
                                                 float vertex_z)
 {
