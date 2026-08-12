@@ -56,6 +56,8 @@ void LaserClusterv4::CopyFrom( const LaserCluster& source )
  
   // parent class method
   LaserCluster::CopyFrom( source );
+  m_hits.clear();
+  setFitMode(source.getFitMode());
   setLayer( source.getLayer() );
   setIPhi( source.getIPhi() );
   setIT( source.getIT() );
