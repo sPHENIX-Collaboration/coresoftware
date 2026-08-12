@@ -339,8 +339,7 @@ void CaloTowerTimeCalibration::LoadCalibration(PHCompositeNode *topNode)
       m_timeCorrectionCDB->GetSingleIntValue("runnumber");
 
   recoConsts *recoConst = recoConsts::instance();
-  const int requestedRun = static_cast<int>(
-      recoConst->get_IntFlag("RUNNUMBER"));
+  const int requestedRun = recoConst->get_IntFlag("RUNNUMBER");
 
   if (payloadTowerCount > 0
       && static_cast<unsigned int>(payloadTowerCount) != numberOfTowers)
