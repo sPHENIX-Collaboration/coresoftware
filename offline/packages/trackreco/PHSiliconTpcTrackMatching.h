@@ -200,7 +200,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   int m_event = 0;
   std::map<unsigned int, double> _z_mismatch_map;
 
-  short int _max_crossing_diff = 5;
+  short int _max_crossing_diff = 6;
   
   TpcClusterZCrossingCorrection _clusterCrossingCorrection;
   float _crossing_deltaz_max = 10.0;
