@@ -231,12 +231,16 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
 
     RawCluster* photon = new PhotonClusterv1(*rc);
 
-    calculate_shower_shapes(rc, photon, eta, phi);
+    const bool shower_shapes_valid = calculate_shower_shapes(rc, photon, eta, phi);
     //this is defensive coding, if do bdt is set false the bdt object should be nullptr
     //and this method will simply pass
     if (m_do_bdt)
     {
-      calculate_bdt_score(photon);
+      photon->set_shower_shape_parameter("bdt_score", -1.0F);
+      if (shower_shapes_valid)
+      {
+        calculate_bdt_score(photon);
+      }
     }
 
     m_photon_container->AddCluster(photon);
@@ -269,7 +273,7 @@ void PhotonClusterBuilder::calculate_bdt_score(RawCluster* photon)
   photon->set_shower_shape_parameter("bdt_score", bdt_score);
 }
 
-void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, RawCluster* photon, float cluster_eta, float cluster_phi)
+bool PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, RawCluster* photon, float cluster_eta, float cluster_phi)
 {
   if (m_do_topocluster_isolation)
   {
@@ -281,7 +285,7 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, RawCluster* p
   std::vector<float> showershape = rc->get_shower_shapes(m_shape_min_tower_E);
   if (showershape.empty())
   {
-    return;
+    return false;
   }
 
   std::pair<int, int> leadtowerindex = rc->get_lead_tower();
@@ -314,7 +318,7 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, RawCluster* p
     int ieta = RawTowerDefs::decode_index1(tower_key);
     int iphi = RawTowerDefs::decode_index2(tower_key);
 
-    
+
     unsigned int towerinfokey = TowerInfoDefs::encode_emcal(ieta, iphi);
     towers_in_cluster.insert(towerinfokey);
     TowerInfo* towerinfo = m_emc_tower_container->get_tower_at_key(towerinfokey);
@@ -825,14 +829,17 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, RawCluster* p
         {
           float iso03 = m_topo_iso_defval;
           float iso04 = m_topo_iso_defval;
-          calculate_topocluster_iso(iso_axis_eta, iso_axis_phi, ET, iso03, iso04);
-          photon->set_shower_shape_parameter("iso_topo_03", iso03);
-          photon->set_shower_shape_parameter("iso_topo_04", iso04);
-          photon->set_shower_shape_parameter("iso_topo_valid", 1.0F);
+          if (calculate_topocluster_iso(iso_axis_eta, iso_axis_phi, ET, iso03, iso04))
+          {
+            photon->set_shower_shape_parameter("iso_topo_03", iso03);
+            photon->set_shower_shape_parameter("iso_topo_04", iso04);
+            photon->set_shower_shape_parameter("iso_topo_valid", 1.0F);
+          }
         }
       }
     }
   }
+  return true;
 }
 
 double PhotonClusterBuilder::getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz)
@@ -964,40 +971,63 @@ float PhotonClusterBuilder::calculate_layer_et(float seed_eta, float seed_phi, f
   return layer_et;
 }
 
-void PhotonClusterBuilder::calculate_topocluster_iso(float eta, float phi, float candidate_et, float& iso03, float& iso04)
+bool PhotonClusterBuilder::calculate_topocluster_iso(float eta, float phi, float candidate_et, float& iso03, float& iso04)
 {
-  if (!m_topocluster_container)
+  if (!m_topocluster_container || !std::isfinite(eta) || !std::isfinite(phi) || !std::isfinite(candidate_et) || !std::isfinite(m_vertex))
   {
-    return;
+    return false;
   }
 
-  iso03 = iso04 = 0.0F;
+  float sum03 = 0.0F;
+  float sum04 = 0.0F;
   const CLHEP::Hep3Vector vertex(0, 0, m_vertex);
   const auto range = m_topocluster_container->getClusters();
   for (auto it = range.first; it != range.second; ++it)
   {
     const RawCluster* topo = it->second;
-    if (!topo)
+    if (!topo || !topo->isValid())
     {
-      continue;
+      return false;
     }
 
     const float topo_eta = RawClusterUtility::GetPseudorapidity(*topo, vertex);
     const float topo_phi = RawClusterUtility::GetAzimuthAngle(*topo, vertex);
-    const float topo_et = topo->get_energy() / std::cosh(topo_eta);  // signed, as in PPG12
+    const float topo_energy = topo->get_energy();
+    const float topo_cosh_eta = std::cosh(topo_eta);
+    if (!std::isfinite(topo_eta) || !std::isfinite(topo_phi) || !std::isfinite(topo_energy) || !std::isfinite(topo_cosh_eta) || topo_cosh_eta <= 0.0F)
+    {
+      return false;
+    }
+    const float topo_et = topo_energy / topo_cosh_eta;  // signed, as in PPG12
     const float dr = deltaR(eta, phi, topo_eta, topo_phi);
+    if (!std::isfinite(topo_et) || !std::isfinite(dr))
+    {
+      return false;
+    }
     if (dr < 0.4F)
     {
-      iso04 += topo_et;
+      sum04 += topo_et;
       if (dr < 0.3F)
       {
-        iso03 += topo_et;
+        sum03 += topo_et;
+      }
+      if (!std::isfinite(sum03) || !std::isfinite(sum04))
+      {
+        return false;
       }
     }
   }
 
-  iso03 -= candidate_et;
-  iso04 -= candidate_et;
+  sum03 -= candidate_et;
+  sum04 -= candidate_et;
+  if (!std::isfinite(sum03) || !std::isfinite(sum04))
+  {
+    return false;
+  }
+
+  iso03 = sum03;
+  iso04 = sum04;
+  return true;
 }
 
 float PhotonClusterBuilder::resolve_bdt_feature(const RawCluster* photon,

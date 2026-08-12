@@ -11,7 +11,6 @@
 class PHCompositeNode;
 class RawClusterContainer;
 class RawCluster;
-class RawCluster;
 class TowerInfoContainer;
 class RawTowerGeomContainer;
 class RawTowerGeom;
@@ -25,7 +24,7 @@ namespace TMVA
 }  // namespace TMVA
 
 // Simple builder that wraps existing RawClusters above an energy threshold
-// into PhotonCluster objects and stores them in a PhotonClusterContainer node.
+// into PhotonClusterv1 objects and stores them in a RawClusterContainer node.
 class PhotonClusterBuilder : public SubsysReco
 {
  public:
@@ -49,10 +48,10 @@ class PhotonClusterBuilder : public SubsysReco
 
  private:
   void CreateNodes(PHCompositeNode* topNode);
-  void calculate_shower_shapes(RawCluster* rc, RawCluster* photon, float eta, float phi);
+  bool calculate_shower_shapes(RawCluster* rc, RawCluster* photon, float eta, float phi);
   void calculate_bdt_score(RawCluster* photon);
   static float resolve_bdt_feature(const RawCluster* photon, const std::string& feature, float vertex_z);
-  void calculate_topocluster_iso(float eta, float phi, float candidate_et, float& iso03, float& iso04);
+  bool calculate_topocluster_iso(float eta, float phi, float candidate_et, float& iso03, float& iso04);
   double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz);
   std::vector<int> find_closest_hcal_tower(float eta, float phi, RawTowerGeomContainer* geom, TowerInfoContainer* towerContainer, float vertex_z, bool isihcal);
   double deltaR(double eta1, double phi1, double eta2, double phi2);
