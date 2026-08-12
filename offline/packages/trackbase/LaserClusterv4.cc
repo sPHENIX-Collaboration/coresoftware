@@ -15,9 +15,6 @@ void LaserClusterv4::identify(std::ostream& os) const
 
   os << " " << m_hits.size() << " hits";
   os << " fit? " << m_fitMode;
-  os << " (layer, iphi, it) =  (" << m_posHardware[0];
-  os << ", " << m_posHardware[1] << ", ";
-  os << m_posHardware[2] << ")";
   os << " adc = " << getAdc() << std::endl;
 
   os << std::endl;
@@ -58,9 +55,6 @@ void LaserClusterv4::CopyFrom( const LaserCluster& source )
   LaserCluster::CopyFrom( source );
   m_hits.clear();
   setFitMode(source.getFitMode());
-  setLayer( source.getLayer() );
-  setIPhi( source.getIPhi() );
-  setIT( source.getIT() );
   setNLayers( source.getNLayers() );
   setNIPhi( source.getNIPhi() );
   setNIT( source.getNIT() );

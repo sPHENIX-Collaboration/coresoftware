@@ -449,7 +449,7 @@ namespace
     //double secondmaxAdc = 0.0;
     //TrkrDefs::hitsetkey secondmaxKey = 0;
 
-    auto *clus = new LaserClusterv4;
+    LaserCluster *clus = new LaserClusterv4;
 
     int meanSide = 0;
 
@@ -592,9 +592,6 @@ namespace
     clus->setNLayers(usedLayer.size());
     clus->setNIPhi(usedIPhi.size());
     clus->setNIT(usedIT.size());
-    clus->setLayer(layerSum / adcSum);
-    clus->setIPhi(iphiSum / adcSum);
-    clus->setIT(itSum / adcSum);
     clus->setSDLayer(sqrt(sigmaLayer / nHits));
     clus->setSDIPhi(sqrt(sigmaIPhi / nHits));
     clus->setSDIT(sqrt(sigmaIT / nHits));

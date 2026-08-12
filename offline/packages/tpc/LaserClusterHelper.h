@@ -4,6 +4,8 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 
+#include <array>
+
 class ActsGeometry;
 class LaserCluster;
 class PHCompositeNode;
@@ -18,6 +20,7 @@ class LaserClusterHelper
   
     Acts::Vector3 getHitPosition(TrkrDefs::hitsetkey, TrkrDefs::hitkey) const;
     Acts::Vector3 getClusterCentroid(LaserCluster*) const;
+    std::array<double, 3> getClusterHardwareCentroid(LaserCluster*) const;
 
     void set_useZ(bool use) { m_useZ = use; }
     void set_useGlobal(bool use) { m_useGlobal = use; }
