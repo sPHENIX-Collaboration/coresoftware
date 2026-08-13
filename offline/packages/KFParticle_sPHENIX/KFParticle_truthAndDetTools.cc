@@ -774,8 +774,13 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       }
 
       const float dz = _track_z_emc - (cluster->get_z() - vz);
+      if (dz > m_dz_cut_high || dz < m_dz_cut_low)
+      {
+        continue;
+      }
+
       const float dz_projected = _track_z_emc - (projected_cluster_z - vz);
-      if (dz_projected > m_dz_cut_high || dz_projected < m_dz_cut_low)
+      if (dz_projected > m_dz_projected_cut_high || dz_projected < m_dz_projected_cut_low)
       {
         continue;
       }
