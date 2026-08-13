@@ -59,16 +59,14 @@ int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_geom_container =
-      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  m_geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!m_geom_container)
   {
     std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_tGeometry = findNode::getClass<ActsGeometry>(topNode,
-                                                 "ActsGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
     std::cout << PHWHERE
@@ -86,8 +84,7 @@ int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
   }
 
   PHNodeIterator dstiter(dstNode);
-  PHCompositeNode *DetNode =
-      dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
   if (!DetNode)
   {
     DetNode = new PHCompositeNode("TRKR");
@@ -143,7 +140,8 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
     std::cout << "no GL1RAWHIT node" << std::endl;
     m_laserEventInfo->setIsGl1LaserEvent(false);
     m_laserEventInfo->setIsGl1LaserPileupEvent(false);
-    // return Fun4AllReturnCodes::ABORTRUN;
+    isGl1LaserEvent = false;
+    isGl1LaserPileupEvent = false;
   }
   else if (m_runnumber > 66153)
   {
