@@ -3,6 +3,7 @@
 #include "LaserEventInfo.h"
 #include "LaserEventInfov2.h"
 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHit.h>
@@ -29,10 +30,23 @@
 
 #include <TF1.h>
 #include <TFile.h>
+#include <TH1.h>
+#include <TTree.h>
 
 LaserEventIdentifier::LaserEventIdentifier(const std::string &name)
   : SubsysReco(name)
 {
+}
+
+LaserEventIdentifier::~LaserEventIdentifier()
+{
+  if (! m_debug) // if m_debug set, histos are added to debug TTree and must not be deleted
+  {
+    delete m_itHist_0;
+    delete m_itHist_1;
+  }
+  delete m_f0;
+  delete m_f1;
 }
 
 int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
@@ -84,6 +98,9 @@ int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
 
   PHIODataNode<PHObject> *laserEventInfoNode = new PHIODataNode<PHObject>(laserEventInfo, "LaserEventInfo", "PHObject");
   DetNode->addNode(laserEventInfoNode);
+
+  m_f0 = new TF1("f0", "gausn(0)");
+  m_f1 = new TF1("f1", "gausn(0)");
 
   if (m_debug)
   {
@@ -211,30 +228,28 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   double itMaxContent_1 = m_itHist_1->GetMaximum();
   m_itHist_1->GetXaxis()->SetRange(0, 0);
 
-  auto f0 = std::make_unique<TF1>("f0", "gausn(0)");
-  f0->SetParameters(itMaxContent_0, itMax_0, 1);
-  f0->SetParLimits(1, itMax_0 - 2, itMax_0 + 2);
-  m_itHist_0->Fit(f0.get(), "Bq0");
+  m_f0->SetParameters(itMaxContent_0, itMax_0, 1);
+  m_f0->SetParLimits(1, itMax_0 - 2, itMax_0 + 2);
+  m_itHist_0->Fit(m_f0, "Bq0N"); // N to not store fit in histo
 
-  auto f1 = std::make_unique<TF1>("f1", "gausn(0)");
-  f1->SetParameters(itMaxContent_1, itMax_1, 1);
-  f1->SetParLimits(1, itMax_1 - 2, itMax_1 + 2);
-  m_itHist_1->Fit(f1.get(), "Bq0");
+  m_f1->SetParameters(itMaxContent_1, itMax_1, 1);
+  m_f1->SetParLimits(1, itMax_1 - 2, itMax_1 + 2);
+  m_itHist_1->Fit(m_f1, "Bq0N"); // N to not store fit in histo
 
 
   if ((itMaxContent_0 / itMeanContent_0 >= 7 && itMaxContent_0 > 1000) || (itMaxContent_1 / itMeanContent_1 >= 7 && itMaxContent_1 > 1000))
   {
     m_laserEventInfo->setIsLaserEvent(true);
     m_laserEventInfo->setPeakSample(false, (int) itMax_0);
-    m_laserEventInfo->setPeakWidth(false, f0->GetParameter(2));
+    m_laserEventInfo->setPeakWidth(false, m_f0->GetParameter(2));
     m_laserEventInfo->setPeakSample(true, (int) itMax_1);
-    m_laserEventInfo->setPeakWidth(true, f1->GetParameter(2));
+    m_laserEventInfo->setPeakWidth(true, m_f1->GetParameter(2));
 
     isLaserEvent = true;
     peakSample0 = (int) itMax_0;
     peakSample1 = (int) itMax_1;
-    peakWidth0 = f0->GetParameter(2);
-    peakWidth1 = f1->GetParameter(2);
+    peakWidth0 = m_f0->GetParameter(2);
+    peakWidth1 = m_f1->GetParameter(2);
   }
   else
   {
