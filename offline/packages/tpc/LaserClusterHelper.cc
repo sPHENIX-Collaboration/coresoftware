@@ -19,6 +19,10 @@ namespace
   Acts::Vector3 invalid(std::numeric_limits<double>::quiet_NaN(),
                         std::numeric_limits<double>::quiet_NaN(),
                         std::numeric_limits<double>::quiet_NaN());
+
+  std::array<double, 3> invalidArr = {std::numeric_limits<double>::quiet_NaN(),
+                        std::numeric_limits<double>::quiet_NaN(),
+                        std::numeric_limits<double>::quiet_NaN()};
 }
 
 //____________________________________________________________________________
@@ -38,7 +42,7 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
 }
 
 //____________________________________________________________________________
-Acts::Vector3 LaserClusterHelper::getHitGlobalPosition(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::hitkey hitkey) const
+Acts::Vector3 LaserClusterHelper::getHitPosition(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::hitkey hitkey) const
 {
     //const Acts::Vector3 invalid(std::numeric_limits<double>::quiet_NaN(),
     //                            std::numeric_limits<double>::quiet_NaN(),
@@ -83,6 +87,11 @@ Acts::Vector3 LaserClusterHelper::getHitGlobalPosition(TrkrDefs::hitsetkey hitse
     }
 
     Acts::Vector3 env_global(env_x, env_y, env_z);
+    if(!m_useGlobal)
+    {
+        return env_global;
+    }
+
     return m_tGeometry->transformTpcEnvelopeToWorld(env_global);
 }
 
@@ -105,13 +114,13 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroid(LaserCluster* cluster) cons
     for(unsigned int i=0; i<nhits; ++i)
     {
         const LaserClusterHitInfo hit= cluster->getHit(i);
-        const Acts::Vector3 global = getHitGlobalPosition(hit.hitsetkey, hit.hitkey);
-        if(global.hasNaN())
+        const Acts::Vector3 hitCoords = getHitPosition(hit.hitsetkey, hit.hitkey);
+        if(hitCoords.hasNaN())
         {
             continue;
         }
 
-        weightedSum += hit.adc * global;
+        weightedSum += hit.adc * hitCoords;
         adcSum += hit.adc;
     }
 
@@ -121,4 +130,45 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroid(LaserCluster* cluster) cons
     }
 
     return weightedSum / adcSum;
+}
+
+//____________________________________________________________________________
+std::array<double, 3> LaserClusterHelper::getClusterHardwareCentroid(LaserCluster* cluster) const
+{
+    //const Acts::Vector3 invalid(std::numeric_limits<double>::quiet_NaN(),
+    //                            std::numeric_limits<double>::quiet_NaN(),
+    //                            std::numeric_limits<double>::quiet_NaN());
+    
+    if(!cluster)
+    {
+        return invalidArr;
+    }
+
+    Acts::Vector3 weightedSum(0.0, 0.0, 0.0);
+    double adcSum = 0.0;
+    double layerSum = 0.0;
+    double iphiSum = 0.0;
+    double itSum = 0.0;
+
+    const unsigned int nhits = cluster->getNhits();
+    for(unsigned int i=0; i<nhits; ++i)
+    {
+        const LaserClusterHitInfo hit= cluster->getHit(i);
+
+        const int layer = TrkrDefs::getLayer(hit.hitsetkey);
+        const int iphi = TpcDefs::getPad(hit.hitkey);
+        const int it = TpcDefs::getTBin(hit.hitkey);
+
+        adcSum += hit.adc;
+        layerSum += layer * hit.adc;
+        iphiSum += iphi * hit.adc;
+        itSum += it * hit.adc;
+    }
+
+    if(adcSum <= 0.0)
+    {
+        return invalidArr;
+    }
+
+    return {layerSum / adcSum, iphiSum / adcSum, itSum / adcSum};
 }

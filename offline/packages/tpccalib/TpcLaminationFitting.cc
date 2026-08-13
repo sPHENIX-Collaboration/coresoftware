@@ -173,6 +173,7 @@ int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
   */
 
   m_laserClusterHelper.set_useZ(m_useZ);
+  m_laserClusterHelper.set_useGlobal(m_useGlobal);
   m_laserClusterHelper.loadNodes(topNode);
 
   m_dcc_in_module_edge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");

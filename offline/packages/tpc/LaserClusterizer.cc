@@ -5,7 +5,7 @@
 #include <trackbase/LaserCluster.h>
 #include <trackbase/LaserClusterContainer.h>
 #include <trackbase/LaserClusterContainerv1.h>
-#include <trackbase/LaserClusterv3.h>
+#include <trackbase/LaserClusterv4.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHit.h>
@@ -449,7 +449,7 @@ namespace
     //double secondmaxAdc = 0.0;
     //TrkrDefs::hitsetkey secondmaxKey = 0;
 
-    auto *clus = new LaserClusterv3;
+    LaserCluster *clus = new LaserClusterv4;
 
     int meanSide = 0;
 
@@ -592,9 +592,6 @@ namespace
     clus->setNLayers(usedLayer.size());
     clus->setNIPhi(usedIPhi.size());
     clus->setNIT(usedIT.size());
-    clus->setLayer(layerSum / adcSum);
-    clus->setIPhi(iphiSum / adcSum);
-    clus->setIT(itSum / adcSum);
     clus->setSDLayer(sqrt(sigmaLayer / nHits));
     clus->setSDIPhi(sqrt(sigmaIPhi / nHits));
     clus->setSDIT(sqrt(sigmaIT / nHits));
