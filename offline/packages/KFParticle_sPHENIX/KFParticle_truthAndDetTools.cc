@@ -64,9 +64,9 @@
 namespace
 {
 bool projectClusterZToCylinder(
-    const double vx, const double vy, const double vz,
-    const double cluster_x, const double cluster_y, const double cluster_z,
-    const double target_radius_sq, double &projected_cluster_z)
+    const float vx, const float vy, const float vz,
+    const float cluster_x, const float cluster_y, const float cluster_z,
+    const float target_radius_sq, float &projected_cluster_z)
 {
   // With delta = cluster - V, parameterize the ray from the primary vertex
   // V = (vx, vy, vz) through the EMCal cluster as
@@ -86,13 +86,13 @@ bool projectClusterZToCylinder(
   //   A = delta_x^2 + delta_y^2,
   //   B = 2 * (vx * delta_x + vy * delta_y),
   //   C = vx^2 + vy^2 - R_target^2.
-  const double delta_x = cluster_x - vx;
-  const double delta_y = cluster_y - vy;
-  const double delta_z = cluster_z - vz;
-  const double quadratic_a = delta_x * delta_x + delta_y * delta_y;
-  const double quadratic_b = 2. * (vx * delta_x + vy * delta_y);
-  const double quadratic_c = vx * vx + vy * vy - target_radius_sq;
-  const double discriminant = quadratic_b * quadratic_b - 4. * quadratic_a * quadratic_c;
+  const float delta_x = cluster_x - vx;
+  const float delta_y = cluster_y - vy;
+  const float delta_z = cluster_z - vz;
+  const float quadratic_a = delta_x * delta_x + delta_y * delta_y;
+  const float quadratic_b = 2. * (vx * delta_x + vy * delta_y);
+  const float quadratic_c = vx * vx + vy * vy - target_radius_sq;
+  const float discriminant = quadratic_b * quadratic_b - 4. * quadratic_a * quadratic_c;
   if (!(quadratic_a > 0.) || !(discriminant >= 0.))
   {
     return false;
@@ -100,7 +100,7 @@ bool projectClusterZToCylinder(
 
   // Take the forward intersection along the ray:
   // lambda = (-B + sqrt(B^2 - 4*A*C)) / (2*A).
-  const double projection_scale = (-quadratic_b + std::sqrt(discriminant)) / (2. * quadratic_a);
+  const float projection_scale = (-quadratic_b + std::sqrt(discriminant)) / (2. * quadratic_a);
   if (!(projection_scale > 0.) || !std::isfinite(projection_scale))
   {
     return false;
@@ -763,8 +763,8 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
         continue;
       }
 
-      const double track_radius_sq = thisState->get_x() * thisState->get_x() + thisState->get_y() * thisState->get_y();
-      double projected_cluster_z = std::numeric_limits<double>::quiet_NaN();
+      const float track_radius_sq = thisState->get_x() * thisState->get_x() + thisState->get_y() * thisState->get_y();
+      float projected_cluster_z = std::numeric_limits<float>::quiet_NaN();
       if (!projectClusterZToCylinder(
               vx, vy, vz,
               cluster->get_x(), cluster->get_y(), cluster->get_z(),
@@ -773,8 +773,8 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
         continue;
       }
 
-      const float dz = static_cast<float>(_track_z_emc - (cluster->get_z() - vz));
-      const float dz_projected = static_cast<float>(_track_z_emc - (projected_cluster_z - vz));
+      const float dz = _track_z_emc - (cluster->get_z() - vz);
+      const float dz_projected = _track_z_emc - (projected_cluster_z - vz);
       if (dz_projected > m_dz_cut_high || dz_projected < m_dz_cut_low)
       {
         continue;

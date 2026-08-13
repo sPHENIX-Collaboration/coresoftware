@@ -96,6 +96,8 @@ class KFParticle_truthAndDetTools
   void set_dphi_cut_high(float set_variable) { m_dphi_cut_high = set_variable; }
   void set_dz_cut_low(float set_variable) { m_dz_cut_low = set_variable; }
   void set_dz_cut_high(float set_variable) { m_dz_cut_high = set_variable; }
+  void set_dz_projected_cut_low(float set_variable) { m_dz_projected_cut_low = set_variable; }
+  void set_dz_projected_cut_high(float set_variable) { m_dz_projected_cut_high = set_variable; }
 
  protected:
   bool m_get_detailed_tracking{true};
@@ -142,8 +144,10 @@ class KFParticle_truthAndDetTools
   float m_ohcal_e_low_cut{0.01};
   float m_dphi_cut_low{-0.15};
   float m_dphi_cut_high{0.15};
-  float m_dz_cut_low{-10};
-  float m_dz_cut_high{10};
+  float m_dz_cut_low{-100};
+  float m_dz_cut_high{100};
+  float m_dz_projected_cut_low{-100};
+  float m_dz_projected_cut_high{100};
 
   float m_true_daughter_vertex_x[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float m_true_daughter_vertex_y[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
