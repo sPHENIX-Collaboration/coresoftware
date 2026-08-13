@@ -25,8 +25,8 @@ class CaloVtxAlgoCNN : public CaloVtxAlgo
     kOHC = 2
   };
 
-  explicit CaloVtxAlgoCNN() = default;
-  ~CaloVtxAlgoCNN() override; 
+  CaloVtxAlgoCNN();            // defined in the .cc, where OnnxSession is complete
+  ~CaloVtxAlgoCNN() override;  // (required for the unique_ptr pImpl member)
 
   int Init(PHCompositeNode *topNode) override;
   int CalculateVertex(PHCompositeNode *topNode, float &zvtx) override;

@@ -13,6 +13,7 @@
 #include <phool/getClass.h>
 
 #include <array>
+#include <limits>
 
 int CaloVtxAlgoMLP::Init(PHCompositeNode *topNode)
 {
@@ -49,6 +50,8 @@ int CaloVtxAlgoMLP::Init(PHCompositeNode *topNode)
 
 int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
 {
+  zvtx = std::numeric_limits<float>::quiet_NaN();
+
   TowerInfoContainer *emcalre_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
   TowerInfoContainer *hcalin_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
   TowerInfoContainer *hcalout_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
@@ -302,6 +305,11 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
 	  ijet++;
 	}
 
+    }
+
+  if (ijet < 2)
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
     }
 
   // TODO: fill `features` from topNode in the exact order documented in
