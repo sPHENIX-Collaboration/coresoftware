@@ -50,19 +50,23 @@ class MbdTrackVertex : public SubsysReco
   THnSparseF* h2_mbdtrkz {nullptr};
   std::string outFileName = "mbdtrk_vertex.root";
 
-  Float_t _mbdVertex {std::numeric_limits<float>::quiet_NaN()};
-  Float_t _trackerVertex {std::numeric_limits<float>::quiet_NaN()};
-  UInt_t  _nTracks {std::numeric_limits<unsigned int>::quiet_NaN()};
-  UInt_t  _nMBDVertex {std::numeric_limits<unsigned int>::quiet_NaN()};
-  UInt_t  _nTRKVertex {std::numeric_limits<unsigned int>::quiet_NaN()};
-
   bool _hasMBD {false};
   bool _hasTRK {false};
 
+  // Tree variables
+  Int_t    _run {0};
+  Int_t    _evt {0};
+  Float_t  _mbdVertex {std::numeric_limits<float>::quiet_NaN()};
+  Float_t  _trackerVertex {std::numeric_limits<float>::quiet_NaN()};
+  UInt_t   _nMBDVertex {0};
+  UInt_t   _nTRKVertex {0};
+  UInt_t   _nTracks {0};
+  Short_t  _nMBD[2] {0};
+  Float_t  _qMBD[2] {0};
+
   bool _treeflag {true};
   uint64_t _gl1_trigmask {0};
-  int _counter{0};
-  int _evt{0};
+  int _counter {0};
 };
 
 #endif // MBDTRACKVERTEX_H

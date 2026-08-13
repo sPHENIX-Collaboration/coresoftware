@@ -169,6 +169,8 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
     std::cout << "Finish PHCosmicsTrkFitter Setup" << std::endl;
   }
 
+  m_topNode = topNode;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -297,7 +299,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     SourceLinkVec sourceLinks;
 
     MakeSourceLinks makeSourceLinks;
-    makeSourceLinks.initialize(_tpccellgeo, m_tGeometry);
+    makeSourceLinks.initialize(_tpccellgeo, m_tGeometry, m_topNode);
     makeSourceLinks.setVerbosity(Verbosity());
     makeSourceLinks.set_pp_mode(false);
 

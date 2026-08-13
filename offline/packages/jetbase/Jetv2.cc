@@ -97,6 +97,9 @@ void Jetv2::Reset()
   _id = 0xFFFFFFFF;
   std::fill(std::begin(_mom), std::end(_mom), std::numeric_limits<float>::quiet_NaN());
   _e = std::numeric_limits<float>::quiet_NaN();
+  _emcal_frac = std::numeric_limits<float>::quiet_NaN();
+  _ihcal_frac = std::numeric_limits<float>::quiet_NaN();
+  _ohcal_frac = std::numeric_limits<float>::quiet_NaN();
   _comp_ids.clear();
   _properties.clear();
 }

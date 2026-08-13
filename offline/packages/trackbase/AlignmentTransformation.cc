@@ -263,14 +263,11 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
       unsigned int side = TpcDefs::getSide(hitsetkey);
       unsigned int sector = TpcDefs::getSectorId(hitsetkey);
-      //      std::cout << "New module hitsetkey " << hitsetkey << "test_layer " << test_layer <<  " side " << side << " sector " << sector << " nlayers " << nlayers << " layer_begin " << layer_begin << std::endl;
 
       // loop over layers in module
       for (unsigned int this_layer = layer_begin; this_layer < layer_begin + nlayers; ++this_layer)
       {
         TrkrDefs::hitsetkey this_hitsetkey = TpcDefs::genHitSetKey(this_layer, sector, side);
-
-	//   std::cout << " *** module hitsetkey " << hitsetkey << " this_hitsetkey " << this_hitsetkey << " this layer " << this_layer << " side " << side << " sector " << sector << std::endl;
 
 	// Each TPC hitsetkey has 12 fake surfaces associated with it
 	// We want to make a transform for every fake surface in this hitsetkey
@@ -285,26 +282,19 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	  {
 	    double phis = min_phi + is*dphi + dphi/2.0;
 	    double radius = layergeom->get_radius();
-	    double zcenter = 51.0;
+	    double zcenter = 51.0;  // not used, make something up
 	    if(side == 0)
 	      {
 		zcenter *= -1;
 	      }
 	    Acts::Vector3 env_pos(radius*std::cos(phis), radius * std::sin(phis), zcenter);
-	    Acts::Vector3 world_pos = m_tGeometry->transformTpcEnvelopeToWorld(env_pos);
 	    unsigned short  sskey = 999;
-	    Surface this_surf = m_tGeometry->get_tpc_surface_from_coords(this_hitsetkey, world_pos, sskey);
+	    Surface this_surf = m_tGeometry->get_clusterizer_tpc_surface(this_hitsetkey, env_pos, sskey);
 	    if(sskey == 999 || !this_surf)
 	      {
 		std::cout << PHWHERE << "Failed to get surface for layer " << this_layer << " side " << side << " sector " << sector << "  quit!" << std::endl;
 		exit(1);
 	      }
-	    /*
-	    std::cout << " layer " << this_layer << " radius " << radius << " phis " << phis << " min_phi " << min_phi << " max_phi " << max_phi
-		      << " side " << side << " sector " << sector << " world " << world_pos.x() << "  " << world_pos.y() << "  " << world_pos.z()
-		      <<"  world_radius " << sqrt(world_pos.x() * world_pos.x() + world_pos.y() * world_pos.y())
-		      << " sskey " << sskey << std::endl;
-	    */
 
 	    Eigen::Vector3d localFrameTranslation(0, 0, 0);
 	    use_module_tilt = false;
@@ -710,32 +700,42 @@ void AlignmentTransformation::extractModuleCenterPositions()
 double AlignmentTransformation::extractModuleCenter(TrkrDefs::hitsetkey hitsetkey, double sectorphi)
 {
   // We want the module center position from the ideal geometry in the tpc envelope frame
-
+  
   // the radius and z are not used, only the phi value
   double x = std::cos(sectorphi + 0.01) * 10.0;
   double y = std::sin(sectorphi + 0.01) * 10.0;
-  double z = 0.0;
+  double z = 10.0;
+  unsigned int side = TpcDefs::getSide(hitsetkey);
+  if(side ==0)
+    {
+      z = -10.0;  // not used, just make something up
+    }
 
-  Acts::Vector3 world(x, y, z);
+  Acts::Vector3 world_envelope(x, y, z);
   TrkrDefs::subsurfkey subsurfkey = 0;
 
-  //   std::cout << "extractModuleCenter: sectorphi " << sectorphi << " world " << world(0) << "  " << world(1) << "  " << world(2) << std::endl;
+  //  std::cout << "extractModuleCenter: sectorphi " << sectorphi << " world_envelope " << world_envelope(0) << "  " << world_envelope(1) << "  " << world_envelope(2) << std::endl;
 
   // Note: the "world" position here is in pre-tilt tpc envelope coordinates, not global coordinates
-  // But, get_tpc_surface_from_coords() expects a global position as input, so we convert to world coordinates
-  Acts::Vector3 world_envelope = m_tGeometry->transformTpcEnvelopeToWorld(world);
-  Surface surface = m_tGeometry->get_tpc_surface_from_coords(hitsetkey, world_envelope, subsurfkey);
+  Surface surface = m_tGeometry->get_clusterizer_tpc_surface(hitsetkey, world_envelope, subsurfkey);     
   if (!surface)
   {
     std::cout << PHWHERE << "Failed to find surface, quit " << std::endl;
     exit(1);
   }
 
-  Eigen::Vector3d surf_center = surface->center(m_tGeometry->geometry().getGeoContext());
+  // Acts::GeometryIdentifier id = surface->geometryId();
+  //std::cout << " subsurfkey " << subsurfkey << " id " << id << std::endl;
+
+  Acts::Vector3 surf_center = surface->center(m_tGeometry->geometry().getGeoContext());
   surf_center /= 10.0;  // convert from mm to cm
+
   // convert to tpc envelope coords
   Acts::Vector3 surf_center_envelope = m_tGeometry->transformTpcWorldToEnvelope(surf_center);
+ 
   double surf_radius = std::sqrt(surf_center_envelope[0] * surf_center_envelope[0] + surf_center_envelope[1] * surf_center_envelope[1]);
+
+  //std::cout << " surf radius = " << surf_radius << std::endl;
 
   return surf_radius;
 }

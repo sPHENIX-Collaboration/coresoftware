@@ -50,12 +50,13 @@ namespace
 
 }  // namespace
 
-void MakeSourceLinks::initialize(PHG4TpcGeomContainer* cellgeo, ActsGeometry *tGeometry)
+void MakeSourceLinks::initialize(PHG4TpcGeomContainer* cellgeo, ActsGeometry *tGeometry, PHCompositeNode *topNode)
 {
   // get the TPC layer radii from the geometry object
-  if (cellgeo && tGeometry)
+  if (cellgeo && tGeometry && topNode)
   {
-    _clusterMover.initialize_geometry(cellgeo, tGeometry);
+    _clusterMover.initialize_geometry(cellgeo, tGeometry, topNode);
+    _clusterMover.set_verbosity(m_verbosity);
   }
 }
 
@@ -360,6 +361,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
        ++clusIter)
   {
     auto key = *clusIter;
+    
     auto* cluster = clusterContainer->findCluster(key);
     if (!cluster)
     {
@@ -382,17 +384,11 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       continue;
     }
 
-    const unsigned int trkrid = TrkrDefs::getTrkrId(key);
-
-    if (m_verbosity > 1)
-    {
-      std::cout << "    Cluster key " << key << " trkrid " << trkrid << " crossing " << crossing << std::endl;
-    }
-
     // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset
     // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks
     const Acts::Vector3 global = globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, crossing);
 
+    const unsigned int trkrid = TrkrDefs::getTrkrId(key);
     if (trkrid == TrkrDefs::tpcId)
     {
       if (m_verbosity > 2)
@@ -435,8 +431,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
   // loop over global positions returned by cluster mover
   for (auto&& [cluskey, global] : global_moved)
   {
-    // std::cout << "Global moved: " << global.x() << "  " <<  global.y() << "  " << global.z() << std::endl;
-
     if (m_ignoreLayer.contains(TrkrDefs::getLayer(cluskey)))
     {
       if (m_verbosity > 3)
@@ -447,18 +441,24 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       continue;
     }
 
-    auto* cluster = clusterContainer->findCluster(cluskey);
-    Surface surf = tGeometry->maps().getSurface(cluskey, cluster);
     if (std::isnan(global.x()) || std::isnan(global.y()))
     {
-      std::cout << "MakeSourceLinks::getSourceLinksClusterMover - invalid position"
-                << " key: " << cluskey
-                << " layer: " << (int) TrkrDefs::getLayer(cluskey)
-                << " position: " << global
-                << std::endl;
+      if (m_verbosity > 1)
+	{
+	  std::cout << "MakeSourceLinks::getSourceLinksClusterMover - invalid position"
+		    << " key: " << cluskey
+		    << " layer: " << (int) TrkrDefs::getLayer(cluskey)
+		    << " position: " << global
+		    << std::endl;
+	}
+      continue;
     }
 
-    // if this is a TPC cluster, the crossing correction may have moved it across the central membrane, check the surface
+    // clustermover updates the subsurface key after moving the clusters to the surface, so this is safe
+    auto* cluster = clusterContainer->findCluster(cluskey);
+    if(!cluster) { continue; }
+    Surface surf = tGeometry->maps().getSurface(cluskey, cluster);
+
     auto trkrid = TrkrDefs::getTrkrId(cluskey);
     if (trkrid == TrkrDefs::tpcId)
     {
@@ -466,18 +466,11 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       {
         continue;
       }
-
-      TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-      TrkrDefs::subsurfkey new_subsurfkey = 0;
-      surf = tGeometry->get_tpc_surface_from_coords(hitsetkey, global, new_subsurfkey);
     }
-
+    
     if (!surf)
     {
-      if (m_verbosity > 2)
-      {
-        std::cout << "MakeSourceLinks::getSourceLinksClusterMover -  Failed to find surface for cluskey " << cluskey << std::endl;
-      }
+      std::cout << "MakeSourceLinks::getSourceLinksClusterMover -  Failed to find surface for cluskey " << cluskey << std::endl;
       continue;
     }
 

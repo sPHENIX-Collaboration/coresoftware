@@ -30,8 +30,11 @@ namespace TrackAnalysisUtils
   DCAPair get_dca(SvtxTrack* track, Acts::Vector3& vertex);
   DCAPair get_dca(SvtxTrack* track, GlobalVertex* vertex);
   Acts::RotationMatrix3 rotationMatrixToLocal(const Acts::Vector3& mom);
-  std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
-  std::vector<TrkrDefs::cluskey> get_cluster_keys(TrackSeed* seed);
+  std::vector<TrkrDefs::cluskey> get_cluster_keys(const SvtxTrack* track);
+  std::vector<TrkrDefs::cluskey> get_cluster_keys(const TrackSeed* seed);
+  // returns cluster counts for a track, in order mvtx, intt, tpc, tpot
+  std::tuple<int, int, int, int> get_cluster_counts(const SvtxTrack* track);
+  int get_cluster_count(const TrackSeed* seed, const TrkrDefs::TrkrId& trkrid);
   float calc_dedx_calib(SvtxTrack* track, TrkrClusterContainer* cluster_map,
                         ActsGeometry* tgeometry,
                         // this is the thickness from R1[0],R1[1],R2[2], and R4[3]. You need

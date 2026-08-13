@@ -59,6 +59,8 @@ class MinimumBiasClassifier : public SubsysReco
 
   void setSpecies(MinimumBiasInfo::SPECIES spec) { m_species = spec; };
 
+  void setRejectPileup(bool v) { m_reject_pileup = v; };
+
   void abortEvents(const bool abort) { m_abortEvents = abort; };
 
   void set_minbiasNodeName(const std::string &name)
@@ -91,6 +93,9 @@ class MinimumBiasClassifier : public SubsysReco
   bool m_issim{false};
   bool m_useZDC{true};
   bool m_box_cut{true};
+  bool m_reject_pileup{true};
+
+  float m_pileup_charge_cut{200.};
 
   int m_hit_cut{2};
 
@@ -100,13 +105,13 @@ class MinimumBiasClassifier : public SubsysReco
 
   float m_vertex{std::numeric_limits<float>::quiet_NaN()};
 
-  static constexpr float m_z_vtx_cut{60.};
-  static constexpr float m_mbd_north_cut{10.};
-  static constexpr float m_mbd_south_cut{150};
-  static constexpr float m_mbd_charge_cut{0.5};
-  static constexpr float m_mbd_time_cut{25.};
+  float m_z_vtx_cut{60.};
+  float m_mbd_north_cut{10.};
+  float m_mbd_south_cut{150.};
+  float m_mbd_charge_cut{0.5};
+  float m_mbd_time_cut{25.};
   //  const int m_mbd_tube_cut{2};
-  static constexpr float m_zdc_cut{60.};
+  float m_zdc_cut{60.};
 
   MinimumBiasInfo::SPECIES m_species{MinimumBiasInfo::SPECIES::AUAU};
 

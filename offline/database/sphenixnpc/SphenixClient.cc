@@ -52,6 +52,11 @@ nlohmann::json SphenixClient::getUrl(const std::string& pl_type, long long iov)
   return {{"code", 0}, {"msg", payloadurl}};
 }
 
+nlohmann::json SphenixClient::getUrlDict(long long major_iov, long long minor_iov)
+{
+  return nopayloadclient::NoPayloadClient::getUrlDict(major_iov, minor_iov);
+}
+
 nlohmann::json SphenixClient::getUrlDict(long long iov)
 {
   nlohmann::json resp = getPayloadIOVs(iov);
@@ -171,6 +176,13 @@ nlohmann::json SphenixClient::insertPayload(const std::string& pl_type, const st
                                             long long iov_start, long long iov_end)
 {
   return nopayloadclient::NoPayloadClient::insertPayload(pl_type, file_url, 0, iov_start, 0, iov_end);
+}
+
+nlohmann::json SphenixClient::insertPayload(const std::string& pl_type, const std::string& file_url,
+                                            long long major_iov_start, long long minor_iov_start,
+                                            long long major_iov_end, long long minor_iov_end)
+{
+  return nopayloadclient::NoPayloadClient::insertPayload(pl_type, file_url, major_iov_start, minor_iov_start, major_iov_end, minor_iov_end);
 }
 
 nlohmann::json SphenixClient::setGlobalTag(const std::string& gt_name)

@@ -132,10 +132,7 @@ class PHGenFitTrkFitter : public SubsysReco
   void set_fit_silicon_mms(bool);
 
   /// require micromegas in SiliconMM fits
-  void set_use_micromegas(bool value)
-  {
-    m_use_micromegas = value;
-  }
+  void set_use_micromegas(bool);
 
   void set_svtx_seed_map_name(const std::string &name) {_seedMap_name = name;}
   void set_svtx_track_map_name(const std::string &name) {_trackMap_name = name;}
@@ -145,7 +142,21 @@ class PHGenFitTrkFitter : public SubsysReco
   void disableAverageCorr() { m_disable_average_corr = true; }
   void disableFluctuationCorr() { m_disable_fluctuation_corr = true; }
 
- private:
+  /// extrapolation mode
+  enum class ExtrapolationMode
+  {
+    Default, // use track parameters at vertex for the extrapolation
+    Forward, // uses the track state vector closest to the requested layer, before
+    Backward, // uses the track state vector closest to the requested layer, after
+    Bidirectional // uses the weighted average of the forward and backward extrapolation, when available
+  };
+
+  /// extrapolation mode
+  void setExtrapolationMode( const ExtrapolationMode value )
+  { m_extrapolation_mode = value; }
+
+  private:
+
   //! Event counter
   int _event = 0;
 
@@ -221,6 +232,10 @@ class PHGenFitTrkFitter : public SubsysReco
   bool m_disable_static_corr = false;
   bool m_disable_average_corr = false;
   bool m_disable_fluctuation_corr = false;
+
+  /// extrapolation mode
+  ExtrapolationMode m_extrapolation_mode = ExtrapolationMode::Bidirectional;
+
 };
 
 #endif

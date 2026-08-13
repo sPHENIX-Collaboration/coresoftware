@@ -11,6 +11,11 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  Tpc_ModuleTrackDisplay.h \
+  Tpc_AssembledTrackDisplay.h \
+  Tpc_PolyClusterDisplay.h \
+  Tpc_PolyClusterResiduals.h \
+  TpcV0CandidateTree.h \
   BeamCrossingAnalysis.h \
   helixResiduals.h \
   KshortReconstruction.h \
@@ -23,6 +28,11 @@ lib_LTLIBRARIES = \
   libTrackingDiagnostics.la
 
 libTrackingDiagnostics_la_SOURCES = \
+  Tpc_ModuleTrackDisplay.cc \
+  Tpc_AssembledTrackDisplay.cc \
+  Tpc_PolyClusterDisplay.cc \
+  Tpc_PolyClusterResiduals.cc \
+  TpcV0CandidateTree.cc \
   BeamCrossingAnalysis.cc \
   helixResiduals.cc \
   KshortReconstruction.cc \
@@ -32,11 +42,13 @@ libTrackingDiagnostics_la_SOURCES = \
   TrkrNtuplizer.cc
 
 libTrackingDiagnostics_la_LIBADD = \
+  -lffaobjects \
   -lphool \
   -lfun4all \
   -lg4eval \
   -lg4eval_io \
   -lphg4hit \
+  -lphfield \
   -lmbd_io \
   -lg4detectors_io \
   -lmvtx \
@@ -48,7 +60,8 @@ libTrackingDiagnostics_la_LIBADD = \
   -ltpc_io \
   -ltrack_io \
   -ltrackeralign \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -ltpctrackreco
 
 BUILT_SOURCES = testexternals.cc
 

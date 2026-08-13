@@ -120,7 +120,7 @@ int TrackResiduals::InitRun(PHCompositeNode* topNode)
   auto *tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
 
   auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-  m_clusterMover.initialize_geometry(tpccellgeo, geometry);
+  m_clusterMover.initialize_geometry(tpccellgeo, geometry, topNode);
   m_clusterMover.set_verbosity(0);
 
   auto *se = Fun4AllServer::instance();
@@ -1035,17 +1035,11 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
 
 void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* track,
                                            const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global,
+					   const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_moved,
                                            PHCompositeNode* topNode)
 {
   auto *clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-
-  auto global_moved = global;  // if use transient transforms for distortion correction
-  if (m_use_clustermover)
-  {
-    // move the corrected cluster positions back to the original readout surface
-    global_moved = m_clusterMover.processTrack(global);
-  }
 
   ActsTransformations transformer;
   TrkrCluster* cluster = clustermap->findCluster(ckey);
@@ -1056,6 +1050,8 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   {
     auto thiskey = pair.first;
     clusglob = pair.second;
+    // unsigned int layer = TrkrDefs::getLayer(thiskey);
+    // std::cout << "global: " << layer << " ckey " << ckey << std::endl; 
     if (thiskey == ckey)
     {
       break;
@@ -1067,6 +1063,8 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   {
     auto thiskey = pair.first;
     clusglob_moved = pair.second;
+    //  unsigned int layer = TrkrDefs::getLayer(thiskey);
+    // std::cout << "global moved: " << layer << " ckey " << ckey << std::endl; 
     if (thiskey == ckey)
     {
       break;
@@ -1413,9 +1411,10 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
 
 void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTrack* track,
                                               const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global,
+					      const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_moved,
                                               PHCompositeNode* topNode)
 {
-  // The input map global contains the corrected cluster positions - NOT moved back to the surfacer.
+  // The input map global contains the corrected cluster positions - NOT moved back to the surface.
   // When filling the residualtree:
   //    clusgx etc are the corrected - but not moved back to the surface - cluster positions
   //    clugxideal etc are the completely uncorrected cluster positions - they do not even have crossing corrections
@@ -1424,13 +1423,6 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
 
   auto *clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-
-  auto global_moved = global;
-  if (m_use_clustermover)
-  {
-    // move the corrected cluster positions back to the original readout surface
-    global_moved = m_clusterMover.processTrack(global);
-  }
 
   TrkrCluster* cluster = clustermap->findCluster(ckey);
 
@@ -2248,13 +2240,14 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
       global_raw.emplace_back(ckey, global);
     }
 
-    // move the cluster positions back to the original readout surface in the fillClusterBranchesKF method
+    // Call clusterMover for the entire track
+    auto global_moved = m_clusterMover.processTrack(global_raw);
 
     if (!m_doAlignment)
     {
       for (const auto& ckey : get_cluster_keys(track))
       {
-        fillClusterBranchesKF(ckey, track, global_raw, topNode);
+	fillClusterBranchesKF(ckey, track, global_raw, global_moved, topNode);
       }
     }
 
@@ -2273,7 +2266,7 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
         {
           auto ckey = state->get_cluster_key();
 
-          fillClusterBranchesKF(ckey, track, global_raw, topNode);
+	  fillClusterBranchesKF(ckey, track, global_raw, global_moved, topNode);
 
           const auto& globderivs = state->get_global_derivative_matrix();
           const auto& locderivs = state->get_local_derivative_matrix();
@@ -2630,8 +2623,10 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
       maxR = std::max<double>(r(global.x(), global.y()), maxR);
     }
     m_tracklength = maxR - minR;
-    // ---- we move the global positions back to the surface in fillClusterBranchesSeeds
 
+    // Call clusterMover for the entire track
+    auto global_moved = m_clusterMover.processTrack(global_raw);
+    
     if (!m_doAlignment)
     {
       std::vector<TrkrDefs::cluskey> keys;
@@ -2648,11 +2643,11 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
         // this corrects the cluster positions and fits them, to fill the helical fit parameters
         //  that are used to calculate the "state" positions
         circleFitClusters(keys, clustermap, m_crossing);
-      }
+      }        
 
       for (const auto& ckey : get_cluster_keys(track))
       {
-        fillClusterBranchesSeeds(ckey, global_raw, topNode);
+	fillClusterBranchesSeeds(ckey, global_raw, global_moved, topNode);
       }
     }
 
@@ -2671,7 +2666,7 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
         {
           auto ckey = state->get_cluster_key();
 
-          fillClusterBranchesSeeds(ckey, global_raw, topNode);
+	  fillClusterBranchesSeeds(ckey, global_raw, global_moved, topNode);
 
           const auto& globderivs = state->get_global_derivative_matrix();
           const auto& locderivs = state->get_local_derivative_matrix();

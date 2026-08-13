@@ -27,7 +27,7 @@ int G4VtxNtuple::Init(PHCompositeNode * /*unused*/)
 {
   delete hm; // make cppcheck happy
   hm = new Fun4AllHistoManager(Name());
-  ntup = new TNtuple("vtxntup", "G4Vtxs", "vx:vy:vz");
+  ntup = new TNtuple("vtxntup", "G4Vtxs", "vx:vy:vz:vt");
   hm->registerHisto(ntup);
   return 0;
 }
@@ -38,7 +38,10 @@ int G4VtxNtuple::process_event(PHCompositeNode *topNode)
   if (truthinfo)
   {
     PHG4VtxPoint *gvertex = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
-    ntup->Fill(gvertex->get_x(), gvertex->get_y(), gvertex->get_z());
+    if (gvertex)
+    {
+      ntup->Fill(gvertex->get_x(), gvertex->get_y(), gvertex->get_z(), gvertex->get_t());
+    }
   }
   return 0;
 }

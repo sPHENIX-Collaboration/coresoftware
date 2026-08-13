@@ -35,6 +35,7 @@ lib_LTLIBRARIES = \
   libtpc.la
 
 pkginclude_HEADERS = \
+  LaserClusterHelper.h \
   LaserClusterizer.h \
   LaserEventInfo.h \
   LaserEventInfov1.h \
@@ -76,6 +77,7 @@ dist_mydata_DATA = \
 
 # sources for tpc library
 libtpc_la_SOURCES = \
+  LaserClusterHelper.cc \
   LaserClusterizer.cc \
   LaserEventInfov1.cc \
   LaserEventInfov2.cc \

@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+class ActsGeometry;
 class PHCompositeNode;
 class PHG4Hit;
 class PHG4HitContainer;
@@ -22,6 +23,7 @@ class SvtxTrack;
 class SvtxTrackMap;
 class TrackSeed;
 class TrackSeedContainer;
+class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
@@ -42,6 +44,7 @@ class PHTruthTrackFitter : public SubsysReco
   void setDefaultCrossing(short int crossing) { m_defaultCrossing = crossing; }
   void setPositionError(float value) { m_positionError = value; }
   void setZError(float value) { m_zError = value; }
+  void setExtrapolateToClusterRadius(bool value) { m_extrapolateToClusterRadius = value; }
 
  private:
   int createNodes(PHCompositeNode* topNode);
@@ -56,6 +59,7 @@ class PHTruthTrackFitter : public SubsysReco
   bool addStateFromCluster(SvtxTrack* track, TrkrDefs::cluskey cluskey, unsigned int truthTrackId,
                            const PHG4Particle* particle, const PHG4VtxPoint* vertex,
                            unsigned int stateIndex) const;
+  float getClusterRadius(TrkrDefs::cluskey cluskey, TrkrCluster* cluster) const;
   float getPathLength(const PHG4VtxPoint* vertex, float x, float y, float z, unsigned int stateIndex) const;
   int getCharge(const PHG4Particle* particle, const TrackSeed* tpcSeed, const TrackSeed* siliconSeed) const;
   short int getCrossing(const TrackSeed* tpcSeed, const TrackSeed* siliconSeed) const;
@@ -71,6 +75,7 @@ class PHTruthTrackFitter : public SubsysReco
   TrkrClusterContainer* m_clusterMap = nullptr;
   TrkrClusterHitAssoc* m_clusterHitMap = nullptr;
   TrkrHitTruthAssoc* m_hitTruthAssoc = nullptr;
+  ActsGeometry* m_tGeometry = nullptr;
   PHG4TruthInfoContainer* m_g4TruthInfo = nullptr;
 
   PHG4HitContainer* m_g4HitsTpc = nullptr;
@@ -81,6 +86,7 @@ class PHTruthTrackFitter : public SubsysReco
   short int m_defaultCrossing = 0;
   float m_positionError = 0.005;
   float m_zError = 0.01;
+  bool m_extrapolateToClusterRadius = true;
 
   static constexpr unsigned int m_invalidTruthTrackId = std::numeric_limits<unsigned int>::max();
 };

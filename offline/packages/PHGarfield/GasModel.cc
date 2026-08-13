@@ -1,8 +1,11 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <filesystem>
 
 #include <Garfield/MediumMagboltz.hh>
+
+namespace fs = std::filesystem;
 
 //------------------------------------------------------------
 //  This standalone executable makes gas calculations for
@@ -41,6 +44,15 @@ int main(int argc, char* argv[])
   const int nA = std::atoi(argv[9]);
 
   const std::string output_file(argv[10]);
+
+
+  // A final output file means this grid point was already completed.
+  if (fs::exists(output_file))
+    {
+      std::cout << "Output file already exists: " << output_file
+		<< "\nSkipping calculation." << std::endl;
+      return 0;
+    }
 
   std::cout << "E grid: "
             << Emin << " -> " << Emax

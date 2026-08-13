@@ -1,5 +1,7 @@
 #include "PHTruthTrackFitter.h"
 
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
@@ -37,6 +39,7 @@
 #include <limits>
 #include <set>
 #include <utility>
+#include <vector>
 
 namespace
 {
@@ -76,6 +79,93 @@ namespace
   {
     return trackid != std::numeric_limits<unsigned int>::max();
   }
+
+  class InterpolationData
+  {
+   public:
+    InterpolationData(double x, double y, double z, double px, double py, double pz, double weight)
+      : m_x(x)
+      , m_y(y)
+      , m_z(z)
+      , m_px(px)
+      , m_py(py)
+      , m_pz(pz)
+      , m_weight(weight)
+    {
+    }
+
+    double r() const
+    {
+      return std::sqrt(square(m_x) + square(m_y));
+    }
+
+    double x() const { return m_x; }
+    double y() const { return m_y; }
+    double z() const { return m_z; }
+    double px() const { return m_px; }
+    double py() const { return m_py; }
+    double pz() const { return m_pz; }
+    double weight() const { return m_weight; }
+
+   private:
+    double m_x = 0;
+    double m_y = 0;
+    double m_z = 0;
+    double m_px = 0;
+    double m_py = 0;
+    double m_pz = 0;
+    double m_weight = 1;
+  };
+
+  template <double (InterpolationData::*accessor)() const>
+  double interpolate_r(const std::vector<InterpolationData>& hits, double r_extrap, double fallback)
+  {
+    double sw = 0;
+    double swr = 0;
+    double swr2 = 0;
+    double swq = 0;
+    double swrq = 0;
+
+    for (const auto& hit : hits)
+    {
+      const auto q = (hit.*accessor)();
+      const auto r = hit.r();
+      const auto weight = hit.weight();
+      if (!std::isfinite(q) || !std::isfinite(r) || !std::isfinite(weight) || weight <= 0)
+      {
+        continue;
+      }
+
+      sw += weight;
+      swr += weight * r;
+      swr2 += weight * square(r);
+      swq += weight * q;
+      swrq += weight * r * q;
+    }
+
+    /*
+     * Fit q(r) = a*r + b with weighted least squares, where q is one of
+     * x/y/z/px/py/pz. The sums above form the normal equations:
+     *
+     *   a*swr2 + b*swr = swrq
+     *   a*swr  + b*sw  = swq
+     *
+     * alpha and beta are the Cramer's-rule numerators for the slope and
+     * intercept. Keeping the final division common is the same as returning
+     * slope*r_extrap + intercept, but avoids one extra division.
+     */
+    const auto denom = sw * swr2 - square(swr);
+    const auto scale = std::max(std::abs(sw * swr2), square(swr));
+    if (scale <= 0 || std::abs(denom) <= std::numeric_limits<double>::epsilon() * scale)
+    {
+      return fallback;
+    }
+
+    const auto alpha = sw * swrq - swr * swq;
+    const auto beta = swr2 * swq - swr * swrq;
+    const auto value = (alpha * r_extrap + beta) / denom;
+    return std::isfinite(value) ? value : fallback;
+  }
 }  // namespace
 
 PHTruthTrackFitter::PHTruthTrackFitter(const std::string& name)
@@ -108,7 +198,7 @@ int PHTruthTrackFitter::process_event(PHCompositeNode* /*topNode*/)
   m_trackMap->Reset();
 
   unsigned int skipped_tracks = 0;
-  for (auto *seed : *m_seedMap)
+  for (auto* seed : *m_seedMap)
   {
     if (!seed)
     {
@@ -320,6 +410,13 @@ int PHTruthTrackFitter::getNodes(PHCompositeNode* topNode)
   m_g4HitsMvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
   m_g4HitsMicromegas = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
 
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if (m_extrapolateToClusterRadius && !m_tGeometry)
+  {
+    std::cout << PHWHERE << "No ActsGeometry on node tree. Bailing" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -437,11 +534,13 @@ bool PHTruthTrackFitter::addStateFromCluster(SvtxTrack* track,
                                              const PHG4VtxPoint* vertex,
                                              unsigned int stateIndex) const
 {
-  if (!m_clusterMap->findCluster(cluskey))
+  auto* cluster = m_clusterMap->findCluster(cluskey);
+  if (!cluster)
   {
     return false;
   }
 
+  std::vector<InterpolationData> interpolation_hits;
   double weight_sum = 0;
   double x = 0;
   double y = 0;
@@ -479,6 +578,29 @@ bool PHTruthTrackFitter::addStateFromCluster(SvtxTrack* track,
       weight = 1;
     }
 
+    for (int endpoint = 0; endpoint < 2; ++endpoint)
+    {
+      const auto endpoint_x = g4hit->get_x(endpoint);
+      const auto endpoint_y = g4hit->get_y(endpoint);
+      const auto endpoint_z = g4hit->get_z(endpoint);
+      if (!is_finite(endpoint_x) || !is_finite(endpoint_y) || !is_finite(endpoint_z))
+      {
+        continue;
+      }
+
+      const auto endpoint_px = g4hit->get_px(endpoint);
+      const auto endpoint_py = g4hit->get_py(endpoint);
+      const auto endpoint_pz = g4hit->get_pz(endpoint);
+
+      interpolation_hits.emplace_back(endpoint_x,
+                                      endpoint_y,
+                                      endpoint_z,
+                                      is_finite(endpoint_px) ? endpoint_px : particle->get_px(),
+                                      is_finite(endpoint_py) ? endpoint_py : particle->get_py(),
+                                      is_finite(endpoint_pz) ? endpoint_pz : particle->get_pz(),
+                                      weight);
+    }
+
     weight_sum += weight;
     x += weight * hit_x;
     y += weight * hit_y;
@@ -503,6 +625,25 @@ bool PHTruthTrackFitter::addStateFromCluster(SvtxTrack* track,
   pz /= weight_sum;
   local_x /= weight_sum;
   local_y /= weight_sum;
+
+  if (m_extrapolateToClusterRadius && !interpolation_hits.empty())
+  {
+    const auto cluster_radius = getClusterRadius(cluskey, cluster);
+    if (std::isfinite(cluster_radius) && cluster_radius > 0)
+    {
+      x = interpolate_r<&InterpolationData::x>(interpolation_hits, cluster_radius, x);
+      y = interpolate_r<&InterpolationData::y>(interpolation_hits, cluster_radius, y);
+      z = interpolate_r<&InterpolationData::z>(interpolation_hits, cluster_radius, z);
+      px = interpolate_r<&InterpolationData::px>(interpolation_hits, cluster_radius, px);
+      py = interpolate_r<&InterpolationData::py>(interpolation_hits, cluster_radius, py);
+      pz = interpolate_r<&InterpolationData::pz>(interpolation_hits, cluster_radius, pz);
+    }
+    else if (Verbosity() > 1)
+    {
+      std::cout << "PHTruthTrackFitter::addStateFromCluster - invalid cluster radius for cluster "
+                << cluskey << ", using truth hit average" << std::endl;
+    }
+  }
 
   float pathlength = getPathLength(vertex, x, y, z, stateIndex);
   while (track->count_states(pathlength) != 0)
@@ -535,6 +676,18 @@ bool PHTruthTrackFitter::addStateFromCluster(SvtxTrack* track,
 
   track->insert_state(&state);
   return true;
+}
+
+float PHTruthTrackFitter::getClusterRadius(TrkrDefs::cluskey cluskey, TrkrCluster* cluster) const
+{
+  if (!m_tGeometry || !cluster)
+  {
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+
+  const auto global = m_tGeometry->getGlobalPosition(cluskey, cluster);
+  const auto radius = std::sqrt(square(global.x()) + square(global.y()));
+  return std::isfinite(radius) ? radius : std::numeric_limits<float>::quiet_NaN();
 }
 
 float PHTruthTrackFitter::getPathLength(const PHG4VtxPoint* vertex,

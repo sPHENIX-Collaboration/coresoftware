@@ -21,7 +21,9 @@ pkginclude_HEADERS = \
   MicromegasClusterQA.h \
   CosmicTrackQA.h \
   TrackFittingQA.h \
-  VertexQA.h
+  VertexQA.h \
+  SiliconDriftQA.h \
+  MicromegasDriftQA.h
 
 lib_LTLIBRARIES = \
   libtrackingqa.la
@@ -37,7 +39,9 @@ libtrackingqa_la_SOURCES = \
   MicromegasClusterQA.cc \
   CosmicTrackQA.cc \
   TrackFittingQA.cc \
-  VertexQA.cc
+  VertexQA.cc \
+  SiliconDriftQA.cc \
+  MicromegasDriftQA.cc
 
 libtrackingqa_la_LIBADD = \
   -lphool \
@@ -49,6 +53,7 @@ libtrackingqa_la_LIBADD = \
   -lmvtx_io \
   -lintt_io \
   -ltrack_io \
+  -ltrack  \
   -ltrackbase_historic_io \
   -ltrack_reco \
   -lqautils
