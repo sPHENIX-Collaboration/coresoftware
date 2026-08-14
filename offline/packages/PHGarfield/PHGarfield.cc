@@ -332,7 +332,10 @@ void PHGarfield::GetMagneticFieldTesla(double x_cm, double y_cm, double z_cm, do
 
   // Get the magnetic field via the PHField3DCartesian object constructed using
   // the CDB url reference.
-  m_field->GetFieldValue(point, bfield_map);
+  if (!m_zerofield)
+  {
+    m_field->GetFieldValue(point, bfield_map);
+  }
 
   const TVector3 b_tpc = MagnetFieldMapVectorToTpcVector(
       bfield_map[0], bfield_map[1], bfield_map[2]);
