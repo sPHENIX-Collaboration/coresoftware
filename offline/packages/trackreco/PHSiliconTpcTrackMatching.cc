@@ -852,7 +852,7 @@ std::vector<short int>  PHSiliconTpcTrackMatching::getBestCrossing(unsigned int 
     {
       crossing = intt_crossing;
     }
-  else   if(_use_tpc_crossing_only)
+  else if(_use_tpc_crossing_only)
     {
       crossing = tpc_crossing;
     }
