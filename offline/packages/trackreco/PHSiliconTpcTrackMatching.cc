@@ -64,7 +64,9 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
   }
   // put these in the output file
   cout << PHWHERE << " Search windows: phi " << _phi_search_win << " eta "
-       << _eta_search_win << " _pp_mode " << _pp_mode << " _use_intt_crossing " << _use_intt_crossing << endl;
+       << _eta_search_win << " _pp_mode " << _pp_mode 
+       << " _use_silicon_crossing_only " << _use_silicon_crossing_only
+       << " _use_tpc_crossing_only " << _use_tpc_crossing_only << endl;
 
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK)
@@ -726,7 +728,7 @@ void PHSiliconTpcTrackMatching::checkZMatches(
 
     std::vector<short int> crossing_list = getBestCrossing(tpcid, si_id);
     short int crossing = crossing_list[3];        // the fourth entry is the best crossing choice
-    if(crossing == SHRT_MAX) { continue; }  // no valid crossing
+    if(crossing == SHRT_MAX) { continue; }  // no INTT or TPC crossing, maybe can recover in the fitter using geometric crossing - don't delete
     
     float z_mismatch = tpc_z - si_z;
     float tpc_z_corrected = TpcClusterZCrossingCorrection::correctZ(tpc_z, this_side, crossing);
@@ -843,6 +845,16 @@ std::vector<short int>  PHSiliconTpcTrackMatching::getBestCrossing(unsigned int 
 	{
 	  crossing = ( abs(inttdiff) < abs(tpcdiff) ) ? (intt_crossing) : (tpc_crossing);
 	}
+    }
+
+  // special cases, default to false, set from macro
+  if(_use_silicon_crossing_only)
+    {
+      crossing = intt_crossing;
+    }
+  else   if(_use_tpc_crossing_only)
+    {
+      crossing = tpc_crossing;
     }
   
   crossing_list.emplace_back(crossing);
