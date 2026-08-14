@@ -140,8 +140,10 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_pp_mode(const bool flag) { _pp_mode = flag; }
   void set_use_silicon_crossing_only(const bool flag) { _use_silicon_crossing_only = flag; }
   void set_use_tpc_crossing_only(const bool flag) { _use_tpc_crossing_only = flag; }
-  void set_use_intt_crossing(const bool flag) { _use_intt_crossing_only = flag; }  // deprecated, left for backward compatibility
+  
+  void set_use_intt_crossing(const bool flag) { _use_silicon_crossing_only = flag; }  // deprecated, left for backward compatibility
   void set_use_tpc_crossing(const bool flag) { _use_tpc_crossing_only = flag; }   // deprecated, left for backward compatibility
+
   void set_cluster_map_name(const std::string &name)
   {
     _cluster_map_name = name;
