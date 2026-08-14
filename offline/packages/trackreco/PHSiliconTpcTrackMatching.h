@@ -204,7 +204,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   int m_event = 0;
   std::map<unsigned int, double> _z_mismatch_map;
 
-  short int _max_crossing_diff = 6;  // good for Polyseeding, use 50 for CA seeding
+  short int _max_crossing_diff = 20;  // good for CA seeds, use 10 for polyseeding
   
   TpcClusterZCrossingCorrection _clusterCrossingCorrection;
   float _crossing_deltaz_max = 10.0;
