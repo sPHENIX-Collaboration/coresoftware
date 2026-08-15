@@ -176,6 +176,7 @@ class TpcV0CandidateTree : public SubsysReco
   void set_pair_alpha_abs_max(const double value) { m_pair_alpha_abs_max = value; }
   void set_pair_dca_max(const double value) { m_pair_dca_max = value; }
   void set_pair_dira_min(const double value) { m_pair_dira_min = value; }
+  void set_reconstruct_pairs(const bool value) { m_reconstruct_pairs = value; }
   void set_write_same_sign_pairs(const bool value) { m_write_same_sign_pairs = value; }
   void set_write_cluster_residual_tree(const bool value) { m_write_cluster_residual_tree = value; }
 
@@ -661,6 +662,7 @@ class TpcV0CandidateTree : public SubsysReco
   double m_pair_alpha_abs_max{-1.0};
   double m_pair_dca_max{-1.0};
   double m_pair_dira_min{-2.0};
+  bool m_reconstruct_pairs{true};
   bool m_write_same_sign_pairs{false};
   bool m_print_timing{false};
 

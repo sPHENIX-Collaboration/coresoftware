@@ -387,43 +387,54 @@ int TpcV0CandidateTree::process_event(PHCompositeNode *topNode)
               << std::endl;
   }
 
-  const auto pair_loop_start = std::chrono::steady_clock::now();
-  std::uint64_t event_pairs_processed = 0;
-  const std::uint64_t event_pairs_total =
-      tracklets.size() > 1
-          ? static_cast<std::uint64_t>(tracklets.size()) *
-                static_cast<std::uint64_t>(tracklets.size() - 1) / 2
-          : 0;
-  if (m_print_timing)
+  double pair_loop_seconds = 0.0;
+  if (m_reconstruct_pairs)
+  {
+    const auto pair_loop_start = std::chrono::steady_clock::now();
+    std::uint64_t event_pairs_processed = 0;
+    const std::uint64_t event_pairs_total =
+        tracklets.size() > 1
+            ? static_cast<std::uint64_t>(tracklets.size()) *
+                  static_cast<std::uint64_t>(tracklets.size() - 1) / 2
+            : 0;
+    if (m_print_timing)
+    {
+      std::cout << "[V0TimingStage] run=" << run_number
+                << " event=" << event_number
+                << " stage=pair_loop_start"
+                << " pairs=" << event_pairs_total
+                << std::endl;
+    }
+    for (std::size_t i = 0; i < tracklets.size(); ++i)
+    {
+      for (std::size_t j = i + 1; j < tracklets.size(); ++j)
+      {
+        make_pair_row(*tracklets[i], *tracklets[j], primary_vertex, run_number, event_number);
+        ++event_pairs_processed;
+        if (m_print_timing &&
+            (event_pairs_processed == 1 || event_pairs_processed % 1000 == 0))
+        {
+          std::cout << "[V0TimingPair] run=" << run_number
+                    << " event=" << event_number
+                    << " done=" << event_pairs_processed
+                    << " total=" << event_pairs_total
+                    << " pair_loop_s=" << std::chrono::duration<double>(std::chrono::steady_clock::now() - pair_loop_start).count()
+                    << " kalman_pca_s=" << (m_timing_kalman_pca_seconds - kalman_pca_before)
+                    << std::endl;
+        }
+      }
+    }
+    pair_loop_seconds = std::chrono::duration<double>(
+                            std::chrono::steady_clock::now() - pair_loop_start)
+                            .count();
+  }
+  else if (m_print_timing)
   {
     std::cout << "[V0TimingStage] run=" << run_number
               << " event=" << event_number
-              << " stage=pair_loop_start"
-              << " pairs=" << event_pairs_total
+              << " stage=pair_loop_skipped"
               << std::endl;
   }
-  for (std::size_t i = 0; i < tracklets.size(); ++i)
-  {
-    for (std::size_t j = i + 1; j < tracklets.size(); ++j)
-    {
-      make_pair_row(*tracklets[i], *tracklets[j], primary_vertex, run_number, event_number);
-      ++event_pairs_processed;
-      if (m_print_timing &&
-          (event_pairs_processed == 1 || event_pairs_processed % 1000 == 0))
-      {
-        std::cout << "[V0TimingPair] run=" << run_number
-                  << " event=" << event_number
-                  << " done=" << event_pairs_processed
-                  << " total=" << event_pairs_total
-                  << " pair_loop_s=" << std::chrono::duration<double>(std::chrono::steady_clock::now() - pair_loop_start).count()
-                  << " kalman_pca_s=" << (m_timing_kalman_pca_seconds - kalman_pca_before)
-                  << std::endl;
-      }
-    }
-  }
-  const double pair_loop_seconds = std::chrono::duration<double>(
-                                       std::chrono::steady_clock::now() - pair_loop_start)
-                                       .count();
   const double total_seconds = std::chrono::duration<double>(
                                    std::chrono::steady_clock::now() - event_start)
                                    .count();
