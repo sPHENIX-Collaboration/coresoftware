@@ -1,5 +1,7 @@
 #include "LaserClusterHelper.h"
  
+#include <phgarfield/PHGarfield.h>
+
 #include <trackbase/LaserCluster.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
@@ -9,6 +11,8 @@
  
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+
+#include <TPolyLine3D.h>
  
 #include <cmath>
 #include <iostream>
@@ -171,4 +175,124 @@ std::array<double, 3> LaserClusterHelper::getClusterHardwareCentroid(LaserCluste
     }
 
     return {layerSum / adcSum, iphiSum / adcSum, itSum / adcSum};
+}
+
+
+Acts::Vector3 LaserClusterHelper::getClusterCentroidWithPHGarfield(LaserCluster* cluster) const
+{
+    if (cluster->getNhits() < 1)
+    {
+        return invalid;
+    }
+
+    Acts::Vector3 centroid = getClusterCentroid(cluster);
+    if (std::isnan(centroid[0]) ||
+        std::isnan(centroid[1]) ||
+        std::isnan(centroid[2]))
+    {
+        return invalid;
+    }
+
+    const LaserClusterHitInfo hit = cluster->getHit(0);
+    const int side = TpcDefs::getSide(hit.hitsetkey);
+
+    double xReadout = centroid[0];
+    double yReadout = centroid[1];
+    const double zLaunch = side == 1 ? 102 : -102; //cm
+
+    std::unique_ptr<TPolyLine3D> path;
+    if (!m_useGlobal)
+    {
+        path.reset(m_phgarfield->ReverseDrift(xReadout, yReadout, zLaunch));
+    }
+    else
+    {
+        path.reset(m_phgarfield->ReverseDriftGlobalCoords(xReadout, yReadout, zLaunch));
+    }
+    
+    double rCm = 0.0;
+    double phiCm = 0.0;
+    if (!InterpolateOrClosestAtZ(path.get(), 0.0, rCm, phiCm))
+    {
+        return invalid;
+    }
+
+    Acts::Vector3 centroidatCM(rCm * std::cos(phiCm), rCm * std::sin(phiCm), 0.0);
+
+    return centroidatCM;
+}
+
+bool LaserClusterHelper::InterpolateOrClosestAtZ(TPolyLine3D* path, double zTarget, double& rOut, double& phiOut) const
+{
+  if (!path || path->GetN() < 1)
+  {
+    return false;
+  }
+
+  const int nPoints = path->GetN();
+  const float* points = path->GetP();
+  double bestDistance = std::numeric_limits<double>::max();
+  int bestIndex = -1;
+
+  for (int index = 0; index < nPoints - 1; ++index)
+  {
+    const double x1 = points[3 * index + 0];
+    const double y1 = points[3 * index + 1];
+    const double z1 = points[3 * index + 2];
+    const double x2 = points[3 * (index + 1) + 0];
+    const double y2 = points[3 * (index + 1) + 1];
+    const double z2 = points[3 * (index + 1) + 2];
+
+    const double zMin = std::min(z1, z2);
+    const double zMax = std::max(z1, z2);
+    if (zTarget >= zMin && zTarget <= zMax)
+    {
+      const double fraction = z2 == z1 ? 0.0 : (zTarget - z1) / (z2 - z1);
+      const double x = x1 + fraction * (x2 - x1);
+      const double y = y1 + fraction * (y2 - y1);
+      rOut = std::hypot(x, y);
+      phiOut = std::atan2(y, x);
+      while (phiOut < 0.0)
+      {
+        phiOut += 2.0 * M_PI;
+      }
+      while (phiOut >= 2.0 * M_PI)
+      {
+        phiOut -= 2.0 * M_PI;
+      }
+      return true;
+    }
+
+    const double distance = std::abs(z1 - zTarget);
+    if (distance < bestDistance)
+    {
+      bestDistance = distance;
+      bestIndex = index;
+    }
+  }
+
+  const double lastDistance = std::abs(points[3 * (nPoints - 1) + 2] - zTarget);
+  if (lastDistance < bestDistance)
+  {
+    bestIndex = nPoints - 1;
+  }
+
+  if (bestIndex < 0)
+  {
+    return false;
+  }
+
+  const double x = points[3 * bestIndex + 0];
+  const double y = points[3 * bestIndex + 1];
+  rOut = std::hypot(x, y);
+  phiOut = std::atan2(y, x);
+  while (phiOut < 0.0)
+  {
+    phiOut += 2.0 * M_PI;
+  }
+  while (phiOut >= 2.0 * M_PI)
+  {
+    phiOut -= 2.0 * M_PI;
+  }
+  return true;
 }
