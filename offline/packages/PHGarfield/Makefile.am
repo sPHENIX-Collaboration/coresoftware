@@ -19,9 +19,7 @@ lib_LTLIBRARIES = \
 
 libPHGarfield_la_LIBADD = \
   -lffamodules \
-  -lffarawobjects \
   -lcdbobjects \
-  -lEvent \
   -lphool \
   -lphfield \
   -lGarfield \
