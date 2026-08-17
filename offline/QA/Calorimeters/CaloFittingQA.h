@@ -109,6 +109,8 @@ class CaloFittingQA : public SubsysReco
   TH1* h_missing_packets{nullptr};
 
   CDBTTree* cdbttree = nullptr;
+  CDBTTree* cdbttree_sepd = nullptr;
+  std::vector<int> m_sepd_channel_map;
 
   int _eventcounter{0};
 

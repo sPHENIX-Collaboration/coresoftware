@@ -56,6 +56,7 @@ CaloFittingQA::CaloFittingQA(const std::string& name)
 CaloFittingQA::~CaloFittingQA()
 {
   delete cdbttree;
+  delete cdbttree_sepd;
 }
 
 int CaloFittingQA::Init(PHCompositeNode* /*unused*/)
@@ -93,6 +94,21 @@ int CaloFittingQA::InitRun(PHCompositeNode* /*unused*/)
     exit(1);
   }
   cdbttree = new CDBTTree(calibdir);
+
+  std::string calibdir_sepd = CDBInterface::instance()->getUrl("SEPD_CHANNELMAP2");
+  if (!calibdir_sepd.empty())
+  {
+    cdbttree_sepd = new CDBTTree(calibdir_sepd);
+    m_sepd_channel_map.resize(744);
+    for (int c = 0; c < 744; ++c)
+    {
+      m_sepd_channel_map[c] = cdbttree_sepd->GetIntValue(c, "epd_channel_map2");
+    }
+  }
+  else
+  {
+    std::cout << PHWHERE << "No sEPD mapping file for domain SEPD_CHANNELMAP2 found" << std::endl;
+  }
 
   if (Verbosity() > 0)
   {
@@ -403,19 +419,30 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         {
           if (!sepd_waveforms.empty())
           {
-            if (sepd_waveforms.at(channel).size() == 2)
+            int packet_channel = channel;
+            if (!m_sepd_channel_map.empty() && channel < (int) m_sepd_channel_map.size())
             {
-              zs_energy = sepd_waveforms.at(channel).at(1) - sepd_waveforms.at(channel).at(0);
-              sepd_zs_frac += 1;
+              packet_channel = m_sepd_channel_map[channel];
             }
-            else
+            if (packet_channel >= 0 && packet_channel < (int) sepd_waveforms.size())
             {
-              zs_energy = sepd_waveforms.at(channel).at(6) - sepd_waveforms.at(channel).at(0);
-            }
-            if (arm == 1) {
-              h_sepd_north_rphi_pedestal->Fill(rbin, phibin, sepd_waveforms.at(channel).at(0));
-            } else {
-              h_sepd_south_rphi_pedestal->Fill(rbin, phibin, sepd_waveforms.at(channel).at(0));
+              if (sepd_waveforms.at(packet_channel).size() == 2)
+              {
+                zs_energy = sepd_waveforms.at(packet_channel).at(1) - sepd_waveforms.at(packet_channel).at(0);
+                sepd_zs_frac += 1;
+              }
+              else if (sepd_waveforms.at(packet_channel).size() > 6)
+              {
+                zs_energy = sepd_waveforms.at(packet_channel).at(6) - sepd_waveforms.at(packet_channel).at(0);
+              }
+              if (!sepd_waveforms.at(packet_channel).empty())
+              {
+                if (arm == 1) {
+                  h_sepd_north_rphi_pedestal->Fill(rbin, phibin, sepd_waveforms.at(packet_channel).at(0));
+                } else {
+                  h_sepd_south_rphi_pedestal->Fill(rbin, phibin, sepd_waveforms.at(packet_channel).at(0));
+                }
+              }
             }
           }
         }
