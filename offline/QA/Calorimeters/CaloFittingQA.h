@@ -111,6 +111,7 @@ class CaloFittingQA : public SubsysReco
   CDBTTree* cdbttree = nullptr;
   CDBTTree* cdbttree_sepd = nullptr;
   std::vector<int> m_sepd_channel_map;
+  std::vector<unsigned int> m_cemc_adc_skip_mask;
 
   int _eventcounter{0};
 

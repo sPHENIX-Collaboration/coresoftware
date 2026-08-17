@@ -94,6 +94,11 @@ int CaloFittingQA::InitRun(PHCompositeNode* /*unused*/)
     exit(1);
   }
   cdbttree = new CDBTTree(calibdir);
+  m_cemc_adc_skip_mask.resize(128, 0);
+  for (int pid = 6001; pid <= 6128; ++pid)
+  {
+    m_cemc_adc_skip_mask[pid - 6001] = cdbttree->GetIntValue(pid, m_fieldname);
+  }
 
   std::string calibdir_sepd = CDBInterface::instance()->getUrl("SEPD_CHANNELMAP2");
   if (!calibdir_sepd.empty())
@@ -559,7 +564,10 @@ int CaloFittingQA::process_data(PHCompositeNode* topNode, CaloTowerDefs::Detecto
 
       if (dettype == CaloTowerDefs::CEMC)
       {
-        adc_skip_mask = cdbttree->GetIntValue(pid, m_fieldname);
+        if (pid >= 6001 && pid <= 6128 && (size_t)(pid - 6001) < m_cemc_adc_skip_mask.size())
+        {
+          adc_skip_mask = m_cemc_adc_skip_mask[pid - 6001];
+        }
       }
       if (dettype == CaloTowerDefs::ZDC)
       {
