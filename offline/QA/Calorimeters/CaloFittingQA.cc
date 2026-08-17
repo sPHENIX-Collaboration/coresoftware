@@ -169,7 +169,8 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
     sepd_sim_waveforms = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_SEPD");
     if (!sepd_sim_waveforms)
     {
-      std::cout << PHWHERE << "WAVEFORM_SEPD node missing. Proceeding without sEPD sim waveforms." << std::endl;
+      std::cout << PHWHERE << "WAVEFORM_SEPD node missing. Skipping event." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
   else
