@@ -17,6 +17,7 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterContainerv4.h>
@@ -399,6 +400,8 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
       std::numeric_limits<double>::quiet_NaN(),
       std::numeric_limits<double>::quiet_NaN(),
       std::numeric_limits<double>::quiet_NaN());
+    const double cluster_radius = std::hypot(trkr_global.x(), trkr_global.y());
+    const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(out.get(), cluster_radius, cluskey);
 
     std::cout << Name() << "::publishCluster"
               << " track_id=" << track->get_track_id()
@@ -428,6 +431,8 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
               << " overlap=" << static_cast<unsigned int>(out->getOverlap())
               << " phi_error=" << out->getRPhiError()
               << " z_error=" << out->getZError()
+              << " para_rphi_error=" << std::sqrt(cluster_errors.first)
+              << " para_z_error=" << std::sqrt(cluster_errors.second)
               << " trkr_global=(" << trkr_global.x()
               << ", " << trkr_global.y()
               << ", " << trkr_global.z() << ")"

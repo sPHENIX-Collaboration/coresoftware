@@ -42,6 +42,7 @@
 #include <phool/phool.h>
 
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
@@ -677,8 +678,9 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     const auto globalPosition_acts = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluster_key, cluster, crossing);
     const TVector3 pos(globalPosition_acts.x(), globalPosition_acts.y(), globalPosition_acts.z());
 
-    const double cluster_rphi_error = cluster->getRPhiError();
-    const double cluster_z_error = cluster->getZError();
+    const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, pos.Perp(), cluster_key);
+    const double cluster_rphi_error = std::sqrt(cluster_errors.first);
+    const double cluster_z_error = std::sqrt(cluster_errors.second);
 
     seed_mom.SetPhi(pos.Phi());
     seed_mom.SetTheta(pos.Theta());

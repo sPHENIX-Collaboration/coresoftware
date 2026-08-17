@@ -6,6 +6,7 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ActsSourceLink.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
@@ -21,6 +22,8 @@
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 #include <Acts/Surfaces/Surface.hpp>
+
+#include <cmath>
 
 namespace
 {
@@ -154,11 +157,15 @@ void ActsAlignmentStates::fillAlignmentStateMap(
     const Acts::FreeVector globalStateParams = Acts::transformBoundToFreeParameters(surface, m_tGeometry->geometry().getGeoContext(), state.smoothed());
     const Acts::Vector3 stateGlobal = globalStateParams.segment<3>(Acts::eFreePos0);
 
+    const double clusRadius = std::hypot(clusGlobal.x(), clusGlobal.y()) / Acts::UnitConstants::cm;
+    const auto clusterErrors = ClusterErrorPara::get_clusterv5_modified_error(clus, clusRadius, ckey);
+    const double clusRPhiError = std::sqrt(clusterErrors.first);
+    const double clusZError = std::sqrt(clusterErrors.second);
     const Acts::Vector3 clus_sigma =
     {
-      clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm,
-      clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm,
-      clus->getZError() * Acts::UnitConstants::cm
+      clusRPhiError / std::sqrt(2) * Acts::UnitConstants::cm,
+      clusRPhiError / std::sqrt(2) * Acts::UnitConstants::cm,
+      clusZError * Acts::UnitConstants::cm
     };
 
     if (m_verbosity > 2)

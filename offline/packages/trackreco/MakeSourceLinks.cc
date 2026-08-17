@@ -276,7 +276,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
         std::cout << std::endl;
         std::cout << "Corrected surface transform:" << std::endl;
         std::cout << transformMapTransient->getTransform(surf->geometryId()).matrix() << std::endl;
-        std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
+        std::cout << "Cluster error " << std::sqrt(para_errors.first) << " , " << std::sqrt(para_errors.second) << std::endl;
         std::cout << "For key " << cluskey << " with local pos " << std::endl
                   << localPos(0) << ", " << localPos(1)
                   << std::endl
@@ -546,7 +546,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       std::cout << "Surface : " << std::endl;
       surf.get()->toStream(tGeometry->geometry().getGeoContext());
       std::cout << std::endl;
-      std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
+      std::cout << "Cluster error " << std::sqrt(para_errors.first) << " , " << std::sqrt(para_errors.second) << std::endl;
       std::cout << "For key " << cluskey << " with local pos " << std::endl
                 << localPos(0) << ", " << localPos(1)
                 << std::endl;
