@@ -54,7 +54,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrackState.h>  // for SvtxTrackState
-#include <trackbase_historic/SvtxTrackState_v2.h>
+#include <trackbase_historic/SvtxTrackState_v3.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
@@ -81,6 +81,7 @@
 
 #include <cmath>  // for sqrt, NAN
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <optional>
@@ -115,10 +116,14 @@ namespace
     return std::sqrt( square(x)+square(y));
   }
 
-  // convert gf state to SvtxTrackState_v2
-  SvtxTrackState_v2 create_track_state(float pathlength, const genfit::MeasuredStateOnPlane& gf_state)
+  // convert gf state to SvtxTrackState_v3. Local coordinates are filled
+  // separately because they are defined by the detector surface associated
+  // with the cluster, rather than by the cluster-centered GenFit plane.
+  SvtxTrackState_v3 create_track_state(float pathlength, const genfit::MeasuredStateOnPlane& gf_state)
   {
-    SvtxTrackState_v2 out(pathlength);
+    SvtxTrackState_v3 out(pathlength);
+    out.set_localX(std::numeric_limits<float>::quiet_NaN());
+    out.set_localY(std::numeric_limits<float>::quiet_NaN());
     out.set_x(gf_state.getPos().x());
     out.set_y(gf_state.getPos().y());
     out.set_z(gf_state.getPos().z());
@@ -136,6 +141,57 @@ namespace
     }
 
     return out;
+  }
+
+  // Convert a GenFit state position to the common SvtxTrackState local
+  // coordinates. The GenFit measurement plane is centered on the corrected
+  // cluster position, whereas the Acts detector surface has its own origin.
+  // Anchor the conversion to the cluster local coordinates so translations
+  // applied to the cluster (for example distortion corrections) are retained.
+  std::optional<Acts::Vector2> get_surface_local_position(
+      ActsGeometry* geometry,
+      const TrkrDefs::cluskey cluster_key,
+      TrkrCluster* cluster,
+      const short int crossing,
+      const Acts::Vector3& cluster_global,
+      const genfit::MeasuredStateOnPlane& gf_state)
+  {
+    if (!geometry || !cluster)
+    {
+      return std::nullopt;
+    }
+
+    const auto surface = geometry->maps().getSurface(cluster_key, cluster);
+    if (!surface)
+    {
+      return std::nullopt;
+    }
+
+    const Acts::Vector2 cluster_local = geometry->getLocalCoords(cluster_key, cluster, crossing);
+    const Acts::Vector3 state_global(
+        gf_state.getPos().x(),
+        gf_state.getPos().y(),
+        gf_state.getPos().z());
+
+    if (!cluster_local.allFinite() || !cluster_global.allFinite() || !state_global.allFinite())
+    {
+      return std::nullopt;
+    }
+
+    const auto rotation = surface->localToGlobalTransform(
+        geometry->geometry().getGeoContext()).rotation();
+    const Acts::Vector3 delta = state_global - cluster_global;
+
+    const Acts::Vector2 state_local(
+        cluster_local.x() + delta.dot(rotation.col(0)),
+        cluster_local.y() + delta.dot(rotation.col(1)));
+
+    if (!state_local.allFinite())
+    {
+      return std::nullopt;
+    }
+
+    return state_local;
   }
 
   // get cluster keys from a given track
@@ -828,6 +884,49 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   // create new track
   auto out_track = std::make_shared<SvtxTrack_v4>(*svtx_track);
 
+  const auto crossing = svtx_track->get_crossing();
+  assert(crossing != SHRT_MAX);
+
+  // Create a state and attach local coordinates in the Acts detector-surface
+  // convention. If the cluster or surface cannot be resolved, localX/Y stay
+  // NaN while the valid global state and covariance are preserved.
+  const auto make_track_state = [this, crossing](
+                                    const float pathlength,
+                                    const genfit::MeasuredStateOnPlane& gf_state,
+                                    const TrkrDefs::cluskey cluster_key)
+  {
+    auto state = create_track_state(pathlength, gf_state);
+    state.set_cluskey(cluster_key);
+
+    auto* cluster = m_clustermap->findCluster(cluster_key);
+    if (!cluster)
+    {
+      if (Verbosity() > 1)
+      {
+        std::cout << PHWHERE << " Missing cluster " << cluster_key
+                  << " while calculating state local coordinates" << std::endl;
+      }
+      return state;
+    }
+
+    const auto cluster_global =
+        m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluster_key, cluster, crossing);
+    const auto state_local = get_surface_local_position(
+        m_tgeometry, cluster_key, cluster, crossing, cluster_global, gf_state);
+    if (state_local)
+    {
+      state.set_localX(state_local->x());
+      state.set_localY(state_local->y());
+    }
+    else if (Verbosity() > 1)
+    {
+      std::cout << PHWHERE << " Failed to calculate local coordinates for cluster "
+                << cluster_key << std::endl;
+    }
+
+    return state;
+  };
+
   // clear states and insert empty one for vertex position
   out_track->clear_states();
   {
@@ -836,7 +935,9 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
     so that the track state list is never empty. Note that insert_state, despite taking a pointer as argument,
     does not take ownership of the state
     */
-    SvtxTrackState_v2 first(0.0);
+    SvtxTrackState_v3 first(0.0);
+    first.set_localX(std::numeric_limits<float>::quiet_NaN());
+    first.set_localY(std::numeric_limits<float>::quiet_NaN());
     out_track->insert_state(&first);
   }
 
@@ -1001,8 +1102,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
     float pathlength = -phgf_track->extrapolateToPoint(temp, vertex_position, id);
 
     // create new svtx state and add to track
-    auto state = create_track_state(pathlength, gf_state.value());
-    state.set_cluskey(phgf_track->get_cluster_keys()[id]);
+    auto state = make_track_state(pathlength, gf_state.value(), phgf_track->get_cluster_keys()[id]);
     out_track->insert_state(&state);
 
   }
@@ -1010,10 +1110,6 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   // loop over clusters, check if layer is disabled, include extrapolated SvtxTrackState
   if (!_disabled_layers.empty())
   {
-    // get crossing
-    const auto crossing = svtx_track->get_crossing();
-    assert(crossing != SHRT_MAX);
-
     unsigned int id_min = 0;
     for (const auto& cluster_key : get_cluster_keys(svtx_track))
     {
@@ -1040,8 +1136,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
             auto pathlength = tmp.extrapolateToPoint(pos_A);
 
             // create state and assign
-            auto state = create_track_state(pathlength, tmp );
-            state.set_cluskey(cluster_key);
+            auto state = make_track_state(pathlength, tmp, cluster_key);
             out_track->insert_state(&state);
 
           } catch(...) {
@@ -1138,15 +1233,13 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
         {
 
           // create new svtx state and add to track
-          auto state = create_track_state(pathlength_forward, gf_state_forward.value());
-          state.set_cluskey(cluster_key);
+          auto state = make_track_state(pathlength_forward, gf_state_forward.value(), cluster_key);
           out_track->insert_state(&state);
 
         } else if( m_extrapolation_mode == ExtrapolationMode::Backward && gf_state_backward ) {
 
           // create new svtx state and add to track
-          auto state = create_track_state(pathlength_backward, gf_state_backward.value());
-          state.set_cluskey(cluster_key);
+          auto state = make_track_state(pathlength_backward, gf_state_backward.value(), cluster_key);
           out_track->insert_state(&state);
 
         } else if( m_extrapolation_mode == ExtrapolationMode::Bidirectional && ( gf_state_forward || gf_state_backward ) ) {
@@ -1161,8 +1254,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
               auto gf_state = genfit::calcAverageState(gf_state_forward.value(), gf_state_backward.value());
 
               // assign to track
-              auto state = create_track_state(pathlength_forward, gf_state);
-              state.set_cluskey(cluster_key);
+              auto state = make_track_state(pathlength_forward, gf_state, cluster_key);
               out_track->insert_state(&state);
             } catch( ... ) {
               if( Verbosity() )
@@ -1173,16 +1265,14 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
             // fall back to forward extrapolation
             // create new svtx state and add to track
-            auto state = create_track_state(pathlength_forward, gf_state_forward.value());
-            state.set_cluskey(cluster_key);
+            auto state = make_track_state(pathlength_forward, gf_state_forward.value(), cluster_key);
             out_track->insert_state(&state);
 
           } else {
 
             // fall back to backward extrapolation
             // create new svtx state and add to track
-            auto state = create_track_state(pathlength_backward, gf_state_backward.value());
-            state.set_cluskey(cluster_key);
+            auto state = make_track_state(pathlength_backward, gf_state_backward.value(), cluster_key);
             out_track->insert_state(&state);
 
           }
