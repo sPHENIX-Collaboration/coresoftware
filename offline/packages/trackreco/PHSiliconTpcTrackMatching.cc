@@ -39,8 +39,6 @@
 #include <set>      // for _Rb_tree_const_iterator
 #include <utility>  // for pair
 
-using namespace std;
-
 //____________________________________________________________________________..
 PHSiliconTpcTrackMatching::PHSiliconTpcTrackMatching(const std::string &name)
   : SubsysReco(name)
@@ -63,10 +61,10 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
                       "event:sicrossing:siq:siphi:sieta:six:siy:siz:sipx:sipy:sipz:tpcq:tpcphi:tpceta:tpcx:tpcy:tpcz:tpcpx:tpcpy:tpcpz:tpcid:siid");
   }
   // put these in the output file
-  cout << PHWHERE << " Search windows: phi " << _phi_search_win << " eta "
+  std::cout << PHWHERE << " Search windows: phi " << _phi_search_win << " eta "
        << _eta_search_win << " _pp_mode " << _pp_mode 
        << " _use_silicon_crossing_only " << _use_silicon_crossing_only
-       << " _use_tpc_crossing_only " << _use_tpc_crossing_only << endl;
+       << " _use_tpc_crossing_only " << _use_tpc_crossing_only << std::endl;
 
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK)
@@ -160,20 +158,17 @@ bool PHSiliconTpcTrackMatching::WindowMatcher::in_window
   if (posQ) {
     double pt = (tpc_pt<min_pt_posQ) ? min_pt_posQ : tpc_pt;
     if (fabs_max_posQ) {
-      return fabs(delta) < fn_exp(posHi, posHi_b0, pt);
-    } else {
-      return (delta > fn_exp(posLo, posLo_b0, pt)
-           && delta < fn_exp(posHi, posHi_b0, pt));
+      return std::fabs(delta) < fn_exp(posHi, posHi_b0, pt);
     }
-  } else {
-    double pt = (tpc_pt<min_pt_negQ) ? min_pt_negQ : tpc_pt;
-    if (fabs_max_negQ) {
-      return fabs(delta) < fn_exp(negHi, negHi_b0, pt);
-    } else {
-      return (delta > fn_exp(negLo, negLo_b0, pt)
-           && delta < fn_exp(negHi, negHi_b0, pt));
-    }
+    return (delta > fn_exp(posLo, posLo_b0, pt)
+	    && delta < fn_exp(posHi, posHi_b0, pt));
   }
+  double pt = (tpc_pt<min_pt_negQ) ? min_pt_negQ : tpc_pt;
+  if (fabs_max_negQ) {
+    return std::fabs(delta) < fn_exp(negHi, negHi_b0, pt);
+  }
+  return (delta > fn_exp(negLo, negLo_b0, pt)
+	  && delta < fn_exp(negHi, negHi_b0, pt));
 }
 
 //____________________________________________________________________________..
@@ -193,7 +188,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
   
   if (Verbosity() > 0)
   {
-    cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << endl;
+    std::cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << std::endl;
   }
 
   if (_track_map->empty())
@@ -282,7 +277,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
       std::cout << std::endl;
     }
 
-    cout << "PHSiliconTpcTrackMatching::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;
+    std::cout << "PHSiliconTpcTrackMatching::process_event(PHCompositeNode *topNode) Leaving process_event" << std::endl;
   }
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -385,21 +380,21 @@ int PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode *topNode)
   _cluster_crossing_map = findNode::getClass<TrkrClusterCrossingAssoc>(topNode, "TRKR_CLUSTERCROSSINGASSOC");
   if (!_cluster_crossing_map)
   {
-    //cerr << PHWHERE << " ERROR: Can't find TRKR_CLUSTERCROSSINGASSOC " << endl;
+    //std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERCROSSINGASSOC " << std::endl;
     // return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _track_map_silicon = findNode::getClass<TrackSeedContainer>(topNode, _silicon_track_map_name);
   if (!_track_map_silicon)
   {
-    cerr << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << endl;
+    std::cout << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _track_map = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
   if (!_track_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find " << _track_map_name.c_str() << endl;
+    std::cout << PHWHERE << " ERROR: Can't find " << _track_map_name.c_str() << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -414,7 +409,7 @@ int PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode *topNode)
     /// Check that it is there
     if (!dstNode)
     {
-      std::cerr << "DST Node missing, quitting" << std::endl;
+      std::cout << "DST Node missing, quitting" << std::endl;
       throw std::runtime_error("failed to find DST node in PHActsSourceLinks::createNodes");
     }
 
@@ -476,7 +471,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
           << ": nhits: " << _tracklet_tpc->size_cluster_keys()
           << ": Total tracks: " << _track_map->size()
           << ": phi: " << _tracklet_tpc->get_phi()
-          << endl;
+          << std::endl;
     }
 
     double tpc_phi;
@@ -504,7 +499,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
     } else {
       tpc_phi = _tracklet_tpc->get_phi();
       tpc_eta = _tracklet_tpc->get_eta();
-      tpc_pt = fabs(1. / _tracklet_tpc->get_qOverR()) * (0.3 / 100.) * fieldstrength;
+      tpc_pt = std::fabs(1. / _tracklet_tpc->get_qOverR()) * (0.3 / 100.) * fieldstrength;
 
       tpc_crossing = _tracklet_tpc->get_crossing();
 
@@ -526,7 +521,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
     if (Verbosity() > 3)
     {
-      cout << "TPC tracklet:" << endl;
+      std::cout << "TPC tracklet:" << std::endl;
       _tracklet_tpc->identify();
     }
 
@@ -592,10 +587,10 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
       bool eta_match = false;
       if (window_deta.in_window(is_posQ, tpc_pt, tpc_eta, si_eta))
-      {
+      { // NOLINT(bugprone-branch-clone)
         eta_match = true;
       }
-      else if (fabs(tpc_eta-si_eta) < _deltaeta_min)
+      else if (std::fabs(tpc_eta-si_eta) < _deltaeta_min)
       {
 	eta_match = true;
       }
@@ -620,7 +615,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       {
         phi_match = true;
         // if phi fails, account for case where |tpc_phi-si_phi|>PI
-      } else if (fabs(tpc_phi-si_phi)>M_PI) {
+      } else if (std::fabs(tpc_phi-si_phi)>M_PI) {
         auto tpc_phi_wrap = tpc_phi;
         if ((tpc_phi_wrap - si_phi) > M_PI) {
           tpc_phi_wrap -= 2*M_PI;
@@ -636,10 +631,10 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
       if (Verbosity() > 3)
       {
-        cout << " testing for a match for TPC track " << tpcid << " with pT " << _tracklet_tpc->get_pt()
-             << " and eta " << _tracklet_tpc->get_eta() << " with Si track " << siid << " with crossing " << _tracklet_si->get_crossing() << endl;
-        cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi << " phi search " << _phi_search_win << " tpc_eta " << tpc_eta
-             << " si_eta " << si_eta << " deta " << tpc_eta - si_eta << " eta search " << _eta_search_win  << endl;
+        std::cout << " testing for a match for TPC track " << tpcid << " with pT " << _tracklet_tpc->get_pt()
+             << " and eta " << _tracklet_tpc->get_eta() << " with Si track " << siid << " with crossing " << _tracklet_si->get_crossing() << std::endl;
+        std::cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi << " phi search " << _phi_search_win << " tpc_eta " << tpc_eta
+             << " si_eta " << si_eta << " deta " << tpc_eta - si_eta << " eta search " << _eta_search_win  << std::endl;
         std::cout << "      tpc x " << tpc_pos.x() << " si x " << si_pos.x() << " tpc y " << tpc_pos.y() << " si y " << si_pos.y() << " tpc_z " << tpc_pos.z() << " si z " << si_pos.z() << std::endl;
         std::cout << "      x search " << _x_search_win  << " y search " << _y_search_win << " z search " << _z_search_win << std::endl;
       }
@@ -652,19 +647,19 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
       if (Verbosity() > 1)
       {
-        cout << " found a match for TPC track " << tpcid << " with Si track " << siid << endl;
-        cout << "          tpc_phi " << tpc_phi << " si_phi " << si_phi << " phi_match " << phi_match
-             << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
+        std::cout << " found a match for TPC track " << tpcid << " with Si track " << siid << std::endl;
+        std::cout << "          tpc_phi " << tpc_phi << " si_phi " << si_phi << " phi_match " << phi_match
+             << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << std::endl;
         std::cout << "      tpc x " << tpc_pos.x() << " si x " << si_pos.x() << " tpc y " << tpc_pos.y() << " si y " << si_pos.y() << " tpc_z " << tpc_pos.z() << " si z " << si_pos.z() << std::endl;
       }
 
       // temporary!
       if (_test_windows && Verbosity() > 1)
       {
-        cout << " Try_silicon: crossing" << si_crossing <<  "  pt " << tpc_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi <<  "   si_q" << si_q << "   tpc_q" << tpc_q
+        std::cout << " Try_silicon: crossing" << si_crossing <<  "  pt " << tpc_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi <<  "   si_q" << si_q << "   tpc_q" << tpc_q
              << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta - si_eta << " tpc_x " << tpc_pos.x() << " tpc_y " << tpc_pos.y() << " tpc_z " << tpc_pos.z()
              << " dx " << tpc_pos.x() - si_pos.x() << " dy " << tpc_pos.y() - si_pos.y() << " dz " << tpc_pos.z() - si_pos.z()
-			 << endl;
+			 << std::endl;
       }
 
     }
@@ -673,7 +668,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
     {
       if (Verbosity() > 1)
       {
-        cout << "inserted unmatched tpc seed " << tpcid << endl;
+        std::cout << "inserted unmatched tpc seed " << tpcid << std::endl;
       }
       tpc_unmatched_set.insert(tpcid);
     }
@@ -711,7 +706,7 @@ void PHSiliconTpcTrackMatching::checkZMatches(
 
       si_z = std::get<4>(TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list_si)).z();
     } else {
-      tpc_pt = fabs(1. / _tracklet_tpc->get_qOverR()) * (0.3 / 100.) * fieldstrength;
+      tpc_pt = std::fabs(1. / _tracklet_tpc->get_qOverR()) * (0.3 / 100.) * fieldstrength;
       tpc_z = TrackSeedHelper::get_z(tpc_track);
       tpc_q = _tracklet_tpc->get_charge();
       si_z = TrackSeedHelper::get_z(si_track);
@@ -736,22 +731,22 @@ void PHSiliconTpcTrackMatching::checkZMatches(
     
     if(_pp_mode)
       {
-	if (window_dz.in_window(is_posQ, tpc_pt, tpc_z_corrected, si_z) && (fabs(z_mismatch_corrected) < _crossing_deltaz_max))
-	  {
+	if (window_dz.in_window(is_posQ, tpc_pt, tpc_z_corrected, si_z) && (std::fabs(z_mismatch_corrected) < _crossing_deltaz_max))
+	{ //NOLINT(bugprone-branch-clone)
 	    z_match = true;
 	  }
-	else if (fabs(z_mismatch_corrected) < _crossing_deltaz_min)
+	else if (std::fabs(z_mismatch_corrected) < _crossing_deltaz_min)
 	  {
 	    z_match = true;
 	  }
       }
     else
       {
-	if (window_dz.in_window(is_posQ, tpc_pt, tpc_z, si_z) && (fabs(z_mismatch) < _crossing_deltaz_max))
-	  {
+	if (window_dz.in_window(is_posQ, tpc_pt, tpc_z, si_z) && (std::fabs(z_mismatch) < _crossing_deltaz_max))
+	  { //NOLINT(bugprone-branch-clone)
 	    z_match = true;
 	  }
-	else if (fabs(z_mismatch) < _crossing_deltaz_min)
+	else if (std::fabs(z_mismatch) < _crossing_deltaz_min)
 	  {
 	    z_match = true;
 	  }

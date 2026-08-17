@@ -82,7 +82,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
       return (b_is_0 ? arr[0] : arr[0]+arr[1]*exp(arr[2]/pT));
     }
 
-    void init_bools(const std::string& which_window="", const bool print=false);
+    void init_bools(const std::string& tag="", const bool print=false);
 
     bool in_window(bool posQ, const double tpc_pt, const double tpc_X, const double si_X);
 
@@ -173,7 +173,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 		     std::multimap<unsigned int, unsigned int> &bad_map);
   short int getCrossingIntt(TrackSeed *_tracklet_si);
   // void findCrossingGeometrically(std::multimap<unsigned int, unsigned int> tpc_matches);
-  short int findCrossingGeometrically(unsigned int tpc_id, unsigned int si_id);
+  short int findCrossingGeometrically(unsigned int tpcid, unsigned int si_id);
   double getBunchCrossing(unsigned int trid, double z_mismatch);
   std::vector<short int>  getBestCrossing(unsigned int tpcid, unsigned int si_id);
   
