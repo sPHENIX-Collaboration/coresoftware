@@ -3,6 +3,7 @@
 // Calo includes
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfoDefs.h>
 #include <caloreco/CaloTowerDefs.h>
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
@@ -140,9 +141,11 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
   std::vector<std::vector<float>> cemc_waveforms;
   std::vector<std::vector<float>> ihcal_waveforms;
   std::vector<std::vector<float>> ohcal_waveforms;
+  std::vector<std::vector<float>> sepd_waveforms;
   TowerInfoContainer* cemc_sim_waveforms = nullptr;
   TowerInfoContainer* ihcal_sim_waveforms = nullptr;
   TowerInfoContainer* ohcal_sim_waveforms = nullptr;
+  TowerInfoContainer* sepd_sim_waveforms = nullptr;
   if (m_SimFlag)
   {
     cemc_sim_waveforms = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_CEMC");
@@ -163,6 +166,11 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
       std::cout << PHWHERE << "WAVEFORM_HCALOUT node missing. Skipping event." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+    sepd_sim_waveforms = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_SEPD");
+    if (!sepd_sim_waveforms)
+    {
+      std::cout << PHWHERE << "WAVEFORM_SEPD node missing. Proceeding without sEPD sim waveforms." << std::endl;
+    }
   }
   else
   {
@@ -181,6 +189,11 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
       std::cout << PHWHERE << "HCALPackets node failed unpacking. Skipping event." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+    if (process_data(topNode, CaloTowerDefs::SEPD, sepd_waveforms) == Fun4AllReturnCodes::ABORTEVENT)
+    {
+      std::cout << PHWHERE << "SEPDPackets node failed unpacking. Skipping event." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
   //-------------------------- ZS and multiplicity variables ------------------------------//
@@ -188,6 +201,7 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
   float cemc_zs_frac = 0;
   float ihcal_zs_frac = 0;
   float ohcal_zs_frac = 0;
+  float sepd_zs_frac = 0;
 
   //-------------------------- raw towers ------------------------------//
   {
@@ -354,10 +368,76 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
       }
     }
   }
+  {
+    TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_SEPD");
+    if (towers)
+    {
+      int size = towers->size();  // online towers should be the same!
+      for (int channel = 0; channel < size; channel++)
+      {
+        TowerInfo* tower = towers->get_tower_at_channel(channel);
+        unsigned int towerkey = towers->encode_key(channel);
+        int arm = TowerInfoDefs::get_epd_arm(towerkey);
+        int rbin = TowerInfoDefs::get_epd_rbin(towerkey);
+        int phibin = TowerInfoDefs::get_epd_phibin(towerkey);
+        float raw_energy = tower->get_energy();
+        if (raw_energy > m_sepd_hit_threshold)
+        {
+          event_multiplicity += 1;
+        }
+        float zs_energy = -9999;
+        if (m_SimFlag)
+        {
+          if (sepd_sim_waveforms && sepd_sim_waveforms->size() > 0)
+          {
+            zs_energy = sepd_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(6) - sepd_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0);
+            if (arm == 1) {
+              h_sepd_north_rphi_pedestal->Fill(rbin, phibin, sepd_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0));
+            } else {
+              h_sepd_south_rphi_pedestal->Fill(rbin, phibin, sepd_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0));
+            }
+          }
+        }
+        else
+        {
+          if (!sepd_waveforms.empty())
+          {
+            if (sepd_waveforms.at(channel).size() == 2)
+            {
+              zs_energy = sepd_waveforms.at(channel).at(1) - sepd_waveforms.at(channel).at(0);
+              sepd_zs_frac += 1;
+            }
+            else
+            {
+              zs_energy = sepd_waveforms.at(channel).at(6) - sepd_waveforms.at(channel).at(0);
+            }
+            if (arm == 1) {
+              h_sepd_north_rphi_pedestal->Fill(rbin, phibin, sepd_waveforms.at(channel).at(0));
+            } else {
+              h_sepd_south_rphi_pedestal->Fill(rbin, phibin, sepd_waveforms.at(channel).at(0));
+            }
+          }
+        }
+        if (Verbosity() > 0)
+        {
+          std::cout << "sEPD channel " << channel << " arm " << arm << " rbin " << rbin << " phibin " << phibin << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
+        }
+        if (raw_energy > m_sepd_adc_threshold && raw_energy < m_sepd_high_adc_threshold)
+        {
+          if (arm == 1) {
+            h_sepd_north_rphi_ZScrosscalib->Fill(rbin, phibin, zs_energy / raw_energy);
+          } else {
+            h_sepd_south_rphi_ZScrosscalib->Fill(rbin, phibin, zs_energy / raw_energy);
+          }
+        }
+      }
+    }
+  }
 
   h_cemc_zs_frac_vs_multiplicity->Fill(event_multiplicity, cemc_zs_frac / 24576.0);
   h_ihcal_zs_frac_vs_multiplicity->Fill(event_multiplicity, ihcal_zs_frac / 1536.0);
   h_ohcal_zs_frac_vs_multiplicity->Fill(event_multiplicity, ohcal_zs_frac / 1536.0);
+  h_sepd_zs_frac_vs_multiplicity->Fill(event_multiplicity, sepd_zs_frac / 744.0);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -649,6 +729,14 @@ void CaloFittingQA::createHistos()
   h_ohcal_etaphi_ZScrosscalib->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_ZScrosscalib);
 
+  h_sepd_north_rphi_ZScrosscalib = new TProfile2D(std::format("{}sepd_north_rphi_ZScrosscalib", getHistoPrefix()).c_str(), "sEPD North;r;phi", 16, 0, 16, 24, 0, 24, -10, 10);
+  h_sepd_north_rphi_ZScrosscalib->SetDirectory(nullptr);
+  hm->registerHisto(h_sepd_north_rphi_ZScrosscalib);
+
+  h_sepd_south_rphi_ZScrosscalib = new TProfile2D(std::format("{}sepd_south_rphi_ZScrosscalib", getHistoPrefix()).c_str(), "sEPD South;r;phi", 16, 0, 16, 24, 0, 24, -10, 10);
+  h_sepd_south_rphi_ZScrosscalib->SetDirectory(nullptr);
+  hm->registerHisto(h_sepd_south_rphi_ZScrosscalib);
+
   h_cemc_etaphi_pedestal = new TProfile2D(std::format("{}cemc_etaphi_pedestal", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, 0, 16400);
   h_cemc_etaphi_pedestal->SetErrorOption("s");
   h_cemc_etaphi_pedestal->SetDirectory(nullptr);
@@ -664,6 +752,16 @@ void CaloFittingQA::createHistos()
   h_ohcal_etaphi_pedestal->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_pedestal);
 
+  h_sepd_north_rphi_pedestal = new TProfile2D(std::format("{}sepd_north_rphi_pedestal", getHistoPrefix()).c_str(), "sEPD North;r;phi", 16, 0, 16, 24, 0, 24, 0, 16400);
+  h_sepd_north_rphi_pedestal->SetErrorOption("s");
+  h_sepd_north_rphi_pedestal->SetDirectory(nullptr);
+  hm->registerHisto(h_sepd_north_rphi_pedestal);
+
+  h_sepd_south_rphi_pedestal = new TProfile2D(std::format("{}sepd_south_rphi_pedestal", getHistoPrefix()).c_str(), "sEPD South;r;phi", 16, 0, 16, 24, 0, 24, 0, 16400);
+  h_sepd_south_rphi_pedestal->SetErrorOption("s");
+  h_sepd_south_rphi_pedestal->SetDirectory(nullptr);
+  hm->registerHisto(h_sepd_south_rphi_pedestal);
+
   h_cemc_zs_frac_vs_multiplicity = new TH2F(std::format("{}cemc_zs_frac_vs_multiplicity", getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
   h_cemc_zs_frac_vs_multiplicity->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_zs_frac_vs_multiplicity);
@@ -675,6 +773,10 @@ void CaloFittingQA::createHistos()
   h_ohcal_zs_frac_vs_multiplicity = new TH2F(std::format("{}ohcal_zs_frac_vs_multiplicity", getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
   h_ohcal_zs_frac_vs_multiplicity->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_zs_frac_vs_multiplicity);
+
+  h_sepd_zs_frac_vs_multiplicity = new TH2F(std::format("{}sepd_zs_frac_vs_multiplicity", getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
+  h_sepd_zs_frac_vs_multiplicity->SetDirectory(nullptr);
+  hm->registerHisto(h_sepd_zs_frac_vs_multiplicity);
 
   h_packet_events = new TH1I(std::format("{}packet_events", getHistoPrefix()).c_str(), ";packet id", 6010, 6000, 12010);
   h_packet_events->SetDirectory(nullptr);
