@@ -129,6 +129,20 @@ class CaloFittingQA : public SubsysReco
   float m_ihcal_hit_threshold = 600;  // ~ 300 MeV
   float m_ohcal_hit_threshold = 100;  // ~ 300 MeV
   float m_sepd_hit_threshold = 300;
+
+  static constexpr float m_nchannels_cemc = 24576.0;
+  static constexpr float m_nchannels_ihcal = 1536.0;
+  static constexpr float m_nchannels_ohcal = 1536.0;
+  static constexpr float m_nchannels_sepd = 744.0;
+  static constexpr float m_nchannels_total = m_nchannels_cemc + m_nchannels_ihcal + m_nchannels_ohcal + m_nchannels_sepd;
+
+  static constexpr int m_netabins_cemc = 96;
+  static constexpr int m_nphibins_cemc = 256;
+  static constexpr int m_netabins_hcal = 24;
+  static constexpr int m_nphibins_hcal = 64;
+  static constexpr int m_nrbins_sepd = 16;
+  static constexpr int m_nphibins_sepd = 24;
+
   bool m_PacketNodesFlag{false};
 
   std::string m_calibName;

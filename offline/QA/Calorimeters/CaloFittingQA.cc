@@ -104,8 +104,8 @@ int CaloFittingQA::InitRun(PHCompositeNode* /*unused*/)
   if (!calibdir_sepd.empty())
   {
     cdbttree_sepd = new CDBTTree(calibdir_sepd);
-    m_sepd_channel_map.resize(744);
-    for (int c = 0; c < 744; ++c)
+    m_sepd_channel_map.resize(m_nchannels_sepd);
+    for (int c = 0; c < m_nchannels_sepd; ++c)
     {
       m_sepd_channel_map[c] = cdbttree_sepd->GetIntValue(c, "epd_channel_map2");
     }
@@ -467,10 +467,10 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
     }
   }
 
-  h_cemc_zs_frac_vs_multiplicity->Fill(event_multiplicity, cemc_zs_frac / 24576.0);
-  h_ihcal_zs_frac_vs_multiplicity->Fill(event_multiplicity, ihcal_zs_frac / 1536.0);
-  h_ohcal_zs_frac_vs_multiplicity->Fill(event_multiplicity, ohcal_zs_frac / 1536.0);
-  h_sepd_zs_frac_vs_multiplicity->Fill(event_multiplicity, sepd_zs_frac / 744.0);
+  h_cemc_zs_frac_vs_multiplicity->Fill(event_multiplicity, cemc_zs_frac / m_nchannels_cemc);
+  h_ihcal_zs_frac_vs_multiplicity->Fill(event_multiplicity, ihcal_zs_frac / m_nchannels_ihcal);
+  h_ohcal_zs_frac_vs_multiplicity->Fill(event_multiplicity, ohcal_zs_frac / m_nchannels_ohcal);
+  h_sepd_zs_frac_vs_multiplicity->Fill(event_multiplicity, sepd_zs_frac / m_nchannels_sepd);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -753,64 +753,64 @@ void CaloFittingQA::createHistos()
   assert(hm);
 
   // create and register your histos (all types) here
-  h_cemc_etaphi_ZScrosscalib = new TProfile2D(std::format("{}cemc_etaphi_ZScrosscalib", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
+  h_cemc_etaphi_ZScrosscalib = new TProfile2D(std::format("{}cemc_etaphi_ZScrosscalib", getHistoPrefix()).c_str(), ";eta;phi", m_netabins_cemc, 0, m_netabins_cemc, m_nphibins_cemc, 0, m_nphibins_cemc, -10, 10);
   h_cemc_etaphi_ZScrosscalib->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_ZScrosscalib);
 
-  h_ihcal_etaphi_ZScrosscalib = new TProfile2D(std::format("{}ihcal_etaphi_ZScrosscalib", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_ihcal_etaphi_ZScrosscalib = new TProfile2D(std::format("{}ihcal_etaphi_ZScrosscalib", getHistoPrefix()).c_str(), ";eta;phi", m_netabins_hcal, 0, m_netabins_hcal, m_nphibins_hcal, 0, m_nphibins_hcal, -10, 10);
   h_ihcal_etaphi_ZScrosscalib->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi_ZScrosscalib);
 
-  h_ohcal_etaphi_ZScrosscalib = new TProfile2D(std::format("{}ohcal_etaphi_ZScrosscalib", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_ohcal_etaphi_ZScrosscalib = new TProfile2D(std::format("{}ohcal_etaphi_ZScrosscalib", getHistoPrefix()).c_str(), ";eta;phi", m_netabins_hcal, 0, m_netabins_hcal, m_nphibins_hcal, 0, m_nphibins_hcal, -10, 10);
   h_ohcal_etaphi_ZScrosscalib->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_ZScrosscalib);
 
-  h_sepd_north_rphi_ZScrosscalib = new TProfile2D(std::format("{}sepd_north_rphi_ZScrosscalib", getHistoPrefix()).c_str(), "sEPD North;r;phi", 16, 0, 16, 24, 0, 24, -10, 10);
+  h_sepd_north_rphi_ZScrosscalib = new TProfile2D(std::format("{}sepd_north_rphi_ZScrosscalib", getHistoPrefix()).c_str(), "sEPD North;r;phi", m_nrbins_sepd, 0, m_nrbins_sepd, m_nphibins_sepd, 0, m_nphibins_sepd, -10, 10);
   h_sepd_north_rphi_ZScrosscalib->SetDirectory(nullptr);
   hm->registerHisto(h_sepd_north_rphi_ZScrosscalib);
 
-  h_sepd_south_rphi_ZScrosscalib = new TProfile2D(std::format("{}sepd_south_rphi_ZScrosscalib", getHistoPrefix()).c_str(), "sEPD South;r;phi", 16, 0, 16, 24, 0, 24, -10, 10);
+  h_sepd_south_rphi_ZScrosscalib = new TProfile2D(std::format("{}sepd_south_rphi_ZScrosscalib", getHistoPrefix()).c_str(), "sEPD South;r;phi", m_nrbins_sepd, 0, m_nrbins_sepd, m_nphibins_sepd, 0, m_nphibins_sepd, -10, 10);
   h_sepd_south_rphi_ZScrosscalib->SetDirectory(nullptr);
   hm->registerHisto(h_sepd_south_rphi_ZScrosscalib);
 
-  h_cemc_etaphi_pedestal = new TProfile2D(std::format("{}cemc_etaphi_pedestal", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, 0, 16400);
+  h_cemc_etaphi_pedestal = new TProfile2D(std::format("{}cemc_etaphi_pedestal", getHistoPrefix()).c_str(), ";eta;phi", m_netabins_cemc, 0, m_netabins_cemc, m_nphibins_cemc, 0, m_nphibins_cemc, 0, 16400);
   h_cemc_etaphi_pedestal->SetErrorOption("s");
   h_cemc_etaphi_pedestal->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_pedestal);
 
-  h_ihcal_etaphi_pedestal = new TProfile2D(std::format("{}ihcal_etaphi_pedestal", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 16400);
+  h_ihcal_etaphi_pedestal = new TProfile2D(std::format("{}ihcal_etaphi_pedestal", getHistoPrefix()).c_str(), ";eta;phi", m_netabins_hcal, 0, m_netabins_hcal, m_nphibins_hcal, 0, m_nphibins_hcal, 0, 16400);
   h_ihcal_etaphi_pedestal->SetErrorOption("s");
   h_ihcal_etaphi_pedestal->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi_pedestal);
 
-  h_ohcal_etaphi_pedestal = new TProfile2D(std::format("{}ohcal_etaphi_pedestal", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 16400);
+  h_ohcal_etaphi_pedestal = new TProfile2D(std::format("{}ohcal_etaphi_pedestal", getHistoPrefix()).c_str(), ";eta;phi", m_netabins_hcal, 0, m_netabins_hcal, m_nphibins_hcal, 0, m_nphibins_hcal, 0, 16400);
   h_ohcal_etaphi_pedestal->SetErrorOption("s");
   h_ohcal_etaphi_pedestal->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_pedestal);
 
-  h_sepd_north_rphi_pedestal = new TProfile2D(std::format("{}sepd_north_rphi_pedestal", getHistoPrefix()).c_str(), "sEPD North;r;phi", 16, 0, 16, 24, 0, 24, 0, 16400);
+  h_sepd_north_rphi_pedestal = new TProfile2D(std::format("{}sepd_north_rphi_pedestal", getHistoPrefix()).c_str(), "sEPD North;r;phi", m_nrbins_sepd, 0, m_nrbins_sepd, m_nphibins_sepd, 0, m_nphibins_sepd, 0, 16400);
   h_sepd_north_rphi_pedestal->SetErrorOption("s");
   h_sepd_north_rphi_pedestal->SetDirectory(nullptr);
   hm->registerHisto(h_sepd_north_rphi_pedestal);
 
-  h_sepd_south_rphi_pedestal = new TProfile2D(std::format("{}sepd_south_rphi_pedestal", getHistoPrefix()).c_str(), "sEPD South;r;phi", 16, 0, 16, 24, 0, 24, 0, 16400);
+  h_sepd_south_rphi_pedestal = new TProfile2D(std::format("{}sepd_south_rphi_pedestal", getHistoPrefix()).c_str(), "sEPD South;r;phi", m_nrbins_sepd, 0, m_nrbins_sepd, m_nphibins_sepd, 0, m_nphibins_sepd, 0, 16400);
   h_sepd_south_rphi_pedestal->SetErrorOption("s");
   h_sepd_south_rphi_pedestal->SetDirectory(nullptr);
   hm->registerHisto(h_sepd_south_rphi_pedestal);
 
-  h_cemc_zs_frac_vs_multiplicity = new TH2F(std::format("{}cemc_zs_frac_vs_multiplicity", getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
+  h_cemc_zs_frac_vs_multiplicity = new TH2F(std::format("{}cemc_zs_frac_vs_multiplicity", getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2840, 0, m_nchannels_total, 100, 0, 1);
   h_cemc_zs_frac_vs_multiplicity->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_zs_frac_vs_multiplicity);
 
-  h_ihcal_zs_frac_vs_multiplicity = new TH2F(std::format("{}ihcal_zs_frac_vs_multiplicity", getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
+  h_ihcal_zs_frac_vs_multiplicity = new TH2F(std::format("{}ihcal_zs_frac_vs_multiplicity", getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2840, 0, m_nchannels_total, 100, 0, 1);
   h_ihcal_zs_frac_vs_multiplicity->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_zs_frac_vs_multiplicity);
 
-  h_ohcal_zs_frac_vs_multiplicity = new TH2F(std::format("{}ohcal_zs_frac_vs_multiplicity", getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
+  h_ohcal_zs_frac_vs_multiplicity = new TH2F(std::format("{}ohcal_zs_frac_vs_multiplicity", getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2840, 0, m_nchannels_total, 100, 0, 1);
   h_ohcal_zs_frac_vs_multiplicity->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_zs_frac_vs_multiplicity);
 
-  h_sepd_zs_frac_vs_multiplicity = new TH2F(std::format("{}sepd_zs_frac_vs_multiplicity", getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
+  h_sepd_zs_frac_vs_multiplicity = new TH2F(std::format("{}sepd_zs_frac_vs_multiplicity", getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2840, 0, m_nchannels_total, 100, 0, 1);
   h_sepd_zs_frac_vs_multiplicity->SetDirectory(nullptr);
   hm->registerHisto(h_sepd_zs_frac_vs_multiplicity);
 
