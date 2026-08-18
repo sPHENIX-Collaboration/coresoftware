@@ -180,119 +180,58 @@ std::array<double, 3> LaserClusterHelper::getClusterHardwareCentroid(LaserCluste
 
 Acts::Vector3 LaserClusterHelper::getClusterCentroidWithPHGarfield(LaserCluster* cluster) const
 {
+    if(!cluster)
+    {
+        return invalid;
+    }
+
     if (cluster->getNhits() < 1)
     {
         return invalid;
     }
 
     Acts::Vector3 centroid = getClusterCentroid(cluster);
-    if (std::isnan(centroid[0]) ||
-        std::isnan(centroid[1]) ||
-        std::isnan(centroid[2]))
+    if (std::isnan(centroid[0]) || std::isnan(centroid[1]) || std::isnan(centroid[2]))
     {
         return invalid;
+    }
+
+    // transform back to local if necessary so that z position can be put at readout plane
+    if (m_useGlobal)
+    {
+        centroid = m_tGeometry->transformTpcWorldToEnvelope(centroid);
     }
 
     const LaserClusterHitInfo hit = cluster->getHit(0);
     const int side = TpcDefs::getSide(hit.hitsetkey);
 
-    double xReadout = centroid[0];
-    double yReadout = centroid[1];
-    const double zLaunch = side == 1 ? 102 : -102; //cm
+    Acts::Vector3 readoutPos(centroid[0], centroid[1], side == 1 ? 102 : -102);
+    if (m_useGlobal)
+    {
+        readoutPos = m_tGeometry->transformTpcEnvelopeToWorld(readoutPos);
+    }
 
     std::unique_ptr<TPolyLine3D> path;
     if (!m_useGlobal)
     {
-        path.reset(m_phgarfield->ReverseDrift(xReadout, yReadout, zLaunch));
+        path.reset(m_phgarfield->ReverseDrift(readoutPos[0], readoutPos[1], readoutPos[2]));
     }
     else
     {
-        path.reset(m_phgarfield->ReverseDriftGlobalCoords(xReadout, yReadout, zLaunch));
+        path.reset(m_phgarfield->ReverseDriftGlobalCoords(readoutPos[0], readoutPos[1], readoutPos[2]));
     }
     
-    double rCm = 0.0;
-    double phiCm = 0.0;
-    if (!InterpolateOrClosestAtZ(path.get(), 0.0, rCm, phiCm))
+    // just get the last point on the polyline which should be on the central membrane
+    if (!path || path->GetN() < 1)
     {
         return invalid;
     }
-
-    Acts::Vector3 centroidatCM(rCm * std::cos(phiCm), rCm * std::sin(phiCm), 0.0);
+    const int nPoints = path->GetN();
+    const float* points = path->GetP();
+    const double xCM = points[3 * (nPoints-1) + 0];
+    const double yCM = points[3 * (nPoints-1) + 1];
+    const double zCM = points[3 * (nPoints-1) + 2];
+    Acts::Vector3 centroidatCM(xCM,yCM,zCM);
 
     return centroidatCM;
-}
-
-bool LaserClusterHelper::InterpolateOrClosestAtZ(TPolyLine3D* path, double zTarget, double& rOut, double& phiOut) const
-{
-  if (!path || path->GetN() < 1)
-  {
-    return false;
-  }
-
-  const int nPoints = path->GetN();
-  const float* points = path->GetP();
-  double bestDistance = std::numeric_limits<double>::max();
-  int bestIndex = -1;
-
-  for (int index = 0; index < nPoints - 1; ++index)
-  {
-    const double x1 = points[3 * index + 0];
-    const double y1 = points[3 * index + 1];
-    const double z1 = points[3 * index + 2];
-    const double x2 = points[3 * (index + 1) + 0];
-    const double y2 = points[3 * (index + 1) + 1];
-    const double z2 = points[3 * (index + 1) + 2];
-
-    const double zMin = std::min(z1, z2);
-    const double zMax = std::max(z1, z2);
-    if (zTarget >= zMin && zTarget <= zMax)
-    {
-      const double fraction = z2 == z1 ? 0.0 : (zTarget - z1) / (z2 - z1);
-      const double x = x1 + fraction * (x2 - x1);
-      const double y = y1 + fraction * (y2 - y1);
-      rOut = std::hypot(x, y);
-      phiOut = std::atan2(y, x);
-      while (phiOut < 0.0)
-      {
-        phiOut += 2.0 * M_PI;
-      }
-      while (phiOut >= 2.0 * M_PI)
-      {
-        phiOut -= 2.0 * M_PI;
-      }
-      return true;
-    }
-
-    const double distance = std::abs(z1 - zTarget);
-    if (distance < bestDistance)
-    {
-      bestDistance = distance;
-      bestIndex = index;
-    }
-  }
-
-  const double lastDistance = std::abs(points[3 * (nPoints - 1) + 2] - zTarget);
-  if (lastDistance < bestDistance)
-  {
-    bestIndex = nPoints - 1;
-  }
-
-  if (bestIndex < 0)
-  {
-    return false;
-  }
-
-  const double x = points[3 * bestIndex + 0];
-  const double y = points[3 * bestIndex + 1];
-  rOut = std::hypot(x, y);
-  phiOut = std::atan2(y, x);
-  while (phiOut < 0.0)
-  {
-    phiOut += 2.0 * M_PI;
-  }
-  while (phiOut >= 2.0 * M_PI)
-  {
-    phiOut -= 2.0 * M_PI;
-  }
-  return true;
 }
