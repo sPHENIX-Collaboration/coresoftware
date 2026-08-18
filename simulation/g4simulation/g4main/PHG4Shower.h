@@ -33,77 +33,77 @@ class PHG4Shower : public PHObject
 
   void identify(std::ostream& os = std::cout) const override { os << "PHG4Shower base class" << std::endl; }
   PHG4Shower* CloneMe() const override { return nullptr; }
-  void Reset() override {}
+  void Reset() override;
   int isValid() const override { return 0; }
 
   // shower info
 
   virtual int get_id() const { return 0; }
-  virtual void set_id(int /*id*/) {}
+  virtual void set_id(int /*id*/) { return; }
 
   virtual int get_parent_particle_id() const { return 0; }
-  virtual void set_parent_particle_id(int /*parent_particle_id*/) {}
+  virtual void set_parent_particle_id(int /*parent_particle_id*/) { return; }
 
   virtual int get_parent_shower_id() const { return 0; }
-  virtual void set_parent_shower_id(int /*parent_shower_id*/) {}
+  virtual void set_parent_shower_id(int /*parent_shower_id*/) { return; }
 
   virtual float get_x() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_x(float) {}
+  virtual void set_x(float) { return; }
 
   virtual float get_y() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_y(float) {}
+  virtual void set_y(float) { return; }
 
   virtual float get_z() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_z(float) {}
+  virtual void set_z(float) { return; }
 
   virtual float get_position(unsigned int /*coor*/) const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_position(unsigned int /*coor*/, float /*xi*/) {}
+  virtual void set_position(unsigned int /*coor*/, float /*xi*/) { return; }
 
   virtual float get_covar(unsigned int /*i*/, unsigned int /*j*/) const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_covar(unsigned int /*i*/, unsigned int /*j*/, float /*entry*/) {}
+  virtual void set_covar(unsigned int /*i*/, unsigned int /*j*/, float /*entry*/) { return; }
 
   virtual unsigned int get_nhits(int /*volume*/) const { return 0; }
-  virtual void set_nhits(int /*volume*/, unsigned int /*nhits*/) {}
+  virtual void set_nhits(int /*volume*/, unsigned int /*nhits*/) { return; }
 
   virtual double get_edep() const { return std::numeric_limits<double>::quiet_NaN(); }
   virtual float get_edep(int /*volume*/) const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_edep(int /*volume*/, float /*edep*/) {}
+  virtual void set_edep(int /*volume*/, float /*edep*/) { return; }
 
   virtual double get_eion() const { return std::numeric_limits<double>::quiet_NaN(); }
   virtual float get_eion(int /*volume*/) const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_eion(int /*volume*/, float /*eion*/) {}
+  virtual void set_eion(int /*volume*/, float /*eion*/) { return; }
 
   virtual float get_light_yield(int /*volume*/) const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_light_yield(int /*volume*/, float /*light_yield*/) {}
+  virtual void set_light_yield(int /*volume*/, float /*light_yield*/) { return; }
 
   virtual float get_eh_ratio(int /*volume*/) const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_eh_ratio(int /*volume*/, float /*eh_ratio*/) {}
+  virtual void set_eh_ratio(int /*volume*/, float /*eh_ratio*/) { return; }
 
   virtual bool empty_g4particle_id() const { return true; }
   virtual size_t size_g4particle_id() const { return 0; }
-  virtual void add_g4particle_id(int /*id*/) {}
+  virtual void add_g4particle_id(int /*id*/) { return; }
   virtual ParticleIdIter begin_g4particle_id();
   virtual ParticleIdConstIter begin_g4particle_id() const;
   virtual ParticleIdIter end_g4particle_id();
   virtual ParticleIdConstIter end_g4particle_id() const;
   virtual size_t remove_g4particle_id(int /*id*/) { return 0; }
-  virtual void clear_g4particle_id() {}
+  virtual void clear_g4particle_id() { return; }
   virtual const ParticleIdSet& g4particle_ids() const = 0;
 
   virtual bool empty_g4vertex_id() const { return true; }
   virtual size_t size_g4vertex_id() const { return 0; }
-  virtual void add_g4vertex_id(int /*id*/) {}
+  virtual void add_g4vertex_id(int /*id*/) { return; }
   virtual VertexIdIter begin_g4vertex_id();
   virtual VertexIdConstIter begin_g4vertex_id() const;
   virtual VertexIdIter end_g4vertex_id();
   virtual VertexIdConstIter end_g4vertex_id() const;
   virtual size_t remove_g4vertex_id(int /*id*/) { return 0; }
-  virtual void clear_g4vertex_id() {}
+  virtual void clear_g4vertex_id() { return; }
   virtual const VertexIdSet& g4vertex_ids() const = 0;
 
   virtual bool empty_g4hit_id() const { return true; }
   virtual size_t size_g4hit_id() const { return 0; }
-  virtual void add_g4hit_id(int /*volume*/, PHG4HitDefs::keytype /*id*/) {}
+  virtual void add_g4hit_id(int /*volume*/, PHG4HitDefs::keytype /*id*/) { return; }
   virtual HitIdIter begin_g4hit_id();
   virtual HitIdConstIter begin_g4hit_id() const;
   virtual HitIdIter find_g4hit_id(int /*volume*/);
@@ -112,14 +112,14 @@ class PHG4Shower : public PHObject
   virtual HitIdConstIter end_g4hit_id() const;
   virtual size_t remove_g4hit_id(int /*volume*/, PHG4HitDefs::keytype /*id*/) { return 0; }
   virtual size_t remove_g4hit_volume(int /*volume*/) { return 0; }
-  virtual void clear_g4hit_id() {}
+  virtual void clear_g4hit_id() { return; }
   virtual const HitIdMap& g4hit_ids() const = 0;
 
  protected:
-  PHG4Shower() {}
+  PHG4Shower() = default;
 
  private:
-  ClassDefOverride(PHG4Shower, 1);
+  ClassDefOverride(PHG4Shower, 0);
 };
 
 /**
