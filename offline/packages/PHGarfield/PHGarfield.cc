@@ -1,12 +1,14 @@
 #include "PHGarfield.h"
+
 #include <cdbobjects/CDBTTree.h>
-#include <phool/phool.h>
 
 #include <phfield/PHField3DCartesian.h>
 
 #include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/phool.h>
 
 #include <TAxis.h>
 #include <TFile.h>
@@ -24,7 +26,6 @@
 #include <cmath>
 #include <filesystem>
 #include <functional>
-#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -42,7 +43,6 @@ PHGarfield::PHGarfield(const std::string& name,
                        double spaceChargeScale_side0,
                        double spaceChargeScale_side1)
   : SubsysReco(name)
-  , m_defaultGasfile("/sphenix/user/hemmick/gasfiles_20260624")
   , m_electricFieldMap(electricFieldMap)
   , m_spaceChargeScale_side0(spaceChargeScale_side0)
   , m_spaceChargeScale_side1(spaceChargeScale_side1)
@@ -83,7 +83,7 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
   {
     if (!LoadElectricFieldCorrections(m_electricFieldMap))
     {
-      std::cerr << PHWHERE << " Failed to load electric-field correction map: "
+      std::cout << PHWHERE << " Failed to load electric-field correction map: "
                 << m_electricFieldMap << std::endl;
     }
   }
@@ -100,8 +100,8 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
   //std::string gasfile("/gpfs/mnt/gpfs02/sphenix/user/hemmick/gasfiles_20260804/Ar75_CF20_iso5.gas");  // for testing only...
   if (gasfile.empty() || !fs::exists(gasfile))
   {
-    std::cerr << PHWHERE << " Missing CDB gasfile: " << gasfile << std::endl;
-    std::cerr << PHWHERE << " Using default gasfile: " << m_defaultGasfile << std::endl;
+    std::cout << PHWHERE << " Missing CDB gasfile: " << gasfile << std::endl;
+    std::cout << PHWHERE << " Using default gasfile: " << m_defaultGasfile << std::endl;
     gasfile = m_defaultGasfile;
   }
   InitializeGas(gasfile);
@@ -172,7 +172,7 @@ void PHGarfield::PrintGasSummary() const
 {
   if (!m_GasFilesLoaded)
   {
-    std::cerr << PHWHERE << "No Gas File(s) have been successfully loaded." << std::endl;
+    std::cout << PHWHERE << "No Gas File(s) have been successfully loaded." << std::endl;
     return;
   }
 
@@ -391,7 +391,7 @@ bool PHGarfield::LoadElectricFieldCorrections(const std::string& filename)
   std::unique_ptr<TFile> input(TFile::Open(filename.c_str(), "READ"));
   if (!input || input->IsZombie())
   {
-    std::cerr << PHWHERE << " Could not open electric-field map: "
+    std::cout << PHWHERE << " Could not open electric-field map: "
               << filename << std::endl;
     return false;
   }
@@ -411,7 +411,7 @@ bool PHGarfield::LoadElectricFieldCorrections(const std::string& filename)
 
   if (!er || !ez)
   {
-    std::cerr << PHWHERE
+    std::cout << PHWHERE
               << " Missing QA/hErDefault or QA/hEzDefault in "
               << filename << std::endl;
     return false;
@@ -496,7 +496,7 @@ void PHGarfield::InitializeGas(const std::string& name)
 
   if (!std::filesystem::exists(name))
   {
-    std::cerr << "Missing gas file or gas directory: " << name << std::endl;
+    std::cout << "Missing gas file or gas directory: " << name << std::endl;
     return;
   }
 
@@ -505,7 +505,7 @@ void PHGarfield::InitializeGas(const std::string& name)
     std::cout << "Loading Garfield gas from file: " << name << std::endl;
     if (!m_gas->LoadGasFile(name))
     {
-      std::cerr << "Failed to load " << name << std::endl;
+      std::cout << "Failed to load " << name << std::endl;
       return;
     }
     m_GasFilesLoaded = true;
@@ -555,11 +555,10 @@ void PHGarfield::InitializeGas(const std::string& name)
   PrintGasSummary();
 }
 
-int PHGarfield::process_event(PHCompositeNode* topNode)
+int PHGarfield::process_event(PHCompositeNode* /* topNode*/)
 {
   // Initial implementation doesn't do anything event-by-event.
   // Nonetheless, a future user might want do do something here...
-  (void) topNode;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -618,7 +617,7 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
     if (!std::isfinite(vx) || !std::isfinite(vy) || !std::isfinite(vz) ||
         (vx == 0.0 && vy == 0.0 && vz == 0.0))
     {
-      std::cerr << PHWHERE
+      std::cout << PHWHERE
                 << " Garfield returned invalid/zero electron velocity; stopping drift. "
                 << " p_tpc=(" << x << ", " << y << ", " << z << ") cm"
                 << " E=(" << ex << ", " << ey << ", " << ez << ") V/cm"
@@ -639,7 +638,7 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
 
   if (step >= maxSteps)
   {
-    std::cerr << PHWHERE << " ReverseDrift reached maxSteps=" << maxSteps
+    std::cout << PHWHERE << " ReverseDrift reached maxSteps=" << maxSteps
               << "; stopping drift at p_tpc=(" << x << ", " << y << ", " << z
               << ") cm" << std::endl;
   }

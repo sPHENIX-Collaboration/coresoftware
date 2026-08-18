@@ -38,7 +38,7 @@
 #include <memory>  // for allocator_traits<>::value_type
 #include <sstream>
 
-// #define FFAMEMTRACKER
+#define FFAMEMTRACKER
 
 Fun4AllServer *Fun4AllServer::__instance = nullptr;
 

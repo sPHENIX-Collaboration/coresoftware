@@ -1414,7 +1414,7 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
 					      const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_moved,
                                               PHCompositeNode* topNode)
 {
-  // The input map global contains the corrected cluster positions - NOT moved back to the surface.
+
   // When filling the residualtree:
   //    clusgx etc are the corrected - but not moved back to the surface - cluster positions
   //    clugxideal etc are the completely uncorrected cluster positions - they do not even have crossing corrections
@@ -1885,8 +1885,9 @@ void TrackResiduals::createBranches()
   m_tree->Branch("silid", &m_silid, "m_silid/I");
   m_tree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_tree->Branch("crossing", &m_crossing, "m_crossing/I");
-  m_tree->Branch("crossing_estimate", &m_crossing_estimate, "m_crossing_estimate/I");
+  m_tree->Branch("geometric_crossing", &m_geometric_crossing, "m_geometric_crossing/I");
   m_tree->Branch("silseedit",&m_silseedit, "m_silseedit/I");
+  m_tree->Branch("silseed_crossing",&m_silseed_crossing, "m_silseed_crossing/I");
   m_tree->Branch("silseedx", &m_silseedx, "m_silseedx/F");
   m_tree->Branch("silseedy", &m_silseedy, "m_silseedy/F");
   m_tree->Branch("silseedz", &m_silseedz, "m_silseedz/F");
@@ -1896,6 +1897,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("silseedphi", &m_silseedphi, "m_silseedphi/F");
   m_tree->Branch("silseedeta", &m_silseedeta, "m_silseedeta/F");
   m_tree->Branch("silseedcharge", &m_silseedcharge, "m_silseedcharge/I");
+  m_tree->Branch("tpcseed_crossing",&m_tpcseed_crossing, "m_tpcseed_crossing/I");
   m_tree->Branch("tpcseedx", &m_tpcseedx, "m_tpcseedx/F");
   m_tree->Branch("tpcseedy", &m_tpcseedy, "m_tpcseedy/F");
   m_tree->Branch("tpcseedz", &m_tpcseedz, "m_tpcseedz/F");
@@ -2072,6 +2074,7 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
 {
   auto *silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   auto *tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  auto *svtxseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
   auto *tpcGeom =
       findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   auto *trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
@@ -2079,6 +2082,21 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
   auto *vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   auto *alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
   auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+
+  std::map<std::pair<unsigned int, unsigned int>, short int> geom_crossing_map;
+ for (const auto& seed : *svtxseedmap)
+  {
+    if (!seed)
+    {
+      continue;
+    }
+    m_trackid = svtxseedmap->find(seed);
+    auto tpcseedindex = seed->get_tpc_seed_index();
+    auto silseedindex = seed->get_silicon_seed_index();
+    auto geometric_crossing = seed->get_crossing_estimate();    
+    geom_crossing_map.insert(std::make_pair(std::make_pair(silseedindex, tpcseedindex), geometric_crossing));
+  }
+
   std::set<unsigned int> tpc_seed_ids;
   for (const auto& [key, track] : *trackmap)
   {
@@ -2089,7 +2107,6 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
     m_trackid = track->get_id();
 
     m_crossing = track->get_crossing();
-    m_crossing_estimate = SHRT_MAX;
     m_px = track->get_px();
     m_py = track->get_py();
     m_pz = track->get_pz();
@@ -2116,7 +2133,9 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
     m_nmms = 0;
     m_nmmsstate = 0;
     m_silid = std::numeric_limits<unsigned int>::quiet_NaN();
+    m_silseed_crossing = SHRT_MAX;
     m_tpcid = std::numeric_limits<unsigned int>::quiet_NaN();
+    m_tpcseed_crossing = SHRT_MAX;
     m_silseedx = std::numeric_limits<float>::quiet_NaN();
     m_silseedy = std::numeric_limits<float>::quiet_NaN();
     m_silseedz = std::numeric_limits<float>::quiet_NaN();
@@ -2163,13 +2182,14 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
     if (tpcseed)
     {
       m_tpcid = tpcseedmap->find(tpcseed);
+      m_tpcseed_crossing = tpcseed->get_crossing();
       tpc_seed_ids.insert(tpcseedmap->find(tpcseed));
     }
     auto *silseed = track->get_silicon_seed();
     if (silseed)
     {
       m_silid = silseedmap->find(silseed);
-
+      m_silseed_crossing = silseed->get_crossing();
       const auto si_pos = TrackSeedHelper::get_xyz(silseed);
       m_silseedx = si_pos.x();
       m_silseedy = si_pos.y();
@@ -2181,6 +2201,18 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
       m_silseedeta = silseed->get_eta();
       m_silseedcharge = silseed->get_qOverR() > 0 ? 1 : -1;
     }
+
+    m_geometric_crossing = SHRT_MAX;
+    if(silseed && tpcseed)
+      {
+	auto pairid = std::make_pair(m_silid, m_tpcid);
+	auto it = geom_crossing_map.find(pairid);
+	if(it != geom_crossing_map.end())
+	  {
+	    m_geometric_crossing = it->second;
+	  }
+      }
+    
     if (tpcseed)
     {
       const auto tpc_pos = TrackSeedHelper::get_xyz(tpcseed);
@@ -2437,7 +2469,8 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
     m_trackid = track->get_id();
    
     m_crossing = track->get_crossing();
-    m_crossing_estimate = SHRT_MAX;
+    //   m_geometric_crossing =track->get_crossing_estimate();
+    m_geometric_crossing = SHRT_MAX;
     m_px = track->get_px();
     m_py = track->get_py();
     m_pz = track->get_pz();
@@ -2457,7 +2490,7 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
 
     if (Verbosity() > 1)
     {
-      std::cout << "fillResidualTreeSeeds:  track " << m_trackid << " m_crossing " << m_crossing << " m_crossing_estimate " << m_crossing_estimate << " m_pt " << m_pt << std::endl;
+      std::cout << "fillResidualTreeSeeds:  track " << m_trackid << " m_crossing " << m_crossing << " m_geometric_crossing " << m_geometric_crossing << " m_pt " << m_pt << std::endl;
     }
 
     m_nmaps = 0;
@@ -2465,7 +2498,9 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
     m_ntpc = 0;
     m_nmms = 0;
     m_silid = std::numeric_limits<unsigned int>::quiet_NaN();
+    m_silseed_crossing = SHRT_MAX;
     m_tpcid = std::numeric_limits<unsigned int>::quiet_NaN();
+    m_tpcseed_crossing = SHRT_MAX;
     m_silseedx = std::numeric_limits<float>::quiet_NaN();
     m_silseedy = std::numeric_limits<float>::quiet_NaN();
     m_silseedz = std::numeric_limits<float>::quiet_NaN();
@@ -2518,6 +2553,7 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
     if (silseed)
     {
       m_silid = silseedmap->find(silseed);
+      m_silseed_crossing = silseed->get_crossing();
       const auto si_pos = TrackSeedHelper::get_xyz(silseed);
       m_silseedx = si_pos.x();
       m_silseedy = si_pos.y();
@@ -2536,6 +2572,7 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
     }
     if (tpcseed)
     {
+      m_tpcseed_crossing = tpcseed->get_crossing();
       const auto tpc_pos = TrackSeedHelper::get_xyz(tpcseed);
       m_tpcseedx = tpc_pos.x();
       m_tpcseedy = tpc_pos.y();

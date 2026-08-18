@@ -375,15 +375,15 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
 Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing) const
 {
   Acts::Vector2 local;
-
+  
   const auto trkrid = TrkrDefs::getTrkrId(key);
   if (trkrid == TrkrDefs::tpcId)
   {
+    unsigned int side = TpcDefs::getSide(key);
     double crossing_tzero_correction = crossing * sphenix_constants::time_between_crossings;
     double tcorrected = cluster->getLocalY() +  _tpc_tzero + _sampa_tzero_bias - crossing_tzero_correction;
     double zdriftlength = tcorrected * _drift_velocity; 
     double zloc = _max_driftlength/2.0 - zdriftlength;         // local z relative to surface center (for north side):
-    unsigned int side = TpcDefs::getSide(key);
     if (side == 0)
     {
       zloc = -zloc;

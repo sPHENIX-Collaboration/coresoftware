@@ -138,12 +138,18 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_test_windows_printout(const bool test) { _test_windows = test; }
   void set_file_name(const std::string &name) { _file_name = name; }
   void set_pp_mode(const bool flag) { _pp_mode = flag; }
-  void set_use_intt_crossing(const bool flag) { _use_intt_crossing = flag; }
-  void set_use_tpc_crossing(const bool flag) { _use_tpc_crossing = flag; }
+  void set_use_silicon_crossing_only(const bool flag) { _use_silicon_crossing_only = flag; }
+  void set_use_tpc_crossing_only(const bool flag) { _use_tpc_crossing_only = flag; }
+  
+  void set_use_intt_crossing(const bool flag) { _use_silicon_crossing_only = flag; }  // deprecated, left for backward compatibility
+  void set_use_tpc_crossing(const bool flag) { _use_tpc_crossing_only = flag; }   // deprecated, left for backward compatibility
+
   void set_cluster_map_name(const std::string &name)
   {
     _cluster_map_name = name;
   }
+  void set_max_crossing_diff(const short int diff) { _max_crossing_diff = diff; }
+
   int InitRun(PHCompositeNode *topNode) override;
 
   int process_event(PHCompositeNode *) override;
@@ -169,7 +175,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   // void findCrossingGeometrically(std::multimap<unsigned int, unsigned int> tpc_matches);
   short int findCrossingGeometrically(unsigned int tpcid, unsigned int si_id);
   double getBunchCrossing(unsigned int trid, double z_mismatch);
-
+  std::vector<short int>  getBestCrossing(unsigned int tpcid, unsigned int si_id);
+  
   TFile *_file = nullptr;
   TNtuple *_tree = nullptr;
 
@@ -197,6 +204,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   int m_event = 0;
   std::map<unsigned int, double> _z_mismatch_map;
 
+  short int _max_crossing_diff = 20;  // good for CA seeds, use 10 for polyseeding
+  
   TpcClusterZCrossingCorrection _clusterCrossingCorrection;
   float _crossing_deltaz_max = 10.0;
   float _crossing_deltaz_min = 1.5;
@@ -209,8 +218,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
   bool _test_windows = false;
   bool _pp_mode = false;
-  bool _use_intt_crossing = true;  // should always be true except for testing
-  bool _use_tpc_crossing = false;
+  bool _use_tpc_crossing_only = false;
+  bool _use_silicon_crossing_only = false;
 
   int _n_iteration = 0;
   std::string _track_map_name = "TpcTrackSeedContainer";
