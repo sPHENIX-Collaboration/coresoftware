@@ -43,6 +43,19 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
     {
         std::cout << "LaserClusterHelper::loadNodes - TPCGEOMCONTAINER not found on node tree" << std::endl;
     }
+
+    m_phgarfield = new PHGarfield();
+    m_phgarfield->InitRun(topNode);
+
+    TVector3 Northxyz(-0.001, -0.001, 1123.109);  // mm
+    TVector3 Southxyz(-3.354, -0.673, -1137.382);  // mm
+    TVector3 center = 0.5 * (Northxyz + Southxyz);
+    center *= 0.1;  // mm to cm
+    m_phgarfield->MoveTpc(center.X(), center.Y(), center.Z());
+    m_phgarfield->RotateTpc(0, 0.001485, 0);
+    m_phgarfield->RotateTpc(0.000298, 0, 0);
+    m_phgarfield->SetCMVoltageDefault(380.0);
+    m_phgarfield->SetZeroField(false);
 }
 
 //____________________________________________________________________________
@@ -222,7 +235,11 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroidWithPHGarfield(LaserCluster*
     }
     
     // just get the last point on the polyline which should be on the central membrane
-    if (!path || path->GetN() < 1)
+    if (!path)
+    {
+        return invalid;
+    }
+    if (path->GetN() < 1)
     {
         return invalid;
     }
