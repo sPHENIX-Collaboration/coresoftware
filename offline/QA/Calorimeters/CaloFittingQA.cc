@@ -101,18 +101,16 @@ int CaloFittingQA::InitRun(PHCompositeNode* /*unused*/)
   }
 
   std::string calibdir_sepd = CDBInterface::instance()->getUrl("SEPD_CHANNELMAP2");
-  if (!calibdir_sepd.empty())
+  if (calibdir_sepd.empty())
   {
-    cdbttree_sepd = new CDBTTree(calibdir_sepd);
-    m_sepd_channel_map.resize(m_nchannels_sepd);
-    for (int c = 0; c < m_nchannels_sepd; ++c)
-    {
-      m_sepd_channel_map[c] = cdbttree_sepd->GetIntValue(c, "epd_channel_map2");
-    }
+    std::cout << PHWHERE << "No sEPD mapping file for domain SEPD_CHANNELMAP2 found in CDB, exiting." << std::endl;
+    exit(1);
   }
-  else
+  cdbttree_sepd = new CDBTTree(calibdir_sepd);
+  m_sepd_channel_map.resize(m_nchannels_sepd);
+  for (int c = 0; c < m_nchannels_sepd; ++c)
   {
-    std::cout << PHWHERE << "No sEPD mapping file for domain SEPD_CHANNELMAP2 found" << std::endl;
+    m_sepd_channel_map[c] = cdbttree_sepd->GetIntValue(c, "epd_channel_map2");
   }
 
   if (Verbosity() > 0)
@@ -422,13 +420,9 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         }
         else
         {
-          if (!sepd_waveforms.empty())
+          if (!sepd_waveforms.empty() && !m_sepd_channel_map.empty() && channel < (int) m_sepd_channel_map.size())
           {
-            int packet_channel = channel;
-            if (!m_sepd_channel_map.empty() && channel < (int) m_sepd_channel_map.size())
-            {
-              packet_channel = m_sepd_channel_map[channel];
-            }
+            int packet_channel = m_sepd_channel_map[channel];
             if (packet_channel >= 0 && packet_channel < (int) sepd_waveforms.size())
             {
               if (sepd_waveforms.at(packet_channel).size() == 2)
