@@ -3,6 +3,7 @@
 #include "LaserEventInfo.h"
 #include "LaserEventInfov2.h"
 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHit.h>
@@ -29,10 +30,23 @@
 
 #include <TF1.h>
 #include <TFile.h>
+#include <TH1.h>
+#include <TTree.h>
 
 LaserEventIdentifier::LaserEventIdentifier(const std::string &name)
   : SubsysReco(name)
 {
+}
+
+LaserEventIdentifier::~LaserEventIdentifier()
+{
+  if (!m_debug)  // if m_debug set, histos are added to debug TTree and must not be deleted
+  {
+    delete m_itHist_0;
+    delete m_itHist_1;
+  }
+  delete m_f0;
+  delete m_f1;
 }
 
 int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
@@ -45,16 +59,14 @@ int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_geom_container =
-      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  m_geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!m_geom_container)
   {
     std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_tGeometry = findNode::getClass<ActsGeometry>(topNode,
-                                                 "ActsGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
     std::cout << PHWHERE
@@ -72,8 +84,7 @@ int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
   }
 
   PHNodeIterator dstiter(dstNode);
-  PHCompositeNode *DetNode =
-      dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
   if (!DetNode)
   {
     DetNode = new PHCompositeNode("TRKR");
@@ -84,6 +95,9 @@ int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
 
   PHIODataNode<PHObject> *laserEventInfoNode = new PHIODataNode<PHObject>(laserEventInfo, "LaserEventInfo", "PHObject");
   DetNode->addNode(laserEventInfoNode);
+
+  m_f0 = new TF1("f0", "gausn(0)");
+  m_f1 = new TF1("f1", "gausn(0)");
 
   if (m_debug)
   {
@@ -126,11 +140,12 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
     std::cout << "no GL1RAWHIT node" << std::endl;
     m_laserEventInfo->setIsGl1LaserEvent(false);
     m_laserEventInfo->setIsGl1LaserPileupEvent(false);
-    //return Fun4AllReturnCodes::ABORTRUN;
+    isGl1LaserEvent = false;
+    isGl1LaserPileupEvent = false;
   }
-  else if(m_runnumber > 66153)
+  else if (m_runnumber > 66153)
   {
-    if ((gl1pkt->getGTMAllBusyVector() & (1U<<14U)) == 0)
+    if ((gl1pkt->getGTMAllBusyVector() & (1U << 14U)) == 0)
     {
       m_laserEventInfo->setIsGl1LaserEvent(true);
       m_laserEventInfo->setIsGl1LaserPileupEvent(false);
@@ -138,7 +153,7 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
       isGl1LaserPileupEvent = false;
       prev_BCO = gl1pkt->getBCO();
     }
-    else if ((gl1pkt->getBCO() - prev_BCO) < 350.0/30*16)
+    else if ((gl1pkt->getBCO() - prev_BCO) < 350.0 / 30 * 16)
     {
       m_laserEventInfo->setIsGl1LaserEvent(false);
       m_laserEventInfo->setIsGl1LaserPileupEvent(true);
@@ -160,8 +175,6 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
     m_laserEventInfo->setIsGl1LaserEvent(false);
     m_laserEventInfo->setIsGl1LaserPileupEvent(false);
   }
-  
-
 
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
@@ -211,30 +224,27 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   double itMaxContent_1 = m_itHist_1->GetMaximum();
   m_itHist_1->GetXaxis()->SetRange(0, 0);
 
-  auto f0 = std::make_unique<TF1>("f0", "gausn(0)");
-  f0->SetParameters(itMaxContent_0, itMax_0, 1);
-  f0->SetParLimits(1, itMax_0 - 2, itMax_0 + 2);
-  m_itHist_0->Fit(f0.get(), "Bq0");
+  m_f0->SetParameters(itMaxContent_0, itMax_0, 1);
+  m_f0->SetParLimits(1, itMax_0 - 2, itMax_0 + 2);
+  m_itHist_0->Fit(m_f0, "Bq0N");  // N to not store fit in histo
 
-  auto f1 = std::make_unique<TF1>("f1", "gausn(0)");
-  f1->SetParameters(itMaxContent_1, itMax_1, 1);
-  f1->SetParLimits(1, itMax_1 - 2, itMax_1 + 2);
-  m_itHist_1->Fit(f1.get(), "Bq0");
-
+  m_f1->SetParameters(itMaxContent_1, itMax_1, 1);
+  m_f1->SetParLimits(1, itMax_1 - 2, itMax_1 + 2);
+  m_itHist_1->Fit(m_f1, "Bq0N");  // N to not store fit in histo
 
   if ((itMaxContent_0 / itMeanContent_0 >= 7 && itMaxContent_0 > 1000) || (itMaxContent_1 / itMeanContent_1 >= 7 && itMaxContent_1 > 1000))
   {
     m_laserEventInfo->setIsLaserEvent(true);
     m_laserEventInfo->setPeakSample(false, (int) itMax_0);
-    m_laserEventInfo->setPeakWidth(false, f0->GetParameter(2));
+    m_laserEventInfo->setPeakWidth(false, m_f0->GetParameter(2));
     m_laserEventInfo->setPeakSample(true, (int) itMax_1);
-    m_laserEventInfo->setPeakWidth(true, f1->GetParameter(2));
+    m_laserEventInfo->setPeakWidth(true, m_f1->GetParameter(2));
 
     isLaserEvent = true;
     peakSample0 = (int) itMax_0;
     peakSample1 = (int) itMax_1;
-    peakWidth0 = f0->GetParameter(2);
-    peakWidth1 = f1->GetParameter(2);
+    peakWidth0 = m_f0->GetParameter(2);
+    peakWidth1 = m_f1->GetParameter(2);
   }
   else
   {
@@ -251,7 +261,6 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   {
     m_hitTree->Fill();
   }
-  
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

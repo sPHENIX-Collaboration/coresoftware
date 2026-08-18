@@ -11,7 +11,6 @@
 class PHCompositeNode;
 class RawClusterContainer;
 class RawCluster;
-class PhotonClusterv1;
 class TowerInfoContainer;
 class RawTowerGeomContainer;
 class RawTowerGeom;
@@ -25,7 +24,7 @@ namespace TMVA
 }  // namespace TMVA
 
 // Simple builder that wraps existing RawClusters above an energy threshold
-// into PhotonClusterv1 objects and stores them in a PhotonClusterContainer node.
+// into PhotonClusterv1 objects and stores them in a RawClusterContainer node.
 class PhotonClusterBuilder : public SubsysReco
 {
  public:
@@ -43,30 +42,38 @@ class PhotonClusterBuilder : public SubsysReco
   void set_bdt_feature_list(const std::vector<std::string>& features) { m_bdt_feature_list = features; }
   void set_do_bdt(bool do_bdt) { m_do_bdt = do_bdt; }
   void set_do_subtracted_iso(bool do_subtracted_iso) { m_do_subtracted_iso = do_subtracted_iso; }
+  void set_do_topocluster_isolation(bool do_topo_iso) { m_do_topocluster_isolation = do_topo_iso; }
+  void set_topocluster_node(const std::string& n) { m_topocluster_node = n; }
   const std::vector<std::string>& get_bdt_feature_list() const { return m_bdt_feature_list; }
 
  private:
   void CreateNodes(PHCompositeNode* topNode);
-  void calculate_shower_shapes(RawCluster* rc, PhotonClusterv1* photon, float eta, float phi);
-  void calculate_bdt_score(PhotonClusterv1* photon);
+  bool calculate_shower_shapes(RawCluster* rc, RawCluster* photon, float eta, float phi);
+  void calculate_bdt_score(RawCluster* photon);
+  static float resolve_bdt_feature(const RawCluster* photon, const std::string& feature, float vertex_z);
+  bool calculate_topocluster_iso(float eta, float phi, float candidate_et, float& iso03, float& iso04);
   double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz);
   std::vector<int> find_closest_hcal_tower(float eta, float phi, RawTowerGeomContainer* geom, TowerInfoContainer* towerContainer, float vertex_z, bool isihcal);
   double deltaR(double eta1, double phi1, double eta2, double phi2);
   float calculate_layer_et(float seed_eta, float seed_phi, float radius, TowerInfoContainer* towerContainer, RawTowerGeomContainer* geomContainer, RawTowerDefs::CalorimeterId calo_id, float vertex_z);
   bool m_do_bdt{false};
   bool m_do_subtracted_iso{false};
+  bool m_do_topocluster_isolation{false};
 
   std::string m_input_cluster_node{"CLUSTERINFO_CEMC"};
   std::string m_output_photon_node{"PHOTONCLUSTER_CEMC"};
+  std::string m_topocluster_node{"TOPOCLUSTER_ALLCALO"};
   float m_min_cluster_et{5.0f};
   float m_shape_min_tower_E{0.070f};
   std::string m_bdt_model_file{"myBDT_5.root"};
   std::vector<std::string> m_bdt_feature_list;
   float m_vertex{std::numeric_limits<float>::quiet_NaN()};
   float m_subtracted_iso_defval{-999};
+  float m_topo_iso_defval{-999};
 
   RawClusterContainer* m_rawclusters{nullptr};
   RawClusterContainer* m_photon_container{nullptr};
+  RawClusterContainer* m_topocluster_container{nullptr};
   TowerInfoContainer* m_emc_tower_container{nullptr};
   RawTowerGeomContainer* m_geomEM{nullptr};
   TowerInfoContainer* m_ihcal_tower_container{nullptr};
