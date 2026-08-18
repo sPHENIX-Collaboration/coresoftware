@@ -51,7 +51,8 @@ int CaloVtxAlgoJetSkew::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
 
   const int nz = 601;
   const int njet = 2;
-  Jet *jets[njet];
+
+  int jind[njet] = {0};
   float jpt[njet] = {0};
   float jemsum[njet] = {0};
   float johsum[njet] = {0};
@@ -74,13 +75,13 @@ int CaloVtxAlgoJetSkew::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
         if (pt > jpt[0])
         {
           jpt[1] = jpt[0];
-          jets[1] = jets[0];
-          jets[0] = jet;
+          jind[1] = jind[0];
+          jind[0] = i;
           jpt[0] = pt;
         }
         else if (pt > jpt[1])
         {
-          jets[1] = jet;
+          jind[1] = i;
           jpt[1] = pt;
         }
       }
@@ -107,7 +108,9 @@ int CaloVtxAlgoJetSkew::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
       jemeta[j] = 0;
       joheta[j] = 0;
 
-      for (auto comp : jets[j]->get_comp_vec())
+      int jet_index = jind[j];
+
+      for (auto comp : jetcon->get_jet(jet_index)->get_comp_vec())
 	{
 	  if (comp.first == 5 || comp.first == 26)
 	    {

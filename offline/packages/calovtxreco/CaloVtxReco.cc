@@ -84,7 +84,6 @@ int CaloVtxReco::InitRun(PHCompositeNode *topNode)
 int CaloVtxReco::process_event(PHCompositeNode *topNode)
 {
   
-
   for (auto &algo : m_algos)
     {
       float tempz = std::numeric_limits<float>::quiet_NaN();
