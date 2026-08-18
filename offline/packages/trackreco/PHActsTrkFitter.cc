@@ -28,6 +28,7 @@
 #include <trackbase_historic/SvtxTrackState_v3.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackSeed.h>
+//#include <trackbase_historic/SvtxTrackSeed_v3.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedHelper.h>
 
@@ -463,19 +464,25 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     {
       continue;
     }
-
+    
     unsigned int tpcid = track->get_tpc_seed_index();
     unsigned int siid = track->get_silicon_seed_index();
+    auto *siseed = m_siliconSeeds->get(siid);
+    auto *tpcseed = m_tpcSeeds->get(tpcid);
 
+    short int best_crossing = track->get_crossing();  // best crossing between INTT clusters and TPC seed
+
+    if(Verbosity() > 2 && siseed && tpcseed)
+	  {
+	    std::cout << "tpc and si id " << tpcid << ", " << siid << " silicon_crossing " << siseed->get_crossing()
+		      << " tpc crossing " << tpcseed->get_crossing()
+		      << " best crossing " << best_crossing << " crossing estimate " << track->get_crossing_estimate() << std::endl;
+	  }
+    
     // capture the input crossing value, and set crossing parameters
     //==============================
-    short silicon_crossing = SHRT_MAX;
-    auto *siseed = m_siliconSeeds->get(siid);
-    if (siseed)
-    {
-      silicon_crossing = siseed->get_crossing();
-    }
-    short crossing = silicon_crossing;
+
+    short int crossing = best_crossing;
     short int crossing_estimate = crossing;
 
     if (m_enable_crossing_estimate)
@@ -487,7 +494,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     // must have silicon seed with valid crossing if we are doing a SC calibration fit
     if (m_fitSiliconMMs)
     {
-      if ((siid == std::numeric_limits<unsigned int>::max()) || (silicon_crossing == SHRT_MAX))
+      if ((siid == std::numeric_limits<unsigned int>::max()) || (crossing == SHRT_MAX))
       {
         continue;
       }
@@ -499,27 +506,19 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       crossing = 0;
     }
 
-    if (Verbosity() > 1)
-    {
-      if (siseed)
-      {
-        std::cout << "tpc and si id " << tpcid << ", " << siid << " silicon_crossing " << silicon_crossing
-                  << " crossing " << crossing << " crossing estimate " << crossing_estimate << std::endl;
-      }
-    }
-
-    auto *tpcseed = m_tpcSeeds->get(tpcid);
-
+    // no path forward in this case, move on
+    if(crossing == SHRT_MAX && crossing_estimate == SHRT_MAX) { continue; }
+	
     /// Need to also check that the tpc seed wasn't removed by the ghost finder
     if (!tpcseed)
     {
       std::cout << "no tpc seed" << std::endl;
       continue;
     }
-
+	
     if (Verbosity() > 0)
-    {
-      if (siseed)
+      {
+	if (siseed)
       {
         const auto si_position = TrackSeedHelper::get_xyz(siseed);
         const auto tpc_position = TrackSeedHelper::get_xyz(tpcseed);
@@ -535,7 +534,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     if (Verbosity() > 1 && siseed)
     {
       std::cout << " m_pp_mode " << m_pp_mode << " m_enable_crossing_estimate " << m_enable_crossing_estimate
-                << " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
+                << " best crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
     }
 
     short int this_crossing = crossing;
@@ -559,23 +558,23 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
       else
       {
-        // use INTT crossing
+        // use best crossing
         crossing_estimate = crossing;
       }
     }
     else
     {
       // non pp mode, we want only crossing zero, veto others
-      if (siseed && silicon_crossing != 0)
+      if (siseed && best_crossing != 0)
       {
         crossing = 0;
         // continue;
       }
       crossing_estimate = crossing;
     }
-
+	
     // Fit this track assuming either:
-    //    crossing = INTT value, if it exists (uses nvary = 0)
+    //    crossing = best crossing value, if it exists (uses nvary = 0)
     //    crossing = crossing_estimate +/- max_bunch_search, if no INTT value exists and m_enable_crossing_estimate flag is set.
 
     for (short int ivary = -nvary; ivary <= nvary; ++ivary)
@@ -975,7 +974,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
           m_trackMap->insertWithKey(&svtx_vec[best_ivary], trid);
         }
-        else  // case where INTT crossing is known
+        else  // case where crossing is known
         {
           SvtxTrack_v4 newTrack;
           newTrack.set_tpc_seed(tpcseed);
@@ -1004,7 +1003,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
               m_trackMap->insertWithKey(&newTrack, trid);
             }
           }  // end insert track for normal fit
-        }  // end case where INTT crossing is known
+        }  // end case where crossing is known
       }
       else if (!m_fitSiliconMMs)
       {
