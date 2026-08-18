@@ -3,19 +3,27 @@
 #ifndef PHSILICONTPCTRACKMATCHING_H
 #define PHSILICONTPCTRACKMATCHING_H
 
-#include <fun4all/SubsysReco.h>
-#include <phparameter/PHParameterInterface.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
-#include <trackbase/ActsGeometry.h>
 
+#include <trackbase/TrkrDefs.h>
+
+#include <phparameter/PHParameterInterface.h>
+
+#include <fun4all/SubsysReco.h>
+
+#include <array>
+#include <cmath>
+#include <limits>
 #include <map>
+#include <set>
 #include <string>
+#include <vector>
 
+class ActsGeometry;
 class PHCompositeNode;
 class TrackSeedContainer;
 class TrackSeed;
 class TrkrClusterContainer;
-class TF1;
 class TrkrClusterCrossingAssoc;
 class TFile;
 class TNtuple;
@@ -25,7 +33,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
  public:
   PHSiliconTpcTrackMatching(const std::string &name = "PHSiliconTpcTrackMatching");
 
-  ~PHSiliconTpcTrackMatching() override;
+  ~PHSiliconTpcTrackMatching() override = default;
 
   void SetDefaultParameters() override;
   
@@ -59,14 +67,14 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
     Arr3D negHi { 100, 0, 0 }; // (above a1,b1,c1), 100 for treat all tracks pos Q
 
     // efficiency flags set during PHSiliconTpcTrackMatching::InitRun()
-    bool fabs_max_posQ  = true;
-    bool fabs_max_negQ  = true;
-    bool negLo_b0 = true;
-    bool negHi_b0 = true;
-    bool posLo_b0 = true;
-    bool posHi_b0 = true;
-    double min_pt_posQ  = 0.25; // only grow function windows down to 150 MeV
-    double min_pt_negQ  = 0.25; // only grow function windows down to 150 MeV
+    bool fabs_max_posQ  {true};
+    bool fabs_max_negQ  {true};
+    bool negLo_b0 {true};
+    bool negHi_b0 {true};
+    bool posLo_b0 {true};
+    bool posHi_b0 {true};
+    double min_pt_posQ  {0.25}; // only grow function windows down to 150 MeV
+    double min_pt_negQ  {0.25}; // only grow function windows down to 150 MeV
 
     WindowMatcher(
         const Arr3D& _posLo={100,0,0},
@@ -177,21 +185,21 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   double getBunchCrossing(unsigned int trid, double z_mismatch);
   std::vector<short int>  getBestCrossing(unsigned int tpcid, unsigned int si_id);
   
-  TFile *_file = nullptr;
-  TNtuple *_tree = nullptr;
+  TFile *_file {nullptr};
+  TNtuple *_tree {nullptr};
 
-  std::string _file_name = "track_match.root";
+  std::string _file_name {"track_match.root"};
 
   // default values, can be replaced from the macro
-  double _phi_search_win = 0.01;
-  double _eta_search_win = 0.004;
-  double _x_search_win = 0.3;
-  double _y_search_win = 0.3;
-  double _z_search_win = 0.4;
+  double _phi_search_win {0.01};
+  double _eta_search_win {0.004};
+  double _x_search_win {0.3};
+  double _y_search_win {0.3};
+  double _z_search_win {0.4};
 
-  //  bool _use_old_matching = false;  // normally false
+  //  bool _use_old_matching {false};  // normally false
 
-  bool _zero_field = false;     // fit straight lines if true
+  bool _zero_field {false};     // fit straight lines if true
 
   TrackSeedContainer *_svtx_seed_map{nullptr};
   TrackSeedContainer *_track_map{nullptr};
@@ -201,31 +209,31 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   TrkrClusterContainer *_cluster_map{nullptr};
   ActsGeometry *_tGeometry{nullptr};
   TrkrClusterCrossingAssoc *_cluster_crossing_map{nullptr};
-  int m_event = 0;
+  int m_event {0};
   std::map<unsigned int, double> _z_mismatch_map;
 
-  short int _max_crossing_diff = 20;  // good for CA seeds, use 10 for polyseeding
+  short int _max_crossing_diff {20};  // good for CA seeds, use 10 for polyseeding
   
   TpcClusterZCrossingCorrection _clusterCrossingCorrection;
-  float _crossing_deltaz_max = 10.0;
-  float _crossing_deltaz_min = 1.5;
-  float _deltaeta_min = 0.03;
+  float _crossing_deltaz_max {10.0};
+  float _crossing_deltaz_min {1.5};
+  float _deltaeta_min {0.03};
 
-  //  double _collision_rate = 50e3;  // input rate for phi correction
-  //  double _reference_collision_rate = 50e3;  // reference rate for phi correction
-  //  double _si_vertex_dzmax = 0.25;  // mm
+  //  double _collision_rate {50e3};  // input rate for phi correction
+  //  double _reference_collision_rate {50e3};  // reference rate for phi correction
+  //  double _si_vertex_dzmax {0.25};  // mm
   double fieldstrength{std::numeric_limits<double>::quiet_NaN()};
 
-  bool _test_windows = false;
-  bool _pp_mode = false;
-  bool _use_tpc_crossing_only = false;
-  bool _use_silicon_crossing_only = false;
+  bool _test_windows {false};
+  bool _pp_mode {false};
+  bool _use_tpc_crossing_only {false};
+  bool _use_silicon_crossing_only {false};
 
-  int _n_iteration = 0;
-  std::string _track_map_name = "TpcTrackSeedContainer";
-  std::string _silicon_track_map_name = "SiliconTrackSeedContainer";
-  std::string _cluster_map_name = "TRKR_CLUSTER";
-  std::string m_fieldMap = "1.4";
+  int _n_iteration {0};
+  std::string _track_map_name {"TpcTrackSeedContainer"};
+  std::string _silicon_track_map_name {"SiliconTrackSeedContainer"};
+  std::string _cluster_map_name {"TRKR_CLUSTER"};
+  std::string m_fieldMap {"1.4"};
   std::vector<TrkrDefs::cluskey> getTrackletClusterList(TrackSeed* tracklet);
 };
 
