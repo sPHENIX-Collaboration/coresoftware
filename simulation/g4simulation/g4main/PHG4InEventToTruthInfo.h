@@ -25,8 +25,6 @@ class PHG4InEventToTruthInfo : public SubsysReco
 
  private:
   static PHG4Particle *makeParticleCopy(PHG4Particle *particle);
-  static PHG4VtxPoint *makePrimaryVertexCopy(const PHG4VtxPoint *vertex, int vtxid);
-
 };
 
 #endif  // G4MAIN_PHG4INEVENTTOTRUTHINFO_H

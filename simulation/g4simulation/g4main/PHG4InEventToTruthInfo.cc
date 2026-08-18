@@ -51,7 +51,7 @@ int PHG4InEventToTruthInfo::process_event(PHCompositeNode *topNode)
     }
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  
+
   PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   std::map<int, int> input_to_truth_vtxid;
@@ -60,15 +60,18 @@ int PHG4InEventToTruthInfo::process_event(PHCompositeNode *topNode)
   {
     const int input_vtxid = vtxiter->first;
     const int truth_vtxid = truthinfo->maxvtxindex() + 1;
-    std::unique_ptr<PHG4VtxPoint> truth_vtx(makePrimaryVertexCopy(vtxiter->second, truth_vtxid));
+    PHG4VtxPoint *truth_vtx = dynamic_cast<PHG4VtxPoint *>(vtxiter->second->CloneMe());
+    truth_vtx->set_id(truth_vtxid);
 
-    const auto inserted = truthinfo->AddVertex(truth_vtxid, truth_vtx.get());
+    const auto inserted = truthinfo->AddVertex(truth_vtxid, truth_vtx);
     if (inserted == truthinfo->GetVtxRange().second)
     {
-      return Fun4AllReturnCodes::ABORTEVENT;
+      std::cout << PHWHERE << " Failure to insert vertex " << truth_vtxid << " into TruthInfo" << std::endl;
+      truth_vtx->identify();
+      gSystem->Exit(1);
+      exit(1);
     }
 
-    truth_vtx.release();
     input_to_truth_vtxid[input_vtxid] = truth_vtxid;
   }
 
@@ -96,16 +99,19 @@ int PHG4InEventToTruthInfo::process_event(PHCompositeNode *topNode)
     const int truth_trackid = truthinfo->maxtrkindex() + 1;
     const int truth_vtxid = vtxid_iter->second;
 
-    std::unique_ptr<PHG4Particle> truth_particle(makeParticleCopy(input_particle));
+    PHG4Particle *truth_particle = makeParticleCopy(input_particle);
     truth_particle->set_track_id(truth_trackid);
     truth_particle->set_vtx_id(truth_vtxid);
     truth_particle->set_parent_id(0);
     truth_particle->set_primary_id(truth_trackid);
 
-    const auto inserted = truthinfo->AddParticle(truth_trackid, truth_particle.get());
+    const auto inserted = truthinfo->AddParticle(truth_trackid, truth_particle);
     if (inserted == truthinfo->GetParticleRange().second)
     {
-      return Fun4AllReturnCodes::ABORTEVENT;
+      std::cout << PHWHERE << " Failure to insert particle " << truth_trackid << " into TruthInfo" << std::endl;
+      truth_particle->identify();
+      gSystem->Exit(1);
+      exit(1);
     }
 
     const int embed_flag = inevent->isEmbeded(input_particle);
@@ -114,8 +120,6 @@ int PHG4InEventToTruthInfo::process_event(PHCompositeNode *topNode)
       truthinfo->AddEmbededTrkId(truth_trackid, embed_flag);
       truthinfo->AddEmbededVtxId(truth_vtxid, embed_flag);
     }
-
-    truth_particle.release();
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -127,8 +131,7 @@ PHG4Particle *PHG4InEventToTruthInfo::makeParticleCopy(PHG4Particle *particle)
   {
     particle->set_name(TDatabasePDG::Instance()->GetParticle(particle->get_pid())->GetName());
   }
-  particle->identify();
-  PHG4Particle *particle_return {nullptr};
+  PHG4Particle *particle_return{nullptr};
   if (particle->isIon())
   {
     particle_return = new PHG4Particlev3(particle);
@@ -138,29 +141,18 @@ PHG4Particle *PHG4InEventToTruthInfo::makeParticleCopy(PHG4Particle *particle)
     particle_return = new PHG4Particlev2(particle);
   }
 
-  if (! std::isfinite(particle_return->get_e()))
+  if (!std::isfinite(particle_return->get_e()))
   {
-  double m = TDatabasePDG::Instance()->GetParticle(particle->get_pid())->Mass();
-  double e = sqrt(particle->get_px() * particle->get_px() + particle->get_py() * particle->get_py() + particle->get_pz() * particle->get_pz() + m * m);
-  particle_return->set_e(e);
+    double m = TDatabasePDG::Instance()->GetParticle(particle->get_pid())->Mass();
+    double e = sqrt(particle->get_px() * particle->get_px() + particle->get_py() * particle->get_py() + particle->get_pz() * particle->get_pz() + m * m);
+    particle_return->set_e(e);
   }
   return particle_return;
-
-}
-
-PHG4VtxPoint *PHG4InEventToTruthInfo::makePrimaryVertexCopy(const PHG4VtxPoint *vertex, int vtxid)
-{
-  return new PHG4VtxPointv2(vertex->get_x(),
-                            vertex->get_y(),
-                            vertex->get_z(),
-                            vertex->get_t(),
-                            vtxid,
-                            PHG4MCProcess::kPPrimary);
 }
 
 int PHG4InEventToTruthInfo::CreateNodeTree(PHCompositeNode *topNode)
 {
- PHNodeIterator iter(topNode);
+  PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
@@ -168,11 +160,11 @@ int PHG4InEventToTruthInfo::CreateNodeTree(PHCompositeNode *topNode)
     gSystem->Exit(1);
     exit(1);
   }
-    PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(dstNode, "G4TruthInfo");
-  if (! truthinfo)
+  PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(dstNode, "G4TruthInfo");
+  if (!truthinfo)
   {
     truthinfo = new PHG4TruthInfoContainer();
     dstNode->addNode(new PHIODataNode<PHObject>(truthinfo, "G4TruthInfo", "PHObject"));
   }
-return Fun4AllReturnCodes::EVENT_OK;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
