@@ -167,7 +167,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 		     std::multimap<unsigned int, unsigned int> &bad_map);
   short int getCrossingIntt(TrackSeed *_tracklet_si);
   // void findCrossingGeometrically(std::multimap<unsigned int, unsigned int> tpc_matches);
-  short int findCrossingGeometrically(unsigned int tpc_id, unsigned int si_id);
+  short int findCrossingGeometrically(unsigned int tpcid, unsigned int si_id);
   double getBunchCrossing(unsigned int trid, double z_mismatch);
 
   TFile *_file = nullptr;

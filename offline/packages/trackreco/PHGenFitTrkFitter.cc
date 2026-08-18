@@ -182,7 +182,7 @@ namespace
         geometry->geometry().getGeoContext()).rotation();
     const Acts::Vector3 delta = state_global - cluster_global;
 
-    const Acts::Vector2 state_local(
+    Acts::Vector2 state_local(
         cluster_local.x() + delta.dot(rotation.col(0)),
         cluster_local.y() + delta.dot(rotation.col(1)));
 

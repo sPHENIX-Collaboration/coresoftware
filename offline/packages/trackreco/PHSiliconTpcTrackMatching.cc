@@ -762,25 +762,13 @@ void PHSiliconTpcTrackMatching::checkZMatches(
         continue;
       }
 
-      if (window_dz.in_window(is_posQ, tpc_pt, tpc_z_corrected, si_z) && (fabs(z_mismatch_corrected) < _crossing_deltaz_max))
-      {
-        z_match = true;
-      }
-      else if (fabs(z_mismatch_corrected) < _crossing_deltaz_min)
-      {
-	z_match = true;
-      }
+      const float abs_dz = std::fabs(z_mismatch_corrected);
+      z_match = (window_dz.in_window(is_posQ, tpc_pt, tpc_z_corrected, si_z) && abs_dz < _crossing_deltaz_max) || abs_dz < _crossing_deltaz_min;
     }
     else
     {
-      if (window_dz.in_window(is_posQ, tpc_pt, tpc_z, si_z) && (fabs(z_mismatch) < _crossing_deltaz_max))
-      {
-        z_match = true;
-      }
-      else if (fabs(z_mismatch) < _crossing_deltaz_min)
-      {
-	z_match = true;
-      }
+      const float abs_dz = std::fabs(z_mismatch);
+      z_match = (window_dz.in_window(is_posQ, tpc_pt, tpc_z, si_z) && abs_dz < _crossing_deltaz_max) || abs_dz < _crossing_deltaz_min;
     }
 
     if (z_match)
