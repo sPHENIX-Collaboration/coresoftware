@@ -49,8 +49,7 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
     }
 
     m_phgarfield = std::make_unique<PHGarfield>();
-    m_phgarfield->InitRun(topNode);
-
+    m_phgarfield->SetElectricFieldMap("/sphenix/user/dloomis/Distortions/garfield_fields/sphenix_rossegger_garfield_field.root");
     TVector3 Northxyz(-0.001, -0.001, 1123.109);  // mm
     TVector3 Southxyz(-3.354, -0.673, -1137.382);  // mm
     TVector3 center = 0.5 * (Northxyz + Southxyz);
@@ -62,6 +61,9 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
     m_phgarfield->SetZeroField(m_garfield_zerofield);
     m_phgarfield->SetSpaceChargeScaleSide0(m_garfield_spacechargescaleside0);
     m_phgarfield->SetSpaceChargeScaleSide1(m_garfield_spacechargescaleside1);
+    m_phgarfield->InitRun(topNode);
+    
+    
 }
 
 //____________________________________________________________________________
