@@ -13,6 +13,7 @@
 #include <phool/getClass.h>
 
 #include <TPolyLine3D.h>
+#include <Math/Vector3D.h>
  
 #include <cmath>
 #include <iostream>
@@ -49,10 +50,10 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
     }
 
     m_phgarfield = std::make_unique<PHGarfield>();
-    m_phgarfield->SetElectricFieldMap("/sphenix/user/dloomis/Distortions/garfield_fields/sphenix_rossegger_garfield_field.root");
-    TVector3 Northxyz(-0.001, -0.001, 1123.109);  // mm
-    TVector3 Southxyz(-3.354, -0.673, -1137.382);  // mm
-    TVector3 center = 0.5 * (Northxyz + Southxyz);
+    m_phgarfield->SetElectricFieldMap(m_spacechargefieldmap);
+    ROOT::Math::XYZVector Northxyz(-0.001, -0.001, 1123.109);
+    ROOT::Math::XYZVector Southxyz(-3.354, -0.673, -1137.382);
+    ROOT::Math::XYZVector center = 0.5 * (Northxyz + Southxyz);
     center *= 0.1;  // mm to cm
     m_phgarfield->MoveTpc(center.X(), center.Y(), center.Z());
     m_phgarfield->RotateTpc(0, 0.001485, 0);

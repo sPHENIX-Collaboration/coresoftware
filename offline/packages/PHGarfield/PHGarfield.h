@@ -35,13 +35,13 @@ class PHGarfield : public SubsysReco
 
   enum class ReverseDriftStatus
   {
-    Running,
-    CentralMembrane,
-    RadialBoundary,
-    ZBoundary,
-    Stuck,
-    InvalidVelocity,
-    MaxSteps
+    Running = 0,
+    CentralMembrane = 1,
+    RadialBoundary = 2,
+    ZBoundary = 3,
+    Stuck = 4,
+    InvalidVelocity = 5,
+    MaxSteps = 6
   };
 
   ReverseDriftStatus StopHere(const double x, const double y, const double z, const double zPrevious);
