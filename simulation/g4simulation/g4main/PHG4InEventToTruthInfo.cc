@@ -128,13 +128,16 @@ int PHG4InEventToTruthInfo::process_event(PHCompositeNode *topNode)
 
 PHG4Particle *PHG4InEventToTruthInfo::makeParticleCopy(PHG4Particle *particle)
 {
-  if (particle->get_name().empty() && TDatabasePDG::Instance()->GetParticle(particle->get_pid()))
+  if (particle->get_name().empty())
   {
-    particle->set_name(TDatabasePDG::Instance()->GetParticle(particle->get_pid())->GetName());
-  }
-  else
-  {
-    particle->set_name("unknown");
+    if (TDatabasePDG::Instance()->GetParticle(particle->get_pid()))
+    {
+      particle->set_name(TDatabasePDG::Instance()->GetParticle(particle->get_pid())->GetName());
+    }
+    else
+    {
+      particle->set_name("unknown");
+    }
   }
   PHG4Particle *particle_return{nullptr};
   if (particle->isIon())
@@ -146,11 +149,18 @@ PHG4Particle *PHG4InEventToTruthInfo::makeParticleCopy(PHG4Particle *particle)
     particle_return = new PHG4Particlev2(particle);
   }
 
-  if (!std::isfinite(particle_return->get_e()) && TDatabasePDG::Instance()->GetParticle(particle->get_pid()))
+  if (!std::isfinite(particle_return->get_e()))
   {
-    double m = TDatabasePDG::Instance()->GetParticle(particle->get_pid())->Mass();
-    double e = sqrt(particle->get_px() * particle->get_px() + particle->get_py() * particle->get_py() + particle->get_pz() * particle->get_pz() + m * m);
-    particle_return->set_e(e);
+    if (TDatabasePDG::Instance()->GetParticle(particle->get_pid()))
+    {
+      double m = TDatabasePDG::Instance()->GetParticle(particle->get_pid())->Mass();
+      double e = sqrt(particle->get_px() * particle->get_px() + particle->get_py() * particle->get_py() + particle->get_pz() * particle->get_pz() + m * m);
+      particle_return->set_e(e);
+    }
+    else
+    {
+      particle_return->set_e(std::numeric_limits<double>::quiet_NaN());
+    }
   }
   return particle_return;
 }
