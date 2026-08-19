@@ -152,10 +152,6 @@ PHG4Particle *PHG4InEventToTruthInfo::makeParticleCopy(PHG4Particle *particle)
     double e = sqrt(particle->get_px() * particle->get_px() + particle->get_py() * particle->get_py() + particle->get_pz() * particle->get_pz() + m * m);
     particle_return->set_e(e);
   }
-  else
-  {
-    particle_return->set_e(std::numeric_limits<double>::quiet_NaN());
-  }
   return particle_return;
 }
 
