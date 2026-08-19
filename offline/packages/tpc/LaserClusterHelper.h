@@ -5,6 +5,7 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <array>
+#include <memory>
 
 class ActsGeometry;
 class LaserCluster;
@@ -16,7 +17,8 @@ class TPolyLine3D;
 class LaserClusterHelper
 {
   public:
-    LaserClusterHelper () = default;
+    LaserClusterHelper ();
+    ~LaserClusterHelper();
 
     void loadNodes(PHCompositeNode *topNode);
   
@@ -27,16 +29,25 @@ class LaserClusterHelper
 
     void set_useZ(bool use) { m_useZ = use; }
     void set_useGlobal(bool use) { m_useGlobal = use; }
+    void set_garfield_cmvoltage(double use) { m_garfield_cmvoltage = use; }
+    void set_garfield_zerofield(bool use) { m_garfield_zerofield = use; }
+    void set_garfield_spacechargescaleside0(double use) { m_garfield_spacechargescaleside0 = use; }
+    void set_garfield_spacechargescaleside1(double use) { m_garfield_spacechargescaleside1 = use; }
+    void set_garfield_stepns(double use) { m_garfield_stepns = use; }
   private:
-
-    bool InterpolateOrClosestAtZ(TPolyLine3D* path, double zTarget, double& rOut, double& phiOut) const;
-
-    PHGarfield* m_phgarfield{nullptr};
     ActsGeometry *m_tGeometry{nullptr};
     PHG4TpcGeomContainer *m_geom_container{nullptr};
+    std::unique_ptr<PHGarfield> m_phgarfield;
 
     bool m_useZ{false};
     bool m_useGlobal{true};
+
+    double m_garfield_cmvoltage{380.0};
+    bool m_garfield_zerofield{false};
+    double m_garfield_spacechargescaleside0{1.0};
+    double m_garfield_spacechargescaleside1{1.0};
+    double m_garfield_stepns{50.0};
+
 
 };
 

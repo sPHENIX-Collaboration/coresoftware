@@ -17,6 +17,7 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <memory>
 
 namespace
 {
@@ -28,6 +29,9 @@ namespace
                         std::numeric_limits<double>::quiet_NaN(),
                         std::numeric_limits<double>::quiet_NaN()};
 }
+
+LaserClusterHelper::LaserClusterHelper() = default;
+LaserClusterHelper::~LaserClusterHelper() = default;
 
 //____________________________________________________________________________
 void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
@@ -44,7 +48,7 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
         std::cout << "LaserClusterHelper::loadNodes - TPCGEOMCONTAINER not found on node tree" << std::endl;
     }
 
-    m_phgarfield = new PHGarfield();
+    m_phgarfield = std::make_unique<PHGarfield>();
     m_phgarfield->InitRun(topNode);
 
     TVector3 Northxyz(-0.001, -0.001, 1123.109);  // mm
@@ -54,8 +58,10 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
     m_phgarfield->MoveTpc(center.X(), center.Y(), center.Z());
     m_phgarfield->RotateTpc(0, 0.001485, 0);
     m_phgarfield->RotateTpc(0.000298, 0, 0);
-    m_phgarfield->SetCMVoltageDefault(380.0);
-    m_phgarfield->SetZeroField(false);
+    m_phgarfield->SetCMVoltageDefault(m_garfield_cmvoltage);
+    m_phgarfield->SetZeroField(m_garfield_zerofield);
+    m_phgarfield->SetSpaceChargeScaleSide0(m_garfield_spacechargescaleside0);
+    m_phgarfield->SetSpaceChargeScaleSide1(m_garfield_spacechargescaleside1);
 }
 
 //____________________________________________________________________________
@@ -225,24 +231,31 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroidWithPHGarfield(LaserCluster*
     }
 
     std::unique_ptr<TPolyLine3D> path;
+    PHGarfield::ReverseDriftStatus status = PHGarfield::ReverseDriftStatus::Running;
     if (!m_useGlobal)
     {
-        path.reset(m_phgarfield->ReverseDrift(readoutPos[0], readoutPos[1], readoutPos[2]));
+        path.reset(m_phgarfield->ReverseDrift(readoutPos[0], readoutPos[1], readoutPos[2], m_garfield_stepns, &status));
     }
     else
     {
-        path.reset(m_phgarfield->ReverseDriftGlobalCoords(readoutPos[0], readoutPos[1], readoutPos[2]));
+        path.reset(m_phgarfield->ReverseDriftGlobalCoords(readoutPos[0], readoutPos[1], readoutPos[2], m_garfield_stepns, &status));
     }
     
-    // just get the last point on the polyline which should be on the central membrane
     if (!path)
     {
         return invalid;
     }
+
     if (path->GetN() < 1)
     {
         return invalid;
     }
+
+    if (status != PHGarfield::ReverseDriftStatus::CentralMembrane)
+    {
+        return invalid;
+    }
+
     const int nPoints = path->GetN();
     const float* points = path->GetP();
     const double xCM = points[3 * (nPoints-1) + 0];
