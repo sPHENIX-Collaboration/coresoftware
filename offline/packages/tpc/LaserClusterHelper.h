@@ -6,6 +6,7 @@
 
 #include <array>
 #include <memory>
+#include <string>
 
 class ActsGeometry;
 class LaserCluster;
@@ -34,7 +35,7 @@ class LaserClusterHelper
     void set_garfield_spacechargescaleside0(double use) { m_garfield_spacechargescaleside0 = use; }
     void set_garfield_spacechargescaleside1(double use) { m_garfield_spacechargescaleside1 = use; }
     void set_garfield_stepns(double use) { m_garfield_stepns = use; }
-    void set_garfield_spacechargefieldmap(std::string use) { m_spacechargefieldmap = use; }
+    void set_garfield_spacechargefieldmap(const std::string& use) { m_spacechargefieldmap = use; }
   private:
     ActsGeometry *m_tGeometry{nullptr};
     PHG4TpcGeomContainer *m_geom_container{nullptr};
