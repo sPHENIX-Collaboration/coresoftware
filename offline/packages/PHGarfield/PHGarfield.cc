@@ -577,7 +577,7 @@ double PHGarfield::bounder(double phi, double phi_min)
   return phi;
 }
 
-TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_ns)
+TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_ns, ReverseDriftStatus* driftStatus)
 {
   // Public/default drift function: input and output are local TPC coordinates.
   // Do not transform these coordinates before asking Garfield for E/gas values;
@@ -606,7 +606,9 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
 
   constexpr int maxSteps = 20000;
   int step = 0;
-  while (!StopHere(x, y, z, zPrevious) && step < maxSteps)
+
+  ReverseDriftStatus status = StopHere(x, y, z, zPrevious);
+  while (status == ReverseDriftStatus::Running && step < maxSteps)
   {
     zPrevious = z;
 
@@ -623,6 +625,7 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
                 << " E=(" << ex << ", " << ey << ", " << ez << ") V/cm"
                 << " B=(" << bx << ", " << by << ", " << bz << ") T"
                 << std::endl;
+      status = ReverseDriftStatus::InvalidVelocity;
       break;
     }
 
@@ -634,13 +637,22 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
     ylist.push_back(y);
     zlist.push_back(z);
     ++step;
+
+    status = StopHere(x, y, z, zPrevious);
   }
 
-  if (step >= maxSteps)
+  if (step >= maxSteps && status == ReverseDriftStatus::Running)
   {
     std::cout << PHWHERE << " ReverseDrift reached maxSteps=" << maxSteps
               << "; stopping drift at p_tpc=(" << x << ", " << y << ", " << z
               << ") cm" << std::endl;
+
+    status = ReverseDriftStatus::MaxSteps;
+  }
+
+  if (driftStatus)
+  {
+    *driftStatus = status;
   }
 
   // Keep all stored points, including the initial point.  This avoids returning
@@ -659,14 +671,14 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
   return poly;
 }
 
-TPolyLine3D* PHGarfield::ReverseDriftGlobalCoords(double x_cm, double y_cm, double z_cm, double step_ns)
+TPolyLine3D* PHGarfield::ReverseDriftGlobalCoords(double x_cm, double y_cm, double z_cm, double step_ns, ReverseDriftStatus* status)
 {
   // Caller gives a GLOBAL point and receives a GLOBAL-coordinate polyline.
   // Actual Garfield drift is still done in local TPC coordinates.
 
   const TVector3 p_tpc = GlobalPointToTpcPoint(x_cm, y_cm, z_cm);
 
-  TPolyLine3D* poly = ReverseDrift(p_tpc.X(), p_tpc.Y(), p_tpc.Z(), step_ns);
+  TPolyLine3D* poly = ReverseDrift(p_tpc.X(), p_tpc.Y(), p_tpc.Z(), step_ns, status);
   if (!poly)
   {
     return nullptr;
@@ -688,26 +700,26 @@ TPolyLine3D* PHGarfield::ReverseDriftGlobalCoords(double x_cm, double y_cm, doub
   return poly;
 }
 
-bool PHGarfield::StopHere(const double x, const double y, const double z,
+PHGarfield::ReverseDriftStatus PHGarfield::StopHere(const double x, const double y, const double z,
                           const double zPrevious)
 {
   const double r = std::hypot(x, y);
 
   if (r < 18.0)
   {
-    return true;
+    return ReverseDriftStatus::RadialBoundary;
   }
   if (r > 82.0)
   {
-    return true;
+    return ReverseDriftStatus::RadialBoundary;
   }
   if (z > 120.0)
   {
-    return true;
+    return ReverseDriftStatus::ZBoundary;
   }
   if (z < -120.0)
   {
-    return true;
+    return ReverseDriftStatus::ZBoundary;
   }
 
   // The first step passes zPrevious=NaN.  Do not apply crossing/stuck checks then.
@@ -716,15 +728,15 @@ bool PHGarfield::StopHere(const double x, const double y, const double z,
     // z crossed the central membrane.
     if (z * zPrevious < 0.0)
     {
-      return true;
+      return ReverseDriftStatus::CentralMembrane;
     }
 
     // Protect against infinite loops if Garfield returns no longitudinal motion.
     if (z == zPrevious)
     {
-      return true;
+      return ReverseDriftStatus::Stuck;
     }
   }
 
-  return false;
+  return ReverseDriftStatus::Running;
 }

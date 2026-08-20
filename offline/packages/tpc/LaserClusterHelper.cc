@@ -1,5 +1,7 @@
 #include "LaserClusterHelper.h"
  
+#include <phgarfield/PHGarfield.h>
+
 #include <trackbase/LaserCluster.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
@@ -9,10 +11,14 @@
  
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+
+#include <TPolyLine3D.h>
+#include <Math/Vector3D.h>
  
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <memory>
 
 namespace
 {
@@ -24,6 +30,9 @@ namespace
                         std::numeric_limits<double>::quiet_NaN(),
                         std::numeric_limits<double>::quiet_NaN()};
 }
+
+LaserClusterHelper::LaserClusterHelper() = default;
+LaserClusterHelper::~LaserClusterHelper() = default;
 
 //____________________________________________________________________________
 void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
@@ -39,6 +48,23 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
     {
         std::cout << "LaserClusterHelper::loadNodes - TPCGEOMCONTAINER not found on node tree" << std::endl;
     }
+
+    m_phgarfield = std::make_unique<PHGarfield>();
+    m_phgarfield->SetElectricFieldMap(m_spacechargefieldmap);
+    ROOT::Math::XYZVector Northxyz(-0.001, -0.001, 1123.109);
+    ROOT::Math::XYZVector Southxyz(-3.354, -0.673, -1137.382);
+    ROOT::Math::XYZVector center = 0.5 * (Northxyz + Southxyz);
+    center *= 0.1;  // mm to cm
+    m_phgarfield->MoveTpc(center.X(), center.Y(), center.Z());
+    m_phgarfield->RotateTpc(0, 0.001485, 0);
+    m_phgarfield->RotateTpc(0.000298, 0, 0);
+    m_phgarfield->SetCMVoltageDefault(m_garfield_cmvoltage);
+    m_phgarfield->SetZeroField(m_garfield_zerofield);
+    m_phgarfield->SetSpaceChargeScaleSide0(m_garfield_spacechargescaleside0);
+    m_phgarfield->SetSpaceChargeScaleSide1(m_garfield_spacechargescaleside1);
+    m_phgarfield->InitRun(topNode);
+    
+    
 }
 
 //____________________________________________________________________________
@@ -171,4 +197,74 @@ std::array<double, 3> LaserClusterHelper::getClusterHardwareCentroid(LaserCluste
     }
 
     return {layerSum / adcSum, iphiSum / adcSum, itSum / adcSum};
+}
+
+
+Acts::Vector3 LaserClusterHelper::getClusterCentroidWithPHGarfield(LaserCluster* cluster) const
+{
+    if(!cluster)
+    {
+        return invalid;
+    }
+
+    if (cluster->getNhits() < 1)
+    {
+        return invalid;
+    }
+
+    Acts::Vector3 centroid = getClusterCentroid(cluster);
+    if (std::isnan(centroid[0]) || std::isnan(centroid[1]) || std::isnan(centroid[2]))
+    {
+        return invalid;
+    }
+
+    // transform back to local if necessary so that z position can be put at readout plane
+    if (m_useGlobal)
+    {
+        centroid = m_tGeometry->transformTpcWorldToEnvelope(centroid);
+    }
+
+    const LaserClusterHitInfo hit = cluster->getHit(0);
+    const int side = TpcDefs::getSide(hit.hitsetkey);
+
+    Acts::Vector3 readoutPos(centroid[0], centroid[1], side == 1 ? 102 : -102);
+    if (m_useGlobal)
+    {
+        readoutPos = m_tGeometry->transformTpcEnvelopeToWorld(readoutPos);
+    }
+
+    std::unique_ptr<TPolyLine3D> path;
+    PHGarfield::ReverseDriftStatus status = PHGarfield::ReverseDriftStatus::Running;
+    if (!m_useGlobal)
+    {
+        path.reset(m_phgarfield->ReverseDrift(readoutPos[0], readoutPos[1], readoutPos[2], m_garfield_stepns, &status));
+    }
+    else
+    {
+        path.reset(m_phgarfield->ReverseDriftGlobalCoords(readoutPos[0], readoutPos[1], readoutPos[2], m_garfield_stepns, &status));
+    }
+    
+    if (!path)
+    {
+        return invalid;
+    }
+
+    if (path->GetN() < 1)
+    {
+        return invalid;
+    }
+
+    if (status != PHGarfield::ReverseDriftStatus::CentralMembrane)
+    {
+        return invalid;
+    }
+
+    const int nPoints = path->GetN();
+    const float* points = path->GetP();
+    const double xCM = points[3 * (nPoints-1) + 0];
+    const double yCM = points[3 * (nPoints-1) + 1];
+    const double zCM = points[3 * (nPoints-1) + 2];
+    Acts::Vector3 centroidatCM(xCM,yCM,zCM);
+
+    return centroidatCM;
 }
