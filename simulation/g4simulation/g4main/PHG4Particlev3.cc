@@ -3,6 +3,7 @@
 
 #include <Geant4/G4SystemOfUnits.hh>
 
+#include <cmath>
 #include <string>
 
 PHG4Particlev3::PHG4Particlev3(const PHG4Particle* in)
@@ -38,6 +39,8 @@ void PHG4Particlev3::identify(std::ostream& os) const
      << ", px: " << fpx
      << ", py: " << fpy
      << ", pz: " << fpz
+     << ", phi: " << atan2(fpy, fpx)
+     << ", eta: " << -1 * log(tan(0.5 * acos(fpz / sqrt((fpx * fpx) + (fpy * fpy) + (fpz * fpz)))))
      << ", e: " << fe
      << ", A: " << A
      << ", Z: " << Z

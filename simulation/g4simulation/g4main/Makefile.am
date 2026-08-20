@@ -117,6 +117,7 @@ libg4testbench_la_SOURCES = \
   PHG4EtaParameterization.cc \
   PHG4EtaPhiParameterization.cc \
   PHG4HeadReco.cc \
+  PHG4InEventToTruthInfo.cc \
   PHG4InputFilter.cc \
   PHG4IonGun.cc \
   PHG4MagneticField.cc \
@@ -172,6 +173,7 @@ pkginclude_HEADERS = \
   PHG4HitEval.h \
   PHG4HitContainer.h \
   PHG4InEvent.h \
+  PHG4InEventToTruthInfo.h \
   PHG4IonGun.h \
   PHG4MCProcessDefs.h \
   PHG4Particle.h \
