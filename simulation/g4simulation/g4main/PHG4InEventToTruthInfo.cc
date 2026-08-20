@@ -128,17 +128,6 @@ int PHG4InEventToTruthInfo::process_event(PHCompositeNode *topNode)
 
 PHG4Particle *PHG4InEventToTruthInfo::makeParticleCopy(PHG4Particle *particle)
 {
-  if (particle->get_name().empty())
-  {
-    if (TDatabasePDG::Instance()->GetParticle(particle->get_pid()))
-    {
-      particle->set_name(TDatabasePDG::Instance()->GetParticle(particle->get_pid())->GetName());
-    }
-    else
-    {
-      particle->set_name("unknown");
-    }
-  }
   PHG4Particle *particle_return{nullptr};
   if (particle->isIon())
   {
@@ -149,6 +138,17 @@ PHG4Particle *PHG4InEventToTruthInfo::makeParticleCopy(PHG4Particle *particle)
     particle_return = new PHG4Particlev2(particle);
   }
 
+  if (particle_return->get_name().empty())
+  {
+    if (TDatabasePDG::Instance()->GetParticle(particle_return->get_pid()))
+    {
+      particle_return->set_name(TDatabasePDG::Instance()->GetParticle(particle_return->get_pid())->GetName());
+    }
+    else
+    {
+      particle_return->set_name("unknown");
+    }
+  }
   if (!std::isfinite(particle_return->get_e()))
   {
     if (TDatabasePDG::Instance()->GetParticle(particle->get_pid()))
