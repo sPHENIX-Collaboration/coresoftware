@@ -759,6 +759,7 @@ void SingleTriggeredInput::FillPool()
       }
       m_DitchPackets.clear();
       Event* refill_evt = nullptr;
+      bool refill_used = false;
 
       for (const auto& [pid, sebdiff] : m_bclkdiffarray_map)
       {
@@ -852,6 +853,16 @@ void SingleTriggeredInput::FillPool()
             if (!refill_evt)
             {
               refill_evt = GetEventIterator()->getNextEvent();
+              while (!refill_evt)
+              {
+                fileclose();
+                if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
+                {
+                  FilesDone(1);
+                  break;
+                }
+                refill_evt = GetEventIterator()->getNextEvent();
+              }
               while (refill_evt && refill_evt->getEvtType() != DATAEVENT)
               {
                 delete refill_evt;
@@ -870,11 +881,14 @@ void SingleTriggeredInput::FillPool()
               {
                 FillPacketClock(refill_evt, pkt, packetpoolsize - 1);
                 m_PacketEventDeque[pid].push_back(refill_evt);
+                refill_used = true;
                 delete pkt;
               }
               else
               {
-                std::cout << Name() << ": refill event " << refill_evt->getEvtSequence() << " and no packet pid : " << pid << std::endl;
+                std::cout << Name() << ": refill event " << refill_evt->getEvtSequence() << " has no packet " << pid << " - marking packet as bad" << std::endl;
+                m_PacketAlignmentProblem[pid] = true;
+                continue;
               }
             }
             else
@@ -978,6 +992,10 @@ void SingleTriggeredInput::FillPool()
 
           m_PrevPoolLastDiffBad[pid] = false;
         }
+      }
+      if (refill_evt && !refill_used)
+      {
+        delete refill_evt;
       }
     }
   }
