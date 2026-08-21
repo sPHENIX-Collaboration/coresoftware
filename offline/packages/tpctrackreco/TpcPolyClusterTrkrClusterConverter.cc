@@ -251,7 +251,10 @@ bool TpcPolyClusterTrkrClusterConverter::localFromMovedGlobal(const Tpc_PolyClus
     local.y() + static_cast<double>(crossing) * z_bunch_separation :
     local.y() - static_cast<double>(crossing) * z_bunch_separation;
   const double tuncorrected = (side == 0) ? (zloc_uncorrected + half_drift) / drift_velocity : (half_drift - zloc_uncorrected) / drift_velocity;
-  const double stored_t_uncorrected = tuncorrected - m_geometry->get_tpc_tzero() - m_geometry->get_sampa_tzero_bias();
+  //const double stored_t_uncorrected = tuncorrected - m_geometry->get_tpc_tzero() - m_geometry->get_sampa_tzero_bias();
+  const double stored_t_uncorrected = (side == 0) ?
+      tuncorrected - m_geometry->get_tpc_tzero() + 2 * m_geometry->get_sampa_tzero_bias() :
+      tuncorrected - m_geometry->get_tpc_tzero() - m_geometry->get_sampa_tzero_bias();
   if (!std::isfinite(stored_t_uncorrected)) { return false;
   }
 
