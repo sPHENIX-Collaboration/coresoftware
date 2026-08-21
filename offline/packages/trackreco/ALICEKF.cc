@@ -712,11 +712,12 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     {
       continue;
     }
-    auto lcluster = _cluster_map->findCluster(trackKeyChain.back());
-    const auto& lclusterglob = globalPositions.at(trackKeyChain.back());
+    const auto last_cluster_key = trackKeyChain.back();
+    auto *lcluster = _cluster_map->findCluster(last_cluster_key);
+    const auto& lclusterglob = globalPositions.at(last_cluster_key);
     const float lclusterrad = sqrt(lclusterglob(0) * lclusterglob(0) + lclusterglob(1) * lclusterglob(1));
-    double last_cluster_phierr = lcluster->getRPhiError() / lclusterrad;
-    ;
+    const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(lcluster, lclusterrad, last_cluster_key);
+    double last_cluster_phierr = std::sqrt(cluster_errors.first) / lclusterrad;
 
     // phi error assuming error in track radial coordinate is zero
     double track_phierr = sqrt(pow(last_cluster_phierr, 2) + (pow(trackSeed.GetX(), 2) * trackSeed.GetErr2Y()) /

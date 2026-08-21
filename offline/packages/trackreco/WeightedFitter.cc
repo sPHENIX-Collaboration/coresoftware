@@ -397,7 +397,6 @@ WeightedFitter::get_points (
 		ClusterFitPoint point;
 		point.cluster_key = cluster_key;
 		point.cluster_position = (local_to_global_transform * local_pos);
-		point.cluster_errors = { cluster->getRPhiError(), cluster->getZError() };
 		point.sensor_local_to_global_transform = local_to_global_transform;
 
 		// Modify position, error using helper classes
@@ -762,4 +761,3 @@ WeightedFitter::add_track (
 
 	return false;
 }
-
