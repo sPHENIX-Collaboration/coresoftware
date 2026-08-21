@@ -729,9 +729,6 @@ void SingleTriggeredInput::FillPool()
   if (!FilesDone())
   {
     int eventvectorsize = FillEventVector();
-    // this seems a unique signature for raw data files which only contain the
-    // begin and end run event but no data events. FillEventVector() returns -1
-    // and since no events were read the m_PacketEventDeque is empty
     if (eventvectorsize < 0 && m_PacketEventDeque.empty())
     {
       std::cout << Name() << ": No data Events in input file " << FileName() << std::endl;
@@ -1030,9 +1027,6 @@ void SingleTriggeredInput::CreateDSTNodes(Event* evt)
   }
   else
   {
-    // if we want to keep a few packets, we need two detNodes, Packet and PacketKeep
-    // this construct here allows for the KeepMyPackets flag to take effect, then both
-    // node pointers detNode and detNodeKeep point to the same (so KeepMyPackets has precedence)
     detNode = dynamic_cast<PHCompositeNode*>(iterDst.findFirst("PHCompositeNode", CompositeNodeName));
     if (!detNode)
     {
