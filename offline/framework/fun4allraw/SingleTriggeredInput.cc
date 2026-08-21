@@ -758,6 +758,7 @@ void SingleTriggeredInput::FillPool()
         return;
       }
       m_DitchPackets.clear();
+      Event* refill_evt = nullptr;
 
       for (const auto& [pid, sebdiff] : m_bclkdiffarray_map)
       {
@@ -848,19 +849,32 @@ void SingleTriggeredInput::FillPool()
             {
               m_bclkdiffarray_map[pid][i] = ComputeClockDiff(m_bclkarray_map[pid][i + 1], m_bclkarray_map[pid][i]);
             }
-            Event* evt = GetEventIterator()->getNextEvent();
-            if (evt)
+            if (!refill_evt)
             {
-              evt->convert();
-              std::vector<Packet*> pktvec = evt->getPacketVector();
-              for (Packet* pkt : pktvec)
+              refill_evt = GetEventIterator()->getNextEvent();
+              while (refill_evt && refill_evt->getEvtType() != DATAEVENT)
               {
-                if (pkt->getIdentifier() == pid)
-                {
-                  FillPacketClock(evt, pkt, packetpoolsize - 1);
-                  m_PacketEventDeque[pid].push_back(evt);
-                }
+                delete refill_evt;
+                refill_evt = GetEventIterator()->getNextEvent();
+              }
+              if (refill_evt)
+              {
+                refill_evt->convert();
+                std::cout << Name() << ": shift by -1 for prdf event " << refill_evt->getEvtSequence() << std::endl;
+              }
+            }
+            if (refill_evt)
+            {
+              Packet* pkt = refill_evt->getPacket(pid);
+              if (pkt)
+              {
+                FillPacketClock(refill_evt, pkt, packetpoolsize - 1);
+                m_PacketEventDeque[pid].push_back(refill_evt);
                 delete pkt;
+              }
+              else
+              {
+                std::cout << Name() << ": refill event " << refill_evt->getEvtSequence() << " and no packet pid : " << pid << std::endl;
               }
             }
             else
