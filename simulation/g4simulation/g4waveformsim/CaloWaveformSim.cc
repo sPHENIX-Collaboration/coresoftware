@@ -6,6 +6,8 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4HitDefs.h>  // for hit_idbits
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
@@ -18,12 +20,17 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <calobase/RawTowerDefs.h>
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerSimv3.h>
 #include <calobase/TowerInfoDefs.h>
 
 #include <caloreco/CaloTowerDefs.h>
+
+#include <ffaobjects/EventHeader.h>
 
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom_Spacalv1.h>
@@ -62,6 +69,7 @@ CaloWaveformSim::~CaloWaveformSim()
   delete cdbttree_MC;
   delete cdbttree_time;
   delete cdbttree_MC_time;
+  delete cdbttree_hotMap;
   delete h_template;
 }
 
@@ -286,6 +294,27 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     }
   }
 
+  // Dead/hot tower map, used only to mask towers out of the pre-fit CaloEtSum
+  // computed below -- the same "<DET>_BadTowerMap" payload CaloTowerStatus
+  // loads later for the calibrated towers. Missing map => no masking, just a
+  // warning; it is not required for the waveform simulation itself.
+  {
+    std::string calibdir_hotMap = m_directURL_hotMap;
+    if (calibdir_hotMap.empty())
+    {
+      calibdir_hotMap = CDBInterface::instance()->getUrl(m_detector + "_BadTowerMap");
+    }
+    if (!calibdir_hotMap.empty())
+    {
+      cdbttree_hotMap = new CDBTTree(calibdir_hotMap);
+    }
+    else if (Verbosity() > 0)
+    {
+      std::cout << "CaloWaveformSim::InitRun No BadTowerMap found for " << m_detector
+                << ", CaloEtSum will not mask any towers" << std::endl;
+    }
+  }
+
   // Prepare waveform buffers
   m_waveforms.assign(m_nchannels, std::vector<float>(m_nsamples));
 
@@ -363,6 +392,23 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
   std::map<unsigned int, float> tbt_smear;
   std::map<unsigned int, double> tower_photon_count_mean;
 
+  // Per-tower G4-scaled, pre-fit energy (GeV-equivalent), masked by the
+  // dead/hot tower map -- accumulated below, used only for CaloEtSum.
+  std::vector<float> tower_prefit_energy(m_nchannels, 0.F);
+  // Same, but only the embedded-signal (e.g. PYTHIA8) contribution, tracked
+  // separately so CaloEtSum can also be split by origin (see
+  // CaloEtSum_<DET>_HIJING / _PYTHIA below). tower_prefit_energy above still
+  // holds the combined (background+signal) energy, unchanged.
+  std::vector<float> tower_prefit_energy_embedded(m_nchannels, 0.F);
+
+  // m_energy_scale is meant to rescale only the underlying-event (e.g.
+  // HIJING) truth energy, not any embedded signal (e.g. PYTHIA8) that may
+  // share the same G4Hit container after hit-level embedding. Hits whose
+  // originating track carries a nonzero embedding ID (see
+  // PHG4TruthInfoContainer::isEmbeded -- 0 means background/not embedded)
+  // are left unscaled.
+  PHG4TruthInfoContainer *truthinfo_embed = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+
   // loop over hits
   for (PHG4HitContainer::ConstIterator hititer = hits->getHits().first; hititer != hits->getHits().second; hititer++)
   {
@@ -384,6 +430,11 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
     float e_vis = hit->get_light_yield();
     e_vis *= correction;
+    bool hit_is_embedded_signal = truthinfo_embed && (truthinfo_embed->isEmbeded(hit->get_trkid()) != 0);
+    if (!hit_is_embedded_signal)
+    {
+      e_vis *= m_energy_scale;
+    }
     if (m_smear_const)
     {
       auto it = tbt_smear.find(key);
@@ -415,6 +466,19 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     }
 
     float e_dep = e_vis / m_sampling_fraction;
+
+    // Accumulate this hit's (already scaled) energy into its tower for the
+    // pre-fit CaloEtSum, unless the tower is flagged in the dead/hot map.
+    bool towerMasked = cdbttree_hotMap && (cdbttree_hotMap->GetIntValue(key, "status") > 0);
+    if (!towerMasked)
+    {
+      tower_prefit_energy.at(tower_index) += e_dep;
+      if (hit_is_embedded_signal)
+      {
+        tower_prefit_energy_embedded.at(tower_index) += e_dep;
+      }
+    }
+
     float ADC = (calibconst != 0) ? e_dep / calibconst : 0.;
     ADC *= m_gain;
 
@@ -451,6 +515,105 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     for (int i = 0; i < m_nsamples; i++)
     {
       m_waveforms.at(tower_index).at(i) += f_fit->Eval(i);
+    }
+  }
+
+  // CaloEtSum: sum this detector's masked, pre-fit (G4-scaled) tower energy
+  // as Et = E/cosh(eta), with eta corrected for the truth z vertex (same
+  // idiom TowerJetInput uses for the reco vertex), and add it onto the
+  // existing EventHeader node alongside a running combined total across
+  // CEMC/HCALIN/HCALOUT. Using the pre-fit energy (rather than the
+  // waveform-fit-recovered TOWERINFO_CALIB_<DET> amplitude) means this
+  // reflects exactly what was scaled in, independent of any fit
+  // bias/pileup/zero-suppression in the downstream waveform fitting. Note
+  // the mask here only reflects the static dead/hot tower map (see
+  // InitRun) -- the bad-chi2 flag CaloTowerStatus sets later depends on the
+  // actual waveform fit and cannot be known at this stage.
+  {
+    float vtxz = 0.;
+    PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+    if (truthinfo)
+    {
+      PHG4VtxPoint *gvertex = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
+      if (gvertex)
+      {
+        vtxz = gvertex->get_z();
+      }
+    }
+
+    RawTowerGeomContainer *geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_" + m_detector);
+    RawTowerDefs::CalorimeterId caloid = RawTowerDefs::convert_name_to_caloid(m_detector);
+
+    float det_et = 0.;
+    float det_et_embedded = 0.;
+    for (int idx = 0; idx < m_nchannels; idx++)
+    {
+      if (tower_prefit_energy.at(idx) == 0.F)
+      {
+        continue;
+      }
+      if (!geom)
+      {
+        continue;
+      }
+      unsigned int geomkey = m_CaloWaveformContainer->encode_key(idx);
+      int ieta = m_CaloWaveformContainer->getTowerEtaBin(geomkey);
+      int iphi = m_CaloWaveformContainer->getTowerPhiBin(geomkey);
+      RawTowerGeom *tg = geom->get_tower_geometry(RawTowerDefs::encode_towerid(caloid, ieta, iphi));
+      if (!tg)
+      {
+        continue;
+      }
+      double r = tg->get_center_radius();
+      double towereta = tg->get_eta();
+      double z0 = std::sinh(towereta) * r;
+      double z = z0 - vtxz;
+      double eta = std::asinh(z / r);  // eta after shift from the truth z vertex
+      det_et += tower_prefit_energy.at(idx) / std::cosh(eta);
+      det_et_embedded += tower_prefit_energy_embedded.at(idx) / std::cosh(eta);
+    }
+    if (!geom && Verbosity() > 0)
+    {
+      std::cout << "CaloWaveformSim::process_event: TOWERGEOM_" << m_detector
+                << " missing, CaloEtSum_" << m_detector << " will be 0" << std::endl;
+    }
+    // Et is a per-tower linear functional of energy (E/cosh(eta) with a
+    // fixed per-tower eta), so summing the combined and embedded-only
+    // per-tower sums separately and subtracting recovers the background
+    // (e.g. HIJING)-only Et exactly -- no need for a third accumulator.
+    float det_et_background = det_et - det_et_embedded;
+
+    EventHeader *eventheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+    if (eventheader)
+    {
+      eventheader->set_floatval("CaloEtSum_" + m_detector, det_et);
+      eventheader->set_floatval("CaloEtSum_" + m_detector + "_HIJING", det_et_background);
+      eventheader->set_floatval("CaloEtSum_" + m_detector + "_PYTHIA", det_et_embedded);
+
+      float priorTotal = eventheader->get_floatval("CaloEtSum_Total");
+      if (!std::isfinite(priorTotal))
+      {
+        priorTotal = 0.F;
+      }
+      eventheader->set_floatval("CaloEtSum_Total", priorTotal + det_et);
+
+      float priorTotalHijing = eventheader->get_floatval("CaloEtSum_Total_HIJING");
+      if (!std::isfinite(priorTotalHijing))
+      {
+        priorTotalHijing = 0.F;
+      }
+      eventheader->set_floatval("CaloEtSum_Total_HIJING", priorTotalHijing + det_et_background);
+
+      float priorTotalPythia = eventheader->get_floatval("CaloEtSum_Total_PYTHIA");
+      if (!std::isfinite(priorTotalPythia))
+      {
+        priorTotalPythia = 0.F;
+      }
+      eventheader->set_floatval("CaloEtSum_Total_PYTHIA", priorTotalPythia + det_et_embedded);
+    }
+    else if (Verbosity() > 0)
+    {
+      std::cout << "CaloWaveformSim::process_event: EventHeader node missing, CaloEtSum not stored" << std::endl;
     }
   }
 
