@@ -54,8 +54,8 @@ class PHNodeIOManager : public PHIOManager
   void BufferSize(const int size) { buffersize = size; }
   int SplitLevel() const { return splitlevel; }
   int BufferSize() const { return buffersize; }
-  int CacheSize() const { return m_cacheSize; }
-  void CacheSize(uint64_t size) { m_cacheSize = size;}
+  int TTreeCacheSize() const { return m_TTreeCacheSize; }
+  void TTreeCacheSize(int64_t size);
   
   void DisableReadCache();
 
@@ -68,12 +68,13 @@ private:
   TFile *file{nullptr};
   TTree *tree{nullptr};
   std::string TreeName{"T"};
-  uint64_t m_cacheSize = std::numeric_limits<uint64_t>::max();
+  int64_t m_TTreeCacheSize {-1};
   int accessMode{PHReadOnly};
   int m_CompressionSetting{505};  // ZSTD
   int isFunctionalFlag{0};        // flag to tell if that object initialized properly
   int buffersize{std::numeric_limits<int>::min()};
   int splitlevel{std::numeric_limits<int>::min()};
+  bool m_DisableReadCache_Flag {false};
   std::map<std::string, TBranch *> fBranches;
   std::map<std::string, bool> objectToRead;
 };
