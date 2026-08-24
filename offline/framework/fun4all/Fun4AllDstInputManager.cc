@@ -132,6 +132,10 @@ int Fun4AllDstInputManager::fileopen(const std::string &filenam)
     setBranches();                // set branch selections
     AddToFileOpened(FileName());  // add file to the list of files which were opened
                                   // check if our input file has a sync object or not
+    if (TTreeCacheSize() > -1)
+    {
+       m_IManager->TTreeCacheSize(TTreeCacheSize());
+    }
     if (ReadCacheDisabled())
     {
       m_IManager->DisableReadCache();
@@ -205,8 +209,7 @@ readagain:
   // check if the local SubsysReco discards this event
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
-    // NOLINTNEXTLINE(hicpp-avoid-goto)
-    goto readagain;
+    goto readagain;// NOLINT(hicpp-avoid-goto)
   }
   syncobject = findNode::getClass<SyncObject>(dstNode, syncdefs::SYNCNODENAME);
   return 0;
@@ -653,4 +656,14 @@ int Fun4AllDstInputManager::HasSyncObject() const
     exit(1);
   }
   return 0;
+}
+
+void Fun4AllDstInputManager::TTreeCacheSize(int64_t size)
+{
+  m_TTreeCacheSize = size;
+  if (m_IManager)
+  {
+    m_IManager->TTreeCacheSize(size);
+  }
+  return;
 }

@@ -100,7 +100,6 @@ bool PHNodeIOManager::setFile(const std::string& f, const std::string& title,
     file->SetCompressionSettings(m_CompressionSetting);
     tree = new TTree(TreeName.c_str(), title.c_str());
     TTree::SetMaxTreeSize(900000000000LL);  // set max size to ~900 GB
-
     gROOT->cd(currdir.c_str());
     return true;
     break;
@@ -110,6 +109,11 @@ bool PHNodeIOManager::setFile(const std::string& f, const std::string& title,
     if (!file)
     {
       return false;
+    }
+    if (m_DisableReadCache_Flag)
+    {
+      std::cout << PHWHERE << " disabling read cache" << std::endl;
+      file->SetCacheRead(nullptr);
     }
     selectObjectToRead("*", true);
     gROOT->cd(currdir.c_str());
@@ -294,11 +298,6 @@ bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
   TFile* file_ptr = gFile;  // save current gFile
   file->cd();
   
-  if (m_cacheSize != std::numeric_limits<uint64_t>::max())
-  {
-    tree->SetCacheSize(m_cacheSize);
-  }
-
   if (requestedEvent)
   {
     bytesRead = tree->GetEvent(requestedEvent);
@@ -306,6 +305,7 @@ bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
     {
       eventNumber = requestedEvent + 1;
     }
+//    tree->DropBaskets();
   }
   else
   {
@@ -374,6 +374,10 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
               << TreeName << " not found in file " << file->GetName() << std::endl;
     return nullptr;
   }
+  if (m_TTreeCacheSize > -1)
+  {
+    tree->SetCacheSize(m_TTreeCacheSize);
+  }
   // ROOT sucks, we need a unique name for the tree so we can open multiple
   // files. So we take the memory location of the file pointer which
   // should be unique within this process to create it
@@ -389,8 +393,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
   {
     for (it = objectToRead.begin(); it != objectToRead.end(); ++it)
     {
-      tree->SetBranchStatus((it->first).c_str(),
-                            static_cast<bool>(it->second));
+      tree->SetBranchStatus((it->first).c_str(), static_cast<bool>(it->second));
     }
   }
   // The file contains a TTree with a list of the TBranchObjects
@@ -620,9 +623,26 @@ bool PHNodeIOManager::NodeExist(const std::string& nodename)
 
 void PHNodeIOManager::DisableReadCache()
 {
+  // this flag is read during opening of the TFile
+  m_DisableReadCache_Flag = true;
+
+  // in case the file was already opened, set this after the fact
+  // delete the existing cache after disconnecting it from the TFile
   if (file)
   {
+    auto* cache = file->GetCacheRead();
     file->SetCacheRead(nullptr);
+    delete cache;
+  }
+  return;
+}
+
+void PHNodeIOManager::TTreeCacheSize(int64_t size)
+{
+  m_TTreeCacheSize = size;
+  if (tree)
+  {
+    tree->SetCacheSize(size);
   }
   return;
 }
