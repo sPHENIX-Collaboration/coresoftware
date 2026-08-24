@@ -40,6 +40,10 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
 
+#include <trackbase_historic/SvtxTrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedContainer_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
+
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/SvtxVertex.h>
@@ -1538,4 +1542,47 @@ void KFParticle_Tools::printSelectionCheck(const std::string &info, unsigned int
 {
   std::string colour = value > 0 ? accept_colour : reject_colour;
   std::cout << info << " = \033[1;" << colour << "m" << value << "\033[0m" << std::endl;
+}
+
+int KFParticle_Tools::getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, const int &bunch_crossing)
+{
+  auto m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  //auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_SEED");
+  if (!m_siliconSeeds)
+  {
+    std::cout << " ERROR: Can't find SiliconTrackSeedContainer " << std::endl;
+    return -1;
+  }
+  //if (!clustermap)
+  //{
+  //  std::cout << " ERROR: Can't find TRKR_CLUSTER " << std::endl;
+  //  return -1;
+  //}
+
+  //std::cout<<"m_siliconSeeds->size(): "<<m_siliconSeeds->size()<<std::endl;
+  TrackSeed *_tracklet_si;
+  int ncharged_multiplicity = 0;
+  const int nMapsCut = 1;  
+  const int nInttCut = 1;  
+  for (unsigned int phtrk_iter_si = 0;
+         phtrk_iter_si < m_siliconSeeds->size();
+         ++phtrk_iter_si)
+    {
+      _tracklet_si = m_siliconSeeds->get(phtrk_iter_si);
+      if(!_tracklet_si)
+      {
+        continue;
+      }
+      //std::cout<<"size cluster seeds: "<<_tracklet_si->size_cluster_keys()<<std::endl;
+      if (_tracklet_si->get_crossing() == bunch_crossing)
+      {
+        if (TrackAnalysisUtils::get_cluster_count(_tracklet_si,TrkrDefs::mvtxId) >= nMapsCut && 
+            TrackAnalysisUtils::get_cluster_count(_tracklet_si,TrkrDefs::inttId) >= nInttCut)
+        {
+          ncharged_multiplicity++;
+        }
+    }
+  }
+  
+  return ncharged_multiplicity;
 }
