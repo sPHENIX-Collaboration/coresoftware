@@ -67,6 +67,8 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   void getTracksFromBC(PHCompositeNode *topNode, const int &bunch_crossing, const std::string &vertexMapName, int &nTracks, int &nPVs);
 
+  int getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, const int &bunch_crossing);
+
   int getTracksFromVertex(PHCompositeNode *topNode, const KFParticle &vertex, const std::string &vertexMapName);
 
   /*const*/ bool isGoodTrack(const KFParticle &particle, const std::vector<KFParticle> &primaryVertices);
