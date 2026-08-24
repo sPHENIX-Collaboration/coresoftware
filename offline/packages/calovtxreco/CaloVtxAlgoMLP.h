@@ -21,8 +21,8 @@ class CaloVtxAlgoMLP : public CaloVtxAlgo
   std::string Name() const override { return "MLP"; }
   VertexDefs::CALOALGO Algo() const override { return VertexDefs::CALOALGO::JETMLP; }
   
-  void setWeightsFile(const std::string file) { m_weightsFile = file; }
-  void setJetNode(const std::string node) { m_jet_node = node; }
+  void setWeightsFile(const std::string &file) { m_weightsFile = file; }
+  void setJetNode(const std::string &node) { m_jet_node = node; }
 private:
 
   std::string m_jet_node{"Antikt_TowerInfo_vtx_none_r06"};
