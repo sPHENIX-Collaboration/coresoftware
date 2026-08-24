@@ -641,7 +641,8 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   thisState = track->get_state(caloRadiusEMCal);
 
   // Print out additional track states with high verbosity:
-  if(m_track2caloVerbosity > 10){
+  if(m_track2caloVerbosity > 10 && thisState != nullptr)
+  {
     thisState->identify();
     std::cout << "size states " << (size_t)track->size_states() << std::endl;
     for (auto state_iter = track->begin_states();
@@ -650,7 +651,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       {
         SvtxTrackState* tstate = state_iter->second;
         tstate->identify();
-        std::cout<< "radius " << sqrt((tstate->get_x())*(tstate->get_x()) + (tstate->get_y())*(tstate->get_y())) << std::endl;
+        std::cout<< "radius " << std::sqrt((tstate->get_x())*(tstate->get_x()) + (tstate->get_y())*(tstate->get_y())) << std::endl;
       }
     assert(thisState);
     // Useful for debugging:
@@ -806,7 +807,8 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       is_match = true;
 
       // Print outs
-      if(m_track2caloVerbosity > 5){
+      if(m_track2caloVerbosity > 5)
+      {
         std::cout << "**********DELTA INFORMATION************" << std::endl;
         std::cout << "dphi = " << dphi << std::endl;
         std::cout << "deta = " << deta << std::endl;
@@ -847,9 +849,9 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   if (index == -1)
   {
     // Basic info
+    detector_emcal_deltaz[daughter_id] = std::numeric_limits<float>::quiet_NaN();
+    detector_emcal_deltaeta[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_deltaphi[daughter_id] = std::numeric_limits<float>::quiet_NaN();
-    detector_emcal_deltaeta[daughter_id] = std::numeric_limits<float>::quiet_NaN();
-    detector_emcal_deltaeta[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_energy_3x3[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_energy_5x5[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_cluster_energy[daughter_id] = std::numeric_limits<float>::quiet_NaN();
@@ -860,9 +862,9 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       detector_emcal_projection_z[daughter_id] = std::numeric_limits<float>::quiet_NaN();
       detector_emcal_projection_eta[daughter_id] = std::numeric_limits<float>::quiet_NaN();
       detector_emcal_projection_phi[daughter_id] = std::numeric_limits<float>::quiet_NaN();
-      detector_emcal_cluster_z[daughter_id] = std::numeric_limits<unsigned int>::quiet_NaN();
-      detector_emcal_cluster_eta[daughter_id] = std::numeric_limits<unsigned int>::quiet_NaN();
-      detector_emcal_cluster_phi[daughter_id] = std::numeric_limits<unsigned int>::quiet_NaN();
+      detector_emcal_cluster_z[daughter_id] = std::numeric_limits<float>::quiet_NaN();
+      detector_emcal_cluster_eta[daughter_id] = std::numeric_limits<float>::quiet_NaN();
+      detector_emcal_cluster_phi[daughter_id] = std::numeric_limits<float>::quiet_NaN();
       detector_emcal_ntowers[daughter_id] = std::numeric_limits<unsigned int>::quiet_NaN();
       detector_emcal_chi2[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     }
@@ -916,7 +918,8 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     }
 
     // 5x5 cell
-    if(m_get_calo_5x5_cell_info){
+    if(m_get_calo_5x5_cell_info)
+    {
       detector_emcal_5x5Cell_Phi[daughter_id] = v_detector_emcal_5x5Cell_Phi;
       detector_emcal_5x5Cell_Eta[daughter_id] = v_detector_emcal_5x5Cell_Eta;
       detector_emcal_5x5Cell_E[daughter_id] = v_detector_emcal_5x5Cell_E;
@@ -1316,7 +1319,10 @@ void KFParticle_truthAndDetTools::Get5x5CellInfo(
     
     // Add towers to 3x3 if not first or last rows in phi
     bool addto3x3 = false;
-    if(i < 4 && i > 0) addto3x3 = true;
+    if(i < 4 && i > 0) 
+    {
+      addto3x3 = true;
+    }
     
     // Loop over eta
     for (int j = 0; j < eta_range; j++)
@@ -1332,15 +1338,23 @@ void KFParticle_truthAndDetTools::Get5x5CellInfo(
       E5x5+=energytmp;
       v_Tower_E.push_back(energytmp);
        // Store in vectors
-      if(m_get_calo_5x5_cell_info){
+      if(m_get_calo_5x5_cell_info)
+      {
         v_emcal_5x5Cell_Phi.push_back(iphi);
         v_emcal_5x5Cell_Eta.push_back(jeta);
         v_emcal_5x5Cell_E.push_back(energytmp);
       }
 
-      if(!addto3x3) continue; // Skip adding to E3x3 if phi is outside 3x3 grid
+      if(!addto3x3) 
+      {
+        continue; // Skip adding to E3x3 if phi is outside 3x3 grid
+      }
       int etadiff = (int) jeta-center_eta;
-      if(etadiff < 2 && etadiff > -2) E3x3+=energytmp;
+      if(etadiff < 2 && etadiff > -2) 
+      {
+        E3x3+=energytmp;
+      }
+
     }
   }
 }
