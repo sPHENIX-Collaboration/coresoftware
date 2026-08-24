@@ -872,9 +872,10 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     // 5x5 cell
     if (m_get_calo_5x5_cell_info)
     { 
-      detector_emcal_5x5Cell_Phi[daughter_id].push_back(std::numeric_limits<unsigned int>::quiet_NaN());
-      detector_emcal_5x5Cell_Eta[daughter_id].push_back(std::numeric_limits<unsigned int>::quiet_NaN());
-      detector_emcal_5x5Cell_E[daughter_id].push_back(std::numeric_limits<float>::quiet_NaN());
+      // Fill with nothing -- no match found, so vectors should be empty ! 
+      // detector_emcal_5x5Cell_Phi[daughter_id].push_back(std::numeric_limits<unsigned int>::quiet_NaN());
+      // detector_emcal_5x5Cell_Eta[daughter_id].push_back(std::numeric_limits<unsigned int>::quiet_NaN());
+      // detector_emcal_5x5Cell_E[daughter_id].push_back(std::numeric_limits<float>::quiet_NaN());
     }
 
     isTrackEMCalmatch = false;
