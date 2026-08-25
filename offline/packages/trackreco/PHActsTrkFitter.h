@@ -160,7 +160,7 @@ class PHActsTrkFitter : public SubsysReco
   /// extrapolation mode
   enum class ExtrapolationMode
   {
-    Default, // the default extrapolation mode, using fitter track parameters at origin
+    Legacy, // uses fitter track parameters at origin as startomg point for extrapolation
     Forward, // uses the track state vector closest to the requested layer, before
     Backward, // uses the track state vector closest to the requested layer, after
     Bidirectional // uses the weighted average of the forward and backward extrapolation, when available
