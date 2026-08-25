@@ -103,7 +103,7 @@ bool CaloVtxAlgoCNN::predict(float &z)
   const int64_t shape[4] = {1, kNLayer, kNEtaImg, kNPhiImg};
   try
   {
-    Ort::Value input = Ort::Value::CreateTensor<float>(m_onnx->memInfo, &m_image[0][0][0], static_cast<size_t>(kNLayer) * kNEtaImg * kNPhiImg, shape, 4);
+    Ort::Value input = Ort::Value::CreateTensor<float>(m_onnx->memInfo, m_image.front().front().data(), static_cast<size_t>(kNLayer) * kNEtaImg * kNPhiImg, shape, 4);
     const char *inNames[] = {"raw_image"};
     const char *outNames[] = {"z_cal_cm"};
     auto outs = m_onnx->session->Run(Ort::RunOptions{nullptr}, inNames, &input, 1, outNames, 1);
