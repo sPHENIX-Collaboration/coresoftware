@@ -1141,10 +1141,11 @@ int Tpc_ModuleTrackReco::process_event(PHCompositeNode* /*unused*/)
       }
     }
   }
-
+  if(Verbosity() > 1)
+  {
   std::cout << Name() << "::process_event - event " << m_event
             << " has " << tdata.size() << " non-empty modules" << std::endl;
-
+  }
   const unsigned int maxLive = std::max(1U,
                                         std::min(m_maxThreads, static_cast<unsigned int>(tdata.size())));
 
