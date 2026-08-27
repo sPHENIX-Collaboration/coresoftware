@@ -8,8 +8,10 @@
 #include "TpcCrossingDecision.h"
 #include "TpcCrossingDecisionContainer.h"
 
+#include <cdbobjects/CDBTTree.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <ffamodules/CDBInterface.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -145,9 +147,23 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
 
   delete m_garfield;
   // m_garfield = new PHGarfield(Name() + "_PHGarfield");
-
-  const std::string electricFieldMap = "/sphenix/user/mitrankov/garf/include/sphenix_rossegger_garfield_field.root";
+  const std::string electricFieldMap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_EField");
+  
   // sphenix_3d_ibf_field_new.root sphenix_rossegger_garfield_field.root;
+
+  const auto kefffile = CDBInterface::instance()->getUrl("Tpc_PolyClusterizer_kEff");
+  
+  if (!kefffile.empty())
+  {
+    auto keffcdbtree = std::make_unique<CDBTTree>(kefffile);
+    keffcdbtree->LoadCalibrations();
+    m_kEffSide0 = keffcdbtree->GetSingleFloatValue("keffside0");
+    m_kEffSide1 = keffcdbtree->GetSingleFloatValue("keffside1");
+
+    std::cout << PHWHERE << "Poly clusterizer loading calibrations from " << kefffile << std::endl 
+              <<"    with values keffside0 = " << m_kEffSide0 << ", keffside1 = " << m_kEffSide1 << std::endl;
+  }
+
 
   m_garfield = new PHGarfield(Name() + "_PHGarfield", electricFieldMap, m_kEffSide0, m_kEffSide1);
   configure_garfield(m_garfield);
