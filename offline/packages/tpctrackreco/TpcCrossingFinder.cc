@@ -15,6 +15,10 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 
+#include <ffamodules/CDBInterface.h>
+
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
@@ -22,8 +26,6 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <globalvertex/SvtxVertex.h>
-#include <globalvertex/SvtxVertexMap.h>
 
 #include <phgarfield/PHGarfield.h>
 #include <TPolyLine3D.h>
@@ -132,7 +134,7 @@ int TpcCrossingFinder::InitRun(PHCompositeNode* topNode)
   }
 
   delete m_garfield;
-  const std::string electricFieldMap = "/sphenix/user/mitrankov/garf/include/sphenix_rossegger_garfield_field.root";
+  const std::string electricFieldMap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_Efield");
   m_garfield = new PHGarfield(Name() + "_PHGarfield", electricFieldMap, m_kEffSide0, m_kEffSide1);
   configure_garfield(m_garfield);
   if (m_garfield->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK)

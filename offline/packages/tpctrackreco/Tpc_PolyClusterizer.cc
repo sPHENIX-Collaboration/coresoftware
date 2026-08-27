@@ -147,8 +147,8 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
 
   delete m_garfield;
   // m_garfield = new PHGarfield(Name() + "_PHGarfield");
-
-  const std::string electricFieldMap = "/sphenix/user/mitrankov/garf/include/sphenix_rossegger_garfield_field.root";
+  const std::string electricFieldMap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_EField");
+  
   // sphenix_3d_ibf_field_new.root sphenix_rossegger_garfield_field.root;
 
   const auto kefffile = CDBInterface::instance()->getUrl("Tpc_PolyClusterizer_kEff");
