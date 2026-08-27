@@ -7,6 +7,7 @@
 #include "TpcCrossingDecisionv1.h"
 #include "Tpc_FittingTools.h"
 
+#include <cdbobjects/CDBTTree.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -134,7 +135,18 @@ int TpcCrossingFinder::InitRun(PHCompositeNode* topNode)
   }
 
   delete m_garfield;
-  const std::string electricFieldMap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_Efield");
+  const std::string electricFieldMap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_EField");
+
+  const auto kefffile = CDBInterface::instance()->getUrl("Tpc_PolyClusterizer_kEff");
+
+  if (!kefffile.empty())
+  {
+    auto keffcdbtree = std::make_unique<CDBTTree>(kefffile);
+    keffcdbtree->LoadCalibrations();
+    m_kEffSide0 = keffcdbtree->GetSingleFloatValue("keffside0");
+    m_kEffSide1 = keffcdbtree->GetSingleFloatValue("keffside1");
+ }
+
   m_garfield = new PHGarfield(Name() + "_PHGarfield", electricFieldMap, m_kEffSide0, m_kEffSide1);
   configure_garfield(m_garfield);
   if (m_garfield->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK)
