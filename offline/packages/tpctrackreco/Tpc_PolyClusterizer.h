@@ -29,7 +29,7 @@ class Tpc_PolyClusterizer : public SubsysReco
   int InitRun(PHCompositeNode*) override;
   int process_event(PHCompositeNode*) override;
 
-  static constexpr unsigned int NPhiSamples = 3;
+  static constexpr unsigned int NPhiSamples = 24;
 
   void setInputNodeName(const std::string& n) { m_inputNodeName = n; }
   void setOutputNodeName(const std::string& n) { m_outputNodeName = n; }
@@ -41,6 +41,7 @@ class Tpc_PolyClusterizer : public SubsysReco
   void setReverseDriftStepNs(double v) { m_reverseDriftStepNs = v; }
   void setKEffSide0(double v) { m_kEffSide0 = v; }
   void setKEffSide1(double v) { m_kEffSide1 = v; }
+  void setField3DCoefficientFile(const std::string& n) { m_field3DCoefficientFile = n; }
   void setCMVoltageDefault(double v) { m_cmVoltageDefault = v; }
   void setUseSurveyGeometry(bool v) { use_survey_geometry = v; }
   void setMoveTpc(double x, double y, double z) { m_tpcMove = {{x, y, z}}; }
@@ -104,6 +105,7 @@ class Tpc_PolyClusterizer : public SubsysReco
 
   int getNodes(PHCompositeNode*);
   int createNodes(PHCompositeNode*);
+  bool load_field3d_coefficients();
   bool make_xyz_point(TrkrDefs::hitsetkey hsk, TrkrDefs::hitkey hk, short crossing, Point& p) const;
   bool build_drift_lookup();
   bool sample_drift_lookup(unsigned int layer,
@@ -139,7 +141,8 @@ class Tpc_PolyClusterizer : public SubsysReco
   double m_startZNorth{102.325};
   double m_kEffSide0{0.0};
   double m_kEffSide1{-1.5};
-  double m_cmVoltageDefault{380.0};
+  std::string m_field3DCoefficientFile = "/sphenix/user/mitrankov/garf/include/tpc_field3d_coefficients.root";
+  double m_cmVoltageDefault{375.0};
   bool use_survey_geometry = false;
   std::array<double, 3> m_tpcMove{{0.0, 0.0, 0.0}};                                             //{{-0.16775, -0.0337, -0.71365}};
   std::array<std::array<double, 3>, 2> m_tpcRotations{{{{0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}}}};  //{{{{0.0, 0.01485 / 10.0, 0.0}}, {{0.0298 / 8.0, 0.0, 0.0}}}};

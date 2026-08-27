@@ -145,11 +145,11 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
     m_tpcRotations = {{{rot_x, rot_y, rot_z}, {0.0, 0.0, 0.0}}};
   }
 
+
   delete m_garfield;
-  // m_garfield = new PHGarfield(Name() + "_PHGarfield");
-  const std::string electricFieldMap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_EField");
+  //const std::string electricFieldMap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_EField");
   
-  // sphenix_3d_ibf_field_new.root sphenix_rossegger_garfield_field.root;
+  const std::string electricFieldMap = "";
 
   const auto kefffile = CDBInterface::instance()->getUrl("Tpc_PolyClusterizer_kEff");
   
@@ -188,6 +188,25 @@ void Tpc_PolyClusterizer::configure_garfield(PHGarfield* garfield) const
   {
     return;
   }
+  const std::string field3DSide0 = "/sphenix/user/mitrankov/garf/include/sphenix_3d_ibf_field_side0_South_v3.root";
+  const std::string field3DSide1 = "/sphenix/user/mitrankov/garf/include/sphenix_3d_ibf_field_side1_North_v3.root";
+  const std::string FramesSide0 = "/sphenix/user/mitrankov/garf/include/frames_side0_3d.root";
+  const std::string FramesSide1 = "/sphenix/user/mitrankov/garf/include/frames_side1_3d.root";
+
+  garfield->SetElectricFieldMap3D( field3DSide0, field3DSide1);
+  garfield->SetFrameElectricFieldMap3D( FramesSide0, FramesSide1);
+
+  garfield->SetFrameChargeScale(-180);
+
+  garfield->SetUseIFCVoltageDistortion(true);
+  garfield->SetUseOFCVoltageDistortion(true);
+
+  garfield->SetFieldCageVoltageOffsets(
+     211.0,   // IFC South
+       0.0,   // IFC North
+       0.0,   // OFC South
+       0.0);  // OFC North
+
 
   garfield->MoveTpc(m_tpcMove[0], m_tpcMove[1], m_tpcMove[2]);
   for (const auto& rotation : m_tpcRotations)
@@ -251,6 +270,7 @@ int Tpc_PolyClusterizer::createNodes(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
 
 unsigned int Tpc_PolyClusterizer::drift_lookup_index(const unsigned int layer_index,
                                                      const unsigned int side,
@@ -796,6 +816,9 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
   const unsigned int nassembled = m_assembledTracks->size();
   unsigned int nclusters = 0;
   std::map<TrkrDefs::hitsetkey, unsigned int> next_cluster_index_by_hitset;
+  unsigned int nmissing_decision = 0;
+  unsigned int nskipped_tier = 0;
+  unsigned int nempty_points = 0;
 
   for (int side = 0; side < 2; ++side)
   {
@@ -811,11 +834,17 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
         if (assembled->get_first_sector() % 12U != sector) { continue;
 }
         const TpcCrossingDecision* crossing_decision = m_crossingDecisions->get_decision(assembled->get_track_id());
-        if (!crossing_decision) { continue;
-}
+        if (!crossing_decision)
+        {
+          ++nmissing_decision;
+          continue;
+        }
         const unsigned char selected_tier = crossing_decision->get_selected_tier();
-        if (selected_tier > m_maxAcceptedTier) { continue;
-}
+        if (selected_tier > m_maxAcceptedTier)
+        {
+          ++nskipped_tier;
+          continue;
+        }
         const short selected_crossing = crossing_decision->get_selected_crossing();
 
 
@@ -830,8 +859,11 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
           if (make_xyz_point(hi.first, hi.second, selected_crossing, p)) { points_by_hitset[p.hitsetkey].push_back(p);
 }
         }
-        if (points_by_hitset.empty()) { continue;
-}
+        if (points_by_hitset.empty())
+        {
+          ++nempty_points;
+          continue;
+        }
 
         for (const auto& hitset_points : points_by_hitset)
         {
@@ -942,7 +974,10 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
     std::cout << Name() << "::process_event - event " << m_event
               << " assembled_tracks=" << nassembled
               << " poly_clusters=" << m_clusters->size()
-              << " layer_clusters=" << nclusters << std::endl;
+              << " layer_clusters=" << nclusters
+              << " missing_decisions=" << nmissing_decision
+              << " skipped_tier=" << nskipped_tier
+              << " empty_points=" << nempty_points << std::endl;
   }
 
   ++m_event;
