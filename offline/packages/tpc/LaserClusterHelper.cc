@@ -8,7 +8,10 @@
  
 #include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
+
+#include <cdbobjects/CDBTTree.h>
  
+#include <ffamodules/CDBInterface.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
@@ -49,6 +52,16 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
         std::cout << "LaserClusterHelper::loadNodes - TPCGEOMCONTAINER not found on node tree" << std::endl;
     }
 
+    const std::string m_spacechargefieldmap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_EField");
+    const auto kefffile = CDBInterface::instance()->getUrl("Tpc_PolyClusterizer_kEff");
+    if (!kefffile.empty())
+    {
+        auto keffcdbtree = std::make_unique<CDBTTree>(kefffile);
+        keffcdbtree->LoadCalibrations();
+        m_garfield_keffside0 = keffcdbtree->GetSingleFloatValue("keffside0");
+        m_garfield_keffside1 = keffcdbtree->GetSingleFloatValue("keffside1");
+    }
+
     m_phgarfield = std::make_unique<PHGarfield>();
     m_phgarfield->SetElectricFieldMap(m_spacechargefieldmap);
     ROOT::Math::XYZVector Northxyz(-0.001, -0.001, 1123.109);
@@ -60,8 +73,8 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
     m_phgarfield->RotateTpc(0.000298, 0, 0);
     m_phgarfield->SetCMVoltageDefault(m_garfield_cmvoltage);
     m_phgarfield->SetZeroField(m_garfield_zerofield);
-    m_phgarfield->SetSpaceChargeScaleSide0(m_garfield_spacechargescaleside0);
-    m_phgarfield->SetSpaceChargeScaleSide1(m_garfield_spacechargescaleside1);
+    m_phgarfield->SetSpaceChargeScaleSide0(m_garfield_keffside0);
+    m_phgarfield->SetSpaceChargeScaleSide1(m_garfield_keffside1);
     m_phgarfield->InitRun(topNode);
     
     

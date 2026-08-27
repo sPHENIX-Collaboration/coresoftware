@@ -32,10 +32,9 @@ class LaserClusterHelper
     void set_useGlobal(bool use) { m_useGlobal = use; }
     void set_garfield_cmvoltage(double use) { m_garfield_cmvoltage = use; }
     void set_garfield_zerofield(bool use) { m_garfield_zerofield = use; }
-    void set_garfield_spacechargescaleside0(double use) { m_garfield_spacechargescaleside0 = use; }
-    void set_garfield_spacechargescaleside1(double use) { m_garfield_spacechargescaleside1 = use; }
+    void set_garfield_keffside0(double use) { m_garfield_keffside0 = use; }
+    void set_garfield_keffside1(double use) { m_garfield_keffside1 = use; }
     void set_garfield_stepns(double use) { m_garfield_stepns = use; }
-    void set_garfield_spacechargefieldmap(const std::string& use) { m_spacechargefieldmap = use; }
   private:
     ActsGeometry *m_tGeometry{nullptr};
     PHG4TpcGeomContainer *m_geom_container{nullptr};
@@ -46,10 +45,9 @@ class LaserClusterHelper
 
     double m_garfield_cmvoltage{380.0};
     bool m_garfield_zerofield{false};
-    double m_garfield_spacechargescaleside0{1.0};
-    double m_garfield_spacechargescaleside1{1.0};
+    double m_garfield_keffside0{1.0};
+    double m_garfield_keffside1{1.0};
     double m_garfield_stepns{50.0};
-    std::string m_spacechargefieldmap{"/sphenix/user/dloomis/Distortions/garfield_fields/sphenix_rossegger_garfield_field.root"};
 
 
 };
