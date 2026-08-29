@@ -229,7 +229,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
         m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
       }
     }
-    if (chi2 > std::min(std::max(badChi2_treshold_const, adc * adc * badChi2_treshold_quadratic), badChi2_treshold_max))
+    if (!std::isfinite(chi2) || chi2 > std::min(std::max(badChi2_treshold_const, adc * adc * badChi2_treshold_quadratic), badChi2_treshold_max))
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(true);
     }
