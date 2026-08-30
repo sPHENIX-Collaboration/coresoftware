@@ -72,6 +72,13 @@ class CaloWaveformSim : public SubsysReco
     m_directURL_MC = url;
   }
 
+  // Dead/hot tower map used to mask towers out of the pre-fit CaloEtSum
+  // (same "<DET>_BadTowerMap" CDB payload CaloTowerStatus loads downstream).
+  void set_directURL_hotMap(const std::string &url)
+  {
+    m_directURL_hotMap = url;
+  }
+
   void set_use_sipm_occupancy(bool use_sipm_occupancy = true)
   {
     m_use_sipm_occupancy = use_sipm_occupancy;
@@ -144,6 +151,11 @@ class CaloWaveformSim : public SubsysReco
   void set_gain(int gain) { m_gain = gain; }
   void set_pedestal_scale(float scale) { m_pedestal_scale = scale; }
 
+  // Flat, collision-system-dependent energy scale-up applied to each hit's
+  // visible energy before ADC/waveform formation (i.e. upstream of waveform
+  // fitting and of the standard tower calibration).
+  void set_energy_scale(float scale) { m_energy_scale = scale; }
+
   // Noise configuration
   enum NoiseType
   {
@@ -178,6 +190,8 @@ class CaloWaveformSim : public SubsysReco
   CDBTTree *cdbttree_MC{nullptr};
   CDBTTree *cdbttree_time{nullptr};
   CDBTTree *cdbttree_MC_time{nullptr};
+  CDBTTree *cdbttree_hotMap{nullptr};
+  std::string m_directURL_hotMap;
   TProfile *h_template{nullptr};
 
   gsl_rng *m_RandomGenerator{nullptr};
@@ -228,6 +242,7 @@ class CaloWaveformSim : public SubsysReco
   int m_gain{1};
   float m_peakpos{6.};
   float m_pedestal_scale{1.};
+  float m_energy_scale{1.};
 
   std::vector<std::vector<float>> m_waveforms;
 
