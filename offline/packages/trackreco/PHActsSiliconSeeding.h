@@ -14,8 +14,8 @@
 #include <Acts/Seeding/SpacePointGrid.hpp>
 #include <Acts/Utilities/GridBinFinder.hpp>
 
-#include <ActsExamples/EventData/SpacePointContainer.hpp>
 #include <trackbase/SpacePoint.h>
+#include <ActsExamples/EventData/SpacePointContainer.hpp>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -56,7 +56,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   void setIter1()
   {
-    setStrobeRange(-5,5);
+    setStrobeRange(-5, 5);
     isStreaming();
     setinttRPhiSearchWindow(0.2);
   }
@@ -65,15 +65,12 @@ class PHActsSiliconSeeding : public SubsysReco
     searchInIntt();
     set_track_map_name("SiliconTrackSeedContainerIt1");
     iteration(2);
-    setStrobeRange(-1,2);
+    setStrobeRange(-1, 2);
     checkTiming();
     strobeWindowLowSearch(-1);
     strobeWindowHighSearch(2);
   }
-  void isStreaming()
-  {
-    m_streaming = true;
-  }
+  void isStreaming() { m_streaming = true; }
 
   void setStrobeRange(const int low, const int high)
   {
@@ -82,108 +79,36 @@ class PHActsSiliconSeeding : public SubsysReco
   }
   void setunc(float unc) { m_uncfactor = unc; }
   /// Set seeding with truth clusters
-  void useTruthClusters(bool useTruthClusters)
-  {
-    m_useTruthClusters = useTruthClusters;
-  }
+  void useTruthClusters(bool useTruthClusters) { m_useTruthClusters = useTruthClusters; }
 
   /// Output some diagnostic histograms
-  void seedAnalysis(bool seedAnalysis)
-  {
-    m_seedAnalysis = seedAnalysis;
-  }
+  void seedAnalysis(bool seedAnalysis) { m_seedAnalysis = seedAnalysis; }
 
-  void setinttRPhiSearchWindow(const float win)
-  {
-    m_inttrPhiSearchWin = win;
-  }
-  void setinttZSearchWindow(const float &win)
-  {
-    m_inttzSearchWin = win;
-  }
-  void setmvtxRPhiSearchWindow(const float win)
-  {
-    m_mvtxrPhiSearchWin = win;
-  }
-  void setmvtxZSearchWindow(const float &win)
-  {
-    m_mvtxzSearchWin = win;
-  }
+  void setinttRPhiSearchWindow(const float win) { m_inttrPhiSearchWin = win; }
+  void setinttZSearchWindow(const float &win) { m_inttzSearchWin = win; }
+  void setmvtxRPhiSearchWindow(const float win) { m_mvtxrPhiSearchWin = win; }
+  void setmvtxZSearchWindow(const float &win) { m_mvtxzSearchWin = win; }
   /// For each MVTX+INTT seed, take the best INTT hits and form
   /// 1 silicon seed per MVTX seed
-  void cleanSeeds(bool cleanSeeds)
-  {
-    m_cleanSeeds = cleanSeeds;
-  }
+  void cleanSeeds(bool cleanSeeds) { m_cleanSeeds = cleanSeeds; }
 
-  void rMax(const float rMax)
-  {
-    m_rMax = rMax;
-  }
-  void rMin(const float rMin)
-  {
-    m_rMin = rMin;
-  }
-  void zMax(const float zMax)
-  {
-    m_zMax = zMax;
-  }
-  void zMin(const float zMin)
-  {
-    m_zMin = zMin;
-  }
-  void deltaRMax(const float deltaRMax)
-  {
-    m_deltaRMax = deltaRMax;
-  }
-  void cotThetaMax(const float cotThetaMax)
-  {
-    m_cotThetaMax = cotThetaMax;
-  }
-  void gridFactor(const float gridFactor)
-  {
-    m_gridFactor = gridFactor;
-  }
-  void sigmaScattering(const float sigma)
-  {
-    m_sigmaScattering = sigma;
-  }
-  void maxPtScattering(const float pt)
-  {
-    m_maxPtScattering = pt;
-  }
-  void sigmaError(const float sigma)
-  {
-    m_sigmaError = sigma;
-  }
-  void zalign(const float z)
-  {
-    m_zalign = z;
-  }
-  void ralign(const float r)
-  {
-    m_ralign = r;
-  }
-  void tolerance(const float tolerance)
-  {
-    m_tolerance = tolerance;
-  }
-  void helixcut(const float cut)
-  {
-    m_helixcut = cut;
-  }
-  void bfield(const float field)
-  {
-    m_bField = field;
-  }
-  void zeroField(const bool flag = true)
-  {
-    m_zeroField = flag;
-  }
-  void minpt(const float pt)
-  {
-    m_minSeedPt = pt;
-  }
+  void rMax(const float rMax) { m_rMax = rMax; }
+  void rMin(const float rMin) { m_rMin = rMin; }
+  void zMax(const float zMax) { m_zMax = zMax; }
+  void zMin(const float zMin) { m_zMin = zMin; }
+  void deltaRMax(const float deltaRMax) { m_deltaRMax = deltaRMax; }
+  void cotThetaMax(const float cotThetaMax) { m_cotThetaMax = cotThetaMax; }
+  void gridFactor(const float gridFactor) { m_gridFactor = gridFactor; }
+  void sigmaScattering(const float sigma) { m_sigmaScattering = sigma; }
+  void maxPtScattering(const float pt) { m_maxPtScattering = pt; }
+  void sigmaError(const float sigma) { m_sigmaError = sigma; }
+  void zalign(const float z) { m_zalign = z; }
+  void ralign(const float r) { m_ralign = r; }
+  void tolerance(const float tolerance) { m_tolerance = tolerance; }
+  void helixcut(const float cut) { m_helixcut = cut; }
+  void bfield(const float field) { m_bField = field; }
+  void zeroField(const bool flag = true) { m_zeroField = flag; }
+  void minpt(const float pt) { m_minSeedPt = pt; }
   void set_mvtxCenterXY(const float X, const float Y)
   {
     m_mvtx_x0 = X;
@@ -195,6 +120,10 @@ class PHActsSiliconSeeding : public SubsysReco
     m_beamSpoty = Y;
   }
 
+  // interface for Intt cluster cuts (noise, pathological clusters with large phi-size)
+  void setInttClusterAdcMin(int adc) { m_inttClusterAdcMin = adc; }
+  void setInttClusterPhiSizeMax(int phiSize) { m_inttClusterPhiSizeMax = phiSize; }
+
   /// A function to run the seeder with large (true)
   /// or small (false) grid spacing
   void largeGridSpacing(const bool spacing);
@@ -204,10 +133,11 @@ class PHActsSiliconSeeding : public SubsysReco
   void searchInIntt() { m_searchInIntt = true; }
   void strobeWindowLowSearch(const int width) { m_strobeLowWindow = width; }
   void strobeWindowHighSearch(const int width) { m_strobeHighWindow = width; }
+
  private:
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
-  
+
   int m_strobeLowWindow = -1;
   int m_strobeHighWindow = 2;
 
@@ -220,48 +150,37 @@ class PHActsSiliconSeeding : public SubsysReco
   Acts::SeedFilterConfig configureSeedFilter() const;
 
   /// Take final seeds and fill the TrackSeedContainer
-  void makeSvtxTracks(const std::vector<seed_type>& seedVector);
+  void makeSvtxTracks(const std::vector<seed_type> &seedVector);
 
   /// Take final seeds and fill the TrackSeedContainer
-  void makeSvtxTracksWithTime(const std::vector<seed_type>& seedVector, const int &strobe);
+  void makeSvtxTracksWithTime(const std::vector<seed_type> &seedVector, const int &strobe);
 
   /// Create a seeding space point out of an Acts::SourceLink
-  SpacePointPtr makeSpacePoint(
-      const Surface &surf,
-      const TrkrDefs::cluskey,
-      //    const TrkrCluster* clus);
-      TrkrCluster *clus);
+  SpacePointPtr makeSpacePoint(const Surface &surf, const TrkrDefs::cluskey,
+                               //    const TrkrCluster* clus);
+                               TrkrCluster *clus);
 
   /// Get all space points for the seeder
   std::vector<const SpacePoint *> getSiliconSpacePoints(const int strobe);
   void printSeedConfigs(Acts::SeedFilterConfig &sfconfig);
-  bool isTimingMismatched(TrackSeed& seed) const;
-  
-      /// Projects circle fit to radii to find possible MVTX/INTT clusters
-      /// belonging to track stub
-      std::vector<TrkrDefs::cluskey>
-      findMatches(
-          std::vector<Acts::Vector3> &clusters,
-          std::vector<TrkrDefs::cluskey> &keys,
-          TrackSeed &seed);
+  bool isTimingMismatched(TrackSeed &seed) const;
 
-  std::vector<std::vector<TrkrDefs::cluskey>> findMatchesWithTime(
-      std::map<TrkrDefs::cluskey, Acts::Vector3> &positions,
-      const int &strobe);
-  std::vector<std::vector<TrkrDefs::cluskey>> iterateLayers(const int &startLayer,
-                                                            const int &endLayer, const int &strobe,
-                                                            const std::vector<TrkrDefs::cluskey> &keys,
-                                                            const std::vector<Acts::Vector3> &positions);
-  std::vector<TrkrDefs::cluskey> matchInttClusters(std::vector<Acts::Vector3> &clusters,
-                                                   TrackSeed &seed,
-                                                   const double xProj[],
-                                                   const double yProj[],
-                                                   const double zProj[]);
+  // function for INTT cluster cuts
+  bool passesInttClusterCuts(const TrkrCluster &cluster) const;
+
+  /// Projects circle fit to radii to find possible MVTX/INTT clusters
+  /// belonging to track stub
+  std::vector<TrkrDefs::cluskey> findMatches(std::vector<Acts::Vector3> &clusters, std::vector<TrkrDefs::cluskey> &keys, TrackSeed &seed);
+
+  std::vector<std::vector<TrkrDefs::cluskey>> findMatchesWithTime(std::map<TrkrDefs::cluskey, Acts::Vector3> &positions, const int &strobe);
+  std::vector<std::vector<TrkrDefs::cluskey>> iterateLayers(
+      const int &startLayer, const int &endLayer, const int &strobe, const std::vector<TrkrDefs::cluskey> &keys, const std::vector<Acts::Vector3> &positions);
+  std::vector<TrkrDefs::cluskey> matchInttClusters(std::vector<Acts::Vector3> &clusters, TrackSeed &seed, const double xProj[], const double yProj[], const double zProj[]);
   short int getCrossingIntt(TrackSeed &si_track);
   std::vector<short int> getInttCrossings(TrackSeed &si_track);
 
   float getPhiFromBeamSpot(float clusy, float clusx) const;
-  
+
   void createHistograms();
   void writeHistograms();
   double normPhi2Pi(const double phi);
@@ -304,8 +223,8 @@ class PHActsSiliconSeeding : public SubsysReco
   /// per strobe with crossing information and take all possible matches
   bool m_streaming = false;
 
-///boolean whether or not we should check the timing mismatch between
-/// intt and mvtx, i.e. for second pass in streaming mode
+  /// boolean whether or not we should check the timing mismatch between
+  ///  intt and mvtx, i.e. for second pass in streaming mode
   bool m_checkTiming = false;
 
   // default to 10 mus
@@ -377,12 +296,12 @@ class PHActsSiliconSeeding : public SubsysReco
 
   // collision point in sPHENIX coordinates, from vertex finder (pp run 3)
   float m_beamSpotx = -0.072;  // cm
-  float m_beamSpoty = 0.141;  // cm
+  float m_beamSpoty = 0.141;   // cm
 
   // center of MVTX barrel in sPHENIX coordinates - default is for Run 3 pp
   float m_mvtx_x0 = 0.6;  // cm
   float m_mvtx_y0 = -0.1;
-  
+
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
 
@@ -412,6 +331,11 @@ class PHActsSiliconSeeding : public SubsysReco
   TH2 *h_projHits = nullptr;
   TH2 *h_zprojHits = nullptr;
   TH2 *h_resids = nullptr;
+
+  // Intt cluster cuts (noise, pathological clusters with large phi-size)
+  // -1 as default means no cut applied
+  int m_inttClusterAdcMin = -1;
+  int m_inttClusterPhiSizeMax = -1;
 };
 
 #endif
