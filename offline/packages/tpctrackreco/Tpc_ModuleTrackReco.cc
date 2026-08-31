@@ -33,6 +33,7 @@
 #include <limits>
 #include <map>
 #include <utility>
+#include <unordered_map>
 #include <vector>
 
 // ===================================================================
@@ -40,6 +41,15 @@
 // ===================================================================
 namespace
 {
+  inline uint64_t make_blob_lookup_key(unsigned int layer,
+                                       unsigned short pad,
+                                       unsigned short tbin)
+  {
+    return (static_cast<uint64_t>(layer) << 32) |
+           (static_cast<uint64_t>(pad) << 16) |
+           static_cast<uint64_t>(tbin);
+  }
+
   // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
   struct BlobAdcSort
   {
@@ -571,8 +581,45 @@ namespace
   void build_blobs(InModuleThreadData* d)
   {
     d->blobs.clear();
+
     const unsigned int n = static_cast<unsigned int>(d->raw_hits.size());
-    std::vector<int> used(n, 0);
+    if (n == 0)
+    {
+      return;
+    }
+
+    // Fast lookup:
+    //   (layer, pad, tbin) -> raw-hit index
+    //
+    // This replaces the original O(N^2) scan over every raw hit for
+    // every hit visited by the blob flood fill.
+    std::unordered_map<uint64_t, unsigned int> hit_lookup;
+    hit_lookup.reserve(n);
+
+    for (unsigned int i = 0; i < n; ++i)
+    {
+      const InModuleThreadData::RawHit& hit = d->raw_hits[i];
+
+      const uint64_t key =
+          make_blob_lookup_key(hit.layer, hit.pad, hit.tbin);
+
+      const auto inserted = hit_lookup.emplace(key, i);
+
+      // A duplicate (layer,pad,tbin) is not expected for normal TPC
+      // TrkrHitSet input. Keep the first entry and report duplicates
+      // only at high verbosity.
+      if (!inserted.second && d->verbosity > 2)
+      {
+        std::cout << "Tpc_ModuleTrackReco::build_blobs - duplicate "
+                  << "(layer,pad,tbin)=("
+                  << hit.layer << ","
+                  << hit.pad << ","
+                  << hit.tbin << ")"
+                  << std::endl;
+      }
+    }
+
+    std::vector<uint8_t> used(n, 0);
 
     for (unsigned int i = 0; i < n; ++i)
     {
@@ -582,6 +629,7 @@ namespace
       }
 
       used[i] = 1;
+
       std::deque<unsigned int> q;
       q.push_back(i);
 
@@ -589,6 +637,7 @@ namespace
       double sp = 0.0;
       double st = 0.0;
       unsigned int nh = 0;
+
       const unsigned int layer = d->raw_hits[i].layer;
 
       InModuleThreadData::Blob bl;
@@ -599,29 +648,65 @@ namespace
         q.pop_front();
 
         const InModuleThreadData::RawHit& ha = d->raw_hits[a];
+
         bl.raw_hit_indices.push_back(a);
+
         const double wa = static_cast<double>(ha.adc);
         sw += wa;
         sp += wa * static_cast<double>(ha.pad);
         st += wa * static_cast<double>(ha.tbin);
         ++nh;
 
-        for (unsigned int j = 0; j < n; ++j)
+        // The original condition was:
+        //
+        //   hb.layer == layer
+        //   abs(hb.pad  - ha.pad)  <= blob_dp
+        //   abs(hb.tbin - ha.tbin) <= blob_dt
+        //
+        // Instead of testing all raw hits, directly inspect exactly
+        // these neighboring pad/timebin cells.
+        for (int dp = -d->blob_dp; dp <= d->blob_dp; ++dp)
         {
-          if (used[j])
-          {
-            continue;
-          }
-          const InModuleThreadData::RawHit& hb = d->raw_hits[j];
-          if (hb.layer != layer)
+          const int neighbor_pad =
+              static_cast<int>(ha.pad) + dp;
+
+          if (neighbor_pad < 0 ||
+              neighbor_pad >
+                  static_cast<int>(std::numeric_limits<unsigned short>::max()))
           {
             continue;
           }
 
-          const int dp = std::abs(static_cast<int>(hb.pad) - static_cast<int>(ha.pad));
-          const int dt = std::abs(static_cast<int>(hb.tbin) - static_cast<int>(ha.tbin));
-          if (dp <= d->blob_dp && dt <= d->blob_dt)
+          for (int dt = -d->blob_dt; dt <= d->blob_dt; ++dt)
           {
+            const int neighbor_tbin =
+                static_cast<int>(ha.tbin) + dt;
+
+            if (neighbor_tbin < 0 ||
+                neighbor_tbin >
+                    static_cast<int>(std::numeric_limits<unsigned short>::max()))
+            {
+              continue;
+            }
+
+            const uint64_t key =
+                make_blob_lookup_key(
+                    layer,
+                    static_cast<unsigned short>(neighbor_pad),
+                    static_cast<unsigned short>(neighbor_tbin));
+
+            const auto it = hit_lookup.find(key);
+            if (it == hit_lookup.end())
+            {
+              continue;
+            }
+
+            const unsigned int j = it->second;
+            if (used[j])
+            {
+              continue;
+            }
+
             used[j] = 1;
             q.push_back(j);
           }
@@ -639,7 +724,8 @@ namespace
       bl.adc = sw;
       bl.nhits = nh;
       bl.used = 0;
-      d->blobs.push_back(bl);
+
+      d->blobs.push_back(std::move(bl));
     }
   }
 

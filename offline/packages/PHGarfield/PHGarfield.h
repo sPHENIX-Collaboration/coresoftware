@@ -215,7 +215,7 @@ class PHGarfield : public SubsysReco
   PHField3DCartesian *m_field{nullptr};           // The standard sPHENIX field holding container.
   Garfield::ComponentUser *m_component{nullptr};  // This handles the interface of the electric and magnetic fields as handed to Garfield
   Garfield::MediumMagboltz *m_gas{nullptr};       // This is the pre-tabulated gas properties required by Garfield...
-  std::string m_defaultGasfile;
+  std::string m_defaultGasfile{"/cvmfs/sphenix.sdcc.bnl.gov/files/gasfiles"};
   bool m_GasFilesLoaded{false};
 
   // Transform convention:

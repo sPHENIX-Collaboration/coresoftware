@@ -217,8 +217,8 @@ class PHGarfieldRossegger : public SubsysReco
   double m_frameBoundaryPotential{1.0};
   FrameChargeWeighting m_frameChargeWeighting{FrameChargeWeighting::ProportionalToArea};
   double m_frameEzScale{1.0};
-  std::string m_padPlacementFile{"input/TPC_pad_placement.txt"};
-  std::string m_gainMapFile{"input/layer_gain_79513_Mariia_side01.root"};
+  std::string m_padPlacementFile{"TPC_pad_placement.txt"};
+  std::string m_gainMapFile{"layer_gain_79513_Mariia_side01.root"};
   std::array<std::string, 2> m_gainHistograms{{"hGainMap_side0_South", "hGainMap_side1_North"}};
   bool m_divideChargeByGain{true};
   bool m_normalizeGainWeightedTotal{true};

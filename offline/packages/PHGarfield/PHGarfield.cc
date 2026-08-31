@@ -53,7 +53,6 @@ PHGarfield::PHGarfield(const std::string& name,
                        const std::string& electricFieldMap3D_side0,
                        const std::string& electricFieldMap3D_side1)
   : SubsysReco(name)
-  , m_defaultGasfile("/sphenix/user/hemmick/gasfiles_20260624")
   , m_electricFieldMap(electricFieldMap)
   , m_electricFieldMap3D{{electricFieldMap3D_side0, electricFieldMap3D_side1}}
   , m_spaceChargeScale_side0(spaceChargeScale_side0)
@@ -101,7 +100,7 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
   {
     if (!LoadElectricFieldCorrections(m_electricFieldMap))
     {
-      std::cerr << PHWHERE << " Failed to load electric-field correction map: "
+      std::cout << PHWHERE << " Failed to load electric-field correction map: "
                 << m_electricFieldMap << std::endl;
     }
   }
@@ -113,7 +112,7 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
     if (!m_electricFieldMap3D[side].empty() &&
         !LoadElectricFieldCorrections3D(m_electricFieldMap3D[side], side))
     {
-      std::cerr << PHWHERE << " Failed to load side " << side
+      std::cout << PHWHERE << " Failed to load side " << side
                 << " 3D electric-field correction map: "
                 << m_electricFieldMap3D[side] << std::endl;
     }
@@ -124,7 +123,7 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
   if (!m_frameElectricFieldMap.empty() &&
       !LoadFrameElectricFieldCorrections(m_frameElectricFieldMap))
   {
-    std::cerr << PHWHERE << " Failed to load frame electric-field correction map: "
+    std::cout << PHWHERE << " Failed to load frame electric-field correction map: "
               << m_frameElectricFieldMap << std::endl;
   }
 
@@ -133,7 +132,7 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
     if (!m_frameElectricFieldMap3D[side].empty() &&
         !LoadFrameElectricFieldCorrections3D(m_frameElectricFieldMap3D[side], side))
     {
-      std::cerr << PHWHERE << " Failed to load side " << side
+      std::cout << PHWHERE << " Failed to load side " << side
                 << " 3D frame electric-field correction map: "
                 << m_frameElectricFieldMap3D[side] << std::endl;
     }
@@ -150,7 +149,7 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
                            (m_ofcVoltageOffset_side0 != 0.0 || m_ofcVoltageOffset_side1 != 0.0);
   if ((needIFCGrid || needOFCGrid) && !BuildFieldCageVoltageFieldGrids())
   {
-    std::cerr << PHWHERE << " Failed to build IFC/OFC boundary-voltage field grids; "
+    std::cout << PHWHERE << " Failed to build IFC/OFC boundary-voltage field grids; "
               << "field-cage voltage corrections will be disabled." << std::endl;
     m_useIFCVoltageDistortion = false;
     m_useOFCVoltageDistortion = false;
@@ -168,8 +167,8 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
   //std::string gasfile("/gpfs/mnt/gpfs02/sphenix/user/hemmick/gasfiles_20260804/Ar75_CF20_iso5.gas");  // for testing only...
   if (gasfile.empty() || !fs::exists(gasfile))
   {
-    std::cerr << PHWHERE << " Missing CDB gasfile: " << gasfile << std::endl;
-    std::cerr << PHWHERE << " Using default gasfile: " << m_defaultGasfile << std::endl;
+    std::cout << PHWHERE << " Missing CDB gasfile: " << gasfile << std::endl;
+    std::cout << PHWHERE << " Using default gasfile: " << m_defaultGasfile << std::endl;
     gasfile = m_defaultGasfile;
   }
   InitializeGas(gasfile);
@@ -240,7 +239,7 @@ void PHGarfield::PrintGasSummary() const
 {
   if (!m_GasFilesLoaded)
   {
-    std::cerr << PHWHERE << "No Gas File(s) have been successfully loaded." << std::endl;
+    std::cout << PHWHERE << "No Gas File(s) have been successfully loaded." << std::endl;
     return;
   }
 
@@ -508,7 +507,7 @@ bool PHGarfield::BuildFieldCageVoltageFieldGrids()
   if (!(a > 0.0 && b > a && L > 0.0) ||
       m_ifcVoltageModes == 0 || m_ifcGridNR < 2 || m_ifcGridNZ < 2)
   {
-    std::cerr << PHWHERE << " Invalid IFC/OFC boundary solver configuration." << std::endl;
+    std::cout << PHWHERE << " Invalid IFC/OFC boundary solver configuration." << std::endl;
     return false;
   }
 
@@ -546,7 +545,7 @@ bool PHGarfield::BuildFieldCageVoltageFieldGrids()
     if (!std::isfinite(denomIFC) || !std::isfinite(denomOFC) ||
         denomIFC == 0.0 || denomOFC == 0.0)
     {
-      std::cerr << PHWHERE << " Invalid field-cage radial mode n=" << n << std::endl;
+      std::cout << PHWHERE << " Invalid field-cage radial mode n=" << n << std::endl;
       return false;
     }
 
@@ -724,7 +723,7 @@ bool PHGarfield::LoadElectricFieldCorrections(const std::string& filename)
   std::unique_ptr<TFile> input(TFile::Open(filename.c_str(), "READ"));
   if (!input || input->IsZombie())
   {
-    std::cerr << PHWHERE << " Could not open electric-field map: "
+    std::cout << PHWHERE << " Could not open electric-field map: "
               << filename << std::endl;
     return false;
   }
@@ -744,7 +743,7 @@ bool PHGarfield::LoadElectricFieldCorrections(const std::string& filename)
 
   if (!er || !ez)
   {
-    std::cerr << PHWHERE
+    std::cout << PHWHERE
               << " Missing QA/hErDefault or QA/hEzDefault in "
               << filename << std::endl;
     return false;
@@ -826,7 +825,7 @@ bool PHGarfield::LoadElectricFieldCorrections3D(const std::string& filename, con
 {
   if (side >= m_field3DCorrection.size())
   {
-    std::cerr << PHWHERE << " Invalid TPC side " << side
+    std::cout << PHWHERE << " Invalid TPC side " << side
               << " for 3D electric-field map " << filename << std::endl;
     return false;
   }
@@ -834,7 +833,7 @@ bool PHGarfield::LoadElectricFieldCorrections3D(const std::string& filename, con
   std::unique_ptr<TFile> input(TFile::Open(filename.c_str(), "READ"));
   if (!input || input->IsZombie())
   {
-    std::cerr << PHWHERE << " Could not open 3D electric-field map: "
+    std::cout << PHWHERE << " Could not open 3D electric-field map: "
               << filename << std::endl;
     return false;
   }
@@ -846,7 +845,7 @@ bool PHGarfield::LoadElectricFieldCorrections3D(const std::string& filename, con
 
   if (!source[0] || !source[1] || !source[2])
   {
-    std::cerr << PHWHERE
+    std::cout << PHWHERE
               << " Missing Field3D/hEx, Field3D/hEy, or Field3D/hEz in "
               << filename << std::endl;
     return false;
@@ -869,7 +868,7 @@ bool PHGarfield::LoadElectricFieldCorrections3D(const std::string& filename, con
         !sameAxis(source[0]->GetYaxis(), source[component]->GetYaxis()) ||
         !sameAxis(source[0]->GetZaxis(), source[component]->GetZaxis()))
     {
-      std::cerr << PHWHERE << " Inconsistent hEx/hEy/hEz axes in "
+      std::cout << PHWHERE << " Inconsistent hEx/hEy/hEz axes in "
                 << filename << std::endl;
       return false;
     }
@@ -879,7 +878,7 @@ bool PHGarfield::LoadElectricFieldCorrections3D(const std::string& filename, con
   constexpr double phiTolerance = 1.0e-3;
   if (std::abs((phiAxis->GetXmax() - phiAxis->GetXmin()) - 2.0 * std::numbers::pi) > phiTolerance)
   {
-    std::cerr << PHWHERE << " 3D field-map phi axis must span 2*pi radians in "
+    std::cout << PHWHERE << " 3D field-map phi axis must span 2*pi radians in "
               << filename << std::endl;
     return false;
   }
@@ -952,7 +951,7 @@ bool PHGarfield::LoadFrameElectricFieldCorrections(const std::string& filename)
   std::unique_ptr<TFile> input(TFile::Open(filename.c_str(), "READ"));
   if (!input || input->IsZombie())
   {
-    std::cerr << PHWHERE << " Could not open frame electric-field map: "
+    std::cout << PHWHERE << " Could not open frame electric-field map: "
               << filename << std::endl;
     return false;
   }
@@ -964,7 +963,7 @@ bool PHGarfield::LoadFrameElectricFieldCorrections(const std::string& filename)
 
   if (!er || !ez)
   {
-    std::cerr << PHWHERE
+    std::cout << PHWHERE
               << " Missing QA/hErDefault or QA/hEzDefault in frame map "
               << filename << std::endl;
     return false;
@@ -998,7 +997,7 @@ bool PHGarfield::LoadFrameElectricFieldCorrections3D(const std::string& filename
 {
   if (side >= m_frameField3DCorrection.size())
   {
-    std::cerr << PHWHERE << " Invalid TPC side " << side
+    std::cout << PHWHERE << " Invalid TPC side " << side
               << " for 3D frame electric-field map " << filename << std::endl;
     return false;
   }
@@ -1006,7 +1005,7 @@ bool PHGarfield::LoadFrameElectricFieldCorrections3D(const std::string& filename
   std::unique_ptr<TFile> input(TFile::Open(filename.c_str(), "READ"));
   if (!input || input->IsZombie())
   {
-    std::cerr << PHWHERE << " Could not open 3D frame electric-field map: "
+    std::cout << PHWHERE << " Could not open 3D frame electric-field map: "
               << filename << std::endl;
     return false;
   }
@@ -1030,7 +1029,7 @@ bool PHGarfield::LoadFrameElectricFieldCorrections3D(const std::string& filename
 
   if (!source[0] || !source[1] || !source[2])
   {
-    std::cerr << PHWHERE
+    std::cout << PHWHERE
               << " Missing either Field3D/hEx,hEy,hEz or hEr,hEphi,hEz in frame map "
               << filename << std::endl;
     return false;
@@ -1050,7 +1049,7 @@ bool PHGarfield::LoadFrameElectricFieldCorrections3D(const std::string& filename
         !sameAxis(source[0]->GetYaxis(), source[component]->GetYaxis()) ||
         !sameAxis(source[0]->GetZaxis(), source[component]->GetZaxis()))
     {
-      std::cerr << PHWHERE << " Inconsistent 3D frame-map axes in "
+      std::cout << PHWHERE << " Inconsistent 3D frame-map axes in "
                 << filename << std::endl;
       return false;
     }
@@ -1060,7 +1059,7 @@ bool PHGarfield::LoadFrameElectricFieldCorrections3D(const std::string& filename
   constexpr double phiTolerance = 1.0e-3;
   if (std::abs((phiAxis->GetXmax() - phiAxis->GetXmin()) - 2.0 * std::numbers::pi) > phiTolerance)
   {
-    std::cerr << PHWHERE << " 3D frame-map phi axis must span 2*pi radians in "
+    std::cout << PHWHERE << " 3D frame-map phi axis must span 2*pi radians in "
               << filename << std::endl;
     return false;
   }
@@ -1336,7 +1335,7 @@ void PHGarfield::InitializeGas(const std::string& name)
 
   if (!std::filesystem::exists(name))
   {
-    std::cerr << "Missing gas file or gas directory: " << name << std::endl;
+    std::cout << "Missing gas file or gas directory: " << name << std::endl;
     return;
   }
 
@@ -1345,7 +1344,7 @@ void PHGarfield::InitializeGas(const std::string& name)
     std::cout << "Loading Garfield gas from file: " << name << std::endl;
     if (!m_gas->LoadGasFile(name))
     {
-      std::cerr << "Failed to load " << name << std::endl;
+      std::cout << "Failed to load " << name << std::endl;
       return;
     }
     m_GasFilesLoaded = true;
@@ -1460,7 +1459,7 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
     if (!std::isfinite(vx) || !std::isfinite(vy) || !std::isfinite(vz) ||
         (vx == 0.0 && vy == 0.0 && vz == 0.0))
     {
-      std::cerr << PHWHERE
+      std::cout << PHWHERE
                 << " Garfield returned invalid/zero electron velocity; stopping drift. "
                 << " p_tpc=(" << x << ", " << y << ", " << z << ") cm"
                 << " E=(" << ex << ", " << ey << ", " << ez << ") V/cm"
@@ -1484,7 +1483,7 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
 
   if (step >= maxSteps && status == ReverseDriftStatus::Running)
   {
-    std::cerr << PHWHERE << " ReverseDrift reached maxSteps=" << maxSteps
+    std::cout << PHWHERE << " ReverseDrift reached maxSteps=" << maxSteps
               << "; stopping drift at p_tpc=(" << x << ", " << y << ", " << z
               << ") cm" << std::endl;
 
