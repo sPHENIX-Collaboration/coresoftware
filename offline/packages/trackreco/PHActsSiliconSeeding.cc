@@ -775,7 +775,7 @@ std::vector<short int> PHActsSiliconSeeding::getInttCrossings(TrackSeed &si_trac
 // function for INTT cluster cuts
 bool PHActsSiliconSeeding::passesInttClusterCuts(const TrkrCluster &cluster) const
 {
-  if (m_inttClusterAdcMin > 0 && cluster.getAdc() < static_cast<unsigned int>(m_inttClusterAdcMin))
+  if (m_inttClusterAdcMin > 0 && cluster.getAdc() <= static_cast<unsigned int>(m_inttClusterAdcMin))
   {
     return false;
   }
