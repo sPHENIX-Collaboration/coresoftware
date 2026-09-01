@@ -12,7 +12,7 @@
 #include <string>
 
 class CDBTTree;
-class PHField3DCartesian;
+class PHField;
 class TPolyLine3D;
 class TH2;
 
@@ -93,7 +93,8 @@ class PHGarfield : public SubsysReco
   static double bounder(double phi, double phi_min);
 
   CDBTTree *m_cdbTPCMAPttree{nullptr};            // Locations of the pads from CDB...
-  PHField3DCartesian *m_field{nullptr};           // The standard sPHENIX field holding container.
+  //PHField3DCartesian *m_field{nullptr};           // The standard sPHENIX field holding container.
+  PHField *m_field{nullptr};
   Garfield::ComponentUser *m_component{nullptr};  // This handles the interface of the electric and magnetic fields as handed to Garfield
   Garfield::MediumMagboltz *m_gas{nullptr};       // This is the pre-tabulated gas properties required by Garfield...
   std::string m_defaultGasfile {"/cvmfs/sphenix.sdcc.bnl.gov/files/gasfiles"};
