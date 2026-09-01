@@ -765,7 +765,6 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
       }
 
     }
-
   }
 
   return std::make_pair(square(phierror), square(zerror));

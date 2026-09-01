@@ -1867,7 +1867,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
           unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
           Acts::Vector3 position = clusterPositions[i];
-          Acts::Vector3 pca = TrackFitUtils::get_helix_pca(fitparams, position,false);
+          Acts::Vector3 pca = TrackFitUtils::get_helix_pca(fitparams, position);
           float cluster_phi = atan2(position(1), position(0));
           float pca_phi = atan2(pca(1), pca(0));
           float dphi = cluster_phi - pca_phi;

@@ -5,6 +5,7 @@
 /// Tracking includes
 
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/InttDefs.h>
 #include <trackbase/TpcDefs.h>  // for side
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
@@ -96,7 +97,7 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
     m_file = TFile::Open(m_tfile_name.c_str(), "RECREATE");
     m_ntuple = new TNtuple (
       "ntp", "ntp",
-      "layer:residualX:residualY:clusphi:xglob:yglob:zglob:"
+      "layer:stave:chip:residualX:residualY:clusphi:xglob:yglob:zglob:"
       "errX:errY:l0:l1:phi:theta:qoverp:time:"
       "dXdR:dXdZ0:dXdphi:dXdtheta:dXdqoverp:dXdt:"
       "dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:"
@@ -488,6 +489,19 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     TrkrCluster* cluster = _cluster_map->findCluster(ckey);
     const unsigned int layer = TrkrDefs::getLayer(ckey);
     const unsigned int trkrid = TrkrDefs::getTrkrId(ckey);
+     uint8_t stave = -1;
+      uint8_t chip = -1;
+      if (trkrid == TrkrDefs::mvtxId)
+      {
+        // need stave to get clamshell
+         stave = MvtxDefs::getStaveId(ckey);
+         chip = MvtxDefs::getChipId(ckey);
+      }
+      else if(trkrid == TrkrDefs::inttId)
+      {
+        stave = InttDefs::getLadderZId(ckey);
+        chip = InttDefs::getLadderPhiId(ckey);
+      }
     if(m_ignore_tpc && trkrid == TrkrDefs::tpcId)
       continue;
     const SvtxAlignmentState::ResidualVector residual = state->get_residual();// / Acts::UnitConstants::cm;
@@ -548,6 +562,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     /// For N residual local coordinates x, z
     for (int i = 0; i < SvtxAlignmentState::NRES; ++i)
     {
+     
       // Add the measurement separately for each coordinate direction to Mille
       for (int j = 0; j < SvtxAlignmentState::NGL; ++j)
       {
@@ -561,7 +576,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
         if (trkrid == TrkrDefs::mvtxId)
         {
           // need stave to get clamshell
-          auto stave = MvtxDefs::getStaveId(ckey);
+           auto stave = MvtxDefs::getStaveId(ckey);
           auto clamshell = AlignmentDefs::getMvtxClamshell(layer, stave);
           if (is_layer_param_fixed(layer, j, fixed_layer_gparams) ||
               is_mvtx_layer_fixed(layer, clamshell))
@@ -571,6 +586,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
         }
         else if (trkrid == TrkrDefs::inttId)
         {
+          
           if (is_layer_param_fixed(layer, j, fixed_layer_gparams) ||
               is_layer_fixed(layer))
           {
@@ -651,7 +667,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     }
 
     float ntp_data[] = {
-      (float) layer, (float) residual(0), (float) residual(1), (float) clusphi, (float) global[0], (float) global[1], (float) global[2],
+      (float) layer, (float) stave, (float) chip, (float) residual(0), (float) residual(1), (float) clusphi, (float) global[0], (float) global[1], (float) global[2],
       (float) clus_sigma(0), (float) clus_sigma(1), (float) lcl_trackpars(0), (float) lcl_trackpars(1), (float) lcl_trackpars(2), (float) lcl_trackpars(3), (float) lcl_trackpars(4), (float) lcl_trackpars(5),
       lcl_derivative[0][0], lcl_derivative[0][1], lcl_derivative[0][2], lcl_derivative[0][3], lcl_derivative[0][4], lcl_derivative[0][5],
       glbl_derivative[0][0], glbl_derivative[0][1], glbl_derivative[0][2], glbl_derivative[0][3], glbl_derivative[0][4], glbl_derivative[0][5],
