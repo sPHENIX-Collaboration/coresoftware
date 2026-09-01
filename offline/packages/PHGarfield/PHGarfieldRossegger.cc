@@ -567,7 +567,7 @@ PHGarfieldRossegger::SourceGrid PHGarfieldRossegger::buildSourceGrid() const
     std::vector<double>& redges = source_grid.r_edges_m;
     constexpr double max_step_cm = 0.25;
 
-    auto add_interval = [&redges, max_step_cm](double rmin_cm, double rmax_cm)
+    auto add_interval = [&redges](double rmin_cm, double rmax_cm)
     {
       redges.push_back(rmin_cm * cmToM);
 

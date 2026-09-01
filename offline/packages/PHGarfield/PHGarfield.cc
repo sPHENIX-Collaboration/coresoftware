@@ -164,7 +164,7 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
 
   // Here we fetch the gas from the CDB
   std::string gasfile = m_cdb->getUrl("PHGARFIELD_GAS");
-  //std::string gasfile("/gpfs/mnt/gpfs02/sphenix/user/hemmick/gasfiles_20260804/Ar75_CF20_iso5.gas");  // for testing only...
+
   if (gasfile.empty() || !fs::exists(gasfile))
   {
     std::cout << PHWHERE << " Missing CDB gasfile: " << gasfile << std::endl;
@@ -563,6 +563,13 @@ bool PHGarfield::BuildFieldCageVoltageFieldGrids()
 
       radialOFC[idx] = (k0a * i0r - i0a * k0r) / denomOFC;
       dradialOFC[idx] = k * (k0a * i1r + i0a * k1r) / denomOFC;
+
+      if (!std::isfinite(radialIFC[idx]) || !std::isfinite(dradialIFC[idx]) ||
+          !std::isfinite(radialOFC[idx]) || !std::isfinite(dradialOFC[idx]))
+      {
+        std::cout << PHWHERE << " Non-finite field-cage radial coefficient for mode n=" << n << std::endl;
+        return false;
+      }
     }
   }
 
