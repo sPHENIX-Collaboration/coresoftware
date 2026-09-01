@@ -144,7 +144,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
         unsigned int towerindex = emcal_retower->decode_key(towerkey);
         TowerInfo *towerinfo = emcal_retower->get_tower_at_channel(towerindex);
         double scalefactor = retower_badarea / retower_totalarea[ieta_ihcal];
-        if (scalefactor > _frac_cut)
+        if (scalefactor >= 1.0 || scalefactor > _frac_cut)
         {
           towerinfo->set_energy(0);
           towerinfo->set_isHot(true);
