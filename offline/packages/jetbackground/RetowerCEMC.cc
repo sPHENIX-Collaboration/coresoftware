@@ -88,7 +88,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
       rawtower_e[ieta][iphi] = energy;
       rawtower_time[ieta][iphi] = tower->get_time();
       bool is_bad = !tower->get_isGood();
-      if (_mask_zero_suppressed && tower->get_isZS() && energy < _zero_suppressed_threshold)
+      if (_mask_negative_energy && energy < _negative_energy_threshold)
       {
         is_bad = true;
       }

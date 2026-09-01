@@ -25,8 +25,8 @@ class RetowerCEMC : public SubsysReco
     m_towerNodePrefix = prefix;
     return;
   }
-  void set_mask_zero_suppressed(bool b) { _mask_zero_suppressed = b; }
-  void set_zero_suppressed_threshold(double t) { _zero_suppressed_threshold = t; }
+  void set_mask_negative_energy(bool b) { _mask_negative_energy = b; }
+  void set_negative_energy_threshold(double t) { _negative_energy_threshold = t; }
 
  private:
   int CreateNode(PHCompositeNode *topNode);
@@ -39,8 +39,8 @@ class RetowerCEMC : public SubsysReco
   bool _do_rescale{false};
   bool m_use_towerinfo{false};
   std::string m_towerNodePrefix{"TOWERINFO_CALIB"};
-  bool _mask_zero_suppressed{false};
-  double _zero_suppressed_threshold{-2.0}; /*GeV*/
+  bool _mask_negative_energy{false};
+  double _negative_energy_threshold{-2.0}; /*GeV*/
 
   static const int neta_ihcal{24};
   static const int neta_emcal{96};
