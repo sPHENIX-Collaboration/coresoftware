@@ -84,9 +84,15 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
       unsigned int channelkey = towerinfosEM3->encode_key(channel);
       int ieta = towerinfosEM3->getTowerEtaBin(channelkey);
       int iphi = towerinfosEM3->getTowerPhiBin(channelkey);
-      rawtower_e[ieta][iphi] = tower->get_energy();
+      double energy = tower->get_energy();
+      rawtower_e[ieta][iphi] = energy;
       rawtower_time[ieta][iphi] = tower->get_time();
-      rawtower_status[ieta][iphi] = !tower->get_isGood();
+      bool is_bad = !tower->get_isGood();
+      if (_mask_zero_suppressed && tower->get_isZS() && energy < _zero_suppressed_threshold)
+      {
+        is_bad = true;
+      }
+      rawtower_status[ieta][iphi] = is_bad;
     }
     EMRetowerName = m_towerNodePrefix + "_CEMC_RETOWER";
     TowerInfoContainer *emcal_retower = findNode::getClass<TowerInfoContainer>(topNode, EMRetowerName);
