@@ -38,6 +38,9 @@ class CentralityReco : public SubsysReco
   int process_event(PHCompositeNode *) override;
   int ResetEvent(PHCompositeNode *) override;
 
+  //! for no q/t cut case (O+O) 
+  void set_sum_all_channels(bool b) { m_sum_all_channels = b; }
+
   // Interface with CDB
   int Download_centralityDivisions(const std::string &dbfile);
   int Download_centralityScale(const std::string &dbfile);
@@ -85,8 +88,9 @@ class CentralityReco : public SubsysReco
 
   static constexpr int NDIVS{100};
 
-  static constexpr float mbd_charge_cut{0.5};
-  static constexpr float mbd_time_cut{25};
+  bool m_sum_all_channels{false};
+  static constexpr float mbd_charge_cut{0.4};
+  static constexpr float mbd_time_cut{20};
 
   unsigned int m_key{std::numeric_limits<unsigned int>::max()};
 
