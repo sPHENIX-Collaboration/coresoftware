@@ -830,7 +830,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
       if (m_ConstField)
       {
-        float pt = fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * fieldstrength * m_magFieldRescale;
+        float pt = fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * fieldstrength;
         float phi = seedphi;
         float eta = seedeta;
         float theta = seedtheta;

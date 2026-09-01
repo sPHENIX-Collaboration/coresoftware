@@ -120,11 +120,6 @@ class PHActsTrkFitter : public SubsysReco
   }
   void setEvaluatorName(const std::string& name) { m_evalname = name; }
   
-  void setMagFieldRescale(double rescale)
-  {
-	  m_magFieldRescale = rescale;
-  }
-  
   void setFieldMap(const std::string& fieldMap)
   {
     m_fieldMap = fieldMap;
