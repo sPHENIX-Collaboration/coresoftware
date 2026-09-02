@@ -9,6 +9,7 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <cmath>
 #include <iostream>
 #include <string>
 
@@ -85,7 +86,7 @@ class CaloTowerCalib : public SubsysReco
 
   void set_doCalibOnly(bool docalib = true)
   {
-    if (docalib) 
+    if (docalib)
     {
       m_dotimecalib = false;
       m_doZScrosscalib = false;
@@ -119,6 +120,24 @@ class CaloTowerCalib : public SubsysReco
   }
 
   void set_use_TowerInfov2(bool use) { m_use_TowerInfov2 = use; }
+
+  void set_negEnergyThreshold(bool do_threshold, float threshold = NAN)
+  {
+    m_doNegEnergyThreshold = do_threshold;
+    if (!std::isnan(threshold))
+    {
+      m_negEnergyThreshold = threshold;
+    }
+  }
+
+  void set_negEnergyThreshold(float threshold)
+  {
+    m_doNegEnergyThreshold = true;
+    m_negEnergyThreshold = threshold;
+  }
+
+  float get_negEnergyThreshold() const { return m_negEnergyThreshold; }
+  bool get_doNegEnergyThreshold() const { return m_doNegEnergyThreshold; }
 
  private:
   CaloTowerDefs::DetectorSystem m_dettype;
@@ -154,6 +173,10 @@ class CaloTowerCalib : public SubsysReco
   bool m_doAbortNoEnergyCalib{false};
   bool m_doAbortNoTimeCalib{false};
   bool m_doAbortNoZSCalib{false};
+
+  bool m_doNegEnergyThreshold{true};
+  float m_negEnergyThreshold{-2.0F}; /*GeV*/
+  bool m_apply_neg_energy_threshold{false};
 
   CDBTTree *cdbttree = nullptr;
   CDBTTree *cdbttree_time = nullptr;
