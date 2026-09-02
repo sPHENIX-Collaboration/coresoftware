@@ -80,6 +80,8 @@ int PHGarfield::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  if (m_field )
+
   //  Here we use the CDBInterface to set up the channel making of the TPC:
   std::string text = m_cdb->getUrl("TPC_FEE_CHANNEL_MAP");
   m_cdbTPCMAPttree = new CDBTTree(text);

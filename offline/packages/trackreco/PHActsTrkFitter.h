@@ -118,8 +118,7 @@ class PHActsTrkFitter : public SubsysReco
     m_simActsEvaluator = actsEvaluator;
     m_actsEvaluator = actsEvaluator;
   }
-  void setEvaluatorName(const std::string& name) { m_evalname = name; }
-  
+  void setEvaluatorName(const std::string& name) { m_evalname = name; } 
   void setFieldMap(const std::string& fieldMap)
   {
     m_fieldMap = fieldMap;
@@ -264,7 +263,6 @@ class PHActsTrkFitter : public SubsysReco
   bool m_directNavigation = true;
 
   // do we have a constant field
-  double m_magFieldRescale = 1.0;
   bool m_ConstField{false};
   double fieldstrength{std::numeric_limits<double>::quiet_NaN()};
 
