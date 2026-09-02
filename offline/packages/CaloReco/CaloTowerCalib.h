@@ -9,7 +9,6 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <cmath>
 #include <iostream>
 #include <string>
 
@@ -121,18 +120,13 @@ class CaloTowerCalib : public SubsysReco
 
   void set_use_TowerInfov2(bool use) { m_use_TowerInfov2 = use; }
 
-  void set_negEnergyThreshold(bool do_threshold, float threshold = NAN)
+  void set_doNegEnergyThreshold(bool do_threshold)
   {
     m_doNegEnergyThreshold = do_threshold;
-    if (!std::isnan(threshold))
-    {
-      m_negEnergyThreshold = threshold;
-    }
   }
 
   void set_negEnergyThreshold(float threshold)
   {
-    m_doNegEnergyThreshold = true;
     m_negEnergyThreshold = threshold;
   }
 
