@@ -2,8 +2,6 @@
 
 #include <cdbobjects/CDBTTree.h>
 
-#include <phfield/PHFieldUtility.h>
-
 #include <ffamodules/CDBInterface.h>
 #include <phfield/PHField3DCartesian.h>
 #include <phfield/PHFieldUtility.h>
