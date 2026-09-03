@@ -1,12 +1,12 @@
 #include "Tpc_PolyClusterizer.h"
 
 #include "IdealPadMap.h"
+#include "TpcCrossingDecision.h"
+#include "TpcCrossingDecisionContainer.h"
 #include "Tpc_AssembledTrack.h"
 #include "Tpc_AssembledTrackContainer.h"
 #include "Tpc_PolyClusterContainerv1.h"
 #include "Tpc_PolyClusterv1.h"
-#include "TpcCrossingDecision.h"
-#include "TpcCrossingDecisionContainer.h"
 
 #include <cdbobjects/CDBTTree.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -24,12 +24,11 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
-#include <trackbase/ActsGeometry.h>
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
-
+#include <trackbase/ActsGeometry.h>
 
 #include <TPolyLine3D.h>
 #include <phgarfield/PHGarfield.h>
@@ -40,9 +39,9 @@
 #include <iostream>
 #include <limits>
 #include <map>
+#include <memory>
 #include <set>
 #include <vector>
-#include <memory>
 
 namespace
 {
@@ -154,15 +153,30 @@ bool Tpc_PolyClusterizer::load_cdb_inputs()
 
   if (m_use2DElectricFieldMap)
   {
-    if (!resolve_file(CdbEField2D, m_electricFieldMap, m_electricFieldMapOverride)) ok = false;
+    if (!resolve_file(CdbEField2D, m_electricFieldMap, m_electricFieldMapOverride))
+    {
+      ok = false;
+    }
   }
   else
   {
-    if (!resolve_file(CdbEField3DSide0, m_field3DSide0, m_field3DSide0Override)) ok = false;
-    if (!resolve_file(CdbEField3DSide1, m_field3DSide1, m_field3DSide1Override)) ok = false;
+    if (!resolve_file(CdbEField3DSide0, m_field3DSide0, m_field3DSide0Override))
+    {
+      ok = false;
+    }
+    if (!resolve_file(CdbEField3DSide1, m_field3DSide1, m_field3DSide1Override))
+    {
+      ok = false;
+    }
   }
-  if (!resolve_file(CdbModuleFrames3DSide0, m_framesSide0, m_framesSide0Override)) ok = false;
-  if (!resolve_file(CdbModuleFrames3DSide1, m_framesSide1, m_framesSide1Override)) ok = false;
+  if (!resolve_file(CdbModuleFrames3DSide0, m_framesSide0, m_framesSide0Override))
+  {
+    ok = false;
+  }
+  if (!resolve_file(CdbModuleFrames3DSide1, m_framesSide1, m_framesSide1Override))
+  {
+    ok = false;
+  }
 
   // Read kEff unless both sides were explicitly set from the macro.
   if (!m_kEffSide0Override || !m_kEffSide1Override)
@@ -190,16 +204,32 @@ bool Tpc_PolyClusterizer::load_cdb_inputs()
       auto keffcdbtree = std::make_unique<CDBTTree>(kefffile);
       keffcdbtree->LoadCalibrations();
 
-      if (!m_kEffSide0Override) m_kEffSide0 = keffcdbtree->GetSingleFloatValue("keffside0");
-      if (!m_kEffSide1Override) m_kEffSide1 = keffcdbtree->GetSingleFloatValue("keffside1");
+      if (!m_kEffSide0Override)
+      {
+        m_kEffSide0 = keffcdbtree->GetSingleFloatValue("keffside0");
+      }
+      if (!m_kEffSide1Override)
+      {
+        m_kEffSide1 = keffcdbtree->GetSingleFloatValue("keffside1");
+      }
     }
   }
 
-  std::cout << Name() << "::load_cdb_inputs - final kEff values: side0 = " << m_kEffSide0
-            << (m_kEffSide0Override ? " [manual value]" : (m_field3DCoefficientFileOverride ? " [manual file]" : " [CDB]"))
-            << ", side1 = " << m_kEffSide1
-            << (m_kEffSide1Override ? " [manual value]" : (m_field3DCoefficientFileOverride ? " [manual file]" : " [CDB]"))
-            << std::endl;
+  auto keff_source = [this](bool side_override)
+  {
+    if (side_override)
+    {
+      return " [manual value]";
+    }
+    if (m_field3DCoefficientFileOverride)
+    {
+      return " [manual file]";
+    }
+    return " [CDB]";
+  };
+
+  std::cout << Name() << "::load_cdb_inputs - final kEff values: side0 = " << m_kEffSide0 << keff_source(m_kEffSide0Override)
+            << ", side1 = " << m_kEffSide1 << keff_source(m_kEffSide1Override) << std::endl;
   return ok;
 }
 
@@ -222,7 +252,7 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4TpcGeom *layergeom = m_geomContainerTpc->GetLayerCellGeom(20);
+  PHG4TpcGeom* layergeom = m_geomContainerTpc->GetLayerCellGeom(20);
   double rot_x = layergeom->get_rot_x();
   double rot_y = layergeom->get_rot_y();
   double rot_z = layergeom->get_rot_z();
@@ -349,7 +379,6 @@ int Tpc_PolyClusterizer::createNodes(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
 
 unsigned int Tpc_PolyClusterizer::drift_lookup_index(const unsigned int layer_index,
                                                      const unsigned int side,
@@ -520,8 +549,8 @@ bool Tpc_PolyClusterizer::build_drift_lookup()
                   << " side=" << side
                   << " max_dr=" << max_delta_r
                   << " max_r_dphi=" << max_delta_phi_arc
-                << " max_dz=" << max_delta_z
-                << " length_mismatches=" << length_mismatches << std::endl;
+                  << " max_dz=" << max_delta_z
+                  << " length_mismatches=" << length_mismatches << std::endl;
       }
     }
   }
@@ -884,8 +913,10 @@ Tpc_PolyClusterizer::make_centroid(const std::vector<Point>& points)
 
 int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
 {
-  if (!m_assembledTracks || !m_clusters || !m_crossingDecisions || !m_garfield) { return Fun4AllReturnCodes::EVENT_OK;
-}
+  if (!m_assembledTracks || !m_clusters || !m_crossingDecisions || !m_garfield)
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   ActsGeometry* tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!tGeometry)
@@ -908,9 +939,18 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
       for (unsigned int iassembled = 0; iassembled < nassembled; ++iassembled)
       {
         const Tpc_AssembledTrack* assembled = m_assembledTracks->get_track(iassembled);
-        if (!assembled) { continue; }
-        if (assembled->get_side() != side) { continue; }
-        if (assembled->get_first_sector() % 12U != sector) { continue; }
+        if (!assembled)
+        {
+          continue;
+        }
+        if (assembled->get_side() != side)
+        {
+          continue;
+        }
+        if (assembled->get_first_sector() % 12U != sector)
+        {
+          continue;
+        }
         const TpcCrossingDecision* crossing_decision = m_crossingDecisions->get_decision(assembled->get_track_id());
         if (!crossing_decision)
         {
@@ -925,15 +965,20 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
         }
         const short selected_crossing = crossing_decision->get_selected_crossing();
 
-
         std::map<TrkrDefs::hitsetkey, std::vector<Point>> points_by_hitset;
         for (unsigned int ih = 0; ih < assembled->size_hit_indices(); ++ih)
         {
           const Tpc_AssembledTrack::HitIndex hi = assembled->get_hit_index(ih);
-          if (TpcDefs::getSide(hi.first) != static_cast<unsigned int>(side)) { continue; }
+          if (TpcDefs::getSide(hi.first) != static_cast<unsigned int>(side))
+          {
+            continue;
+          }
 
           Point p;
-          if (make_xyz_point(hi.first, hi.second, selected_crossing, p)) { points_by_hitset[p.hitsetkey].push_back(p);}
+          if (make_xyz_point(hi.first, hi.second, selected_crossing, p))
+          {
+            points_by_hitset[p.hitsetkey].push_back(p);
+          }
         }
         if (points_by_hitset.empty())
         {
@@ -946,7 +991,10 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
           const TrkrDefs::hitsetkey cluster_hitsetkey = hitset_points.first;
           const std::vector<Point>& points = hitset_points.second;
           const Centroid centroid = make_centroid(points);
-          if (!centroid.ok) { continue; }
+          if (!centroid.ok)
+          {
+            continue;
+          }
 
           const unsigned int cluster_index = next_cluster_index_by_hitset[cluster_hitsetkey]++;
           const TrkrDefs::cluskey trkr_cluster_key = TrkrDefs::genClusKey(cluster_hitsetkey, cluster_index);
@@ -978,7 +1026,10 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
 
             for (const Point& p : points)
             {
-              if (p.adc <= 0.0) { continue; }
+              if (p.adc <= 0.0)
+              {
+                continue;
+              }
 
               const int iphi = static_cast<int>(p.pad);
               const int it = static_cast<int>(p.tbin);
@@ -1005,16 +1056,18 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
               const double clust = t_sum / adc_sum;
               const double phi_cov = std::max(0.0, (iphi2_sum / adc_sum - square(clusiphi)) * square(layergeom->get_phistep()));
               const double t_cov = std::max(0.0, t2_sum / adc_sum - square(clust));
-              const double phi_err_square = (phibinhi == phibinlo) ?
-                  9.0 * (square(radius * layergeom->get_phistep()) / 12.0) :
-                  square(radius) * phi_cov / (adc_sum * 0.14);
-              const double t_err_square = (tbinhi == tbinlo) ?
-                  9.0 * (square(layergeom->get_zstep()) / 12.0) :
-                  t_cov / (adc_sum * 0.14);
+              const double phi_err_square = (phibinhi == phibinlo) ? 9.0 * (square(radius * layergeom->get_phistep()) / 12.0) : square(radius) * phi_cov / (adc_sum * 0.14);
+              const double t_err_square = (tbinhi == tbinlo) ? 9.0 * (square(layergeom->get_zstep()) / 12.0) : t_cov / (adc_sum * 0.14);
 
-              if (phi_err_square >= 0.0 && std::isfinite(phi_err_square)) { phi_error = std::sqrt(phi_err_square);}
+              if (phi_err_square >= 0.0 && std::isfinite(phi_err_square))
+              {
+                phi_error = std::sqrt(phi_err_square);
+              }
               const double z_err_square = t_err_square * square(drift_velocity);
-              if (z_err_square >= 0.0 && std::isfinite(z_err_square)) { z_error = std::sqrt(z_err_square);}
+              if (z_err_square >= 0.0 && std::isfinite(z_err_square))
+              {
+                z_error = std::sqrt(z_err_square);
+              }
             }
           }
 
@@ -1027,7 +1080,10 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
           out->set_phi_width(params.phi_width);
           out->set_time_width(params.time_width);
           out->set_phase(params.phase);
-          for (const Point& p : points) { out->add_hit(p.hitsetkey, p.hitkey, p.x, p.y, p.z);}
+          for (const Point& p : points)
+          {
+            out->add_hit(p.hitsetkey, p.hitkey, p.x, p.y, p.z);
+          }
           if (out->size_hits() == 0)
           {
             delete out;

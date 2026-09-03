@@ -434,7 +434,7 @@ void PHGarfield::GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, doub
   ez_vcm = z_cm > 0.0 ? -m_CMVoltageDefault : m_CMVoltageDefault;
 
   const double spaceChargeScale = side == 0 ? m_spaceChargeScale_side0
-                                             : m_spaceChargeScale_side1;
+                                            : m_spaceChargeScale_side1;
   if (spaceChargeScale == 0.0)
   {
     AddFrameElectricFieldCorrections(r_cm, phi_rad, z_cm, ex_vcm, ey_vcm, ez_vcm);
@@ -631,8 +631,8 @@ bool PHGarfield::BuildFieldCageVoltageFieldGrids()
 }
 
 double PHGarfield::InterpolateFieldCageGrid(const std::vector<double>& grid,
-                                             const double r_cm,
-                                             const double abs_z_cm) const
+                                            const double r_cm,
+                                            const double abs_z_cm) const
 {
   if (!m_fieldCageGridReady || grid.empty() || m_ifcGridNR < 2 || m_ifcGridNZ < 2 ||
       m_ifcGridDr_cm <= 0.0 || m_ifcGridDz_cm <= 0.0)
@@ -648,8 +648,14 @@ double PHGarfield::InterpolateFieldCageGrid(const std::vector<double>& grid,
 
   unsigned int ir0 = static_cast<unsigned int>(std::floor(fr));
   unsigned int iz0 = static_cast<unsigned int>(std::floor(fz));
-  if (ir0 >= m_ifcGridNR - 1) ir0 = m_ifcGridNR - 2;
-  if (iz0 >= m_ifcGridNZ - 1) iz0 = m_ifcGridNZ - 2;
+  if (ir0 >= m_ifcGridNR - 1)
+  {
+    ir0 = m_ifcGridNR - 2;
+  }
+  if (iz0 >= m_ifcGridNZ - 1)
+  {
+    iz0 = m_ifcGridNZ - 2;
+  }
 
   const unsigned int ir1 = ir0 + 1;
   const unsigned int iz1 = iz0 + 1;
@@ -675,11 +681,11 @@ double PHGarfield::InterpolateFieldCageGrid(const std::vector<double>& grid,
 // are superposed linearly. For each side there are therefore two independent
 // parameters: dV_IFC and dV_OFC.
 void PHGarfield::AddFieldCageVoltageDistortion(const double x_cm,
-                                                const double y_cm,
-                                                const double z_cm,
-                                                double& ex_vcm,
-                                                double& ey_vcm,
-                                                double& ez_vcm) const
+                                               const double y_cm,
+                                               const double z_cm,
+                                               double& ex_vcm,
+                                               double& ey_vcm,
+                                               double& ez_vcm) const
 {
   if (!m_fieldCageGridReady ||
       (!m_useIFCVoltageDistortion && !m_useOFCVoltageDistortion))
@@ -688,12 +694,17 @@ void PHGarfield::AddFieldCageVoltageDistortion(const double x_cm,
   }
 
   const std::size_t side = z_cm < 0.0 ? 0 : 1;
-  const double deltaVIFC = m_useIFCVoltageDistortion
-                               ? (side == 0 ? m_ifcVoltageOffset_side0 : m_ifcVoltageOffset_side1)
-                               : 0.0;
-  const double deltaVOFC = m_useOFCVoltageDistortion
-                               ? (side == 0 ? m_ofcVoltageOffset_side0 : m_ofcVoltageOffset_side1)
-                               : 0.0;
+  double deltaVIFC = 0.0;
+  if (m_useIFCVoltageDistortion)
+  {
+    deltaVIFC = (side == 0) ? m_ifcVoltageOffset_side0 : m_ifcVoltageOffset_side1;
+  }
+
+  double deltaVOFC = 0.0;
+  if (m_useOFCVoltageDistortion)
+  {
+    deltaVOFC = (side == 0) ? m_ofcVoltageOffset_side0 : m_ofcVoltageOffset_side1;
+  }
 
   if (deltaVIFC == 0.0 && deltaVOFC == 0.0)
   {
@@ -845,10 +856,9 @@ bool PHGarfield::LoadElectricFieldCorrections3D(const std::string& filename, con
     return false;
   }
 
-  std::array<TH3*, 3> source{{
-      dynamic_cast<TH3*>(input->Get("Field3D/hEx")),
-      dynamic_cast<TH3*>(input->Get("Field3D/hEy")),
-      dynamic_cast<TH3*>(input->Get("Field3D/hEz"))}};
+  std::array<TH3*, 3> source{{dynamic_cast<TH3*>(input->Get("Field3D/hEx")),
+                              dynamic_cast<TH3*>(input->Get("Field3D/hEy")),
+                              dynamic_cast<TH3*>(input->Get("Field3D/hEz"))}};
 
   if (!source[0] || !source[1] || !source[2])
   {
@@ -965,8 +975,14 @@ bool PHGarfield::LoadFrameElectricFieldCorrections(const std::string& filename)
 
   auto* er = dynamic_cast<TH2*>(input->Get("QA/hErDefault"));
   auto* ez = dynamic_cast<TH2*>(input->Get("QA/hEzDefault"));
-  if (!er) { er = dynamic_cast<TH2*>(input->Get("hErDefault")); }
-  if (!ez) { ez = dynamic_cast<TH2*>(input->Get("hEzDefault")); }
+  if (!er)
+  {
+    er = dynamic_cast<TH2*>(input->Get("hErDefault"));
+  }
+  if (!ez)
+  {
+    ez = dynamic_cast<TH2*>(input->Get("hEzDefault"));
+  }
 
   if (!er || !ez)
   {
@@ -1019,18 +1035,16 @@ bool PHGarfield::LoadFrameElectricFieldCorrections3D(const std::string& filename
 
   // Accept both PHGarfield Cartesian maps and the native Rossegger 3D output.
   // Rossegger writes hEr, hEphi, hEz at the ROOT-file top level.
-  std::array<TH3*, 3> source{{
-      dynamic_cast<TH3*>(input->Get("Field3D/hEx")),
-      dynamic_cast<TH3*>(input->Get("Field3D/hEy")),
-      dynamic_cast<TH3*>(input->Get("Field3D/hEz"))}};
+  std::array<TH3*, 3> source{{dynamic_cast<TH3*>(input->Get("Field3D/hEx")),
+                              dynamic_cast<TH3*>(input->Get("Field3D/hEy")),
+                              dynamic_cast<TH3*>(input->Get("Field3D/hEz"))}};
   bool cylindrical = false;
 
   if (!source[0] || !source[1] || !source[2])
   {
-    source = {{
-        dynamic_cast<TH3*>(input->Get("hEr")),
-        dynamic_cast<TH3*>(input->Get("hEphi")),
-        dynamic_cast<TH3*>(input->Get("hEz"))}};
+    source = {{dynamic_cast<TH3*>(input->Get("hEr")),
+               dynamic_cast<TH3*>(input->Get("hEphi")),
+               dynamic_cast<TH3*>(input->Get("hEz"))}};
     cylindrical = true;
   }
 
@@ -1044,7 +1058,10 @@ bool PHGarfield::LoadFrameElectricFieldCorrections3D(const std::string& filename
 
   const auto sameAxis = [](const TAxis* lhs, const TAxis* rhs)
   {
-    if (!lhs || !rhs || lhs->GetNbins() != rhs->GetNbins()) { return false; }
+    if (!lhs || !rhs || lhs->GetNbins() != rhs->GetNbins())
+    {
+      return false;
+    }
     constexpr double tolerance = 1.0e-9;
     return std::abs(lhs->GetXmin() - rhs->GetXmin()) < tolerance &&
            std::abs(lhs->GetXmax() - rhs->GetXmax()) < tolerance;
@@ -1083,7 +1100,10 @@ bool PHGarfield::LoadFrameElectricFieldCorrections3D(const std::string& filename
     cloned[component] = dynamic_cast<TH3*>(source[component]->Clone(cloneName.str().c_str()));
     if (!cloned[component])
     {
-      for (TH3* histogram : cloned) { delete histogram; }
+      for (TH3* histogram : cloned)
+      {
+        delete histogram;
+      }
       return false;
     }
     cloned[component]->SetDirectory(nullptr);
@@ -1113,7 +1133,10 @@ bool PHGarfield::HasFrameElectricFieldCorrections3D(const std::size_t side) cons
 
 void PHGarfield::ClearFrameElectricFieldCorrections3D(const std::size_t side)
 {
-  if (side >= m_frameField3DCorrection.size()) { return; }
+  if (side >= m_frameField3DCorrection.size())
+  {
+    return;
+  }
   for (TH3*& histogram : m_frameField3DCorrection[side])
   {
     delete histogram;
@@ -1123,16 +1146,19 @@ void PHGarfield::ClearFrameElectricFieldCorrections3D(const std::size_t side)
 }
 
 void PHGarfield::AddFrameElectricFieldCorrections(const double r_cm,
-                                                   const double phi_rad,
-                                                   const double z_cm,
-                                                   double& ex_vcm,
-                                                   double& ey_vcm,
-                                                   double& ez_vcm) const
+                                                  const double phi_rad,
+                                                  const double z_cm,
+                                                  double& ex_vcm,
+                                                  double& ey_vcm,
+                                                  double& ez_vcm) const
 {
   const std::size_t side = z_cm < 0.0 ? 0 : 1;
   const double frameScale = side == 0 ? m_frameChargeScale_side0
-                                       : m_frameChargeScale_side1;
-  if (frameScale == 0.0) { return; }
+                                      : m_frameChargeScale_side1;
+  if (frameScale == 0.0)
+  {
+    return;
+  }
 
   const double abs_z_cm = std::abs(z_cm);
 
@@ -1163,7 +1189,10 @@ void PHGarfield::AddFrameElectricFieldCorrections(const double r_cm,
     return;
   }
 
-  if (!m_frameErCorrection || !m_frameEzCorrection) { return; }
+  if (!m_frameErCorrection || !m_frameEzCorrection)
+  {
+    return;
+  }
 
   const double deltaErVcm = frameScale *
                             InterpolateCorrectionVcm(m_frameErCorrection, r_cm, abs_z_cm);
@@ -1548,7 +1577,7 @@ TPolyLine3D* PHGarfield::ReverseDriftGlobalCoords(double x_cm, double y_cm, doub
 }
 
 PHGarfield::ReverseDriftStatus PHGarfield::StopHere(const double x, const double y, const double z,
-                          const double zPrevious)
+                                                    const double zPrevious)
 {
   const double r = std::hypot(x, y);
 
