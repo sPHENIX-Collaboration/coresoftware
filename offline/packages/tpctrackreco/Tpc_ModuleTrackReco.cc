@@ -45,8 +45,8 @@ namespace
                                        unsigned short pad,
                                        unsigned short tbin)
   {
-    return (static_cast<uint64_t>(layer) << 32) |
-           (static_cast<uint64_t>(pad) << 16) |
+    return (static_cast<uint64_t>(layer) << 32U) |
+           (static_cast<uint64_t>(pad) << 16U) |
            static_cast<uint64_t>(tbin);
   }
 
