@@ -577,6 +577,10 @@ int SingleTriggeredInput::FillEventVector()
         continue;
       }
       FillPacketClock(thisevt, pkt, i);
+      if (m_PacketShiftOffset[pid] == 1 && i == 0)
+      {
+	m_PacketEventBackup.erase(pid); // erase stale pointer which crashes the dtor
+      }
       m_PacketEventDeque[pid].push_back(thisevt);
 
       delete pkt;
