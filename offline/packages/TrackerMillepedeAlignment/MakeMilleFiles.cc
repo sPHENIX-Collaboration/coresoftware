@@ -512,11 +512,13 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     // need standard deviation of measurements
     SvtxAlignmentState::ResidualVector clus_sigma = SvtxAlignmentState::ResidualVector::Zero();
 
-    double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
+    //double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
     double clusphi = atan2(global[1] , global[0]);
-    auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, ckey);
-    double phierror = sqrt(para_errors.first);
-    double zerror = sqrt(para_errors.second);
+    //auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, ckey);
+    //double phierror = sqrt(para_errors.first);
+    //double zerror = sqrt(para_errors.second);
+    double phierror = cluster->getRPhiError();
+    double zerror = cluster->getZError();
     clus_sigma(1) = zerror * Acts::UnitConstants::cm;
     clus_sigma(0) = phierror * Acts::UnitConstants::cm;
 
