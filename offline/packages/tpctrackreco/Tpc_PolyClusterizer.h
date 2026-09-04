@@ -29,7 +29,7 @@ class Tpc_PolyClusterizer : public SubsysReco
   int InitRun(PHCompositeNode*) override;
   int process_event(PHCompositeNode*) override;
 
-  static constexpr unsigned int NPhiSamples = 3;
+  static constexpr unsigned int NPhiSamples = 24;
 
   void setInputNodeName(const std::string& n) { m_inputNodeName = n; }
   void setOutputNodeName(const std::string& n) { m_outputNodeName = n; }
@@ -39,8 +39,46 @@ class Tpc_PolyClusterizer : public SubsysReco
   void setTpcAdcClock(double v) { m_tpcAdcClock = v; }
   void setCrossingPeriodNs(double v) { m_crossingPeriodNs = v; }
   void setReverseDriftStepNs(double v) { m_reverseDriftStepNs = v; }
-  void setKEffSide0(double v) { m_kEffSide0 = v; }
-  void setKEffSide1(double v) { m_kEffSide1 = v; }
+  void setKEffSide0(double v)
+  {
+    m_kEffSide0 = v;
+    m_kEffSide0Override = true;
+  }
+
+  void setKEffSide1(double v)
+  {
+    m_kEffSide1 = v;
+    m_kEffSide1Override = true;
+  }
+  void setField3DCoefficientFile(const std::string& n) {
+    m_field3DCoefficientFile = n;
+    m_field3DCoefficientFileOverride = true;
+  }
+  void setElectricFieldMap(const std::string& n)
+  {
+    m_electricFieldMap = n;
+    m_electricFieldMapOverride = true;
+  }
+  void setElectricFieldMap3DSide0(const std::string& n)
+  {
+    m_field3DSide0 = n;
+    m_field3DSide0Override = true;
+  }
+  void setElectricFieldMap3DSide1(const std::string& n)
+  {
+    m_field3DSide1 = n;
+    m_field3DSide1Override = true;
+  }
+  void setFrameElectricFieldMap3DSide0(const std::string& n)
+  {
+    m_framesSide0 = n;
+    m_framesSide0Override = true;
+  }
+  void setFrameElectricFieldMap3DSide1(const std::string& n)
+  {
+    m_framesSide1 = n;
+    m_framesSide1Override = true;
+  }
   void setCMVoltageDefault(double v) { m_cmVoltageDefault = v; }
   void setUseSurveyGeometry(bool v) { use_survey_geometry = v; }
   void setMoveTpc(double x, double y, double z) { m_tpcMove = {{x, y, z}}; }
@@ -53,6 +91,9 @@ class Tpc_PolyClusterizer : public SubsysReco
     m_startZSouth = south_z;
     m_startZNorth = north_z;
   }
+  void setFrameChargeScale(double v) { m_frameChargeScale = v; }
+  void setFieldCageVoltageOffsets(double ifcSouth, double ifcNorth, double ofcSouth, double ofcNorth) { m_fieldCageVoltageOffsets = {{ifcSouth, ifcNorth, ofcSouth, ofcNorth}}; }
+  void setUse2DElectricFieldMap(bool v) { m_use2DElectricFieldMap = v; }
 
  private:
   struct Point
@@ -114,6 +155,7 @@ class Tpc_PolyClusterizer : public SubsysReco
                            double& x,
                            double& y,
                            double& z) const;
+  bool load_cdb_inputs();
   ClusterParameters make_cluster_parameters(const std::vector<Point>& points, const Centroid& centroid, int side) const;
   static Centroid make_centroid(const std::vector<Point>& points);
   void configure_garfield(PHGarfield* garfield) const;
@@ -121,6 +163,12 @@ class Tpc_PolyClusterizer : public SubsysReco
   std::string m_inputNodeName;
   std::string m_outputNodeName;
   std::string m_crossingDecisionNodeName{"TPC_CROSSING_DECISIONS"};
+  std::string m_electricFieldMap;
+  std::string m_field3DCoefficientFile;
+  std::string m_field3DSide0;
+  std::string m_field3DSide1;
+  std::string m_framesSide0;
+  std::string m_framesSide1;
   unsigned char m_maxAcceptedTier{1};
   Tpc_AssembledTrackContainer* m_assembledTracks{nullptr};
   Tpc_PolyClusterContainer* m_clusters{nullptr};
@@ -138,10 +186,21 @@ class Tpc_PolyClusterizer : public SubsysReco
   double m_startZSouth{-102.325};
   double m_startZNorth{102.325};
   double m_kEffSide0{0.0};
-  double m_kEffSide1{-1.5};
-  double m_cmVoltageDefault{380.0};
+  double m_kEffSide1{0.0};
+  double m_cmVoltageDefault{375.0};
   bool use_survey_geometry = false;
+  bool m_kEffSide0Override{false};
+  bool m_kEffSide1Override{false};
+  bool m_field3DCoefficientFileOverride{false};
+  bool m_electricFieldMapOverride{false};
+  bool m_field3DSide0Override{false};
+  bool m_field3DSide1Override{false};
+  bool m_framesSide0Override{false};
+  bool m_framesSide1Override{false};
+  bool m_use2DElectricFieldMap{false};
   std::array<double, 3> m_tpcMove{{0.0, 0.0, 0.0}};                                             //{{-0.16775, -0.0337, -0.71365}};
   std::array<std::array<double, 3>, 2> m_tpcRotations{{{{0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}}}};  //{{{{0.0, 0.01485 / 10.0, 0.0}}, {{0.0298 / 8.0, 0.0, 0.0}}}};
+  double m_frameChargeScale{-180.0};
+  std::array<double, 4> m_fieldCageVoltageOffsets{{211.0, 0.0, 0.0, 0.0}};
 };
 #endif
