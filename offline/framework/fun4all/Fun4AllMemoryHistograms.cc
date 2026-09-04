@@ -50,7 +50,7 @@ void Fun4AllMemoryHistograms::SaveHistos(const std::string &fname)
     return;
   }
   Fun4AllHistoManager *hm = new Fun4AllHistoManager("MEMHISTOS");
-  for (auto iter : m_histovector)
+  for (auto *iter : m_histovector)
   {
     hm->registerHisto(iter);
   }
