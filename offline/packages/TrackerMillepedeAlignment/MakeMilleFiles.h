@@ -69,6 +69,10 @@ class MakeMilleFiles : public SubsysReco
   void set_layer_gparam_fixed(unsigned int layer, unsigned int param);
   void set_layer_lparam_fixed(unsigned int layer, unsigned int param);
 
+  void set_pt_cut(float pt) { m_minPt = pt; }
+
+  void set_ignore_tpc() {m_ignore_tpc = true;}
+
   void set_layers_fixed(unsigned int minlayer, unsigned int maxlayer);
   void set_error_inflation_factor(unsigned int layer, float factor)
   {
@@ -118,6 +122,7 @@ class MakeMilleFiles : public SubsysReco
 
   bool m_useEventVertex = false;
   bool _binary = true;
+  float m_minPt = 0.0;
 
   Acts::Vector2 m_vtxSigma = {0.1, 0.1};
 
@@ -133,6 +138,8 @@ class MakeMilleFiles : public SubsysReco
   std::set<std::pair<unsigned int, unsigned int>> fixed_mvtx_layers;
   std::set<std::pair<unsigned int, unsigned int>> fixed_layer_gparams, fixed_layer_lparams;
 
+  bool m_ignore_tpc = false;
+  
   std::string m_constraintFileName = "mp2con.txt";
   std::ofstream m_constraintFile;
 

@@ -173,8 +173,14 @@ void ActsAlignmentStates::fillAlignmentStateMap(
 
     // Get the derivative of alignment (global) parameters w.r.t. measurement or residual
     /// The local bound parameters still have access to global phi/theta
+    const double l0 = state.smoothed()[Acts::eBoundLoc0];
+    const double l1 = state.smoothed()[Acts::eBoundLoc1];
     const double phi = state.smoothed()[Acts::eBoundPhi];
     const double theta = state.smoothed()[Acts::eBoundTheta];
+    const double qoverp = state.smoothed()[Acts::eBoundQOverP];
+    const double time = state.smoothed()[Acts::eBoundTime];
+
+    SvtxAlignmentState::ActsTrackParamsVector track_params = {l0,l1,phi,theta,qoverp,time};
 
     Acts::Vector3 tangent = Acts::makeDirectionFromPhiTheta(phi,theta);
 
@@ -206,17 +212,23 @@ void ActsAlignmentStates::fillAlignmentStateMap(
 
     //! this is the derivative of the state wrt to Acts track parameters
     //! e.g. (d_0, z_0, phi, theta, q/p, t)
-      auto localDeriv = H * state.jacobian();
+      //auto localDeriv = H * state.jacobian();
+      auto localDeriv = makeLocalDerivatives(H);
+      SvtxAlignmentState::LocalMeasErrPsuedo localmeaserrpsuedo = SvtxAlignmentState::LocalMeasErrPsuedo::Zero();
+      auto localDerivPsuedo = makeLocalDerivativesPsuedo(state, localmeaserrpsuedo);
       if (m_verbosity > 2)
       {
-	std::cout << "local deriv " << std::endl << localDeriv << std::endl;
+	      std::cout << "local deriv " << std::endl << localDeriv << std::endl;
       }
 
     auto svtxstate = std::make_unique<SvtxAlignmentState_v1>();
 
     svtxstate->set_residual(localResidual);
     svtxstate->set_local_derivative_matrix(localDeriv);
+    svtxstate->set_local_derivative_psuedo_matrix(localDerivPsuedo);
+    svtxstate->set_local_psuedo_measurement_err(localmeaserrpsuedo);
     svtxstate->set_global_derivative_matrix(globDeriv);
+    svtxstate->set_acts_track_params(track_params);
     svtxstate->set_cluster_key(ckey);
 
     statevec.push_back(svtxstate.release());
@@ -261,6 +273,79 @@ ActsAlignmentStates::makeGlobalDerivatives(const Acts::Vector3& OM,
   return globalder;
 }
 
+SvtxAlignmentState::LocalMatrix
+ActsAlignmentStates::makeLocalDerivatives(const auto& H)
+{
+  SvtxAlignmentState::LocalMatrix localder = SvtxAlignmentState::LocalMatrix::Zero();
+  //std::cout<< "H is " << std::endl << H << std::endl;
+  for (int i = 0; i < SvtxAlignmentState::NRES; ++i)
+  {
+    for (int j = 0; j < SvtxAlignmentState::NLOC; ++j)
+    {
+      localder(i, j) = H(i, j);
+    }
+  }
+  return localder;
+}
+
+SvtxAlignmentState::LocalMatrixPsuedo
+ActsAlignmentStates::makeLocalDerivativesPsuedo(const auto& state, SvtxAlignmentState::LocalMeasErrPsuedo& localmeaserrpsuedo)
+{
+  SvtxAlignmentState::LocalMatrixPsuedo localderpsuedo = SvtxAlignmentState::LocalMatrixPsuedo::Zero();
+  localmeaserrpsuedo(0) = 1.;
+  Acts::ActsDynamicMatrix updatedCovariance{SvtxAlignmentState::NLOC,
+                                        SvtxAlignmentState::NLOC};
+  Acts::ActsDynamicMatrix updatedProjection{SvtxAlignmentState::NRES,
+                                        SvtxAlignmentState::NLOC};
+
+  const auto H = state.projectorSubspaceHelper().fullProjector().topLeftCorner(
+                                      state.calibratedSize(), Acts::eBoundSize);
+
+  for (int internalTPindex = 0; internalTPindex < SvtxAlignmentState::NLOC; ++internalTPindex)
+  {        
+    updatedProjection.col(internalTPindex) = H.col(internalTPindex);
+    for (int internalTPindex2 = 0; internalTPindex2 < SvtxAlignmentState::NLOC; ++internalTPindex2)
+    {
+      updatedCovariance(internalTPindex, internalTPindex2) = state.covariance()(internalTPindex, internalTPindex2);
+    }
+  }
+
+  const Acts::ActsDynamicMatrix weightMatMeasurements =
+      updatedProjection.transpose() * state.effectiveCalibratedCovariance().inverse() *
+      updatedProjection;
+
+  const Acts::ActsDynamicMatrix regularisedCov =
+      regulariseCovariance(updatedCovariance, -1, -1, 1.e-9);
+
+  const Acts::ActsDynamicMatrix correlationTerm =
+      getInverseComplement(regularisedCov, weightMatMeasurements);
+
+  
+  Eigen::SelfAdjointEigenSolver<Acts::ActsDynamicMatrix> eigenSolver(
+      correlationTerm);
+  if (eigenSolver.info() != Eigen::Success) {
+    std::cout << " FAILED to find decompose correlation term" << std::endl;
+    return localderpsuedo;
+  }
+  const Acts::ActsDynamicVector eigenVals = eigenSolver.eigenvalues();
+  const Acts::ActsDynamicMatrix eigenVecs = eigenSolver.eigenvectors();
+
+  /// convert each EV to a pseudo-measurement
+  for (long iMeas = 0; iMeas < eigenVecs.rows();
+       ++iMeas) {  // fill the local derivatives from the current eigenvector
+    // skip negative EV
+    if (eigenVals(iMeas) <= 0) {
+      continue;
+    }
+    localmeaserrpsuedo(iMeas) = 1./std::sqrt(eigenVals(iMeas));
+    for (std::size_t iPar = 0; iPar < SvtxAlignmentState::NLOC; ++iPar) {
+      localderpsuedo(iPar, iMeas) = eigenVecs(iPar, iMeas);
+    }
+  }
+
+  return localderpsuedo;
+}
+
 //______________________________________________________
 std::pair<Acts::Vector3, Acts::Vector3> ActsAlignmentStates::get_projectionXY(const Acts::Surface& surface, const Acts::Vector3& tangent)
 {
@@ -292,4 +377,66 @@ std::pair<Acts::Vector3, Acts::Vector3> ActsAlignmentStates::get_projectionXY(co
   }
 
   return std::make_pair(projx, projy);
+}
+
+const Acts::ActsDynamicMatrix ActsAlignmentStates::regulariseCovariance(const Acts::ActsDynamicMatrix& inputCov,
+                                                 double conditionCutOff,
+                                                 double removeHugeLeading,
+                                                 double stabilisationDiag)
+{
+  Acts::ActsDynamicMatrix out =
+      Acts::ActsDynamicMatrix::Zero(inputCov.rows(), inputCov.cols());
+
+  /// optionally add a tiny diagonal matrix for additional stabilisation
+  Acts::ActsDynamicMatrix regularisation =
+      Acts::ActsDynamicMatrix::Zero(inputCov.rows(), inputCov.cols());
+  if (stabilisationDiag > 0) {
+    regularisation = stabilisationDiag * Acts::ActsDynamicMatrix::Identity(
+                                             inputCov.rows(), inputCov.cols());
+  }
+  auto eigensolver = Eigen::SelfAdjointEigenSolver<Acts::ActsDynamicMatrix>(
+      inputCov + regularisation);
+
+  if (eigensolver.info() != Eigen::Success) {
+    std::cout << " FAILED to find eigenvec" << std::endl;
+    return out;
+  }
+  auto eigenVals = eigensolver.eigenvalues();
+  auto eigenVecs = eigensolver.eigenvectors();
+
+  std::size_t maxIndex = eigenVals.size() - 1;
+  double lambdaMax = eigenVals(eigenVals.size() - 1);
+  // check for a huge leading eigenvalue - this happens when the time coordinate
+  // is unconstrained
+  if (removeHugeLeading > 0 &&
+      lambdaMax > removeHugeLeading * eigenVals(maxIndex - 1)) {
+    --maxIndex;
+    lambdaMax = eigenVals(maxIndex);
+  }
+  double lambdaMin = eigenVals(0);
+  if (conditionCutOff > 0) {
+    lambdaMin = conditionCutOff * lambdaMax;
+  }
+  // clamp the EV to the permitted interval
+  for (Eigen::Index i = 0; i < eigenVals.size(); ++i) {
+    out(i, i) = std::clamp(eigenVals(i), lambdaMin, lambdaMax);
+  }
+  // then return the regularised matrix as V D V^T
+  out = out * eigenVecs.transpose();
+  out = eigenVecs * out;
+  return out;
+}
+
+const Acts::ActsDynamicMatrix ActsAlignmentStates::getInverseComplement(const Acts::ActsDynamicMatrix& target,
+                                           const Acts::ActsDynamicMatrix& existing_sol)
+{
+  Acts::ActsDynamicMatrix Rhs =
+      Acts::ActsDynamicMatrix::Identity(target.rows(), target.cols()) -
+      target * existing_sol;
+  // call decomposition from Eigen (prefer over llt for semi-def. matrices)
+  auto LDLT = target.ldlt();
+  Acts::ActsDynamicMatrix solution = LDLT.solve(Rhs);
+  // finally, symmetrise to correct for floating point effects
+  solution = 0.5 * (solution + solution.transpose());
+  return solution;
 }

@@ -618,7 +618,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
               m_clusterContainer,
               m_tGeometry,
               m_globalPositionWrapper,
-              this_crossing);
+              this_crossing, 
+              !m_forceSiOnlyFit); //for alignment tests, if forceSiOnlyFit is true, then we want to turn off the parametrized cluster errors when building source links
         }
 
         // tpc source links
@@ -1294,8 +1295,8 @@ void PHActsTrkFitter::updateSvtxTrack(
   track->set_z(params.position(m_transient_geocontext)(2) / Acts::UnitConstants::cm);
 
   auto* seed = track->get_tpc_seed();
-
-  if(!m_forceSiOnlyFit)
+  
+  if(!m_forceSiOnlyFit || !m_siOnlyTpcSeedPt)
   {
     track->set_px(params.momentum()(0));
     track->set_py(params.momentum()(1));

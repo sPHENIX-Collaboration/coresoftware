@@ -76,8 +76,15 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_vertex_param_fixed(unsigned int param){ fixed_vertex_params.insert(param);}
   void set_straight_line_fit(bool flag) {straight_line_fit = flag; }
   void set_eta_cut(double eta_cut) {m_eta_cut = eta_cut;}
+  void set_pt_cut(double pt_cut) {m_pt_min = pt_cut;}
+  void set_acts_mode(bool acts_mode) {m_acts_mode = acts_mode;}
+  void set_fixed_vtx(bool fixed_vtx) {m_fixed_vtx = fixed_vtx;}
+  void set_fixed_vtx_x(float fixed_vtx_x) {m_fixed_vtx_x = fixed_vtx_x;}
+  void set_fixed_vtx_y(float fixed_vtx_y) {m_fixed_vtx_y = fixed_vtx_y;}
+  //Fixes MVTX half in order to calculate projected residuals from east to west half or vice versa.
   //-1 is regular operation, 0 is east fixed, 1 is west fixed
-  void set_do_mvtx_half(int half) {do_mvtx_half = half; }
+  void set_do_mvtx_half(int half) {m_do_mvtx_half = half; }
+  void set_is_cosmics() {is_cosmics=true;}
   void set_fitted_subsystems(bool si, bool tpc, bool full)
   {
     fitsilicon = si;
@@ -103,7 +110,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   }
 
   // utility functions for analysis modules
-  std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
+  //std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
 
   void getTrackletClusters(TrackSeed* _track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
   Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, const Acts::Vector3& global);
@@ -122,7 +129,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   Acts::Vector3 getPCALinePoint(const Acts::Vector3& global, const Acts::Vector3& tangent, const Acts::Vector3& posref);
   Acts::Vector3 get_line_plane_intersection(const Acts::Vector3& PCA, const Acts::Vector3& tangent,
                                             const Acts::Vector3& sensor_center, const Acts::Vector3& sensor_normal);
-  std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3 global);
+  std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3 global, bool is_cosmics);
   Acts::Vector3 get_helix_surface_intersection(const Surface& surf, std::vector<float>& fitpars, Acts::Vector3 global);
   Acts::Vector3 get_helix_surface_intersection(const Surface& surf, std::vector<float>& fitpars, Acts::Vector3 global, Acts::Vector3& pca, Acts::Vector3& tangent);
 
@@ -200,10 +207,17 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   bool fitsilicon{true};
   bool fittpc{false};
   bool fitfulltrack{false};
+  bool m_acts_mode{false};
+  bool m_fixed_vtx{false};
+
+  float m_fixed_vtx_x{0.0};
+  float m_fixed_vtx_y{0.0};
+  
 
   float dca_cut{0.19};  // cm
 
   float m_eta_cut{99999.};
+  float m_pt_min{0.5};
 
   SvtxVertexMap* m_vertexmap{nullptr};
   SvtxTrackMap* m_trackmap{nullptr};
@@ -224,7 +238,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   bool use_event_vertex{false};
   bool use_intt_zfit{false};
   bool straight_line_fit = false;
-  int do_mvtx_half = -1;
+  int m_do_mvtx_half = -1;
+  bool is_cosmics {false};
 
   int event{0};
 

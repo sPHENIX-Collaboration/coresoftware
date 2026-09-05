@@ -35,17 +35,23 @@ class SvtxAlignmentState_v1 : public SvtxAlignmentState
   {
     m_cluskey = key;
   }
+  void set_acts_track_params(const ActsTrackParamsVector& p) override
+  {
+    m_trackParams = p;
+  }
 
   const ResidualVector& get_residual() const override { return m_residual; }
   const LocalMatrix& get_local_derivative_matrix() const override { return m_localDeriv; }
   const GlobalMatrix& get_global_derivative_matrix() const override { return m_globalDeriv; }
   TrkrDefs::cluskey get_cluster_key() const override { return m_cluskey; }
+  const ActsTrackParamsVector& get_acts_track_params() const override { return m_trackParams; }
 
  private:
   ResidualVector m_residual;
   LocalMatrix m_localDeriv;
   GlobalMatrix m_globalDeriv;
   TrkrDefs::cluskey m_cluskey;
+  ActsTrackParamsVector m_trackParams;
 
   ClassDefOverride(SvtxAlignmentState_v1, 1)
 };

@@ -327,7 +327,8 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     TrkrClusterContainer* clusterContainer,
     ActsGeometry* tGeometry,
     const TpcGlobalPositionWrapper& globalPositionWrapper,
-    short int crossing)
+    short int crossing,
+    bool use_modified_clus_error)
 {
   if (m_verbosity > 1)
   {
@@ -525,12 +526,22 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 
     Acts::ActsSquareMatrix<2> cov = Acts::ActsSquareMatrix<2>::Zero();
 
-    double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
-    auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, clusRadius, cluskey);
-    cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
-    cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
-    cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
-    cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
+    if(use_modified_clus_error)
+    {
+      double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
+      auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, clusRadius, cluskey);
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
+    }
+    else
+    {
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = cluster->getRPhiError()*cluster->getRPhiError() * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = cluster->getZError()*cluster->getZError() * Acts::UnitConstants::cm2;
+    }
 
     ActsSourceLink::Index index = measurements.size();
 
