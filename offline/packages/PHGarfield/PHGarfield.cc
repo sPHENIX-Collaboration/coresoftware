@@ -2,9 +2,9 @@
 #include <cdbobjects/CDBTTree.h>
 #include <phool/phool.h>
 
-#include <phfield/PHField3DCartesian.h>
-
 #include <ffamodules/CDBInterface.h>
+#include <phfield/PHField3DCartesian.h>
+#include <phfield/PHFieldUtility.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -63,7 +63,6 @@ PHGarfield::PHGarfield(const std::string& name,
 PHGarfield::~PHGarfield()
 {
   //  Housekeeping.
-  delete m_field;
   delete m_cdbTPCMAPttree;
   delete m_component;
   delete m_gas;
@@ -77,7 +76,7 @@ PHGarfield::~PHGarfield()
   ClearFrameElectricFieldCorrections3D(1);
 }
 
-int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
+int PHGarfield::InitRun(PHCompositeNode *topNode)
 {
   if (Verbosity() > 1)
   {
@@ -86,8 +85,15 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
   CDBInterface* m_cdb = CDBInterface::instance();
 
   //  Here we use the CDBInterface to set up the magnetic field map:
-  std::string url = m_cdb->getUrl("FIELDMAP_TRACKING");
-  m_field = new PHField3DCartesian(url, 1.0);
+  m_field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
+
+  if (!m_field)
+  {
+    std::cerr << PHWHERE
+      << " ERROR: magnetic field map not available"
+      << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   //  Here we use the CDBInterface to set up the channel making of the TPC:
   std::string text = m_cdb->getUrl("TPC_FEE_CHANNEL_MAP");
@@ -101,7 +107,7 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
     if (!LoadElectricFieldCorrections(m_electricFieldMap))
     {
       std::cout << PHWHERE << " Failed to load electric-field correction map: "
-                << m_electricFieldMap << std::endl;
+        << m_electricFieldMap << std::endl;
     }
   }
 
@@ -158,9 +164,9 @@ int PHGarfield::InitRun(PHCompositeNode* /*topNode*/)
   //  Make the Garfield Component and register the methods that will interface to our fields...
   m_component = new Garfield::ComponentUser();
   m_component->SetMagneticField([this](double x, double y, double z, double& bx, double& by, double& bz)
-                                { GetMagneticFieldTesla(x, y, z, bx, by, bz); });
+      { GetMagneticFieldTesla(x, y, z, bx, by, bz); });
   m_component->SetElectricField([this](double x, double y, double z, double& ex, double& ey, double& ez)
-                                { GetElectricFieldVcm(x, y, z, ex, ey, ez); });
+      { GetElectricFieldVcm(x, y, z, ex, ey, ez); });
 
   // Here we fetch the gas from the CDB
   std::string gasfile = m_cdb->getUrl("PHGARFIELD_GAS");
@@ -221,18 +227,18 @@ void PHGarfield::PrintGarfield(double x, double y, double z) const
   GetMagneticFieldTesla(x, y, z, bx, by, bz);
   m_gas->ElectronVelocity(ex, ey, ez, bx, by, bz, vx, vy, vz);
   std::cout << " x:" << x
-            << " y:" << y
-            << " z:" << z
-            << " ex:" << ex
-            << " ey:" << ey
-            << " ez:" << ez
-            << " bx:" << bx
-            << " by:" << by
-            << " bz:" << bz
-            << " vx:" << vx
-            << " vy:" << vy
-            << " vz:" << vz
-            << std::endl;
+    << " y:" << y
+    << " z:" << z
+    << " ex:" << ex
+    << " ey:" << ey
+    << " ez:" << ez
+    << " bx:" << bx
+    << " by:" << by
+    << " bz:" << bz
+    << " vx:" << vx
+    << " vy:" << vy
+    << " vz:" << vz
+    << std::endl;
 }
 
 void PHGarfield::PrintGasSummary() const
@@ -307,7 +313,7 @@ void PHGarfield::MoveMagnet(double x_cm, double y_cm, double z_cm)
   if (Verbosity() > 0)
   {
     std::cout << "PHGarfield: magnetic-field map translation = ("
-              << x_cm << ", " << y_cm << ", " << z_cm << ") cm" << std::endl;
+      << x_cm << ", " << y_cm << ", " << z_cm << ") cm" << std::endl;
   }
 }
 
@@ -319,7 +325,7 @@ void PHGarfield::RotateMagnet(double theta_x, double theta_y, double theta_z)
   if (Verbosity() > 0)
   {
     std::cout << "PHGarfield: magnetic-field map rotation increment = ("
-              << theta_x << ", " << theta_y << ", " << theta_z << ") rad" << std::endl;
+      << theta_x << ", " << theta_y << ", " << theta_z << ") rad" << std::endl;
   }
 }
 
@@ -329,7 +335,7 @@ void PHGarfield::MoveTpc(double x_cm, double y_cm, double z_cm)
   if (Verbosity() > 0)
   {
     std::cout << "PHGarfield: TPC translation = ("
-              << x_cm << ", " << y_cm << ", " << z_cm << ") cm" << std::endl;
+      << x_cm << ", " << y_cm << ", " << z_cm << ") cm" << std::endl;
   }
 }
 
@@ -341,7 +347,7 @@ void PHGarfield::RotateTpc(double theta_x, double theta_y, double theta_z)
   if (Verbosity() > 0)
   {
     std::cout << "PHGarfield: TPC rotation increment = ("
-              << theta_x << ", " << theta_y << ", " << theta_z << ") rad" << std::endl;
+      << theta_x << ", " << theta_y << ", " << theta_z << ") rad" << std::endl;
   }
 }
 
@@ -389,16 +395,15 @@ void PHGarfield::GetMagneticFieldTesla(double x_cm, double y_cm, double z_cm, do
   const TVector3 p_map_cm = TpcPointToMagnetFieldMapPoint(x_cm, y_cm, z_cm);
 
   double point[4] =
-      {
-          p_map_cm.X() * CLHEP::cm,
-          p_map_cm.Y() * CLHEP::cm,
-          p_map_cm.Z() * CLHEP::cm,
-          0.0};
+  {
+    p_map_cm.X() * CLHEP::cm,
+    p_map_cm.Y() * CLHEP::cm,
+    p_map_cm.Z() * CLHEP::cm,
+    0.0};
 
   double bfield_map[3] = {0.0, 0.0, 0.0};
 
   // Get the magnetic field via the PHField3DCartesian object constructed using
-  // the CDB url reference.
   if (!m_zerofield)
   {
     m_field->GetFieldValue(point, bfield_map);
@@ -470,9 +475,9 @@ void PHGarfield::GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, doub
   }
 
   const double delta_er_vcm = spaceChargeScale *
-                              InterpolateCorrectionVcm(m_erCorrection, r_cm, abs_z_cm);
+    InterpolateCorrectionVcm(m_erCorrection, r_cm, abs_z_cm);
   const double delta_ez_local_vcm = spaceChargeScale *
-                                    InterpolateCorrectionVcm(m_ezCorrection, r_cm, abs_z_cm);
+    InterpolateCorrectionVcm(m_ezCorrection, r_cm, abs_z_cm);
 
   // Convert the cylindrical radial correction to Cartesian components.
   if (r_cm > 0.0)
@@ -742,7 +747,7 @@ bool PHGarfield::LoadElectricFieldCorrections(const std::string& filename)
   if (!input || input->IsZombie())
   {
     std::cout << PHWHERE << " Could not open electric-field map: "
-              << filename << std::endl;
+      << filename << std::endl;
     return false;
   }
 
@@ -762,8 +767,8 @@ bool PHGarfield::LoadElectricFieldCorrections(const std::string& filename)
   if (!er || !ez)
   {
     std::cout << PHWHERE
-              << " Missing QA/hErDefault or QA/hEzDefault in "
-              << filename << std::endl;
+      << " Missing QA/hErDefault or QA/hEzDefault in "
+      << filename << std::endl;
     return false;
   }
 
@@ -785,17 +790,17 @@ bool PHGarfield::LoadElectricFieldCorrections(const std::string& filename)
   m_ezCorrection->SetDirectory(nullptr);
 
   std::cout << "Loaded axisymmetric electric-field corrections from "
-            << filename << std::endl;
+    << filename << std::endl;
   std::cout << "  scale k_eff side0/south/z<0 = "
-            << m_spaceChargeScale_side0 << std::endl;
+    << m_spaceChargeScale_side0 << std::endl;
   std::cout << "  scale k_eff side1/north/z>0 = "
-            << m_spaceChargeScale_side1 << std::endl;
+    << m_spaceChargeScale_side1 << std::endl;
   std::cout << "  r range [cm] = ["
-            << m_erCorrection->GetXaxis()->GetXmin() << ", "
-            << m_erCorrection->GetXaxis()->GetXmax() << "]" << std::endl;
+    << m_erCorrection->GetXaxis()->GetXmin() << ", "
+    << m_erCorrection->GetXaxis()->GetXmax() << "]" << std::endl;
   std::cout << "  |z| range [cm] = ["
-            << m_erCorrection->GetYaxis()->GetXmin() << ", "
-            << m_erCorrection->GetYaxis()->GetXmax() << "]" << std::endl;
+    << m_erCorrection->GetYaxis()->GetXmin() << ", "
+    << m_erCorrection->GetYaxis()->GetXmax() << "]" << std::endl;
 
   return true;
 }
@@ -828,12 +833,12 @@ double PHGarfield::InterpolateCorrectionVcm(
   constexpr double epsilon = 1.0e-6;
 
   const double r_eval =
-      std::clamp(r_cm, r_min + epsilon, r_max - epsilon);
+    std::clamp(r_cm, r_min + epsilon, r_max - epsilon);
 
   const double z_eval =
-      std::clamp(std::abs(abs_z_cm),
-                 z_min + epsilon,
-                 z_max - epsilon);
+    std::clamp(std::abs(abs_z_cm),
+        z_min + epsilon,
+        z_max - epsilon);
 
   // Input histogram is in V/m. Garfield expects V/cm.
   return 0.01 * hist->Interpolate(r_eval, z_eval);
