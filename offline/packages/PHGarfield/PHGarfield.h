@@ -47,13 +47,13 @@ class PHGarfield : public SubsysReco
 
   enum class ReverseDriftStatus
   {
-    Running,
-    CentralMembrane,
-    RadialBoundary,
-    ZBoundary,
-    Stuck,
-    InvalidVelocity,
-    MaxSteps
+    Running = 0,
+    CentralMembrane = 1,
+    RadialBoundary = 2,
+    ZBoundary = 3,
+    Stuck = 4,
+    InvalidVelocity = 5,
+    MaxSteps = 6
   };
 
   ReverseDriftStatus StopHere(const double x, const double y, const double z, const double zPrevious);
@@ -71,16 +71,17 @@ class PHGarfield : public SubsysReco
   void RotateTpc(double theta_x, double theta_y, double theta_z);
   void SetCMVoltageDefault(double voltage) { m_CMVoltageDefault = voltage; }
 
+  
   //  These are left in public namespace for easy plotting macros...
   //  The user is encouraged to add more routine to fit their analysis goals...
   // Existing macros should call this one.  Input and returned polyline are in
   // local TPC/Garfield coordinates.
-  TPolyLine3D *ReverseDrift(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus *status = nullptr);
+  TPolyLine3D *ReverseDrift(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus* status = nullptr);
 
   // Debug/visualization helper.  Input and returned polyline are in global
   // detector coordinates.  Internally the drift is still computed in local TPC
   // coordinates to keep the Garfield gas tables valid.
-  TPolyLine3D *ReverseDriftGlobalCoords(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus *status = nullptr);
+  TPolyLine3D *ReverseDriftGlobalCoords(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus* status = nullptr);
 
   double GetRadius(size_t index) const { return radii.at(index); }
 

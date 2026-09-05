@@ -1582,7 +1582,7 @@ TPolyLine3D* PHGarfield::ReverseDriftGlobalCoords(double x_cm, double y_cm, doub
 }
 
 PHGarfield::ReverseDriftStatus PHGarfield::StopHere(const double x, const double y, const double z,
-                                                    const double zPrevious)
+                          const double zPrevious)
 {
   const double r = std::hypot(x, y);
 
