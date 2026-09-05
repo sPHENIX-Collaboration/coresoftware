@@ -46,6 +46,8 @@ PHG4TpcSteppingAction::PHG4TpcSteppingAction(PHG4TpcDetector* detector, const PH
   , m_Detector(detector)
   , m_Params(parameters)
   , m_IsBlackHoleFlag(m_Params->get_int_param("blackhole"))
+  , m_UsePrimaryClusterIonization(
+        m_Params->get_int_param("use_primary_cluster_ionization"))
 {
   if (std::isfinite(m_Params->get_double_param("steplimits")))
   {
@@ -104,6 +106,18 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
   {
     geantino = true;
   }
+
+  // The optional primary-cluster model is defined only for charged-particle
+  // path through active TPC gas. Store zero path length for other active-gas
+  // hits so ElectronDrift can distinguish an ineligible step from an old DST
+  // in which the required path-length property is absent.
+  const bool primary_cluster_eligible_step =
+      m_UsePrimaryClusterIonization > 0 &&
+      whichactive > 0 &&
+      !geantino &&
+      aTrack->GetParticleDefinition()->GetPDGCharge() != 0.0 &&
+      aStep->GetStepLength() > 0.0;
+
   G4StepPoint* prePoint = aStep->GetPreStepPoint();
   G4StepPoint* postPoint = aStep->GetPostStepPoint();
   int prepointstatus = prePoint->GetStepStatus();
@@ -112,7 +126,8 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
   //       std::cout << "time prepoint: " << prePoint->GetGlobalTime() << std::endl;
   //       std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
 
-  if ((m_UseG4StepsFlag > 0 && whichactive > 0) ||
+  if (((m_UseG4StepsFlag > 0 || m_UsePrimaryClusterIonization > 0) &&
+       whichactive > 0) ||
       prepointstatus == fGeomBoundary ||
       prepointstatus == fUndefined ||
       (prepointstatus == fPostStepDoItProc && m_SavePostStepStatus == fGeomBoundary))
@@ -222,6 +237,14 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
 
     m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
+    if (m_UsePrimaryClusterIonization > 0 && whichactive > 0)
+    {
+      m_Hit->set_path_length(
+          primary_cluster_eligible_step
+              ? static_cast<float>(aStep->GetStepLength() / cm)
+              : 0.F);
+    }
+
     // sum up the energy to get total deposited
     m_Hit->set_edep(m_Hit->get_edep() + edep);
     if (whichactive > 0)
@@ -236,7 +259,7 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
         m_Hit->set_eion(-1);
       }
     }
-    if (edep > 0)
+    if (edep > 0 || primary_cluster_eligible_step)
     {
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
@@ -255,14 +278,17 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     // postPoint->GetStepStatus() == fAtRestDoItProc: track stops (typically
     // aTrack->GetTrackStatus() == fStopAndKill is also set)
     // aTrack->GetTrackStatus() == fStopAndKill: track ends
-    if ((m_UseG4StepsFlag > 0 && whichactive > 0) ||
+    if (((m_UseG4StepsFlag > 0 || m_UsePrimaryClusterIonization > 0) &&
+         whichactive > 0) ||
         postPoint->GetStepStatus() == fGeomBoundary ||
         postPoint->GetStepStatus() == fWorldBoundary ||
         postPoint->GetStepStatus() == fAtRestDoItProc ||
         aTrack->GetTrackStatus() == fStopAndKill)
     {
-      // save only hits with energy deposit (or -1 for geantino)
-      if (m_Hit->get_edep())
+      // In the legacy mode, save only hits with energy deposit (or -1 for a
+      // geantino). The primary-cluster mode additionally retains eligible
+      // charged path segments even when this individual step has zero edep.
+      if (m_Hit->get_edep() || primary_cluster_eligible_step)
       {
         m_CurrentHitContainer->AddHit(layer_id, m_Hit);
         if (m_Shower)
