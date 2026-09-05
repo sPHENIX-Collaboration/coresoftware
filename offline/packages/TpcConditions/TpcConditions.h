@@ -28,7 +28,7 @@ class TpcConditions : public PHObject
   }
 
   void Reset() override {}
-  int isValid() const override { return 0; }
+  int isValid() const override { return 1; }
 
   // float is used throught since telemetric data is of limited precision.
   void set_LoadCurrent(float Value) { m_LoadCurrent = Value; }
