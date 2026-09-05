@@ -154,6 +154,7 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   // Keep the established energy-deposit ionization response as the default.
   // When enabled, the stepping action persists charged gas-step path lengths
   // for the optional primary-cluster response in PHG4TpcElectronDrift.
+  // Electrons and positrons continue to use the energy-deposit response.
   set_default_int_param("use_primary_cluster_ionization", 0);
 
   // material budget:

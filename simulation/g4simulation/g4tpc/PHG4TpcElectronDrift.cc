@@ -324,7 +324,10 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     if (Verbosity() > 0)
     {
       std::cout
-          << Name() << ": using path-length primary-cluster ionization; "
+          << Name()
+          << ": using path-length primary-cluster ionization for "
+             "non-electron charged particles; electrons and positrons use "
+             "the energy-deposit response; "
           << m_primaryIonizationModel->primary_clusters_per_cm()
           << " primary clusters/cm, mean cluster size "
           << m_primaryIonizationModel->mean_cluster_size() << std::endl;
@@ -575,6 +578,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     unsigned int n_ionization_sources = 0;
     unsigned int n_electrons = 0;
     double primary_cluster_mean = 0.0;
+    bool use_primary_clusters_for_hit = false;
 
     if (m_use_primary_cluster_ionization)
     {
@@ -590,22 +594,33 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         return Fun4AllReturnCodes::ABORTRUN;
       }
 
-      // A zero path marks an active-gas hit that was deliberately classified
-      // as ineligible by the stepping action (neutral or geantino).
-      if (path_length_cm <= 0.0)
+      if (path_length_cm > 0.0)
       {
-        continue;
+        use_primary_clusters_for_hit = true;
+        primary_cluster_mean =
+            m_primaryIonizationModel->mean_primary_clusters(path_length_cm);
+        n_ionization_sources =
+            gsl_ran_poisson(RandomGenerator.get(), primary_cluster_mean);
       }
-
-      primary_cluster_mean =
-          m_primaryIonizationModel->mean_primary_clusters(path_length_cm);
-      n_ionization_sources = static_cast<unsigned int>(
-          gsl_ran_poisson(RandomGenerator.get(), primary_cluster_mean));
+      else
+      {
+        // A zero path explicitly requests the established energy-deposit
+        // response. This is used for electrons and positrons, as well as for
+        // any other step for which path-based primary clustering is not
+        // applicable. Geantinos and zero-ionization steps produce no charge.
+        if (!(eion > 0.0))
+        {
+          continue;
+        }
+        n_electrons =
+            gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
+        n_ionization_sources = n_electrons;
+      }
     }
     else
     {
-      n_electrons = static_cast<unsigned int>(
-          gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev));
+      n_electrons =
+          gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
       n_ionization_sources = n_electrons;
     }
     //    count_electrons += n_electrons;
@@ -615,7 +630,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       std::cout << "  new hit with t0, " << t0 << " g4hitid " << hiter->first
                 << " eion " << eion
                 << " n_ionization_sources " << n_ionization_sources;
-      if (m_use_primary_cluster_ionization)
+      if (use_primary_clusters_for_hit)
       {
         std::cout << " primary_cluster_mean " << primary_cluster_mean;
       }
@@ -640,7 +655,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       std::cout << std::endl
                 << "electron drift: g4hit " << hiter->first
                 << " created ionization sources: " << n_ionization_sources;
-      if (!m_use_primary_cluster_ionization)
+      if (!use_primary_clusters_for_hit)
       {
         std::cout << " from " << eion * 1000000 << " keV";
       }
@@ -666,7 +681,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       if (cluster_electrons_remaining == 0)
       {
         unsigned int cluster_size = 1;
-        if (m_use_primary_cluster_ionization)
+        if (use_primary_clusters_for_hit)
         {
           const double cluster_size_random =
               gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);

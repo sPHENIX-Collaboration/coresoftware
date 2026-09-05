@@ -6,7 +6,9 @@
 #include <vector>
 
 /**
- * Fast, path-length-based, MIP-calibrated TPC primary-ionization model.
+ * Fast, path-length-based, MIP-calibrated TPC primary-ionization model for
+ * non-electron charged particles. PHG4TpcElectronDrift retains its established
+ * energy-deposit response for electrons and positrons.
  *
  * The model supplies the mean primary-cluster density for a gas mixture and
  * samples the number of electrons in one primary cluster. Random-number

@@ -96,25 +96,30 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     killtrack->SetTrackStatus(fStopAndKill);
   }
 
+  const int pdg_code =
+      aTrack->GetParticleDefinition()->GetPDGEncoding();
   bool geantino = false;
 
   // the check for the pdg code speeds things up, I do not want to make
   // an expensive string compare for every track when we know
   // geantino or chargedgeantino has pid=0
-  if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
+  if (pdg_code == 0 &&
       aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
   {
     geantino = true;
   }
 
-  // The optional primary-cluster model is defined only for charged-particle
-  // path through active TPC gas. Store zero path length for other active-gas
-  // hits so ElectronDrift can distinguish an ineligible step from an old DST
-  // in which the required path-length property is absent.
+  // The optional primary-cluster model is defined for non-electron charged-
+  // particle path through active TPC gas. Electrons and positrons retain the
+  // established energy-deposit response because the first path-length model
+  // is calibrated for MIP-like particles. Store zero path length for steps
+  // that should use the energy response so ElectronDrift can distinguish them
+  // from an old DST in which the required path-length property is absent.
   const bool primary_cluster_eligible_step =
       m_UsePrimaryClusterIonization > 0 &&
       whichactive > 0 &&
       !geantino &&
+      std::abs(pdg_code) != 11 &&
       aTrack->GetParticleDefinition()->GetPDGCharge() != 0.0 &&
       aStep->GetStepLength() > 0.0;
 
