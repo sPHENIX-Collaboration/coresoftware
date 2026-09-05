@@ -727,18 +727,16 @@ void PHSiliconTpcTrackMatching::checkZMatches(
 	    z_match = true;
 	  }
       }
+
+      const float abs_dz = std::fabs(z_mismatch_corrected);
+      z_match = (window_dz.in_window(is_posQ, tpc_pt, tpc_z_corrected, si_z) && abs_dz < _crossing_deltaz_max) || abs_dz < _crossing_deltaz_min;
+    }
     else
-      {
-	if (window_dz.in_window(is_posQ, tpc_pt, tpc_z, si_z) && (std::abs(z_mismatch) < _crossing_deltaz_max))
-	  { //NOLINT(bugprone-branch-clone)
-	    z_match = true;
-	  }
-	else if (std::abs(z_mismatch) < _crossing_deltaz_min)
-	  {
-	    z_match = true;
-	  }
-      }
-      
+    {
+      const float abs_dz = std::fabs(z_mismatch);
+      z_match = (window_dz.in_window(is_posQ, tpc_pt, tpc_z, si_z) && abs_dz < _crossing_deltaz_max) || abs_dz < _crossing_deltaz_min;
+    }
+
     if (z_match)
       {
 	if (Verbosity() > 1)

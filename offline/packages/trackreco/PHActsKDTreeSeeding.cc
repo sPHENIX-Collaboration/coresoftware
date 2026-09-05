@@ -392,15 +392,16 @@ SpacePointPtr PHActsKDTreeSeeding::makeSpacePoint(const Surface& surf,
   globalPos = surf->localToGlobal(m_tGeometry->geometry().getGeoContext(),
                                   localPos, mom);
 
-  Acts::SquareMatrix2 localCov = Acts::SquareMatrix2::Zero();
-
-  localCov(0, 0) = clus->getActsLocalError(0, 0) * Acts::UnitConstants::cm2;
-  localCov(1, 1) = clus->getActsLocalError(1, 1) * Acts::UnitConstants::cm2;
-
   float x = globalPos.x();
   float y = globalPos.y();
   float z = globalPos.z();
   float r = std::sqrt(x * x + y * y);
+
+  const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(clus, r / Acts::UnitConstants::cm, key);
+  Acts::SquareMatrix2 localCov = Acts::SquareMatrix2::Zero();
+
+  localCov(0, 0) = cluster_errors.first * Acts::UnitConstants::cm2;
+  localCov(1, 1) = cluster_errors.second * Acts::UnitConstants::cm2;
 
   /// The space point requires only the variance of the transverse and
   /// longitudinal position. Reduce computations by transforming the
