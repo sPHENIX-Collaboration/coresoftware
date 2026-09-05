@@ -39,12 +39,13 @@ class TpcClusterBuilder;
 class PHG4TpcGeomContainer;
 class ClusHitsVerbose;
 class ActsGeometry;
+class TpcPrimaryIonizationModel;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
-  ~PHG4TpcElectronDrift() override = default;
+  ~PHG4TpcElectronDrift() override;
   int Init(PHCompositeNode *) override;
   int InitRun(PHCompositeNode *) override;
   int process_event(PHCompositeNode *) override;
@@ -142,12 +143,14 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   bool do_ElectronDriftQAHistos{false};
   bool do_getReachReadout{false};
   bool zero_bfield{false};
+  bool m_use_primary_cluster_ionization{false};
   bool m_use_PDG_gas_params{false};
 
   std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<TrkrHitSetContainer> single_hitsetcontainer;
   std::unique_ptr<PHG4TpcPadPlane> padplane;
   std::unique_ptr<PHG4TpcDistortion> m_distortionMap;
+  std::unique_ptr<TpcPrimaryIonizationModel> m_primaryIonizationModel;
   std::unique_ptr<TFile> m_outf;
   std::unique_ptr<TFile> EDrift_outf;
 

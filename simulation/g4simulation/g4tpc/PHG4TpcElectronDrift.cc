@@ -5,6 +5,7 @@
 #include "PHG4TpcDistortion.h"
 #include "PHG4TpcPadPlane.h"  // for PHG4TpcPadPlane
 #include "TpcClusterBuilder.h"
+#include "TpcPrimaryIonizationModel.h"
 
 #include <trackbase/ClusHitsVerbosev1.h>
 #include <trackbase/TpcDefs.h>
@@ -63,6 +64,7 @@
 #include <cassert>
 #include <cmath>    // for sqrt, abs, NAN
 #include <cstdlib>  // for exit
+#include <exception>
 #include <format>
 #include <iostream>
 #include <map>      // for _Rb_tree_cons...
@@ -87,6 +89,8 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));
   set_seed(PHRandomSeed());
 }
+
+PHG4TpcElectronDrift::~PHG4TpcElectronDrift() = default;
 
 //_____________________________________________________________
 int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
@@ -281,6 +285,54 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   double isobutane_dEdx = 5.93;   // keV/cm
   double isobutane_NTotal = 195;  // Number/cm
   double isobutane_frac = tpcparam->get_double_param("isobutane_frac");
+
+  m_use_primary_cluster_ionization =
+      tpcparam->exist_int_param("use_primary_cluster_ionization") &&
+      tpcparam->get_int_param("use_primary_cluster_ionization") != 0;
+  m_primaryIonizationModel.reset();
+  if (m_use_primary_cluster_ionization)
+  {
+    constexpr double fraction_tolerance = 1.e-12;
+    if (!std::isfinite(Ne_frac) || !std::isfinite(N2_frac) ||
+        std::abs(Ne_frac) > fraction_tolerance ||
+        std::abs(N2_frac) > fraction_tolerance)
+    {
+      std::cerr
+          << Name()
+          << ": the optional primary-cluster ionization model supports only "
+             "Ar/CF4/iC4H10 mixtures; Ne_frac="
+          << Ne_frac << " and N2_frac=" << N2_frac << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+    try
+    {
+      m_primaryIonizationModel =
+          std::make_unique<TpcPrimaryIonizationModel>(
+              TpcPrimaryIonizationModel::GasFractions{
+                  Ar_frac, CF4_frac, isobutane_frac});
+    }
+    catch (const std::exception &error)
+    {
+      std::cerr << Name()
+                << ": failed to configure the optional primary-cluster "
+                   "ionization model: "
+                << error.what() << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+    if (Verbosity() > 0)
+    {
+      std::cout
+          << Name()
+          << ": using path-length primary-cluster ionization for "
+             "non-electron charged particles; electrons and positrons use "
+             "the energy-deposit response; "
+          << m_primaryIonizationModel->primary_clusters_per_cm()
+          << " primary clusters/cm, mean cluster size "
+          << m_primaryIonizationModel->mean_cluster_size() << std::endl;
+    }
+  }
 
   if (m_use_PDG_gas_params)
   {
@@ -522,21 +574,78 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     // Instead, use a temporary map to accumulate the charge from all
     // drifted electrons, then copy to the node tree later
 
-    double eion = hiter->second->get_eion();
-    unsigned int n_electrons = gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
+    const double eion = hiter->second->get_eion();
+    unsigned int n_ionization_sources = 0;
+    unsigned int n_electrons = 0;
+    double primary_cluster_mean = 0.0;
+    bool use_primary_clusters_for_hit = false;
+
+    if (m_use_primary_cluster_ionization)
+    {
+      const double path_length_cm = hiter->second->get_path_length();
+      if (!std::isfinite(path_length_cm))
+      {
+        std::cerr
+            << Name() << ": G4 hit " << hiter->first
+            << " has no path_length property, but the persisted TPC geometry "
+               "requests primary-cluster ionization. Regenerate the G4-hit "
+               "input with the same ionization model."
+            << std::endl;
+        return Fun4AllReturnCodes::ABORTRUN;
+      }
+
+      if (path_length_cm > 0.0)
+      {
+        use_primary_clusters_for_hit = true;
+        primary_cluster_mean =
+            m_primaryIonizationModel->mean_primary_clusters(path_length_cm);
+        n_ionization_sources =
+            gsl_ran_poisson(RandomGenerator.get(), primary_cluster_mean);
+      }
+      else
+      {
+        // A zero path explicitly requests the established energy-deposit
+        // response. This is used for electrons and positrons, as well as for
+        // any other step for which path-based primary clustering is not
+        // applicable. Geantinos and zero-ionization steps produce no charge.
+        if (!(eion > 0.0))
+        {
+          continue;
+        }
+        n_electrons =
+            gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
+        n_ionization_sources = n_electrons;
+      }
+    }
+    else
+    {
+      n_electrons =
+          gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
+      n_ionization_sources = n_electrons;
+    }
     //    count_electrons += n_electrons;
 
     if (Verbosity() > 100)
     {
       std::cout << "  new hit with t0, " << t0 << " g4hitid " << hiter->first
-                << " eion " << eion << " n_electrons " << n_electrons
-                << " entry z " << hiter->second->get_z(0) << " exit z "
-                << hiter->second->get_z(1) << " avg z"
-                << (hiter->second->get_z(0) + hiter->second->get_z(1)) / 2.0
-                << std::endl;
+                << " eion " << eion
+                << " n_ionization_sources " << n_ionization_sources;
+      if (use_primary_clusters_for_hit)
+      {
+        std::cout << " primary_cluster_mean " << primary_cluster_mean;
+      }
+      else
+      {
+        std::cout << " n_electrons " << n_electrons;
+      }
+      std::cout
+          << " entry z " << hiter->second->get_z(0) << " exit z "
+          << hiter->second->get_z(1) << " avg z"
+          << (hiter->second->get_z(0) + hiter->second->get_z(1)) / 2.0
+          << std::endl;
     }
 
-    if (n_electrons == 0)
+    if (n_ionization_sources == 0)
     {
       continue;
     }
@@ -544,8 +653,13 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     if (Verbosity() > 100)
     {
       std::cout << std::endl
-                << "electron drift: g4hit " << hiter->first << " created electrons: "
-                << n_electrons << " from " << eion * 1000000 << " keV" << std::endl;
+                << "electron drift: g4hit " << hiter->first
+                << " created ionization sources: " << n_ionization_sources;
+      if (!use_primary_clusters_for_hit)
+      {
+        std::cout << " from " << eion * 1000000 << " keV";
+      }
+      std::cout << std::endl;
       std::cout << " entry x,y,z = " << hiter->second->get_x(0) << "  "
                 << hiter->second->get_y(0) << "  " << hiter->second->get_z(0)
                 << " radius " << sqrt(pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2)) << std::endl;
@@ -556,13 +670,33 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
     int notReachingReadout = 0;
     //    int notInAcceptance = 0;
-    for (unsigned int i = 0; i < n_electrons; i++)
+    unsigned int ionization_source = 0;
+    unsigned int cluster_electrons_remaining = 0;
+    double f = 0.0;
+    for (unsigned int i = 0;
+         ionization_source < n_ionization_sources ||
+         cluster_electrons_remaining > 0;
+         ++i)
     {
-      // We choose the electron starting position at random from a flat
-      // distribution along the path length the parameter t is the fraction of
-      // the distance along the path betwen entry and exit points, it has
-      // values between 0 and 1
-      const double f = gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
+      if (cluster_electrons_remaining == 0)
+      {
+        unsigned int cluster_size = 1;
+        if (use_primary_clusters_for_hit)
+        {
+          const double cluster_size_random =
+              gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
+          cluster_size = m_primaryIonizationModel->sample_cluster_size(
+              cluster_size_random);
+          n_electrons += cluster_size;
+        }
+
+        // Choose one creation point uniformly along the stored step chord.
+        // Every electron in this primary cluster shares this f value.
+        f = gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
+        cluster_electrons_remaining = cluster_size;
+        ++ionization_source;
+      }
+      --cluster_electrons_remaining;
 
       const double x_start_glob = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
       const double y_start_glob = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
