@@ -131,7 +131,7 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
   //       std::cout << "time prepoint: " << prePoint->GetGlobalTime() << std::endl;
   //       std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
 
-  if (((m_UseG4StepsFlag > 0 || m_UsePrimaryClusterIonization > 0) &&
+  if (((m_UseG4StepsFlag > 0 || primary_cluster_eligible_step) &&
        whichactive > 0) ||
       prepointstatus == fGeomBoundary ||
       prepointstatus == fUndefined ||
@@ -283,7 +283,7 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     // postPoint->GetStepStatus() == fAtRestDoItProc: track stops (typically
     // aTrack->GetTrackStatus() == fStopAndKill is also set)
     // aTrack->GetTrackStatus() == fStopAndKill: track ends
-    if (((m_UseG4StepsFlag > 0 || m_UsePrimaryClusterIonization > 0) &&
+    if (((m_UseG4StepsFlag > 0 || primary_cluster_eligible_step) &&
          whichactive > 0) ||
         postPoint->GetStepStatus() == fGeomBoundary ||
         postPoint->GetStepStatus() == fWorldBoundary ||
