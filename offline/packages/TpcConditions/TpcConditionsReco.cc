@@ -19,7 +19,6 @@
 #include <cstdint>
 #include <iostream>
 
-#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -120,7 +119,6 @@ int TpcConditionsReco::InitRun(PHCompositeNode *topNode)
   // Get the TPC conditions payload from CDB
   m_cdb = CDBInterface::instance();
   std::string calibdir = m_cdb->getUrl("TPC_CONDITIONS");
-  std::cout << "    ***  --> Calibration pulled from CDB: " << calibdir << std::endl;
   m_tree = new CDBTTree(calibdir);
   m_tree->LoadCalibrations();
 
@@ -183,27 +181,7 @@ int TpcConditionsReco::process_event(PHCompositeNode *topNode)
   }
 
   --iter;
-  uint64_t conditions_bco = iter->first;
   int channel = iter->second;
-
-  // Temporary diagnostic for suspicious SR3 currents
-  std::cout << "ALL individual currents:" << std::endl;
-  for (const auto &name : ALL)
-    {
-      std::cout << "  "
-		<< name << "  "
-		<< m_tree->GetFloatValue(channel, name)
-		<< std::endl;
-    }
-  
-  std::cout
-    << "TPC conditions BCO range: "
-    << m_bco_to_channel.begin()->first
-    << " -> "
-    << m_bco_to_channel.rbegin()->first
-    << "  entries = "
-    << m_bco_to_channel.size()
-    << std::endl;
   
   // Fill current-event conditions
   m_conditions->set_Temperature(m_tree->GetFloatValue(channel, "gas_temperature"));
@@ -222,27 +200,6 @@ int TpcConditionsReco::process_event(PHCompositeNode *topNode)
   m_conditions->set_LoadNR2    (get_MedianCurrent(channel, NR2));
   m_conditions->set_LoadNR3    (get_MedianCurrent(channel, NR3));
 
-  std::cout
-    << "Container pointer: " << m_conditions
-    << "TPC Conditions: "
-    << "BCO " << bco
-    << " conditions BCO " << conditions_bco
-    << " channel " << channel
-    << " T " << m_conditions->get_Temperature()
-    << " P " << m_conditions->get_Pressure()
-    << " FieldOK " << m_conditions->get_FieldOK()
-    << " GainOK " << m_conditions->get_GainOK()
-    << " LoadCurrent " << m_conditions->get_LoadCurrent()
-    << " LoadNorth   " << m_conditions->get_LoadNorth  ()
-    << " LoadSouth   " << m_conditions->get_LoadSouth  ()
-    << " LoadSR1     " << m_conditions->get_LoadSR1    ()
-    << " LoadSR2     " << m_conditions->get_LoadSR2    ()
-    << " LoadSR3     " << m_conditions->get_LoadSR3    ()
-    << " LoadNR1     " << m_conditions->get_LoadNR1    ()
-    << " LoadNR2     " << m_conditions->get_LoadNR2    ()
-    << " LoadNR3     " << m_conditions->get_LoadNR3    ()
-    << std::endl;
-  
   // Do or die
   if (!m_conditions->get_FieldOK() ||
       !m_conditions->get_GainOK())
