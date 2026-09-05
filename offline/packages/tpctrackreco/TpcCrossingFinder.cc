@@ -7,6 +7,7 @@
 #include "TpcCrossingDecisionv1.h"
 #include "Tpc_FittingTools.h"
 
+#include <cdbobjects/CDBTTree.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -15,6 +16,10 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 
+#include <ffamodules/CDBInterface.h>
+
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
@@ -22,8 +27,6 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <globalvertex/SvtxVertex.h>
-#include <globalvertex/SvtxVertexMap.h>
 
 #include <phgarfield/PHGarfield.h>
 #include <TPolyLine3D.h>
@@ -103,10 +106,14 @@ TpcCrossingFinder::~TpcCrossingFinder()
 int TpcCrossingFinder::InitRun(PHCompositeNode* topNode)
 {
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) { return Fun4AllReturnCodes::ABORTRUN;
-}
+  }
   if (createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) { return Fun4AllReturnCodes::ABORTRUN;
-}
-
+  }
+  if (m_triggeredMode)
+  {
+    m_event = 0;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
   delete m_idealPadMap;
   m_idealPadMap = new IdealPadMap();
   if (m_idealPadMap->load_from_cdb(Verbosity()) != 0 || !m_idealPadMap->is_loaded())
@@ -132,7 +139,18 @@ int TpcCrossingFinder::InitRun(PHCompositeNode* topNode)
   }
 
   delete m_garfield;
-  const std::string electricFieldMap = "/sphenix/user/mitrankov/garf/include/sphenix_rossegger_garfield_field.root";
+  const std::string electricFieldMap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_EField");
+
+  const auto kefffile = CDBInterface::instance()->getUrl("Tpc_PolyClusterizer_kEff");
+
+  if (!kefffile.empty())
+  {
+    auto keffcdbtree = std::make_unique<CDBTTree>(kefffile);
+    keffcdbtree->LoadCalibrations();
+    m_kEffSide0 = keffcdbtree->GetSingleFloatValue("keffside0");
+    m_kEffSide1 = keffcdbtree->GetSingleFloatValue("keffside1");
+ }
+
   m_garfield = new PHGarfield(Name() + "_PHGarfield", electricFieldMap, m_kEffSide0, m_kEffSide1);
   configure_garfield(m_garfield);
   if (m_garfield->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK)
@@ -155,6 +173,12 @@ int TpcCrossingFinder::getNodes(PHCompositeNode* topNode)
   {
     std::cerr << Name() << "::getNodes - missing " << m_inputNodeName << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  // Triggered data: only assembled tracks are needed.
+  if (m_triggeredMode)
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -993,8 +1017,37 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) { return Fun4AllReturnCodes::ABORTEVENT;
 }
   if (!m_assembledTracks || !m_decisions) { return Fun4AllReturnCodes::EVENT_OK;
-}
+  }
   m_decisions->Reset();
+
+  if (m_triggeredMode)
+  {
+    const unsigned int nassembled = m_assembledTracks->size();
+
+    for (unsigned int iassembled = 0; iassembled < nassembled; ++iassembled)
+    {
+      const Tpc_AssembledTrack* assembled =
+          m_assembledTracks->get_track(iassembled);
+
+      if (!assembled)
+      {
+        continue;
+      }
+
+      TpcCrossingDecisionv1* decision = new TpcCrossingDecisionv1();
+      decision->set_assembled_track_id(assembled->get_track_id());
+      decision->set_selected_crossing(m_triggeredCrossing);
+      decision->set_selected_tier(0U);
+      decision->set_number_of_available_crossings(1U);
+      decision->set_number_of_tpc_valid_crossings(1U);
+      decision->set_status(TpcCrossingStatus::SelectedByContainment);
+
+      m_decisions->add_decision(decision);
+    }
+
+    ++m_event;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   std::set<short> available_crossings = get_available_crossings();
   const std::set<short> intt_crossings = get_intt_crossings();

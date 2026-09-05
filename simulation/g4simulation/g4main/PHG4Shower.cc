@@ -4,6 +4,12 @@ PHG4Shower::ParticleIdSet DummyParticleIdSet;
 PHG4Shower::VertexIdSet DummyVertexIdSet;
 PHG4Shower::HitIdMap DummyHitIdMap;
 
+void PHG4Shower::Reset()
+{
+  std::cout << "Reset not implemented by PHG4Shower daughter class" << std::endl;
+  return;
+}
+
 PHG4Shower::ParticleIdConstIter PHG4Shower::begin_g4particle_id() const
 {
   return DummyParticleIdSet.end();

@@ -1029,7 +1029,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       const TVector3 pos_A(globalPosition.x(), globalPosition.y(), globalPosition.z() );
       const auto r_cluster = get_r(globalPosition.x(),globalPosition.y());
 
-      if( m_extrapolation_mode == ExtrapolationMode::Default )
+      if( m_extrapolation_mode == ExtrapolationMode::Legacy )
       {
           try
           {

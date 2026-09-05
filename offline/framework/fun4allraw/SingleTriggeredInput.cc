@@ -577,6 +577,10 @@ int SingleTriggeredInput::FillEventVector()
         continue;
       }
       FillPacketClock(thisevt, pkt, i);
+      if (m_PacketShiftOffset[pid] == 1 && i == 0)
+      {
+	m_PacketEventBackup.erase(pid); // erase stale pointer which crashes the dtor
+      }
       m_PacketEventDeque[pid].push_back(thisevt);
 
       delete pkt;
@@ -729,9 +733,6 @@ void SingleTriggeredInput::FillPool()
   if (!FilesDone())
   {
     int eventvectorsize = FillEventVector();
-    // this seems a unique signature for raw data files which only contain the
-    // begin and end run event but no data events. FillEventVector() returns -1
-    // and since no events were read the m_PacketEventDeque is empty
     if (eventvectorsize < 0 && m_PacketEventDeque.empty())
     {
       std::cout << Name() << ": No data Events in input file " << FileName() << std::endl;
@@ -758,6 +759,8 @@ void SingleTriggeredInput::FillPool()
         return;
       }
       m_DitchPackets.clear();
+      Event* refill_evt = nullptr;
+      bool refill_used = false;
 
       for (const auto& [pid, sebdiff] : m_bclkdiffarray_map)
       {
@@ -848,19 +851,45 @@ void SingleTriggeredInput::FillPool()
             {
               m_bclkdiffarray_map[pid][i] = ComputeClockDiff(m_bclkarray_map[pid][i + 1], m_bclkarray_map[pid][i]);
             }
-            Event* evt = GetEventIterator()->getNextEvent();
-            if (evt)
+            if (!refill_evt)
             {
-              evt->convert();
-              std::vector<Packet*> pktvec = evt->getPacketVector();
-              for (Packet* pkt : pktvec)
+              refill_evt = GetEventIterator()->getNextEvent();
+              while (!refill_evt)
               {
-                if (pkt->getIdentifier() == pid)
+                fileclose();
+                if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
                 {
-                  FillPacketClock(evt, pkt, packetpoolsize - 1);
-                  m_PacketEventDeque[pid].push_back(evt);
+                  FilesDone(1);
+                  break;
                 }
+                refill_evt = GetEventIterator()->getNextEvent();
+              }
+              while (refill_evt && refill_evt->getEvtType() != DATAEVENT)
+              {
+                delete refill_evt;
+                refill_evt = GetEventIterator()->getNextEvent();
+              }
+              if (refill_evt)
+              {
+                refill_evt->convert();
+                std::cout << Name() << ": shift by -1 for prdf event " << refill_evt->getEvtSequence() << std::endl;
+              }
+            }
+            if (refill_evt)
+            {
+              Packet* pkt = refill_evt->getPacket(pid);
+              if (pkt)
+              {
+                FillPacketClock(refill_evt, pkt, packetpoolsize - 1);
+                m_PacketEventDeque[pid].push_back(refill_evt);
+                refill_used = true;
                 delete pkt;
+              }
+              else
+              {
+                std::cout << Name() << ": refill event " << refill_evt->getEvtSequence() << " has no packet " << pid << " - marking packet as bad" << std::endl;
+                m_PacketAlignmentProblem[pid] = true;
+                continue;
               }
             }
             else
@@ -965,6 +994,10 @@ void SingleTriggeredInput::FillPool()
           m_PrevPoolLastDiffBad[pid] = false;
         }
       }
+      if (refill_evt && !refill_used)
+      {
+        delete refill_evt;
+      }
     }
   }
   return;
@@ -998,9 +1031,6 @@ void SingleTriggeredInput::CreateDSTNodes(Event* evt)
   }
   else
   {
-    // if we want to keep a few packets, we need two detNodes, Packet and PacketKeep
-    // this construct here allows for the KeepMyPackets flag to take effect, then both
-    // node pointers detNode and detNodeKeep point to the same (so KeepMyPackets has precedence)
     detNode = dynamic_cast<PHCompositeNode*>(iterDst.findFirst("PHCompositeNode", CompositeNodeName));
     if (!detNode)
     {
@@ -1251,6 +1281,11 @@ int SingleTriggeredInput::ReadEvent()
       [](const std::pair<int, int>& p)
       { return p.second == 0; });
 
+  bool all_packets_minusone = std::all_of(
+      m_PacketShiftOffset.begin(), m_PacketShiftOffset.end(),
+      [](const std::pair<int, int>& p)
+      { return p.second == -1; });
+
   std::set<Event*> events_to_delete;
   for (auto& [pid, dq] : m_PacketEventDeque)
   {
@@ -1341,7 +1376,7 @@ int SingleTriggeredInput::ReadEvent()
       newhit->Reset();
     }
 
-    if (all_packets_unshifted || m_PacketShiftOffset[pid] == 1)
+    if (all_packets_unshifted || all_packets_minusone || m_PacketShiftOffset[pid] == 1)
     {
       events_to_delete.insert(evt);
     }

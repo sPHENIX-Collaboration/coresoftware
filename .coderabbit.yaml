@@ -66,8 +66,6 @@ reviews:
   auto_review:
     ignore_title_keywords:
       - WIP
-      - DRAFT
-      - DO NOT MERGE
       - RFC
   finishing_touches:
     unit_tests:
