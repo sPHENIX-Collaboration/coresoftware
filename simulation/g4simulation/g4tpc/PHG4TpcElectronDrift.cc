@@ -292,6 +292,15 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   m_primaryIonizationModel.reset();
   if (m_use_primary_cluster_ionization)
   {
+    // For the electron/positron energy-based fallback of the opt-in model,
+    // use the internally consistent stopping powers and total ionization
+    // yields in Table 1 of arXiv:1008.3736. Keep the established values above
+    // unchanged when the optional model is disabled.
+    CF4_dEdx = 6.38;         // keV/cm
+    CF4_NTotal = 120;        // Number/cm
+    isobutane_dEdx = 5.67;   // keV/cm
+    isobutane_NTotal = 220;  // Number/cm
+
     constexpr double fraction_tolerance = 1.e-12;
     if (!std::isfinite(Ne_frac) || !std::isfinite(N2_frac) ||
         std::abs(Ne_frac) > fraction_tolerance ||
@@ -491,7 +500,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
-  unsigned int count_g4hits = 0;
   //  int count_electrons = 0;
 
   //  double ecollectedhits = 0.0;
@@ -499,6 +507,63 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   double ihit = 0;
   unsigned int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
   unsigned int dump_counter = 0;
+
+  const auto flush_temp_hitsets = [&]()
+  {
+    const auto temp_hitset_range = temp_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
+    if (temp_hitset_range.first == temp_hitset_range.second)
+    {
+      return;
+    }
+
+    double eg4hit = 0.0;
+    for (auto temp_hitset_iter = temp_hitset_range.first;
+         temp_hitset_iter != temp_hitset_range.second;
+         ++temp_hitset_iter)
+    {
+      const auto node_hitsetkey = temp_hitset_iter->first;
+      const auto layer = TrkrDefs::getLayer(node_hitsetkey);
+      const auto sector = TpcDefs::getSectorId(node_hitsetkey);
+      const auto side = TpcDefs::getSide(node_hitsetkey);
+      if (Verbosity() > 100)
+      {
+        std::cout << "PHG4TpcElectronDrift: temp_hitset with key: " << node_hitsetkey << " in layer " << layer
+                  << " with sector " << sector << " side " << side << std::endl;
+      }
+
+      auto node_hitsetit = hitsetcontainer->findOrAddHitSet(node_hitsetkey);
+      const auto temp_hit_range = temp_hitset_iter->second->getHits();
+      for (auto temp_hit_iter = temp_hit_range.first;
+           temp_hit_iter != temp_hit_range.second;
+           ++temp_hit_iter)
+      {
+        const auto temp_hitkey = temp_hit_iter->first;
+        auto *temp_tpchit = temp_hit_iter->second;
+        if (Verbosity() > 10 && layer == print_layer)
+        {
+          std::cout << "      temp_hitkey " << temp_hitkey << " layer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
+                    << " z bin " << TpcDefs::getTBin(temp_hitkey)
+                    << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << std::endl;
+          eg4hit += temp_tpchit->getEnergy();
+        }
+
+        auto *node_hit = node_hitsetit->second->getHit(temp_hitkey);
+        if (!node_hit)
+        {
+          node_hit = new TrkrHitv2();
+          node_hitsetit->second->addHitSpecificKey(temp_hitkey, node_hit);
+        }
+        node_hit->addEnergy(temp_tpchit->getEnergy());
+      }
+
+      if (Verbosity() > 100 && layer == print_layer)
+      {
+        std::cout << "  ihit " << ihit << " collected energy = " << eg4hit << std::endl;
+      }
+    }
+
+    temp_hitsetcontainer->Reset();
+  };
 
   int trkid = -1;
 
@@ -508,7 +573,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   // clustering loopers in the same HitSetKey surfaces in multiple passes
   for (auto hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
-    count_g4hits++;
     dump_counter++;
 
     const double t0 = std::fmax(hiter->second->get_t(0), hiter->second->get_t(1));
@@ -890,85 +954,22 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       }
     }
 
-    // Dump the temp_hitsetcontainer to the node tree and reset it
-    //    - after every "dump_interval" g4hits
-    //    - if this is the last g4hit
-    if (dump_counter >= dump_interval || count_g4hits == g4hit->size())
+    if (dump_counter >= dump_interval)
     {
-      // std::cout << " dump_counter " << dump_counter << " count_g4hits " << count_g4hits << std::endl;
-
-      double eg4hit = 0.0;
-      TrkrHitSetContainer::ConstRange temp_hitset_range = temp_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
-      for (TrkrHitSetContainer::ConstIterator temp_hitset_iter = temp_hitset_range.first;
-           temp_hitset_iter != temp_hitset_range.second;
-           ++temp_hitset_iter)
-      {
-        // we have an itrator to one TrkrHitSet for the Tpc from the temp_hitsetcontainer
-        TrkrDefs::hitsetkey node_hitsetkey = temp_hitset_iter->first;
-        const unsigned int layer = TrkrDefs::getLayer(node_hitsetkey);
-        const int sector = TpcDefs::getSectorId(node_hitsetkey);
-        const int side = TpcDefs::getSide(node_hitsetkey);
-        if (Verbosity() > 100)
-        {
-          std::cout << "PHG4TpcElectronDrift: temp_hitset with key: " << node_hitsetkey << " in layer " << layer
-                    << " with sector " << sector << " side " << side << std::endl;
-        }
-
-        // find or add this hitset on the node tree
-        TrkrHitSetContainer::Iterator node_hitsetit = hitsetcontainer->findOrAddHitSet(node_hitsetkey);
-
-        // get all of the hits from the temporary hitset
-        TrkrHitSet::ConstRange temp_hit_range = temp_hitset_iter->second->getHits();
-        for (TrkrHitSet::ConstIterator temp_hit_iter = temp_hit_range.first;
-             temp_hit_iter != temp_hit_range.second;
-             ++temp_hit_iter)
-        {
-          TrkrDefs::hitkey temp_hitkey = temp_hit_iter->first;
-          TrkrHit *temp_tpchit = temp_hit_iter->second;
-          if (Verbosity() > 10 && layer == print_layer)
-          {
-            std::cout << "      temp_hitkey " << temp_hitkey << " layer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
-                      << " z bin " << TpcDefs::getTBin(temp_hitkey)
-                      << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << std::endl;
-
-            eg4hit += temp_tpchit->getEnergy();
-            //            ecollectedhits += temp_tpchit->getEnergy();
-            //            ncollectedhits++;
-          }
-
-          // find or add this hit to the node tree
-          TrkrHit *node_hit = node_hitsetit->second->getHit(temp_hitkey);
-          if (!node_hit)
-          {
-            // Otherwise, create a new one
-            node_hit = new TrkrHitv2();
-            node_hitsetit->second->addHitSpecificKey(temp_hitkey, node_hit);
-          }
-
-          // Either way, add the energy to it
-          node_hit->addEnergy(temp_tpchit->getEnergy());
-
-        }  // end loop over temp hits
-
-        if (Verbosity() > 100 && layer == print_layer)
-        {
-          std::cout << "  ihit " << ihit << " collected energy = " << eg4hit << std::endl;
-        }
-
-      }  // end loop over temp hitsets
-
-      // erase all entries in the temp hitsetcontainer
-      temp_hitsetcontainer->Reset();
-
-      // reset the dump counter
+      flush_temp_hitsets();
       dump_counter = 0;
-    }  // end copy of temp hitsetcontainer to node tree hitsetcontainer
+    }
 
     ++ihit;
 
     single_hitsetcontainer->Reset();
 
   }  // end loop over g4hits
+
+  // A hit near the end of the event can be followed only by G4 hits rejected
+  // by an early-continue condition above. Flush unconditionally so accepted
+  // charge is neither dropped nor carried into the next event.
+  flush_temp_hitsets();
 
   if (truth_track)
   {
