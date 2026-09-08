@@ -1,12 +1,13 @@
 #include "GlobalVertexReco.h"
+#include "VertexDefs.h"
 
 //#include "GlobalVertex.h"     // for GlobalVertex, GlobalVe...
 #include "GlobalVertexMap.h"  // for GlobalVertexMap
 #include "GlobalVertexMapv1.h"
-#include "GlobalVertexv3.h"
+#include "GlobalVertexv4.h"
 #include "MbdVertex.h"
 #include "MbdVertexMap.h"
-#include "CaloVertex.h"
+#include "CaloVertexv1.h"
 #include "CaloVertexMap.h"
 #include "SvtxVertex.h"
 #include "SvtxVertexMap.h"
@@ -140,7 +141,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
 
       // we have a matching pair
-      GlobalVertex *vertex = new GlobalVertexv3();
+      GlobalVertex *vertex = new GlobalVertexv4();
       vertex->set_id(globalmap->size());
 
       vertex->clone_insert_vtx(GlobalVertex::SVTX, svtx);
@@ -193,7 +194,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
 
       // we have a standalone SVTX vertex
-      GlobalVertex *vertex = new GlobalVertexv3();
+      GlobalVertex *vertex = new GlobalVertexv4();
 
       vertex->set_id(globalmap->size());
 
@@ -243,10 +244,11 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
         continue;
       }
 
-      GlobalVertex *vertex = new GlobalVertexv3();
-      vertex->set_id(globalmap->size());
+      GlobalVertex *vertex = new GlobalVertexv4();
+
 
       vertex->clone_insert_vtx(GlobalVertex::MBD, mbd);
+      vertex->set_id(globalmap->size());
       used_mbd_vtxids.insert(mbd->get_id());
 
       globalmap->insert(vertex);
@@ -271,7 +273,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
          ++caloiter)
       {
 	const CaloVertex *calo = caloiter->second;
-	
+
 	if (used_calo_vtxids.contains(calo->get_id()))
 	  {
 	    continue;
@@ -281,22 +283,76 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 	  {
 	    continue;
 	  }
-	
-	GlobalVertex *vertex = new GlobalVertexv3();
+
+	GlobalVertex *vertex = new GlobalVertexv4();
+
+	auto caloalgo = calo->get_calo_algo();
+	if (caloalgo == VertexDefs::CALOALGO::UNDEFINED)
+	  {
+	    vertex->clone_insert_vtx(GlobalVertex::CALO, calo);
+	  }
+	if (caloalgo == VertexDefs::CALOALGO::JETSKEW)
+	  {
+	    vertex->clone_insert_vtx(GlobalVertex::CALO_JETSKEW, calo);
+	  }
+	if (caloalgo == VertexDefs::CALOALGO::AVGZ)
+	  {
+	    vertex->clone_insert_vtx(GlobalVertex::CALO_AVGZ, calo);
+	  }
+	if (caloalgo == VertexDefs::CALOALGO::JETMLP)
+	  {
+	    vertex->clone_insert_vtx(GlobalVertex::CALO_JETMLP, calo);
+	  }
+	if (caloalgo == VertexDefs::CALOALGO::CNN)
+	  {
+	    vertex->clone_insert_vtx(GlobalVertex::CALO_CNN, calo);
+	  }
+	if (caloalgo == VertexDefs::CALOALGO::VIT)
+	  {
+	    vertex->clone_insert_vtx(GlobalVertex::CALO_VIT, calo);
+	  }
 	vertex->set_id(globalmap->size());
-	
-	vertex->clone_insert_vtx(GlobalVertex::CALO, calo);
+
 	used_calo_vtxids.insert(calo->get_id());
 	
 	globalmap->insert(vertex);
 	
 	if (Verbosity() > 1)
-	  {
+	  {	    
 	    vertex->identify();
 	  }
       }
   }
 
+  // okay now put in zero
+  if (useVertexType(GlobalVertex::VTXTYPE::ZERO))
+    {
+      if (Verbosity())
+	{
+	  std::cout << "GlobalVertexReco::process_event -  zero" << std::endl;
+	}
+      
+      CaloVertex *cvertex = new CaloVertexv1();
+      cvertex->set_z(0);
+      cvertex->set_t(0);
+      cvertex->set_z_err(0);
+      cvertex->set_t_err(0);
+      cvertex->set_id(0);
+      GlobalVertex *vertex = new GlobalVertexv4();
+      
+      vertex->clone_insert_vtx(GlobalVertex::ZERO, cvertex);
+      vertex->set_id(globalmap->size());
+      //used_calo_vtxids.insert(cvertex->get_id());
+	  
+      globalmap->insert(vertex);
+	  
+      if (Verbosity() > 1)
+	{
+	  vertex->identify();
+	}
+    }
+
+  
 // okay now loop over all unused MBD vertexes (3rd class)...
   if (mbdmap && calomap && useVertexType(GlobalVertex::VTXTYPE::MBD_CALO))
   {
@@ -337,7 +393,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 		  continue;
 		}
 	      
-	      GlobalVertex *vertex = new GlobalVertexv3();
+	      GlobalVertex *vertex = new GlobalVertexv4();
 	      vertex->set_id(globalmap->size());
 	
 	      vertex->clone_insert_vtx(GlobalVertex::CALO, calo);
@@ -354,7 +410,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 	}
       else
 	{
-	  GlobalVertex *vertex = new GlobalVertexv3();
+	  GlobalVertex *vertex = new GlobalVertexv4();
 	  vertex->set_id(globalmap->size());
 	  
 	  vertex->clone_insert_vtx(GlobalVertex::MBD, mbd);
@@ -393,7 +449,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
       tvertex->set_t(0);
       tvertex->set_t_err(0);  // 0.1
-      GlobalVertex *vertex = new GlobalVertexv3();
+      GlobalVertex *vertex = new GlobalVertexv4();
       vertex->clone_insert_vtx(GlobalVertex::TRUTH, tvertex);
       globalmap->insert(vertex);
       if (truthmap)

@@ -11,6 +11,7 @@
 class CaloVertex : public Vertex
 {
  public:
+
   ~CaloVertex() override {}
 
   // PHObject virtual overloads
@@ -20,6 +21,9 @@ class CaloVertex : public Vertex
   int isValid() const override { return 0; }
 
   // vertex info
+  virtual void set_calo_algo(VertexDefs::CALOALGO) override {}
+  virtual VertexDefs::CALOALGO get_calo_algo() const override { return VertexDefs::CALOALGO::UNDEFINED; }
+
 
   virtual unsigned int get_id() const override { return std::numeric_limits<unsigned int>::max(); }
   virtual void set_id(unsigned int) override {}

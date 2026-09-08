@@ -23,6 +23,9 @@ class CaloVertexv1 : public CaloVertex
 
   // vertex info
 
+  void set_calo_algo(VertexDefs::CALOALGO algo) override { _algo = algo; }
+  VertexDefs::CALOALGO get_calo_algo() const override { return _algo; }
+
   unsigned int get_id() const override { return _id; }
   void set_id(unsigned int id) override { _id = id; }
 
@@ -41,6 +44,9 @@ class CaloVertexv1 : public CaloVertex
   float get_position(unsigned int coor) const override;
 
  private:
+
+  VertexDefs::CALOALGO _algo{VertexDefs::CALOALGO::UNDEFINED};
+  
   unsigned int _id{std::numeric_limits<unsigned int>::max()};  //< unique identifier within container
   float _t{std::numeric_limits<float>::quiet_NaN()};           //< collision time
   float _t_err{std::numeric_limits<float>::quiet_NaN()};       //< collision time uncertainty
