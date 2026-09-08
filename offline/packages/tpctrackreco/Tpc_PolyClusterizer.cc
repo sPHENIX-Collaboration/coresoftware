@@ -24,6 +24,8 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
+#include <tpcconditions/TpcConditions.h>
+
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4TpcGeom.h>
@@ -226,6 +228,17 @@ bool Tpc_PolyClusterizer::load_cdb_inputs()
     return " [CDB]";
   };
 
+  std::cout << "\033[31m"
+          << "Load NR1 " << m_conditions->get_LoadNR1()
+          << " Load SR1 " << m_conditions->get_LoadSR1()
+          << "\033[0m" << std::endl;
+
+  if(true)
+  {
+    m_kEffSide0 = m_kEffSide0 * m_conditions->get_LoadSR1()/m_conditions->get_AverageLoadSR1();
+    m_kEffSide1 = m_kEffSide1 * m_conditions->get_LoadNR1()/m_conditions->get_AverageLoadNR1();
+  }          
+
   std::cout << Name() << "::load_cdb_inputs - final kEff values: side0 = " << m_kEffSide0 << keff_source(m_kEffSide0Override)
             << ", side1 = " << m_kEffSide1 << keff_source(m_kEffSide1Override) << std::endl;
   return ok;
@@ -359,6 +372,13 @@ int Tpc_PolyClusterizer::getNodes(PHCompositeNode* topNode)
   if (!m_geomContainerTpc)
   {
     std::cerr << Name() << "::getNodes - missing TPCGEOMCONTAINER" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_conditions = findNode::getClass<TpcConditions>(topNode, "TpcConditions");
+  if (!m_conditions)
+  {
+    std::cerr << Name() << "::getNodes - missing TpcConditions" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 

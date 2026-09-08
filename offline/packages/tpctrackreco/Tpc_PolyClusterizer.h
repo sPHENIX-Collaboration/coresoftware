@@ -20,6 +20,7 @@ class TpcCrossingDecisionContainer;
 class TrkrHitSetContainer;
 class PHG4CylinderGeomContainer;
 class PHG4TpcGeomContainer;
+class TpcConditions;
 
 class Tpc_PolyClusterizer : public SubsysReco
 {
@@ -180,6 +181,7 @@ class Tpc_PolyClusterizer : public SubsysReco
   std::unique_ptr<PHGarfield> m_garfield{};
 
   PHG4TpcGeomContainer* m_geomContainerTpc{nullptr};
+  TpcConditions* m_conditions{nullptr};
   std::array<DriftPolyline, 48 * 2 * 12 * NPhiSamples> m_driftLookup;
   unsigned int m_event{0};
   double m_t0{8};

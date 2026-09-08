@@ -26,6 +26,8 @@ class TpcConditionsReco : public SubsysReco
   CDBTTree *m_tree{nullptr};
   TpcConditions *m_conditions{nullptr};
   float get_MedianCurrent(int channel, const std::vector<std::string> &channels);
+  void fillConditions(int channel);
+  float get_AverageMedianCurrent(const std::vector<std::string> &channels);
 
   std::map<uint64_t, int> m_bco_to_channel;
 };
