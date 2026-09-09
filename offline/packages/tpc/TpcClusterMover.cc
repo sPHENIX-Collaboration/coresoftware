@@ -13,7 +13,6 @@
 #include <trackbase/TrkrClusterContainer.h>
 
 #include <g4detectors/PHG4TpcGeom.h>
-#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
