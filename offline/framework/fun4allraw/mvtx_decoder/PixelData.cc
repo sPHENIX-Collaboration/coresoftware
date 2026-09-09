@@ -9,7 +9,7 @@
 #include <sstream>
 
 //________________________________________________________________________________
-void mvtx::ChipPixelData::print() const
+void mvtx_offline::ChipPixelData::print() const
 {
   // print chip data
   std::cout << "Chip " << mChipID << " | " << mPixels.size() << " hits" << std::endl;
@@ -20,7 +20,7 @@ void mvtx::ChipPixelData::print() const
 }
 
 //________________________________________________________________________________
-std::string mvtx::ChipPixelData::getErrorDetails(int pos) const
+std::string mvtx_offline::ChipPixelData::getErrorDetails(int pos) const
 {
   // if possible, extract more detailed info about the error
   if (pos == int(ChipStat::RepeatingPixel))
