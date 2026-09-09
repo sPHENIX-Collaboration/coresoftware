@@ -395,7 +395,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     if (trkrid == TrkrDefs::tpcId)
     {
       // store old subsurface keys in map. They will need to be restored after the cluster mover has been called
-      old_subsurfkey_map.emplace(cluster, cluster->getSubSurfKey() );
+      old_subsurfkey_map.emplace_back(cluster, cluster->getSubSurfKey() );
 
 
       if (m_verbosity > 2)
