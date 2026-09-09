@@ -51,6 +51,7 @@ class TpcCrossingFinder : public SubsysReco
   void setResolveAmbiguousWithoutVertex(bool v) { m_resolveAmbiguousWithoutVertex = v; }
   void setPreferTriggeredCrossing(bool v) { m_preferTriggeredCrossing = v; }
   void setTriggeredCrossing(short v) { m_triggeredCrossing = v; }
+  void setTriggeredMode(bool v) { m_triggeredMode = v; }
   void setCollisionZ(double v) { m_collisionZ = v; }
   void setMaxVertexDz(double v) { m_maxVertexDz = v; }
   void setMaxTier2BeamlineZ(double v) { m_maxTier2BeamlineZ = v; }
@@ -223,6 +224,7 @@ class TpcCrossingFinder : public SubsysReco
   bool m_preferTriggeredCrossing {false};
   short m_triggeredCrossing {0};
   bool use_survey_geometry {false};
+  bool m_triggeredMode {false};
   std::array<double, 3> m_tpcMove {{0.0, 0.0, 0.0}};
   std::array<std::array<double, 3>, 2> m_tpcRotations {{{{0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}}}};
 };

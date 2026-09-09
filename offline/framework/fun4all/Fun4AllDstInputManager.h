@@ -26,11 +26,12 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
   int SyncIt(const SyncObject *mastersync) override;
   int BranchSelect(const std::string &branch, const int iflag) override;
   int setBranches() override;
-  void CacheSize(uint64_t size) { m_IManager->CacheSize(size); }
   virtual int setSyncBranches(PHNodeIOManager *iman);
   void Print(const std::string &what = "ALL") const override;
   int PushBackEvents(const int i) override;
   int HasSyncObject() const override;
+  void TTreeCacheSize(int64_t size) override;
+  int64_t TTreeCacheSize() const override {return m_TTreeCacheSize;}
 
  protected:
   int ReadNextEventSyncObject();
@@ -53,6 +54,7 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
   PHCompositeNode *m_RunNodeSum{nullptr};
   PHNodeIOManager *m_IManager{nullptr};
   SyncObject *syncobject{nullptr};
+  int64_t m_TTreeCacheSize {-1}; // TTree default, don't ask
   int m_ReadRunTTree{1};
   int events_total{0};
   int events_thisfile{0};

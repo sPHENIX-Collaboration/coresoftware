@@ -56,10 +56,20 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
       m_detector_info = true;
     }
   }
+  // Function that will add additional calorimetry info to the output TTree
   void GetDetailedCalorimetry(bool set_variable = true)
   {
     m_get_detailed_calorimetry = set_variable;
     if (m_get_detailed_calorimetry)
+    {
+      m_calo_info = true;
+    }
+  }
+  // Function that will add info from the 5x5 cell of towers around the cluster center to the output TTree
+  void GetCalo5x5CellInfo(bool set_variable = true) 
+  {
+    m_get_calo_5x5_cell_info = set_variable;
+    if (m_get_calo_5x5_cell_info)
     {
       m_calo_info = true;
     }

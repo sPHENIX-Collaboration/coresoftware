@@ -32,6 +32,8 @@ class PHG4VtxPointv2 : public PHG4VtxPointv1
 
   ~PHG4VtxPointv2() override = default;
 
+  PHObject* CloneMe() const override { return new PHG4VtxPointv2(*this); }
+
   // from PHObject
   void identify(std::ostream& os = std::cout) const override;
 

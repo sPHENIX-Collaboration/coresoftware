@@ -65,7 +65,7 @@ std::ostream& operator<<(std::ostream& stream, const PHG4Hit* hit)
 
 void PHG4Hit::Reset()
 {
-  std::cout << "Reset not implemented by daughter class" << std::endl;
+  std::cout << "Reset not implemented by PHG4Hit daughter class" << std::endl;
   return;
 }
 

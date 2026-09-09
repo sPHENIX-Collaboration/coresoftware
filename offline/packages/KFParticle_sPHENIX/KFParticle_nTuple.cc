@@ -722,7 +722,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_tree->Fill();
   }
 
-  if (m_truth_matching || m_detector_info)
+  if (m_truth_matching || m_detector_info || m_get_calo_5x5_cell_info)
   {
     clearVectors();
   }

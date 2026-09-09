@@ -1,8 +1,8 @@
 #ifndef __MVTX_POOL_H__
 #define __MVTX_POOL_H__
 
-#include "mvtx_decoder/PayLoadCont.h"
 #include "mvtx_decoder/GBTLink.h"
+#include "mvtx_decoder/PayLoadCont.h"
 #include "mvtx_decoder/StrobeData.h"
 
 #include <set>
@@ -13,8 +13,8 @@
 
 class Packet;
 
-class mvtx_pool {
-
+class mvtx_pool
+{
  public:
   mvtx_pool() = default;
   virtual ~mvtx_pool();
@@ -42,14 +42,14 @@ class mvtx_pool {
 
   long long int lValue(const int, const int, const char* what);
 
-  std::vector<mvtx::mvtx_hit*>& get_hits(const int feeId,
-                                         const int i_strb);
+  std::vector<mvtx_offline::mvtx_hit*>& get_hits(const int feeId,
+                                                 const int i_strb);
 
   void set_verbosity(const int val) { verbosity = val; }
-  int  get_verbosity() { return verbosity; }
+  int get_verbosity() { return verbosity; }
 
  protected:
-   uint32_t get_linkId(const uint16_t i);
+  uint32_t get_linkId(const uint16_t i);
 
  private:
   int mvtx_decode();
@@ -65,9 +65,9 @@ class mvtx_pool {
   void loadInput(Packet* p);
   void setupLinks();
 
-  mvtx::PayLoadCont mBuffer = {};
-  std::unordered_map<uint16_t, dumpEntry> mFeeId2LinkID; // link fee_id to GBTLinks
-  std::vector<mvtx::GBTLink> mGBTLinks;
+  mvtx_offline::PayLoadCont mBuffer = {};
+  std::unordered_map<uint16_t, dumpEntry> mFeeId2LinkID;  // link fee_id to GBTLinks
+  std::vector<mvtx_offline::GBTLink> mGBTLinks;
   std::set<uint16_t> feeid_set;
 
   uint8_t* payload = nullptr;

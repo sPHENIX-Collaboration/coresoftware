@@ -6,130 +6,143 @@
 #ifndef MVTXDECODER_GBTLINK_H
 #define MVTXDECODER_GBTLINK_H
 
-#define _RAW_READER_ERROR_CHECKS_ // comment this to disable error checking
+#define _RAW_READER_ERROR_CHECKS_  // comment this to disable error checking
 
-#include "mvtx_utils.h"
-#include "RDH.h"
-#include "PayLoadCont.h"
-#include "PayLoadSG.h"
 #include "DecodingStat.h"
 #include "GBTWord.h"
 #include "InteractionRecord.h"
+#include "PayLoadCont.h"
+#include "PayLoadSG.h"
+#include "RDH.h"
 #include "StrobeData.h"
+#include "mvtx_utils.h"
 
+#include <iomanip>
 #include <iostream>
 #include <memory>
-#include <iomanip>
 
 #define GBTLINK_DECODE_ERRORCHECK(errRes, errEval)                            \
   errRes = errEval;                                                           \
-  if ((errRes)&uint8_t(ErrorPrinted)) {                                       \
+  if ((errRes) & uint8_t(ErrorPrinted))                                       \
+  {                                                                           \
     ruPtr->linkHBFToDump[(uint64_t(subSpec) << 32) + hbfEntry] = irHBF.orbit; \
     errRes &= ~uint8_t(ErrorPrinted);                                         \
   }                                                                           \
-  if ((errRes)&uint8_t(Abort)) {                                              \
+  if ((errRes) & uint8_t(Abort))                                              \
+  {                                                                           \
     discardData();                                                            \
     return AbortedOnError;                                                    \
   }
 
-namespace mvtx {
-
-  using namespace mvtx_utils;
-
-/// support for the GBT single link data
-struct GBTLink
+namespace mvtx_offline
 {
-//  enum RawDataDumps : int { DUMP_NONE, // no raw data dumps on error
-//                            DUMP_HBF,  // dump HBF for FEEID with error
-//                            DUMP_TF,   // dump whole TF at error
-//                            DUMP_NTYPES };
 
-  enum CollectedDataStatus : int8_t { None,
-                                      AbortedOnError,
-                                      StoppedOnEndOfData,
-                                      DataSeen }; // None is set before starting collectROFCableData
+  using mvtx_offline_utils::FLXWordLength;
 
-//  enum ErrorType : uint8_t { NoError = 0x0,
-//                             Warning = 0x1,
-//                             Skip = 0x2,
-//                             Abort = 0x4,
-//                             ErrorPrinted = 0x1 << 7 };
-
-  static constexpr int RawBufferMargin = 500000;                      // keep uploaded at least this amount
-  static constexpr int RawBufferSize = 1000000 + 2 * RawBufferMargin; // size in MB
-  static constexpr uint8_t MaxCablesPerLink = 3;
-
-  CollectedDataStatus status = None;
-
-  uint16_t flxId = 0;     // FLX ID
-  uint16_t feeId = 0;     // FEE ID
-
-  PayLoadCont data; // data buffer for single feeeid
-  std::array<PayLoadCont, MaxCablesPerLink> cableData;
-
-
-  uint32_t hbfEntry = 0;      // entry of the current HBF page in the rawData SG list
-  InteractionRecord ir = {};
-
-  GBTLinkDecodingStat statistics; // link decoding statistics
-
-  uint8_t  hbf_error = 0;
-  uint32_t hbf_length = 0;
-  uint32_t prev_pck_cnt = 0;
-  uint32_t hbf_count = 0;
-
-  bool hbf_skip = false;
-
-  PayLoadSG rawData;         // scatter-gatter buffer for cached CRU pages, each starting with RDH
-  size_t dataOffset = 0;     //
-  std::vector<InteractionRecord> mL1TrgTime;
-  std::vector<StrobeData> mTrgData;
-
-  //------------------------------------------------------------------------
-  GBTLink() = default;
-  GBTLink(uint16_t _flx, uint16_t _fee);
-  void clear(bool resetStat = true, bool resetTFRaw = false);
-
-  CollectedDataStatus collectROFCableData();
-
-  void cacheData(size_t start, size_t sz)
+  /// support for the GBT single link data
+  struct GBTLink
   {
-    rawData.add(start, sz);
-  }
+    //  enum RawDataDumps : int { DUMP_NONE, // no raw data dumps on error
+    //                            DUMP_HBF,  // dump HBF for FEEID with error
+    //                            DUMP_TF,   // dump whole TF at error
+    //                            DUMP_NTYPES };
 
-  void clearCableData()
-  {
-    for (auto& _data : cableData)
+    enum CollectedDataStatus : int8_t
     {
-      _data.clear();
+      None,
+      AbortedOnError,
+      StoppedOnEndOfData,
+      DataSeen
+    };  // None is set before starting collectROFCableData
+
+    //  enum ErrorType : uint8_t { NoError = 0x0,
+    //                             Warning = 0x1,
+    //                             Skip = 0x2,
+    //                             Abort = 0x4,
+    //                             ErrorPrinted = 0x1 << 7 };
+
+    static constexpr int RawBufferMargin = 500000;                       // keep uploaded at least this amount
+    static constexpr int RawBufferSize = 1000000 + 2 * RawBufferMargin;  // size in MB
+    static constexpr uint8_t MaxCablesPerLink = 3;
+
+    CollectedDataStatus status = None;
+
+    uint16_t flxId = 0;  // FLX ID
+    uint16_t feeId = 0;  // FEE ID
+
+    PayLoadCont data;  // data buffer for single feeeid
+    std::array<PayLoadCont, MaxCablesPerLink> cableData;
+
+    uint32_t hbfEntry = 0;  // entry of the current HBF page in the rawData SG list
+    InteractionRecord ir = {};
+
+    GBTLinkDecodingStat statistics;  // link decoding statistics
+
+    uint8_t hbf_error = 0;
+    uint32_t hbf_length = 0;
+    uint32_t prev_pck_cnt = 0;
+    uint32_t hbf_count = 0;
+
+    bool hbf_skip = false;
+
+    PayLoadSG rawData;      // scatter-gatter buffer for cached CRU pages, each starting with RDH
+    size_t dataOffset = 0;  //
+    std::vector<InteractionRecord> mL1TrgTime;
+    std::vector<StrobeData> mTrgData;
+
+    //------------------------------------------------------------------------
+    GBTLink() = default;
+    GBTLink(uint16_t _flx, uint16_t _fee);
+    // Explicitly default move constructor/assignment
+    GBTLink(GBTLink&&) = default;
+    GBTLink& operator=(GBTLink&&) = default;
+
+    // Delete copy operations to prevent incorrect copies
+    GBTLink(const GBTLink&) = delete;
+    GBTLink& operator=(const GBTLink&) = delete;
+
+    void clear(bool resetStat = true, bool resetTFRaw = false);
+
+    CollectedDataStatus collectROFCableData();
+
+    void cacheData(size_t start, size_t sz)
+    {
+      rawData.add(start, sz);
     }
-  }
 
-  int readFlxWord(GBTWord* gbtwords, uint16_t& w16);
-  int decode_lane(const uint8_t chipId, PayLoadCont& buffer);
-
-  void getRowCol(const uint8_t reg, const uint16_t addr, uint16_t& row, uint16_t& col)
-  {
-    row = (addr >> 0x1) & 0x1FF;
-    col = (reg << 5 | ((addr >> 9) & 0x1E)) | ((addr ^ addr >> 1) & 0x1);
-  }
-
-  void addHit(const uint8_t laneId, const uint8_t bc, uint8_t reg, const uint16_t addr)
-  {
-    auto* hit = new mvtx_hit();
-
-    hit->chip_id = laneId;
-    hit->bunchcounter = bc;
-    getRowCol(reg, addr, hit->row_pos, hit->col_pos);
-
-    mTrgData.back().hit_vector.push_back(hit);
-  }
-
-  void check_APE(const uint8_t& chipId, const uint8_t& dataC)
-  {
-    std::cerr << "Link: " << feeId << ", Chip: " << (int)chipId;
-    switch (dataC)
+    void clearCableData()
     {
+      for (auto& _data : cableData)
+      {
+        _data.clear();
+      }
+    }
+
+    int readFlxWord(GBTWord* gbtwords, uint16_t& w16);
+    int decode_lane(const uint8_t chipId, PayLoadCont& buffer);
+
+    void getRowCol(const uint8_t reg, const uint16_t addr, uint16_t& row, uint16_t& col)
+    {
+      row = (addr >> 0x1) & 0x1FF;
+      col = (reg << 5 | ((addr >> 9) & 0x1E)) | ((addr ^ addr >> 1) & 0x1);
+    }
+
+    void addHit(const uint8_t laneId, const uint8_t bc, uint8_t reg, const uint16_t addr)
+    {
+      auto* hit = new mvtx_hit();
+
+      hit->chip_id = laneId;
+      hit->bunchcounter = bc;
+      getRowCol(reg, addr, hit->row_pos, hit->col_pos);
+
+      mTrgData.back().hit_vector.push_back(hit);
+    }
+
+    void check_APE(const uint8_t& chipId, const uint8_t& dataC)
+    {
+      std::cerr << "Link: " << feeId << ", Chip: " << (int) chipId;
+      switch (dataC)
+      {
       case 0xF2:
         std::cerr << " APE_STRIP_START" << std::endl;
         break;
@@ -168,455 +181,454 @@ struct GBTLink
         break;
       default:
         std::cerr << " Unknown APE code" << std::endl;
+      }
+      return;
     }
-    return;
-  }
 
-  void AlpideByteError(const uint8_t& chipId, PayLoadCont& buffer)
-  {
-    uint8_t dataC = 0;
-
-    std::cerr << "Link: " << feeId << ", Chip: " << (int)chipId;
-    std::cerr << " invalid byte 0x" << std::hex << (int)(dataC) << std::endl;
-    while (buffer.next(dataC))
+    void AlpideByteError(const uint8_t& chipId, PayLoadCont& buffer)
     {
-      std::cerr << " " << std::hex << (int)(dataC) << " ";
+      uint8_t dataC = 0;
+
+      std::cerr << "Link: " << feeId << ", Chip: " << (int) chipId;
+      std::cerr << " invalid byte 0x" << std::hex << (int) (dataC) << std::endl;
+      while (buffer.next(dataC))
+      {
+        std::cerr << " " << std::hex << (int) (dataC) << " ";
+      }
+      std::cerr << std::endl;
+      buffer.clear();
+      return;
     }
-    std::cerr << std::endl;
-    buffer.clear();
-    return;
-  }
 
-  void PrintFlxWord(std::ostream& os, uint8_t* pos)
-  {
-    os  << std::setfill('0');
-    for ( int i = 0; i < 32 ; i++)
+    void PrintFlxWord(std::ostream& os, uint8_t* pos)
     {
-      os << std::hex << std::setw(2) << (int)pos[i] << " " << std::dec;
+      os << std::setfill('0');
+      for (int i = 0; i < 32; i++)
+      {
+        os << std::hex << std::setw(2) << (int) pos[i] << " " << std::dec;
+      }
+      os << std::setfill(' ') << std::endl;
     }
-    os  << std::setfill(' ') << std::endl;
-  }
 
-  void PrintBlock(std::ostream& os, uint8_t* pos, size_t n)
-  {
-    for (uint32_t i = 0; i < n; ++i)
+    void PrintBlock(std::ostream& os, uint8_t* pos, size_t n)
     {
-      PrintFlxWord(os, pos + 32 * i);
-    }
-  }
-
-  ClassDefNV(GBTLink, 1);
-};
-
-///_________________________________________________________________
-/// collect cables data for single ROF, return number of real payload words seen,
-/// -1 in case of critical error
-inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping& chmap*/)
-{
-  bool prev_evt_complete = false;
-  bool header_found = false;
-//  bool trailer_found = false;
-  uint8_t* hbf_start = nullptr;
-
-  status = None;
-
-  uint32_t detectorField = 0;
-
-  auto currRawPiece = rawData.currentPiece();
-  dataOffset = 0;
-  while (currRawPiece)
-  { // we may loop over multiple FLX page
-    uint32_t n_no_continuation = 0;
-    uint32_t n_packet_done = 0;
-
-    if (dataOffset >= currRawPiece->size)
-    {
-      data.movePtr(currRawPiece->size);
-      dataOffset = 0;
-      // start of the RDH
-      if (! (currRawPiece = rawData.nextPiece()))
-      { // fetch next CRU page
-        break;                                     // Data chunk (TF?) is done
+      for (uint32_t i = 0; i < n; ++i)
+      {
+        PrintFlxWord(os, pos + 32 * i);
       }
     }
 
-    if (currRawPiece->hasError != mvtx::PayLoadSG::HBF_ERRORS::NoError) // Skip
-    {
-      dataOffset = currRawPiece->size;
-      ++hbf_count;
-      continue;
-    }
+    ClassDefNV(GBTLink, 1);
+  };
 
-    if (! dataOffset)
-    {
-      hbf_start = data.getPtr();
-    }
+  ///_________________________________________________________________
+  /// collect cables data for single ROF, return number of real payload words seen,
+  /// -1 in case of critical error
+  inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping& chmap*/)
+  {
+    bool prev_evt_complete = false;
+    bool header_found = false;
+    //  bool trailer_found = false;
+    uint8_t* hbf_start = nullptr;
 
-    // here we always start with the RDH
-    uint8_t* rdh_start = data.getPtr() + dataOffset;
-    const auto* rdhP = reinterpret_cast<const mvtx::RDH*>(rdh_start);
-    if (! mvtx::RDHUtils::checkRDH(mvtx::RDHAny::voidify(*rdhP), true, true))
-    {
-      // In case of corrupt RDH, skip HBF
-      dataOffset = currRawPiece->size;
-      ++hbf_count;
-      continue;
-    }
+    status = None;
 
-    size_t pagesize = ((*rdhP).pageSize + 1) * FLXWordLength;
-    const size_t nFlxWords = (pagesize - (2 * FLXWordLength)) / FLXWordLength;
-    //Fill statistics
-    if (! (*rdhP).packetCounter)
-    {
-      if (dataOffset)
+    uint32_t detectorField = 0;
+
+    auto currRawPiece = rawData.currentPiece();
+    dataOffset = 0;
+    while (currRawPiece)
+    {  // we may loop over multiple FLX page
+      uint32_t n_no_continuation = 0;
+      uint32_t n_packet_done = 0;
+
+      if (dataOffset >= currRawPiece->size)
       {
-        log_error << "Wrong dataOffset value " << dataOffset << " at the start of a HBF" << std::endl;
-        // move buffer pointer to begin of RDH and reset dataOffset
+        data.movePtr(currRawPiece->size);
         dataOffset = 0;
-      }
-      detectorField = (*rdhP).detectorField;
-      statistics.clear();
-      //TODO: initialize/clear alpide data buffer
-      for (uint32_t trg = GBTLinkDecodingStat::BitMaps::ORBIT; trg < GBTLinkDecodingStat::nBitMap; ++trg)
-      {
-        if (((*rdhP).trgType >> trg) & 1)
-        {
-          ++statistics.trgBitCounts[trg];
+        // start of the RDH
+        if (!(currRawPiece = rawData.nextPiece()))
+        {         // fetch next CRU page
+          break;  // Data chunk (TF?) is done
         }
       }
-      hbfEntry = rawData.currentPieceId(); // in case of problems with RDH, dump full TF
-      ++hbf_count;
-    }
-    else if (! (*rdhP).stopBit)
-    {
-      if (prev_evt_complete)
+
+      if (currRawPiece->hasError != mvtx_offline::PayLoadSG::HBF_ERRORS::NoError)  // Skip
       {
-        log_error << "Previous event was already completed" << std::endl;
+        dataOffset = currRawPiece->size;
+        ++hbf_count;
+        continue;
+      }
+
+      if (!dataOffset)
+      {
+        hbf_start = data.getPtr();
+      }
+
+      // here we always start with the RDH
+      uint8_t* rdh_start = data.getPtr() + dataOffset;
+      const auto* rdhP = reinterpret_cast<const mvtx_offline::RDH*>(rdh_start);
+      if (!mvtx_offline::RDHUtils::checkRDH(mvtx_offline::RDHAny::voidify(*rdhP), true, true))
+      {
+        // In case of corrupt RDH, skip HBF
+        dataOffset = currRawPiece->size;
+        ++hbf_count;
+        continue;
+      }
+
+      size_t pagesize = ((*rdhP).pageSize + 1) * FLXWordLength;
+      const size_t nFlxWords = (pagesize - (2 * FLXWordLength)) / FLXWordLength;
+      // Fill statistics
+      if (!(*rdhP).packetCounter)
+      {
+        if (dataOffset)
+        {
+          log_error << "Wrong dataOffset value " << dataOffset << " at the start of a HBF" << std::endl;
+          // move buffer pointer to begin of RDH and reset dataOffset
+          dataOffset = 0;
+        }
+        detectorField = (*rdhP).detectorField;
+        statistics.clear();
+        // TODO: initialize/clear alpide data buffer
+        for (uint32_t trg = GBTLinkDecodingStat::BitMaps::ORBIT; trg < GBTLinkDecodingStat::nBitMap; ++trg)
+        {
+          if (((*rdhP).trgType >> trg) & 1)
+          {
+            ++statistics.trgBitCounts[trg];
+          }
+        }
+        hbfEntry = rawData.currentPieceId();  // in case of problems with RDH, dump full TF
+        ++hbf_count;
+      }
+      else if (!(*rdhP).stopBit)
+      {
+        if (prev_evt_complete)
+        {
+          log_error << "Previous event was already completed" << std::endl;
+          dataOffset = currRawPiece->size;
+          ++hbf_count;
+          continue;
+        }
+      }
+
+      dataOffset += 2 * FLXWordLength;  // skip RDH
+      int prev_gbt_cnt = (*rdhP).rdhGBTcounter;
+      GBTWord gbtWords[3];
+      uint16_t w16 = 0;
+      for (size_t iflx = 0; iflx < nFlxWords; ++iflx)
+      {
+        readFlxWord(gbtWords, w16);
+        int16_t n_gbt_cnt = (w16 & 0x3FF) - prev_gbt_cnt;
+        prev_gbt_cnt = (w16 & 0x3FF);
+        if (n_gbt_cnt < 1 || n_gbt_cnt > 3)
+        {
+          log_error << "Bad gbt counter in the flx packet. FLX: " << flxId << ", Feeid: " << feeId << ", n_gbt_cnt: " << n_gbt_cnt
+                    << ", prev_gbt_cnt: " << prev_gbt_cnt << ", size: " << currRawPiece->size << ", dataOffset: " << dataOffset << std::endl;
+          PrintBlock(std::cerr, rdh_start, nFlxWords + 2);
+          std::cerr << "Full HBF" << std::endl;
+          PrintBlock(std::cerr, hbf_start, (currRawPiece->size / 32));
+          hbf_skip = true;
+          break;
+        }
+
+        for (int i = 0; i < n_gbt_cnt; ++i)
+        {
+          auto& gbtWord = gbtWords[i];
+          if (gbtWord.isIHW())  // ITS HEADER WORD
+          {
+            // TODO assert first word after RDH and active lanes
+            if (!((!gbtWord.activeLanes) ||
+                  ((gbtWord.activeLanes >> 0) & 0x7) == 0x7 ||
+                  ((gbtWord.activeLanes >> 3) & 0x7) == 0x7 ||
+                  ((gbtWord.activeLanes >> 6) & 0x7) == 0x7))
+            {
+              log_error << "Expected all active lanes for links, but " << gbtWord.activeLanes << "found in HBF " << hbfEntry << ", "
+                        << gbtWord.asString() << std::endl;
+            }
+          }
+          else if (gbtWord.isTDH())  // TRIGGER DATA HEADER (TDH)
+          {
+            header_found = true;
+            ir.orbit = gbtWord.bco;
+            ir.bc = gbtWord.bc;
+
+            if (gbtWord.bc)  // statistic trigger for first bc already filled on RDH
+            {
+              for (uint32_t trg = GBTLinkDecodingStat::BitMaps::ORBIT; trg < GBTLinkDecodingStat::nBitMap; ++trg)
+              {
+                if (trg == GBTLinkDecodingStat::BitMaps::FE_RST)  //  TDH save first 12 bits only
+                  break;
+                if (((gbtWord.triggerType >> trg) & 1))
+                {
+                  ++statistics.trgBitCounts[trg];
+                }
+              }
+            }
+
+            if ((gbtWord.triggerType >> GBTLinkDecodingStat::BitMaps::PHYSICS) & 0x1)
+            {
+              mL1TrgTime.push_back(ir);
+            }
+
+            if ((!gbtWord.continuation) && (!gbtWord.noData))
+            {
+              n_no_continuation++;
+              mTrgData.emplace_back(ir.orbit, ir.bc);
+              mTrgData.back().detectorField = detectorField;
+            }  // end if not cont
+          }  // end TDH
+          else if (gbtWord.isCDW())  // CALIBRATION DATA WORD
+          {
+            mTrgData.back().hasCDW = true;
+            mTrgData.back().calWord = *(reinterpret_cast<GBTCalibDataWord*>(&gbtWord));
+          }
+          else if (gbtWord.isTDT())
+          {
+            // trailer_found = true;
+            if (gbtWord.packet_done)
+            {
+              ++n_packet_done;
+              if (n_packet_done < n_no_continuation)
+              {
+                log_error << "TDT packet done before TDH no continuation " << n_no_continuation
+                          << " != " << n_packet_done << std::endl;
+                // TODO: Add error counter
+              }
+            }
+            prev_evt_complete = gbtWord.packet_done;
+            // TODO: YCM Add warning and counter for timeout and violation
+          }
+          else if (gbtWord.isDDW())  // DIAGNOSTIC DATA WORD (DDW)
+          {
+            if (!(*rdhP).stopBit)
+            {
+              log_error << "DDW was found in a packet with stop bit: " << (*rdhP).stopBit << std::endl;
+              // TODO: YCM Add warning and counter DDW not in final packet
+            }
+          }
+          else if (gbtWord.isDiagnosticIB())  // IB DIAGNOSTIC DATA
+          {
+            std::cout << "WARNING: IB Diagnostic word found." << std::endl;
+            std::cout << "diagnostic_lane_id: " << (gbtWord.id >> 5);
+            std::cout << " lane_error_id: " << gbtWord.lane_error_id;
+            std::cout << " diasnotic_data: 0x" << std::hex << gbtWord.diagnostic_data << std::endl;
+          }
+          else if (gbtWord.isData())  // IS IB DATA
+          {
+            if (!header_found)
+            {
+              log_error << "Trigger header not found before chip data. skipping data" << std::endl;
+              clearCableData();
+              continue;
+            }
+            auto lane = (gbtWord.data8[9] & 0x1F) % 3;
+            cableData[lane].add(gbtWord.getW8(), 9);
+          }
+
+          if (prev_evt_complete)
+          {
+            for (auto&& itr = cableData.begin(); itr != cableData.end(); ++itr)
+            {
+              if (!itr->isEmpty())
+              {
+                decode_lane(std::distance(cableData.begin(), itr), *itr);
+              }
+            }
+            prev_evt_complete = false;
+            header_found = false;
+            //          trailer_found = false;
+            clearCableData();
+          }
+        }
+      }
+      if (hbf_skip)
+      {
+        hbf_skip = false;
+        clearCableData();
         dataOffset = currRawPiece->size;
         ++hbf_count;
         continue;
       }
     }
-
-    dataOffset += 2 * FLXWordLength; // skip RDH
-    int prev_gbt_cnt = (*rdhP).rdhGBTcounter;
-    GBTWord gbtWords[3];
-    uint16_t w16 = 0;
-    for (size_t iflx = 0; iflx < nFlxWords; ++iflx)
-    {
-      readFlxWord(gbtWords, w16);
-      int16_t n_gbt_cnt = (w16 & 0x3FF) - prev_gbt_cnt;
-      prev_gbt_cnt = (w16 & 0x3FF);
-      if (n_gbt_cnt < 1 || n_gbt_cnt > 3)
-      {
-        log_error << "Bad gbt counter in the flx packet. FLX: " << flxId << ", Feeid: " << feeId << ", n_gbt_cnt: " << n_gbt_cnt \
-          << ", prev_gbt_cnt: " << prev_gbt_cnt << ", size: " << currRawPiece->size << ", dataOffset: " << dataOffset << std::endl;
-        PrintBlock(std::cerr, rdh_start, nFlxWords + 2);
-        std::cerr << "Full HBF" << std::endl;
-        PrintBlock(std::cerr, hbf_start, (currRawPiece->size/32) );
-        hbf_skip = true;
-        break;
-      }
-
-      for (int i = 0; i < n_gbt_cnt; ++i)
-      {
-        auto &gbtWord = gbtWords[i];
-        if (gbtWord.isIHW()) // ITS HEADER WORD
-        {
-          //TODO assert first word after RDH and active lanes
-          if (! ((!gbtWord.activeLanes) ||
-                 ((gbtWord.activeLanes >> 0) & 0x7) == 0x7 ||
-                 ((gbtWord.activeLanes >> 3) & 0x7) == 0x7 ||
-                 ((gbtWord.activeLanes >> 6) & 0x7) == 0x7) )
-          {
-            log_error << "Expected all active lanes for links, but " << gbtWord.activeLanes << "found in HBF " << hbfEntry << ", " \
-              << gbtWord.asString() << std::endl;
-          }
-        }
-        else if (gbtWord.isTDH()) // TRIGGER DATA HEADER (TDH)
-        {
-          header_found = true;
-          ir.orbit = gbtWord.bco;
-          ir.bc = gbtWord.bc;
-
-          if (gbtWord.bc) //statistic trigger for first bc already filled on RDH
-          {
-            for (uint32_t trg = GBTLinkDecodingStat::BitMaps::ORBIT; trg < GBTLinkDecodingStat::nBitMap; ++trg)
-            {
-              if (trg == GBTLinkDecodingStat::BitMaps::FE_RST) //  TDH save first 12 bits only
-                break;
-              if (((gbtWord.triggerType >> trg) & 1))
-              {
-                ++statistics.trgBitCounts[trg];
-              }
-            }
-          }
-
-          if ((gbtWord.triggerType >> GBTLinkDecodingStat::BitMaps::PHYSICS) & 0x1)
-          {
-            mL1TrgTime.push_back(ir);
-          }
-
-          if ((! gbtWord.continuation) && (! gbtWord.noData))
-          {
-            n_no_continuation++;
-            mTrgData.emplace_back(ir.orbit, ir.bc);
-            mTrgData.back().detectorField = detectorField;
-          } // end if not cont
-        } // end TDH
-        else if (gbtWord.isCDW()) // CALIBRATION DATA WORD
-        {
-          mTrgData.back().hasCDW = true;
-          mTrgData.back().calWord = *(reinterpret_cast<GBTCalibDataWord*>(&gbtWord));
-        }
-        else if (gbtWord.isTDT())
-        {
-          // trailer_found = true;
-          if (gbtWord.packet_done)
-          {
-            ++n_packet_done;
-            if (n_packet_done < n_no_continuation)
-            {
-              log_error << "TDT packet done before TDH no continuation " << n_no_continuation \
-                << " != " << n_packet_done << std::endl;
-              // TODO: Add error counter
-            }
-          }
-          prev_evt_complete = gbtWord.packet_done;
-          //TODO: YCM Add warning and counter for timeout and violation
-        }
-        else if (gbtWord.isDDW()) // DIAGNOSTIC DATA WORD (DDW)
-        {
-          if (! (*rdhP).stopBit)
-          {
-            log_error << "DDW was found in a packet with stop bit: " <<  (*rdhP).stopBit << std::endl;
-            //TODO: YCM Add warning and counter DDW not in final packet
-          }
-        }
-        else if (gbtWord.isDiagnosticIB()) // IB DIAGNOSTIC DATA
-        {
-            std::cout << "WARNING: IB Diagnostic word found." << std::endl;
-            std::cout << "diagnostic_lane_id: " << (gbtWord.id >> 5);
-            std::cout << " lane_error_id: " << gbtWord.lane_error_id;
-            std::cout << " diasnotic_data: 0x" << std::hex << gbtWord.diagnostic_data << std::endl;
-        }
-        else if (gbtWord.isData()) //IS IB DATA
-        {
-          if (! header_found )
-          {
-            log_error << "Trigger header not found before chip data. skipping data" << std::endl;
-            clearCableData();
-            continue;
-          }
-          auto lane = (gbtWord.data8[9] & 0x1F) % 3;
-          cableData[lane].add(gbtWord.getW8(), 9);
-        }
-
-        if (prev_evt_complete)
-        {
-          for (auto&& itr = cableData.begin(); itr != cableData.end(); ++itr)
-          {
-            if (! itr->isEmpty())
-            {
-              decode_lane(std::distance(cableData.begin(), itr), *itr);
-            }
-          }
-          prev_evt_complete = false;
-          header_found = false;
-//          trailer_found = false;
-          clearCableData();
-        }
-      }
-    }
-    if (hbf_skip)
-    {
-      hbf_skip = false;
-      clearCableData();
-      dataOffset = currRawPiece->size;
-      ++hbf_count;
-      continue;
-    }
-  }
-  return (status = StoppedOnEndOfData);
-}
-
-//_________________________________________________
-inline int GBTLink::decode_lane(const uint8_t chipId, PayLoadCont& buffer)
-{
-  int ret = 0; // currently we just print stuff, but we will add stuff to our
-               // structures and return a status later (that's why it's not a const function)
-
-  if (buffer.getSize() < 3)
-  {
-    log_error << "chip data is too short: " << buffer.getSize() << std::endl;
-    return -1;
+    return (status = StoppedOnEndOfData);
   }
 
-  uint8_t dataC = 0;
-  uint16_t dataS = 0;
-
-  bool busy_on = false, busy_off = false;
-  bool chip_header_found = false;
-  bool chip_trailer_found = true;
-
-  uint8_t laneId = 0xFF;
-  uint8_t bc = 0xFF;
-  uint8_t reg = 0xFF;
-
-  if ( !( (buffer[0] & 0xF0) == 0xE0 || (buffer[0] & 0xF0) == 0xA0 ||\
-          (buffer[0] == 0xF0) || (buffer[0] == 0xF1) || (buffer[0] & 0xF0) == 0xF0 ) )
+  //_________________________________________________
+  inline int GBTLink::decode_lane(const uint8_t chipId, PayLoadCont& buffer)
   {
-    AlpideByteError(chipId, buffer);
-    return 0;
-  }
+    int ret = 0;  // currently we just print stuff, but we will add stuff to our
+                  // structures and return a status later (that's why it's not a const function)
 
-  while (buffer.next(dataC))
-  {
-    if ( dataC == 0xF1 ) // BUSY ON
+    if (buffer.getSize() < 3)
     {
-      busy_on = true ;
+      log_error << "chip data is too short: " << buffer.getSize() << std::endl;
+      return -1;
     }
-    else if ( dataC == 0xF0 ) // BUSY OFF
+
+    uint8_t dataC = 0;
+    uint16_t dataS = 0;
+
+    bool busy_on = false, busy_off = false;
+    bool chip_header_found = false;
+    bool chip_trailer_found = true;
+
+    uint8_t laneId = 0xFF;
+    uint8_t bc = 0xFF;
+    uint8_t reg = 0xFF;
+
+    if (!((buffer[0] & 0xF0) == 0xE0 || (buffer[0] & 0xF0) == 0xA0 ||
+          (buffer[0] == 0xF0) || (buffer[0] == 0xF1) || (buffer[0] & 0xF0) == 0xF0))
     {
-      busy_off = true;
+      AlpideByteError(chipId, buffer);
+      return 0;
     }
-    else if ((dataC & 0xF0) == 0xF0) // APE
+
+    while (buffer.next(dataC))
     {
-      check_APE(chipId, dataC);
-      chip_trailer_found = true;
-      busy_on = busy_off = chip_header_found = 0;
-    }
-    else if ((dataC & 0xF0) == 0xE0) // EMPTY
-    {
-      chip_header_found = false;
-      chip_trailer_found = true;
-      laneId = (dataC & 0x0F) % 3;
-      if (laneId != chipId)
+      if (dataC == 0xF1)  // BUSY ON
       {
-        log_error << "Error laneId " << laneId << " (" << (dataC & 0xF) << ") and chipId " << chipId << std::endl;
+        busy_on = true;
       }
-      buffer.next(bc);
-      busy_on = busy_off = false;
-    }
-    else
-    {
-      if (chip_header_found)
+      else if (dataC == 0xF0)  // BUSY OFF
       {
-        if ((dataC & 0xE0) == 0xC0) // REGION HEADER
+        busy_off = true;
+      }
+      else if ((dataC & 0xF0) == 0xF0)  // APE
+      {
+        check_APE(chipId, dataC);
+        chip_trailer_found = true;
+        busy_on = busy_off = chip_header_found = 0;
+      }
+      else if ((dataC & 0xF0) == 0xE0)  // EMPTY
+      {
+        chip_header_found = false;
+        chip_trailer_found = true;
+        laneId = (dataC & 0x0F) % 3;
+        if (laneId != chipId)
         {
-          if (buffer.getUnusedSize() < 2)
-          {
-            log_error << "No data short would fit (at least a data short after region header!)" << std::endl;
-            buffer.erase(buffer.getUnusedSize());
-            chip_header_found = false;
-            continue;
-          }
-          // TODO: move first region header out of loop, asserting its existence
-          reg = dataC & 0x1F;
+          log_error << "Error laneId " << laneId << " (" << (dataC & 0xF) << ") and chipId " << chipId << std::endl;
         }
-        else if((dataC & 0xC0) == 0x40) // DATA SHORT
-        {
-          if(buffer.isEmpty())
-          {
-            log_error << "data short do not fit" << std::endl;
-            chip_header_found = false;
-            continue;
-          }
-          if (reg == 0xFF)
-          {
-            log_error << "data short at " << buffer.getOffset() << " before region header" << std::endl;
-             continue;
-          }
-          dataS = (dataC << 8);
-          buffer.next(dataC);
-          dataS |= dataC;
-          addHit(laneId, bc, reg, (dataS & 0x3FFF));
-        }
-        else if ((dataC & 0xC0) == 0x00) // DATA LONG
-        {
-          if (buffer.getUnusedSize() < 3)
-          {
-            log_error << "No data long would fit (at least a data short after region header!)" << std::endl;
-            buffer.erase(buffer.getUnusedSize());
-            chip_header_found = false;
-            continue;
-          }
-          if (reg == 0xFF)
-          {
-            log_error << "data short at " << buffer.getOffset() << " before region header" << std::endl;
-            continue;
-          }
-          buffer.next(dataS);
-          uint16_t addr = ((dataC & 0x3F) << 8) | ((dataS >> 8) & 0xFF);
-          uint8_t hit_map = (dataS & 0xFF);
-          if (hit_map & 0x80)
-          {
-            log_error << "Wrong bit before DATA LONG bit map" << std::endl;
-            continue;
-          }
-          addHit(laneId, bc, reg, addr);
-          while(hit_map != 0x00)
-          {
-            ++addr;
-            if (hit_map & 0x1)
-            {
-              addHit(laneId, bc, reg, addr);
-            }
-            hit_map >>= 1;
-          }
-        }
-        else if ((dataC & 0xF0) == 0xB0) // CHIP TRAILER
-        {
-//          uint8_t flag = (dataC & 0x0F);
-          //TODO: YCM add chipdata statistic
-          chip_trailer_found = true;
-          busy_on = busy_off = chip_header_found = false;
-        }
-        else // ERROR
-        {
-          AlpideByteError(chipId, buffer);
-        }
+        buffer.next(bc);
+        busy_on = busy_off = false;
       }
       else
       {
-        if ((dataC & 0xF0) == 0xA0) // CHIP HEADER
+        if (chip_header_found)
         {
-          if (! chip_trailer_found)
+          if ((dataC & 0xE0) == 0xC0)  // REGION HEADER
           {
-            log_error << "New chip header found before a previous chip trailer" << std::endl;
+            if (buffer.getUnusedSize() < 2)
+            {
+              log_error << "No data short would fit (at least a data short after region header!)" << std::endl;
+              buffer.erase(buffer.getUnusedSize());
+              chip_header_found = false;
+              continue;
+            }
+            // TODO: move first region header out of loop, asserting its existence
+            reg = dataC & 0x1F;
           }
-          chip_header_found = true;
-          chip_trailer_found = false;
-          laneId = (dataC & 0x0F) % 3;
-          if (laneId != chipId )
+          else if ((dataC & 0xC0) == 0x40)  // DATA SHORT
           {
-            log_error << "Error laneId " << laneId << " (" << (dataC & 0xF) << ") and chipId " << chipId << std::endl;
+            if (buffer.isEmpty())
+            {
+              log_error << "data short do not fit" << std::endl;
+              chip_header_found = false;
+              continue;
+            }
+            if (reg == 0xFF)
+            {
+              log_error << "data short at " << buffer.getOffset() << " before region header" << std::endl;
+              continue;
+            }
+            dataS = (dataC << 8);
+            buffer.next(dataC);
+            dataS |= dataC;
+            addHit(laneId, bc, reg, (dataS & 0x3FFF));
           }
-          buffer.next(bc);
-          reg = 0xFF;
-        }
-        else if ( dataC == 0x00 ) // PADDING
-        {
-          continue;
+          else if ((dataC & 0xC0) == 0x00)  // DATA LONG
+          {
+            if (buffer.getUnusedSize() < 3)
+            {
+              log_error << "No data long would fit (at least a data short after region header!)" << std::endl;
+              buffer.erase(buffer.getUnusedSize());
+              chip_header_found = false;
+              continue;
+            }
+            if (reg == 0xFF)
+            {
+              log_error << "data short at " << buffer.getOffset() << " before region header" << std::endl;
+              continue;
+            }
+            buffer.next(dataS);
+            uint16_t addr = ((dataC & 0x3F) << 8) | ((dataS >> 8) & 0xFF);
+            uint8_t hit_map = (dataS & 0xFF);
+            if (hit_map & 0x80)
+            {
+              log_error << "Wrong bit before DATA LONG bit map" << std::endl;
+              continue;
+            }
+            addHit(laneId, bc, reg, addr);
+            while (hit_map != 0x00)
+            {
+              ++addr;
+              if (hit_map & 0x1)
+              {
+                addHit(laneId, bc, reg, addr);
+              }
+              hit_map >>= 1;
+            }
+          }
+          else if ((dataC & 0xF0) == 0xB0)  // CHIP TRAILER
+          {
+            //          uint8_t flag = (dataC & 0x0F);
+            // TODO: YCM add chipdata statistic
+            chip_trailer_found = true;
+            busy_on = busy_off = chip_header_found = false;
+          }
+          else  // ERROR
+          {
+            AlpideByteError(chipId, buffer);
+          }
         }
         else
-        { // ERROR
-          AlpideByteError(chipId, buffer);
-        } // else !chip_header_found
-      }  // if chip_header_found
-    } // busy_on, busy_off, chip_empty, other
-    if (busy_on)
-    {
-    }
-    if (busy_off)
-    {
-    }
-  }  // while
+        {
+          if ((dataC & 0xF0) == 0xA0)  // CHIP HEADER
+          {
+            if (!chip_trailer_found)
+            {
+              log_error << "New chip header found before a previous chip trailer" << std::endl;
+            }
+            chip_header_found = true;
+            chip_trailer_found = false;
+            laneId = (dataC & 0x0F) % 3;
+            if (laneId != chipId)
+            {
+              log_error << "Error laneId " << laneId << " (" << (dataC & 0xF) << ") and chipId " << chipId << std::endl;
+            }
+            buffer.next(bc);
+            reg = 0xFF;
+          }
+          else if (dataC == 0x00)  // PADDING
+          {
+            continue;
+          }
+          else
+          {  // ERROR
+            AlpideByteError(chipId, buffer);
+          }  // else !chip_header_found
+        }  // if chip_header_found
+      }  // busy_on, busy_off, chip_empty, other
+      if (busy_on)
+      {
+      }
+      if (busy_off)
+      {
+      }
+    }  // while
 
-  return ret;
-}
+    return ret;
+  }
 
+}  // namespace mvtx_offline
 
-} // namespace mvtx
-
-#endif // _MVTX_DECODER_ITSMFT_GBTLINK_H_
+#endif  // _MVTX_DECODER_ITSMFT_GBTLINK_H_

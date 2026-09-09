@@ -8,8 +8,8 @@
 #include <algorithm>
 
 //________________________________________________________________________________
-mvtx::PayLoadCont::PayLoadCont(const PayLoadCont& src)
-  :mBuffer(src.mBuffer)
+mvtx_offline::PayLoadCont::PayLoadCont(const PayLoadCont& src)
+  : mBuffer(src.mBuffer)
 {
   if (src.mPtr)
   {
@@ -22,7 +22,7 @@ mvtx::PayLoadCont::PayLoadCont(const PayLoadCont& src)
 }
 
 //________________________________________________________________________________
-mvtx::PayLoadCont& mvtx::PayLoadCont::operator=(const PayLoadCont& src)
+mvtx_offline::PayLoadCont& mvtx_offline::PayLoadCont::operator=(const PayLoadCont& src)
 {
   if (&src != this)
   {
@@ -40,7 +40,7 @@ mvtx::PayLoadCont& mvtx::PayLoadCont::operator=(const PayLoadCont& src)
 }
 
 //________________________________________________________________________________
-void mvtx::PayLoadCont::expand(size_t sz)
+void mvtx_offline::PayLoadCont::expand(size_t sz)
 {
   ///< increase the buffer size
   auto* oldHead = mBuffer.data();

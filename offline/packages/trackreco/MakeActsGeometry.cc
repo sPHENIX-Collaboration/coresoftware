@@ -633,7 +633,6 @@ void MakeActsGeometry::buildActsSurfaces()
   // define int argc and char* argv to provide options to processGeometry
   static constexpr int argc = 20;
   char *argv[argc];
-  m_magFieldRescale = 1;
 
   // if(Verbosity() > 0)
   std::cout << PHWHERE << "Magnetic field " << m_magField

@@ -133,17 +133,17 @@ void ODBCInterface::Print(const std::string & /*what*/) const
 
 void ODBCInterface::Disconnect()
 {
-    if (!m_OdbcConnectionMap.empty())
+  for (auto& [name, statement] : m_OdbcStatementMap)
   {
-    for (const auto& iter : m_OdbcConnectionMap)
-    {
-      delete iter.second;
-    }
-    m_OdbcConnectionMap.clear();
+    delete statement;
   }
-  if (!m_OdbcStatementMap.empty())
+  m_OdbcStatementMap.clear();
+
+  for (auto& [name, connection] : m_OdbcConnectionMap)
   {
-    m_OdbcStatementMap.clear();
+    delete connection;
   }
+  m_OdbcConnectionMap.clear();
+
   m_CurrentConnections = 0;
 }

@@ -20,9 +20,7 @@ class PHG4TruthSubsystem : public PHG4Subsystem
   PHG4TruthSubsystem(const std::string &name = "TRUTH");
 
   //! destructor
-  ~PHG4TruthSubsystem() override
-  {
-  }
+  ~PHG4TruthSubsystem() override = default;
 
   //! init
   int InitRun(PHCompositeNode *) override;
