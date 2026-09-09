@@ -1033,6 +1033,10 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
 
               const int iphi = static_cast<int>(p.pad);
               const int it = static_cast<int>(p.tbin);
+              if(it >= layergeom->get_zbins())
+              {
+                continue;
+              }
               const double adc = p.adc;
               phibinhi = std::max(iphi, phibinhi);
               phibinlo = std::min(iphi, phibinlo);
@@ -1041,7 +1045,7 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
 
               iphi_sum += static_cast<double>(iphi) * adc;
               iphi2_sum += square(static_cast<double>(iphi)) * adc;
-
+              
               const double t = layergeom->get_zcenter(it);
               t_sum += t * adc;
               t2_sum += square(t) * adc;
