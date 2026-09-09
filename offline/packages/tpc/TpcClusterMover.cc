@@ -103,7 +103,7 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
     }
   }
 
-  auto surfMaps = _tGeometry->maps();
+  const auto& surfMaps = _tGeometry->maps();
 
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_moved;
 
@@ -190,7 +190,7 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
 	// sskey changed, update the subsurface in the cluster key
 	cluster->setSubSurfKey(new_subsurfkey);
 	global_moved.emplace_back(cluskey, global_new);
-    
+
 	// check
 	TrkrDefs::subsurfkey check_subsurfkey = new_subsurfkey;
 	TrkrDefs::hitsetkey hkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
@@ -208,14 +208,14 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
 
 bool TpcClusterMover::get_moved_position(TrkrDefs::cluskey cluskey, TrkrCluster* cluster, std::vector<float>& fitpars, Acts::Vector3& global, Acts::Vector3& global_new, TrkrDefs::subsurfkey& new_subsurfkey) const
 {
-  auto surfMaps = _tGeometry->maps();
+  const auto& surfMaps = _tGeometry->maps();
   auto surface = surfMaps.getSurface(cluskey, cluster);
   if (!surface)
   {
     return false;
   }
 
-  Acts::Vector3 surf_intercept = TrackFitUtils::get_helix_surface_intersection(surface, fitpars, global, _tGeometry);
+  const Acts::Vector3 surf_intercept = TrackFitUtils::get_helix_surface_intersection(surface, fitpars, global, _tGeometry);
 
   // get circle position at cluster radius
   double cluster_radius = sqrt(global[0] * global[0] + global[1] * global[1]);
@@ -245,10 +245,10 @@ bool TpcClusterMover::get_moved_position(TrkrDefs::cluskey cluskey, TrkrCluster*
   global_new(1) = ynew;
   global_new(2) = znew;
 
-  // get the subsurface key for this new position and return it 
+  // get the subsurface key for this new position and return it
   TrkrDefs::hitsetkey hkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
   auto new_surf = _tGeometry->get_tpc_surface_from_coords(hkey, global_new, new_subsurfkey);
-  
+
   return true;
 }
 
