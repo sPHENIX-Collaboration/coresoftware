@@ -96,6 +96,7 @@ class Tpc_PolyClusterizer : public SubsysReco
   void setFrameChargeScale(double v) { m_frameChargeScale = v; }
   void setFieldCageVoltageOffsets(double ifcSouth, double ifcNorth, double ofcSouth, double ofcNorth) { m_fieldCageVoltageOffsets = {{ifcSouth, ifcNorth, ofcSouth, ofcNorth}}; }
   void setUse2DElectricFieldMap(bool v) { m_use2DElectricFieldMap = v; }
+  void setUseBCOkEffs(bool v) { m_useBCOkEffs = v; }
 
  private:
   struct Point
@@ -210,6 +211,7 @@ class Tpc_PolyClusterizer : public SubsysReco
   bool m_framesSide0Override{false};
   bool m_framesSide1Override{false};
   bool m_use2DElectricFieldMap{false};
+  bool m_useBCOkEffs{true};
   std::array<double, 3> m_tpcMove{{0.0, 0.0, 0.0}};                                             //{{-0.16775, -0.0337, -0.71365}};
   std::array<std::array<double, 3>, 2> m_tpcRotations{{{{0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}}}};  //{{{{0.0, 0.01485 / 10.0, 0.0}}, {{0.0298 / 8.0, 0.0, 0.0}}}};
   double m_frameChargeScale{-180.0};

@@ -19,8 +19,8 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
 #include <iostream>
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -108,6 +108,114 @@ TpcConditionsReco::~TpcConditionsReco()
   delete m_tree;
 }
 
+float TpcConditionsReco::get_AverageMedianCurrent(
+    const std::vector<std::string> &channels)
+{
+  if (m_bco_to_channel.empty())
+  {
+    return 0.0F;
+  }
+
+  double sum = 0.0;
+
+  for (const auto &entry : m_bco_to_channel)
+  {
+    sum += get_MedianCurrent(entry.second, channels);
+  }
+
+  return static_cast<float>(sum / static_cast<double>(m_bco_to_channel.size()));
+}
+
+float TpcConditionsReco::get_InterpolatedMedianCurrent(const uint64_t bco, const std::vector<std::string> &channels)
+{
+  if (m_bco_to_channel.empty())
+  {
+    return 0.0F;
+  }
+
+  if (m_bco_to_channel.size() == 1)
+  {
+    return get_MedianCurrent(m_bco_to_channel.begin()->second, channels);
+  }
+
+  const auto first = m_bco_to_channel.begin();
+  const auto last = std::prev(m_bco_to_channel.end());
+
+  if (bco <= first->first)
+  {
+    return get_MedianCurrent(first->second, channels);
+  }
+
+  if (bco >= last->first)
+  {
+    return get_MedianCurrent(last->second, channels);
+  }
+
+  const auto right = m_bco_to_channel.upper_bound(bco);
+  const auto left = std::prev(right);
+
+  const double x1 = static_cast<double>(left->first);
+  const double x2 = static_cast<double>(right->first);
+  const double y1 = get_MedianCurrent(left->second, channels);
+  const double y2 = get_MedianCurrent(right->second, channels);
+
+  const double h1 = x2 - x1;
+  const double d1 = (y2 - y1) / h1;
+
+  double m1 = d1;
+  double m2 = d1;
+
+  if (left != m_bco_to_channel.begin())
+  {
+    const auto left2 = std::prev(left);
+    const double x0 = static_cast<double>(left2->first);
+    const double y0 = get_MedianCurrent(left2->second, channels);
+    const double h0 = x1 - x0;
+    const double d0 = (y1 - y0) / h0;
+
+    if (d0 * d1 > 0.0)
+    {
+      const double w1 = 2.0 * h1 + h0;
+      const double w2 = h1 + 2.0 * h0;
+      m1 = (w1 + w2) / (w1 / d0 + w2 / d1);
+    }
+    else
+    {
+      m1 = 0.0;
+    }
+  }
+
+  const auto right2 = std::next(right);
+  if (right2 != m_bco_to_channel.end())
+  {
+    const double x3 = static_cast<double>(right2->first);
+    const double y3 = get_MedianCurrent(right2->second, channels);
+    const double h2 = x3 - x2;
+    const double d2 = (y3 - y2) / h2;
+
+    if (d1 * d2 > 0.0)
+    {
+      const double w1 = 2.0 * h2 + h1;
+      const double w2 = h2 + 2.0 * h1;
+      m2 = (w1 + w2) / (w1 / d1 + w2 / d2);
+    }
+    else
+    {
+      m2 = 0.0;
+    }
+  }
+
+  const double t = (static_cast<double>(bco) - x1) / h1;
+  const double t2 = t * t;
+  const double t3 = t2 * t;
+
+  return static_cast<float>(
+      (2.0 * t3 - 3.0 * t2 + 1.0) * y1 +
+      (t3 - 2.0 * t2 + t) * h1 * m1 +
+      (-2.0 * t3 + 3.0 * t2) * y2 +
+      (t3 - t2) * h1 * m2);
+}
+
 void TpcConditionsReco::fillConditions(int channel)
 {
   m_conditions->set_Temperature(m_tree->GetFloatValue(channel, "gas_temperature"));
@@ -124,24 +232,6 @@ void TpcConditionsReco::fillConditions(int channel)
   m_conditions->set_LoadNR1(get_MedianCurrent(channel, NR1));
   m_conditions->set_LoadNR2(get_MedianCurrent(channel, NR2));
   m_conditions->set_LoadNR3(get_MedianCurrent(channel, NR3));
-}
-
-float TpcConditionsReco::get_AverageMedianCurrent(
-    const std::vector<std::string> &channels)
-{
-  if (m_bco_to_channel.empty())
-  {
-    return 0.0F;
-  }
-
-  double sum = 0.0;
-
-  for (const auto &[bco, channel] : m_bco_to_channel)
-  {
-    sum += get_MedianCurrent(channel, channels);
-  }
-
-  return static_cast<float>(sum / static_cast<double>(m_bco_to_channel.size()));
 }
 
 int TpcConditionsReco::InitRun(PHCompositeNode *topNode)
@@ -243,37 +333,47 @@ int TpcConditionsReco::InitRun(PHCompositeNode *topNode)
       }
     }
 
-    if (!m_bco_to_channel.empty())
-    {
-      const auto first = m_bco_to_channel.begin();
-      const auto last = std::prev(m_bco_to_channel.end());
-      const auto middle = std::next(
-          m_bco_to_channel.begin(),
-          static_cast<long>(m_bco_to_channel.size() / 2));
+    const auto first = m_bco_to_channel.begin();
+    const auto last = std::prev(m_bco_to_channel.end());
+    const auto middle = std::next(
+        m_bco_to_channel.begin(),
+        static_cast<long>(m_bco_to_channel.size() / 2));
 
-      std::cout << "\033[1;31m"
-                << "R1 conditions:"
-                << "\n  FIRST  BCO=" << first->first
-                << " NR1=" << get_MedianCurrent(first->second, NR1)
-                << " SR1=" << get_MedianCurrent(first->second, SR1)
-                << "\n  MIDDLE BCO=" << middle->first
-                << " NR1=" << get_MedianCurrent(middle->second, NR1)
-                << " SR1=" << get_MedianCurrent(middle->second, SR1)
-                << "\n  LAST   BCO=" << last->first
-                << " NR1=" << get_MedianCurrent(last->second, NR1)
-                << " SR1=" << get_MedianCurrent(last->second, SR1)
-                << "\n  AVERAGE NR1=" << m_conditions->get_AverageLoadNR1()
-                << " SR1=" << m_conditions->get_AverageLoadSR1()
-                << "\033[0m" << std::endl;
-    }
+    std::cout << "\033[1;31m"
+              << "R1 conditions:"
+              << "\n  FIRST  BCO=" << first->first
+              << " NR1=" << get_MedianCurrent(first->second, NR1)
+              << " SR1=" << get_MedianCurrent(first->second, SR1)
+              << "\n  MIDDLE BCO=" << middle->first
+              << " NR1=" << get_MedianCurrent(middle->second, NR1)
+              << " SR1=" << get_MedianCurrent(middle->second, SR1)
+              << "\n  LAST   BCO=" << last->first
+              << " NR1=" << get_MedianCurrent(last->second, NR1)
+              << " SR1=" << get_MedianCurrent(last->second, SR1)
+              << "\n  AVERAGE NR1=" << m_conditions->get_AverageLoadNR1()
+              << " SR1=" << m_conditions->get_AverageLoadSR1()
+              << "\033[0m" << std::endl;
 
     fillConditions(selected->second);
 
+    // GEM load currents are evaluated smoothly at the actual segment BCO.
+    m_conditions->set_LoadCurrent(get_InterpolatedMedianCurrent(targetBco, ALL));
+    m_conditions->set_LoadNorth(get_InterpolatedMedianCurrent(targetBco, NORTH));
+    m_conditions->set_LoadSouth(get_InterpolatedMedianCurrent(targetBco, SOUTH));
+
+    m_conditions->set_LoadSR1(get_InterpolatedMedianCurrent(targetBco, SR1));
+    m_conditions->set_LoadSR2(get_InterpolatedMedianCurrent(targetBco, SR2));
+    m_conditions->set_LoadSR3(get_InterpolatedMedianCurrent(targetBco, SR3));
+
+    m_conditions->set_LoadNR1(get_InterpolatedMedianCurrent(targetBco, NR1));
+    m_conditions->set_LoadNR2(get_InterpolatedMedianCurrent(targetBco, NR2));
+    m_conditions->set_LoadNR3(get_InterpolatedMedianCurrent(targetBco, NR3));
+
     std::cout << "TpcConditionsReco::InitRun - segment " << segment
               << ", target BCO " << targetBco
-              << ", conditions BCO " << selected->first
-              << ", LoadNR1 " << m_conditions->get_LoadNR1()
-              << ", LoadSR1 " << m_conditions->get_LoadSR1()
+              << ", nearest conditions BCO " << selected->first
+              << ", interpolated LoadNR1 " << m_conditions->get_LoadNR1()
+              << ", interpolated LoadSR1 " << m_conditions->get_LoadSR1()
               << std::endl;
   }
 
@@ -306,9 +406,10 @@ int TpcConditionsReco::process_event(PHCompositeNode *topNode)
   --iter;
   int channel = iter->second;
 
+  m_conditions->set_Temperature(m_tree->GetFloatValue(channel, "gas_temperature"));
+  m_conditions->set_Pressure(m_tree->GetFloatValue(channel, "gas_pressure"));
   m_conditions->set_FieldOK(m_tree->GetFloatValue(channel, "FieldOK") != 0.0);
   m_conditions->set_GainOK(m_tree->GetFloatValue(channel, "GainOK") != 0.0);
-
 
   // Do or die
   if (!m_conditions->get_FieldOK() ||

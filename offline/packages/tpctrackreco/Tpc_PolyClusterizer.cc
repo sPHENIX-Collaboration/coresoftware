@@ -16,7 +16,9 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/RunnumberRange.h>
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
@@ -228,16 +230,27 @@ bool Tpc_PolyClusterizer::load_cdb_inputs()
     return " [CDB]";
   };
 
-  std::cout << "\033[31m"
-          << "Load NR1 " << m_conditions->get_LoadNR1()
-          << " Load SR1 " << m_conditions->get_LoadSR1()
-          << "\033[0m" << std::endl;
-
-  if(true)
+  if (m_useBCOkEffs)
   {
-    m_kEffSide0 = m_kEffSide0 * m_conditions->get_LoadSR1()/m_conditions->get_AverageLoadSR1();
-    m_kEffSide1 = m_kEffSide1 * m_conditions->get_LoadNR1()/m_conditions->get_AverageLoadNR1();
-  }          
+    const double averageSR1 = m_conditions->get_AverageLoadSR1();
+    const double averageNR1 = m_conditions->get_AverageLoadNR1();
+
+    std::cout << Name() << "::load_cdb_inputs"
+              << " - SR1=" << m_conditions->get_LoadSR1()
+              << " avgSR1=" << averageSR1
+              << " NR1=" << m_conditions->get_LoadNR1()
+              << " avgNR1=" << averageNR1
+              << std::endl;
+    if (averageSR1 != 0.0 && averageNR1 != 0.0)
+    {
+      m_kEffSide0 *= m_conditions->get_LoadSR1() / averageSR1;
+      m_kEffSide1 *= m_conditions->get_LoadNR1() / averageNR1;
+    }
+    else
+    {
+      std::cout << Name() << "::load_cdb_inputs - warning: average SR1 or NR1 is zero, cannot apply BC correction" << std::endl;
+    }
+  }
 
   std::cout << Name() << "::load_cdb_inputs - final kEff values: side0 = " << m_kEffSide0 << keff_source(m_kEffSide0Override)
             << ", side1 = " << m_kEffSide1 << keff_source(m_kEffSide1Override) << std::endl;
@@ -265,6 +278,13 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
 
   // get layer geometry for layer 20.
   auto* layergeom = m_geomContainerTpc->GetLayerCellGeom(20);
+  if (!layergeom)
+  {
+    std::cout << Name() << "::InitRun - missing TPC geometry for layer 20"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
   if (use_survey_geometry)
   {
     // apply survey geometry
@@ -332,10 +352,27 @@ void Tpc_PolyClusterizer::configure_garfield(PHGarfield* garfield) const
 
   garfield->SetFrameChargeScale(m_frameChargeScale);
 
-  garfield->SetUseIFCVoltageDistortion(true);
-  garfield->SetUseOFCVoltageDistortion(true);
+  recoConsts* rc = recoConsts::instance();
+  int runnumber = rc->get_IntFlag("RUNNUMBER");
 
-  garfield->SetFieldCageVoltageOffsets(m_fieldCageVoltageOffsets[0], m_fieldCageVoltageOffsets[1], m_fieldCageVoltageOffsets[2], m_fieldCageVoltageOffsets[3]);
+  if (runnumber > RunnumberRange::RUN3AUAU_IFC_V_CHANGE)
+  {
+    garfield->SetUseIFCVoltageDistortion(true);
+    garfield->SetUseOFCVoltageDistortion(true);
+
+    garfield->SetFieldCageVoltageOffsets(m_fieldCageVoltageOffsets[0], m_fieldCageVoltageOffsets[1], m_fieldCageVoltageOffsets[2], m_fieldCageVoltageOffsets[3]);
+
+    std::cout << Name() << "::configure_garfield - using IFC and OFC voltage distortion with offsets: "
+              << "IFC South = " << m_fieldCageVoltageOffsets[0] << " V, "
+              << "IFC North = " << m_fieldCageVoltageOffsets[1] << " V, "
+              << "OFC South = " << m_fieldCageVoltageOffsets[2] << " V, "
+              << "OFC North = " << m_fieldCageVoltageOffsets[3] << " V"
+              << std::endl;
+  }
+  else
+  {
+    std::cout << Name() << "::configure_garfield - not using IFC and OFC voltage distortion for run number " << runnumber << std::endl;
+  }
 
   garfield->MoveTpc(m_tpcMove[0], m_tpcMove[1], m_tpcMove[2]);
   for (const auto& rotation : m_tpcRotations)
@@ -375,11 +412,14 @@ int Tpc_PolyClusterizer::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_conditions = findNode::getClass<TpcConditions>(topNode, "TpcConditions");
-  if (!m_conditions)
+  if (m_useBCOkEffs)
   {
-    std::cerr << Name() << "::getNodes - missing TpcConditions" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    m_conditions = findNode::getClass<TpcConditions>(topNode, "TpcConditions");
+    if (!m_conditions)
+    {
+      std::cout << Name() << "::getNodes - missing TpcConditions" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
