@@ -4,6 +4,8 @@
 
 #include <trackbase/TrkrDefs.h>
 
+#include <tpc/TpcClusterMover.h>
+
 #include <array>
 #include <map>
 #include <memory>
@@ -11,7 +13,6 @@
 
 class ActsGeometry;
 class PHCompositeNode;
-class TpcClusterMover;
 class TpcCrossingDecisionContainer;
 class Tpc_PolyCluster;
 class Tpc_PolyClusterContainer;
@@ -60,7 +61,8 @@ class TpcPolyClusterTrkrClusterConverter : public SubsysReco
   TrkrClusterContainer* m_outputClusters {nullptr};
   TpcCrossingDecisionContainer* m_crossingDecisions {nullptr};
   ActsGeometry* m_geometry {nullptr};
-  std::unique_ptr<TpcClusterMover> m_clusterMover;
+  TpcClusterMover m_clusterMover;
+
   std::map<unsigned int, const Tpc_PolyTrack*> m_tracksBySourceId;
   std::map<TrkrDefs::cluskey, std::array<double, 3>> m_movedGlobals;
   std::map<TrkrDefs::cluskey, unsigned short> m_seedSubSurfKeys;
