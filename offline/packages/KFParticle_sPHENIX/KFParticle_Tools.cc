@@ -1546,11 +1546,14 @@ void KFParticle_Tools::printSelectionCheck(const std::string &info, unsigned int
 
 int KFParticle_Tools::getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, const int &bunch_crossing)
 {
-  auto m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  auto *m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   //auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_SEED");
   if (!m_siliconSeeds)
   {
-    std::cout << " ERROR: Can't find SiliconTrackSeedContainer " << std::endl;
+    if(m_verbosity > 0)
+    {
+      std::cout << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << std::endl;
+    }
     return -1;
   }
   //if (!clustermap)
