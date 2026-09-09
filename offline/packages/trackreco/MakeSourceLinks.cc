@@ -356,12 +356,15 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
   // loop over all clusters
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
 
+  // keep track of old cluster keys
+  std::vector<std::pair<TrkrCluster*,int> old_subsurfkey_map;
+
   for (auto clusIter = track->begin_cluster_keys();
        clusIter != track->end_cluster_keys();
        ++clusIter)
   {
     auto key = *clusIter;
-    
+
     auto* cluster = clusterContainer->findCluster(key);
     if (!cluster)
     {
@@ -391,6 +394,10 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     const unsigned int trkrid = TrkrDefs::getTrkrId(key);
     if (trkrid == TrkrDefs::tpcId)
     {
+      // store old subsurface keys in map. They will need to be restored after the cluster mover has been called
+      old_subsurfkey_map.emplace(cluster, cluster->getSubSurfKey() );
+
+
       if (m_verbosity > 2)
       {
         unsigned int this_layer = TrkrDefs::getLayer(key);
@@ -444,14 +451,14 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     if (std::isnan(global.x()) || std::isnan(global.y()))
     {
       if (m_verbosity > 1)
-	{
-	  std::cout << "MakeSourceLinks::getSourceLinksClusterMover - invalid position"
-		    << " key: " << cluskey
-		    << " layer: " << (int) TrkrDefs::getLayer(cluskey)
-		    << " position: " << global
-		    << std::endl;
-	}
-      continue;
+      {
+        std::cout << "MakeSourceLinks::getSourceLinksClusterMover - invalid position"
+          << " key: " << cluskey
+          << " layer: " << (int) TrkrDefs::getLayer(cluskey)
+          << " position: " << global
+          << std::endl;
+        }
+        continue;
     }
 
     // clustermover updates the subsurface key after moving the clusters to the surface, so this is safe
@@ -467,7 +474,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
         continue;
       }
     }
-    
+
     if (!surf)
     {
       std::cout << "MakeSourceLinks::getSourceLinksClusterMover -  Failed to find surface for cluskey " << cluskey << std::endl;
@@ -555,6 +562,12 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     sourcelinks.push_back(actsSL);
   }
 
+  // restore old subsurface keys
+  /* this ensures that cluster's unmodified local coordinate and subsurface key remain consistent */
+  for( const auto& [cluster,subsurfkey]:old_subsurfkey_map )
+  { cluster->setSubSurfKey(subsurfkey); }
+
+  // all done
   SLTrackTimer.stop();
   auto SLTime = SLTrackTimer.get_accumulated_time();
 
