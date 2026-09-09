@@ -108,13 +108,6 @@ int TpcPolyClusterTrkrClusterConverter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_tpcGeomContainer = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
-  if (!m_tpcGeomContainer)
-  {
-    std::cerr << Name() << "::getNodes - missing TPCGEOMCONTAINER" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -180,12 +173,11 @@ bool TpcPolyClusterTrkrClusterConverter::isAcceptedTrack(const Tpc_PolyTrack* tr
 
 bool TpcPolyClusterTrkrClusterConverter::initializeClusterMover(PHCompositeNode* topNode)
 {
-  if (!m_geometry || !m_tpcGeomContainer || !topNode) { return false;
-}
+  if (!m_geometry || !topNode) { return false;}
 
   m_clusterMover = std::make_unique<TpcClusterMover>();
   m_clusterMover->set_verbosity(Verbosity());
-  m_clusterMover->initialize_geometry(m_tpcGeomContainer, m_geometry, topNode);
+  m_clusterMover->initialize_geometry(m_geometry, topNode);
   return true;
 }
 
@@ -454,7 +446,7 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
 
 int TpcPolyClusterTrkrClusterConverter::process_event(PHCompositeNode* topNode)
 {
-  if (!m_polyClusters || !m_polyTracks || !m_outputClusters || !m_crossingDecisions || !m_geometry || !m_tpcGeomContainer || !m_clusterMover)
+  if (!m_polyClusters || !m_polyTracks || !m_outputClusters || !m_crossingDecisions || !m_geometry || !m_clusterMover)
   {
     if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK ||
         createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK ||

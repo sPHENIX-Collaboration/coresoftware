@@ -10,7 +10,6 @@
 #include <string>
 
 class ActsGeometry;
-class PHG4TpcGeomContainer;
 class PHCompositeNode;
 class TpcClusterMover;
 class TpcCrossingDecisionContainer;
@@ -61,7 +60,6 @@ class TpcPolyClusterTrkrClusterConverter : public SubsysReco
   TrkrClusterContainer* m_outputClusters {nullptr};
   TpcCrossingDecisionContainer* m_crossingDecisions {nullptr};
   ActsGeometry* m_geometry {nullptr};
-  PHG4TpcGeomContainer* m_tpcGeomContainer {nullptr};
   std::unique_ptr<TpcClusterMover> m_clusterMover;
   std::map<unsigned int, const Tpc_PolyTrack*> m_tracksBySourceId;
   std::map<TrkrDefs::cluskey, std::array<double, 3>> m_movedGlobals;

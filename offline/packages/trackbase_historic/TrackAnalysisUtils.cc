@@ -10,8 +10,6 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 
-#include <g4detectors/PHG4TpcGeomContainer.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
@@ -349,11 +347,10 @@ namespace TrackAnalysisUtils
     globalWrapper.loadNodes(topNode);
     globalWrapper.set_suppressCrossing(true);
 
-    
+
     auto* geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-    auto* tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
     TpcClusterMover mover;
-    mover.initialize_geometry(tpccellgeo, geometry, topNode);
+    mover.initialize_geometry(geometry, topNode);
     mover.set_verbosity(0);
 
     std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;

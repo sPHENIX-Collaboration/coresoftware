@@ -35,7 +35,7 @@ namespace
   }
 }  // namespace
 
-void TpcClusterMover::initialize_geometry(PHG4TpcGeomContainer* /* unused */, ActsGeometry* tGeometry, PHCompositeNode* topNode)
+void TpcClusterMover::initialize_geometry(ActsGeometry* tGeometry, PHCompositeNode* topNode)
 {
 
   if (!tGeometry)
