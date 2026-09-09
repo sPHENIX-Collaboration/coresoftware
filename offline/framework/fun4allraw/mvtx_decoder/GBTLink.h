@@ -34,10 +34,10 @@
     return AbortedOnError;                                                    \
   }
 
-namespace mvtx
+namespace mvtx_offline
 {
 
-  using namespace mvtx_utils;
+  using mvtx_offline_utils::FLXWordLength;
 
   /// support for the GBT single link data
   struct GBTLink
@@ -253,7 +253,7 @@ namespace mvtx
         }
       }
 
-      if (currRawPiece->hasError != mvtx::PayLoadSG::HBF_ERRORS::NoError)  // Skip
+      if (currRawPiece->hasError != mvtx_offline::PayLoadSG::HBF_ERRORS::NoError)  // Skip
       {
         dataOffset = currRawPiece->size;
         ++hbf_count;
@@ -267,8 +267,8 @@ namespace mvtx
 
       // here we always start with the RDH
       uint8_t* rdh_start = data.getPtr() + dataOffset;
-      const auto* rdhP = reinterpret_cast<const mvtx::RDH*>(rdh_start);
-      if (!mvtx::RDHUtils::checkRDH(mvtx::RDHAny::voidify(*rdhP), true, true))
+      const auto* rdhP = reinterpret_cast<const mvtx_offline::RDH*>(rdh_start);
+      if (!mvtx_offline::RDHUtils::checkRDH(mvtx_offline::RDHAny::voidify(*rdhP), true, true))
       {
         // In case of corrupt RDH, skip HBF
         dataOffset = currRawPiece->size;
@@ -629,6 +629,6 @@ namespace mvtx
     return ret;
   }
 
-}  // namespace mvtx
+}  // namespace mvtx_offline
 
 #endif  // _MVTX_DECODER_ITSMFT_GBTLINK_H_

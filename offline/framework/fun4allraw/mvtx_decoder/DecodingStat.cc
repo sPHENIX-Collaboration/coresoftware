@@ -11,7 +11,7 @@
 #include <sstream>
 
 //________________________________________________________________________________
-uint32_t mvtx::ChipStat::getNErrors() const
+uint32_t mvtx_offline::ChipStat::getNErrors() const
 {
   uint32_t nerr = 0;
   for (int i = NErrorsDefined; i--;)
@@ -23,7 +23,7 @@ uint32_t mvtx::ChipStat::getNErrors() const
 
 //________________________________________________________________________________
 /// print link decoding statistics
-uint32_t mvtx::ChipStat::addErrors(uint32_t mask, uint16_t chID, int verbosity)
+uint32_t mvtx_offline::ChipStat::addErrors(uint32_t mask, uint16_t chID, int verbosity)
 {
   uint32_t res = 0;
   if (mask)
@@ -47,7 +47,7 @@ uint32_t mvtx::ChipStat::addErrors(uint32_t mask, uint16_t chID, int verbosity)
 
 //________________________________________________________________________________
 /// print link decoding statistics
-uint32_t mvtx::ChipStat::addErrors(const ChipPixelData& d, int verbosity)
+uint32_t mvtx_offline::ChipStat::addErrors(const ChipPixelData& d, int verbosity)
 {
   uint32_t res = 0;
   if (d.getErrorFlags())
@@ -73,7 +73,7 @@ uint32_t mvtx::ChipStat::addErrors(const ChipPixelData& d, int verbosity)
 
 //________________________________________________________________________________
 /// print chip decoding statistics
-void mvtx::ChipStat::print(bool skipNoErr, const std::string& pref) const
+void mvtx_offline::ChipStat::print(bool skipNoErr, const std::string& pref) const
 {
   uint32_t nErr = 0;
   for (int i = NErrorsDefined; i--;)
@@ -97,7 +97,7 @@ void mvtx::ChipStat::print(bool skipNoErr, const std::string& pref) const
 
 //________________________________________________________________________________
 /// print link decoding statistics
-void mvtx::GBTLinkDecodingStat::print(bool skipNoErr) const
+void mvtx_offline::GBTLinkDecodingStat::print(bool skipNoErr) const
 {
   int nErr = 0;
   for (int i = NErrorsDefined; i--;)

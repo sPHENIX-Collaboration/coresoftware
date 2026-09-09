@@ -1,10 +1,13 @@
 #include "mvtx_pool.h"
 #include "mvtx_decoder/RDH.h"
+#include "mvtx_decoder/mvtx_utils.h"
 
 #include <cstdint>
 #include <string>
 
 #include <Event/packet.h>
+
+using mvtx_offline_utils::FLXWordLength;
 
 //_________________________________________________
 mvtx_pool::~mvtx_pool()
@@ -71,16 +74,16 @@ void mvtx_pool::loadInput(Packet* p)
   unsigned int dlength = p->getDataLength() - p->getPadding();
   dlength *= 4;
 
-  if ((dlength < mvtx_utils::FLXWordLength) || (dlength % mvtx_utils::FLXWordLength))
+  if ((dlength < FLXWordLength) || (dlength % FLXWordLength))
   {
     COUT << ENDL
          << "!!!!!!!!!!!!!!!!!!WARNING!!!!!!!!!!!!!!!!!!!! \n"
          << "DMA packet has incomplete FLX words, only "
-         << dlength << " bytes(" << (dlength / mvtx_utils::FLXWordLength)
+         << dlength << " bytes(" << (dlength / FLXWordLength)
          << " FLX words), will be decoded. \n"
          << "!!!!!!!!!!!!!!!!!!WARNING!!!!!!!!!!!!!!!!!!!! \n"
          << ENDL;
-    dlength -= (dlength % mvtx_utils::FLXWordLength);
+    dlength -= (dlength % FLXWordLength);
   }
 
   // Add raw data from packet to buffer
@@ -102,25 +105,25 @@ void mvtx_pool::setupLinks()
     // Skip FLX padding
     if (*(reinterpret_cast<uint16_t*>(&payload[payload_position] + 30)) == 0xFFFF)
     {
-      payload_position += mvtx_utils::FLXWordLength;
+      payload_position += FLXWordLength;
     }
     // at least one combine FLX header and RDH words
-    else if ((dlength - payload_position) >= static_cast<uint64_t>(2 * mvtx_utils::FLXWordLength))
+    else if ((dlength - payload_position) >= static_cast<uint64_t>(2 * FLXWordLength))
     {
       if (*(reinterpret_cast<uint16_t*>(&payload[payload_position] + 30)) == 0xAB01)
       {
-        const auto* rdhP = reinterpret_cast<const mvtx::RDH*>(&payload[payload_position]);
+        const auto* rdhP = reinterpret_cast<const mvtx_offline::RDH*>(&payload[payload_position]);
         if (get_verbosity() > 3)
         {
-          mvtx::RDHUtils::printRDH(mvtx::RDHAny::voidify(*rdhP));
+          mvtx_offline::RDHUtils::printRDH(mvtx_offline::RDHAny::voidify(*rdhP));
         }
-        if (!mvtx::RDHUtils::checkRDH(mvtx::RDHAny::voidify(*rdhP), true, true))
+        if (!mvtx_offline::RDHUtils::checkRDH(mvtx_offline::RDHAny::voidify(*rdhP), true, true))
         {
           // In case of corrupt RDH, skip felix word and continue to next
-          payload_position += mvtx_utils::FLXWordLength;
+          payload_position += FLXWordLength;
           continue;
         }
-        const size_t pageSizeInBytes = ((*rdhP).pageSize + 1ULL /*add Flx Hdr word*/) * mvtx_utils::FLXWordLength;
+        const size_t pageSizeInBytes = ((*rdhP).pageSize + 1ULL /*add Flx Hdr word*/) * FLXWordLength;
         if (pageSizeInBytes > (dlength - payload_position))
         {
           if (get_verbosity() > 1)
@@ -137,7 +140,7 @@ void mvtx_pool::setupLinks()
         if (lnkref.entry == -1)
         {
           lnkref.entry = mGBTLinks.size();
-          mvtx::GBTLink newLink((*rdhP).flxId, (*rdhP).feeId);
+          mvtx_offline::GBTLink newLink((*rdhP).flxId, (*rdhP).feeId);
           mGBTLinks.push_back(std::move(newLink));
           // mGBTLinks.emplace_back((*rdhP).flxId, (*rdhP).feeId);
         }
@@ -150,10 +153,10 @@ void mvtx_pool::setupLinks()
           {
             log_error << "FLX: " << gbtLink.flxId << ", FeeId: " << gbtLink.feeId
                       << ". Found new HBF before stop previous HBF. Previous HBF will be ignored." << std::endl;
-            gbtLink.cacheData(gbtLink.hbf_length, (gbtLink.hbf_error |= mvtx::PayLoadSG::HBF_ERRORS::Incomplete));
+            gbtLink.cacheData(gbtLink.hbf_length, (gbtLink.hbf_error |= mvtx_offline::PayLoadSG::HBF_ERRORS::Incomplete));
           }
           gbtLink.hbf_length = pageSizeInBytes;
-          gbtLink.hbf_error = mvtx::PayLoadSG::HBF_ERRORS::NoError;
+          gbtLink.hbf_error = mvtx_offline::PayLoadSG::HBF_ERRORS::NoError;
         }
         else
         {
@@ -162,7 +165,7 @@ void mvtx_pool::setupLinks()
             log_error << "Incorrect pages count " << (*rdhP).packetCounter << ", previous page count was "
                       << gbtLink.prev_pck_cnt << std::endl;
             gbtLink.hbf_length += pageSizeInBytes;
-            gbtLink.hbf_error |= mvtx::PayLoadSG::HBF_ERRORS::Incomplete;
+            gbtLink.hbf_error |= mvtx_offline::PayLoadSG::HBF_ERRORS::Incomplete;
           }
           else
           {
@@ -170,7 +173,7 @@ void mvtx_pool::setupLinks()
             {
               log_error << "FLX: " << gbtLink.flxId << ", FeeId: " << gbtLink.feeId
                         << ". Found continuous HBF before start new HBF. data will be ignored." << std::endl;
-              gbtLink.hbf_error |= mvtx::PayLoadSG::HBF_ERRORS::Incomplete;
+              gbtLink.hbf_error |= mvtx_offline::PayLoadSG::HBF_ERRORS::Incomplete;
             }
             gbtLink.hbf_length += pageSizeInBytes;
 
@@ -197,7 +200,7 @@ void mvtx_pool::setupLinks()
           std::cout << *(reinterpret_cast<uint16_t*>(&payload[payload_position] + 30)) << std::dec << std::endl;
         }
         // move to next flx word and continue flx word loop
-        payload_position += mvtx_utils::FLXWordLength;
+        payload_position += FLXWordLength;
         continue;
       }
     }
@@ -345,7 +348,7 @@ long long int mvtx_pool::get_TRG_IR_BCO(const uint16_t iLnk, const uint32_t inde
 }
 
 //_________________________________________________
-std::vector<mvtx::mvtx_hit*>& mvtx_pool::get_hits(const int feeId, const int i_strb)
+std::vector<mvtx_offline::mvtx_hit*>& mvtx_pool::get_hits(const int feeId, const int i_strb)
 {
   return mGBTLinks[mFeeId2LinkID[feeId].entry].mTrgData[i_strb].hit_vector;
 }
