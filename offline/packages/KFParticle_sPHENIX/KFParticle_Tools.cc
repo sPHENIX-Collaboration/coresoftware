@@ -1544,7 +1544,7 @@ void KFParticle_Tools::printSelectionCheck(const std::string &info, unsigned int
   std::cout << info << " = \033[1;" << colour << "m" << value << "\033[0m" << std::endl;
 }
 
-int KFParticle_Tools::getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, const int &bunch_crossing)
+int KFParticle_Tools::getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, const int &bunch_crossing) const
 {
   auto *m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   //auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_SEED");
