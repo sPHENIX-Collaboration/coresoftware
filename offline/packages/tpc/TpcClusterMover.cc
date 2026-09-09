@@ -168,6 +168,7 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
     Acts::Vector3 global_new = global;
     TrkrDefs::subsurfkey new_subsurfkey = sskey;
     bool ret = get_moved_position(cluskey, cluster, fitpars, global, global_new, new_subsurfkey);
+
     if (!ret)
     {
       global_moved.emplace_back(cluskey, global);
@@ -178,53 +179,30 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
       continue;
     }
 
-    auto global_new_keep = global_new;
-    auto sskey_keep = sskey;
-    int iter = 0;
-    while (new_subsurfkey != sskey)
-    {
-	iter++;
-	if(iter > 2)
+
+    if(new_subsurfkey == sskey)
+      {
+	// we are done with this cluster, add the new position and surface to the return object
+	global_moved.emplace_back(cluskey, global_new);
+      }
+    else
+      {
+	// sskey changed, update the subsurface in the cluster key
+	cluster->setSubSurfKey(new_subsurfkey);
+	global_moved.emplace_back(cluskey, global_new);
+    
+	// check
+	TrkrDefs::subsurfkey check_subsurfkey = new_subsurfkey;
+	TrkrDefs::hitsetkey hkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+	auto new_surf = _tGeometry->get_tpc_surface_from_coords(hkey, global_new, check_subsurfkey);
+	if(check_subsurfkey != new_subsurfkey)
 	  {
-	    // cluster has been updated with subsurfkey from last iteration, global_new is still from last iteration - move on
-	    break;
+	    std::cout << "Warning - subsurface keys inconsistent: original sskey " << sskey
+		      << " new_sskey " << new_subsurfkey
+		      << " check_sskey " << check_subsurfkey << std::endl;
 	  }
-
-	// surface changed, cluster subsurface has been updated, redo with new surface
-	sskey = new_subsurfkey;
-	ret = get_moved_position(cluskey, cluster, fitpars, global, global_new, new_subsurfkey);
-	if(!ret)
-	  {
-	    global_new = global_new_keep;
-	    cluster->setSubSurfKey(sskey_keep);
-	    break;
-	  }
-	if(_verbosity > 2)
-	  {
-	    if(new_subsurfkey != sskey)
-	      {
-		std::cout << PHWHERE << "Warning: subsurfkey changed on iteration " << iter << " from "
-			  << sskey << " to " << new_subsurfkey << std::endl;
-	      }
-	    else
-	      {
-		std::cout << PHWHERE << "Good: subsurfkey unchanged on iteration " << iter << std::endl;
-	      }
-	  }	
-    }
-
-
-    if (_verbosity > 2)
-    {
-      std::cout << "    iterations " << iter << " clusterkey " << cluskey << " subsurfkey in " << sskey << " new " << new_subsurfkey << std::endl;
-      std::cout << "        global_in " << global[0] << "  " << global[1] << "  " << global[2] << std::endl;
-      std::cout << "        global_moved " << global_new[0] << "  " << global_new[1] << "  " << global_new[2] << std::endl;
-    }
-
-    // add the new position and surface to the return object
-    global_moved.emplace_back(cluskey, global_new);
+      }
   }
-
   return global_moved;
 }
 
@@ -267,19 +245,10 @@ bool TpcClusterMover::get_moved_position(TrkrDefs::cluskey cluskey, TrkrCluster*
   global_new(1) = ynew;
   global_new(2) = znew;
 
-  bool update_sskey = true;
-  if (update_sskey)
-  {
-    unsigned int sskey = cluster->getSubSurfKey();
-
-    TrkrDefs::hitsetkey hkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-    auto new_surf = _tGeometry->get_tpc_surface_from_coords(hkey, global_new, new_subsurfkey);
-    if (new_surf && (new_subsurfkey != sskey))
-    {
-      cluster->setSubSurfKey(new_subsurfkey);
-    }
-  }
-
+  // get the subsurface key for this new position and return it 
+  TrkrDefs::hitsetkey hkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+  auto new_surf = _tGeometry->get_tpc_surface_from_coords(hkey, global_new, new_subsurfkey);
+  
   return true;
 }
 
