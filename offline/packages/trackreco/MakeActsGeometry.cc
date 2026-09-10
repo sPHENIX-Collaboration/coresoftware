@@ -340,6 +340,9 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
   m_actsGeometry->set_max_driftlength(m_max_driftlength);
   m_actsGeometry->set_CM_halfwidth(m_CM_halfwidth);
+  std::cout << "MakeActsGeometry::InitRun - m_max_driftlength: " << m_max_driftlength << std::endl;
+  std::cout << "MakeActsGeometry::InitRun - m_CM_halfwidth: " << m_CM_halfwidth << std::endl;
+
   m_actsGeometry->set_tpc_tzero(m_tpc_tzero);
   m_actsGeometry->set_sampa_tzero_bias(m_sampa_tzero_bias);
   m_actsGeometry->set_tpc_world_envelope_transform(m_tpc_world_envelope_transform);  // transform world position to TPC envelope position
