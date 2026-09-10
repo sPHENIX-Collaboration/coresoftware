@@ -193,8 +193,8 @@ class Tpc_PolyClusterizer : public SubsysReco
    * quoted values must be kept consistent with _max_driftlength + _CM_halfwidth
    * as defined in offline/packages/trackbase/ActsGeometry.h
    */
-  double m_startZSouth{-102.515};
-  double m_startZNorth{102.515};
+  double m_startZSouth{-102.605};
+  double m_startZNorth{102.605};
   double m_kEffSide0{0.0};
   double m_kEffSide1{0.0};
   double m_cmVoltageDefault{375.0};
