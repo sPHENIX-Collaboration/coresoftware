@@ -245,7 +245,8 @@ int TpcV0CandidateTree::Init(PHCompositeNode *topNode)
   }
   if (!m_use_pattern_cluster_tracks &&
       (m_required_crossing != NoCrossingSelection ||
-       m_max_crossing_tier >= 0 || m_require_same_crossing))
+       m_max_crossing_tier >= 0 ||
+       (m_reconstruct_pairs && m_require_same_crossing)))
   {
     std::cerr << PHWHERE << Name()
               << ": bunch-crossing selection is only available for pattern-track input"
@@ -322,7 +323,8 @@ int TpcV0CandidateTree::process_event(PHCompositeNode *topNode)
     }
     const bool crossing_metadata_required =
         m_required_crossing != NoCrossingSelection ||
-        m_max_crossing_tier >= 0 || m_require_same_crossing;
+        m_max_crossing_tier >= 0 ||
+        (m_reconstruct_pairs && m_require_same_crossing);
     if (!crossing_decisions && crossing_metadata_required)
     {
       std::cerr << PHWHERE << Name() << ": missing required crossing-decision node "
