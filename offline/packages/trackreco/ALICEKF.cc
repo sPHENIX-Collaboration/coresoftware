@@ -712,7 +712,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     {
       continue;
     }
-    auto lcluster = _cluster_map->findCluster(trackKeyChain.back());
+    auto* lcluster = _cluster_map->findCluster(trackKeyChain.back());
     const auto& lclusterglob = globalPositions.at(trackKeyChain.back());
     const float lclusterrad = sqrt(lclusterglob(0) * lclusterglob(0) + lclusterglob(1) * lclusterglob(1));
     double last_cluster_phierr = lcluster->getRPhiError() / lclusterrad;
