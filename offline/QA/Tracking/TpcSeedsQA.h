@@ -63,7 +63,7 @@ class TpcSeedsQA : public SubsysReco
   std::multimap<int, int> m_layerRegionMap;
   static std::pair<float, float> cal_tpc_eta_min_max(float vtxz);
   static float eta_to_theta(float eta);
-  float* cal_dedx_cluster(SvtxTrack* track);
+  void cal_dedx_cluster(SvtxTrack* track, std::array<float,10> &cluster_dedx);
   float cal_track_length(SvtxTrack* track);
 
   std::string m_clusterContainerName{"TRKR_CLUSTER"};
