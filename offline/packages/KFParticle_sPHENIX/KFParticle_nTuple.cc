@@ -308,6 +308,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 
   m_tree->Branch("nPrimaryVerticesOfBC", &m_nPVs, "nPrimaryVerticesOfBC/I");
   m_tree->Branch("nTracksOfBC", &m_multiplicity, "nTracksOfBC/I");
+  m_tree->Branch("nSiSeedMultiplicity", &m_ncharged_siseed_multiplicity, "nSiSeedMultiplicity/I");
   m_tree->Branch("nTracksOfVertex", &m_nTracksOfVertex, "nTracksOfVertex/I");
 
   m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
@@ -662,6 +663,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   m_sv_mass = calc_secondary_vertex_mass_noPID(daughters);
 
   kfpTupleTools.getTracksFromBC(topNode, m_calculated_daughter_bunch_crossing[0], m_vtx_map_node_name_nTuple, m_multiplicity, m_nPVs);
+  m_ncharged_siseed_multiplicity = kfpTupleTools.getNchargedSiSeedMultiplicity(topNode, m_calculated_daughter_bunch_crossing[0]);
   // cannot retrieve vertex map info from fake PV, hence the second condition
   if (m_constrain_to_vertex_nTuple && !m_use_fake_pv_nTuple)
   {
