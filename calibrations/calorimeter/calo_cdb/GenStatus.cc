@@ -23,6 +23,8 @@ void GenStatus::setRunDataset(const std::string &input)
   std::string basename = std::filesystem::path(input).filename().stem().string();
   m_run = basename.substr(0, basename.find('_'));
   m_dataset = basename.substr(basename.find('_') + 1, basename.size() - basename.find('_'));
+  m_dataset_jetqa.clear();
+  m_dataset_calofittingqa.clear();
 }
 
 std::string GenStatus::extractTag(const std::string &filename, const std::string &prefix)
@@ -333,6 +335,9 @@ void GenStatus::analyze(const std::string &outputDir)
 
 void GenStatus::process(const std::string &input, const std::string &output)
 {
+  m_dataset_jetqa.clear();
+  m_dataset_calofittingqa.clear();
+
   std::cout << "#############################" << std::endl;
   std::cout << "Run Parameters" << std::endl;
   std::cout << "input: " << input << std::endl;
