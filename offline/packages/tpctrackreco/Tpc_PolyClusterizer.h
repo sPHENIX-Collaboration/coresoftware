@@ -35,7 +35,8 @@ class Tpc_PolyClusterizer : public SubsysReco
   void setOutputNodeName(const std::string& n) { m_outputNodeName = n; }
   void setCrossingDecisionNodeName(const std::string& n) { m_crossingDecisionNodeName = n; }
   void setMaxAcceptedTier(unsigned char v) { m_maxAcceptedTier = v; }
-  void setT0(double v) { m_t0 = v; }
+  void setT0_south(double v) { m_t0_south = v; }
+  void setT0_north(double v) { m_t0_north = v; }
   void setTpcAdcClock(double v) { m_tpcAdcClock = v; }
   void setCrossingPeriodNs(double v) { m_crossingPeriodNs = v; }
   void setReverseDriftStepNs(double v) { m_reverseDriftStepNs = v; }
@@ -179,7 +180,8 @@ class Tpc_PolyClusterizer : public SubsysReco
   PHG4TpcGeomContainer* m_geomContainerTpc{nullptr};
   std::array<DriftPolyline, 48 * 2 * 12 * NPhiSamples> m_driftLookup;
   unsigned int m_event{0};
-  double m_t0{8};
+  double m_t0_south{8};
+  double m_t0_north{8};
   double m_tpcAdcClock{56.881262};
   double m_crossingPeriodNs {106.56};
   double m_reverseDriftStepNs{56.881262};
