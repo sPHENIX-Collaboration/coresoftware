@@ -5,20 +5,13 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TpcDefs.h>
-#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
-#include <tpc/TpcDistortionCorrectionContainer.h>
-#include <tpc/TpcGlobalPositionWrapper.h>
-
 #include <qautils/QAHistManagerDef.h>
-#include <qautils/QAUtil.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -30,7 +23,10 @@
 #include <TH1.h>
 #include <TH2.h>
 
+#include <cassert>
+#include <cmath>
 #include <format>
+#include <iostream>
 
 //____________________________________________________________________________..
 TpcClusterQA::TpcClusterQA(const std::string &name)

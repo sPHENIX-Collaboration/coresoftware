@@ -1,29 +1,34 @@
 
 #include "SiliconSeedsQA.h"
 
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <qautils/QAHistManagerDef.h>
-#include <qautils/QAUtil.h>
-
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
 
-#include <trackbase/TrackFitUtils.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrClusterContainer.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackAnalysisUtils.h>
+#include <trackbase_historic/TrackSeed.h>
 
+#include <qautils/QAHistManagerDef.h>
+
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
+#include <TH1.h>
 #include <TH2.h>
-#include <TProfile.h>
 #include <TProfile2D.h>
 
-#include <trackbase/ActsGeometry.h>
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+
 //____________________________________________________________________________..
 SiliconSeedsQA::SiliconSeedsQA(const std::string &name)
   : SubsysReco(name)

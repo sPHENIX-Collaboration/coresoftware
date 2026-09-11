@@ -3,12 +3,16 @@
 #ifndef TPCSEEDSQA_H
 #define TPCSEEDSQA_H
 
-#include <fun4all/SubsysReco.h>
 #include <tpc/TpcClusterMover.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
-#include <trackbase/TpcDefs.h>
+
 #include <trackbase/TrkrDefs.h>
 
+#include <fun4all/SubsysReco.h>
+
+#include <array>
+#include <limits>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -24,7 +28,6 @@ class TProfile;
 class TProfile2D;
 class TNtuple;
 class SvtxVertexMap;
-class TrackSeedContainer;
 class PHG4TpcGeomContainer;
 class TrackSeed;
 

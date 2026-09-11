@@ -1,7 +1,6 @@
 #include "TpcSeedsQA.h"
 
 #include <qautils/QAHistManagerDef.h>
-#include <qautils/QAUtil.h>
 
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
@@ -14,32 +13,37 @@
 #include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
 
+#include <trackbase/TpcDefs.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackAnalysisUtils.h>
 #include <trackbase_historic/TrackSeed.h>
-#include <trackbase_historic/TrackSeedContainer.h>
 
-#include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/Gl1RawHit.h>
+
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
+#include <TH1.h>
 #include <TH2.h>
-#include <TH2F.h>
 #include <TNtuple.h>
 #include <TProfile.h>
 #include <TProfile2D.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
+#include <cstdint>
 #include <format>
+#include <iostream>
 
 //____________________________________________________________________________..
 TpcSeedsQA::TpcSeedsQA(const std::string &name)
@@ -192,7 +196,7 @@ float TpcSeedsQA::calc_dedx(TrackSeed *tpcseed)
     PHG4TpcGeom *GeoLayer_local = g4geom->GetLayerCellGeom(layer_local);
     float thick = GeoLayer_local->get_thickness();
     float r = GeoLayer_local->get_radius();
-    float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
+    float alpha = (r * r) / (2 * r * std::abs(1.0 / tpcseed->get_qOverR()));
     float beta = std::atan(tpcseed->get_slope());
     float alphacorr = std::cos(alpha);
     if (alphacorr < 0 || alphacorr > 4)
@@ -718,7 +722,7 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
 
     if (m_ntpc > 30)
     {
-      std::array<float,10> cluster_dedx;
+      std::array<float,10> cluster_dedx {};
       cal_dedx_cluster(track, cluster_dedx);
       for (int iz = 0; iz < 10; iz++)
       {
