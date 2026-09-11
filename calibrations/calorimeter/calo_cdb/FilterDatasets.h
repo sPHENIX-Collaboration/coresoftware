@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <tuple>
 
 class FilterDatasets
 {
@@ -20,7 +21,7 @@ class FilterDatasets
 
   std::string getCalibration(const std::string &pl_type, uint64_t iov);
 
-  std::vector<std::pair<std::string, std::string>> m_runInfo;
+  std::vector<std::tuple<std::string, std::string, std::string>> m_runInfo;
   std::map<std::string, int> m_ctr;
 
   std::vector<std::string> m_cdbName = {"CEMC_BadTowerMap", "HCALIN_BadTowerMap", "HCALOUT_BadTowerMap"
