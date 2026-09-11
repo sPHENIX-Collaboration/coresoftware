@@ -17,6 +17,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <vector>
 
 void GenStatus::setRunDataset(const std::string &input)
 {
@@ -395,14 +396,33 @@ void GenStatus::process(const std::string &input, const std::string &output)
   calo_ohcal->Verbosity(1);
   calo_ohcal->FindHot(m_CaloValid_list, hotMapOutput_OHCAL, "h_CaloValid_ohcal_etaphi");
 
-  if (std::filesystem::exists(hotMapOutput))
+  struct HotMapInfo
   {
-    std::filesystem::rename(hotMapOutput, hotMapOutputQA);
-    std::filesystem::rename(hotMapOutput_IHCAL, hotMapOutputQA_IHCAL);
-    std::filesystem::rename(hotMapOutput_OHCAL, hotMapOutputQA_OHCAL);
-  }
-  else
+    std::string name;
+    std::string src;
+    std::string dst;
+  };
+
+  const std::vector<HotMapInfo> hotMaps = {
+      {"EMCal", hotMapOutput, hotMapOutputQA},
+      {"IHCAL", hotMapOutput_IHCAL, hotMapOutputQA_IHCAL},
+      {"OHCAL", hotMapOutput_OHCAL, hotMapOutputQA_OHCAL}
+  };
+
+  for (const auto &hotMap : hotMaps)
   {
-    std::cout << "ERROR: EMCal Hot Map FAILED to Create." << std::endl;
+    std::error_code ec;
+    if (std::filesystem::exists(hotMap.src, ec))
+    {
+      std::filesystem::rename(hotMap.src, hotMap.dst, ec);
+      if (ec)
+      {
+        std::cout << "ERROR: Failed to move " << hotMap.name << " Hot Map: " << ec.message() << std::endl;
+      }
+    }
+    else
+    {
+      std::cout << "ERROR: " << hotMap.name << " Hot Map FAILED to Create." << std::endl;
+    }
   }
 }
