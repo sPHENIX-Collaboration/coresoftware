@@ -3,6 +3,7 @@
 #include <micromegas/MicromegasDefs.h>
 
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
@@ -308,9 +309,10 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
       const float clusPhi = std::atan2(clusGlobPosition(1), clusGlobPosition(0));
       const float clusZ = clusGlobPosition(2);
 
-      // cluster errors
-      const float clusRPhiErr = cluster->getRPhiError();
-      const float clusZErr = cluster->getZError();
+      // parameterized cluster errors
+      const auto clusterErrors = ClusterErrorPara::get_clusterv5_modified_error(cluster, clusR, ckey);
+      const float clusRPhiErr = std::sqrt(clusterErrors.first);
+      const float clusZErr = std::sqrt(clusterErrors.second);
 
       const Acts::Vector3 stateGlobPosition = Acts::Vector3(state->get_x(),
                                                             state->get_y(),

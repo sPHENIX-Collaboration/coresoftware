@@ -504,9 +504,10 @@ void QAG4SimulationMicromegas::evaluate_clusters()
       // get segmentation type
       const auto segmentation_type = MicromegasDefs::getSegmentationType(ckey);
 
-      // get relevant cluster information
-      double const rphi_error = cluster->getRPhiError();
-      double const z_error = cluster->getZError();
+      // get parameterized cluster errors
+      const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, 0.0, ckey);
+      double const rphi_error = std::sqrt(cluster_errors.first);
+      double const z_error = std::sqrt(cluster_errors.second);
 
       // convert cluster position to local tile coordinates
       const TVector3 cluster_world(global(0), global(1), global(2));
