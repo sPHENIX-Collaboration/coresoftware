@@ -7,6 +7,7 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <array>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -175,7 +176,9 @@ class Tpc_PolyClusterizer : public SubsysReco
   TpcCrossingDecisionContainer* m_crossingDecisions {nullptr};
   TrkrHitSetContainer* m_hits{nullptr};
   IdealPadMap* m_idealPadMap{nullptr};
-  PHGarfield* m_garfield{nullptr};
+
+  std::unique_ptr<PHGarfield> m_garfield{};
+
   PHG4TpcGeomContainer* m_geomContainerTpc{nullptr};
   std::array<DriftPolyline, 48 * 2 * 12 * NPhiSamples> m_driftLookup;
   unsigned int m_event{0};
@@ -183,8 +186,15 @@ class Tpc_PolyClusterizer : public SubsysReco
   double m_tpcAdcClock{56.881262};
   double m_crossingPeriodNs {106.56};
   double m_reverseDriftStepNs{56.881262};
-  double m_startZSouth{-102.325};
-  double m_startZNorth{102.325};
+
+
+  //! starting z position for primary electron backward drift
+  /**
+   * quoted values must be kept consistent with _max_driftlength + _CM_halfwidth
+   * as defined in offline/packages/trackbase/ActsGeometry.h
+   */
+  double m_startZSouth{-102.605};
+  double m_startZNorth{102.605};
   double m_kEffSide0{0.0};
   double m_kEffSide1{0.0};
   double m_cmVoltageDefault{375.0};
