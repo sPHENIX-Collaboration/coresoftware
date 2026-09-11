@@ -116,8 +116,6 @@ Tpc_PolyClusterizer::~Tpc_PolyClusterizer()
 {
   delete m_idealPadMap;
   m_idealPadMap = nullptr;
-  delete m_garfield;
-  m_garfield = nullptr;
 }
 
 bool Tpc_PolyClusterizer::load_cdb_inputs()
@@ -252,18 +250,30 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4TpcGeom* layergeom = m_geomContainerTpc->GetLayerCellGeom(20);
-  double rot_x = layergeom->get_rot_x();
-  double rot_y = layergeom->get_rot_y();
-  double rot_z = layergeom->get_rot_z();
-  double place_x = layergeom->get_place_x();
-  double place_y = layergeom->get_place_y();
-  double place_z = layergeom->get_place_z();
+  // get layer geometry for layer 20.
+  auto* layergeom = m_geomContainerTpc->GetLayerCellGeom(20);
   if (use_survey_geometry)
   {
+    // apply survey geometry
+    const double rot_x = layergeom->get_rot_x();
+    const double rot_y = layergeom->get_rot_y();
+    const double rot_z = layergeom->get_rot_z();
+
+    const double place_x = layergeom->get_place_x();
+    const double place_y = layergeom->get_place_y();
+    const double place_z = layergeom->get_place_z();
+
     m_tpcMove = {place_x, place_y, place_z};
     m_tpcRotations = {{{rot_x, rot_y, rot_z}, {0.0, 0.0, 0.0}}};
   }
+
+  // update m_startZSouth and m_startZNorth, based on TPC geometry
+  m_startZSouth = -(layergeom->get_max_driftlength() + layergeom->get_CM_halfwidth());
+  m_startZNorth = layergeom->get_max_driftlength() + layergeom->get_CM_halfwidth();
+
+  // printout
+  std::cout << Name() << "::InitRun - m_startZSouth: " << m_startZSouth << " cm" << std::endl;
+  std::cout << Name() << "::InitRun - m_startZNorth: " << m_startZNorth << " cm" << std::endl;
 
   if (!load_cdb_inputs())
   {
@@ -271,12 +281,9 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  delete m_garfield;
-  m_garfield = nullptr;
+  m_garfield.reset( new PHGarfield(Name() + "_PHGarfield", "", m_kEffSide0, m_kEffSide1) );
 
-  m_garfield = new PHGarfield(Name() + "_PHGarfield", "", m_kEffSide0, m_kEffSide1);
-
-  configure_garfield(m_garfield);
+  configure_garfield(m_garfield.get());
   if (m_garfield->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     std::cerr << Name() << "::InitRun - PHGarfield InitRun failed" << std::endl;
@@ -1045,7 +1052,7 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
 
               iphi_sum += static_cast<double>(iphi) * adc;
               iphi2_sum += square(static_cast<double>(iphi)) * adc;
-              
+
               const double t = layergeom->get_zcenter(it);
               t_sum += t * adc;
               t2_sum += square(t) * adc;

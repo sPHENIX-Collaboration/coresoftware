@@ -235,6 +235,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
 
   int m_nPVs{-1};
   int m_multiplicity{-1};
+  int m_ncharged_siseed_multiplicity{-1};
   int m_nTracksOfVertex{-1};
 
   int m_runNumber{-1};

@@ -5,9 +5,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <cmath>
 #include <map>
-#include <set>
 #include <string>
 
 class PHCompositeNode;
@@ -23,7 +21,6 @@ class MvtxClusterQA : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int EndRun(const int runnumber) override;
 
   void writeChipInfo(bool value)
   {
@@ -35,10 +32,10 @@ class MvtxClusterQA : public SubsysReco
 
   std::string getHistoPrefix() const;
   std::map<int, int> m_layerStaveMap;
-  int m_event = 0;
-  int m_totalClusters = 0;
+  int m_event {0};
+  int m_totalClusters {0};
   int m_nclustersPerChip[3][20][9] = {{{0}}};
-  bool m_chipInfo = false;
+  bool m_chipInfo {false};
 
   TH1 *h_occupancy{nullptr};
   TH1 *h_clusSize{nullptr};
@@ -51,7 +48,7 @@ class MvtxClusterQA : public SubsysReco
   TH2 *h_clusZ_clusPhi_l1{nullptr};
   TH2 *h_clusZ_clusPhi_l2{nullptr};
   TH1 *h_strobe{nullptr};
-  TH2 *h_clusperchip[3][20][9] = {{{nullptr}}};
+  TH2 *h_clusperchip[3][20][9] {{{nullptr}}};
 };
 
 #endif  // QA_TRACKING_MVTXCLUSTERQA_H

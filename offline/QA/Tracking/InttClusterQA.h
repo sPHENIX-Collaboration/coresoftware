@@ -5,9 +5,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <cmath>
 #include <map>
-#include <set>
 #include <string>
 
 class PHCompositeNode;
@@ -23,7 +21,6 @@ class InttClusterQA : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int EndRun(const int runnumber) override;
 
   void writeSensorInfo(bool value)
   {
@@ -35,11 +32,11 @@ class InttClusterQA : public SubsysReco
 
   std::string getHistoPrefix() const;
   std::map<int, int> m_layerLadderMap;
-  int m_event = 0;
-  int m_totalClusters = 0;
+  int m_event {0};
+  int m_totalClusters {0};
   int m_nclustersPerSensor[4][16][4] = {{{0}}};
-  bool m_sensorInfo = false;
-  double cluszbin[56] = {-25., -22.57245 - 1.1,             //
+  bool m_sensorInfo {false};
+  double cluszbin[56]   {-25., -22.57245 - 1.1,             //
                          -22.57245 - 0.9, -22.57245 + 0.9,  //
                          -20.57245 - 0.9, -20.57245 + 0.9,  //
                          -18.57245 - 0.9, -18.57245 + 0.9,  //
@@ -75,7 +72,7 @@ class InttClusterQA : public SubsysReco
   TH1 *h_clusPhi_l56{nullptr};
   TH2 *h_clusZ_clusPhi_l34{nullptr};
   TH2 *h_clusZ_clusPhi_l56{nullptr};
-  TH2 *h_cluspersensor[4][16][4] = {{{nullptr}}};
+  TH2 *h_cluspersensor[4][16][4] {{{nullptr}}};
 };
 
 #endif  // InttClusterQA_H

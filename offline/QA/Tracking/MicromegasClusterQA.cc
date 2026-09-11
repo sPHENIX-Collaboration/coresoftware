@@ -6,8 +6,6 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/ActsGeometry.h>
-#include <trackbase/TrackFitUtils.h>
-#include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>
@@ -16,7 +14,6 @@
 #include <trackbase/TrkrHitSetContainer.h>
 
 #include <qautils/QAHistManagerDef.h>
-#include <qautils/QAUtil.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -28,7 +25,13 @@
 #include <TH1.h>
 #include <TH2.h>
 
+#include <algorithm>
+#include <array>
+#include <cassert>
 #include <format>
+#include <iostream>
+#include <map>
+
 
 //_____________________________________________________________________
 namespace

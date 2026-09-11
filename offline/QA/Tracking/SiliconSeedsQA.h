@@ -3,9 +3,9 @@
 #ifndef SILICONSEEDSQA_H
 #define SILICONSEEDSQA_H
 
-#include <fun4all/SubsysReco.h>
-#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
+
+#include <fun4all/SubsysReco.h>
 
 #include <string>
 #include <vector>

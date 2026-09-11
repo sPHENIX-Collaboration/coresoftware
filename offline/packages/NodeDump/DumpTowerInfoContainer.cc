@@ -34,9 +34,9 @@ int DumpTowerInfoContainer::process_Node(PHNode *myNode)
     {
       TowerInfo *rawtwr = towerinfocontainer->get_tower_at_channel(channel);
       *fout << "time: " << rawtwr->get_time() << std::endl;
-//      (*fout).precision(std::numeric_limits<decltype(rawtwr->get_energy())>::max_digits10);
+      //      (*fout).precision(std::numeric_limits<decltype(rawtwr->get_energy())>::max_digits10);
       *fout << "energy: " << rawtwr->get_energy() << std::endl;
-//      (*fout).precision(std::numeric_limits<decltype(rawtwr->get_time_float())>::max_digits10);
+      //      (*fout).precision(std::numeric_limits<decltype(rawtwr->get_time_float())>::max_digits10);
       *fout << "time: " << rawtwr->get_time() << std::endl;
       *fout << "chi2: " << rawtwr->get_chi2() << std::endl;
       *fout << "pedestal: " << rawtwr->get_pedestal() << std::endl;
