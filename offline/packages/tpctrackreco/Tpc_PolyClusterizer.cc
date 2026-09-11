@@ -606,8 +606,8 @@ bool Tpc_PolyClusterizer::sample_drift_lookup(const unsigned int layer,
   {
     return false;
   }
-  double t0 = (side == 0) ? m_t0_south : m_t0_north;
-  const double target_time_ns = (static_cast<double>(tbin) - t0) * m_tpcAdcClock - static_cast<double>(crossing) * m_crossingPeriodNs;
+
+  const double target_time_ns = (static_cast<double>(tbin) - m_t0) * m_tpcAdcClock - static_cast<double>(crossing) * m_crossingPeriodNs;
   if (target_time_ns <= 0.0 || !std::isfinite(target_time_ns))
   {
     return false;
