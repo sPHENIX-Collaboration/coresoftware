@@ -7,6 +7,7 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/InttDefs.h>
 
 #include <map>
 #include <string>
@@ -43,6 +44,7 @@ class PHCosmicSeeder : public SubsysReco
   void seedAnalysis() { m_analysis = true; }
   void trackMapName(const std::string &name) { m_trackMapName = name; }
   void trackerId(TrkrDefs::TrkrId trackerId) { m_trackerId = trackerId; }
+  void fieldOn() {m_zerofield=false; }
 
  private:
   int getNodes(PHCompositeNode *topNode);
@@ -52,6 +54,7 @@ class PHCosmicSeeder : public SubsysReco
   SeedVector findIntersections(SeedVector &initialSeeds);
   SeedVector chainSeeds(SeedVector &initialSeeds, PositionMap &clusterPositions);
   void recalculateSeedLineParameters(seed &seed, PositionMap &clusters, bool isXY);
+  bool seedContainsClusterSensor(seed& seed_in, TrkrDefs::cluskey key);
 
   float m_xyTolerance = 2.;  //! cm
 //  float m_xzTolerance = 2.;  //! cm
@@ -64,6 +67,7 @@ class PHCosmicSeeder : public SubsysReco
   TFile *m_outfile = nullptr;
   TNtuple *m_tup = nullptr;
   bool m_analysis = false;
+  bool m_zerofield = true;
   float m_event = 0;
 };
 

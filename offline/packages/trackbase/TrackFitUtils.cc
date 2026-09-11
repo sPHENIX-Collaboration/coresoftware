@@ -37,7 +37,7 @@ namespace
   }
 }  // namespace
 
-std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global)
+std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global, bool is_cosmics)
 {
   // no analytic solution for the coordinates of the closest approach of a helix to a point
   // Instead, we get the PCA in x and y to the circle, and the PCA in z to the z vs R line at the R of the PCA
@@ -52,7 +52,12 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
 
   // The radius of the PCA determines the z position:
   float const pca_circle_radius = pca_circle.norm();  // radius of the PCA of the circle to the point
-  float const pca_z = pca_circle_radius * zslope + z0;
+  float ztmp;
+  if(is_cosmics)
+    ztmp = pca_circle(0)* zslope + z0;
+  else
+    ztmp = pca_circle_radius * zslope + z0;
+  float const pca_z = ztmp;
   Acts::Vector3 const pca(pca_circle(0), pca_circle(1), pca_z);
 
   // now we want a second point on the helix so we can get a local straight line approximation to the track
@@ -62,7 +67,12 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
   float const d_angle = 0.005;
   float const newx = radius * std::cos(angle_pca + d_angle) + x0;
   float const newy = radius * std::sin(angle_pca + d_angle) + y0;
-  float const newz = std::sqrt(newx * newx + newy * newy) * zslope + z0;
+  float ztmp2;
+  if(is_cosmics)
+    ztmp2 = newx * zslope + z0;
+  else
+    ztmp2 = std::sqrt(newx * newx + newy * newy) * zslope + z0;
+  float const newz = ztmp2;
   Acts::Vector3 const second_point_pca(newx, newy, newz);
 
   // pca and second_point_pca define a straight line approximation to the track
@@ -557,7 +567,7 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
 
 //_________________________________________________________________________________
 Acts::Vector3 TrackFitUtils::get_helix_pca(std::vector<float>& fitpars,
-                                           const Acts::Vector3& global)
+                                           const Acts::Vector3& global, bool is_cosmics)
 {
   // no analytic solution for the coordinates of the closest approach of a helix to a point
   // Instead, we get the PCA in x and y to the circle, and the PCA in z to the z vs R line at the R of the PCA
@@ -572,7 +582,12 @@ Acts::Vector3 TrackFitUtils::get_helix_pca(std::vector<float>& fitpars,
 
   // The radius of the PCA determines the z position:
   float const pca_circle_radius = pca_circle.norm();
-  float const pca_z = pca_circle_radius * zslope + z0;
+  float ztmp;
+  if(is_cosmics)
+    ztmp = pca_circle(0)* zslope + z0;
+  else
+    ztmp = pca_circle_radius * zslope + z0;
+  float const pca_z = ztmp;
   Acts::Vector3 const pca(pca_circle(0), pca_circle(1), pca_z);
 
   // now we want a second point on the helix so we can get a local straight line approximation to the track
@@ -580,7 +595,12 @@ Acts::Vector3 TrackFitUtils::get_helix_pca(std::vector<float>& fitpars,
   float const projection = 0.25;  // cm
   Acts::Vector3 const second_point = pca + projection * pca / pca.norm();
   Acts::Vector2 second_point_pca_circle = get_circle_point_pca(radius, x0, y0, second_point);
-  float const second_point_pca_z = second_point_pca_circle.norm() * zslope + z0;
+  float ztmp2;
+  if(is_cosmics)
+    ztmp2 = second_point_pca_circle(0)* zslope + z0;
+  else
+    ztmp2 = second_point_pca_circle.norm() * zslope + z0;
+  float const second_point_pca_z = ztmp2;
   Acts::Vector3 const second_point_pca(second_point_pca_circle(0), second_point_pca_circle(1), second_point_pca_z);
 
   // pca and second_point_pca define a straight line approximation to the track
@@ -610,7 +630,7 @@ Acts::Vector2 TrackFitUtils::get_circle_point_pca(float radius, float x0, float 
 //_________________________________________________________________________________
 std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global_vec,
                                               const std::vector<TrkrDefs::cluskey> &cluskey_vec,
-                                              bool use_intt)
+                                              bool use_intt, bool mvtx_east, bool mvtx_west, bool is_cosmics)
 {
   std::vector<float> fitpars;
 
@@ -619,15 +639,32 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
   {
     return fitpars;
   }
-  std::tuple<double, double, double> circle_fit_pars = TrackFitUtils::circle_fit_by_taubin(global_vec);
+  //std::tuple<double, double, double> circle_fit_pars = TrackFitUtils::circle_fit_by_taubin(global_vec);
+  std::tuple<double, double, double> circle_fit_pars ;
 
+  bool cross_mvtx_half = false;
+  if ((mvtx_east || mvtx_west))
+  {
+    cross_mvtx_half = TrackFitUtils::isTrackCrossMvtxHalf(cluskey_vec);
+  }
+  else
+  {
+    circle_fit_pars = TrackFitUtils::circle_fit_by_taubin(global_vec);
+  }
   // It is problematic that the large errors on the INTT strip z values are not allowed for - drop the INTT from the z line fit
   std::vector<Acts::Vector3> global_vec_noINTT;
   for (unsigned int ivec = 0; ivec < global_vec.size(); ++ivec)
   {
     unsigned int const trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
+    if ((mvtx_east || mvtx_west) && trkrid == TrkrDefs::mvtxId)
+    {
+      if (cross_mvtx_half && TrackFitUtils::includeMvtxHit(cluskey_vec[ivec], mvtx_east, mvtx_west))
+      {
+        global_vec_noINTT.push_back(global_vec[ivec]);
+      }
+    }
 
-    if (trkrid != TrkrDefs::inttId && cluskey_vec[ivec] != 0)
+    else if (trkrid != TrkrDefs::inttId and cluskey_vec[ivec] != 0)
     {
       global_vec_noINTT.push_back(global_vec[ivec]);
     }
@@ -641,7 +678,11 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
   {
     return fitpars;
   }
-  std::tuple<double, double> line_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
+  std::tuple<double, double> line_fit_pars;
+  if(is_cosmics) 
+    line_fit_pars = TrackFitUtils::line_fit_xz(global_vec_noINTT);
+  else
+    line_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
 
   fitpars.push_back(std::get<0>(circle_fit_pars));
   fitpars.push_back(std::get<1>(circle_fit_pars));
