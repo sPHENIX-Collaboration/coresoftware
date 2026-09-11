@@ -51,6 +51,7 @@ class PHG4TpcSteppingAction : public PHG4SteppingAction
   // do this in every step, the parameters used are cached
   // in the following variables
   int m_IsBlackHoleFlag{0};
+  int m_UsePrimaryClusterIonization{0};
   int m_UseG4StepsFlag{0};
 
   std::string m_HitNodeName;

@@ -5,6 +5,7 @@
 #include "PHG4TpcDistortion.h"
 #include "PHG4TpcPadPlane.h"  // for PHG4TpcPadPlane
 #include "TpcClusterBuilder.h"
+#include "TpcPrimaryIonizationModel.h"
 
 #include <trackbase/ClusHitsVerbosev1.h>
 #include <trackbase/TpcDefs.h>
@@ -63,6 +64,7 @@
 #include <cassert>
 #include <cmath>    // for sqrt, abs, NAN
 #include <cstdlib>  // for exit
+#include <exception>
 #include <format>
 #include <iostream>
 #include <map>      // for _Rb_tree_cons...
@@ -87,6 +89,8 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));
   set_seed(PHRandomSeed());
 }
+
+PHG4TpcElectronDrift::~PHG4TpcElectronDrift() = default;
 
 //_____________________________________________________________
 int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
@@ -282,6 +286,63 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   double isobutane_NTotal = 195;  // Number/cm
   double isobutane_frac = tpcparam->get_double_param("isobutane_frac");
 
+  m_use_primary_cluster_ionization =
+      tpcparam->exist_int_param("use_primary_cluster_ionization") &&
+      tpcparam->get_int_param("use_primary_cluster_ionization") != 0;
+  m_primaryIonizationModel.reset();
+  if (m_use_primary_cluster_ionization)
+  {
+    // For the electron/positron energy-based fallback of the opt-in model,
+    // use the internally consistent stopping powers and total ionization
+    // yields in Table 1 of arXiv:1008.3736. Keep the established values above
+    // unchanged when the optional model is disabled.
+    CF4_dEdx = 6.38;         // keV/cm
+    CF4_NTotal = 120;        // Number/cm
+    isobutane_dEdx = 5.67;   // keV/cm
+    isobutane_NTotal = 220;  // Number/cm
+
+    constexpr double fraction_tolerance = 1.e-12;
+    if (!std::isfinite(Ne_frac) || !std::isfinite(N2_frac) ||
+        std::abs(Ne_frac) > fraction_tolerance ||
+        std::abs(N2_frac) > fraction_tolerance)
+    {
+      std::cerr
+          << Name()
+          << ": the optional primary-cluster ionization model supports only "
+             "Ar/CF4/iC4H10 mixtures; Ne_frac="
+          << Ne_frac << " and N2_frac=" << N2_frac << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+    try
+    {
+      m_primaryIonizationModel =
+          std::make_unique<TpcPrimaryIonizationModel>(
+              TpcPrimaryIonizationModel::GasFractions{
+                  Ar_frac, CF4_frac, isobutane_frac});
+    }
+    catch (const std::exception &error)
+    {
+      std::cerr << Name()
+                << ": failed to configure the optional primary-cluster "
+                   "ionization model: "
+                << error.what() << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+    if (Verbosity() > 0)
+    {
+      std::cout
+          << Name()
+          << ": using path-length primary-cluster ionization for "
+             "non-electron charged particles; electrons and positrons use "
+             "the energy-deposit response; "
+          << m_primaryIonizationModel->primary_clusters_per_cm()
+          << " primary clusters/cm, mean cluster size "
+          << m_primaryIonizationModel->mean_cluster_size() << std::endl;
+    }
+  }
+
   if (m_use_PDG_gas_params)
   {
     Ne_dEdx = 1.446;
@@ -439,7 +500,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
-  unsigned int count_g4hits = 0;
   //  int count_electrons = 0;
 
   //  double ecollectedhits = 0.0;
@@ -447,6 +507,63 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   double ihit = 0;
   unsigned int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
   unsigned int dump_counter = 0;
+
+  const auto flush_temp_hitsets = [&]()
+  {
+    const auto temp_hitset_range = temp_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
+    if (temp_hitset_range.first == temp_hitset_range.second)
+    {
+      return;
+    }
+
+    double eg4hit = 0.0;
+    for (auto temp_hitset_iter = temp_hitset_range.first;
+         temp_hitset_iter != temp_hitset_range.second;
+         ++temp_hitset_iter)
+    {
+      const auto node_hitsetkey = temp_hitset_iter->first;
+      const auto layer = TrkrDefs::getLayer(node_hitsetkey);
+      const auto sector = TpcDefs::getSectorId(node_hitsetkey);
+      const auto side = TpcDefs::getSide(node_hitsetkey);
+      if (Verbosity() > 100)
+      {
+        std::cout << "PHG4TpcElectronDrift: temp_hitset with key: " << node_hitsetkey << " in layer " << layer
+                  << " with sector " << sector << " side " << side << std::endl;
+      }
+
+      auto node_hitsetit = hitsetcontainer->findOrAddHitSet(node_hitsetkey);
+      const auto temp_hit_range = temp_hitset_iter->second->getHits();
+      for (auto temp_hit_iter = temp_hit_range.first;
+           temp_hit_iter != temp_hit_range.second;
+           ++temp_hit_iter)
+      {
+        const auto temp_hitkey = temp_hit_iter->first;
+        auto *temp_tpchit = temp_hit_iter->second;
+        if (Verbosity() > 10 && layer == print_layer)
+        {
+          std::cout << "      temp_hitkey " << temp_hitkey << " layer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
+                    << " z bin " << TpcDefs::getTBin(temp_hitkey)
+                    << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << std::endl;
+          eg4hit += temp_tpchit->getEnergy();
+        }
+
+        auto *node_hit = node_hitsetit->second->getHit(temp_hitkey);
+        if (!node_hit)
+        {
+          node_hit = new TrkrHitv2();
+          node_hitsetit->second->addHitSpecificKey(temp_hitkey, node_hit);
+        }
+        node_hit->addEnergy(temp_tpchit->getEnergy());
+      }
+
+      if (Verbosity() > 100 && layer == print_layer)
+      {
+        std::cout << "  ihit " << ihit << " collected energy = " << eg4hit << std::endl;
+      }
+    }
+
+    temp_hitsetcontainer->Reset();
+  };
 
   int trkid = -1;
 
@@ -456,7 +573,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   // clustering loopers in the same HitSetKey surfaces in multiple passes
   for (auto hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
-    count_g4hits++;
     dump_counter++;
 
     const double t0 = std::fmax(hiter->second->get_t(0), hiter->second->get_t(1));
@@ -522,21 +638,78 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     // Instead, use a temporary map to accumulate the charge from all
     // drifted electrons, then copy to the node tree later
 
-    double eion = hiter->second->get_eion();
-    unsigned int n_electrons = gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
+    const double eion = hiter->second->get_eion();
+    unsigned int n_ionization_sources = 0;
+    unsigned int n_electrons = 0;
+    double primary_cluster_mean = 0.0;
+    bool use_primary_clusters_for_hit = false;
+
+    if (m_use_primary_cluster_ionization)
+    {
+      const double path_length_cm = hiter->second->get_path_length();
+      if (!std::isfinite(path_length_cm))
+      {
+        std::cerr
+            << Name() << ": G4 hit " << hiter->first
+            << " has no path_length property, but the persisted TPC geometry "
+               "requests primary-cluster ionization. Regenerate the G4-hit "
+               "input with the same ionization model."
+            << std::endl;
+        return Fun4AllReturnCodes::ABORTRUN;
+      }
+
+      if (path_length_cm > 0.0)
+      {
+        use_primary_clusters_for_hit = true;
+        primary_cluster_mean =
+            m_primaryIonizationModel->mean_primary_clusters(path_length_cm);
+        n_ionization_sources =
+            gsl_ran_poisson(RandomGenerator.get(), primary_cluster_mean);
+      }
+      else
+      {
+        // A zero path explicitly requests the established energy-deposit
+        // response. This is used for electrons and positrons, as well as for
+        // any other step for which path-based primary clustering is not
+        // applicable. Geantinos and zero-ionization steps produce no charge.
+        if (!(eion > 0.0))
+        {
+          continue;
+        }
+        n_electrons =
+            gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
+        n_ionization_sources = n_electrons;
+      }
+    }
+    else
+    {
+      n_electrons =
+          gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
+      n_ionization_sources = n_electrons;
+    }
     //    count_electrons += n_electrons;
 
     if (Verbosity() > 100)
     {
       std::cout << "  new hit with t0, " << t0 << " g4hitid " << hiter->first
-                << " eion " << eion << " n_electrons " << n_electrons
-                << " entry z " << hiter->second->get_z(0) << " exit z "
-                << hiter->second->get_z(1) << " avg z"
-                << (hiter->second->get_z(0) + hiter->second->get_z(1)) / 2.0
-                << std::endl;
+                << " eion " << eion
+                << " n_ionization_sources " << n_ionization_sources;
+      if (use_primary_clusters_for_hit)
+      {
+        std::cout << " primary_cluster_mean " << primary_cluster_mean;
+      }
+      else
+      {
+        std::cout << " n_electrons " << n_electrons;
+      }
+      std::cout
+          << " entry z " << hiter->second->get_z(0) << " exit z "
+          << hiter->second->get_z(1) << " avg z"
+          << (hiter->second->get_z(0) + hiter->second->get_z(1)) / 2.0
+          << std::endl;
     }
 
-    if (n_electrons == 0)
+    if (n_ionization_sources == 0)
     {
       continue;
     }
@@ -544,8 +717,13 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     if (Verbosity() > 100)
     {
       std::cout << std::endl
-                << "electron drift: g4hit " << hiter->first << " created electrons: "
-                << n_electrons << " from " << eion * 1000000 << " keV" << std::endl;
+                << "electron drift: g4hit " << hiter->first
+                << " created ionization sources: " << n_ionization_sources;
+      if (!use_primary_clusters_for_hit)
+      {
+        std::cout << " from " << eion * 1000000 << " keV";
+      }
+      std::cout << std::endl;
       std::cout << " entry x,y,z = " << hiter->second->get_x(0) << "  "
                 << hiter->second->get_y(0) << "  " << hiter->second->get_z(0)
                 << " radius " << sqrt(pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2)) << std::endl;
@@ -556,13 +734,33 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
     int notReachingReadout = 0;
     //    int notInAcceptance = 0;
-    for (unsigned int i = 0; i < n_electrons; i++)
+    unsigned int ionization_source = 0;
+    unsigned int cluster_electrons_remaining = 0;
+    double f = 0.0;
+    for (unsigned int i = 0;
+         ionization_source < n_ionization_sources ||
+         cluster_electrons_remaining > 0;
+         ++i)
     {
-      // We choose the electron starting position at random from a flat
-      // distribution along the path length the parameter t is the fraction of
-      // the distance along the path betwen entry and exit points, it has
-      // values between 0 and 1
-      const double f = gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
+      if (cluster_electrons_remaining == 0)
+      {
+        unsigned int cluster_size = 1;
+        if (use_primary_clusters_for_hit)
+        {
+          const double cluster_size_random =
+              gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
+          cluster_size = m_primaryIonizationModel->sample_cluster_size(
+              cluster_size_random);
+          n_electrons += cluster_size;
+        }
+
+        // Choose one creation point uniformly along the stored step chord.
+        // Every electron in this primary cluster shares this f value.
+        f = gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
+        cluster_electrons_remaining = cluster_size;
+        ++ionization_source;
+      }
+      --cluster_electrons_remaining;
 
       const double x_start_glob = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
       const double y_start_glob = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
@@ -756,85 +954,22 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       }
     }
 
-    // Dump the temp_hitsetcontainer to the node tree and reset it
-    //    - after every "dump_interval" g4hits
-    //    - if this is the last g4hit
-    if (dump_counter >= dump_interval || count_g4hits == g4hit->size())
+    if (dump_counter >= dump_interval)
     {
-      // std::cout << " dump_counter " << dump_counter << " count_g4hits " << count_g4hits << std::endl;
-
-      double eg4hit = 0.0;
-      TrkrHitSetContainer::ConstRange temp_hitset_range = temp_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
-      for (TrkrHitSetContainer::ConstIterator temp_hitset_iter = temp_hitset_range.first;
-           temp_hitset_iter != temp_hitset_range.second;
-           ++temp_hitset_iter)
-      {
-        // we have an itrator to one TrkrHitSet for the Tpc from the temp_hitsetcontainer
-        TrkrDefs::hitsetkey node_hitsetkey = temp_hitset_iter->first;
-        const unsigned int layer = TrkrDefs::getLayer(node_hitsetkey);
-        const int sector = TpcDefs::getSectorId(node_hitsetkey);
-        const int side = TpcDefs::getSide(node_hitsetkey);
-        if (Verbosity() > 100)
-        {
-          std::cout << "PHG4TpcElectronDrift: temp_hitset with key: " << node_hitsetkey << " in layer " << layer
-                    << " with sector " << sector << " side " << side << std::endl;
-        }
-
-        // find or add this hitset on the node tree
-        TrkrHitSetContainer::Iterator node_hitsetit = hitsetcontainer->findOrAddHitSet(node_hitsetkey);
-
-        // get all of the hits from the temporary hitset
-        TrkrHitSet::ConstRange temp_hit_range = temp_hitset_iter->second->getHits();
-        for (TrkrHitSet::ConstIterator temp_hit_iter = temp_hit_range.first;
-             temp_hit_iter != temp_hit_range.second;
-             ++temp_hit_iter)
-        {
-          TrkrDefs::hitkey temp_hitkey = temp_hit_iter->first;
-          TrkrHit *temp_tpchit = temp_hit_iter->second;
-          if (Verbosity() > 10 && layer == print_layer)
-          {
-            std::cout << "      temp_hitkey " << temp_hitkey << " layer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
-                      << " z bin " << TpcDefs::getTBin(temp_hitkey)
-                      << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << std::endl;
-
-            eg4hit += temp_tpchit->getEnergy();
-            //            ecollectedhits += temp_tpchit->getEnergy();
-            //            ncollectedhits++;
-          }
-
-          // find or add this hit to the node tree
-          TrkrHit *node_hit = node_hitsetit->second->getHit(temp_hitkey);
-          if (!node_hit)
-          {
-            // Otherwise, create a new one
-            node_hit = new TrkrHitv2();
-            node_hitsetit->second->addHitSpecificKey(temp_hitkey, node_hit);
-          }
-
-          // Either way, add the energy to it
-          node_hit->addEnergy(temp_tpchit->getEnergy());
-
-        }  // end loop over temp hits
-
-        if (Verbosity() > 100 && layer == print_layer)
-        {
-          std::cout << "  ihit " << ihit << " collected energy = " << eg4hit << std::endl;
-        }
-
-      }  // end loop over temp hitsets
-
-      // erase all entries in the temp hitsetcontainer
-      temp_hitsetcontainer->Reset();
-
-      // reset the dump counter
+      flush_temp_hitsets();
       dump_counter = 0;
-    }  // end copy of temp hitsetcontainer to node tree hitsetcontainer
+    }
 
     ++ihit;
 
     single_hitsetcontainer->Reset();
 
   }  // end loop over g4hits
+
+  // A hit near the end of the event can be followed only by G4 hits rejected
+  // by an early-continue condition above. Flush unconditionally so accepted
+  // charge is neither dropped nor carried into the next event.
+  flush_temp_hitsets();
 
   if (truth_track)
   {
