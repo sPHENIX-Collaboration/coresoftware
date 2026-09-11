@@ -1,7 +1,6 @@
 #include "TpcSeedsQA.h"
 
 #include <qautils/QAHistManagerDef.h>
-#include <qautils/QAUtil.h>
 
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
@@ -14,32 +13,37 @@
 #include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
 
+#include <trackbase/TpcDefs.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackAnalysisUtils.h>
 #include <trackbase_historic/TrackSeed.h>
-#include <trackbase_historic/TrackSeedContainer.h>
 
-#include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/Gl1RawHit.h>
+
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
+#include <TH1.h>
 #include <TH2.h>
-#include <TH2F.h>
 #include <TNtuple.h>
 #include <TProfile.h>
 #include <TProfile2D.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
+#include <cstdint>
 #include <format>
+#include <iostream>
 
 //____________________________________________________________________________..
 TpcSeedsQA::TpcSeedsQA(const std::string &name)
@@ -192,7 +196,7 @@ float TpcSeedsQA::calc_dedx(TrackSeed *tpcseed)
     PHG4TpcGeom *GeoLayer_local = g4geom->GetLayerCellGeom(layer_local);
     float thick = GeoLayer_local->get_thickness();
     float r = GeoLayer_local->get_radius();
-    float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
+    float alpha = (r * r) / (2 * r * std::abs(1.0 / tpcseed->get_qOverR()));
     float beta = std::atan(tpcseed->get_slope());
     float alphacorr = std::cos(alpha);
     if (alphacorr < 0 || alphacorr > 4)
@@ -247,7 +251,7 @@ float TpcSeedsQA::cal_track_length(SvtxTrack *track)
   return tracklength;
 }
 
-float *TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track)
+void TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track, std::array<float,10> &cluster_dedx)
 {
   // get the fully corrected cluster global positions
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
@@ -270,12 +274,8 @@ float *TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track)
   float tracklength = maxR - minR;
   if (collision_or_cosmics == true && tracklength < 25)
   {
-    float *dedxarray = new float[10];
-    for (int i = 0; i < 10; ++i)
-    {
-      dedxarray[i] = -1;
-    }
-    return dedxarray;
+    cluster_dedx.fill(-1);
+    return;
   }
 
   // move the corrected cluster positions back to the original readout surface
@@ -386,19 +386,18 @@ float *TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track)
   adc_z8 /= nclus_z8;
   adc_z9 /= nclus_z9;
 
-  float *dedxarray = new float[10];
-  dedxarray[0] = adc_z0;
-  dedxarray[1] = adc_z1;
-  dedxarray[2] = adc_z2;
-  dedxarray[3] = adc_z3;
-  dedxarray[4] = adc_z4;
-  dedxarray[5] = adc_z5;
-  dedxarray[6] = adc_z6;
-  dedxarray[7] = adc_z7;
-  dedxarray[8] = adc_z8;
-  dedxarray[9] = adc_z9;
+  cluster_dedx[0] = adc_z0;
+  cluster_dedx[1] = adc_z1;
+  cluster_dedx[2] = adc_z2;
+  cluster_dedx[3] = adc_z3;
+  cluster_dedx[4] = adc_z4;
+  cluster_dedx[5] = adc_z5;
+  cluster_dedx[6] = adc_z6;
+  cluster_dedx[7] = adc_z7;
+  cluster_dedx[8] = adc_z8;
+  cluster_dedx[9] = adc_z9;
 
-  return dedxarray;
+  return;
 }
 
 //____________________________________________________________________________..
@@ -723,7 +722,8 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
 
     if (m_ntpc > 30)
     {
-      float *cluster_dedx = cal_dedx_cluster(track);
+      std::array<float,10> cluster_dedx {};
+      cal_dedx_cluster(track, cluster_dedx);
       for (int iz = 0; iz < 10; iz++)
       {
         h_dedx_pq_z[iz]->Fill(m_charge * m_ptot, cluster_dedx[iz]);

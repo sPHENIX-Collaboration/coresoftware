@@ -1,21 +1,14 @@
 #include "InttClusterQA.h"
 
-#include <intt/CylinderGeomIntt.h>
-
-#include <g4detectors/PHG4CylinderGeomContainer.h>
-
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/InttDefs.h>
-#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainerv1.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 #include <qautils/QAHistManagerDef.h>
-#include <qautils/QAUtil.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -23,11 +16,17 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <TH1.h>
 #include <TH2.h>
 
+
+#include <cassert>
+#include <cmath>
 #include <format>
+#include <iostream>
+#include <vector>
 
 //____________________________________________________________________________..
 InttClusterQA::InttClusterQA(const std::string &name)
@@ -64,7 +63,7 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  auto *trkrHitSetContainer = findNode::getClass<TrkrHitSetContainerv1>(topNode, "TRKR_HITSET");
+  TrkrHitSetContainer *trkrHitSetContainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!trkrHitSetContainer)
   {
     std::cout << PHWHERE << "No trkrhitset container, bailing" << std::endl;
@@ -149,10 +148,6 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
 
   m_event++;
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-int InttClusterQA::EndRun(const int /*runnumber*/)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
