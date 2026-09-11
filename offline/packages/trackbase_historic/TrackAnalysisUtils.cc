@@ -358,10 +358,16 @@ namespace TrackAnalysisUtils
 
     std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
 
+    // keep track of old cluster keys
+    std::vector<std::pair<TrkrCluster*, int>> old_subsurfkey_map;
+  
     for (const auto& key : get_cluster_keys(track))
     {
       auto* clus = clustermap->findCluster(key);
 
+      // store old subsurface keys in map. They will need to be restored after the cluster mover has been called
+      old_subsurfkey_map.emplace_back(clus, clus->getSubSurfKey() );
+      
       // Fully correct the cluster positions for the crossing and all distortions
       Acts::Vector3 global = globalWrapper.getGlobalPositionDistortionCorrected(key, clus, track->get_crossing());
       // add the global positions to a vector to give to the cluster mover
@@ -457,6 +463,11 @@ namespace TrackAnalysisUtils
       residuals.local_residuals[ckey] = stateloc - loc;
       residuals.global_residuals[ckey] = stateglob - clusglob_moved;
     }
+
+    // restore old subsurface keys
+    for( const auto& [cluster,subsurfkey]:old_subsurfkey_map )
+      { cluster->setSubSurfKey(subsurfkey); }
+    
     return residuals;
   }
 

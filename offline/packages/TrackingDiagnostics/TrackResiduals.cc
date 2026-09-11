@@ -2259,11 +2259,17 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
                 << std::endl;
     }
 
+    // keep track of old cluster keys
+    std::vector<std::pair<TrkrCluster*, int>> old_subsurfkey_map;
+  
     // get the fully corrected cluster global positions
     std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
     for (const auto& ckey : get_cluster_keys(track))
     {
       auto *cluster = clustermap->findCluster(ckey);
+
+      // store old subsurface keys in map. They will need to be restored after the cluster mover has been called
+      old_subsurfkey_map.emplace_back(cluster, cluster->getSubSurfKey() );
 
       // Fully correct the cluster positions for the crossing and all distortions
       Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, m_crossing);
@@ -2337,6 +2343,10 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
       m_tree->Fill();
     }
 
+    // restore original subsurfkey to cluster
+    for( const auto& [cluster,subsurfkey]:old_subsurfkey_map )
+      { cluster->setSubSurfKey(subsurfkey); }
+      
   }  // end loop over tracks
 
   if (m_doFailedSeeds)
@@ -2647,10 +2657,15 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
     std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
     float minR = std::numeric_limits<float>::max();
     float maxR = 0;
+    // keep track of old cluster keys
+    std::vector<std::pair<TrkrCluster*, int>> old_subsurfkey_map;
     for (const auto& ckey : get_cluster_keys(track))
     {
       auto *cluster = clustermap->findCluster(ckey);
 
+      // store old subsurface keys in map. They will need to be restored after the cluster mover has been called
+      old_subsurfkey_map.emplace_back(cluster, cluster->getSubSurfKey() );
+      
       // Fully correct the cluster positions for the crossing and all distortions
       Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, m_crossing);
 
@@ -2747,5 +2762,9 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
         m_tree->Fill();
       }
     }
+    
+    // restore original subsurfkey to cluster
+    for( const auto& [cluster,subsurfkey]:old_subsurfkey_map )
+      { cluster->setSubSurfKey(subsurfkey); }
   }
 }
