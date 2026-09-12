@@ -27,6 +27,9 @@ class GenStatus
 
   std::string m_run;
   std::string m_dataset;
+  std::string m_dataset_jetqa;
+  std::string m_dataset_calofittingqa;
+  std::string extractTag(const std::string& filename, const std::string& prefix);
 
   std::unique_ptr<TProfile2D> h_CaloValid_cemc_etaphi_badChi2;
   std::unique_ptr<TProfile2D> h_CaloValid_ihcal_etaphi_badChi2;

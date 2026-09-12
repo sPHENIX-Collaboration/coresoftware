@@ -17,12 +17,36 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <vector>
 
 void GenStatus::setRunDataset(const std::string &input)
 {
   std::string basename = std::filesystem::path(input).filename().stem().string();
   m_run = basename.substr(0, basename.find('_'));
   m_dataset = basename.substr(basename.find('_') + 1, basename.size() - basename.find('_'));
+  m_dataset_jetqa.clear();
+  m_dataset_calofittingqa.clear();
+}
+
+std::string GenStatus::extractTag(const std::string &filename, const std::string &prefix)
+{
+  std::string base = std::filesystem::path(filename).filename().string();
+  size_t pos1 = base.find(prefix);
+  if (pos1 == std::string::npos)
+  {
+    return "";
+  }
+  size_t pos2 = base.find('_', pos1 + prefix.length());
+  if (pos2 == std::string::npos)
+  {
+    return "";
+  }
+  size_t pos3 = base.find('-', pos2 + 1);
+  if (pos3 == std::string::npos)
+  {
+    return "";
+  }
+  return base.substr(pos2 + 1, pos3 - pos2 - 1);
 }
 
 int GenStatus::readHists(const std::string &input)
@@ -76,9 +100,20 @@ int GenStatus::readHists(const std::string &input)
 
     ++ctr["successfully_opened_files"];
 
-    if (line.find("HIST_CALOQA") != std::string::npos)
+    if (line.find("HIST_JETQA") != std::string::npos)
     {
       outfile << line << std::endl;
+      if (m_dataset_jetqa.empty())
+      {
+        m_dataset_jetqa = extractTag(line, "HIST_JETQA_");
+      }
+    }
+    else if (line.find("HIST_CALOFITTINGQA") != std::string::npos)
+    {
+      if (m_dataset_calofittingqa.empty())
+      {
+        m_dataset_calofittingqa = extractTag(line, "HIST_CALOFITTINGQA_");
+      }
     }
 
     auto *h = dynamic_cast<TProfile2D *>(tf->Get("h_CaloValid_cemc_etaphi_badChi2"));
@@ -235,21 +270,24 @@ void GenStatus::histToCaloCDBTree(const std::string &outputfile, const std::stri
 
 void GenStatus::analyze(const std::string &outputDir)
 {
+  std::string tag_jetqa = m_dataset_jetqa.empty() ? m_dataset : m_dataset_jetqa;
+  std::string tag_calofittingqa = m_dataset_calofittingqa.empty() ? m_dataset : m_dataset_calofittingqa;
+
   std::string detector = "CEMC";
   // fracBadChi2
-  std::string payloadName = outputDir + "/" + detector + "_hotTowers_fracBadChi2" + "_" + m_dataset + "_" + m_run + ".root";
+  std::string payloadName = outputDir + "/" + detector + "_hotTowers_fracBadChi2" + "_" + tag_jetqa + "_" + m_run + ".root";
   if (h_CaloValid_cemc_etaphi_badChi2->GetEntries())
   {
     histToCaloCDBTree(payloadName, "fraction", 0, h_CaloValid_cemc_etaphi_badChi2.get());
   }
   // time
-  payloadName = outputDir + "/" + detector + "_meanTime" + "_" + m_dataset + "_" + m_run + ".root";
+  payloadName = outputDir + "/" + detector + "_meanTime" + "_" + tag_jetqa + "_" + m_run + ".root";
   if (h_CaloValid_cemc_etaphi_time_raw->GetEntries())
   {
     histToCaloCDBTree(payloadName, "time", 0, h_CaloValid_cemc_etaphi_time_raw.get());
   }
   // ZSCrossCalib
-  payloadName = outputDir + "/" + detector + "_ZSCrossCalib" + "_" + m_dataset + "_" + m_run + ".root";
+  payloadName = outputDir + "/" + detector + "_ZSCrossCalib" + "_" + tag_calofittingqa + "_" + m_run + ".root";
   if (h_CaloFittingQA_cemc_etaphi_ZScrosscalib->GetEntries())
   {
     histToCaloCDBTree(payloadName, "ratio", 0, h_CaloFittingQA_cemc_etaphi_ZScrosscalib.get());
@@ -257,19 +295,19 @@ void GenStatus::analyze(const std::string &outputDir)
 
   detector = "HCALIN";
   // fracBadChi2
-  payloadName = outputDir + "/" + detector + "_hotTowers_fracBadChi2" + "_" + m_dataset + "_" + m_run + ".root";
+  payloadName = outputDir + "/" + detector + "_hotTowers_fracBadChi2" + "_" + tag_jetqa + "_" + m_run + ".root";
   if (h_CaloValid_ihcal_etaphi_badChi2->GetEntries())
   {
     histToCaloCDBTree(payloadName, "fraction", 1, h_CaloValid_ihcal_etaphi_badChi2.get());
   }
   // time
-  payloadName = outputDir + "/" + detector + "_meanTime" + "_" + m_dataset + "_" + m_run + ".root";
+  payloadName = outputDir + "/" + detector + "_meanTime" + "_" + tag_jetqa + "_" + m_run + ".root";
   if (h_CaloValid_ihcal_etaphi_time_raw->GetEntries())
   {
     histToCaloCDBTree(payloadName, "time", 1, h_CaloValid_ihcal_etaphi_time_raw.get());
   }
   // ZSCrossCalib
-  payloadName = outputDir + "/" + detector + "_ZSCrossCalib" + "_" + m_dataset + "_" + m_run + ".root";
+  payloadName = outputDir + "/" + detector + "_ZSCrossCalib" + "_" + tag_calofittingqa + "_" + m_run + ".root";
   if (h_CaloFittingQA_ihcal_etaphi_ZScrosscalib->GetEntries())
   {
     histToCaloCDBTree(payloadName, "ratio", 1, h_CaloFittingQA_ihcal_etaphi_ZScrosscalib.get());
@@ -277,19 +315,19 @@ void GenStatus::analyze(const std::string &outputDir)
 
   detector = "HCALOUT";
   // fracBadChi2
-  payloadName = outputDir + "/" + detector + "_hotTowers_fracBadChi2" + "_" + m_dataset + "_" + m_run + ".root";
+  payloadName = outputDir + "/" + detector + "_hotTowers_fracBadChi2" + "_" + tag_jetqa + "_" + m_run + ".root";
   if (h_CaloValid_ohcal_etaphi_badChi2->GetEntries())
   {
     histToCaloCDBTree(payloadName, "fraction", 1, h_CaloValid_ohcal_etaphi_badChi2.get());
   }
   // time
-  payloadName = outputDir + "/" + detector + "_meanTime" + "_" + m_dataset + "_" + m_run + ".root";
+  payloadName = outputDir + "/" + detector + "_meanTime" + "_" + tag_jetqa + "_" + m_run + ".root";
   if (h_CaloValid_ohcal_etaphi_time_raw->GetEntries())
   {
     histToCaloCDBTree(payloadName, "time", 1, h_CaloValid_ohcal_etaphi_time_raw.get());
   }
   // ZSCrossCalib
-  payloadName = outputDir + "/" + detector + "_ZSCrossCalib" + "_" + m_dataset + "_" + m_run + ".root";
+  payloadName = outputDir + "/" + detector + "_ZSCrossCalib" + "_" + tag_calofittingqa + "_" + m_run + ".root";
   if (h_CaloFittingQA_ohcal_etaphi_ZScrosscalib->GetEntries())
   {
     histToCaloCDBTree(payloadName, "ratio", 1, h_CaloFittingQA_ohcal_etaphi_ZScrosscalib.get());
@@ -298,6 +336,9 @@ void GenStatus::analyze(const std::string &outputDir)
 
 void GenStatus::process(const std::string &input, const std::string &output)
 {
+  m_dataset_jetqa.clear();
+  m_dataset_calofittingqa.clear();
+
   std::cout << "#############################" << std::endl;
   std::cout << "Run Parameters" << std::endl;
   std::cout << "input: " << input << std::endl;
@@ -314,15 +355,10 @@ void GenStatus::process(const std::string &input, const std::string &output)
 
   std::string outputDir = datasetDir.str();
 
-  std::string hotMapFile = "EMCalHotMap_" + m_dataset + "_" + m_run + ".root";
-  std::string hotMapOutput = datasetDir.str() + "/" + hotMapFile;
-
   datasetDir << "/QA";
 
   // create output & QA directory
   std::filesystem::create_directories(datasetDir.str());
-
-  std::string hotMapOutputQA = datasetDir.str() + "/" + hotMapFile;
 
   // merges individal qa into one per run
   int ret = readHists(input);
@@ -331,17 +367,62 @@ void GenStatus::process(const std::string &input, const std::string &output)
     return;
   }
 
+  std::string tag_jetqa = m_dataset_jetqa.empty() ? m_dataset : m_dataset_jetqa;
+
+  std::string hotMapFile = "EMCalHotMap_" + tag_jetqa + "_" + m_run + ".root";
+  std::string hotMapFile_IHCAL = "HCALIN_BadTowerMap_" + tag_jetqa + "_" + m_run + ".root";
+  std::string hotMapFile_OHCAL = "HCALOUT_BadTowerMap_" + tag_jetqa + "_" + m_run + ".root";
+
+  std::string hotMapOutput = outputDir + "/" + hotMapFile;
+  std::string hotMapOutput_IHCAL = outputDir + "/" + hotMapFile_IHCAL;
+  std::string hotMapOutput_OHCAL = outputDir + "/" + hotMapFile_OHCAL;
+
+  std::string hotMapOutputQA = datasetDir.str() + "/" + hotMapFile;
+  std::string hotMapOutputQA_IHCAL = datasetDir.str() + "/" + hotMapFile_IHCAL;
+  std::string hotMapOutputQA_OHCAL = datasetDir.str() + "/" + hotMapFile_OHCAL;
+
   analyze(outputDir);
 
   std::unique_ptr<emcNoisyTowerFinder> calo = std::make_unique<emcNoisyTowerFinder>();
   calo->FindHot(m_CaloValid_list, hotMapOutput, "h_CaloValid_cemc_etaphi");
 
-  if (std::filesystem::exists(hotMapOutput))
+  std::unique_ptr<emcNoisyTowerFinder> calo_ihcal = std::make_unique<emcNoisyTowerFinder>();
+  calo_ihcal->set_ihcal();
+  calo_ihcal->Verbosity(1);
+  calo_ihcal->FindHot(m_CaloValid_list, hotMapOutput_IHCAL, "h_CaloValid_ihcal_etaphi");
+
+  std::unique_ptr<emcNoisyTowerFinder> calo_ohcal = std::make_unique<emcNoisyTowerFinder>();
+  calo_ohcal->set_ohcal();
+  calo_ohcal->Verbosity(1);
+  calo_ohcal->FindHot(m_CaloValid_list, hotMapOutput_OHCAL, "h_CaloValid_ohcal_etaphi");
+
+  struct HotMapInfo
   {
-    std::filesystem::rename(hotMapOutput, hotMapOutputQA);
-  }
-  else
+    std::string name;
+    std::string src;
+    std::string dst;
+  };
+
+  const std::vector<HotMapInfo> hotMaps = {
+      {"EMCal", hotMapOutput, hotMapOutputQA},
+      {"IHCAL", hotMapOutput_IHCAL, hotMapOutputQA_IHCAL},
+      {"OHCAL", hotMapOutput_OHCAL, hotMapOutputQA_OHCAL}
+  };
+
+  for (const auto &hotMap : hotMaps)
   {
-    std::cout << "ERROR: EMCal Hot Map FAILED to Create." << std::endl;
+    std::error_code ec;
+    if (std::filesystem::exists(hotMap.src, ec))
+    {
+      std::filesystem::rename(hotMap.src, hotMap.dst, ec);
+      if (ec)
+      {
+        std::cout << "ERROR: Failed to move " << hotMap.name << " Hot Map: " << ec.message() << std::endl;
+      }
+    }
+    else
+    {
+      std::cout << "ERROR: " << hotMap.name << " Hot Map FAILED to Create." << std::endl;
+    }
   }
 }
