@@ -15,6 +15,8 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 
+#include <trackbase/ActsGeometry.h>
+
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -147,6 +149,13 @@ double Tpc_PolyTrackReco::calc_dedx(const std::vector<const Tpc_PolyCluster*>& c
 
 int Tpc_PolyTrackReco::getNodes(PHCompositeNode* topNode)
 {
+  m_geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if (!m_geometry)
+    {
+      std::cerr << Name() << "::getNodes - missing ActsGeometry" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  
   m_clusters = findNode::getClass<Tpc_PolyClusterContainer>(topNode, m_inputNodeName);
   if (!m_clusters)
   {
@@ -288,9 +297,17 @@ int Tpc_PolyTrackReco::process_event(PHCompositeNode* topNode)
         continue;
       }
       Tpc_FittingTools::Point fp;
+      Acts::Vector3 fp_envelope(cluster->get_centroid_x(), cluster->get_centroid_y(), cluster->get_centroid_z());
+      const Acts::Vector3 fp_sphenix =  m_geometry->transformTpcEnvelopeToWorld(fp_envelope);
+
+      fp.x = fp_sphenix.x();
+      fp.y = fp_sphenix.y();
+      fp.z = fp_sphenix.z();
+      /*
       fp.x = cluster->get_centroid_x();
       fp.y = cluster->get_centroid_y();
       fp.z = cluster->get_centroid_z();
+      */
       if (std::isfinite(fp.x) && std::isfinite(fp.y) && std::isfinite(fp.z))
       {
         fit_points.push_back(fp);
