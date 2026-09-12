@@ -15,6 +15,7 @@ class IdealPadMap;
 class PHCompositeNode;
 class Tpc_PolyCluster;
 class Tpc_PolyClusterContainer;
+class ActsGeometry;
 
 class Tpc_PolyTrackReco : public SubsysReco
 {
@@ -56,5 +57,6 @@ class Tpc_PolyTrackReco : public SubsysReco
   unsigned int m_event{0};
   double m_magneticFieldTesla{1.4};
   FitMode m_fitMode{FitMode::Helix};
+  ActsGeometry *m_geometry{nullptr};
 };
 #endif
