@@ -102,9 +102,9 @@ double Tpc_PolyTrackReco::calc_dedx(const std::vector<const Tpc_PolyCluster*>& c
       continue;
     }
 
-    const double x = cluster->get_centroid_x();
-    const double y = cluster->get_centroid_y();
-    const double r = std::hypot(x, y);
+    Acts::Vector3 xyz(cluster->get_centroid_x(), cluster->get_centroid_y(), cluster->get_centroid_z());
+    const Acts::Vector3 xyz_sphenix =  m_geometry->transformTpcEnvelopeToWorld(xyz);
+    const double r = std::hypot(xyz_sphenix.x(), xyz_sphenix.y());
     if (!std::isfinite(r))
     {
       continue;

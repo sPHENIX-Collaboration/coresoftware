@@ -57,6 +57,6 @@ class Tpc_PolyTrackReco : public SubsysReco
   unsigned int m_event{0};
   double m_magneticFieldTesla{1.4};
   FitMode m_fitMode{FitMode::Helix};
-  ActsGeometry *m_geometry;
+  ActsGeometry *m_geometry{nullptr};
 };
 #endif
