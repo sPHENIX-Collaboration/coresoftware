@@ -327,9 +327,10 @@ void TpcPolyClusterTrkrClusterConverter::buildMovedClusterMap()
     const Acts::Vector3 centroid(cluster->get_centroid_x(),
                                  cluster->get_centroid_y(),
                                  cluster->get_centroid_z());
-    m_movedGlobals[cluskey] = {{centroid.x(), centroid.y(), centroid.z()}};
 
     const Acts::Vector3 sphenix_centroid =  m_geometry->transformTpcEnvelopeToWorld(centroid);
+    m_movedGlobals[cluskey] = {{sphenix_centroid.x(), sphenix_centroid.y(), sphenix_centroid.z()}};
+    
     clusters_by_track[track_iter->first].emplace_back(cluskey, sphenix_centroid);
   }
 
