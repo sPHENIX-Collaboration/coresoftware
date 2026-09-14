@@ -95,14 +95,6 @@ TpcCrossingFinder::TpcCrossingFinder(const std::string& name)
 {
 }
 
-TpcCrossingFinder::~TpcCrossingFinder()
-{
-  delete m_idealPadMap;
-  m_idealPadMap = nullptr;
-  delete m_garfield;
-  m_garfield = nullptr;
-}
-
 int TpcCrossingFinder::InitRun(PHCompositeNode* topNode)
 {
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) { return Fun4AllReturnCodes::ABORTRUN;
@@ -114,15 +106,16 @@ int TpcCrossingFinder::InitRun(PHCompositeNode* topNode)
     m_event = 0;
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  delete m_idealPadMap;
-  m_idealPadMap = new IdealPadMap();
+
+  // initalize ideal pad map
+  m_idealPadMap.reset( new IdealPadMap );
   if (m_idealPadMap->load_from_cdb(Verbosity()) != 0 || !m_idealPadMap->is_loaded())
   {
     std::cerr << Name() << "::InitRun - failed to load IdealPadMap" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4TpcGeom* layergeom = m_geomContainerTpc->GetLayerCellGeom(20);
+  auto* layergeom = m_geomContainerTpc->GetLayerCellGeom(20);
   if (layergeom)
   {
     const double rot_x = layergeom->get_rot_x();
@@ -138,9 +131,7 @@ int TpcCrossingFinder::InitRun(PHCompositeNode* topNode)
     }
   }
 
-  delete m_garfield;
   const std::string electricFieldMap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_EField");
-
   const auto kefffile = CDBInterface::instance()->getUrl("Tpc_PolyClusterizer_kEff");
 
   if (!kefffile.empty())
@@ -151,8 +142,9 @@ int TpcCrossingFinder::InitRun(PHCompositeNode* topNode)
     m_kEffSide1 = keffcdbtree->GetSingleFloatValue("keffside1");
  }
 
-  m_garfield = new PHGarfield(Name() + "_PHGarfield", electricFieldMap, m_kEffSide0, m_kEffSide1);
-  configure_garfield(m_garfield);
+  // initialize garfield
+  m_garfield.reset( new PHGarfield(Name() + "_PHGarfield", electricFieldMap, m_kEffSide0, m_kEffSide1));
+  configure_garfield(m_garfield.get());
   if (m_garfield->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     std::cerr << Name() << "::InitRun - PHGarfield InitRun failed" << std::endl;

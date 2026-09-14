@@ -10,6 +10,7 @@
 #include <array>
 #include <limits>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <utility>
@@ -30,7 +31,6 @@ class TpcCrossingFinder : public SubsysReco
 {
  public:
   explicit TpcCrossingFinder(const std::string& name = "TpcCrossingFinder");
-  ~TpcCrossingFinder() override;
 
   int InitRun(PHCompositeNode*) override;
   int process_event(PHCompositeNode*) override;
@@ -194,8 +194,8 @@ class TpcCrossingFinder : public SubsysReco
   TrkrClusterContainer* m_clusterMap {nullptr};
   PHG4TpcGeomContainer* m_geomContainerTpc {nullptr};
   SvtxVertexMap* m_vertexMap {nullptr};
-  IdealPadMap* m_idealPadMap {nullptr};
-  PHGarfield* m_garfield {nullptr};
+  std::unique_ptr<IdealPadMap> m_idealPadMap {};
+  std::unique_ptr<PHGarfield> m_garfield {};
 
   std::array<DriftPolyline, 48 * 2 * 12 * NPhiSamples> m_driftLookup;
   unsigned int m_event {0};
