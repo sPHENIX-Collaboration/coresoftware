@@ -367,6 +367,16 @@ void GenStatus::process(const std::string &input, const std::string &output)
     return;
   }
 
+  analyze(outputDir);
+
+  if (!m_dataset_jetqa.empty())
+  {
+    generateHotMaps(outputDir, datasetDir.str());
+  }
+}
+
+void GenStatus::generateHotMaps(const std::string &outputDir, const std::string &qaDir)
+{
   std::string tag_jetqa = m_dataset_jetqa.empty() ? m_dataset : m_dataset_jetqa;
 
   std::string hotMapFile = "EMCalHotMap_" + tag_jetqa + "_" + m_run + ".root";
@@ -377,55 +387,50 @@ void GenStatus::process(const std::string &input, const std::string &output)
   std::string hotMapOutput_IHCAL = outputDir + "/" + hotMapFile_IHCAL;
   std::string hotMapOutput_OHCAL = outputDir + "/" + hotMapFile_OHCAL;
 
-  std::string hotMapOutputQA = datasetDir.str() + "/" + hotMapFile;
-  std::string hotMapOutputQA_IHCAL = datasetDir.str() + "/" + hotMapFile_IHCAL;
-  std::string hotMapOutputQA_OHCAL = datasetDir.str() + "/" + hotMapFile_OHCAL;
+  std::string hotMapOutputQA = qaDir + "/" + hotMapFile;
+  std::string hotMapOutputQA_IHCAL = qaDir + "/" + hotMapFile_IHCAL;
+  std::string hotMapOutputQA_OHCAL = qaDir + "/" + hotMapFile_OHCAL;
 
-  analyze(outputDir);
+  std::unique_ptr<emcNoisyTowerFinder> calo = std::make_unique<emcNoisyTowerFinder>();
+  calo->FindHot(m_CaloValid_list, hotMapOutput, "h_CaloValid_cemc_etaphi");
 
-  if (!m_dataset_jetqa.empty())
+  std::unique_ptr<emcNoisyTowerFinder> calo_ihcal = std::make_unique<emcNoisyTowerFinder>();
+  calo_ihcal->set_ihcal();
+  calo_ihcal->Verbosity(1);
+  calo_ihcal->FindHot(m_CaloValid_list, hotMapOutput_IHCAL, "h_CaloValid_ihcal_etaphi");
+
+  std::unique_ptr<emcNoisyTowerFinder> calo_ohcal = std::make_unique<emcNoisyTowerFinder>();
+  calo_ohcal->set_ohcal();
+  calo_ohcal->Verbosity(1);
+  calo_ohcal->FindHot(m_CaloValid_list, hotMapOutput_OHCAL, "h_CaloValid_ohcal_etaphi");
+
+  struct HotMapInfo
   {
-    std::unique_ptr<emcNoisyTowerFinder> calo = std::make_unique<emcNoisyTowerFinder>();
-    calo->FindHot(m_CaloValid_list, hotMapOutput, "h_CaloValid_cemc_etaphi");
+    std::string name;
+    std::string src;
+    std::string dst;
+  };
 
-    std::unique_ptr<emcNoisyTowerFinder> calo_ihcal = std::make_unique<emcNoisyTowerFinder>();
-    calo_ihcal->set_ihcal();
-    calo_ihcal->Verbosity(1);
-    calo_ihcal->FindHot(m_CaloValid_list, hotMapOutput_IHCAL, "h_CaloValid_ihcal_etaphi");
+  const std::vector<HotMapInfo> hotMaps = {
+      {"EMCal", hotMapOutput, hotMapOutputQA},
+      {"IHCAL", hotMapOutput_IHCAL, hotMapOutputQA_IHCAL},
+      {"OHCAL", hotMapOutput_OHCAL, hotMapOutputQA_OHCAL}
+  };
 
-    std::unique_ptr<emcNoisyTowerFinder> calo_ohcal = std::make_unique<emcNoisyTowerFinder>();
-    calo_ohcal->set_ohcal();
-    calo_ohcal->Verbosity(1);
-    calo_ohcal->FindHot(m_CaloValid_list, hotMapOutput_OHCAL, "h_CaloValid_ohcal_etaphi");
-
-    struct HotMapInfo
+  for (const auto &hotMap : hotMaps)
+  {
+    std::error_code ec;
+    if (std::filesystem::exists(hotMap.src, ec))
     {
-      std::string name;
-      std::string src;
-      std::string dst;
-    };
-
-    const std::vector<HotMapInfo> hotMaps = {
-        {"EMCal", hotMapOutput, hotMapOutputQA},
-        {"IHCAL", hotMapOutput_IHCAL, hotMapOutputQA_IHCAL},
-        {"OHCAL", hotMapOutput_OHCAL, hotMapOutputQA_OHCAL}
-    };
-
-    for (const auto &hotMap : hotMaps)
+      std::filesystem::rename(hotMap.src, hotMap.dst, ec);
+      if (ec)
+      {
+        std::cout << "ERROR: Failed to move " << hotMap.name << " Hot Map: " << ec.message() << std::endl;
+      }
+    }
+    else
     {
-      std::error_code ec;
-      if (std::filesystem::exists(hotMap.src, ec))
-      {
-        std::filesystem::rename(hotMap.src, hotMap.dst, ec);
-        if (ec)
-        {
-          std::cout << "ERROR: Failed to move " << hotMap.name << " Hot Map: " << ec.message() << std::endl;
-        }
-      }
-      else
-      {
-        std::cout << "ERROR: " << hotMap.name << " Hot Map FAILED to Create." << std::endl;
-      }
+      std::cout << "ERROR: " << hotMap.name << " Hot Map FAILED to Create." << std::endl;
     }
   }
 }
