@@ -383,46 +383,49 @@ void GenStatus::process(const std::string &input, const std::string &output)
 
   analyze(outputDir);
 
-  std::unique_ptr<emcNoisyTowerFinder> calo = std::make_unique<emcNoisyTowerFinder>();
-  calo->FindHot(m_CaloValid_list, hotMapOutput, "h_CaloValid_cemc_etaphi");
-
-  std::unique_ptr<emcNoisyTowerFinder> calo_ihcal = std::make_unique<emcNoisyTowerFinder>();
-  calo_ihcal->set_ihcal();
-  calo_ihcal->Verbosity(1);
-  calo_ihcal->FindHot(m_CaloValid_list, hotMapOutput_IHCAL, "h_CaloValid_ihcal_etaphi");
-
-  std::unique_ptr<emcNoisyTowerFinder> calo_ohcal = std::make_unique<emcNoisyTowerFinder>();
-  calo_ohcal->set_ohcal();
-  calo_ohcal->Verbosity(1);
-  calo_ohcal->FindHot(m_CaloValid_list, hotMapOutput_OHCAL, "h_CaloValid_ohcal_etaphi");
-
-  struct HotMapInfo
+  if (!m_dataset_jetqa.empty())
   {
-    std::string name;
-    std::string src;
-    std::string dst;
-  };
+    std::unique_ptr<emcNoisyTowerFinder> calo = std::make_unique<emcNoisyTowerFinder>();
+    calo->FindHot(m_CaloValid_list, hotMapOutput, "h_CaloValid_cemc_etaphi");
 
-  const std::vector<HotMapInfo> hotMaps = {
-      {"EMCal", hotMapOutput, hotMapOutputQA},
-      {"IHCAL", hotMapOutput_IHCAL, hotMapOutputQA_IHCAL},
-      {"OHCAL", hotMapOutput_OHCAL, hotMapOutputQA_OHCAL}
-  };
+    std::unique_ptr<emcNoisyTowerFinder> calo_ihcal = std::make_unique<emcNoisyTowerFinder>();
+    calo_ihcal->set_ihcal();
+    calo_ihcal->Verbosity(1);
+    calo_ihcal->FindHot(m_CaloValid_list, hotMapOutput_IHCAL, "h_CaloValid_ihcal_etaphi");
 
-  for (const auto &hotMap : hotMaps)
-  {
-    std::error_code ec;
-    if (std::filesystem::exists(hotMap.src, ec))
+    std::unique_ptr<emcNoisyTowerFinder> calo_ohcal = std::make_unique<emcNoisyTowerFinder>();
+    calo_ohcal->set_ohcal();
+    calo_ohcal->Verbosity(1);
+    calo_ohcal->FindHot(m_CaloValid_list, hotMapOutput_OHCAL, "h_CaloValid_ohcal_etaphi");
+
+    struct HotMapInfo
     {
-      std::filesystem::rename(hotMap.src, hotMap.dst, ec);
-      if (ec)
+      std::string name;
+      std::string src;
+      std::string dst;
+    };
+
+    const std::vector<HotMapInfo> hotMaps = {
+        {"EMCal", hotMapOutput, hotMapOutputQA},
+        {"IHCAL", hotMapOutput_IHCAL, hotMapOutputQA_IHCAL},
+        {"OHCAL", hotMapOutput_OHCAL, hotMapOutputQA_OHCAL}
+    };
+
+    for (const auto &hotMap : hotMaps)
+    {
+      std::error_code ec;
+      if (std::filesystem::exists(hotMap.src, ec))
       {
-        std::cout << "ERROR: Failed to move " << hotMap.name << " Hot Map: " << ec.message() << std::endl;
+        std::filesystem::rename(hotMap.src, hotMap.dst, ec);
+        if (ec)
+        {
+          std::cout << "ERROR: Failed to move " << hotMap.name << " Hot Map: " << ec.message() << std::endl;
+        }
       }
-    }
-    else
-    {
-      std::cout << "ERROR: " << hotMap.name << " Hot Map FAILED to Create." << std::endl;
+      else
+      {
+        std::cout << "ERROR: " << hotMap.name << " Hot Map FAILED to Create." << std::endl;
+      }
     }
   }
 }
