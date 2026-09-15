@@ -133,9 +133,9 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   }
 
   CDBTTree *cdbttree_globalHotMap = nullptr;
-  if (m_doGlobalHotMap && m_detector == "CEMC")
+  if (m_doGlobalHotMap)
   {
-    m_calibName_globalHotMap = "CEMC_GlobalBadTowerMap";
+    m_calibName_globalHotMap = m_detector + "_GlobalBadTowerMap";
 
     std::string calibdir_globalHotMap;
     if (!m_directURL_globalHotMap.empty())
@@ -164,10 +164,6 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
         }
       }
     }
-  }
-  else
-  {
-    m_doGlobalHotMap = false;
   }
 
   if (Verbosity() > 0)
