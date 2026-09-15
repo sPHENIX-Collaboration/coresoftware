@@ -132,15 +132,54 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  if (Verbosity() > 0)
+  CDBTTree *cdbttree_globalHotMap = nullptr;
+  if (m_doGlobalHotMap && m_detector == "CEMC")
   {
-    std::cout << "CaloTowerStatus::Init " << m_detector << "  doing hotBadChi2=" << std::boolalpha << m_doHotChi2 << " doing hot map=" << std::boolalpha << m_doHotMap << std::endl;
+    m_calibName_globalHotMap = "CEMC_GlobalBadTowerMap";
+
+    std::string calibdir_globalHotMap;
+    if (!m_directURL_globalHotMap.empty())
+    {
+      calibdir_globalHotMap = m_directURL_globalHotMap;
+      std::cout << "CaloTowerStatus::InitRun: Using direct URL override for global hot map: " << calibdir_globalHotMap << std::endl;
+      cdbttree_globalHotMap = new CDBTTree(calibdir_globalHotMap);
+    }
+    else
+    {
+      calibdir_globalHotMap = CDBInterface::instance()->getUrl(m_calibName_globalHotMap);
+      if (!calibdir_globalHotMap.empty())
+      {
+        cdbttree_globalHotMap = new CDBTTree(calibdir_globalHotMap);
+        if (Verbosity() > 1)
+        {
+          std::cout << "CaloTowerStatus::Init " << m_detector << " global hot map found " << m_calibName_globalHotMap << " Doing global isHot" << std::endl;
+        }
+      }
+      else
+      {
+        m_doGlobalHotMap = false;
+        if (Verbosity() > 1)
+        {
+          std::cout << "CaloTowerStatus::InitRun global hot map info, " << m_calibName_globalHotMap << " not found, not doing global isHot" << std::endl;
+        }
+      }
+    }
+  }
+  else
+  {
+    m_doGlobalHotMap = false;
   }
 
-  LoadCalib(cdbttree_chi2, cdbttree_hotMap);
+  if (Verbosity() > 0)
+  {
+    std::cout << "CaloTowerStatus::Init " << m_detector << "  doing hotBadChi2=" << std::boolalpha << m_doHotChi2 << " doing hot map=" << std::boolalpha << m_doHotMap << " doing global hot map=" << std::boolalpha << m_doGlobalHotMap << std::endl;
+  }
+
+  LoadCalib(cdbttree_chi2, cdbttree_hotMap, cdbttree_globalHotMap);
 
   delete cdbttree_chi2;
   delete cdbttree_hotMap;
+  delete cdbttree_globalHotMap;
 
   if (Verbosity() > 0)
   {
@@ -149,7 +188,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void CaloTowerStatus::LoadCalib(CDBTTree *cdbttree_chi2, CDBTTree *cdbttree_hotMap)
+void CaloTowerStatus::LoadCalib(CDBTTree *cdbttree_chi2, CDBTTree *cdbttree_hotMap, CDBTTree *cdbttree_globalHotMap)
 {
   unsigned int ntowers = m_raw_towers->size();
   m_cdbInfo_vec.resize(ntowers);
@@ -171,6 +210,10 @@ void CaloTowerStatus::LoadCalib(CDBTTree *cdbttree_chi2, CDBTTree *cdbttree_hotM
       {
         m_cdbInfo_vec[channel].z_score = cdbttree_hotMap->GetFloatValue(key, m_fieldname_z_score);
       }
+    }
+    if (m_doGlobalHotMap && cdbttree_globalHotMap)
+    {
+      m_cdbInfo_vec[channel].globalHotMap_val = cdbttree_globalHotMap->GetIntValue(key, m_fieldname_hotMap);
     }
   }
 }
@@ -228,6 +271,10 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
       {
         m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
       }
+    }
+    if (m_doGlobalHotMap && m_cdbInfo_vec[channel].globalHotMap_val > 0)
+    {
+      m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
     if (chi2 > std::min(std::max(badChi2_treshold_const, adc * adc * badChi2_treshold_quadratic), badChi2_treshold_max))
     {
