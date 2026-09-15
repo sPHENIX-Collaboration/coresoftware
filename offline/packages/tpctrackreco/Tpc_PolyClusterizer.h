@@ -198,7 +198,7 @@ class Tpc_PolyClusterizer : public SubsysReco
   double m_kEffSide0{0.0};
   double m_kEffSide1{0.0};
   double m_cmVoltageDefault{375.0};
-  bool use_survey_geometry = false;
+  bool use_survey_geometry = true;
   bool m_kEffSide0Override{false};
   bool m_kEffSide1Override{false};
   bool m_field3DCoefficientFileOverride{false};
