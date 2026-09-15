@@ -108,13 +108,6 @@ int TpcPolyClusterTrkrClusterConverter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_tpcGeomContainer = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
-  if (!m_tpcGeomContainer)
-  {
-    std::cerr << Name() << "::getNodes - missing TPCGEOMCONTAINER" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -180,12 +173,10 @@ bool TpcPolyClusterTrkrClusterConverter::isAcceptedTrack(const Tpc_PolyTrack* tr
 
 bool TpcPolyClusterTrkrClusterConverter::initializeClusterMover(PHCompositeNode* topNode)
 {
-  if (!m_geometry || !m_tpcGeomContainer || !topNode) { return false;
-}
+  if (!m_geometry || !topNode) { return false;}
 
-  m_clusterMover = std::make_unique<TpcClusterMover>();
-  m_clusterMover->set_verbosity(Verbosity());
-  m_clusterMover->initialize_geometry(m_tpcGeomContainer, m_geometry, topNode);
+  m_clusterMover.set_verbosity(Verbosity());
+  m_clusterMover.initialize_geometry(m_geometry, topNode);
   return true;
 }
 
@@ -306,8 +297,7 @@ void TpcPolyClusterTrkrClusterConverter::buildMovedClusterMap()
 {
   m_movedGlobals.clear();
   m_seedSubSurfKeys.clear();
-  if (!m_polyClusters || !m_clusterMover) { return;
-}
+  if (!m_polyClusters ) { return; }
 
   std::map<unsigned int, std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>> clusters_by_track;
   for (unsigned int icluster = 0; icluster < m_polyClusters->size(); ++icluster)
@@ -336,7 +326,7 @@ void TpcPolyClusterTrkrClusterConverter::buildMovedClusterMap()
 
   for (const auto& track_clusters : clusters_by_track)
   {
-    const auto moved_globals = m_clusterMover->processTrack(track_clusters.second);
+    const auto moved_globals = m_clusterMover.processTrack(track_clusters.second);
     for (const auto& [cluskey, moved_global] : moved_globals)
     {
       m_movedGlobals[cluskey] = {{moved_global.x(), moved_global.y(), moved_global.z()}};
@@ -454,7 +444,7 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
 
 int TpcPolyClusterTrkrClusterConverter::process_event(PHCompositeNode* topNode)
 {
-  if (!m_polyClusters || !m_polyTracks || !m_outputClusters || !m_crossingDecisions || !m_geometry || !m_tpcGeomContainer || !m_clusterMover)
+  if (!m_polyClusters || !m_polyTracks || !m_outputClusters || !m_crossingDecisions || !m_geometry)
   {
     if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK ||
         createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK ||

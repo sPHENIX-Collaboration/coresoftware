@@ -21,8 +21,6 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedHelper.h>
 
-#include <g4detectors/PHG4TpcGeomContainer.h>
-
 #include <micromegas/MicromegasDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -148,8 +146,6 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
     m_fitCfg.fit->outlierFinder(m_outlierFinder);
   }
 
-  _tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
-
   if (m_actsEvaluator)
   {
     m_evaluator = std::make_unique<ActsEvaluator>(m_evalname);
@@ -170,7 +166,7 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
   }
 
   m_topNode = topNode;
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -299,7 +295,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     SourceLinkVec sourceLinks;
 
     MakeSourceLinks makeSourceLinks;
-    makeSourceLinks.initialize(_tpccellgeo, m_tGeometry, m_topNode);
+    makeSourceLinks.initialize(m_tGeometry, m_topNode);
     makeSourceLinks.setVerbosity(Verbosity());
     makeSourceLinks.set_pp_mode(false);
 
@@ -385,7 +381,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     }
 
     int charge = getCharge(tpcseed, sorted_positions);
-    
+
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
         position);
     auto actsFourPos = Acts::Vector4(position(0), position(1),
@@ -412,7 +408,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       m_px = momentum(0);
       m_py = momentum(1);
       m_pz = momentum(2);
-      
+
       m_charge = charge;
       fillVectors(tpcseed, siseed);
       m_x.push_back(position.x() / Acts::UnitConstants::cm);

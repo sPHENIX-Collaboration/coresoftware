@@ -31,7 +31,6 @@ class TrackSeed;
 class TrackSeedContainer;
 class TrkrClusterContainer;
 class SvtxAlignmentStateMap;
-class PHG4TpcGeomContainer;
 class PHCompositeNode;
 
 class TFile;
@@ -207,7 +206,6 @@ class PHCosmicsTrkFitter : public SubsysReco
   std::vector<const Acts::Surface*> m_materialSurfaces = {};
 
   bool m_zeroField = false;
-  PHG4TpcGeomContainer* _tpccellgeo = nullptr;
 
   bool m_dumpSeeds = false;
 

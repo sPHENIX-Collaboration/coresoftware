@@ -13,7 +13,6 @@
 #include <trackbase/TrkrClusterContainer.h>
 
 #include <g4detectors/PHG4TpcGeom.h>
-#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -36,57 +35,21 @@ namespace
   }
 }  // namespace
 
-TpcClusterMover::TpcClusterMover()
-  : inner_tpc_spacing((mid_tpc_min_radius - inner_tpc_min_radius) / 16.0)
-  , mid_tpc_spacing((outer_tpc_min_radius - mid_tpc_min_radius) / 16.0)
-  , outer_tpc_spacing((outer_tpc_max_radius - outer_tpc_min_radius) / 16.0)
+void TpcClusterMover::initialize_geometry(ActsGeometry* tGeometry, PHCompositeNode* topNode)
 {
-  // initialize layer radii
 
-  for (int i = 0; i < 16; ++i)
+  if (!tGeometry)
   {
-    layer_radius[i] = inner_tpc_min_radius + (double) i * inner_tpc_spacing + 0.5 * inner_tpc_spacing;
-  }
-  for (int i = 0; i < 16; ++i)
-  {
-    layer_radius[i + 16] = mid_tpc_min_radius + (double) i * mid_tpc_spacing + 0.5 * mid_tpc_spacing;
-  }
-  for (int i = 0; i < 16; ++i)
-  {
-    layer_radius[i + 32] = outer_tpc_min_radius + (double) i * outer_tpc_spacing + 0.5 * outer_tpc_spacing;
-  }
-}
-
-void TpcClusterMover::initialize_geometry(PHG4TpcGeomContainer* cellgeo, ActsGeometry* tGeometry, PHCompositeNode* topNode)
-{
-  _topNode = topNode;
-
-  if (_verbosity > 0)
-  {
-    std::cout << "TpcClusterMover: Getting ActsGeometry, and getting layer radii for Tpc from cell geometry object" << std::endl;
-  }
-
-  if (!tGeometry || !cellgeo)
-  {
-    std::cout << PHWHERE << " Failed to get ActsGeometry or TPC cell geometry, cannot continue - quit!" << std::endl;
+    std::cout << PHWHERE << " Failed to get ActsGeometry cannot continue - quit!" << std::endl;
     exit(1);
   }
 
+  _topNode = topNode;
   _tGeometry = tGeometry;
-
-  int layer = 0;
-  PHG4TpcGeomContainer::ConstRange layerrange = cellgeo->get_begin_end();
-  for (PHG4TpcGeomContainer::ConstIterator layeriter = layerrange.first;
-       layeriter != layerrange.second;
-       ++layeriter)
-  {
-    layer_radius[layer] = layeriter->second->get_radius();
-    layer++;
-  }
 }
 
 //____________________________________________________________________________..
-std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::processTrack(const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_in)
+std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::processTrack(const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_in) const
 {
   // Get the global positions of the TPC clusters for this track, already corrected for distortions, and move them to the surfaces
   // The input object contains all clusters for the track in world coordinates
@@ -103,7 +66,7 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
     }
   }
 
-  auto surfMaps = _tGeometry->maps();
+  const auto& surfMaps = _tGeometry->maps();
 
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_moved;
 
@@ -190,7 +153,7 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
 	// sskey changed, update the subsurface in the cluster key
 	cluster->setSubSurfKey(new_subsurfkey);
 	global_moved.emplace_back(cluskey, global_new);
-    
+
 	// check
 	TrkrDefs::subsurfkey check_subsurfkey = new_subsurfkey;
 	TrkrDefs::hitsetkey hkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
@@ -208,14 +171,14 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
 
 bool TpcClusterMover::get_moved_position(TrkrDefs::cluskey cluskey, TrkrCluster* cluster, std::vector<float>& fitpars, Acts::Vector3& global, Acts::Vector3& global_new, TrkrDefs::subsurfkey& new_subsurfkey) const
 {
-  auto surfMaps = _tGeometry->maps();
+  const auto& surfMaps = _tGeometry->maps();
   auto surface = surfMaps.getSurface(cluskey, cluster);
   if (!surface)
   {
     return false;
   }
 
-  Acts::Vector3 surf_intercept = TrackFitUtils::get_helix_surface_intersection(surface, fitpars, global, _tGeometry);
+  const Acts::Vector3 surf_intercept = TrackFitUtils::get_helix_surface_intersection(surface, fitpars, global, _tGeometry);
 
   // get circle position at cluster radius
   double cluster_radius = sqrt(global[0] * global[0] + global[1] * global[1]);
@@ -245,10 +208,10 @@ bool TpcClusterMover::get_moved_position(TrkrDefs::cluskey cluskey, TrkrCluster*
   global_new(1) = ynew;
   global_new(2) = znew;
 
-  // get the subsurface key for this new position and return it 
+  // get the subsurface key for this new position and return it
   TrkrDefs::hitsetkey hkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
   auto new_surf = _tGeometry->get_tpc_surface_from_coords(hkey, global_new, new_subsurfkey);
-  
+
   return true;
 }
 

@@ -18,7 +18,6 @@
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
 
-#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <Acts/EventData/ParticleHypothesis.hpp>
 #include <Acts/EventData/SourceLink.hpp>
@@ -50,12 +49,12 @@ namespace
 
 }  // namespace
 
-void MakeSourceLinks::initialize(PHG4TpcGeomContainer* cellgeo, ActsGeometry *tGeometry, PHCompositeNode *topNode)
+void MakeSourceLinks::initialize(ActsGeometry *tGeometry, PHCompositeNode *topNode)
 {
   // get the TPC layer radii from the geometry object
-  if (cellgeo && tGeometry && topNode)
+  if (tGeometry && topNode)
   {
-    _clusterMover.initialize_geometry(cellgeo, tGeometry, topNode);
+    _clusterMover.initialize_geometry(tGeometry, topNode);
     _clusterMover.set_verbosity(m_verbosity);
   }
 }
