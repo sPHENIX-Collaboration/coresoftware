@@ -17,6 +17,7 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterContainerv4.h>
@@ -107,13 +108,6 @@ int TpcPolyClusterTrkrClusterConverter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_tpcGeomContainer = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
-  if (!m_tpcGeomContainer)
-  {
-    std::cerr << Name() << "::getNodes - missing TPCGEOMCONTAINER" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -179,12 +173,10 @@ bool TpcPolyClusterTrkrClusterConverter::isAcceptedTrack(const Tpc_PolyTrack* tr
 
 bool TpcPolyClusterTrkrClusterConverter::initializeClusterMover(PHCompositeNode* topNode)
 {
-  if (!m_geometry || !m_tpcGeomContainer || !topNode) { return false;
-}
+  if (!m_geometry || !topNode) { return false;}
 
-  m_clusterMover = std::make_unique<TpcClusterMover>();
-  m_clusterMover->set_verbosity(Verbosity());
-  m_clusterMover->initialize_geometry(m_tpcGeomContainer, m_geometry, topNode);
+  m_clusterMover.set_verbosity(Verbosity());
+  m_clusterMover.initialize_geometry(m_geometry, topNode);
   return true;
 }
 
@@ -283,8 +275,10 @@ bool TpcPolyClusterTrkrClusterConverter::seedOutputCluster(const Tpc_PolyCluster
   if (!std::isfinite(centroid.x()) || !std::isfinite(centroid.y()) || !std::isfinite(centroid.z())) { return false;
 }
 
+  const Acts::Vector3 sphenix_centroid =  m_geometry->transformTpcEnvelopeToWorld(centroid);
+  
   TrkrDefs::subsurfkey subsurfkey = 0;
-  Surface surface = m_geometry->get_tpc_surface_from_coords(hitsetkey, centroid, subsurfkey);
+  Surface surface = m_geometry->get_tpc_surface_from_coords(hitsetkey, sphenix_centroid, subsurfkey);
   if (!surface)
   {
     subsurfkey = 0;
@@ -303,8 +297,7 @@ void TpcPolyClusterTrkrClusterConverter::buildMovedClusterMap()
 {
   m_movedGlobals.clear();
   m_seedSubSurfKeys.clear();
-  if (!m_polyClusters || !m_clusterMover) { return;
-}
+  if (!m_polyClusters ) { return; }
 
   std::map<unsigned int, std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>> clusters_by_track;
   for (unsigned int icluster = 0; icluster < m_polyClusters->size(); ++icluster)
@@ -324,13 +317,16 @@ void TpcPolyClusterTrkrClusterConverter::buildMovedClusterMap()
     const Acts::Vector3 centroid(cluster->get_centroid_x(),
                                  cluster->get_centroid_y(),
                                  cluster->get_centroid_z());
-    m_movedGlobals[cluskey] = {{centroid.x(), centroid.y(), centroid.z()}};
-    clusters_by_track[track_iter->first].emplace_back(cluskey, centroid);
+
+    const Acts::Vector3 sphenix_centroid =  m_geometry->transformTpcEnvelopeToWorld(centroid);
+    m_movedGlobals[cluskey] = {{sphenix_centroid.x(), sphenix_centroid.y(), sphenix_centroid.z()}};
+    
+    clusters_by_track[track_iter->first].emplace_back(cluskey, sphenix_centroid);
   }
 
   for (const auto& track_clusters : clusters_by_track)
   {
-    const auto moved_globals = m_clusterMover->processTrack(track_clusters.second);
+    const auto moved_globals = m_clusterMover.processTrack(track_clusters.second);
     for (const auto& [cluskey, moved_global] : moved_globals)
     {
       m_movedGlobals[cluskey] = {{moved_global.x(), moved_global.y(), moved_global.z()}};
@@ -402,6 +398,8 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
       std::numeric_limits<double>::quiet_NaN(),
       std::numeric_limits<double>::quiet_NaN(),
       std::numeric_limits<double>::quiet_NaN());
+    const double cluster_radius = std::hypot(trkr_global.x(), trkr_global.y());
+    const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(out.get(), cluster_radius, cluskey);
 
     std::cout << Name() << "::publishCluster"
               << " track_id=" << track->get_track_id()
@@ -431,6 +429,8 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
               << " overlap=" << static_cast<unsigned int>(out->getOverlap())
               << " phi_error=" << out->getRPhiError()
               << " z_error=" << out->getZError()
+              << " para_rphi_error=" << std::sqrt(cluster_errors.first)
+              << " para_z_error=" << std::sqrt(cluster_errors.second)
               << " trkr_global=(" << trkr_global.x()
               << ", " << trkr_global.y()
               << ", " << trkr_global.z() << ")"
@@ -444,7 +444,7 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
 
 int TpcPolyClusterTrkrClusterConverter::process_event(PHCompositeNode* topNode)
 {
-  if (!m_polyClusters || !m_polyTracks || !m_outputClusters || !m_crossingDecisions || !m_geometry || !m_tpcGeomContainer || !m_clusterMover)
+  if (!m_polyClusters || !m_polyTracks || !m_outputClusters || !m_crossingDecisions || !m_geometry)
   {
     if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK ||
         createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK ||

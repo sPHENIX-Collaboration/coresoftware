@@ -18,6 +18,7 @@
 #include <fun4allraw/MvtxRawDefs.h>
 
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
@@ -834,10 +835,12 @@ float PHCASiliconSeeding::getSeedQuality(const TrackSeed_v2& seed, const PHCASil
     Acts::Vector3 pos = globalPositions.at(*iter);
     TrkrCluster* c = m_clusterMap->findCluster(*iter);
 
+    const double cluster_r = std::hypot(pos.x(), pos.y());
+    const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(c, cluster_r, *iter);
     xy_pts.emplace_back(pos.x(), pos.y());
-    rz_pts.emplace_back(sqrt(pos.x() * pos.x() + pos.y() * pos.y()), pos.z());
-    xyerr.push_back(c->getRPhiError());
-    zerr.push_back(c->getZError());
+    rz_pts.emplace_back(cluster_r, pos.z());
+    xyerr.push_back(std::sqrt(cluster_errors.first));
+    zerr.push_back(std::sqrt(cluster_errors.second));
   }
   std::vector<double> circle_residuals = TrackFitUtils::getCircleClusterResiduals(xy_pts, fabs(1. / seed.get_qOverR()), seed.get_X0(), seed.get_Y0());
   std::vector<double> line_residuals = TrackFitUtils::getLineClusterResiduals(rz_pts, seed.get_slope(), seed.get_Z0());

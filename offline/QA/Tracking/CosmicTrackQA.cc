@@ -1,21 +1,39 @@
 
 #include "CosmicTrackQA.h"
 
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-
 #include <qautils/QAHistManagerDef.h>
 #include <qautils/QAUtil.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrClusterContainer.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackState.h>
+#include <trackbase_historic/TrackSeed.h>
+
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <TH2.h>
-#include <trackbase/ActsGeometry.h>
+
+#include <Acts/Definitions/Units.hpp>
+#include <Acts/Surfaces/Surface.hpp>
+#include <Acts/Utilities/Result.hpp>
+
+#include <cassert>
+#include <cmath>
+#include <iostream>
+#include <limits>
+#include <map>
+
 //____________________________________________________________________________..
 CosmicTrackQA::CosmicTrackQA(const std::string &name)
   : SubsysReco(name)

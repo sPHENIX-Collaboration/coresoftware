@@ -1,5 +1,7 @@
 #include "TpcV0CandidateTree.h"
 
+#include <tpctrackreco/TpcCrossingDecision.h>
+#include <tpctrackreco/TpcCrossingDecisionContainer.h>
 #include <tpctrackreco/TpcTrackHelixFitter.h>
 #include <tpctrackreco/TpcTrackKalmanFitter.h>
 #include <tpctrackreco/Tpc_PolyCluster.h>
@@ -222,6 +224,36 @@ bool TpcV0CandidateTree::set_track_fit_method(const std::string &mode)
 
 int TpcV0CandidateTree::Init(PHCompositeNode *topNode)
 {
+  if (m_required_crossing != NoCrossingSelection &&
+      (m_required_crossing < std::numeric_limits<short>::min() ||
+       m_required_crossing >= std::numeric_limits<short>::max()))
+  {
+    std::cerr << PHWHERE << Name() << ": required crossing " << m_required_crossing
+              << " is outside the supported range ["
+              << std::numeric_limits<short>::min() << ", "
+              << std::numeric_limits<short>::max() - 1 << "]" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  if (m_max_crossing_tier < -1 ||
+      m_max_crossing_tier >= std::numeric_limits<unsigned char>::max())
+  {
+    std::cerr << PHWHERE << Name() << ": maximum crossing tier " << m_max_crossing_tier
+              << " is outside the supported range [-1, "
+              << static_cast<int>(std::numeric_limits<unsigned char>::max()) - 1
+              << "]" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  if (!m_use_pattern_cluster_tracks &&
+      (m_required_crossing != NoCrossingSelection ||
+       m_max_crossing_tier >= 0 ||
+       (m_reconstruct_pairs && m_require_same_crossing)))
+  {
+    std::cerr << PHWHERE << Name()
+              << ": bunch-crossing selection is only available for pattern-track input"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
   if (m_use_kalman_field_map && m_kalman_config.magnetic_field == nullptr && topNode != nullptr)
   {
     m_kalman_config.magnetic_field =
@@ -268,6 +300,8 @@ int TpcV0CandidateTree::process_event(PHCompositeNode *topNode)
         topNode, m_tpc_sa_cluster_node);
     auto *tracks = findNode::getClass<Tpc_PolyTrackContainer>(
         topNode, m_tpc_sa_track_node);
+    auto *crossing_decisions = findNode::getClass<TpcCrossingDecisionContainer>(
+        topNode, m_crossing_decision_node);
     pattern_vertices = findNode::getClass<Tpc_PolyTrackVertexContainer>(
         topNode, m_tpc_sa_track_vertex_node);
 
@@ -287,7 +321,24 @@ int TpcV0CandidateTree::process_event(PHCompositeNode *topNode)
                 << m_tpc_sa_track_vertex_node
                 << "; trackTree vertex_z will use the configured fallback vertex" << std::endl;
     }
-    tracklet_map = build_pattern_tracklets(clusters, tracks);
+    const bool crossing_metadata_required =
+        m_required_crossing != NoCrossingSelection ||
+        m_max_crossing_tier >= 0 ||
+        (m_reconstruct_pairs && m_require_same_crossing);
+    if (!crossing_decisions && crossing_metadata_required)
+    {
+      std::cerr << PHWHERE << Name() << ": missing required crossing-decision node "
+                << m_crossing_decision_node << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    if (!crossing_decisions && Verbosity() > 1)
+    {
+      std::cout << PHWHERE << Name() << ": optional crossing-decision node "
+                << m_crossing_decision_node
+                << " is unavailable; crossing branches will contain unknown values"
+                << std::endl;
+    }
+    tracklet_map = build_pattern_tracklets(clusters, tracks, crossing_decisions);
   }
   else
   {
@@ -387,43 +438,54 @@ int TpcV0CandidateTree::process_event(PHCompositeNode *topNode)
               << std::endl;
   }
 
-  const auto pair_loop_start = std::chrono::steady_clock::now();
-  std::uint64_t event_pairs_processed = 0;
-  const std::uint64_t event_pairs_total =
-      tracklets.size() > 1
-          ? static_cast<std::uint64_t>(tracklets.size()) *
-                static_cast<std::uint64_t>(tracklets.size() - 1) / 2
-          : 0;
-  if (m_print_timing)
+  double pair_loop_seconds = 0.0;
+  if (m_reconstruct_pairs)
+  {
+    const auto pair_loop_start = std::chrono::steady_clock::now();
+    std::uint64_t event_pairs_processed = 0;
+    const std::uint64_t event_pairs_total =
+        tracklets.size() > 1
+            ? static_cast<std::uint64_t>(tracklets.size()) *
+                  static_cast<std::uint64_t>(tracklets.size() - 1) / 2
+            : 0;
+    if (m_print_timing)
+    {
+      std::cout << "[V0TimingStage] run=" << run_number
+                << " event=" << event_number
+                << " stage=pair_loop_start"
+                << " pairs=" << event_pairs_total
+                << std::endl;
+    }
+    for (std::size_t i = 0; i < tracklets.size(); ++i)
+    {
+      for (std::size_t j = i + 1; j < tracklets.size(); ++j)
+      {
+        make_pair_row(*tracklets[i], *tracklets[j], primary_vertex, run_number, event_number);
+        ++event_pairs_processed;
+        if (m_print_timing &&
+            (event_pairs_processed == 1 || event_pairs_processed % 1000 == 0))
+        {
+          std::cout << "[V0TimingPair] run=" << run_number
+                    << " event=" << event_number
+                    << " done=" << event_pairs_processed
+                    << " total=" << event_pairs_total
+                    << " pair_loop_s=" << std::chrono::duration<double>(std::chrono::steady_clock::now() - pair_loop_start).count()
+                    << " kalman_pca_s=" << (m_timing_kalman_pca_seconds - kalman_pca_before)
+                    << std::endl;
+        }
+      }
+    }
+    pair_loop_seconds = std::chrono::duration<double>(
+                            std::chrono::steady_clock::now() - pair_loop_start)
+                            .count();
+  }
+  else if (m_print_timing)
   {
     std::cout << "[V0TimingStage] run=" << run_number
               << " event=" << event_number
-              << " stage=pair_loop_start"
-              << " pairs=" << event_pairs_total
+              << " stage=pair_loop_skipped"
               << std::endl;
   }
-  for (std::size_t i = 0; i < tracklets.size(); ++i)
-  {
-    for (std::size_t j = i + 1; j < tracklets.size(); ++j)
-    {
-      make_pair_row(*tracklets[i], *tracklets[j], primary_vertex, run_number, event_number);
-      ++event_pairs_processed;
-      if (m_print_timing &&
-          (event_pairs_processed == 1 || event_pairs_processed % 1000 == 0))
-      {
-        std::cout << "[V0TimingPair] run=" << run_number
-                  << " event=" << event_number
-                  << " done=" << event_pairs_processed
-                  << " total=" << event_pairs_total
-                  << " pair_loop_s=" << std::chrono::duration<double>(std::chrono::steady_clock::now() - pair_loop_start).count()
-                  << " kalman_pca_s=" << (m_timing_kalman_pca_seconds - kalman_pca_before)
-                  << std::endl;
-      }
-    }
-  }
-  const double pair_loop_seconds = std::chrono::duration<double>(
-                                       std::chrono::steady_clock::now() - pair_loop_start)
-                                       .count();
   const double total_seconds = std::chrono::duration<double>(
                                    std::chrono::steady_clock::now() - event_start)
                                    .count();
@@ -482,6 +544,7 @@ int TpcV0CandidateTree::End(PHCompositeNode * /*topNode*/)
   if (Verbosity() > 0)
   {
     std::cout << Name() << ": pair counters: raw=" << m_counter_raw_pairs
+              << " reject_crossing=" << m_counter_reject_pair_crossing
               << " reject_charge=" << m_counter_reject_charge
               << " reject_preselection=" << m_counter_reject_preselection
               << " reject_pca=" << m_counter_reject_pca
@@ -492,6 +555,9 @@ int TpcV0CandidateTree::End(PHCompositeNode * /*topNode*/)
               << " tracks_written=" << m_counter_tracks_written
               << " reject_helix_anchor=" << m_counter_reject_helix_anchor
               << " cluster_residuals_written=" << m_counter_cluster_residuals_written
+              << " missing_crossing_decision=" << m_counter_missing_crossing_decision
+              << " reject_required_crossing=" << m_counter_reject_required_crossing
+              << " reject_crossing_tier=" << m_counter_reject_crossing_tier
               << std::endl;
   }
 
@@ -698,7 +764,8 @@ std::map<int, TpcV0CandidateTree::Tracklet> TpcV0CandidateTree::build_tracklets(
 
 std::map<int, TpcV0CandidateTree::Tracklet> TpcV0CandidateTree::build_pattern_tracklets(
     Tpc_PolyClusterContainer *clusters,
-    Tpc_PolyTrackContainer *tracks) const
+    Tpc_PolyTrackContainer *tracks,
+    const TpcCrossingDecisionContainer *crossing_decisions) const
 {
   std::map<int, Tracklet> tracklets;
 
@@ -739,6 +806,45 @@ std::map<int, TpcV0CandidateTree::Tracklet> TpcV0CandidateTree::build_pattern_tr
     Tracklet tracklet;
     tracklet.track_id = track_id;
     tracklet.shower_id = static_cast<int>(source_id);
+    tracklet.source_assembled_track_id = source_id;
+
+    const TpcCrossingDecision *crossing_decision =
+        crossing_decisions ? crossing_decisions->get_decision(source_id) : nullptr;
+    if (crossing_decision)
+    {
+      tracklet.has_crossing_decision = true;
+      tracklet.crossing_status = static_cast<int>(crossing_decision->get_status());
+      tracklet.crossing_tier = static_cast<int>(crossing_decision->get_selected_tier());
+      tracklet.crossing_score = crossing_decision->get_selected_score();
+      const short selected_crossing = crossing_decision->get_selected_crossing();
+      tracklet.has_selected_crossing =
+          selected_crossing != std::numeric_limits<short>::max() &&
+          tracklet.crossing_tier != std::numeric_limits<unsigned char>::max();
+      if (tracklet.has_selected_crossing)
+      {
+        tracklet.crossing = selected_crossing;
+      }
+    }
+    else
+    {
+      ++m_counter_missing_crossing_decision;
+    }
+
+    if (m_required_crossing != NoCrossingSelection &&
+        (!tracklet.has_selected_crossing ||
+         tracklet.crossing != static_cast<short>(m_required_crossing)))
+    {
+      ++m_counter_reject_required_crossing;
+      continue;
+    }
+    if (m_max_crossing_tier >= 0 &&
+        (!tracklet.has_selected_crossing ||
+         tracklet.crossing_tier > m_max_crossing_tier))
+    {
+      ++m_counter_reject_crossing_tier;
+      continue;
+    }
+
     tracklet.charge = sign_to_charge(track->get_charge());
     tracklet.position = {track->get_x(), track->get_y(), track->get_z()};
     tracklet.momentum = {track->get_px(), track->get_py(), track->get_pz()};
@@ -1024,6 +1130,14 @@ bool TpcV0CandidateTree::make_pair_row(const Tracklet &track1, const Tracklet &t
 {
   ++m_counter_raw_pairs;
 
+  if (m_require_same_crossing &&
+      (!track1.has_selected_crossing || !track2.has_selected_crossing ||
+       track1.crossing != track2.crossing))
+  {
+    ++m_counter_reject_pair_crossing;
+    return false;
+  }
+
   if (!m_write_same_sign_pairs && track1.charge == track2.charge)
   {
     ++m_counter_reject_charge;
@@ -1221,8 +1335,18 @@ bool TpcV0CandidateTree::make_pair_row(const Tracklet &track1, const Tracklet &t
   reset_pair_row();
   m_pair.run = run_number;
   m_pair.evt = event_number;
-  m_pair.cross1 = 0;
-  m_pair.cross2 = 0;
+  m_pair.cross1 = track1.crossing;
+  m_pair.cross2 = track2.crossing;
+  m_pair.has_crossing_decision1 = track1.has_crossing_decision ? 1 : 0;
+  m_pair.has_crossing_decision2 = track2.has_crossing_decision ? 1 : 0;
+  m_pair.has_selected_crossing1 = track1.has_selected_crossing ? 1 : 0;
+  m_pair.has_selected_crossing2 = track2.has_selected_crossing ? 1 : 0;
+  m_pair.crossing_status1 = track1.crossing_status;
+  m_pair.crossing_status2 = track2.crossing_status;
+  m_pair.crossing_tier1 = track1.crossing_tier;
+  m_pair.crossing_tier2 = track2.crossing_tier;
+  m_pair.crossing_score1 = static_cast<float>(track1.crossing_score);
+  m_pair.crossing_score2 = static_cast<float>(track2.crossing_score);
   m_pair.px1 = static_cast<float>(mom1.x);
   m_pair.py1 = static_cast<float>(mom1.y);
   m_pair.pz1 = static_cast<float>(mom1.z);
@@ -1339,6 +1463,13 @@ void TpcV0CandidateTree::fill_track_row(const Tracklet &tracklet,
   m_track.side = tracklet.side;
   m_track.npoints = tracklet.npoints;
   m_track.ntpc_clusters = tracklet.ntpc_clusters;
+  m_track.source_assembled_track_id = tracklet.source_assembled_track_id;
+  m_track.has_crossing_decision = tracklet.has_crossing_decision ? 1 : 0;
+  m_track.has_selected_crossing = tracklet.has_selected_crossing ? 1 : 0;
+  m_track.crossing = tracklet.crossing;
+  m_track.crossing_status = tracklet.crossing_status;
+  m_track.crossing_tier = tracklet.crossing_tier;
+  m_track.crossing_score = static_cast<float>(tracklet.crossing_score);
   m_track.has_helix = tracklet.has_helix ? 1 : 0;
   m_track.has_kalman = tracklet.has_kalman ? 1 : 0;
   m_track.is_primary = tracklet.is_primary;
@@ -1945,6 +2076,20 @@ void TpcV0CandidateTree::create_branches()
   m_pair_tree->Branch("evt", &m_pair.evt, "evt/I");
   m_pair_tree->Branch("cross1", &m_pair.cross1, "cross1/S");
   m_pair_tree->Branch("cross2", &m_pair.cross2, "cross2/S");
+  m_pair_tree->Branch("has_crossing_decision1", &m_pair.has_crossing_decision1,
+                      "has_crossing_decision1/I");
+  m_pair_tree->Branch("has_crossing_decision2", &m_pair.has_crossing_decision2,
+                      "has_crossing_decision2/I");
+  m_pair_tree->Branch("has_selected_crossing1", &m_pair.has_selected_crossing1,
+                      "has_selected_crossing1/I");
+  m_pair_tree->Branch("has_selected_crossing2", &m_pair.has_selected_crossing2,
+                      "has_selected_crossing2/I");
+  m_pair_tree->Branch("crossing_status1", &m_pair.crossing_status1, "crossing_status1/I");
+  m_pair_tree->Branch("crossing_status2", &m_pair.crossing_status2, "crossing_status2/I");
+  m_pair_tree->Branch("crossing_tier1", &m_pair.crossing_tier1, "crossing_tier1/I");
+  m_pair_tree->Branch("crossing_tier2", &m_pair.crossing_tier2, "crossing_tier2/I");
+  m_pair_tree->Branch("crossing_score1", &m_pair.crossing_score1, "crossing_score1/F");
+  m_pair_tree->Branch("crossing_score2", &m_pair.crossing_score2, "crossing_score2/F");
   m_pair_tree->Branch("px1", &m_pair.px1, "px1/F");
   m_pair_tree->Branch("py1", &m_pair.py1, "py1/F");
   m_pair_tree->Branch("pz1", &m_pair.pz1, "pz1/F");
@@ -2029,6 +2174,16 @@ void TpcV0CandidateTree::create_branches()
   m_track_tree->Branch("side", &m_track.side, "side/I");
   m_track_tree->Branch("npoints", &m_track.npoints, "npoints/I");
   m_track_tree->Branch("ntpc_clusters", &m_track.ntpc_clusters, "ntpc_clusters/i");
+  m_track_tree->Branch("source_assembled_track_id", &m_track.source_assembled_track_id,
+                       "source_assembled_track_id/i");
+  m_track_tree->Branch("has_crossing_decision", &m_track.has_crossing_decision,
+                       "has_crossing_decision/I");
+  m_track_tree->Branch("has_selected_crossing", &m_track.has_selected_crossing,
+                       "has_selected_crossing/I");
+  m_track_tree->Branch("crossing", &m_track.crossing, "crossing/S");
+  m_track_tree->Branch("crossing_status", &m_track.crossing_status, "crossing_status/I");
+  m_track_tree->Branch("crossing_tier", &m_track.crossing_tier, "crossing_tier/I");
+  m_track_tree->Branch("crossing_score", &m_track.crossing_score, "crossing_score/F");
   m_track_tree->Branch("has_helix", &m_track.has_helix, "has_helix/I");
   m_track_tree->Branch("has_kalman", &m_track.has_kalman, "has_kalman/I");
   m_track_tree->Branch("is_primary", &m_track.is_primary, "is_primary/I");
