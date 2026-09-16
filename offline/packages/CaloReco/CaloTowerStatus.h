@@ -97,8 +97,8 @@ class CaloTowerStatus : public SubsysReco
 
   bool m_doHotChi2{true};
   bool m_doHotMap{true};
-  bool m_doAbortNoHotMap{false};
-  bool m_doAbortNoChi2{false};
+  bool m_doAbortNoHotMap{true};
+  bool m_doAbortNoChi2{true};
 
   CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
 

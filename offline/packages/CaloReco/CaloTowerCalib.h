@@ -164,9 +164,9 @@ class CaloTowerCalib : public SubsysReco
   std::string m_directURL_ZScrosscalib = "";
   bool m_doZScrosscalib = true;
 
-  bool m_doAbortNoEnergyCalib{false};
-  bool m_doAbortNoTimeCalib{false};
-  bool m_doAbortNoZSCalib{false};
+  bool m_doAbortNoEnergyCalib{true};
+  bool m_doAbortNoTimeCalib{true};
+  bool m_doAbortNoZSCalib{true};
 
   bool m_doNegEnergyThreshold{true};
   float m_negEnergyThreshold{-2.0F}; /*GeV*/
