@@ -263,10 +263,7 @@ int TpcConditionsReco::InitRun(PHCompositeNode *topNode)
 
   const uint64_t targetBco = static_cast<uint64_t>(rawBco);
 
-  std::cout << "\033[1;31m"
-            << " targetBCO = "
-            << targetBco
-            << "\033[0m" << std::endl;
+  std::cout << " targetBCO = " << targetBco << std::endl;
 
   // Get the TPC conditions payload from CDB
   std::string calibdir = CDBInterface::instance()->getUrl("TPC_CONDITIONS");
@@ -339,8 +336,7 @@ int TpcConditionsReco::InitRun(PHCompositeNode *topNode)
         m_bco_to_channel.begin(),
         static_cast<long>(m_bco_to_channel.size() / 2));
 
-    std::cout << "\033[1;31m"
-              << "R1 conditions:"
+    std::cout << "R1 conditions:"
               << "\n  FIRST  BCO=" << first->first
               << " NR1=" << get_MedianCurrent(first->second, NR1)
               << " SR1=" << get_MedianCurrent(first->second, SR1)
@@ -352,7 +348,7 @@ int TpcConditionsReco::InitRun(PHCompositeNode *topNode)
               << " SR1=" << get_MedianCurrent(last->second, SR1)
               << "\n  AVERAGE NR1=" << m_conditions->get_AverageLoadNR1()
               << " SR1=" << m_conditions->get_AverageLoadSR1()
-              << "\033[0m" << std::endl;
+              << std::endl;
 
     fillConditions(selected->second);
 
@@ -410,6 +406,19 @@ int TpcConditionsReco::process_event(PHCompositeNode *topNode)
   m_conditions->set_Pressure(m_tree->GetFloatValue(channel, "gas_pressure"));
   m_conditions->set_FieldOK(m_tree->GetFloatValue(channel, "FieldOK") != 0.0);
   m_conditions->set_GainOK(m_tree->GetFloatValue(channel, "GainOK") != 0.0);
+
+  m_conditions->set_LoadCurrent(get_InterpolatedMedianCurrent(channel, ALL));
+  m_conditions->set_LoadNorth(get_InterpolatedMedianCurrent(channel, NORTH));
+  m_conditions->set_LoadSouth(get_InterpolatedMedianCurrent(channel, SOUTH));
+
+  m_conditions->set_LoadSR1(get_InterpolatedMedianCurrent(channel, SR1));
+  m_conditions->set_LoadSR2(get_InterpolatedMedianCurrent(channel, SR2));
+  m_conditions->set_LoadSR3(get_InterpolatedMedianCurrent(channel, SR3));
+
+  m_conditions->set_LoadNR1(get_InterpolatedMedianCurrent(channel, NR1));
+  m_conditions->set_LoadNR2(get_InterpolatedMedianCurrent(channel, NR2));
+  m_conditions->set_LoadNR3(get_InterpolatedMedianCurrent(channel, NR3));
+
 
   // Do or die
   if (!m_conditions->get_FieldOK() ||

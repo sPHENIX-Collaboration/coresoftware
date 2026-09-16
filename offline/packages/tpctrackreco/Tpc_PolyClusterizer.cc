@@ -276,7 +276,7 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  // get layer geometry for layer 20.
+    // get layer geometry for layer 20.
   auto* layergeom = m_geomContainerTpc->GetLayerCellGeom(20);
   if (!layergeom)
   {
@@ -285,7 +285,7 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if (use_survey_geometry)
+  if (!m_usePHGarfieldDefaults && use_survey_geometry)
   {
     // apply survey geometry
     const double rot_x = layergeom->get_rot_x();
@@ -308,15 +308,40 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
   std::cout << Name() << "::InitRun - m_startZSouth: " << m_startZSouth << " cm" << std::endl;
   std::cout << Name() << "::InitRun - m_startZNorth: " << m_startZNorth << " cm" << std::endl;
 
-  if (!load_cdb_inputs())
+  if (!m_usePHGarfieldDefaults)
   {
-    std::cout << Name() << "::InitRun - failed to load CDB inputs" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    if (!load_cdb_inputs())
+    {
+      std::cout << Name() << "::InitRun - failed to load CDB inputs" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
   }
 
-  m_garfield.reset( new PHGarfield(Name() + "_PHGarfield", "", m_kEffSide0, m_kEffSide1) );
+  delete m_garfield;
+  m_garfield = nullptr;
 
-  configure_garfield(m_garfield.get());
+  if (m_usePHGarfieldDefaults)
+  {
+    std::cout << Name()
+              << "::InitRun - using PHGarfield default configuration"
+              << std::endl;
+
+    m_garfield = new PHGarfield(Name() + "_PHGarfield");
+
+    reconfigure_garfield(m_garfield);
+  }
+  else
+  {
+    std::cout << Name()
+              << "::InitRun - using PolyClusterizer/manual PHGarfield configuration"
+              << std::endl;
+
+    m_garfield = new PHGarfield(Name() + "_PHGarfield", "", m_kEffSide0, m_kEffSide1);
+
+    m_garfield->SetUseSurveyGeometry(false);
+    configure_garfield(m_garfield);
+  }
+  
   if (m_garfield->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     std::cerr << Name() << "::InitRun - PHGarfield InitRun failed" << std::endl;
