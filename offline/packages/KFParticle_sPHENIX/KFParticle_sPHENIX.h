@@ -257,7 +257,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void allowZeroMassTracks(bool allow = true) { m_allowZeroMassTracks = allow; }
 
-  void extraolateTracksToSV(bool extrapolate = true)
+  void extrapolateTracksToSV(bool extrapolate = true)
   {
     m_extrapolateTracksToSV = extrapolate;
     m_extrapolateTracksToSV_nTuple = extrapolate;
