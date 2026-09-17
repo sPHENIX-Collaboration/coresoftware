@@ -5,6 +5,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phfield/PHField3DCartesian.h>
 #include <phfield/PHFieldUtility.h>
+#include <phfield/PHFieldConfig.h>
+#include <phfield/PHFieldUtility.h>
 #include <phool/RunnumberRange.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
@@ -272,7 +274,21 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
   {
     auto* conditions = findNode::getClass<TpcConditions>(topNode, "TpcConditions");
 
-    if (conditions)
+    if (!conditions)
+    {
+      std::cout << Name()
+                << "::LoadCDBInputs - WARNING: TpcConditions node not found; "
+                << "using unscaled kEff"
+                << std::endl;
+    }
+    else if (!conditions->get_ConditionsAvailable())
+    {
+      std::cout << Name()
+                << "::LoadCDBInputs - WARNING: TpcConditions are not available; "
+                << "using unscaled kEff"
+                << std::endl;
+    }
+    else
     {
       const double averageSR1 = conditions->get_AverageLoadSR1();
       const double averageNR1 = conditions->get_AverageLoadNR1();
@@ -283,57 +299,40 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
                 << " NR1=" << conditions->get_LoadNR1()
                 << " avgNR1=" << averageNR1
                 << std::endl;
-
-      if (m_useBCOkEffs)
+                
+      if (averageSR1 != 0.0 && averageNR1 != 0.0)
       {
-        if (averageSR1 != 0.0)
+        if (!m_spaceChargeScaleOverride[0])
         {
           m_spaceChargeScale_side0 *= conditions->get_LoadSR1() / averageSR1;
         }
         else
         {
           std::cout << Name()
-                    << "::LoadCDBInputs - warning: average SR1 is zero, "
-                    << "cannot apply side0 current correction"
+                    << "::LoadCDBInputs - side0 kEff manually overridden; "
+                    << "not applying TpcConditions correction"
                     << std::endl;
         }
-      }
-      else
-      {
-        std::cout << Name()
-                  << "::LoadCDBInputs - side0 kEff manually overridden; "
-                  << "not applying TpcConditions correction"
-                  << std::endl;
-      }
 
-      if (m_useBCOkEffs)
-      {
-        if (averageNR1 != 0.0)
+        if (!m_spaceChargeScaleOverride[1])
         {
           m_spaceChargeScale_side1 *= conditions->get_LoadNR1() / averageNR1;
         }
         else
         {
           std::cout << Name()
-                    << "::LoadCDBInputs - warning: average NR1 is zero, "
-                    << "cannot apply side1 current correction"
+                    << "::LoadCDBInputs - side1 kEff manually overridden; "
+                    << "not applying TpcConditions correction"
                     << std::endl;
         }
       }
       else
       {
         std::cout << Name()
-                  << "::LoadCDBInputs - side1 kEff manually overridden; "
-                  << "not applying TpcConditions correction"
+                  << "::LoadCDBInputs - WARNING: average SR1 or NR1 is zero, "
+                  << "cannot apply current correction; using unscaled kEff"
                   << std::endl;
       }
-    }
-    else
-    {
-      std::cout << Name()
-                << "::LoadCDBInputs - TpcConditions not found; "
-                << "no current correction applied"
-                << std::endl;
     }
   }
   std::cout << Name() << "::LoadCDBInputs - final kEff:"
@@ -414,6 +413,12 @@ int PHGarfield::InitRun(PHCompositeNode *topNode)
 
   //  Here we use the CDBInterface to set up the magnetic field map:
   m_field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
+  auto *fieldConfig = PHFieldUtility::GetFieldConfigNode(nullptr, topNode);
+
+  std::cout << "Magnetic field map: " << fieldConfig->get_filename()
+            << "\nField type: " << fieldConfig->get_field_config_description()
+            << "\nField rescale: " << fieldConfig->get_magfield_rescale()
+            << std::endl;
 
   if (!m_field)
   {

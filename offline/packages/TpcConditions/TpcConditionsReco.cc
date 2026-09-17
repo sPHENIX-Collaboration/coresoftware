@@ -239,6 +239,29 @@ int TpcConditionsReco::InitRun(PHCompositeNode *topNode)
   std::cout << "TpcConditionsReco::InitRun(PHCompositeNode *topNode) Initializing"
             << std::endl;
 
+  PHNodeIterator iter(topNode);
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
+
+  if (!parNode)
+  {
+    parNode = new PHCompositeNode("PAR");
+    topNode->addNode(parNode);
+  }
+
+  m_conditions = findNode::getClass<TpcConditions>(topNode, "TpcConditions");
+  if (!m_conditions)
+  {
+    m_conditions = new TpcConditions();
+    auto *conditionsNode = new PHDataNode<TpcConditions>(m_conditions, "TpcConditions", "Data");
+    parNode->addNode(conditionsNode);
+  }
+
+  m_conditions->set_ConditionsAvailable(false);
+
+  delete m_tree;
+  m_tree = nullptr;
+  m_bco_to_channel.clear();
+
   Gl1Packet *gl1 = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
   if (!gl1)
   {
@@ -249,7 +272,8 @@ int TpcConditionsReco::InitRun(PHCompositeNode *topNode)
   {
     std::cout << "TpcConditionsReco::InitRun - could not find GL1 packet"
               << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    m_conditions->set_ConditionsAvailable(false);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   const int64_t rawBco = gl1->lValue(0, "BCO");
@@ -258,7 +282,8 @@ int TpcConditionsReco::InitRun(PHCompositeNode *topNode)
   {
     std::cout << "TpcConditionsReco::InitRun - invalid GL1 BCO "
               << rawBco << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    m_conditions->set_ConditionsAvailable(false);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   const uint64_t targetBco = static_cast<uint64_t>(rawBco);
@@ -267,6 +292,16 @@ int TpcConditionsReco::InitRun(PHCompositeNode *topNode)
 
   // Get the TPC conditions payload from CDB
   std::string calibdir = CDBInterface::instance()->getUrl("TPC_CONDITIONS");
+
+  if (calibdir.empty())
+  {
+    std::cout << "TpcConditionsReco::InitRun - WARNING: "
+              << "TPC_CONDITIONS not available for this run; "
+              << "continuing without TPC conditions"
+              << std::endl;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   m_tree = new CDBTTree(calibdir);
   m_tree->LoadCalibrations();
 
@@ -280,20 +315,14 @@ int TpcConditionsReco::InitRun(PHCompositeNode *topNode)
     m_bco_to_channel[bco] = channel;
   }
 
-  // Find/create RUN node
-  PHNodeIterator iter(topNode);
-  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
-
-  if (!parNode)
+  if (m_bco_to_channel.empty())
   {
-    parNode = new PHCompositeNode("PAR");
-    topNode->addNode(parNode);
+    std::cout << "TpcConditionsReco::InitRun - WARNING: "
+              << "TPC_CONDITIONS contains no BCO entries; "
+              << "continuing without TPC conditions"
+              << std::endl;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
-
-  // Create the transient TPC conditions object
-  m_conditions = new TpcConditions();
-  PHDataNode<TpcConditions> *conditionsNode = new PHDataNode<TpcConditions>(m_conditions, "TpcConditions", "Data");
-  parNode->addNode(conditionsNode);
 
   m_conditions->set_AverageLoadCurrent(get_AverageMedianCurrent(ALL));
   m_conditions->set_AverageLoadNorth(get_AverageMedianCurrent(NORTH));
@@ -373,11 +402,18 @@ int TpcConditionsReco::InitRun(PHCompositeNode *topNode)
               << std::endl;
   }
 
+  m_conditions->set_ConditionsAvailable(true);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TpcConditionsReco::process_event(PHCompositeNode *topNode)
 {
+
+  if (!m_tree || m_bco_to_channel.empty())
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   // Get the current event BCO
   Gl1Packet *gl1 = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
   if (!gl1)
@@ -385,21 +421,23 @@ int TpcConditionsReco::process_event(PHCompositeNode *topNode)
     std::cout << "TpcConditionsReco::process_event - "
               << "could not find GL1RAWHIT node"
               << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    m_conditions->set_ConditionsAvailable(false);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   uint64_t bco = gl1->getBCO();
 
   auto iter = m_bco_to_channel.upper_bound(bco);
+
   if (iter == m_bco_to_channel.begin())
   {
-    std::cout << "TpcConditionsReco::process_event - "
-              << "no TPC conditions available for BCO "
-              << bco << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    iter = m_bco_to_channel.begin();
   }
-
-  --iter;
+  else
+  {
+    --iter;
+  }
+  
   int channel = iter->second;
 
   m_conditions->set_Temperature(m_tree->GetFloatValue(channel, "gas_temperature"));
@@ -407,22 +445,25 @@ int TpcConditionsReco::process_event(PHCompositeNode *topNode)
   m_conditions->set_FieldOK(m_tree->GetFloatValue(channel, "FieldOK") != 0.0);
   m_conditions->set_GainOK(m_tree->GetFloatValue(channel, "GainOK") != 0.0);
 
-  m_conditions->set_LoadCurrent(get_InterpolatedMedianCurrent(channel, ALL));
-  m_conditions->set_LoadNorth(get_InterpolatedMedianCurrent(channel, NORTH));
-  m_conditions->set_LoadSouth(get_InterpolatedMedianCurrent(channel, SOUTH));
 
-  m_conditions->set_LoadSR1(get_InterpolatedMedianCurrent(channel, SR1));
-  m_conditions->set_LoadSR2(get_InterpolatedMedianCurrent(channel, SR2));
-  m_conditions->set_LoadSR3(get_InterpolatedMedianCurrent(channel, SR3));
+  m_conditions->set_LoadCurrent(get_InterpolatedMedianCurrent(bco, ALL));
+  m_conditions->set_LoadNorth(get_InterpolatedMedianCurrent(bco, NORTH));
+  m_conditions->set_LoadSouth(get_InterpolatedMedianCurrent(bco, SOUTH));
 
-  m_conditions->set_LoadNR1(get_InterpolatedMedianCurrent(channel, NR1));
-  m_conditions->set_LoadNR2(get_InterpolatedMedianCurrent(channel, NR2));
-  m_conditions->set_LoadNR3(get_InterpolatedMedianCurrent(channel, NR3));
+  m_conditions->set_LoadSR1(get_InterpolatedMedianCurrent(bco, SR1));
+  m_conditions->set_LoadSR2(get_InterpolatedMedianCurrent(bco, SR2));
+  m_conditions->set_LoadSR3(get_InterpolatedMedianCurrent(bco, SR3));
 
+  m_conditions->set_LoadNR1(get_InterpolatedMedianCurrent(bco, NR1));
+  m_conditions->set_LoadNR2(get_InterpolatedMedianCurrent(bco, NR2));
+  m_conditions->set_LoadNR3(get_InterpolatedMedianCurrent(bco, NR3));
+
+  m_conditions->set_ConditionsAvailable(true);
 
   // Do or die
-  if (!m_conditions->get_FieldOK() ||
-      !m_conditions->get_GainOK())
+  if( m_conditions->get_ConditionsAvailable() &&
+    (!m_conditions->get_FieldOK() ||
+      !m_conditions->get_GainOK()))
   {
     return Fun4AllReturnCodes::ABORTEVENT;
   }

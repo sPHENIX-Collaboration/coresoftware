@@ -73,6 +73,9 @@ class TpcConditions
   bool get_FieldOK() const { return m_FieldOK; }
   bool get_GainOK() const { return m_GainOK; }
 
+  void set_ConditionsAvailable(bool value) { m_ConditionsAvailable = value; }
+  bool get_ConditionsAvailable() const { return m_ConditionsAvailable; }
+
  protected:
   float m_LoadCurrent{0.0};
   float m_LoadNorth{0.0};
@@ -98,6 +101,7 @@ class TpcConditions
   float m_Pressure{0.0};
   bool m_FieldOK{false};
   bool m_GainOK{false};
+  bool m_ConditionsAvailable{false};
 };
 
 #endif

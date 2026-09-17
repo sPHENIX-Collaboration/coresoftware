@@ -232,23 +232,40 @@ bool Tpc_PolyClusterizer::load_cdb_inputs()
 
   if (m_useBCOkEffs)
   {
-    const double averageSR1 = m_conditions->get_AverageLoadSR1();
-    const double averageNR1 = m_conditions->get_AverageLoadNR1();
-
-    std::cout << Name() << "::load_cdb_inputs"
-              << " - SR1=" << m_conditions->get_LoadSR1()
-              << " avgSR1=" << averageSR1
-              << " NR1=" << m_conditions->get_LoadNR1()
-              << " avgNR1=" << averageNR1
-              << std::endl;
-    if (averageSR1 != 0.0 && averageNR1 != 0.0)
+    if (!m_conditions)
     {
-      m_kEffSide0 *= m_conditions->get_LoadSR1() / averageSR1;
-      m_kEffSide1 *= m_conditions->get_LoadNR1() / averageNR1;
+      std::cout << Name()
+                << "::load_cdb_inputs - WARNING: TpcConditions node not found; "
+                << "using unscaled kEff"
+                << std::endl;
+    }
+    else if (!m_conditions->get_ConditionsAvailable())
+    {
+      std::cout << Name()
+                << "::load_cdb_inputs - WARNING: TpcConditions are not available; "
+                << "using unscaled kEff"
+                << std::endl;
     }
     else
     {
-      std::cout << Name() << "::load_cdb_inputs - warning: average SR1 or NR1 is zero, cannot apply BC correction" << std::endl;
+      const double averageSR1 = m_conditions->get_AverageLoadSR1();
+      const double averageNR1 = m_conditions->get_AverageLoadNR1();
+
+      std::cout << Name() << "::load_cdb_inputs"
+                << " - SR1=" << m_conditions->get_LoadSR1()
+                << " avgSR1=" << averageSR1
+                << " NR1=" << m_conditions->get_LoadNR1()
+                << " avgNR1=" << averageNR1
+                << std::endl;
+      if (averageSR1 != 0.0 && averageNR1 != 0.0)
+      {
+        m_kEffSide0 *= m_conditions->get_LoadSR1() / averageSR1;
+        m_kEffSide1 *= m_conditions->get_LoadNR1() / averageNR1;
+      }
+      else
+      {
+        std::cout << Name() << "::load_cdb_inputs - warning: average SR1 or NR1 is zero, cannot apply BC correction" << std::endl;
+      }
     }
   }
 
@@ -442,8 +459,17 @@ int Tpc_PolyClusterizer::getNodes(PHCompositeNode* topNode)
     m_conditions = findNode::getClass<TpcConditions>(topNode, "TpcConditions");
     if (!m_conditions)
     {
-      std::cout << Name() << "::getNodes - missing TpcConditions" << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
+      std::cout << Name()
+                << "::getNodes - WARNING: TpcConditions node not found; "
+                << "continuing with unscaled kEff"
+                << std::endl;
+    }
+    else if (!m_conditions->get_ConditionsAvailable())
+    {
+      std::cout << Name()
+                << "::getNodes - WARNING: TpcConditions are not available; "
+                << "continuing with unscaled kEff"
+                << std::endl;
     }
   }
 
