@@ -389,6 +389,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_bunch_crossing_zero_only = bcZeroOnly; }
 
+  void forceMixedEvent(bool force = true) { m_force_mixed_event = force; }
+
   void requireBunchCrossingMatch(bool require = true) { m_require_bunch_crossing_match = require; }
 
   void requireTrackVertexBunchCrossingMatch(bool require = true) { m_require_track_and_vertex_match = require; }
