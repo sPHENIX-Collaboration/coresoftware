@@ -120,8 +120,8 @@ int PHActsSiliconSeeding::Init(PHCompositeNode * /*topNode*/)
   }
   // vector containing the map of z bins in the top and bottom layers
 
-  m_bottomBinFinder = std::make_unique<const Acts::GridBinFinder<3ul>>(nphineighbors, zBinNeighborsBottom, 0);
-  m_topBinFinder = std::make_unique<const Acts::GridBinFinder<3ul>>(nphineighbors, zBinNeighborsTop, 0);
+  m_bottomBinFinder = std::make_unique<const Acts::GridBinFinder<3UL>>(nphineighbors, zBinNeighborsBottom, 0);
+  m_topBinFinder = std::make_unique<const Acts::GridBinFinder<3UL>>(nphineighbors, zBinNeighborsTop, 0);
 
   if (m_seedAnalysis)
   {
@@ -266,8 +266,8 @@ void PHActsSiliconSeeding::runSeeder()
       maxRange = std::max(lastEl->radius(), maxRange);
     }
 
-    std::array<std::vector<std::size_t>, 3ul> navigation;
-    navigation[1ul] = m_seedFinderCfg.zBinsCustomLooping;
+    std::array<std::vector<std::size_t>, 3UL> navigation;
+    navigation[1UL] = m_seedFinderCfg.zBinsCustomLooping;
 
     auto spacePointsGrouping = Acts::CylindricalBinnedGroup<value_type>(std::move(grid), *m_bottomBinFinder, *m_topBinFinder, std::move(navigation));
 
