@@ -67,7 +67,7 @@ class TpcConditions
   float get_AverageLoadNR1() const { return m_AverageLoadNR1; }
   float get_AverageLoadNR2() const { return m_AverageLoadNR2; }
   float get_AverageLoadNR3() const { return m_AverageLoadNR3; }
-  
+
   float get_Temperature() const { return m_Temperature; }
   float get_Pressure() const { return m_Pressure; }
   bool get_FieldOK() const { return m_FieldOK; }
@@ -86,7 +86,7 @@ class TpcConditions
   float m_LoadNR1{0.0};
   float m_LoadNR2{0.0};
   float m_LoadNR3{0.0};
-  
+
   float m_AverageLoadCurrent{0.0};
   float m_AverageLoadNorth{0.0};
   float m_AverageLoadSouth{0.0};

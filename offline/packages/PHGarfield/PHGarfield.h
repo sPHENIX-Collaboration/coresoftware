@@ -78,12 +78,12 @@ class PHGarfield : public SubsysReco
   //  The user is encouraged to add more routine to fit their analysis goals...
   // Existing macros should call this one.  Input and returned polyline are in
   // local TPC/Garfield coordinates.
-  TPolyLine3D *ReverseDrift(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus* status = nullptr);
+  TPolyLine3D *ReverseDrift(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus *status = nullptr);
 
   // Debug/visualization helper.  Input and returned polyline are in global
   // detector coordinates.  Internally the drift is still computed in local TPC
   // coordinates to keep the Garfield gas tables valid.
-  TPolyLine3D *ReverseDriftGlobalCoords(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus* status = nullptr);
+  TPolyLine3D *ReverseDriftGlobalCoords(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus *status = nullptr);
 
   double GetRadius(size_t index) const { return radii.at(index); }
 
@@ -151,28 +151,32 @@ class PHGarfield : public SubsysReco
     m_spaceChargeScaleOverride = {{true, true}};
   }
 
-  void SetSpaceChargeScaleSide0(double value) { 
+  void SetSpaceChargeScaleSide0(double value)
+  {
     m_spaceChargeScale_side0 = value;
-    m_spaceChargeScaleOverride[0] = true; 
+    m_spaceChargeScaleOverride[0] = true;
   }
-  void SetSpaceChargeScaleSide1(double value) { 
-    m_spaceChargeScale_side1 = value; 
-    m_spaceChargeScaleOverride[1] = true; 
+  void SetSpaceChargeScaleSide1(double value)
+  {
+    m_spaceChargeScale_side1 = value;
+    m_spaceChargeScaleOverride[1] = true;
   }
-  
+
   void SetFrameChargeScale(double value)
   {
     m_frameChargeScale_side0 = value;
     m_frameChargeScale_side1 = value;
     m_frameChargeScaleOverride = {{true, true}};
   }
-  void SetFrameChargeScaleSide0(double value) { 
+  void SetFrameChargeScaleSide0(double value)
+  {
     m_frameChargeScale_side0 = value;
     m_frameChargeScaleOverride[0] = true;
   }
-  void SetFrameChargeScaleSide1(double value) { 
-    m_frameChargeScale_side1 = value; 
-    m_frameChargeScaleOverride[1] = true; 
+  void SetFrameChargeScaleSide1(double value)
+  {
+    m_frameChargeScale_side1 = value;
+    m_frameChargeScaleOverride[1] = true;
   }
 
   double GetSpaceChargeScaleSide0() const { return m_spaceChargeScale_side0; }
@@ -185,8 +189,9 @@ class PHGarfield : public SubsysReco
   // Offsets are endpoint perturbations relative to the nominal resistor-chain
   // boundary voltage, in volts. IFC and OFC are independent, giving four
   // tunable parameters: IFC South/North and OFC South/North.
-  void SetUseIFCVoltageDistortion(bool value) { 
-    m_useIFCVoltageDistortion = value; 
+  void SetUseIFCVoltageDistortion(bool value)
+  {
+    m_useIFCVoltageDistortion = value;
     m_fieldCageConfigurationOverride = true;
   }
   void SetIFCVoltageOffset(double side0_south_v, double side1_north_v)
@@ -195,20 +200,40 @@ class PHGarfield : public SubsysReco
     m_ifcVoltageOffset_side1 = side1_north_v;
     m_fieldCageConfigurationOverride = true;
   }
-  void SetIFCVoltageOffsetSide0(double value_v) { m_ifcVoltageOffset_side0 = value_v; m_fieldCageConfigurationOverride = true; }
-  void SetIFCVoltageOffsetSide1(double value_v) { m_ifcVoltageOffset_side1 = value_v; m_fieldCageConfigurationOverride = true; }
+  void SetIFCVoltageOffsetSide0(double value_v)
+  {
+    m_ifcVoltageOffset_side0 = value_v;
+    m_fieldCageConfigurationOverride = true;
+  }
+  void SetIFCVoltageOffsetSide1(double value_v)
+  {
+    m_ifcVoltageOffset_side1 = value_v;
+    m_fieldCageConfigurationOverride = true;
+  }
   double GetIFCVoltageOffsetSide0() const { return m_ifcVoltageOffset_side0; }
   double GetIFCVoltageOffsetSide1() const { return m_ifcVoltageOffset_side1; }
 
-  void SetUseOFCVoltageDistortion(bool value) { m_useOFCVoltageDistortion = value; m_fieldCageConfigurationOverride = true; }
+  void SetUseOFCVoltageDistortion(bool value)
+  {
+    m_useOFCVoltageDistortion = value;
+    m_fieldCageConfigurationOverride = true;
+  }
   void SetOFCVoltageOffset(double side0_south_v, double side1_north_v)
   {
     m_ofcVoltageOffset_side0 = side0_south_v;
     m_ofcVoltageOffset_side1 = side1_north_v;
     m_fieldCageConfigurationOverride = true;
   }
-  void SetOFCVoltageOffsetSide0(double value_v) { m_ofcVoltageOffset_side0 = value_v; m_fieldCageConfigurationOverride = true; }
-  void SetOFCVoltageOffsetSide1(double value_v) { m_ofcVoltageOffset_side1 = value_v; m_fieldCageConfigurationOverride = true; }
+  void SetOFCVoltageOffsetSide0(double value_v)
+  {
+    m_ofcVoltageOffset_side0 = value_v;
+    m_fieldCageConfigurationOverride = true;
+  }
+  void SetOFCVoltageOffsetSide1(double value_v)
+  {
+    m_ofcVoltageOffset_side1 = value_v;
+    m_fieldCageConfigurationOverride = true;
+  }
   double GetOFCVoltageOffsetSide0() const { return m_ofcVoltageOffset_side0; }
   double GetOFCVoltageOffsetSide1() const { return m_ofcVoltageOffset_side1; }
 
@@ -281,8 +306,8 @@ class PHGarfield : public SubsysReco
   bool LoadCDBInputs(PHCompositeNode *topNode);
   void ConfigureRunDependentFieldCage();
 
-  CDBTTree *m_cdbTPCMAPttree{nullptr};            // Locations of the pads from CDB...
-  //PHField3DCartesian *m_field{nullptr};           // The standard sPHENIX field holding container.
+  CDBTTree *m_cdbTPCMAPttree{nullptr};  // Locations of the pads from CDB...
+  // PHField3DCartesian *m_field{nullptr};           // The standard sPHENIX field holding container.
   PHField *m_field{nullptr};
   Garfield::ComponentUser *m_component{nullptr};  // This handles the interface of the electric and magnetic fields as handed to Garfield
   Garfield::MediumMagboltz *m_gas{nullptr};       // This is the pre-tabulated gas properties required by Garfield...
@@ -307,8 +332,8 @@ class PHGarfield : public SubsysReco
   double m_spaceChargeScale_side1{1.0};  // north, z > 0
   double m_CMVoltageDefault{375.0};      // V/cm, nominal TPC field
   bool m_zerofield{false};
-  TH2 *m_erCorrection{nullptr};          // radial correction, input bins in V/m
-  TH2 *m_ezCorrection{nullptr};          // local longitudinal correction, input bins in V/m
+  TH2 *m_erCorrection{nullptr};  // radial correction, input bins in V/m
+  TH2 *m_ezCorrection{nullptr};  // local longitudinal correction, input bins in V/m
   // Component order is Ex, Ey, Ez. Ez is along +|z| in the map.
   std::array<std::array<TH3 *, 3>, 2> m_field3DCorrection{};
 

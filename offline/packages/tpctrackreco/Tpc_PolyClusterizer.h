@@ -242,7 +242,7 @@ class Tpc_PolyClusterizer : public SubsysReco
   unsigned char m_maxAcceptedTier{1};
   Tpc_AssembledTrackContainer* m_assembledTracks{nullptr};
   Tpc_PolyClusterContainer* m_clusters{nullptr};
-  TpcCrossingDecisionContainer* m_crossingDecisions {nullptr};
+  TpcCrossingDecisionContainer* m_crossingDecisions{nullptr};
   TrkrHitSetContainer* m_hits{nullptr};
   IdealPadMap* m_idealPadMap{nullptr};
 
@@ -254,9 +254,8 @@ class Tpc_PolyClusterizer : public SubsysReco
   unsigned int m_event{0};
   double m_t0{8};
   double m_tpcAdcClock{56.881262};
-  double m_crossingPeriodNs {106.56};
+  double m_crossingPeriodNs{106.56};
   double m_reverseDriftStepNs{56.881262};
-
 
   //! starting z position for primary electron backward drift
   /**

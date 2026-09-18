@@ -1295,7 +1295,7 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
 
               const int iphi = static_cast<int>(p.pad);
               const int it = static_cast<int>(p.tbin);
-              if(it >= layergeom->get_zbins())
+              if (it >= layergeom->get_zbins())
               {
                 continue;
               }

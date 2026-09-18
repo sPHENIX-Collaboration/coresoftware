@@ -408,7 +408,6 @@ int TpcConditionsReco::InitRun(PHCompositeNode *topNode)
 
 int TpcConditionsReco::process_event(PHCompositeNode *topNode)
 {
-
   if (!m_tree || m_bco_to_channel.empty())
   {
     return Fun4AllReturnCodes::EVENT_OK;
@@ -437,14 +436,13 @@ int TpcConditionsReco::process_event(PHCompositeNode *topNode)
   {
     --iter;
   }
-  
+
   int channel = iter->second;
 
   m_conditions->set_Temperature(m_tree->GetFloatValue(channel, "gas_temperature"));
   m_conditions->set_Pressure(m_tree->GetFloatValue(channel, "gas_pressure"));
   m_conditions->set_FieldOK(m_tree->GetFloatValue(channel, "FieldOK") != 0.0);
   m_conditions->set_GainOK(m_tree->GetFloatValue(channel, "GainOK") != 0.0);
-
 
   m_conditions->set_LoadCurrent(get_InterpolatedMedianCurrent(bco, ALL));
   m_conditions->set_LoadNorth(get_InterpolatedMedianCurrent(bco, NORTH));
@@ -461,9 +459,9 @@ int TpcConditionsReco::process_event(PHCompositeNode *topNode)
   m_conditions->set_ConditionsAvailable(true);
 
   // Do or die
-  if( m_conditions->get_ConditionsAvailable() &&
-    (!m_conditions->get_FieldOK() ||
-      !m_conditions->get_GainOK()))
+  if (m_conditions->get_ConditionsAvailable() &&
+      (!m_conditions->get_FieldOK() ||
+       !m_conditions->get_GainOK()))
   {
     return Fun4AllReturnCodes::ABORTEVENT;
   }
