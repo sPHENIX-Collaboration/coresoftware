@@ -24,6 +24,7 @@ class PHSiliconSeedPruner : public SubsysReco
   int process_event(PHCompositeNode* topNode) override;
 
   void set_track_map_name(const std::string& name) { m_trackMapName = name; }
+  void set_output_track_map_name(const std::string& name) { m_outputTrackMapName = name; }
   void set_random_seed(unsigned int seed);
 
  private:
@@ -34,7 +35,9 @@ class PHSiliconSeedPruner : public SubsysReco
   static constexpr std::size_t kDebugMinimumGroupSize = 10;
 
   TrackSeedContainer* m_siliconSeeds{nullptr};
-  std::string m_trackMapName{"SiliconTrackSeedContainer"};  // the default node name for the TrackSeedContainer
+  TrackSeedContainer* m_prunedSiliconSeeds{nullptr};
+  std::string m_trackMapName{"SiliconTrackSeedContainer"};  // the default input node name for the TrackSeedContainer
+  std::string m_outputTrackMapName{"PrunedSiliconTrackSeedContainer"};  // the default output node name for the TrackSeedContainer
 
   unsigned int m_randomSeed{0};  // the default random seed
   gsl_rng* m_rng{nullptr};
