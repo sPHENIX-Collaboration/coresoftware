@@ -532,6 +532,13 @@ int KFParticle_Tools::calcMinPV_DCA(const KFParticle &track, const std::vector<K
     ip_significance.push_back(thisPV_DCA_stddev);  // Τhere are times where the PV_DCA_stddev calc fails
   }
 
+  if (ip.empty()) //Need to account for instances where the track has no associated primary vertex in its crossing. Track should always be rejected
+  {
+    minimumPV_DCA = -1.;
+    minimumPV_DCA_stddev = -1.;
+    return 0;
+  }
+
   auto minmax_PV_dca = minmax_element(ip.begin(), ip.end());  // Order the PV_DCA from small to large
   minimumPV_DCA = *minmax_PV_dca.first;
   auto minmax_PV_dca_stddev = minmax_element(ip_significance.begin(), ip_significance.end());  // Order the PV_DCA chi2 from small to large
@@ -671,7 +678,6 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
       }
     }
   }
-
   return goodTracksThatMeet;
 }
 
