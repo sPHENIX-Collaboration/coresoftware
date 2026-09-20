@@ -17,7 +17,7 @@ namespace PHSiliconSeedPrunerHelper
   };
 
   Result SelectSeeds(
-      const TrackSeedContainer& seeds,
+      const TrackSeedContainer& container,
       const std::vector<std::size_t>& seedIndices,
       gsl_rng* rng,
       std::size_t mvtxLayerCount,
