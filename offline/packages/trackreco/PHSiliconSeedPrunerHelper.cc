@@ -42,7 +42,9 @@ namespace PHSiliconSeedPrunerHelper
     {
       // find the root of a value, and perform path compression
       if (parent_[value] != value)
+      {
         parent_[value] = Find(parent_[value]);  // the path compression step
+      }
       return parent_[value];
     }
 
@@ -52,16 +54,22 @@ namespace PHSiliconSeedPrunerHelper
       size_t root_lhs = Find(lhs);
       size_t root_rhs = Find(rhs);
       if (root_lhs == root_rhs)
+      {
         return;
+      }
 
       // The lower-rank tree is attached under the higher-rank tree
       if (rank_[root_lhs] < rank_[root_rhs])
+      {
         std::swap(root_lhs, root_rhs);
+      }
 
       // combine the tree and update the rank if necessary
       parent_[root_rhs] = root_lhs;
       if (rank_[root_lhs] == rank_[root_rhs])
+      {
         ++rank_[root_lhs];
+      }
     }
 
    private:
@@ -81,12 +89,16 @@ namespace PHSiliconSeedPrunerHelper
       record.allClusterKeys.push_back(key);
 
       if (TrkrDefs::getTrkrId(key) != TrkrDefs::mvtxId)
+      {
         continue;
+      }
 
       record.mvtxClusterKeys.push_back(key);
       const unsigned int layer = TrkrDefs::getLayer(key);
       if (layer < mvtxLayerCount)
+      {
         ++mvtx_layer_counts[layer];
+      }
     }
 
     record.completeMvtx =
@@ -107,7 +119,9 @@ namespace PHSiliconSeedPrunerHelper
     for (size_t start = 0; start < conflict.size(); ++start)
     {
       if (visited[start])
+      {
         continue;
+      }
 
       std::vector<size_t> component;
       std::vector<size_t> stack{start};
@@ -178,8 +192,12 @@ namespace PHSiliconSeedPrunerHelper
     // map of cluster keys to the list of triplet classes that contain it
     std::unordered_map<TrkrDefs::cluskey, std::vector<size_t>> classesByKey;
     for (size_t c = 0; c < classes.size(); ++c)
+    {
       for (const TrkrDefs::cluskey key : classes[c].mvtxKeys)
+      {
         classesByKey[key].push_back(c);
+      }
+    }
 
     // build the conflict graph (nodes and edges) from the key index
     ConflictGraph conflict(classes.size());
@@ -187,12 +205,14 @@ namespace PHSiliconSeedPrunerHelper
     {
       const std::vector<size_t> &sharing = entry.second;
       for (size_t a = 0; a < sharing.size(); ++a)
+      {
         for (size_t b = a + 1; b < sharing.size(); ++b)
         {
           // make edges in both directions
           conflict[sharing[a]].push_back(sharing[b]);
           conflict[sharing[b]].push_back(sharing[a]);
         }
+      }
     }
 
     // sort and remove duplicates from the adjacency lists
@@ -228,7 +248,9 @@ namespace PHSiliconSeedPrunerHelper
 
     std::unordered_map<size_t, size_t> localOf;  // global class index -> local class index
     for (size_t local = 0; local < component.size(); ++local)
+    {
       localOf[component[local]] = local;
+    }
 
     std::unordered_map<TrkrDefs::cluskey, size_t> keyId;  // MVTX cluster key -> local key id
 
@@ -247,15 +269,21 @@ namespace PHSiliconSeedPrunerHelper
       {
         const auto it = localOf.find(global_neighbor);
         if (it != localOf.end())
+        {
           prob.adj[local].push_back(it->second);
+        }
       }
     }
 
     prob.numKeys = keyId.size();
     prob.keyToClasses.assign(prob.numKeys, {});
     for (size_t local = 0; local < prob.m; ++local)
+    {
       for (const size_t kid : prob.keyIds[local])
+      {
         prob.keyToClasses[kid].push_back(local);
+      }
+    }
 
     return prob;
   }
@@ -334,7 +362,9 @@ namespace PHSiliconSeedPrunerHelper
       {
         std::vector<bool> inSet(prob_.m, false);
         for (const size_t v : bestSet_)
+        {
           inSet[v] = true;
+        }
         PolishInSet(inSet);
         const size_t sz = CountInSet(inSet);
         if (sz > bestSize)
@@ -362,8 +392,12 @@ namespace PHSiliconSeedPrunerHelper
 
       std::vector<size_t> out;
       for (size_t v = 0; v < prob_.m; ++v)
+      {
         if (bestInSet[v])
+        {
           out.push_back(v);
+        }
+      }
       return out;
     }
 
@@ -372,7 +406,9 @@ namespace PHSiliconSeedPrunerHelper
     {
       size_t count = 0;
       for (size_t v = 0; v < prob_.m; ++v)
+      {
         count += active_[v];
+      }
       return count;
     }
 
@@ -380,7 +416,9 @@ namespace PHSiliconSeedPrunerHelper
     {
       size_t count = 0;
       for (const bool x : inSet)
+      {
         count += x;
+      }
       return count;
     }
 
@@ -393,10 +431,14 @@ namespace PHSiliconSeedPrunerHelper
       for (const size_t v : order)
       {
         if (blocked[v])
+        {
           continue;
+        }
         inSet[v] = true;
         for (const size_t u : prob_.adj[v])
+        {
           blocked[u] = true;
+        }
       }
       return inSet;
     }
@@ -414,13 +456,17 @@ namespace PHSiliconSeedPrunerHelper
         for (size_t y = 0; y < prob_.m && !improved; ++y)
         {
           if (!inSet[y])
+          {
             continue;
+          }
 
           std::vector<size_t> candidates;  // neighbors of y that are only neighbor to y (so dropping y frees them to be added)
           for (const size_t x : prob_.adj[y])
           {
             if (inSet[x])
+            {
               continue;
+            }
             size_t inSetNeighbors = 0;
             size_t onlyNeighbor = 0;
             for (const size_t u : prob_.adj[x])
@@ -432,7 +478,9 @@ namespace PHSiliconSeedPrunerHelper
               }
             }
             if (inSetNeighbors == 1 && onlyNeighbor == y)
+            {
               candidates.push_back(x);
+            }
           }
 
           // any two mutually non-adjacent candidates give a net +1
@@ -472,14 +520,20 @@ namespace PHSiliconSeedPrunerHelper
       for (size_t v = 0; v < prob_.m; ++v)
       {
         if (!active_[v])
+        {
           continue;
+        }
         ++remaining;
         covered_[v] = false;
         for (const size_t kid : prob_.keyIds[v])
+        {
           ++scratchKeyCount_[kid];
+        }
       }
       if (remaining == 0)
+      {
         return 0;
+      }
 
       size_t cover = 0;
       while (remaining > 0)
@@ -495,19 +549,25 @@ namespace PHSiliconSeedPrunerHelper
           }
         }
         if (bestCount == 0)
+        {
           break;  // unreachable while remaining > 0, guarded for safety
+        }
 
         ++cover;
         for (const size_t v : prob_.keyToClasses[bestKey])
         {
           if (!active_[v] || covered_[v])
+          {
             continue;
+          }
           covered_[v] = true;
           --remaining;  // decrement, because it's covered
           for (const size_t kid : prob_.keyIds[v])
           {
             if (scratchKeyCount_[kid] > 0)
+            {
               --scratchKeyCount_[kid];
+            }
           }
         }
       }
@@ -525,10 +585,14 @@ namespace PHSiliconSeedPrunerHelper
       for (size_t v = 0; v < prob_.m; ++v)
       {
         if (!active_[v])
+        {
           continue;
+        }
         size_t degree = 0;
         for (const size_t neighbor : prob_.adj[v])
+        {
           degree += active_[neighbor];
+        }
         if (!found || degree > bestDegree)
         {
           found = true;
@@ -544,7 +608,9 @@ namespace PHSiliconSeedPrunerHelper
       for (size_t v = 0; v < prob_.m; ++v)
       {
         if (!active_[v])
+        {
           continue;
+        }
         bool hasActiveNeighbor = false;
         for (const size_t neighbor : prob_.adj[v])
         {
@@ -555,7 +621,9 @@ namespace PHSiliconSeedPrunerHelper
           }
         }
         if (!hasActiveNeighbor)
+        {
           folded.push_back(v);
+        }
       }
       for (const size_t v : folded)
       {
@@ -590,13 +658,17 @@ namespace PHSiliconSeedPrunerHelper
     void Reactivate(const std::vector<size_t> &deactivated)
     {
       for (const size_t vertex : deactivated)
+      {
         active_[vertex] = true;
+      }
     }
 
     void SearchCardinality(std::vector<size_t> &chosen)
     {
       if (budgetHit_)
+      {
         return;
+      }
       if (++nodes_ > budget_)
       {
         budgetHit_ = true;
@@ -620,7 +692,9 @@ namespace PHSiliconSeedPrunerHelper
       {
         std::cout << __func__ << " : " << __LINE__ << " : component " << debugComponentIndex_ << " folded isolated class(es)";
         for (const size_t v : folded)
+        {
           std::cout << " " << v;
+        }
         std::cout << "; chosen is now " << chosen.size() << std::endl;
       }
 
@@ -677,7 +751,9 @@ namespace PHSiliconSeedPrunerHelper
           bestCardinality_ = chosen.size() + 1;
           bestSet_ = chosen;
           if (pick < prob_.m)
+          {
             bestSet_.push_back(pick);
+          }
           if (debugDetailed_)
           {
             std::cout << __func__ << " : " << __LINE__ << " : component " << debugComponentIndex_ << " single-clique shortcut picks class " << pick << " and updates best size to "
@@ -704,7 +780,9 @@ namespace PHSiliconSeedPrunerHelper
       {
         std::cout << __func__ << " : " << __LINE__ << " : component " << debugComponentIndex_ << " include class " << vertex << " and deactivate";
         for (const size_t v : deactivated)
+        {
           std::cout << " " << v;
+        }
         std::cout << std::endl;
       }
       chosen.push_back(vertex);
@@ -730,13 +808,17 @@ namespace PHSiliconSeedPrunerHelper
     void Record(const std::vector<size_t> &chosen)
     {
       if (reps_.size() >= maxReps_)
+      {
         return;
+      }
       std::vector<size_t> sorted = chosen;
       std::sort(sorted.begin(), sorted.end());
       for (const std::vector<size_t> &existing : reps_)
       {
         if (existing == sorted)
+        {
           return;
+        }
       }
       reps_.push_back(std::move(sorted));
     }
@@ -747,7 +829,9 @@ namespace PHSiliconSeedPrunerHelper
     void SearchRepresentatives(std::vector<size_t> &chosen)
     {
       if (budgetHit_ || reps_.size() >= maxReps_)
+      {
         return;
+      }
       if (++nodes_ > budget_)
       {
         budgetHit_ = true;
@@ -760,7 +844,9 @@ namespace PHSiliconSeedPrunerHelper
       if (CountActive() == 0)
       {
         if (chosen.size() == target_)
+        {
           Record(chosen);
+        }
         Unfold(chosen, folded);
         return;
       }
@@ -776,7 +862,9 @@ namespace PHSiliconSeedPrunerHelper
         for (size_t v = 0; v < prob_.m && reps_.size() < maxReps_; ++v)
         {
           if (!active_[v])
+          {
             continue;
+          }
           chosen.push_back(v);
           Record(chosen);
           chosen.pop_back();
@@ -834,7 +922,9 @@ namespace PHSiliconSeedPrunerHelper
       bool debugDetailedVerbosity)
   {
     if (completeSeeds.empty())
+    {
       return {};
+    }
 
     const bool debug = (debugVerbosity || debugDetailedVerbosity) && ambiguityGroupSize > debugMinimumGroupSize;
 
@@ -897,7 +987,9 @@ namespace PHSiliconSeedPrunerHelper
             {
               double weight = 1.0;
               for (const size_t local : rep)
+              {
                 weight *= prob.memberCount[local];
+              }
               weights.push_back(weight);
             }
             gsl_ran_discrete_t *repPick = gsl_ran_discrete_preproc(weights.size(), weights.data());
@@ -922,7 +1014,9 @@ namespace PHSiliconSeedPrunerHelper
         const size_t seedIndex = members[gsl_rng_uniform_int(rng, members.size())];
         selectedSeedIndices.push_back(seedIndex);
         if (!certified)
+        {
           uncertifiedOut.push_back(seedIndex);
+        }
       }
       if (debug)
       {
@@ -945,18 +1039,24 @@ namespace PHSiliconSeedPrunerHelper
       {
         const auto inserted = first_seed_by_cluster_key.emplace(key, iseed);
         if (!inserted.second)
+        {
           disjoint_set.Union(iseed, inserted.first->second);
+        }
       }
     }
 
     std::unordered_map<size_t, std::vector<size_t>> groups_by_root;
     for (size_t iseed = 0; iseed < seeds.size(); ++iseed)
+    {
       groups_by_root[disjoint_set.Find(iseed)].push_back(iseed);
+    }
 
     std::vector<std::vector<size_t>> groups;
     groups.reserve(groups_by_root.size());
     for (auto &entry : groups_by_root)
+    {
       groups.push_back(entry.second);
+    }
 
     return groups;
   }
@@ -987,10 +1087,14 @@ namespace PHSiliconSeedPrunerHelper
     const bool debug = (debugVerbosity || debugDetailedVerbosity) && group.size() > debugMinimumGroupSize;
 
     if (debug)
+    {
       std::cout << __func__ << " : " << __LINE__ << " : ambiguity group size = " << group.size() << std::endl;
+    }
 
     if (group.size() == 1)
+    {
       return {seeds[group.front()].index};
+    }
 
     std::vector<const SeedRecord *> complete_seeds;
     complete_seeds.reserve(group.size());
@@ -1020,7 +1124,9 @@ namespace PHSiliconSeedPrunerHelper
           const SeedRecord &seed = seeds[local_seed_index];
           std::cout << __func__ << " : " << __LINE__ << " : seed index " << seed.index << " completeMvtx=" << seed.completeMvtx << " cluster keys: ";
           for (const TrkrDefs::cluskey key : seed.allClusterKeys)
+          {
             std::cout << key << " ";
+          }
           std::cout << std::endl;
         }
       }
@@ -1042,7 +1148,9 @@ namespace PHSiliconSeedPrunerHelper
       if (all_same_triplet)
       {
         if (debug)
+        {
           std::cout << __func__ << " : " << __LINE__ << " : all complete seeds share one MVTX triplet; selecting one random representative" << std::endl;
+        }
         return SelectRandomSeedFromGroup(seeds, group, rng);
       }
 
@@ -1056,7 +1164,9 @@ namespace PHSiliconSeedPrunerHelper
     if (complete_seeds.empty())
     {
       if (debug)
+      {
         std::cout << __func__ << " : " << __LINE__ << " : no complete MVTX seeds in group; selecting one random representative" << std::endl;
+      }
       return SelectRandomSeedFromGroup(seeds, group, rng);
     }
 
@@ -1075,7 +1185,9 @@ namespace PHSiliconSeedPrunerHelper
   {
     Result result;
     if (seeds.empty())
+    {
       return result;
+    }
 
     const std::vector<std::vector<size_t>> groups = BuildAmbiguityGroups(seeds);
     for (const auto &group : groups)

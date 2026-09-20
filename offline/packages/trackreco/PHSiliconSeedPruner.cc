@@ -23,8 +23,8 @@
 
 PHSiliconSeedPruner::PHSiliconSeedPruner(const std::string &name)
   : SubsysReco(name)
+  , m_rng(gsl_rng_alloc(gsl_rng_mt19937))
 {
-  m_rng = gsl_rng_alloc(gsl_rng_mt19937);
   set_random_seed(PHRandomSeed());  // default random seed
 }
 
@@ -94,7 +94,9 @@ int PHSiliconSeedPruner::process_event(PHCompositeNode * /*topNode*/)
   {
     TrackSeed *seed = m_siliconSeeds->get(seedIndex);
     if (!seed)
+    {
       continue;
+    }
 
     ++inputSeedCount;
     const short int crossing = seed->get_crossing();
