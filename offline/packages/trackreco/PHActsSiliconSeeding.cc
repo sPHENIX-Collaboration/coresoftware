@@ -46,6 +46,7 @@
 #include <Acts/EventData/Seed.hpp>
 #include <Acts/Seeding/SeedFilter.hpp>
 #include <cmath>
+#include <random>
 
 namespace
 {
@@ -292,7 +293,7 @@ void PHActsSiliconSeeding::runSeeder()
 
     if (m_streaming)
     {
-      makeSvtxTracksWithTime(seeds, strobe);
+      makeSvtxTracksWithTime(seeds);
     }
     else
     {
@@ -319,7 +320,7 @@ void PHActsSiliconSeeding::runSeeder()
   return;
 }
 
-void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<seed_type> &seedVector, const int &strobe)
+void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<seed_type> &seedVector)
 
 {
   //  int numSeeds = 0;
@@ -370,7 +371,7 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<seed_type> &
     }
 
     // now we match this triplet to all possible intt clusters within the strobe
-    auto matched_intt_clusters = findMatchesWithTime(positions, strobe);
+    auto matched_intt_clusters = findMatchesWithTime(positions);
     /// duplicate all possible mvtx-intt matches
     if (!matched_intt_clusters.empty())
     {
@@ -658,58 +659,32 @@ short int PHActsSiliconSeeding::getCrossingIntt(TrackSeed &si_track)
   // If the Si track contains an INTT hit, use it to get the bunch crossing offset
 
   std::vector<short int> intt_crossings = getInttCrossings(si_track);
-
-  bool keep_it = true;
-  short int crossing_keep = 0;
-  if (intt_crossings.empty())
+  if(intt_crossings.size() == 0)
   {
-    keep_it = false;
+    return SHRT_MAX;
   }
-  else
+  else if(intt_crossings.size() == 1)
   {
-    crossing_keep = intt_crossings[0];
-    for (unsigned int ic = 1; ic < intt_crossings.size(); ++ic)
+    return intt_crossings[0];
+  }
+
+
+  // If there are multiple INTT crossings, we can't determine a single crossing. So just randomly select one
+  std::cout << "intt_crossings size " << intt_crossings.size() << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "Multiple INTT crossings found for seed, cannot determine a single crossing. Crossings: ";
+    for (const auto &crossing : intt_crossings)
     {
-      if (intt_crossings[ic] != crossing_keep)
-      {
-        if (abs(intt_crossings[ic] - crossing_keep) > 1)
-        {
-          keep_it = false;
-
-          if (Verbosity() > 1)
-          {
-            std::cout << " Warning: INTT crossings not all the same "
-                      << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << " setting crossing to SHRT_MAX" << std::endl;
-          }
-        }
-        else
-        {
-          // we have INTT clusters with crossing values that differ by 1
-          // This can be a readout issue, we take the lower value as the correct one
-
-          if (Verbosity() > 1)
-          {
-            std::cout << " ic " << ic << " crossing keep " << crossing_keep << " intt_crossings " << intt_crossings[ic] << std::endl;
-          }
-          if (intt_crossings[ic] < crossing_keep)
-          {
-            crossing_keep = intt_crossings[ic];
-            if (Verbosity() > 1)
-            {
-              std::cout << "         ----- crossing keep changed to " << crossing_keep << std::endl;
-            }
-          }
-        }
-      }
+      std::cout << crossing << " ";
     }
+    std::cout << std::endl;
   }
 
-  if (keep_it)
-  {
-    return crossing_keep;
-  }
-
-  return SHRT_MAX;
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::bernoulli_distribution dist(0.5);
+  return intt_crossings[dist(gen) ? 0 : 1];
 }
 
 std::vector<short int> PHActsSiliconSeeding::getInttCrossings(TrackSeed &si_track)
@@ -1045,7 +1020,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(std::vector<Act
   return matchedClusters;
 }
 
-std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWithTime(std::map<TrkrDefs::cluskey, Acts::Vector3> &positions, const int &strobe)
+std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWithTime(std::map<TrkrDefs::cluskey, Acts::Vector3> &positions)
 {
   std::vector<std::vector<TrkrDefs::cluskey>> inttMatches;
 
@@ -1059,7 +1034,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
 
   std::set<TrkrDefs::cluskey> layer34matches;
   std::set<TrkrDefs::cluskey> layer56matches;
-  auto innerLayerMatches = iterateLayers(3, 5, strobe, keys, clusters);
+  auto innerLayerMatches = iterateLayers(3, 5, keys, clusters);
   /// If we found none in layer 3-4, use the original triplet as a seed
   /// for layer 5-6
   if (Verbosity() > 1)
@@ -1079,7 +1054,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
       keys.push_back(key);
       clusters.push_back(m_tGeometry->getGlobalPosition(key, m_clusterMap->findCluster(key)));
     }
-    auto match = iterateLayers(5, 7, strobe, keys, clusters);
+    auto match = iterateLayers(5, 7, keys, clusters);
     if (Verbosity() > 1)
     {
       std::cout << "Layer 5-6 matches size " << match.size() << std::endl;
@@ -1112,7 +1087,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
   return inttMatches;
 }
 std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
-    const int &startLayer, const int &endLayer, const int &strobe, const std::vector<TrkrDefs::cluskey> &keys, const std::vector<Acts::Vector3> &positions)
+    const int &startLayer, const int &endLayer, const std::vector<TrkrDefs::cluskey> &keys, const std::vector<Acts::Vector3> &positions)
 {
   std::vector<std::vector<TrkrDefs::cluskey>> inttMatches;
   auto dummypos = positions;
@@ -1126,15 +1101,6 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
   }
 
   float avgtripletphi = std::atan2(avgtriplety, avgtripletx);
-
-  int layer34timebucket = std::numeric_limits<int>::max();
-  for (const auto &key : keys)
-  {
-    if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::inttId)
-    {
-      layer34timebucket = InttDefs::getTimeBucketId(key);
-    }
-  }
 
   // move the fitted circle center the negative of the MVTX center position
   float x0 = 0.0;  // cm
@@ -1187,28 +1153,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
       }
 
       int timebucket = InttDefs::getTimeBucketId(hitsetkey);
-      if (layer34timebucket < std::numeric_limits<int>::max())
-      {
-        if (std::abs(timebucket - layer34timebucket) > 1)
-        {
-          if (Verbosity() > 3)
-          {
-            std::cout << "Skipping hitsetkey " << hitsetkey << " with timebucket " << timebucket << " because layer 3-4 timebucket is " << layer34timebucket << std::endl;
-          }
-          continue;
-        }
-      }
-      int strobecrossinglow = (strobe + m_strobeLowWindow) * m_strobeWidth;
-      int strobecrossinghigh = (strobe + m_strobeHighWindow) * m_strobeWidth;
-      if (timebucket < strobecrossinglow || timebucket > strobecrossinghigh)
-      {
-        if (Verbosity() > 3)
-        {
-          std::cout << "Skipping hitsetkey " << hitsetkey << " with timebucket " << timebucket << " because it is outside the strobe range " << strobecrossinglow << " to "
-                    << strobecrossinghigh << " " << m_strobeWidth << ", " << m_strobeLowWindow << ", " << m_strobeHighWindow << " for strobe " << strobe << std::endl;
-        }
-        continue;
-      }
+     
       auto range = m_clusterMap->getClusters(hitsetkey);
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
