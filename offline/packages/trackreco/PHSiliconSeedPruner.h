@@ -20,6 +20,11 @@ class PHSiliconSeedPruner : public SubsysReco
   PHSiliconSeedPruner(const std::string& name = "PHSiliconSeedPruner");
   ~PHSiliconSeedPruner() override;
 
+  PHSiliconSeedPruner(const PHSiliconSeedPruner&) = delete;
+  PHSiliconSeedPruner& operator=(const PHSiliconSeedPruner&) = delete;
+  PHSiliconSeedPruner(PHSiliconSeedPruner&&) = delete;
+  PHSiliconSeedPruner& operator=(PHSiliconSeedPruner&&) = delete;
+
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
 
@@ -36,7 +41,7 @@ class PHSiliconSeedPruner : public SubsysReco
 
   TrackSeedContainer* m_siliconSeeds{nullptr};
   TrackSeedContainer* m_prunedSiliconSeeds{nullptr};
-  std::string m_trackMapName{"SiliconTrackSeedContainer"};  // the default input node name for the TrackSeedContainer
+  std::string m_trackMapName{"SiliconTrackSeedContainer"};              // the default input node name for the TrackSeedContainer
   std::string m_outputTrackMapName{"PrunedSiliconTrackSeedContainer"};  // the default output node name for the TrackSeedContainer
 
   unsigned int m_randomSeed{0};  // the default random seed
