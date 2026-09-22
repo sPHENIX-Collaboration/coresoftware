@@ -16,6 +16,7 @@
 
 #include <TH2.h>
 #include <cassert>
+#include <memory>
 //____________________________________________________________________________..
 VertexQA::VertexQA(const std::string &name)
   : SubsysReco(name)
@@ -25,6 +26,7 @@ VertexQA::VertexQA(const std::string &name)
 //____________________________________________________________________________..
 int VertexQA::InitRun(PHCompositeNode *topNode)
 {
+  m_hasTrigger = false; //CodeRabbit suggestion incase trigger node can't be filled for another run
   auto gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
   if (!gl1packet)
   {
@@ -36,7 +38,7 @@ int VertexQA::InitRun(PHCompositeNode *topNode)
     if (triggerruninfo)
     {
       m_hasTrigger = true;
-      triggeranalyzer = new TriggerAnalyzer();
+      triggeranalyzer = std::make_unique<TriggerAnalyzer>();
     }
   }
 

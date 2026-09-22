@@ -8,6 +8,7 @@
 #include <calotrigger/TriggerAnalyzer.h>
 
 #include <string>
+#include <memory>
 #include <vector>
 
 class SvtxTrack;
@@ -41,7 +42,7 @@ class VertexQA : public SubsysReco
   int m_runbins = m_endRun - m_beginRun;
 
   bool m_hasTrigger = false;
-  TriggerAnalyzer *triggeranalyzer{nullptr};
+  std::unique_ptr<TriggerAnalyzer> triggeranalyzer;
   static const int nTriggerBits = 64; //Physics triggers ended at bit 39 for run3pp, I think they were higher for UPC triggers
   bool m_trigger_bit[nTriggerBits] = {std::numeric_limits<bool>::quiet_NaN()};
 };
