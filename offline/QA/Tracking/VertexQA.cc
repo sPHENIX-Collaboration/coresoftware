@@ -7,6 +7,8 @@
 #include <qautils/QAHistManagerDef.h>
 #include <qautils/QAUtil.h>
 
+#include <calotrigger/TriggerRunInfo.h>
+#include <ffarawobjects/Gl1Packet.h>
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
 #include <phool/PHCompositeNode.h>
@@ -21,8 +23,23 @@ VertexQA::VertexQA(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int VertexQA::InitRun(PHCompositeNode * /*unused*/)
+int VertexQA::InitRun(PHCompositeNode *topNode)
 {
+  auto gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+  if (!gl1packet)
+  {
+    gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+  }
+  if (gl1packet)
+  {
+    auto triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
+    if (triggerruninfo)
+    {
+      m_hasTrigger = true;
+      triggeranalyzer = new TriggerAnalyzer();
+    }
+  }
+
   createHistos();
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -30,6 +47,23 @@ int VertexQA::InitRun(PHCompositeNode * /*unused*/)
 //____________________________________________________________________________..
 int VertexQA::process_event(PHCompositeNode *topNode)
 {
+  auto *hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  if (m_hasTrigger)
+  {
+    triggeranalyzer->decodeTriggers(topNode);
+    auto *h_trigger = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "triggerFired")));
+    for (int i = 0; i < nTriggerBits; ++i)
+    {
+      if (triggeranalyzer->didTriggerFire(i))
+      {
+        int oldValue = h_trigger->GetBinContent(i+1); //Underflow is bin 0 but need to fill x-axis at 0
+        h_trigger->SetBinContent(i+1, oldValue+1);
+      }
+    }
+  }
+
   // auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   auto *vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
   if (!vertexmap)
@@ -37,9 +71,6 @@ int VertexQA::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << "Missing node(s), can't continue" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
-  auto *hm = QAHistManagerDef::getHistoManager();
-  assert(hm);
 
   auto *h_nvertex = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecovertices")));
   auto *h_vx = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vx")));
@@ -53,6 +84,8 @@ int VertexQA::process_event(PHCompositeNode *topNode)
 
   m_vertices += vertexmap->size();
   h_nvertex->Fill(vertexmap->size());
+
+  bool alreadySelectedTriggerVertex = false;
   for (const auto &[key, vertex] : *vertexmap)
   {
     if (!vertex)
@@ -77,6 +110,31 @@ int VertexQA::process_event(PHCompositeNode *topNode)
     h_vcrossing->Fill(vcrossing);
 
     h_ntrackpervertex->Fill(vertex->size_tracks());
+
+    if (m_hasTrigger && vcrossing == 0)
+    {
+      auto *h_trigger12_vtx_z = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trigger12_vtx_z")));
+      auto *h_triggerAndVtx = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "triggerFiredAndSvtxVertex")));
+
+      if (triggeranalyzer->didTriggerFire(12))
+      {
+        h_trigger12_vtx_z->Fill(vz);
+      }
+
+      if (!alreadySelectedTriggerVertex)
+      {
+        alreadySelectedTriggerVertex = true; //Dont want to bias trigger count from multiple PV in BC zero
+        for (int i = 0; i < nTriggerBits; ++i)
+        {
+          if (triggeranalyzer->didTriggerFire(i))
+          {
+            int oldValue = h_triggerAndVtx->GetBinContent(i+1);
+            h_triggerAndVtx->SetBinContent(i+1, oldValue+1);
+          }
+        }
+      }
+    }
+
     // loop over all tracks on vertex
     // for (Vertex::TrackIter iter = vertex->begin_tracks();
     //     iter != vertex->end_tracks();
@@ -190,5 +248,28 @@ void VertexQA::createHistos()
     h->GetYaxis()->SetTitle("N_{vertives}/event");
     h->GetXaxis()->SetTitle("Run number");
     hm->registerHisto(h);
+  }
+  {
+    if (m_hasTrigger)
+    {
+      {
+        auto *h = new TH1I(std::string(getHistoPrefix() + "triggerFired").c_str(),
+                           "Trigger Fired", nTriggerBits, 0, nTriggerBits-1);
+        h->GetXaxis()->SetTitle("Trigger Bit");
+        hm->registerHisto(h);
+      }
+      {
+        auto *h = new TH1I(std::string(getHistoPrefix() + "triggerFiredAndSvtxVertex").c_str(),
+                           "Trigger Fired And SvtxVertex", nTriggerBits, 0, nTriggerBits-1);
+        h->GetXaxis()->SetTitle("Trigger Bit");
+        hm->registerHisto(h);
+      }
+      {
+        auto *h = new TH1F(std::string(getHistoPrefix() + "trigger12_vtx_z").c_str(),
+                           "Trigger 12 Vtx_z ", 60, -15, 15);
+        h->GetXaxis()->SetTitle("Vertex z [cm]");
+        hm->registerHisto(h);
+      }
+    }
   }
 }

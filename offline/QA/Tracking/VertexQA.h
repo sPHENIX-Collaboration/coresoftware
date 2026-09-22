@@ -5,6 +5,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <calotrigger/TriggerAnalyzer.h>
+
 #include <string>
 #include <vector>
 
@@ -37,6 +39,11 @@ class VertexQA : public SubsysReco
   int m_beginRun = 25900;
   int m_endRun = 26200;
   int m_runbins = m_endRun - m_beginRun;
+
+  bool m_hasTrigger = false;
+  TriggerAnalyzer *triggeranalyzer{nullptr};
+  static const int nTriggerBits = 64; //Physics triggers ended at bit 39 for run3pp, I think they were higher for UPC triggers
+  bool m_trigger_bit[nTriggerBits] = {std::numeric_limits<bool>::quiet_NaN()};
 };
 
 #endif  // VERTEXQA_H
