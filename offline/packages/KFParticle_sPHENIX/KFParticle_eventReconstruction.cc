@@ -51,7 +51,6 @@ KFParticle_Tools kfp_Tools_evtReco;
 KFParticle_eventReconstruction::KFParticle_eventReconstruction()
   : m_constrain_to_vertex(false)
   , m_constrain_int_mass(false)
-  , m_use_fake_pv(false)
 {
 }
 

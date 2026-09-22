@@ -267,6 +267,8 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   bool m_bunch_crossing_zero_only{false};
 
+  bool m_use_fake_pv{false};
+
   bool m_use_mbd_vertex{false};
 
   bool m_dont_use_global_vertex{false};

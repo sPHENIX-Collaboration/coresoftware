@@ -106,6 +106,7 @@ KFParticle_Tools::KFParticle_Tools()
   , m_mother_PV_dca_stddev(std::numeric_limits<float>::max())
   , m_get_charge_conjugate(false)
   , m_extrapolateTracksToSV(true)
+  , m_use_fake_pv(false)
   , m_vtx_map_node_name("SvtxVertexMap")
   , m_trk_map_node_name("SvtxTrackMap")
   , m_dst_mbdvertexmap()
@@ -1542,6 +1543,11 @@ bool KFParticle_Tools::vertexToleranceCheck(float vertexMap_pos[3], float kfp_ve
 bool KFParticle_Tools::checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex)
 {
   int vertexCrossing = std::numeric_limits<int>::min();
+
+  if (m_use_fake_pv) //Fake PV has no crossing and should always match to a track 
+  {
+    return true;
+  }
 
   float obtained_vertex[3] = {0, 0, std::numeric_limits<float>::lowest()};
   float kfp_vertex[3] = {vertex.GetX(), vertex.GetY(), vertex.GetZ()};
