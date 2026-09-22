@@ -659,18 +659,17 @@ short int PHActsSiliconSeeding::getCrossingIntt(TrackSeed &si_track)
   // If the Si track contains an INTT hit, use it to get the bunch crossing offset
 
   std::vector<short int> intt_crossings = getInttCrossings(si_track);
-  if(intt_crossings.size() == 0)
+  if(intt_crossings.empty())
   {
     return SHRT_MAX;
   }
-  else if(intt_crossings.size() == 1)
+  if(intt_crossings.size() == 1)
   {
     return intt_crossings[0];
   }
 
 
   // If there are multiple INTT crossings, we can't determine a single crossing. So just randomly select one
-  std::cout << "intt_crossings size " << intt_crossings.size() << std::endl;
   if (Verbosity() > 1)
   {
     std::cout << "Multiple INTT crossings found for seed, cannot determine a single crossing. Crossings: ";
@@ -680,6 +679,8 @@ short int PHActsSiliconSeeding::getCrossingIntt(TrackSeed &si_track)
     }
     std::cout << std::endl;
   }
+
+  // if the crossings are the same, then you will still get the correct crossing
 
   std::random_device rd;
   std::mt19937 gen(rd());
