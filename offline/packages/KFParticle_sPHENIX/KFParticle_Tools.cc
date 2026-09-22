@@ -534,8 +534,8 @@ int KFParticle_Tools::calcMinPV_DCA(const KFParticle &track, const std::vector<K
 
   if (ip.empty()) //Need to account for instances where the track has no associated primary vertex in its crossing. Track should always be rejected
   {
-    minimumPV_DCA = -1.;
-    minimumPV_DCA_stddev = -1.;
+    minimumPV_DCA = std::numeric_limits<float>::quiet_NaN();
+    minimumPV_DCA_stddev = std::numeric_limits<float>::quiet_NaN();
     return 0;
   }
 
