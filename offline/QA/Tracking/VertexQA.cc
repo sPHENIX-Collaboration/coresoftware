@@ -27,14 +27,14 @@ VertexQA::VertexQA(const std::string &name)
 int VertexQA::InitRun(PHCompositeNode *topNode)
 {
   m_hasTrigger = false; //CodeRabbit suggestion incase trigger node can't be filled for another run
-  auto gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+  auto *gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
   if (!gl1packet)
   {
     gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
   }
   if (gl1packet)
   {
-    auto triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
+    auto *triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
     if (triggerruninfo)
     {
       m_hasTrigger = true;
