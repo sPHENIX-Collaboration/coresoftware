@@ -73,6 +73,8 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   /*const*/ bool isGoodTrack(const KFParticle &particle, const std::vector<KFParticle> &primaryVertices);
 
+  bool isTPConlyAtZeroCrossing(const KFParticle&);
+
   int calcMinPV_DCA(const KFParticle &track, const std::vector<KFParticle> &PVs, float &minimumPV_DCA, float &minimumPV_DCA_stddev, bool do3D = true);
 
   std::vector<int> findAllGoodTracks(const std::vector<KFParticle> &daughterParticles);//, const std::vector<KFParticle> &primaryVertices);
@@ -122,6 +124,8 @@ class KFParticle_Tools : protected KFParticle_MVA
   void init_dEdx_fits();
 
   double get_dEdx_fitValue(float momentum, int PID);
+
+  bool vertexToleranceCheck(float vertexMap_pos[3], float kfp_vertex_pos[3]);
 
   bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex);
 
@@ -260,11 +264,13 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   bool m_bunch_crossing_zero_only{false};
 
-  bool m_require_bunch_crossing_match{true};
-
   bool m_use_mbd_vertex{false};
 
   bool m_dont_use_global_vertex{false};
+
+  bool m_force_mixed_event = false;
+
+  bool m_require_bunch_crossing_match{true};
 
   bool m_require_track_and_vertex_match{false};
 
