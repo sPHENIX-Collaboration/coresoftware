@@ -130,12 +130,6 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex);
 
-  /// Returns the set of distinct bunch crossings this particle is built
-  /// from. If the particle is a real (direct) track, this is just that
-  /// track's own crossing. If it is itself a previously-built intermediate
-  /// KFParticle (no backing SvtxTrack), the aggregate crossing set recorded
-  /// for it when it was constructed in buildMother is returned instead, so
-  /// bunch-crossing checks stay correct across an intermediate boundary.
   std::vector<int> getParticleCrossings(const KFParticle &particle);
 
   void set_dont_use_global_vertex(bool set_variable) { m_dont_use_global_vertex = set_variable; }
@@ -283,16 +277,8 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   bool m_require_track_and_vertex_match{false};
 
-  /// Aggregate constituent bunch-crossing set for each intermediate
-  /// KFParticle built this event, keyed by the synthetic negative Id
-  /// assigned to that intermediate in buildMother. Cleared at the start of
-  /// each event in makeAllDaughterParticles.
   std::map<int, std::vector<int>> m_intermediate_crossings;
 
-  /// Monotonically-decrementing source of synthetic Ids for built
-  /// intermediates (real tracks already own their own positive SvtxTrack
-  /// id, so negative values can never collide with one). Reset to -2 at
-  /// the start of each event in makeAllDaughterParticles.
   int m_next_intermediate_id{-2};
 
   std::string m_vtx_map_node_name;

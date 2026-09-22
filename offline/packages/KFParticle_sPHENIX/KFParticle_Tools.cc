@@ -283,10 +283,6 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
   m_dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
   unsigned int trackID = 0;
 
-  // Fresh event: any intermediate crossing state cached from a previous
-  // event is no longer valid, and the synthetic Id counter can safely
-  // restart (real tracks always carry their own positive SvtxTrack id, so
-  // there is no risk of collision from doing so).
   m_intermediate_crossings.clear();
   m_next_intermediate_id = -2;
 
@@ -460,8 +456,6 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
 
   float pt = 0;
   float pterr = 0;
-  //   float pt = particle.GetPt();
-  //   float pterr = particle.GetErrPt();
   int MeansToEnd = particle.GetPt(pt, pterr);  // Both pt and pterr are passed by reference. GetPt() unhelpfully returns 0 for simulated silicon-only tracks, so we are changing to this function GetPt(p_t, sigma p_T)
   if (false)
   {
@@ -576,16 +570,10 @@ std::vector<int> KFParticle_Tools::getParticleCrossings(const KFParticle &partic
   SvtxTrack *thisTrack = KFParticle_truthAndDetTools::getTrack(particle.Id(), m_dst_trackmap);
   if (thisTrack)
   {
-    // A real, direct track: its own crossing is the whole answer.
     crossings.push_back(thisTrack->get_crossing());
     return crossings;
   }
 
-  // Not a direct track, so this must be a previously-built intermediate
-  // KFParticle: getTrack() cannot resolve it because it has no backing
-  // SvtxTrack. Its full constituent crossing set was recorded under its
-  // synthetic Id when it was built in buildMother; look that up instead of
-  // silently treating it as contributing nothing.
   auto it = m_intermediate_crossings.find(particle.Id());
   if (it != m_intermediate_crossings.end())
   {
@@ -896,7 +884,6 @@ std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFPa
       for (int j : i)
       {
         v_intermediateResonances.push_back(daughterParticles[j]);
-        //v_intermediateResonances.push_back(daughterParticles[i[j]]);
       }
       dummyTrackID.reserve(v_intermediateResonances.size());
       for (unsigned int k = 0; k < v_intermediateResonances.size(); ++k)
@@ -1143,12 +1130,6 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     }
   }
 
-  // This mother is itself an intermediate: record its own aggregate
-  // constituent crossing set under a synthetic negative Id (real tracks
-  // always carry their own positive SvtxTrack id, so this can never
-  // collide) so that a later buildMother call treating this particle as one
-  // of *its* daughters can resolve the crossing state completely, instead
-  // of silently seeing "no track" and dropping it.
   if (isIntermediate && goodCandidate)
   {
     mother.SetId(m_next_intermediate_id);
@@ -1624,10 +1605,6 @@ bool KFParticle_Tools::checkTrackAndVertexMatch(KFParticle vDaughters[], int nTr
 
   for (int i = 0; i < nTracks; ++i)
   {
-    // getParticleCrossings resolves both real tracks and previously-built
-    // intermediates (via their cached aggregate crossing set), so a mixed
-    // candidate is checked completely rather than silently skipping any
-    // daughter that has no backing SvtxTrack.
     for (const int trackCrossing : getParticleCrossings(vDaughters[i]))
     {
       if (trackCrossing != vertexCrossing)
@@ -1680,7 +1657,6 @@ int KFParticle_Tools::getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, co
   //  return -1;
   //}
 
-  //std::cout<<"m_siliconSeeds->size(): "<<m_siliconSeeds->size()<<std::endl;
   TrackSeed *_tracklet_si;
   int ncharged_multiplicity = 0;
   const int nMapsCut = 1;  
@@ -1694,7 +1670,6 @@ int KFParticle_Tools::getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, co
       {
         continue;
       }
-      //std::cout<<"size cluster seeds: "<<_tracklet_si->size_cluster_keys()<<std::endl;
       if (_tracklet_si->get_crossing() == bunch_crossing)
       {
         if (TrackAnalysisUtils::get_cluster_count(_tracklet_si,TrkrDefs::mvtxId) >= nMapsCut && 
