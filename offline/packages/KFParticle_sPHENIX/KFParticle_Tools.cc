@@ -283,6 +283,13 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
   m_dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
   unsigned int trackID = 0;
 
+  // Fresh event: any intermediate crossing state cached from a previous
+  // event is no longer valid, and the synthetic Id counter can safely
+  // restart (real tracks always carry their own positive SvtxTrack id, so
+  // there is no risk of collision from doing so).
+  m_intermediate_crossings.clear();
+  m_next_intermediate_id = -2;
+
   for (auto &iter : *m_dst_trackmap)
   {
     m_dst_track = iter.second;
@@ -562,6 +569,32 @@ std::vector<int> KFParticle_Tools::findAllGoodTracks(const std::vector<KFParticl
   return goodTrackIndex;
 }
 
+std::vector<int> KFParticle_Tools::getParticleCrossings(const KFParticle &particle)
+{
+  std::vector<int> crossings;
+
+  SvtxTrack *thisTrack = KFParticle_truthAndDetTools::getTrack(particle.Id(), m_dst_trackmap);
+  if (thisTrack)
+  {
+    // A real, direct track: its own crossing is the whole answer.
+    crossings.push_back(thisTrack->get_crossing());
+    return crossings;
+  }
+
+  // Not a direct track, so this must be a previously-built intermediate
+  // KFParticle: getTrack() cannot resolve it because it has no backing
+  // SvtxTrack. Its full constituent crossing set was recorded under its
+  // synthetic Id when it was built in buildMother; look that up instead of
+  // silently treating it as contributing nothing.
+  auto it = m_intermediate_crossings.find(particle.Id());
+  if (it != m_intermediate_crossings.end())
+  {
+    crossings = it->second;
+  }
+
+  return crossings;
+}
+
 std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices)
 {
   std::vector<std::vector<int>> goodTracksThatMeet;
@@ -579,11 +612,8 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
           crossings.reserve(dummy_tracks.size());
           for (const auto &track : dummy_tracks)
           {
-            SvtxTrack *thisTrack = KFParticle_truthAndDetTools::getTrack(track.Id(), m_dst_trackmap);
-            if (thisTrack)
-            {
-              crossings.push_back(thisTrack->get_crossing());
-            }
+            std::vector<int> trackCrossings = getParticleCrossings(track);
+            crossings.insert(crossings.end(), trackCrossings.begin(), trackCrossings.end());
           }
           
           removeDuplicates(crossings);
@@ -1087,20 +1117,16 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     goodCandidate = true;
   }
 
+  std::vector<int> crossings;
+  for (int i = 0; i < nTracks; ++i)
+  {
+    std::vector<int> daughterCrossings = getParticleCrossings(vDaughters[i]);
+    crossings.insert(crossings.end(), daughterCrossings.begin(), daughterCrossings.end());
+  }
+  removeDuplicates(crossings);
+
   if (goodCandidate && (m_require_bunch_crossing_match || m_force_mixed_event))
   {
-    std::vector<int> crossings;
-    for (int i = 0; i < nTracks; ++i)
-    {
-      SvtxTrack *thisTrack = KFParticle_truthAndDetTools::getTrack(vDaughters[i].Id(), m_dst_trackmap);
-      if (thisTrack)  // This protects against intermediates which have no track but I need a way to assign the bunch crossing to an interemdiate as this was already checked when it was actually built
-      {
-        crossings.push_back(thisTrack->get_crossing());
-      }
-    }
-
-    removeDuplicates(crossings);
-
     if (m_require_bunch_crossing_match && crossings.size() != 1)
     {
       goodCandidate = false;
@@ -1115,6 +1141,19 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
       bool accept = crossings.size() == 1;
       printSelectionCheck("", "All tracks are from the same BC", "Tracks are from different BC", "", accept);
     }
+  }
+
+  // This mother is itself an intermediate: record its own aggregate
+  // constituent crossing set under a synthetic negative Id (real tracks
+  // always carry their own positive SvtxTrack id, so this can never
+  // collide) so that a later buildMother call treating this particle as one
+  // of *its* daughters can resolve the crossing state completely, instead
+  // of silently seeing "no track" and dropping it.
+  if (isIntermediate && goodCandidate)
+  {
+    mother.SetId(m_next_intermediate_id);
+    m_intermediate_crossings[m_next_intermediate_id] = crossings;
+    --m_next_intermediate_id;
   }
 
   // Check the requirements of an intermediate states against this mother and re-do goodCandidate
@@ -1424,6 +1463,12 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
   }
 
   SvtxTrack *daughter_track = KFParticle_truthAndDetTools::getTrack(daughter.Id(), m_dst_trackmap);
+  if (!daughter_track)
+  {
+    // No backing SvtxTrack -- e.g. daughter is itself a built intermediate.
+    // dE/dx PID is only meaningful for a real reconstructed track.
+    return -1.0;
+  }
   TrackSeed *tpcseed = daughter_track->get_tpc_seed();
   float layerThicknesses[4] = {0.0, 0.0, 0.0, 0.0};
   // These are randomly chosen layer thicknesses for the TPC, to get the
@@ -1579,10 +1624,12 @@ bool KFParticle_Tools::checkTrackAndVertexMatch(KFParticle vDaughters[], int nTr
 
   for (int i = 0; i < nTracks; ++i)
   {
-    SvtxTrack *thisTrack = KFParticle_truthAndDetTools::getTrack(vDaughters[i].Id(), m_dst_trackmap);
-    if (thisTrack)  // This protects against intermediates which have no track
+    // getParticleCrossings resolves both real tracks and previously-built
+    // intermediates (via their cached aggregate crossing set), so a mixed
+    // candidate is checked completely rather than silently skipping any
+    // daughter that has no backing SvtxTrack.
+    for (const int trackCrossing : getParticleCrossings(vDaughters[i]))
     {
-      int trackCrossing = thisTrack->get_crossing();
       if (trackCrossing != vertexCrossing)
       {
         return false;  // no point checking remaining tracks
