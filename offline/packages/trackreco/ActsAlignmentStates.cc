@@ -173,14 +173,9 @@ void ActsAlignmentStates::fillAlignmentStateMap(
 
     // Get the derivative of alignment (global) parameters w.r.t. measurement or residual
     /// The local bound parameters still have access to global phi/theta
-    const double l0 = state.smoothed()[Acts::eBoundLoc0];
-    const double l1 = state.smoothed()[Acts::eBoundLoc1];
+  
     const double phi = state.smoothed()[Acts::eBoundPhi];
     const double theta = state.smoothed()[Acts::eBoundTheta];
-    const double qoverp = state.smoothed()[Acts::eBoundQOverP];
-    const double time = state.smoothed()[Acts::eBoundTime];
-
-    SvtxAlignmentState::ActsTrackParamsVector track_params = {l0,l1,phi,theta,qoverp,time};
 
     Acts::Vector3 tangent = Acts::makeDirectionFromPhiTheta(phi,theta);
 
@@ -214,7 +209,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(
     //! e.g. (d_0, z_0, phi, theta, q/p, t)
       //auto localDeriv = H * state.jacobian();
       auto localDeriv = makeLocalDerivatives(H);
-      SvtxAlignmentState::LocalMeasErrPsuedo localmeaserrpsuedo = SvtxAlignmentState::LocalMeasErrPsuedo::Zero();
+      SvtxAlignmentState::ActsTrackParamsVector localmeaserrpsuedo = SvtxAlignmentState::ActsTrackParamsVector::Zero();
       auto localDerivPsuedo = makeLocalDerivativesPsuedo(state, localmeaserrpsuedo);
       if (m_verbosity > 2)
       {
@@ -228,7 +223,6 @@ void ActsAlignmentStates::fillAlignmentStateMap(
     svtxstate->set_local_derivative_psuedo_matrix(localDerivPsuedo);
     svtxstate->set_local_psuedo_measurement_err(localmeaserrpsuedo);
     svtxstate->set_global_derivative_matrix(globDeriv);
-    svtxstate->set_acts_track_params(track_params);
     svtxstate->set_cluster_key(ckey);
 
     statevec.push_back(svtxstate.release());
@@ -289,7 +283,7 @@ ActsAlignmentStates::makeLocalDerivatives(const auto& H)
 }
 
 SvtxAlignmentState::LocalMatrixPsuedo
-ActsAlignmentStates::makeLocalDerivativesPsuedo(const auto& state, SvtxAlignmentState::LocalMeasErrPsuedo& localmeaserrpsuedo)
+ActsAlignmentStates::makeLocalDerivativesPsuedo(const auto& state, SvtxAlignmentState::ActsTrackParamsVector& localmeaserrpsuedo)
 {
   SvtxAlignmentState::LocalMatrixPsuedo localderpsuedo = SvtxAlignmentState::LocalMatrixPsuedo::Zero();
   localmeaserrpsuedo(0) = 1.;

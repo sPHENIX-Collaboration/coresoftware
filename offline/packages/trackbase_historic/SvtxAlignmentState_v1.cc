@@ -5,7 +5,6 @@ SvtxAlignmentState_v1::SvtxAlignmentState_v1()
   , m_localDeriv(LocalMatrix::Zero())
   , m_globalDeriv(GlobalMatrix::Zero())
   , m_cluskey(UINT_MAX)
-  , m_trackParams(ActsTrackParamsVector::Zero())
 {
 }
 

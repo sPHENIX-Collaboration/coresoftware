@@ -98,7 +98,7 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
     m_ntuple = new TNtuple (
       "ntp", "ntp",
       "layer:stave:chip:residualX:residualY:clusphi:xglob:yglob:zglob:"
-      "errX:errY:l0:l1:phi:theta:qoverp:time:"
+      "errX:errY:"
       "dXdR:dXdZ0:dXdphi:dXdtheta:dXdqoverp:dXdt:"
       "dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:"
       "dYdR:dYdZ0:dYdphi:dYdtheta:dYdqoverp:dYdt:"
@@ -560,7 +560,6 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     float lcl_meas_psuedo[SvtxAlignmentState::NLOC]{};
     float glbl_derivative_dummy_empty[SvtxAlignmentState::NGL]{};
     int glbl_label_dummy_empty[SvtxAlignmentState::NGL]{};
-    SvtxAlignmentState::ActsTrackParamsVector lcl_trackpars = state->get_acts_track_params();
     
     /// For N residual local coordinates x, z
     for (int i = 0; i < SvtxAlignmentState::NRES; ++i)
@@ -671,7 +670,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
 
     float ntp_data[] = {
       (float) layer, (float) stave, (float) chip, (float) residual(0), (float) residual(1), (float) clusphi, (float) global[0], (float) global[1], (float) global[2],
-      (float) clus_sigma(0), (float) clus_sigma(1), (float) lcl_trackpars(0), (float) lcl_trackpars(1), (float) lcl_trackpars(2), (float) lcl_trackpars(3), (float) lcl_trackpars(4), (float) lcl_trackpars(5),
+      (float) clus_sigma(0), (float) clus_sigma(1), 
       lcl_derivative[0][0], lcl_derivative[0][1], lcl_derivative[0][2], lcl_derivative[0][3], lcl_derivative[0][4], lcl_derivative[0][5],
       glbl_derivative[0][0], glbl_derivative[0][1], glbl_derivative[0][2], glbl_derivative[0][3], glbl_derivative[0][4], glbl_derivative[0][5],
       lcl_derivative[1][0], lcl_derivative[1][1], lcl_derivative[1][2], lcl_derivative[1][3], lcl_derivative[1][4], lcl_derivative[1][5],

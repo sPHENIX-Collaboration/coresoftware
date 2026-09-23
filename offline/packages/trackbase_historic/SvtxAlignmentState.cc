@@ -5,9 +5,8 @@ namespace
   SvtxAlignmentState::GlobalMatrix globalMatrix = SvtxAlignmentState::GlobalMatrix::Zero();
   SvtxAlignmentState::LocalMatrix localMatrix = SvtxAlignmentState::LocalMatrix::Zero();
   SvtxAlignmentState::LocalMatrixPsuedo localMatrixPsuedo = SvtxAlignmentState::LocalMatrixPsuedo::Zero();
-  SvtxAlignmentState::LocalMeasErrPsuedo localMeasErrPsuedo = SvtxAlignmentState::LocalMeasErrPsuedo::Zero();
+  SvtxAlignmentState::ActsTrackParamsVector localMeasErrPsuedo = SvtxAlignmentState::ActsTrackParamsVector::Zero();
   SvtxAlignmentState::ResidualVector residual = SvtxAlignmentState::ResidualVector::Zero();
-  SvtxAlignmentState::ActsTrackParamsVector trackParams = SvtxAlignmentState::ActsTrackParamsVector::Zero();
 }  // namespace
 
 const SvtxAlignmentState::ResidualVector& SvtxAlignmentState::get_residual() const
@@ -25,7 +24,7 @@ const SvtxAlignmentState::LocalMatrixPsuedo& SvtxAlignmentState::get_local_deriv
   return localMatrixPsuedo;
 }
 
-const SvtxAlignmentState::LocalMeasErrPsuedo& SvtxAlignmentState::get_local_psuedo_measurement_err() const
+const SvtxAlignmentState::ActsTrackParamsVector& SvtxAlignmentState::get_local_psuedo_measurement_err() const
 {
   return localMeasErrPsuedo;
 }
@@ -35,7 +34,3 @@ const SvtxAlignmentState::GlobalMatrix& SvtxAlignmentState::get_global_derivativ
   return globalMatrix;
 }
 
-const SvtxAlignmentState::ActsTrackParamsVector& SvtxAlignmentState::get_acts_track_params() const
-{
-  return trackParams;
-}
