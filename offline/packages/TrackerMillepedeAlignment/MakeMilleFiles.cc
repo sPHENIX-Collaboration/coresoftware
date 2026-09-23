@@ -47,7 +47,7 @@ namespace
 {
   /// square
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -315,7 +315,7 @@ bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
   auto* firststate = (*std::next(track->begin_states(), 1)).second;
 
   const auto ckey = firststate->get_cluskey();
-  const auto cluster = _cluster_map->findCluster(ckey);
+  auto *const cluster = _cluster_map->findCluster(ckey);
   const auto surf = _tGeometry->maps().getSurface(ckey, cluster);
 
   const auto param = propagator.makeTrackParams(firststate, track->get_charge(), surf).value();
@@ -448,7 +448,7 @@ Acts::Vector3 MakeMilleFiles::getEventVertex()
   float zsum = 0;
   int nacceptedtracks = 0;
 
-  for (auto [key, statevec] : *_state_map)
+  for (const auto& [key, statevec] : *_state_map)
   {
     // Check if track was removed from cleaner
     auto iter = _track_map->find(key);
@@ -474,7 +474,7 @@ Acts::Vector3 MakeMilleFiles::getEventVertex()
 
 void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statevec)
 {
-  for (auto state : statevec)
+  for (auto *state : statevec)
   {
     TrkrDefs::cluskey ckey = state->get_cluster_key();
 
@@ -502,8 +502,9 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
         stave = InttDefs::getLadderZId(ckey);
         chip = InttDefs::getLadderPhiId(ckey);
       }
-    if(m_ignore_tpc && trkrid == TrkrDefs::tpcId)
+    if(m_ignore_tpc && trkrid == TrkrDefs::tpcId) {
       continue;
+}
     const SvtxAlignmentState::ResidualVector residual = state->get_residual();// / Acts::UnitConstants::cm;
     //auto acts_pars = state->parameters();
     //std::cout<<"acts_par(0): "<<acts_pars(0)<<std::endl;
@@ -578,8 +579,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
         if (trkrid == TrkrDefs::mvtxId)
         {
           // need stave to get clamshell
-           auto stave = MvtxDefs::getStaveId(ckey);
-          auto clamshell = AlignmentDefs::getMvtxClamshell(layer, stave);
+           auto stave4clam = MvtxDefs::getStaveId(ckey);
+          auto clamshell = AlignmentDefs::getMvtxClamshell(layer, stave4clam);
           if (is_layer_param_fixed(layer, j, fixed_layer_gparams) ||
               is_mvtx_layer_fixed(layer, clamshell))
           {
@@ -647,7 +648,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
           AlignmentDefs::printBuffers(i, residual, clus_sigma, lcl_derivative[i], glbl_derivative[i], glbl_label);
         }
         float errinf = 1.0;
-        if (m_layerMisalignment.find(layer) != m_layerMisalignment.end())
+        if (m_layerMisalignment.contains(layer))
         {
           errinf = m_layerMisalignment.find(layer)->second;
         }
@@ -677,7 +678,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
       glbl_derivative[1][0], glbl_derivative[1][1], glbl_derivative[1][2], glbl_derivative[1][3], glbl_derivative[1][4], glbl_derivative[1][5],
     };
 
-    if (m_ntuple) m_ntuple->Fill(ntp_data);
+    if (m_ntuple) { m_ntuple->Fill(ntp_data);
+}
   }
 
   return;

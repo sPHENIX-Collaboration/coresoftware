@@ -55,11 +55,11 @@ class ActsAlignmentStates
  private:
 
   std::pair<Acts::Vector3, Acts::Vector3> get_projectionXY(const Acts::Surface& surface, const Acts::Vector3& tangent);
-  const Acts::ActsDynamicMatrix regulariseCovariance(const Acts::ActsDynamicMatrix& inputCov,
+  Acts::ActsDynamicMatrix regulariseCovariance(const Acts::ActsDynamicMatrix& inputCov,
                                                  double conditionCutOff,
                                                  double removeHugeLeading,
                                                  double stabilisationDiag);
-  const Acts::ActsDynamicMatrix getInverseComplement(const Acts::ActsDynamicMatrix& target,
+  Acts::ActsDynamicMatrix getInverseComplement(const Acts::ActsDynamicMatrix& target,
                                            const Acts::ActsDynamicMatrix& existing_sol);                                       
   SvtxAlignmentState::GlobalMatrix makeGlobalDerivatives(const Acts::Vector3& OM, const std::pair<Acts::Vector3, Acts::Vector3>& projxy);
   SvtxAlignmentState::LocalMatrix makeLocalDerivatives(const auto& H);

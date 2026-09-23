@@ -25,12 +25,12 @@
 namespace
 {
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
   template <class T>
-  inline constexpr T get_r(const T& x, const T& y)
+  constexpr T get_r(const T& x, const T& y)
   {
     return std::sqrt(square(x) + square(y));
   }
@@ -83,7 +83,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(
 
   std::vector<Acts::BoundIndices> indices{Acts::eBoundLoc0, Acts::eBoundLoc1, Acts::eBoundPhi, Acts::eBoundTheta, Acts::eBoundQOverP, Acts::eBoundTime};
 
-  auto silseed = track->get_silicon_seed();
+  auto *silseed = track->get_silicon_seed();
   int nmaps = 0;
   int nintt = 0;
   for (auto iter = silseed->begin_cluster_keys();
@@ -327,8 +327,8 @@ ActsAlignmentStates::makeLocalDerivativesPsuedo(const auto& state, SvtxAlignment
     std::cout << " FAILED to find decompose correlation term" << std::endl;
     return localderpsuedo;
   }
-  const Acts::ActsDynamicVector eigenVals = eigenSolver.eigenvalues();
-  const Acts::ActsDynamicMatrix eigenVecs = eigenSolver.eigenvectors();
+  const Acts::ActsDynamicVector& eigenVals = eigenSolver.eigenvalues();
+  const Acts::ActsDynamicMatrix& eigenVecs = eigenSolver.eigenvectors();
 
   /// convert each EV to a pseudo-measurement
   for (long iMeas = 0; iMeas < eigenVecs.rows();
@@ -379,7 +379,7 @@ std::pair<Acts::Vector3, Acts::Vector3> ActsAlignmentStates::get_projectionXY(co
   return std::make_pair(projx, projy);
 }
 
-const Acts::ActsDynamicMatrix ActsAlignmentStates::regulariseCovariance(const Acts::ActsDynamicMatrix& inputCov,
+Acts::ActsDynamicMatrix ActsAlignmentStates::regulariseCovariance(const Acts::ActsDynamicMatrix& inputCov,
                                                  double conditionCutOff,
                                                  double removeHugeLeading,
                                                  double stabilisationDiag)
@@ -427,7 +427,7 @@ const Acts::ActsDynamicMatrix ActsAlignmentStates::regulariseCovariance(const Ac
   return out;
 }
 
-const Acts::ActsDynamicMatrix ActsAlignmentStates::getInverseComplement(const Acts::ActsDynamicMatrix& target,
+Acts::ActsDynamicMatrix ActsAlignmentStates::getInverseComplement(const Acts::ActsDynamicMatrix& target,
                                            const Acts::ActsDynamicMatrix& existing_sol)
 {
   Acts::ActsDynamicMatrix Rhs =

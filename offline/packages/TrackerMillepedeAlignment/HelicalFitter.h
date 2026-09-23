@@ -110,7 +110,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   }
 
   // utility functions for analysis modules
-  std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
+  std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, const std::vector<TrkrDefs::cluskey>& cluskey_vec) const;
 
   void getTrackletClusters(TrackSeed* _track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
   Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, const Acts::Vector3& global);
@@ -129,7 +129,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   Acts::Vector3 getPCALinePoint(const Acts::Vector3& global, const Acts::Vector3& tangent, const Acts::Vector3& posref);
   Acts::Vector3 get_line_plane_intersection(const Acts::Vector3& PCA, const Acts::Vector3& tangent,
                                             const Acts::Vector3& sensor_center, const Acts::Vector3& sensor_normal);
-  std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3 global, bool is_cosmics);
+  std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3 global, bool is_cosmic);
   Acts::Vector3 get_helix_surface_intersection(const Surface& surf, std::vector<float>& fitpars, Acts::Vector3 global);
   Acts::Vector3 get_helix_surface_intersection(const Surface& surf, std::vector<float>& fitpars, Acts::Vector3 global, Acts::Vector3& pca, Acts::Vector3& tangent);
 
