@@ -99,6 +99,8 @@ int TpcRawHitQA::InitRun(PHCompositeNode *topNode)
 	}
     }
 
+  h_nadc_bins_event = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nadc_bins_event")));
+
   h_xy_N = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "xyPos_North")));
   h_xy_S = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "xyPos_South")));
 
@@ -120,6 +122,8 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
   float nhit_sectors_fees_sampas[24][26][8] = {{{0}}};
 
   unsigned int raw_hit_num = 0;
+  unsigned int nadc_bins_event = 0;
+
   for (TpcRawHitContainer *&rawhitcont : rawhitcont_vec)
     {
       raw_hit_num = rawhitcont->get_nhits();
@@ -215,6 +219,9 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
 	    {
 	      const uint16_t sampleN = adc_iterator->CurrentTimeBin();
 	      const uint16_t adc = adc_iterator->CurrentAdc();
+
+        ++nadc_bins_event;
+
 	      if (adc - median <= (std::max(5 * stdDev, (float) 20.)))
 		{
 		  continue;
@@ -248,6 +255,8 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
     {
       return Fun4AllReturnCodes::EVENT_OK;
     }
+
+  h_nadc_bins_event->Fill(nadc_bins_event);
 
   for (int s = 0; s < 24; s++)
     {
@@ -308,6 +317,8 @@ void TpcRawHitQA::createHistos()
 				     std::string("Sector " + std::to_string(s) + " ADC Distribution;ADC-pedestal [ADU];Entries").c_str(), 281, -100, 1024));
 	}
     }
+
+  hm->registerHisto(new TH1F(std::string(getHistoPrefix() + "nadc_bins_event").c_str(), "Number of ADC Bins per Event;Number of ADC Bins/Event;Entries", 2500, 0, 1000000));
 
   hm->registerHisto(new TH2F(std::string(getHistoPrefix() + "xyPos_North").c_str(), "Hit XY distribution (North);X [mm];Y [mm]", 400, -800, 800, 400, -800, 800));
   hm->registerHisto(new TH2F(std::string(getHistoPrefix() + "xyPos_South").c_str(), "Hit XY distribution (South);X [mm];Y [mm]", 400, -800, 800, 400, -800, 800));
