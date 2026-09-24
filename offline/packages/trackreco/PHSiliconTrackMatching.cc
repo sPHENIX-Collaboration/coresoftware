@@ -173,7 +173,7 @@ int PHSiliconTrackMatching::GetNodes(PHCompositeNode *topNode)
   _track_map = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
   if (!_track_map)
   {
-    std::cerr << PHWHERE << " ERROR: Can't find " << _track_map_name.c_str() << std::endl;
+    std::cerr << PHWHERE << " ERROR: Can't find " << _track_map_name << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
