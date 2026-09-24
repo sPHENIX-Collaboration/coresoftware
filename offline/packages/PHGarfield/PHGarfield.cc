@@ -1,12 +1,18 @@
 #include "PHGarfield.h"
+
 #include <cdbobjects/CDBTTree.h>
-#include <phool/phool.h>
-
 #include <ffamodules/CDBInterface.h>
-#include <phfield/PHField3DCartesian.h>
-#include <phfield/PHFieldUtility.h>
-
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
+#include <phfield/PHField3DCartesian.h>
+#include <phfield/PHFieldConfig.h>
+#include <phfield/PHFieldUtility.h>
+#include <phool/RunnumberRange.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
+#include <phool/recoConsts.h>
+#include <tpcconditions/TpcConditions.h>
 
 #include <TAxis.h>
 #include <TFile.h>
@@ -38,6 +44,16 @@
 
 namespace fs = std::filesystem;
 
+namespace
+{
+  constexpr const char* CdbEField3DSide0 = "Tpc_PolySeeding_EField3D_Side0";
+  constexpr const char* CdbEField3DSide1 = "Tpc_PolySeeding_EField3D_Side1";
+  constexpr const char* CdbModuleFrames3DSide0 = "Tpc_PolySeeding_ModuleFrames3D_Side0";
+  constexpr const char* CdbModuleFrames3DSide1 = "Tpc_PolySeeding_ModuleFrames3D_Side1";
+  constexpr const char* CdbKEff = "Tpc_PolyClusterizer_kEff";
+  constexpr const char* CdbEField2D = "Tpc_PolySeeding_EField";
+}  // namespace
+
 PHGarfield::PHGarfield(const std::string& name,
                        const std::string& electricFieldMap,
                        double spaceChargeScale_side0,
@@ -55,8 +71,11 @@ PHGarfield::PHGarfield(const std::string& name,
   : SubsysReco(name)
   , m_electricFieldMap(electricFieldMap)
   , m_electricFieldMap3D{{electricFieldMap3D_side0, electricFieldMap3D_side1}}
-  , m_spaceChargeScale_side0(spaceChargeScale_side0)
-  , m_spaceChargeScale_side1(spaceChargeScale_side1)
+  , m_spaceChargeScale_side0(std::isfinite(spaceChargeScale_side0) ? spaceChargeScale_side0 : 1.0)
+  , m_spaceChargeScale_side1(std::isfinite(spaceChargeScale_side1) ? spaceChargeScale_side1 : 1.0)
+  , m_electricFieldMapOverride(!electricFieldMap.empty())
+  , m_electricFieldMap3DOverride{{!electricFieldMap3D_side0.empty(), !electricFieldMap3D_side1.empty()}}
+  , m_spaceChargeScaleOverride{{std::isfinite(spaceChargeScale_side0), std::isfinite(spaceChargeScale_side1)}}
 {
 }
 
@@ -76,7 +95,311 @@ PHGarfield::~PHGarfield()
   ClearFrameElectricFieldCorrections3D(1);
 }
 
-int PHGarfield::InitRun(PHCompositeNode *topNode)
+bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
+{
+  auto* cdb = CDBInterface::instance();
+
+  auto resolve_file = [this, cdb](const std::string& payload, std::string& filename, const bool manual_override) -> bool
+  {
+    if (manual_override)
+    {
+      std::cout << Name() << "::LoadCDBInputs - manual override for " << payload << ": " << filename << std::endl;
+
+      if (filename.empty())
+      {
+        std::cout << Name() << "::LoadCDBInputs - manual filename is empty for " << payload << std::endl;
+        return false;
+      }
+
+      return true;
+    }
+
+    filename = cdb->getUrl(payload);
+
+    if (filename.empty())
+    {
+      std::cout << Name() << "::LoadCDBInputs - CDB payload not found: " << payload << std::endl;
+      return false;
+    }
+
+    std::cout << Name() << "::LoadCDBInputs - loaded " << payload << " from CDB: " << filename << std::endl;
+
+    return true;
+  };
+
+  bool ok = true;
+
+  if (use_survey_geometry && !m_tpcGeometryOverride)
+  {
+    auto* geomContainer =
+        findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+
+    if (!geomContainer)
+    {
+      std::cout << Name()
+                << "::LoadCDBInputs - missing TPCGEOMCONTAINER"
+                << std::endl;
+      return false;
+    }
+
+    PHG4TpcGeom* layergeom = geomContainer->GetLayerCellGeom(20);
+
+    if (!layergeom)
+    {
+      std::cout << Name()
+                << "::LoadCDBInputs - missing TPC geometry for layer 20"
+                << std::endl;
+      return false;
+    }
+
+    m_tpcpos.SetXYZ(layergeom->get_place_x(),
+                    layergeom->get_place_y(),
+                    layergeom->get_place_z());
+
+    m_tpcrot = TRotation();
+    m_tpcrot.RotateX(layergeom->get_rot_x());
+    m_tpcrot.RotateY(layergeom->get_rot_y());
+    m_tpcrot.RotateZ(layergeom->get_rot_z());
+  }
+
+  // Space-charge field maps.
+  // A manually selected 2D map takes precedence over automatic 3D CDB maps.
+  if (m_electricFieldMapOverride)
+  {
+    std::cout << Name() << "::LoadCDBInputs - manual 2D electric-field map: " << m_electricFieldMap << std::endl;
+  }
+  else if (m_use2DElectricFieldMap)
+  {
+    if (!resolve_file(CdbEField2D, m_electricFieldMap, false))
+    {
+      ok = false;
+    }
+  }
+  else
+  {
+    if (!resolve_file(CdbEField3DSide0, m_electricFieldMap3D[0], m_electricFieldMap3DOverride[0]))
+    {
+      ok = false;
+    }
+
+    if (!resolve_file(CdbEField3DSide1, m_electricFieldMap3D[1], m_electricFieldMap3DOverride[1]))
+    {
+      ok = false;
+    }
+  }
+
+  // Frame-charge maps.
+  // A manually selected 2D frame map takes precedence over automatic 3D CDB maps.
+  if (m_frameElectricFieldMapOverride)
+  {
+    std::cout << Name() << "::LoadCDBInputs - manual 2D frame electric-field map: "
+              << m_frameElectricFieldMap << std::endl;
+  }
+  else
+  {
+    if (!resolve_file(CdbModuleFrames3DSide0, m_frameElectricFieldMap3D[0], m_frameElectricFieldMap3DOverride[0]))
+    {
+      ok = false;
+    }
+
+    if (!resolve_file(CdbModuleFrames3DSide1, m_frameElectricFieldMap3D[1], m_frameElectricFieldMap3DOverride[1]))
+    {
+      ok = false;
+    }
+  }
+
+  // kEff from CDB for any side that was not explicitly set.
+  if (!m_spaceChargeScaleOverride[0] || !m_spaceChargeScaleOverride[1])
+  {
+    std::string kefffile;
+
+    if (m_field3DCoefficientFileOverride)
+    {
+      kefffile = m_field3DCoefficientFile;
+      std::cout << Name()
+                << "::LoadCDBInputs - manual kEff coefficient file: "
+                << kefffile << std::endl;
+    }
+    else
+    {
+      kefffile = cdb->getUrl(CdbKEff);
+      std::cout << Name()
+                << "::LoadCDBInputs - kEff coefficient file from CDB: "
+                << kefffile << std::endl;
+    }
+
+    if (kefffile.empty())
+    {
+      std::cout << Name() << "::LoadCDBInputs - kEff coefficient file is empty" << std::endl;
+      ok = false;
+    }
+    else
+    {
+      CDBTTree keffcdbtree(kefffile);
+      keffcdbtree.LoadCalibrations();
+
+      if (!m_spaceChargeScaleOverride[0])
+      {
+        m_spaceChargeScale_side0 = keffcdbtree.GetSingleFloatValue("keffside0");
+      }
+
+      if (!m_spaceChargeScaleOverride[1])
+      {
+        m_spaceChargeScale_side1 = keffcdbtree.GetSingleFloatValue("keffside1");
+      }
+    }
+  }
+
+  // Print the base kEff source before the current correction.
+  std::cout << Name() << "::LoadCDBInputs - base kEff:"
+            << " side0=" << m_spaceChargeScale_side0
+            << (m_spaceChargeScaleOverride[0] ? " [manual override]" : " [CDB]")
+            << ", side1=" << m_spaceChargeScale_side1
+            << (m_spaceChargeScaleOverride[1] ? " [manual override]" : " [CDB]")
+            << std::endl;
+
+  // Apply the same bunch-crossing/current correction used by Tpc_PolyClusterizer,
+  // but only if TpcConditions exists.
+  if (!m_useBCOkEffs)
+  {
+    std::cout << Name()
+              << "::LoadCDBInputs - TpcConditions current correction disabled"
+              << std::endl;
+  }
+  else
+  {
+    auto* conditions = findNode::getClass<TpcConditions>(topNode, "TpcConditions");
+
+    if (!conditions)
+    {
+      std::cout << Name()
+                << "::LoadCDBInputs - WARNING: TpcConditions node not found; "
+                << "using unscaled kEff"
+                << std::endl;
+    }
+    else if (!conditions->get_ConditionsAvailable())
+    {
+      std::cout << Name()
+                << "::LoadCDBInputs - WARNING: TpcConditions are not available; "
+                << "using unscaled kEff"
+                << std::endl;
+    }
+    else
+    {
+      const double averageSR1 = conditions->get_AverageLoadSR1();
+      const double averageNR1 = conditions->get_AverageLoadNR1();
+
+      std::cout << Name() << "::LoadCDBInputs - TpcConditions:"
+                << " SR1=" << conditions->get_LoadSR1()
+                << " avgSR1=" << averageSR1
+                << " NR1=" << conditions->get_LoadNR1()
+                << " avgNR1=" << averageNR1
+                << std::endl;
+
+      if (averageSR1 != 0.0 && averageNR1 != 0.0)
+      {
+        if (!m_spaceChargeScaleOverride[0])
+        {
+          m_spaceChargeScale_side0 *= conditions->get_LoadSR1() / averageSR1;
+        }
+        else
+        {
+          std::cout << Name()
+                    << "::LoadCDBInputs - side0 kEff manually overridden; "
+                    << "not applying TpcConditions correction"
+                    << std::endl;
+        }
+
+        if (!m_spaceChargeScaleOverride[1])
+        {
+          m_spaceChargeScale_side1 *= conditions->get_LoadNR1() / averageNR1;
+        }
+        else
+        {
+          std::cout << Name()
+                    << "::LoadCDBInputs - side1 kEff manually overridden; "
+                    << "not applying TpcConditions correction"
+                    << std::endl;
+        }
+      }
+      else
+      {
+        std::cout << Name()
+                  << "::LoadCDBInputs - WARNING: average SR1 or NR1 is zero, "
+                  << "cannot apply current correction; using unscaled kEff"
+                  << std::endl;
+      }
+    }
+  }
+  std::cout << Name() << "::LoadCDBInputs - final kEff:"
+            << " side0=" << m_spaceChargeScale_side0
+            << ", side1=" << m_spaceChargeScale_side1
+            << std::endl;
+
+  // Keep these prints even though frame scale currently has no CDB source.
+  // This makes an explicit SetFrameChargeScale(1.0) visible.
+  std::cout << Name() << "::LoadCDBInputs - frame charge scale:"
+            << " side0=" << m_frameChargeScale_side0
+            << (m_frameChargeScaleOverride[0] ? " [manual override]" : " [default]")
+            << ", side1=" << m_frameChargeScale_side1
+            << (m_frameChargeScaleOverride[1] ? " [manual override]" : " [default]")
+            << std::endl;
+
+  return ok;
+}
+
+void PHGarfield::ConfigureRunDependentFieldCage()
+{
+  const int runnumber = recoConsts::instance()->get_IntFlag("RUNNUMBER");
+
+  if (m_fieldCageConfigurationOverride)
+  {
+    std::cout << Name()
+              << "::ConfigureRunDependentFieldCage - manual override:"
+              << " useIFC=" << m_useIFCVoltageDistortion
+              << " useOFC=" << m_useOFCVoltageDistortion
+              << " IFC South=" << m_ifcVoltageOffset_side0 << " V"
+              << " IFC North=" << m_ifcVoltageOffset_side1 << " V"
+              << " OFC South=" << m_ofcVoltageOffset_side0 << " V"
+              << " OFC North=" << m_ofcVoltageOffset_side1 << " V"
+              << std::endl;
+    return;
+  }
+
+  m_useIFCVoltageDistortion = false;
+  m_useOFCVoltageDistortion = false;
+
+  m_ifcVoltageOffset_side0 = 0.0;
+  m_ifcVoltageOffset_side1 = 0.0;
+  m_ofcVoltageOffset_side0 = 0.0;
+  m_ofcVoltageOffset_side1 = 0.0;
+
+  if (runnumber > RunnumberRange::RUN3AUAU_IFC_V_CHANGE)
+  {
+    m_useIFCVoltageDistortion = true;
+    m_useOFCVoltageDistortion = true;
+
+    m_ifcVoltageOffset_side0 = 211.0;
+
+    std::cout << Name()
+              << "::ConfigureRunDependentFieldCage - automatic configuration"
+              << " for run " << runnumber
+              << ": IFC South=" << m_ifcVoltageOffset_side0 << " V"
+              << " IFC North=" << m_ifcVoltageOffset_side1 << " V"
+              << " OFC South=" << m_ofcVoltageOffset_side0 << " V"
+              << " OFC North=" << m_ofcVoltageOffset_side1 << " V"
+              << std::endl;
+  }
+  else
+  {
+    std::cout << Name()
+              << "::ConfigureRunDependentFieldCage - IFC/OFC distortion disabled"
+              << " for run " << runnumber
+              << std::endl;
+  }
+}
+
+int PHGarfield::InitRun(PHCompositeNode* topNode)
 {
   if (Verbosity() > 1)
   {
@@ -86,12 +409,18 @@ int PHGarfield::InitRun(PHCompositeNode *topNode)
 
   //  Here we use the CDBInterface to set up the magnetic field map:
   m_field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
+  auto* fieldConfig = PHFieldUtility::GetFieldConfigNode(nullptr, topNode);
+
+  std::cout << "Magnetic field map: " << fieldConfig->get_filename()
+            << "\nField type: " << fieldConfig->get_field_config_description()
+            << "\nField rescale: " << fieldConfig->get_magfield_rescale()
+            << std::endl;
 
   if (!m_field)
   {
     std::cerr << PHWHERE
-      << " ERROR: magnetic field map not available"
-      << std::endl;
+              << " ERROR: magnetic field map not available"
+              << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -100,6 +429,15 @@ int PHGarfield::InitRun(PHCompositeNode *topNode)
   m_cdbTPCMAPttree = new CDBTTree(text);
   m_cdbTPCMAPttree->LoadCalibrations();
 
+  if (!LoadCDBInputs(topNode))
+  {
+    std::cout << PHWHERE << " Failed to load PHGarfield CDB inputs"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  ConfigureRunDependentFieldCage();
+
   // Load the optional axisymmetric space-charge correction map.
   // Failure is non-fatal: Garfield then uses only the nominal 400 V/cm field.
   if (!m_electricFieldMap.empty())
@@ -107,7 +445,7 @@ int PHGarfield::InitRun(PHCompositeNode *topNode)
     if (!LoadElectricFieldCorrections(m_electricFieldMap))
     {
       std::cout << PHWHERE << " Failed to load electric-field correction map: "
-        << m_electricFieldMap << std::endl;
+                << m_electricFieldMap << std::endl;
     }
   }
 
@@ -164,9 +502,9 @@ int PHGarfield::InitRun(PHCompositeNode *topNode)
   //  Make the Garfield Component and register the methods that will interface to our fields...
   m_component = new Garfield::ComponentUser();
   m_component->SetMagneticField([this](double x, double y, double z, double& bx, double& by, double& bz)
-      { GetMagneticFieldTesla(x, y, z, bx, by, bz); });
+                                { GetMagneticFieldTesla(x, y, z, bx, by, bz); });
   m_component->SetElectricField([this](double x, double y, double z, double& ex, double& ey, double& ez)
-      { GetElectricFieldVcm(x, y, z, ex, ey, ez); });
+                                { GetElectricFieldVcm(x, y, z, ex, ey, ez); });
 
   // Here we fetch the gas from the CDB
   std::string gasfile = m_cdb->getUrl("PHGARFIELD_GAS");
@@ -178,7 +516,11 @@ int PHGarfield::InitRun(PHCompositeNode *topNode)
     gasfile = m_defaultGasfile;
   }
   InitializeGas(gasfile);
-
+  if (!m_GasFilesLoaded)
+  {
+    std::cerr << PHWHERE << " Failed to initialize Garfield gas" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
   //  Diagnostic during code development...
   FillRadii();
   if (Verbosity() > 1)
@@ -227,18 +569,18 @@ void PHGarfield::PrintGarfield(double x, double y, double z) const
   GetMagneticFieldTesla(x, y, z, bx, by, bz);
   m_gas->ElectronVelocity(ex, ey, ez, bx, by, bz, vx, vy, vz);
   std::cout << " x:" << x
-    << " y:" << y
-    << " z:" << z
-    << " ex:" << ex
-    << " ey:" << ey
-    << " ez:" << ez
-    << " bx:" << bx
-    << " by:" << by
-    << " bz:" << bz
-    << " vx:" << vx
-    << " vy:" << vy
-    << " vz:" << vz
-    << std::endl;
+            << " y:" << y
+            << " z:" << z
+            << " ex:" << ex
+            << " ey:" << ey
+            << " ez:" << ez
+            << " bx:" << bx
+            << " by:" << by
+            << " bz:" << bz
+            << " vx:" << vx
+            << " vy:" << vy
+            << " vz:" << vz
+            << std::endl;
 }
 
 void PHGarfield::PrintGasSummary() const
@@ -313,7 +655,7 @@ void PHGarfield::MoveMagnet(double x_cm, double y_cm, double z_cm)
   if (Verbosity() > 0)
   {
     std::cout << "PHGarfield: magnetic-field map translation = ("
-      << x_cm << ", " << y_cm << ", " << z_cm << ") cm" << std::endl;
+              << x_cm << ", " << y_cm << ", " << z_cm << ") cm" << std::endl;
   }
 }
 
@@ -325,29 +667,31 @@ void PHGarfield::RotateMagnet(double theta_x, double theta_y, double theta_z)
   if (Verbosity() > 0)
   {
     std::cout << "PHGarfield: magnetic-field map rotation increment = ("
-      << theta_x << ", " << theta_y << ", " << theta_z << ") rad" << std::endl;
+              << theta_x << ", " << theta_y << ", " << theta_z << ") rad" << std::endl;
   }
 }
 
 void PHGarfield::MoveTpc(double x_cm, double y_cm, double z_cm)
 {
+  m_tpcGeometryOverride = true;
   m_tpcpos.SetXYZ(x_cm, y_cm, z_cm);
   if (Verbosity() > 0)
   {
     std::cout << "PHGarfield: TPC translation = ("
-      << x_cm << ", " << y_cm << ", " << z_cm << ") cm" << std::endl;
+              << x_cm << ", " << y_cm << ", " << z_cm << ") cm" << std::endl;
   }
 }
 
 void PHGarfield::RotateTpc(double theta_x, double theta_y, double theta_z)
 {
+  m_tpcGeometryOverride = true;
   m_tpcrot.RotateX(theta_x);
   m_tpcrot.RotateY(theta_y);
   m_tpcrot.RotateZ(theta_z);
   if (Verbosity() > 0)
   {
     std::cout << "PHGarfield: TPC rotation increment = ("
-      << theta_x << ", " << theta_y << ", " << theta_z << ") rad" << std::endl;
+              << theta_x << ", " << theta_y << ", " << theta_z << ") rad" << std::endl;
   }
 }
 
@@ -395,11 +739,11 @@ void PHGarfield::GetMagneticFieldTesla(double x_cm, double y_cm, double z_cm, do
   const TVector3 p_map_cm = TpcPointToMagnetFieldMapPoint(x_cm, y_cm, z_cm);
 
   double point[4] =
-  {
-    p_map_cm.X() * CLHEP::cm,
-    p_map_cm.Y() * CLHEP::cm,
-    p_map_cm.Z() * CLHEP::cm,
-    0.0};
+      {
+          p_map_cm.X() * CLHEP::cm,
+          p_map_cm.Y() * CLHEP::cm,
+          p_map_cm.Z() * CLHEP::cm,
+          0.0};
 
   double bfield_map[3] = {0.0, 0.0, 0.0};
 
@@ -475,9 +819,9 @@ void PHGarfield::GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, doub
   }
 
   const double delta_er_vcm = spaceChargeScale *
-    InterpolateCorrectionVcm(m_erCorrection, r_cm, abs_z_cm);
+                              InterpolateCorrectionVcm(m_erCorrection, r_cm, abs_z_cm);
   const double delta_ez_local_vcm = spaceChargeScale *
-    InterpolateCorrectionVcm(m_ezCorrection, r_cm, abs_z_cm);
+                                    InterpolateCorrectionVcm(m_ezCorrection, r_cm, abs_z_cm);
 
   // Convert the cylindrical radial correction to Cartesian components.
   if (r_cm > 0.0)
@@ -747,7 +1091,7 @@ bool PHGarfield::LoadElectricFieldCorrections(const std::string& filename)
   if (!input || input->IsZombie())
   {
     std::cout << PHWHERE << " Could not open electric-field map: "
-      << filename << std::endl;
+              << filename << std::endl;
     return false;
   }
 
@@ -767,8 +1111,8 @@ bool PHGarfield::LoadElectricFieldCorrections(const std::string& filename)
   if (!er || !ez)
   {
     std::cout << PHWHERE
-      << " Missing QA/hErDefault or QA/hEzDefault in "
-      << filename << std::endl;
+              << " Missing QA/hErDefault or QA/hEzDefault in "
+              << filename << std::endl;
     return false;
   }
 
@@ -790,17 +1134,17 @@ bool PHGarfield::LoadElectricFieldCorrections(const std::string& filename)
   m_ezCorrection->SetDirectory(nullptr);
 
   std::cout << "Loaded axisymmetric electric-field corrections from "
-    << filename << std::endl;
+            << filename << std::endl;
   std::cout << "  scale k_eff side0/south/z<0 = "
-    << m_spaceChargeScale_side0 << std::endl;
+            << m_spaceChargeScale_side0 << std::endl;
   std::cout << "  scale k_eff side1/north/z>0 = "
-    << m_spaceChargeScale_side1 << std::endl;
+            << m_spaceChargeScale_side1 << std::endl;
   std::cout << "  r range [cm] = ["
-    << m_erCorrection->GetXaxis()->GetXmin() << ", "
-    << m_erCorrection->GetXaxis()->GetXmax() << "]" << std::endl;
+            << m_erCorrection->GetXaxis()->GetXmin() << ", "
+            << m_erCorrection->GetXaxis()->GetXmax() << "]" << std::endl;
   std::cout << "  |z| range [cm] = ["
-    << m_erCorrection->GetYaxis()->GetXmin() << ", "
-    << m_erCorrection->GetYaxis()->GetXmax() << "]" << std::endl;
+            << m_erCorrection->GetYaxis()->GetXmin() << ", "
+            << m_erCorrection->GetYaxis()->GetXmax() << "]" << std::endl;
 
   return true;
 }
@@ -833,12 +1177,12 @@ double PHGarfield::InterpolateCorrectionVcm(
   constexpr double epsilon = 1.0e-6;
 
   const double r_eval =
-    std::clamp(r_cm, r_min + epsilon, r_max - epsilon);
+      std::clamp(r_cm, r_min + epsilon, r_max - epsilon);
 
   const double z_eval =
-    std::clamp(std::abs(abs_z_cm),
-        z_min + epsilon,
-        z_max - epsilon);
+      std::clamp(std::abs(abs_z_cm),
+                 z_min + epsilon,
+                 z_max - epsilon);
 
   // Input histogram is in V/m. Garfield expects V/cm.
   return 0.01 * hist->Interpolate(r_eval, z_eval);
@@ -1582,7 +1926,7 @@ TPolyLine3D* PHGarfield::ReverseDriftGlobalCoords(double x_cm, double y_cm, doub
 }
 
 PHGarfield::ReverseDriftStatus PHGarfield::StopHere(const double x, const double y, const double z,
-                          const double zPrevious)
+                                                    const double zPrevious)
 {
   const double r = std::hypot(x, y);
 
