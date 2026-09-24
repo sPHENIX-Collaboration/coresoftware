@@ -39,8 +39,6 @@
 #include <set>      // for _Rb_tree_const_iterator
 #include <utility>  // for pair
 
-using namespace std;
-
 //____________________________________________________________________________..
 PHSiliconTrackMatching::PHSiliconTrackMatching(const std::string &name)
   : SubsysReco(name)
@@ -80,7 +78,7 @@ int PHSiliconTrackMatching::process_event(PHCompositeNode * /*unused*/)
   
   if (Verbosity() > 0)
   {
-    cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << endl;
+    std::cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << std::endl;
   }
 
   if (_track_map_silicon->empty())
@@ -107,7 +105,7 @@ int PHSiliconTrackMatching::process_event(PHCompositeNode * /*unused*/)
 
     if (Verbosity() > 1)
     {
-      cout << " Si track " << trackid << " crossing " << crossing << endl;
+      std::cout << " Si track " << trackid << " crossing " << crossing << std::endl;
     }
     auto dummy = std::make_unique<TrackSeed_v2>();
     dummy->set_qOverR(_tracklet_si->get_qOverR());
@@ -147,7 +145,7 @@ int PHSiliconTrackMatching::process_event(PHCompositeNode * /*unused*/)
       std::cout << std::endl;
     }
 
-    cout << "PHSiliconTrackMatching::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;
+    std::cout << "PHSiliconTrackMatching::process_event(PHCompositeNode *topNode) Leaving process_event" << std::endl;
   }
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -168,14 +166,14 @@ int PHSiliconTrackMatching::GetNodes(PHCompositeNode *topNode)
   _track_map_silicon = findNode::getClass<TrackSeedContainer>(topNode, _silicon_track_map_name);
   if (!_track_map_silicon)
   {
-    cerr << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << endl;
+    std::cerr << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _track_map = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
   if (!_track_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find " << _track_map_name.c_str() << endl;
+    std::cerr << PHWHERE << " ERROR: Can't find " << _track_map_name.c_str() << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
