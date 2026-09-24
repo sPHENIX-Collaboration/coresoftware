@@ -119,15 +119,16 @@ namespace TrackFitUtils
                                         const unsigned int& startLayer,
                                         const unsigned int& endLayer);
 
-  std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global);
+  std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global, bool is_cosmics=false);
 
-  Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, const Acts::Vector3& global);
+  Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, const Acts::Vector3& global, bool is_cosmics= false);
 
   Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
 
   std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec,
                                         const std::vector<TrkrDefs::cluskey> &cluskey_vec,
-                                        bool use_intt = false);
+                                        bool use_intt = false, bool mvtx_east = false, bool mvtx_west = false, bool is_cosmics=false);
+                                     
   void getTrackletClusters(ActsGeometry* _tGeometry,
                                   TrkrClusterContainer* _cluster_map,
                                   std::vector<Acts::Vector3>& global_vec,
