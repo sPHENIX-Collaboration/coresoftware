@@ -531,11 +531,11 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
         {Acts::BoundIndices::eBoundLoc0, Acts::BoundIndices::eBoundLoc1};
 
     Acts::ActsSquareMatrix<2> cov = Acts::ActsSquareMatrix<2>::Zero();
+    double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
+    auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, clusRadius, cluskey);
 
     if(use_modified_clus_error)
     {
-      double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
-      auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, clusRadius, cluskey);
       cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
       cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
       cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
