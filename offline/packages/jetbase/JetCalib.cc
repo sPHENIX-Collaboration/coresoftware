@@ -28,6 +28,14 @@
 #include <iostream>  // for operator<<, basic_ostream
 #include <string>
 
+namespace
+{
+// Names under which the calibrations are registered in the CDB. The two methods do
+// not share a prefix: the EMfrac calibration is registered as JES_Calibration_EMfrac.
+const char *const kEMfracCalibName = "JES_Calibration_EMfrac";
+const char *const kLegacyCalibName = "JES_Calib_Default";
+}  // namespace
+
 JetCalib::JetCalib(const std::string &name)
   : SubsysReco(name)
 {
@@ -76,13 +84,13 @@ int JetCalib::InitRun(PHCompositeNode *topNode)
 }
 
 // ---------------------------------------------------------------------------
-// EMfrac method initialization: CDB payload "JES_Calib_EMfrac" (or the local
-// file set with set_CalibFile), holding per-radius h2d_jes_calib_r0R,
+// EMfrac method initialization: the CDB entry "JES_Calibration_EMfrac" (or the
+// local file set with set_CalibFile), holding per-radius h2d_jes_calib_r0R,
 // h2_zeta_corr_r0R and f_zeta_noz_corr_r0R.
 // ---------------------------------------------------------------------------
 int JetCalib::initEMfracCalib()
 {
-  std::string calibFile = m_calibFileOverride.empty() ? fetchCalibDir("EMfrac") : m_calibFileOverride;
+  std::string calibFile = m_calibFileOverride.empty() ? fetchCalibDir(kEMfracCalibName) : m_calibFileOverride;
   if (calibFile.empty())
   {
     std::cout << "JetCalib::initEMfracCalib() : No EMfrac calibration available! Will apply calib factor 1." << std::endl;
@@ -141,13 +149,13 @@ int JetCalib::initEMfracCalib()
 // ---------------------------------------------------------------------------
 int JetCalib::initLegacyCalib()
 {
-  if (fetchCalibDir("Default").empty())
+  if (fetchCalibDir(kLegacyCalibName).empty())
   {
     std::cout << "JetCalib::initLegacyCalib() : No default calibration available! Will apply calib factor 1." << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  m_LegacyCalibFile = new CDBTF(fetchCalibDir("Default"));
+  m_LegacyCalibFile = new CDBTF(fetchCalibDir(kLegacyCalibName));
   if (!m_LegacyCalibFile)
   {
     std::cout << "JetCalib::initLegacyCalib() : Could not open calibration file!" << std::endl;
@@ -386,9 +394,8 @@ int JetCalib::CreateNodeTree(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-std::string JetCalib::fetchCalibDir(const char *calibType)
+std::string JetCalib::fetchCalibDir(const char *calibName)
 {
-  std::string calibName = std::string("JES_Calib_") + calibType;
   return CDBInterface::instance()->getUrl(calibName);
 }
 

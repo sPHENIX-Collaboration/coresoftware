@@ -10,6 +10,7 @@
 #include <array>
 #include <limits>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <utility>
@@ -30,7 +31,6 @@ class TpcCrossingFinder : public SubsysReco
 {
  public:
   explicit TpcCrossingFinder(const std::string& name = "TpcCrossingFinder");
-  ~TpcCrossingFinder() override;
 
   int InitRun(PHCompositeNode*) override;
   int process_event(PHCompositeNode*) override;
@@ -51,6 +51,7 @@ class TpcCrossingFinder : public SubsysReco
   void setResolveAmbiguousWithoutVertex(bool v) { m_resolveAmbiguousWithoutVertex = v; }
   void setPreferTriggeredCrossing(bool v) { m_preferTriggeredCrossing = v; }
   void setTriggeredCrossing(short v) { m_triggeredCrossing = v; }
+  void setTriggeredMode(bool v) { m_triggeredMode = v; }
   void setCollisionZ(double v) { m_collisionZ = v; }
   void setMaxVertexDz(double v) { m_maxVertexDz = v; }
   void setMaxTier2BeamlineZ(double v) { m_maxTier2BeamlineZ = v; }
@@ -193,8 +194,8 @@ class TpcCrossingFinder : public SubsysReco
   TrkrClusterContainer* m_clusterMap {nullptr};
   PHG4TpcGeomContainer* m_geomContainerTpc {nullptr};
   SvtxVertexMap* m_vertexMap {nullptr};
-  IdealPadMap* m_idealPadMap {nullptr};
-  PHGarfield* m_garfield {nullptr};
+  std::unique_ptr<IdealPadMap> m_idealPadMap {};
+  std::unique_ptr<PHGarfield> m_garfield {};
 
   std::array<DriftPolyline, 48 * 2 * 12 * NPhiSamples> m_driftLookup;
   unsigned int m_event {0};
@@ -223,6 +224,7 @@ class TpcCrossingFinder : public SubsysReco
   bool m_preferTriggeredCrossing {false};
   short m_triggeredCrossing {0};
   bool use_survey_geometry {false};
+  bool m_triggeredMode {false};
   std::array<double, 3> m_tpcMove {{0.0, 0.0, 0.0}};
   std::array<std::array<double, 3>, 2> m_tpcRotations {{{{0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}}}};
 };

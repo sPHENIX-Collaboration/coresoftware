@@ -40,6 +40,10 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
 
+#include <trackbase_historic/SvtxTrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedContainer_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
+
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/SvtxVertex.h>
@@ -102,6 +106,7 @@ KFParticle_Tools::KFParticle_Tools()
   , m_mother_PV_dca_stddev(std::numeric_limits<float>::max())
   , m_get_charge_conjugate(false)
   , m_extrapolateTracksToSV(true)
+  , m_use_fake_pv(false)
   , m_vtx_map_node_name("SvtxVertexMap")
   , m_trk_map_node_name("SvtxTrackMap")
   , m_dst_mbdvertexmap()
@@ -279,6 +284,9 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
   m_dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
   unsigned int trackID = 0;
 
+  m_intermediate_crossings.clear();
+  m_next_intermediate_id = -2;
+
   for (auto &iter : *m_dst_trackmap)
   {
     m_dst_track = iter.second;
@@ -449,8 +457,6 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
 
   float pt = 0;
   float pterr = 0;
-  //   float pt = particle.GetPt();
-  //   float pterr = particle.GetErrPt();
   int MeansToEnd = particle.GetPt(pt, pterr);  // Both pt and pterr are passed by reference. GetPt() unhelpfully returns 0 for simulated silicon-only tracks, so we are changing to this function GetPt(p_t, sigma p_T)
   if (false)
   {
@@ -486,6 +492,13 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
   return goodTrack;
 }
 
+bool KFParticle_Tools::isTPConlyAtZeroCrossing(const KFParticle& track)
+{
+  const auto* svtxTrack = KFParticle_truthAndDetTools::getTrack(track.Id(), m_dst_trackmap);
+
+  return svtxTrack && svtxTrack->get_crossing() == 0 && svtxTrack->get_silicon_seed() == nullptr;
+}
+
 int KFParticle_Tools::calcMinPV_DCA(const KFParticle &track, const std::vector<KFParticle> &PVs,
                                 float &minimumPV_DCA, float &minimumPV_DCA_stddev, bool do3D)
 {
@@ -494,6 +507,16 @@ int KFParticle_Tools::calcMinPV_DCA(const KFParticle &track, const std::vector<K
 
   for (const auto &PV : PVs)
   {
+    KFParticle trackArray[1] = {track};
+    bool fromSameCrossing = checkTrackAndVertexMatch(trackArray, 1, PV);
+    if (!isTPConlyAtZeroCrossing(track))
+    {
+      if (!fromSameCrossing)
+      {
+        continue;
+      }
+    }
+
     float thisPV_DCA_stddev = 0;
 
     if (do3D)
@@ -509,6 +532,13 @@ int KFParticle_Tools::calcMinPV_DCA(const KFParticle &track, const std::vector<K
 
     thisPV_DCA_stddev = std::max(thisPV_DCA_stddev, 0.F);
     ip_significance.push_back(thisPV_DCA_stddev);  // Τhere are times where the PV_DCA_stddev calc fails
+  }
+
+  if (ip.empty()) //Need to account for instances where the track has no associated primary vertex in its crossing. Track should always be rejected
+  {
+    minimumPV_DCA = std::numeric_limits<float>::quiet_NaN();
+    minimumPV_DCA_stddev = std::numeric_limits<float>::quiet_NaN();
+    return 0;
   }
 
   auto minmax_PV_dca = minmax_element(ip.begin(), ip.end());  // Order the PV_DCA from small to large
@@ -534,6 +564,26 @@ std::vector<int> KFParticle_Tools::findAllGoodTracks(const std::vector<KFParticl
   return goodTrackIndex;
 }
 
+std::vector<int> KFParticle_Tools::getParticleCrossings(const KFParticle &particle)
+{
+  std::vector<int> crossings;
+
+  SvtxTrack *thisTrack = KFParticle_truthAndDetTools::getTrack(particle.Id(), m_dst_trackmap);
+  if (thisTrack)
+  {
+    crossings.push_back(thisTrack->get_crossing());
+    return crossings;
+  }
+
+  auto it = m_intermediate_crossings.find(particle.Id());
+  if (it != m_intermediate_crossings.end())
+  {
+    crossings = it->second;
+  }
+
+  return crossings;
+}
+
 std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices)
 {
   std::vector<std::vector<int>> goodTracksThatMeet;
@@ -545,22 +595,23 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
       if (i_it < j_it)
       {
         std::vector<KFParticle> dummy_tracks = {daughterParticles[*i_it], daughterParticles[*j_it]};
-        if (m_require_bunch_crossing_match)
+        if (m_require_bunch_crossing_match || m_force_mixed_event)
         {
           std::vector<int> crossings;
           crossings.reserve(dummy_tracks.size());
           for (const auto &track : dummy_tracks)
           {
-            SvtxTrack *thisTrack = KFParticle_truthAndDetTools::getTrack(track.Id(), m_dst_trackmap);
-            if (thisTrack)
-            {
-              crossings.push_back(thisTrack->get_crossing());
-            }
+            std::vector<int> trackCrossings = getParticleCrossings(track);
+            crossings.insert(crossings.end(), trackCrossings.begin(), trackCrossings.end());
           }
           
           removeDuplicates(crossings);
           
-          if (crossings.size() !=1)
+          if (m_require_bunch_crossing_match && crossings.size() !=1)
+          {
+            continue;
+          }
+          if (m_force_mixed_event &&  crossings.size() == 1)
           {
             continue;
           }
@@ -646,7 +697,6 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
       }
     }
   }
-
   return goodTracksThatMeet;
 }
 
@@ -835,7 +885,6 @@ std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFPa
       for (int j : i)
       {
         v_intermediateResonances.push_back(daughterParticles[j]);
-        //v_intermediateResonances.push_back(daughterParticles[i[j]]);
       }
       dummyTrackID.reserve(v_intermediateResonances.size());
       for (unsigned int k = 0; k < v_intermediateResonances.size(); ++k)
@@ -1056,21 +1105,21 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     goodCandidate = true;
   }
 
-  if (goodCandidate && m_require_bunch_crossing_match)
+  std::vector<int> crossings;
+  for (int i = 0; i < nTracks; ++i)
   {
-    std::vector<int> crossings;
-    for (int i = 0; i < nTracks; ++i)
+    std::vector<int> daughterCrossings = getParticleCrossings(vDaughters[i]);
+    crossings.insert(crossings.end(), daughterCrossings.begin(), daughterCrossings.end());
+  }
+  removeDuplicates(crossings);
+
+  if (goodCandidate && (m_require_bunch_crossing_match || m_force_mixed_event))
+  {
+    if (m_require_bunch_crossing_match && crossings.size() != 1)
     {
-      SvtxTrack *thisTrack = KFParticle_truthAndDetTools::getTrack(vDaughters[i].Id(), m_dst_trackmap);
-      if (thisTrack)  // This protects against intermediates which have no track but I need a way to assign the bunch crossing to an interemdiate as this was already checked when it was actually built
-      {
-        crossings.push_back(thisTrack->get_crossing());
-      }
+      goodCandidate = false;
     }
-
-    removeDuplicates(crossings);
-
-    if (crossings.size() != 1)
+    if (m_force_mixed_event && crossings.size() == 1)
     {
       goodCandidate = false;
     }
@@ -1080,6 +1129,13 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
       bool accept = crossings.size() == 1;
       printSelectionCheck("", "All tracks are from the same BC", "Tracks are from different BC", "", accept);
     }
+  }
+
+  if (isIntermediate && goodCandidate)
+  {
+    mother.SetId(m_next_intermediate_id);
+    m_intermediate_crossings[m_next_intermediate_id] = crossings;
+    --m_next_intermediate_id;
   }
 
   // Check the requirements of an intermediate states against this mother and re-do goodCandidate
@@ -1389,6 +1445,12 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
   }
 
   SvtxTrack *daughter_track = KFParticle_truthAndDetTools::getTrack(daughter.Id(), m_dst_trackmap);
+  if (!daughter_track)
+  {
+    // No backing SvtxTrack -- e.g. daughter is itself a built intermediate.
+    // dE/dx PID is only meaningful for a real reconstructed track.
+    return -1.0;
+  }
   TrackSeed *tpcseed = daughter_track->get_tpc_seed();
   float layerThicknesses[4] = {0.0, 0.0, 0.0, 0.0};
   // These are randomly chosen layer thicknesses for the TPC, to get the
@@ -1462,23 +1524,55 @@ double KFParticle_Tools::get_dEdx_fitValue(float momentum, int PID)
   return pidMap[PID]->Eval(momentum);
 }
 
+bool KFParticle_Tools::vertexToleranceCheck(float vertexMap_pos[3], float kfp_vertex_pos[3])
+{
+  bool tolerance_met = true;
+  constexpr float epsilon = 1e-6F;
+  for (unsigned int i = 0; i < 3; ++i)
+  {
+    if (std::abs(vertexMap_pos[i] - kfp_vertex_pos[i]) > epsilon)
+    {
+      tolerance_met = false;
+      break;
+    }
+  }
+
+  return tolerance_met;
+}
+
 bool KFParticle_Tools::checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex)
 {
-  bool vertexAndTrackMatch = true;
+  int vertexCrossing = std::numeric_limits<int>::min();
 
-  int vertexCrossing = 1e5;
+  if (m_use_fake_pv) //Fake PV has no crossing and should always match to a track 
+  {
+    return true;
+  }
+
+  float obtained_vertex[3] = {0, 0, std::numeric_limits<float>::lowest()};
+  float kfp_vertex[3] = {vertex.GetX(), vertex.GetY(), vertex.GetZ()};
 
   if (m_dont_use_global_vertex)
   {
     if (m_use_mbd_vertex)
     {
       m_dst_mbdvertex = m_dst_mbdvertexmap->get(vertex.Id());
-      vertexCrossing = m_dst_mbdvertex->get_beam_crossing();
+      obtained_vertex[2] = m_dst_mbdvertex->get_z();
+      if (vertexToleranceCheck(obtained_vertex, kfp_vertex))
+      {
+        vertexCrossing = m_dst_mbdvertex->get_beam_crossing();
+      }
     }
     else
     {
       m_dst_vertex = m_dst_vertexmap->get(vertex.Id());
-      vertexCrossing = m_dst_vertex->get_beam_crossing();
+      obtained_vertex[0] = m_dst_vertex->get_x();
+      obtained_vertex[1] = m_dst_vertex->get_y();
+      obtained_vertex[2] = m_dst_vertex->get_z();
+      if (vertexToleranceCheck(obtained_vertex, kfp_vertex))
+      {
+        vertexCrossing = m_dst_vertex->get_beam_crossing();
+      }
     }
   }
   else
@@ -1495,27 +1589,38 @@ bool KFParticle_Tools::checkTrackAndVertexMatch(KFParticle vDaughters[], int nTr
       if (m_use_mbd_vertex)
       {
         m_dst_mbdvertex = m_dst_mbdvertexmap->find(gvertex->get_id())->second;
-        vertexCrossing = m_dst_mbdvertex->get_beam_crossing();
+        obtained_vertex[2] = m_dst_mbdvertex->get_z();
+        if (vertexToleranceCheck(obtained_vertex, kfp_vertex))
+        {
+          vertexCrossing = m_dst_mbdvertex->get_beam_crossing();
+        }
       }
       else
       {
         m_dst_vertex = m_dst_vertexmap->find(gvertex->get_id())->second;
-        vertexCrossing = m_dst_vertex->get_beam_crossing();
+        obtained_vertex[0] = m_dst_vertex->get_x();
+        obtained_vertex[1] = m_dst_vertex->get_y();
+        obtained_vertex[2] = m_dst_vertex->get_z();
+        if (vertexToleranceCheck(obtained_vertex, kfp_vertex))
+        {
+          vertexCrossing = m_dst_vertex->get_beam_crossing();
+        }
       }
     }
   }
 
   for (int i = 0; i < nTracks; ++i)
   {
-    SvtxTrack *thisTrack = KFParticle_truthAndDetTools::getTrack(vDaughters[i].Id(), m_dst_trackmap);
-    if (thisTrack)  // This protects against intermediates which have no track
+    for (const int trackCrossing : getParticleCrossings(vDaughters[i]))
     {
-      int trackCrossing = thisTrack->get_crossing();
-      vertexAndTrackMatch = trackCrossing != vertexCrossing ? false : vertexAndTrackMatch;
+      if (trackCrossing != vertexCrossing)
+      {
+        return false;  // no point checking remaining tracks
+      }
     }
   }
 
-  return vertexAndTrackMatch;
+  return true;
 }
 
 void KFParticle_Tools::printSelectionCheck(const std::string &parameter, float min, float val, float max)
@@ -1538,4 +1643,48 @@ void KFParticle_Tools::printSelectionCheck(const std::string &info, unsigned int
 {
   std::string colour = value > 0 ? accept_colour : reject_colour;
   std::cout << info << " = \033[1;" << colour << "m" << value << "\033[0m" << std::endl;
+}
+
+int KFParticle_Tools::getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, const int &bunch_crossing) const
+{
+  auto *m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  //auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_SEED");
+  if (!m_siliconSeeds)
+  {
+    if(m_verbosity > 0)
+    {
+      std::cout << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << std::endl;
+    }
+    return -1;
+  }
+  //if (!clustermap)
+  //{
+  //  std::cout << " ERROR: Can't find TRKR_CLUSTER " << std::endl;
+  //  return -1;
+  //}
+
+  TrackSeed *_tracklet_si;
+  int ncharged_multiplicity = 0;
+  const int nMapsCut = 1;  
+  const int nInttCut = 1;  
+  for (unsigned int phtrk_iter_si = 0;
+         phtrk_iter_si < m_siliconSeeds->size();
+         ++phtrk_iter_si)
+    {
+      _tracklet_si = m_siliconSeeds->get(phtrk_iter_si);
+      if(!_tracklet_si)
+      {
+        continue;
+      }
+      if (_tracklet_si->get_crossing() == bunch_crossing)
+      {
+        if (TrackAnalysisUtils::get_cluster_count(_tracklet_si,TrkrDefs::mvtxId) >= nMapsCut && 
+            TrackAnalysisUtils::get_cluster_count(_tracklet_si,TrkrDefs::inttId) >= nInttCut)
+        {
+          ncharged_multiplicity++;
+        }
+    }
+  }
+  
+  return ncharged_multiplicity;
 }

@@ -89,16 +89,21 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     m_DETECTOR = TowerInfoContainer::SEPD;
   }
 
+  m_apply_neg_energy_threshold = m_doNegEnergyThreshold &&
+                                 (m_dettype == CaloTowerDefs::CEMC ||
+                                  m_dettype == CaloTowerDefs::HCALIN ||
+                                  m_dettype == CaloTowerDefs::HCALOUT);
+
   ///////////////////////////////////////
   // energy calibration getting from CDB
-  std::string default_time_independent_calib = m_detector+"_calib_ADC_to_ETower_default"; 
+  std::string default_time_independent_calib = m_detector+"_calib_ADC_to_ETower_default";
   if (!m_overrideCalibName)
   {
     m_calibName = m_detector+"_calib_ADC_to_ETower";
   }
   if (!m_overrideFieldName)
   {
-    m_fieldname = m_detector+"_calib_ADC_to_ETower"; 
+    m_fieldname = m_detector+"_calib_ADC_to_ETower";
   }
 
   if (m_giveDirectURL)
@@ -175,14 +180,14 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   m_calibName_ZScrosscalib = m_detector + "_ZSCrossCalib";
   m_fieldname_ZScrosscalib = "ratio";
 
-  if (m_doZScrosscalib) 
-  { 
+  if (m_doZScrosscalib)
+  {
     if (m_giveDirectURL_ZScrosscalib)
     {
       calibdir = m_directURL_ZScrosscalib;
       std::cout << "CaloTowerCalib::InitRun: Using setted url " << calibdir << std::endl;
       cdbttree_ZScrosscalib = new CDBTTree(calibdir);
-    } 
+    }
     else
     {
       calibdir = CDBInterface::instance()->getUrl(m_calibName_ZScrosscalib);
@@ -208,7 +213,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
         }
       }
     }
-  } 
+  }
 
   PHNodeIterator iter(topNode);
 
@@ -272,28 +277,36 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
     TowerInfo *caloinfo_raw = _raw_towers->get_tower_at_channel(channel);
-    _calib_towers->get_tower_at_channel(channel)->copy_tower(caloinfo_raw);
+    TowerInfo *calib_tower = _calib_towers->get_tower_at_channel(channel);
+    calib_tower->copy_tower(caloinfo_raw);
     float raw_amplitude = caloinfo_raw->get_energy();
     float calibconst = m_cdbInfo_vec[channel].calibconst;
     bool isZS = caloinfo_raw->get_isZS();
 
+    float calib_energy = 0.0F;
     if (isZS && m_doZScrosscalib)
     {
       float crosscalibconst = m_cdbInfo_vec[channel].crosscalibconst;
-      if (crosscalibconst == 0) 
-      { 
-        crosscalibconst = 1; 
+      if (crosscalibconst == 0)
+      {
+        crosscalibconst = 1;
       }
-      _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst * crosscalibconst);
+      calib_energy = raw_amplitude * calibconst * crosscalibconst;
     }
     else
     {
-      _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst);
+      calib_energy = raw_amplitude * calibconst;
     }
-   
+    calib_tower->set_energy(calib_energy);
+
+    if (m_apply_neg_energy_threshold && calib_energy < m_negEnergyThreshold)
+    {
+      calib_tower->set_isBadChi2(true);
+    }
+
     if (calibconst == 0)
     {
-      _calib_towers->get_tower_at_channel(channel)->set_isNoCalib(true);
+      calib_tower->set_isNoCalib(true);
     }
     if(m_dotimecalib)
     {
@@ -303,7 +316,7 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
       //I realized that there is no point to do timing calibration for the towerinfov1 object since the resolution is not enough...
       float raw_time = caloinfo_raw->get_time();
       float meantime = m_cdbInfo_vec[channel].meantime;
-      _calib_towers->get_tower_at_channel(channel)->set_time(raw_time - meantime);
+      calib_tower->set_time(raw_time - meantime);
       }
     }
   }

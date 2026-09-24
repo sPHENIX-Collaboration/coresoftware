@@ -99,6 +99,7 @@ bool PHNodeIOManager::setFile(const std::string& f, const std::string& title,
     }
     file->SetCompressionSettings(m_CompressionSetting);
     tree = new TTree(TreeName.c_str(), title.c_str());
+    tree->SetMaxVirtualSize(0);
     TTree::SetMaxTreeSize(900000000000LL);  // set max size to ~900 GB
     gROOT->cd(currdir.c_str());
     return true;
@@ -378,6 +379,10 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
   {
     tree->SetCacheSize(m_TTreeCacheSize);
   }
+// avoids retaining old, already-read decompressed basket buffers
+// since we only read forward, keeping old buffers would not help us in any way
+  tree->SetMaxVirtualSize(0);
+
   // ROOT sucks, we need a unique name for the tree so we can open multiple
   // files. So we take the memory location of the file pointer which
   // should be unique within this process to create it

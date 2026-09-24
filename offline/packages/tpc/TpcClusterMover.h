@@ -10,40 +10,34 @@
 #include <trackbase_historic/ActsTransformations.h>
 #include <vector>
 
-class PHG4TpcGeomContainer;
 class PHCompositeNode;
 class TpcClusterMover
 {
  public:
+
   //! constructor
-  TpcClusterMover();
+  TpcClusterMover() = default;
 
   void set_verbosity(int verb) { _verbosity = verb; }
 
-  std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> processTrack(const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global_in);
+  std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> processTrack(const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global_in) const;
 
   //! Updates the assumed default geometry below to that contained in the
   //! cell geo
-  void initialize_geometry(PHG4TpcGeomContainer *cellgeo, ActsGeometry *tGeometry, PHCompositeNode *topNode);
+  void initialize_geometry(ActsGeometry*, PHCompositeNode*);
 
  private:
   int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xclus, double yclus, double &x, double &y) const;
 
   bool get_moved_position(TrkrDefs::cluskey cluskey, TrkrCluster *cluster, std::vector<float> &fitpars, Acts::Vector3 &global, Acts::Vector3 &global_new, TrkrDefs::subsurfkey &new_subsurfkey) const;
 
-  double layer_radius[48] = {0};
-  double inner_tpc_min_radius = 30.0;
-  double mid_tpc_min_radius = 40.0;
-  double outer_tpc_min_radius = 60.0;
-  double outer_tpc_max_radius = 76.4;
-
-  double inner_tpc_spacing = 0.0;
-  double mid_tpc_spacing = 0.0;
-  double outer_tpc_spacing = 0.0;
-
+  //! verbosity
   int _verbosity = 0;
 
+  //! pointer to acts geometry container
   ActsGeometry *_tGeometry = nullptr;
+
+  //! pointer to main node
   PHCompositeNode *_topNode = nullptr;
 };
 

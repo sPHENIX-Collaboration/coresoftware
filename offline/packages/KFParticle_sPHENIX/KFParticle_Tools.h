@@ -34,6 +34,7 @@
 #include <TF1.h>
 
 #include <limits>
+#include <map>      // for map
 #include <string>   // for string
 #include <tuple>    // for tuple
 #include <utility>  // for pair
@@ -67,9 +68,13 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   void getTracksFromBC(PHCompositeNode *topNode, const int &bunch_crossing, const std::string &vertexMapName, int &nTracks, int &nPVs);
 
+  int getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, const int &bunch_crossing) const;
+
   int getTracksFromVertex(PHCompositeNode *topNode, const KFParticle &vertex, const std::string &vertexMapName);
 
   /*const*/ bool isGoodTrack(const KFParticle &particle, const std::vector<KFParticle> &primaryVertices);
+
+  bool isTPConlyAtZeroCrossing(const KFParticle&);
 
   int calcMinPV_DCA(const KFParticle &track, const std::vector<KFParticle> &PVs, float &minimumPV_DCA, float &minimumPV_DCA_stddev, bool do3D = true);
 
@@ -121,7 +126,11 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   double get_dEdx_fitValue(float momentum, int PID);
 
+  bool vertexToleranceCheck(float vertexMap_pos[3], float kfp_vertex_pos[3]);
+
   bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex);
+
+  std::vector<int> getParticleCrossings(const KFParticle &particle);
 
   void set_dont_use_global_vertex(bool set_variable) { m_dont_use_global_vertex = set_variable; }
 
@@ -258,13 +267,21 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   bool m_bunch_crossing_zero_only{false};
 
-  bool m_require_bunch_crossing_match{true};
+  bool m_use_fake_pv{false};
 
   bool m_use_mbd_vertex{false};
 
   bool m_dont_use_global_vertex{false};
 
+  bool m_force_mixed_event = false;
+
+  bool m_require_bunch_crossing_match{true};
+
   bool m_require_track_and_vertex_match{false};
+
+  std::map<int, std::vector<int>> m_intermediate_crossings;
+
+  int m_next_intermediate_id{-2};
 
   std::string m_vtx_map_node_name;
   std::string m_trk_map_node_name;

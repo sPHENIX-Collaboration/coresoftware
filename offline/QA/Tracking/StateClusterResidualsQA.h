@@ -8,7 +8,6 @@
 #include <string>
 #include <limits>
 #include <cmath>
-#include <cfloat>
 #include <vector>
 
 class PHCompositeNode;
@@ -33,7 +32,7 @@ struct ResidualHistConfig
   float eta_max = 1.1;
 
   float pt_min = 0.0;
-  float pt_max = FLT_MAX;
+  float pt_max = std::numeric_limits<float>::max();
 
   int charge = 0;
 

@@ -65,6 +65,7 @@ pkginclude_HEADERS = \
   PHRaveVertexing.h \
   PHSiliconHelicalPropagator.h \
   PHSiliconSeedMerger.h \
+  PHSiliconSeedPruner.h \
   PHSimpleKFProp.h \
   PHStreakFinder.h \
   PHTpcClusterMover.h \
@@ -87,6 +88,9 @@ pkginclude_HEADERS = \
   TrackingIterationCounter.h \
   TpcSeedFilter.h \
   WeightedFitter.h
+
+noinst_HEADERS = \
+  PHSiliconSeedPrunerHelper.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
@@ -146,6 +150,8 @@ libtrack_reco_la_SOURCES = \
   PHRaveVertexing.cc \
   PHSiliconHelicalPropagator.cc \
   PHSiliconSeedMerger.cc \
+  PHSiliconSeedPruner.cc \
+  PHSiliconSeedPrunerHelper.cc \
   PHSiliconTpcTrackMatching.cc \
   PHSiliconTrackMatching.cc \
   PHSiliconCosmicSeeding.cc \

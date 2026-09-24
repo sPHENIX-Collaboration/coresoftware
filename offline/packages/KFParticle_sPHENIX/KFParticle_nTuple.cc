@@ -308,6 +308,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 
   m_tree->Branch("nPrimaryVerticesOfBC", &m_nPVs, "nPrimaryVerticesOfBC/I");
   m_tree->Branch("nTracksOfBC", &m_multiplicity, "nTracksOfBC/I");
+  m_tree->Branch("nSiSeedMultiplicity", &m_ncharged_siseed_multiplicity, "nSiSeedMultiplicity/I");
   m_tree->Branch("nTracksOfVertex", &m_nTracksOfVertex, "nTracksOfVertex/I");
 
   m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
@@ -662,6 +663,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   m_sv_mass = calc_secondary_vertex_mass_noPID(daughters);
 
   kfpTupleTools.getTracksFromBC(topNode, m_calculated_daughter_bunch_crossing[0], m_vtx_map_node_name_nTuple, m_multiplicity, m_nPVs);
+  m_ncharged_siseed_multiplicity = kfpTupleTools.getNchargedSiSeedMultiplicity(topNode, m_calculated_daughter_bunch_crossing[0]);
   // cannot retrieve vertex map info from fake PV, hence the second condition
   if (m_constrain_to_vertex_nTuple && !m_use_fake_pv_nTuple)
   {
@@ -678,38 +680,38 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   if (evtNode)
   {
-	  EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
-	  if (evtHeader)
-	  {
-		  m_runNumber = evtHeader->get_RunNumber();
-		  m_evtNumber = evtHeader->get_EvtSequence();
-	  }
-	  else
-	  {
-		  m_runNumber = -1;
-		  m_evtNumber = -1;
-	  }
-
-	  auto* gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
-	  if (!gl1packet)
-	  {
-		  gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-	  }
-
-	  if (gl1packet)
-	  {
-		  m_bco = gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0];
-	  }
-	  else
-	  {
-		  m_bco = -1;
-	  }
+    EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+    if (evtHeader)
+    {
+      m_runNumber = evtHeader->get_RunNumber();
+      m_evtNumber = evtHeader->get_EvtSequence();
+    }
+    else
+    {
+      m_runNumber = -1;
+      m_evtNumber = -1;
+    }
+    
+    auto* gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+    if (!gl1packet)
+    {
+      gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+    }
+    
+    if (gl1packet)
+    {
+      m_bco = gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0];
+    }
+    else
+    {
+      m_bco = -1;
+    }
   }
   else
   {
-	  m_runNumber = -1;
-	  m_evtNumber = -1;
-	  m_bco = -1;
+    m_runNumber = -1;
+    m_evtNumber = -1;
+    m_bco = -1;
   }
 
   if (m_trigger_info_available)

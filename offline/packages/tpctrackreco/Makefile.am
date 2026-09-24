@@ -1,6 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
+  libtpctrackreco_io.la \
   libtpctrackreco.la
 
 AM_CPPFLAGS = \
@@ -84,23 +85,26 @@ pcmdir = $(libdir)
 # more elegant way to create pcm files (without listing them)
 nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
-libtpctrackreco_la_SOURCES = \
-  Tpc_ModuleTrackReco.cc \
+libtpctrackreco_io_la_SOURCES = \
   Tpc_ModuleTrackv1.cc \
   Tpc_ModuleTrackContainerv1.cc \
   Tpc_AssembledTrackv1.cc \
   Tpc_AssembledTrackContainerv1.cc \
-  Tpc_AssembledTrackReco.cc \
   TpcCrossingDecisionv1.cc \
   TpcCrossingDecisionContainerv1.cc \
-  TpcCrossingFinder.cc \
   Tpc_PolyTrackv1.cc \
   Tpc_PolyTrackContainerv1.cc \
   Tpc_PolyTrackVertexv1.cc \
   Tpc_PolyTrackVertexContainerv1.cc \
-  Tpc_PolyTrackVertexer.cc \
   Tpc_PolyClusterv1.cc \
   Tpc_PolyClusterContainerv1.cc \
+  $(ROOTDICTS)
+
+libtpctrackreco_la_SOURCES = \
+  Tpc_ModuleTrackReco.cc \
+  Tpc_AssembledTrackReco.cc \
+  TpcCrossingFinder.cc \
+  Tpc_PolyTrackVertexer.cc \
   Tpc_PolyClusterizer.cc \
   Tpc_PolyTrackReco.cc \
   TpcPolyTrackSeedConverter.cc \
@@ -108,10 +112,13 @@ libtpctrackreco_la_SOURCES = \
   TpcTrackHelixFitter.cc \
   TpcTrackKalmanFitter.cc \
   Tpc_FittingTools.cc \
-  IdealPadMap.cc \
-  $(ROOTDICTS)
+  IdealPadMap.cc
+
+libtpctrackreco_io_la_LIBADD = \
+  -lphool
 
 libtpctrackreco_la_LIBADD = \
+  libtpctrackreco_io.la \
   -lphool \
   -lfun4all \
   -lffamodules \
@@ -151,11 +158,15 @@ BUILT_SOURCES = \
   testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals_tpc_track_reco
+  testexternals_tpctrackreco_io \
+  testexternals_tpctrackreco
 
 
-testexternals_tpc_track_reco_SOURCES = testexternals.cc
-testexternals_tpc_track_reco_LDADD = libtpctrackreco.la
+testexternals_tpctrackreco_SOURCES = testexternals.cc
+testexternals_tpctrackreco_LDADD = libtpctrackreco.la
+
+testexternals_tpctrackreco_io_SOURCES = testexternals.cc
+testexternals_tpctrackreco_io_LDADD = libtpctrackreco_io.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

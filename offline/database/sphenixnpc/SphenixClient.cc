@@ -9,6 +9,27 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <pwd.h>
+#include <unistd.h>
+
+namespace
+{
+  bool is_sphnxpro()
+  {
+    passwd pwd{};
+    passwd* result = nullptr;
+    std::array<char, 4096> buffer{};
+
+    if (getpwnam_r("sphnxpro", &pwd, buffer.data(), buffer.size(), &result) != 0 ||
+        result == nullptr)
+    {
+      return false;
+    }
+
+    return geteuid() == result->pw_uid;
+  }
+}  // namespace
+
 SphenixClient::SphenixClient(const std::string& gt_name)
   : nopayloadclient::NoPayloadClient(gt_name)
   , m_CachedGlobalTag(gt_name)
@@ -124,11 +145,21 @@ void SphenixClient::DumpCalibrations(long long iov, const std::string& filename)
 
 nlohmann::json SphenixClient::deletePayloadIOV(const std::string& pl_type, long long iov_start)
 {
+  if (!is_sphnxpro())
+  {
+    std::string message = "only the sphnxpro account can delete a PayloadIOV";
+    return {{"code", -1}, {"msg", message}};
+  }
   return nopayloadclient::NoPayloadClient::deletePayloadIOV(pl_type, 0, iov_start);
 }
 
 nlohmann::json SphenixClient::deletePayloadIOV(const std::string& pl_type, long long iov_start, long long iov_end)
 {
+  if (!is_sphnxpro())
+  {
+    std::string message = "only the sphnxpro account can delete a PayloadIOV";
+    return {{"code", -1}, {"msg", message}};
+  }
   return nopayloadclient::NoPayloadClient::deletePayloadIOV(pl_type, 0, iov_start, 0, iov_end);
 }
 
@@ -148,6 +179,11 @@ std::string SphenixClient::getCalibration(const std::string& pl_type, long long 
 
 nlohmann::json SphenixClient::unlockGlobalTag(const std::string& gt_name)
 {
+  if (!is_sphnxpro())
+  {
+    std::string message = "only the sphnxpro account can unlock a global tag";
+    return {{"code", -1}, {"msg", message}};
+  }
   if (existGlobalTag(gt_name))
   {
     return nopayloadclient::NoPayloadClient::unlockGlobalTag(gt_name);
@@ -169,12 +205,22 @@ nlohmann::json SphenixClient::lockGlobalTag(const std::string& gt_name)
 nlohmann::json SphenixClient::insertPayload(const std::string& pl_type, const std::string& file_url,
                                             long long iov_start)
 {
+  if (!is_sphnxpro())
+  {
+    std::string message = "only the sphnxpro account can insert a Payload";
+    return {{"code", -1}, {"msg", message}};
+  }
   return nopayloadclient::NoPayloadClient::insertPayload(pl_type, file_url, 0, iov_start);
 }
 
 nlohmann::json SphenixClient::insertPayload(const std::string& pl_type, const std::string& file_url,
                                             long long iov_start, long long iov_end)
 {
+  if (!is_sphnxpro())
+  {
+    std::string message = "only the sphnxpro account can insert a Payload";
+    return {{"code", -1}, {"msg", message}};
+  }
   return nopayloadclient::NoPayloadClient::insertPayload(pl_type, file_url, 0, iov_start, 0, iov_end);
 }
 
@@ -182,6 +228,11 @@ nlohmann::json SphenixClient::insertPayload(const std::string& pl_type, const st
                                             long long major_iov_start, long long minor_iov_start,
                                             long long major_iov_end, long long minor_iov_end)
 {
+  if (!is_sphnxpro())
+  {
+    std::string message = "only the sphnxpro account can insert a Payload";
+    return {{"code", -1}, {"msg", message}};
+  }
   return nopayloadclient::NoPayloadClient::insertPayload(pl_type, file_url, major_iov_start, minor_iov_start, major_iov_end, minor_iov_end);
 }
 
@@ -244,6 +295,11 @@ int SphenixClient::cache_set_GlobalTag(const std::string& tagname)
 int SphenixClient::createDomain(const std::string& domain)
 {
   int iret = -1;
+  if (!is_sphnxpro())
+  {
+    std::cout << "only the sphnxpro account can create a Payload Type (domain)" << std::endl;
+    return iret;
+  }
   nlohmann::json resp;
   if (m_DomainCache.empty())
   {

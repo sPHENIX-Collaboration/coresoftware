@@ -56,6 +56,7 @@ libtrackingqa_la_LIBADD = \
   -ltrack  \
   -ltrackbase_historic_io \
   -ltrack_reco \
+  -lcalotrigger \
   -lqautils
 
 BUILT_SOURCES = testexternals.cc

@@ -111,7 +111,8 @@ libtpc_la_LIBADD = \
   -lfun4all \
   -lphool \
   -lSpectrum \
-  -lpthread
+  -lpthread \
+  -lPHGarfield
 
 # sources for io library
 libtpc_io_la_SOURCES = \
