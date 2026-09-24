@@ -41,6 +41,9 @@ pkginclude_HEADERS = \
   PHG4TpcPadPlaneReadout.h \
   PHG4TpcSubsystem.h
 
+noinst_HEADERS = \
+  TpcPrimaryIonizationModel.h
+
 libg4tpc_la_SOURCES = \
   PHG4TpcCentralMembrane.cc \
   TpcClusterBuilder.cc \
@@ -58,7 +61,8 @@ libg4tpc_la_SOURCES = \
   PHG4TpcPadPlane.cc \
   PHG4TpcPadPlaneReadout.cc \
   PHG4TpcSteppingAction.cc \
-  PHG4TpcSubsystem.cc
+  PHG4TpcSubsystem.cc \
+  TpcPrimaryIonizationModel.cc
 
 ################################################
 # linking tests
