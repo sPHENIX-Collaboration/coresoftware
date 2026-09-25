@@ -204,6 +204,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMinTPOThits(int nHits) { m_nTPOTStates = nHits; } //Actually state counting but use this for backwards compatibility!
 
+  void useTPConlyTracks(bool use = true) { m_use_tpc_only_tracks = use; }
+
   void setMaximumDaughterDCA_XY(float dca) { m_comb_DCA_xy = dca; }
 
   void setMaximumDaughterDCA(float dca) { m_comb_DCA = dca; }

@@ -225,6 +225,8 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   int m_nTPOTStates{0};
 
+  bool m_use_tpc_only_tracks{false};
+
   float m_comb_DCA_xy{std::numeric_limits<float>::max()};
 
   float m_comb_DCA{std::numeric_limits<float>::max()};
