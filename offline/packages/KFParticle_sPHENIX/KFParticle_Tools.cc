@@ -96,6 +96,7 @@ KFParticle_Tools::KFParticle_Tools()
   , m_nINTTStates(1)
   , m_nTPCStates(20)
   , m_nTPOTStates(0)
+  , m_use_tpc_only_tracks(false)
   , m_comb_DCA_xy(1)
   , m_comb_DCA(0.5)
   , m_vertex_chi2ndof(20.)
@@ -341,11 +342,11 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
       printSelectionCheck("TPOT states", m_nTPOTStates, TPOT_states, 5);
     }
 
-    if (MVTX_states < m_nMVTXStates)
+    if (MVTX_states < m_nMVTXStates && !m_use_tpc_only_tracks)
     {
       continue;
     }
-    if (INTT_states < m_nINTTStates)
+    if (INTT_states < m_nINTTStates && !m_use_tpc_only_tracks)
     {
       continue;
     }
@@ -353,7 +354,11 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
     {
       continue;
     }
-    if (TPOT_states < m_nTPOTStates)
+    if (TPOT_states < m_nTPOTStates && !m_use_tpc_only_tracks)
+    {
+      continue;
+    }
+    if (m_use_tpc_only_tracks && (MVTX_states > 0 || INTT_states > 0))
     {
       continue;
     }
