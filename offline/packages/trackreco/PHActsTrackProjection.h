@@ -62,7 +62,7 @@ class PHActsTrackProjection : public SubsysReco
   // extrapolation mode
   enum class ExtrapolationMode
   {
-    Default, // the default extrapolation mode, using fitter track parameters at origin
+    Legacy, // the default extrapolation mode, using fitter track parameters at origin
     Forward // uses the track state vector closest to the requested layer, before
   };
 
@@ -109,7 +109,7 @@ class PHActsTrackProjection : public SubsysReco
   float m_constFieldVal = 1.4;
 
   /// extrapolation mode
-  ExtrapolationMode m_extrapolation_mode = ExtrapolationMode::Default;
+  ExtrapolationMode m_extrapolation_mode = ExtrapolationMode::Legacy;
 
 };
 

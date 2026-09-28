@@ -157,10 +157,9 @@ void PHActsTrackProjection::project_track( SvtxTrack* track ) const
   // create relevant bound track parameters, depending on extrapolation mode
   std::optional<Acts::BoundTrackParameters> parameters;
 
-  float source_pathlength = 0;
   switch( m_extrapolation_mode )
   {
-    case ExtrapolationMode::Default:
+    case ExtrapolationMode::Legacy:
     {
       auto result = propagator.makeTrackParams(track, m_vertexMap);
       if( result.ok() ) parameters = std::make_optional( std::move(result.value()) );
@@ -172,20 +171,38 @@ void PHActsTrackProjection::project_track( SvtxTrack* track ) const
 
       SvtxTrackState* state{ nullptr };
       ActsPropagator::SurfacePtr surface{ nullptr };
+      float maxPathlength = -1;
 
-      // get track parameters closest to calorimeters (TPOT or TPC last layer)
-      /* need to loop over all states and stop at either TPC or TPOT, to make sure previous extrapolation to calorimeters are not used */
       for( auto iter = track->begin_states(); iter != track->end_states(); ++iter )
       {
         const auto& [pathlength, s] = *iter;
         const auto ckey = s->get_cluskey();
+        const auto trkrId = TrkrDefs::getTrkrId(ckey);
+
+        // only keep svtx, intt or tpc. TPOT is ignored for now.
+        if( !(trkrId == TrkrDefs::mvtxId || trkrId == TrkrDefs::inttId || trkrId == TrkrDefs::tpcId) )
+        { continue; }
+
+        /*
+         * ignore TPC if cluster map has not been found.
+         * this is because for TPC track state one needs the subsurface key, stored in the actual cluster, to find the relevant ACTS surface
+         */
+        if( trkrId == TrkrDefs::tpcId && !m_clusterContainer )
+        { continue; }
+
+        // check pathlength
+        if( pathlength <= maxPathlength )
+        { continue; }
+
+        // update pathlength and track state
+        maxPathlength = pathlength;
+
+        // state
+        state = s;
+
+        // get the associated cluster
         TrkrCluster* cluster = m_clusterContainer ? m_clusterContainer->findCluster(ckey):nullptr;
-        const auto layer = TrkrDefs::getLayer( ckey );
-        if( layer <= 56 ){
-          source_pathlength = pathlength;
-          state = s;
-          surface = m_tGeometry->maps().getSurface(ckey, cluster);
-        }
+        surface = m_tGeometry->maps().getSurface(ckey, cluster);
       }
 
       if( state && surface )
@@ -197,7 +214,9 @@ void PHActsTrackProjection::project_track( SvtxTrack* track ) const
     }
   }
 
-  // loop over layers and extrpolate
+  // loop over layers and extrapolate
+
+
 }
 
 //_______________________________________________________________________________________
@@ -372,6 +391,7 @@ int PHActsTrackProjection::getNodes(PHCompositeNode* topNode)
 
   // clusters
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  if(
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
