@@ -26,6 +26,8 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <ffamodules/CDBInterface.h>
+
 #include <TMVA/RBDT.hxx>
 
 #include <algorithm>
@@ -64,7 +66,44 @@ int PhotonClusterBuilder::InitRun(PHCompositeNode* topNode)
   // BDT
   if (m_do_bdt)
   {
-    m_bdt = std::make_unique<TMVA::Experimental::RBDT>("myBDT", m_bdt_model_file);
+    m_bdt.reset();
+    if (m_bdt_feature_list.empty())
+    {
+      std::cerr << Name() << ": BDT enabled without an ordered feature list" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+    std::string model_file = m_bdt_model_file;
+    if (!m_bdt_model_cdb_domain.empty())
+    {
+      model_file = CDBInterface::instance()->getUrl(m_bdt_model_cdb_domain);
+      if (model_file.empty())
+      {
+        std::cerr << Name() << ": no BDT model found for CDB domain '"
+                  << m_bdt_model_cdb_domain << "'" << std::endl;
+        return Fun4AllReturnCodes::ABORTRUN;
+      }
+    }
+
+    if (model_file.empty())
+    {
+      std::cerr << Name() << ": BDT model filename is empty" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    try
+    {
+      m_bdt = std::make_unique<TMVA::Experimental::RBDT>("myBDT", model_file);
+    }
+    catch (const std::exception& error)
+    {
+      std::cerr << Name() << ": could not load BDT model '" << model_file
+                << "': " << error.what() << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    if (Verbosity() > 0)
+    {
+      std::cout << Name() << ": BDT model: " << model_file << std::endl;
+    }
   }
 
   // locate input raw cluster container
