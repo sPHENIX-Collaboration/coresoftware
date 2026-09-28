@@ -75,12 +75,7 @@ class PHActsTrackProjection : public SubsysReco
   int projectTracks(SvtxTrack::CAL_LAYER);
 
   // project a give track to all available calorimeter layers
-  void project_track( SvtxTrack* ) const;
-
-  /// Propagate the fitted track parameters to a surface with Acts
-  BoundTrackParamResult propagateTrack(
-      const Acts::BoundTrackParameters &params,
-      const SurfacePtr &targetSurf);
+  void projectTrack( SvtxTrack* ) const;
 
   /// Make Acts::CylinderSurface objects corresponding to the calos
   int makeCaloSurfacePtrs(PHCompositeNode *topNode);

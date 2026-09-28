@@ -84,19 +84,10 @@ int PHActsTrackProjection::InitRun(PHCompositeNode* topNode)
 //_______________________________________________________________________________________
 int PHActsTrackProjection::process_event(PHCompositeNode* /*topNode*/)
 {
+  // loop over all tracks and project
+  for (const auto& [key, track] : *m_trackMap)
+  { projectTrack( track ); }
 
-  for( const auto& [layer, name]:m_caloNames )
-  {
-    if (Verbosity())
-    {
-      std::cout << "Processing calo layer " << name << std::endl;
-    }
-    int ret = projectTracks(layer);
-    if (ret != Fun4AllReturnCodes::EVENT_OK)
-    {
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -112,41 +103,8 @@ int PHActsTrackProjection::End(PHCompositeNode* /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//_______________________________________________________________________________________
-int PHActsTrackProjection::projectTracks(SvtxTrack::CAL_LAYER caloLayer)
-{
-
-  // make sure caloSurface is valid
-  const auto surface_iter = m_caloSurfaces.find(caloLayer);
-  if( surface_iter == m_caloSurfaces.end() ) return Fun4AllReturnCodes::EVENT_OK;
-  const auto& cylSurf = surface_iter->second;
-
-  // create propagator
-  ActsPropagator prop(m_tGeometry);
-
-  // loop over tracks
-  for (const auto& [key, track] : *m_trackMap)
-  {
-    auto params = prop.makeTrackParams(track, m_vertexMap);
-    if(!params.ok())
-    {
-      continue;
-    }
-
-    // propagate
-    const auto result = propagateTrack(params.value(), cylSurf);
-    if (result.ok())
-    {
-      // update track
-      updateSvtxTrack(result.value(), track, caloLayer);
-    }
-  }
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 //___________________________________________________________________________________
-void PHActsTrackProjection::project_track( SvtxTrack* track ) const
+void PHActsTrackProjection::projectTrack( SvtxTrack* track ) const
 {
   // check track
   if( !track ) return;
@@ -156,6 +114,9 @@ void PHActsTrackProjection::project_track( SvtxTrack* track ) const
 
   // create relevant bound track parameters, depending on extrapolation mode
   std::optional<Acts::BoundTrackParameters> parameters;
+
+  // also keep track of source pathlength
+  float sourcePathlength = 0;
 
   switch( m_extrapolation_mode )
   {
@@ -208,14 +169,48 @@ void PHActsTrackProjection::project_track( SvtxTrack* track ) const
       if( state && surface )
       {
         auto result = propagator.makeTrackParams(state, track->get_charge(), surface);
-        if( result.ok() ) parameters = std::make_optional( std::move(result.value()) );
+        if( result.ok() )
+        {
+          parameters = std::make_optional( std::move(result.value()) );
+          sourcePathlength = maxPathlength;
+        }
       }
       break;
     }
   }
 
-  // loop over layers and extrapolate
+  if( !parameters ) { return; }
 
+  // setup propagator for extrapolation
+  /* a constant magnetic field is used */
+  propagator.constField();
+  propagator.verbosity(Verbosity());
+  propagator.setConstFieldValue(m_constFieldVal * Acts::UnitConstants::T);
+
+  // loop over layers and extrapolate
+  for( const auto& [layer, name]:m_caloNames )
+  {
+
+    // check calorimeter surface
+    const auto surface_iter = m_caloSurfaces.find(caloLayer);
+    if( surface_iter == m_caloSurfaces.end() ) return Fun4AllReturnCodes::EVENT_OK;
+    const auto& cylSurf = surface_iter->second;
+
+    // propagate track and update if successful
+    const auto result = propagator.propagateTrackFast(parameters.value(), cylSurf);
+    if (result.ok())
+    {
+      // retrieve result
+      auto parameter_pair = result.value();
+
+      // update pathlength
+      parameter_pair.first += sourcePathlenght;
+
+      // update track
+      updateSvtxTrack(result.value(), track, caloLayer);
+    }
+
+  }
 
 }
 
@@ -257,20 +252,6 @@ void PHActsTrackProjection::updateSvtxTrack(
 
   svtxTrack->insert_state(&out);
   return;
-}
-
-//_______________________________________________________________________________________
-PHActsTrackProjection::BoundTrackParamResult
-PHActsTrackProjection::propagateTrack(
-    const Acts::BoundTrackParameters& params,
-    const SurfacePtr& targetSurf)
-{
-  ActsPropagator propagator(m_tGeometry);
-  propagator.constField();
-  propagator.verbosity(Verbosity());
-  propagator.setConstFieldValue(m_constFieldVal * Acts::UnitConstants::T);
-
-  return propagator.propagateTrackFast(params, targetSurf);
 }
 
 //_______________________________________________________________________________________
