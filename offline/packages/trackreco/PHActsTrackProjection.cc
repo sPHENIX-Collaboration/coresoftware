@@ -192,8 +192,9 @@ void PHActsTrackProjection::projectTrack( SvtxTrack* track ) const
   {
 
     // check calorimeter surface
-    const auto surface_iter = m_caloSurfaces.find(caloLayer);
-    if( surface_iter == m_caloSurfaces.end() ) return Fun4AllReturnCodes::EVENT_OK;
+    const auto surface_iter = m_caloSurfaces.find(layer);
+    if( surface_iter == m_caloSurfaces.end() ) { continue; }
+    
     const auto& cylSurf = surface_iter->second;
 
     // propagate track and update if successful
@@ -204,10 +205,10 @@ void PHActsTrackProjection::projectTrack( SvtxTrack* track ) const
       auto parameter_pair = result.value();
 
       // update pathlength
-      parameter_pair.first += sourcePathlenght;
+      parameter_pair.first += sourcePathlength;
 
       // update track
-      updateSvtxTrack(result.value(), track, caloLayer);
+      updateSvtxTrack(result.value(), track, layer);
     }
 
   }
@@ -218,7 +219,7 @@ void PHActsTrackProjection::projectTrack( SvtxTrack* track ) const
 void PHActsTrackProjection::updateSvtxTrack(
     const ActsPropagator::BoundTrackParamPair& parameters,
     SvtxTrack* svtxTrack,
-    SvtxTrack::CAL_LAYER caloLayer)
+    SvtxTrack::CAL_LAYER caloLayer) const
 {
   const float pathlength = parameters.first / Acts::UnitConstants::cm;
   const auto params = parameters.second;
@@ -372,7 +373,9 @@ int PHActsTrackProjection::getNodes(PHCompositeNode* topNode)
 
   // clusters
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  if(
-
+  if( !m_clusterContainer )
+    {
+      std::cout << "PHActsTrackProjection::getNodes - unable to find cluster container node. Will not be able to extrapolate from TPC" << std::endl;
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }

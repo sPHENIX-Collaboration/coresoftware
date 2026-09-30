@@ -83,7 +83,7 @@ class PHActsTrackProjection : public SubsysReco
   /// Update the SvtxTrack object with the track-cluster match
   void updateSvtxTrack(const ActsPropagator::BoundTrackParamPair &params,
                        SvtxTrack *svtxTrack,
-                       SvtxTrack::CAL_LAYER);
+                       SvtxTrack::CAL_LAYER) const;
 
   /// Objects containing the Acts track fit results
   ActsGeometry *m_tGeometry = nullptr;
