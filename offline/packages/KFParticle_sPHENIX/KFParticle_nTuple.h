@@ -231,7 +231,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   int m_calculated_vertex_ID{-1};
   // float *m_calculated_vertex_cov;
   float m_calculated_vertex_cov[6]{0};
-  float centrality_mbd{-1};
+  float m_centrality_mbd{-1};
 
   float m_sv_mass{-1};
 

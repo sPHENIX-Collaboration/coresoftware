@@ -251,8 +251,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void useCentrality(bool use = true)
   {
-    m_use_centrality = use;
-    m_use_centrality_nTuple = use; //TODO
+    m_use_centrality_nTuple = use;
   }
 
   void dontUseGlobalVertex(bool dont = true) { m_dont_use_global_vertex = m_dont_use_global_vertex_truth  = dont; }

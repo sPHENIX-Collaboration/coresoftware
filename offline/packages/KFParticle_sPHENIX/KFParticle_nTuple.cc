@@ -301,7 +301,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 
   if(m_use_centrality_nTuple)
   {
-    m_tree->Branch("centrality_mbd", &centrality_mbd);
+    m_tree->Branch("centrality_mbd", &m_centrality_mbd);
   }
 
   if (m_get_all_PVs)
@@ -504,6 +504,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   }
 
   isTrackEMCalmatch = true;
+  bool bunchCrossingisZero = true;
   for (int i = 0; i < m_num_tracks_nTuple; ++i)
   {
     m_calculated_daughter_mass[i] = daughterArray[i].GetMass();
@@ -548,6 +549,10 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     SvtxTrackMap* thisTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
     SvtxTrack* thisTrack = getTrack(daughterArray[i].Id(), thisTrackMap);
     m_calculated_daughter_bunch_crossing[i] = thisTrack->get_crossing();
+    if (m_calculated_daughter_bunch_crossing[i] != 0)
+    {
+      bunchCrossingisZero = false;
+    }
     if (m_get_dEdx)
     {
       m_calculated_daughter_dedx[i] = kfpTupleTools.get_dEdx(topNode, daughterArray[i]);  // m_get_dEdx defaults to false; run get_dEdx_info() to change this
@@ -689,19 +694,27 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     if (!m_CentInfo)
     {
         std::cout << "KFparticle - [WARNING] - can't find CentralityInfo node " << "CentralityInfo" << std::endl;
-        centrality_mbd = -1.;
+        m_centrality_mbd = -1.;
     }
     else
     {
         if (m_CentInfo->has_centrality_bin(CentralityInfo::PROP::mbd_NS))
         {
-            centrality_mbd = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
+          if(bunchCrossingisZero)
+          {
+            m_centrality_mbd = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
+          }
+          else
+          {
+            std::cout << "KFparticle - Invalid bunch crossing" << std::endl; //TODO
+            m_centrality_mbd = -1;
+          }
         }
         else
         {
-            std::cout << "[WARNING/ERROR] No centrality information found in CentralityInfo. Setting centrality_mbd_ to -2. Please check!" << std::endl;
+            std::cout << "[WARNING/ERROR] No centrality information found in CentralityInfo. Setting centrality_mbd to -2. Please check!" << std::endl;
             m_CentInfo->identify();
-            centrality_mbd = -2.;
+            m_centrality_mbd = -2.;
         }
     }
   }
