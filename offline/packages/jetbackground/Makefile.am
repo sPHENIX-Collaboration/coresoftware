@@ -59,6 +59,7 @@ pkginclude_HEADERS = \
   TowerBackground.h \
   TowerBackgroundv1.h \
   TowerRho.h \
+  TowerRhoToBackground.h \
   TowerRhov1.h
 
 ROOTDICTS = \
@@ -92,7 +93,8 @@ libjetbackground_la_SOURCES = \
   StreakSidebandFilter.cc \
   SubtractTowers.cc \
   SubtractTowersCS.cc \
-  TimingCut.cc
+  TimingCut.cc \
+  TowerRhoToBackground.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

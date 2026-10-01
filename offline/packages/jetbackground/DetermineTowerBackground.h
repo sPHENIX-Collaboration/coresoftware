@@ -43,15 +43,31 @@ class DetermineTowerBackground : public SubsysReco
     m_overwrite_average_calo_v2 = true;
     m_overwrite_average_calo_v2_path = url;
   }
+
   void SetSeedJetD(float D) { _seed_jet_D = D; };
   void SetSeedJetPt(float pt) { _seed_jet_pt = pt; };
-  void SetSeedMaxConst(float max_const) { _seed_max_const = max_const; };
 
+  // minimum pT for a 1st iteration (seed type 0) jet to be considered for the D cut
+
+  void SetSeedMaxConst(float max_const) { _seed_max_const = max_const; };
+  void SetSeedExclusionDR(float dr) { _seed_exclusion_DR = dr; };
   void UseReweighting(bool do_reweight ) {  _do_reweight = do_reweight; }
 
   void set_towerNodePrefix(const std::string &prefix)
   {
     m_towerNodePrefix = prefix;
+    return;
+  }
+  // input tower / geometry nodes; an empty tower node (default) means
+  // m_towerNodePrefix + "_CEMC_RETOWER" / "_HCALIN" / "_HCALOUT"
+  void set_emcal_input_node(const std::string &name) { m_emcal_input_node = name; }
+  void set_ihcal_input_node(const std::string &name) { m_ihcal_input_node = name; }
+  void set_ohcal_input_node(const std::string &name) { m_ohcal_input_node = name; }
+  void set_ihcal_geom_node(const std::string &name) { m_ihcal_geom_node = name; }
+  void set_ohcal_geom_node(const std::string &name) { m_ohcal_geom_node = name; }
+  void set_jetnode(const std::string &jetnode)
+  {
+    m_jetnode = jetnode;
     return;
   }
 
@@ -101,7 +117,8 @@ class DetermineTowerBackground : public SubsysReco
   int _seed_type{0};
   float _seed_jet_D{4.0};
   float _seed_max_const{3.0};
-  float _seed_jet_pt{7.0};
+  float _seed_jet_pt{5.0};
+  float _seed_exclusion_DR{0.4};
 
   std::vector<float> _seed_eta;
   std::vector<float> _seed_phi;
@@ -113,6 +130,19 @@ class DetermineTowerBackground : public SubsysReco
   bool _reweight_failed{false};
 
   std::string m_towerNodePrefix{"TOWERINFO_CALIB"};
+  // Seed jets to read. Empty (default) = the standard node for the seed type:
+  // type 0 (1st iteration) AntiKt_TowerInfo_HIRecoSeedsRaw_r02,
+  // type 1 (2nd iteration) AntiKt_TowerInfo_HIRecoSeedsSub_r02 (from CopyAndSubtractJets).
+  std::string m_jetnode{};
+
+  std::string m_emcal_input_node{};
+  std::string m_ihcal_input_node{};
+  std::string m_ohcal_input_node{};
+  std::string m_ihcal_geom_node{"TOWERGEOM_HCALIN"};
+  std::string m_ohcal_geom_node{"TOWERGEOM_HCALOUT"};
+  std::string emcal_input_node() const { return m_emcal_input_node.empty() ? m_towerNodePrefix + "_CEMC_RETOWER" : m_emcal_input_node; }
+  std::string ihcal_input_node() const { return m_ihcal_input_node.empty() ? m_towerNodePrefix + "_HCALIN" : m_ihcal_input_node; }
+  std::string ohcal_input_node() const { return m_ohcal_input_node.empty() ? m_towerNodePrefix + "_HCALOUT" : m_ohcal_input_node; }
   std::string EMTowerName;
   std::string IHTowerName;
   std::string OHTowerName;
