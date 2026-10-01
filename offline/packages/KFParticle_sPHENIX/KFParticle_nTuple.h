@@ -99,7 +99,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   bool m_use_intermediate_name{false};
   bool m_get_charge_conjugate_nTuple{false};
   bool m_use_fake_pv_nTuple{false}; 
-  bool m_use_centrality{false};
+  bool m_use_centrality_nTuple{false};
 
   std::vector<std::string> m_intermediate_name_ntuple;
 

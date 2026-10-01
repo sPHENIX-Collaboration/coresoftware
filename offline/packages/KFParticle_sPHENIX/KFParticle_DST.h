@@ -47,6 +47,7 @@ class KFParticle_DST
   bool m_has_intermediates_DST = false;
   bool m_write_track_container = true;
   bool m_write_particle_container = true;
+  bool m_use_centrality = false;
   std::string m_container_name;
   std::string m_origin_track_map_node_name = "SvtxTrackMap";
 
