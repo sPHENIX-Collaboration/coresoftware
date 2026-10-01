@@ -155,15 +155,16 @@ void PHActsTrackProjection::projectTrack( SvtxTrack* track ) const
         if( pathlength <= maxPathlength )
         { continue; }
 
-        // update pathlength and track state
-        maxPathlength = pathlength;
-
-        // state
-        state = s;
-
         // get the associated cluster
         TrkrCluster* cluster = m_clusterContainer ? m_clusterContainer->findCluster(ckey):nullptr;
-        surface = m_tGeometry->maps().getSurface(ckey, cluster);
+        const auto surfaceCandidate = m_tGeometry->maps().getSurface(ckey, cluster);
+        if( !surfaceCandidate )
+        { continue; }
+
+        // update surface, pathlength and track state
+        surface = surfaceCandidate;
+        maxPathlength = pathlength;
+        state = s;
       }
 
       if( state && surface )
@@ -380,6 +381,6 @@ int PHActsTrackProjection::getNodes(PHCompositeNode* topNode)
       << " Will not be able to extrapolate from TPC"
       << std::endl;
   }
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
