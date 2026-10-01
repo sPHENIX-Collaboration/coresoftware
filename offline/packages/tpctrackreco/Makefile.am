@@ -141,7 +141,8 @@ libtpctrackreco_la_LIBADD = \
   -lgenfit2exp \
   -lPHGenFit \
   -lphfield \
-  -lPHGarfield
+  -lPHGarfield \
+  -lTpcConditions
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

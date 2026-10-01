@@ -25,6 +25,7 @@ libPHGarfield_la_LIBADD = \
   -lffamodules \
   -lffarawobjects \
   -lcdbobjects \
+  -lg4detectors \
   -lEvent \
   -lphool \
   -lphfield \

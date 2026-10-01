@@ -35,6 +35,7 @@ class SvtxAlignmentState_v1 : public SvtxAlignmentState
   {
     m_cluskey = key;
   }
+  
 
   const ResidualVector& get_residual() const override { return m_residual; }
   const LocalMatrix& get_local_derivative_matrix() const override { return m_localDeriv; }

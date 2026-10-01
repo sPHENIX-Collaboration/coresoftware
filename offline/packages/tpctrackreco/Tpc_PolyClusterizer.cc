@@ -16,13 +16,17 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/RunnumberRange.h>
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+
+#include <tpcconditions/TpcConditions.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -226,6 +230,45 @@ bool Tpc_PolyClusterizer::load_cdb_inputs()
     return " [CDB]";
   };
 
+  if (m_useBCOkEffs)
+  {
+    if (!m_conditions)
+    {
+      std::cout << Name()
+                << "::load_cdb_inputs - WARNING: TpcConditions node not found; "
+                << "using unscaled kEff"
+                << std::endl;
+    }
+    else if (!m_conditions->get_ConditionsAvailable())
+    {
+      std::cout << Name()
+                << "::load_cdb_inputs - WARNING: TpcConditions are not available; "
+                << "using unscaled kEff"
+                << std::endl;
+    }
+    else
+    {
+      const double averageSR1 = m_conditions->get_AverageLoadSR1();
+      const double averageNR1 = m_conditions->get_AverageLoadNR1();
+
+      std::cout << Name() << "::load_cdb_inputs"
+                << " - SR1=" << m_conditions->get_LoadSR1()
+                << " avgSR1=" << averageSR1
+                << " NR1=" << m_conditions->get_LoadNR1()
+                << " avgNR1=" << averageNR1
+                << std::endl;
+      if (averageSR1 != 0.0 && averageNR1 != 0.0)
+      {
+        m_kEffSide0 *= m_conditions->get_LoadSR1() / averageSR1;
+        m_kEffSide1 *= m_conditions->get_LoadNR1() / averageNR1;
+      }
+      else
+      {
+        std::cout << Name() << "::load_cdb_inputs - warning: average SR1 or NR1 is zero, cannot apply BC correction" << std::endl;
+      }
+    }
+  }
+
   std::cout << Name() << "::load_cdb_inputs - final kEff values: side0 = " << m_kEffSide0 << keff_source(m_kEffSide0Override)
             << ", side1 = " << m_kEffSide1 << keff_source(m_kEffSide1Override) << std::endl;
   return ok;
@@ -252,7 +295,14 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
 
   // get layer geometry for layer 20.
   auto* layergeom = m_geomContainerTpc->GetLayerCellGeom(20);
-  if (use_survey_geometry)
+  if (!layergeom)
+  {
+    std::cout << Name() << "::InitRun - missing TPC geometry for layer 20"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  if (!m_usePHGarfieldDefaults && use_survey_geometry)
   {
     // apply survey geometry
     const double rot_x = layergeom->get_rot_x();
@@ -275,15 +325,40 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
   std::cout << Name() << "::InitRun - m_startZSouth: " << m_startZSouth << " cm" << std::endl;
   std::cout << Name() << "::InitRun - m_startZNorth: " << m_startZNorth << " cm" << std::endl;
 
-  if (!load_cdb_inputs())
+  if (!m_usePHGarfieldDefaults)
   {
-    std::cout << Name() << "::InitRun - failed to load CDB inputs" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    if (!load_cdb_inputs())
+    {
+      std::cout << Name() << "::InitRun - failed to load CDB inputs" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
   }
 
-  m_garfield.reset( new PHGarfield(Name() + "_PHGarfield", "", m_kEffSide0, m_kEffSide1) );
+  m_garfield.reset();
 
-  configure_garfield(m_garfield.get());
+  if (m_usePHGarfieldDefaults)
+  {
+    std::cout << Name()
+              << "::InitRun - using PHGarfield default configuration"
+              << std::endl;
+
+    m_garfield = std::make_unique<PHGarfield>(Name() + "_PHGarfield");
+
+    reconfigure_garfield(m_garfield.get());
+  }
+  else
+  {
+    std::cout << Name()
+              << "::InitRun - using PolyClusterizer/manual PHGarfield configuration"
+              << std::endl;
+
+    m_garfield = std::make_unique<PHGarfield>(
+        Name() + "_PHGarfield", "", m_kEffSide0, m_kEffSide1);
+
+    m_garfield->SetUseSurveyGeometry(false);
+    configure_garfield(m_garfield.get());
+  }
+
   if (m_garfield->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     std::cerr << Name() << "::InitRun - PHGarfield InitRun failed" << std::endl;
@@ -297,6 +372,150 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
 
   m_event = 0;
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void Tpc_PolyClusterizer::reconfigure_garfield(PHGarfield* garfield) const
+{
+  if (!garfield)
+  {
+    return;
+  }
+
+  if (garfield->GetCMVoltageDefault() != m_cmVoltageDefault)
+  {
+    std::cout << Name() << "::reconfigure_garfield - CM voltage "
+              << garfield->GetCMVoltageDefault() << " -> "
+              << m_cmVoltageDefault << " V/cm" << std::endl;
+    garfield->SetCMVoltageDefault(m_cmVoltageDefault);
+  }
+
+  if (garfield->GetUseSurveyGeometry() != use_survey_geometry)
+  {
+    std::cout << Name() << "::reconfigure_garfield - survey geometry "
+              << garfield->GetUseSurveyGeometry() << " -> "
+              << use_survey_geometry << std::endl;
+    garfield->SetUseSurveyGeometry(use_survey_geometry);
+  }
+
+  if (garfield->GetUseBCOkEffs() != m_useBCOkEffs)
+  {
+    std::cout << Name() << "::reconfigure_garfield - BCO/current correction "
+              << garfield->GetUseBCOkEffs() << " -> "
+              << m_useBCOkEffs << std::endl;
+    garfield->SetUseBCOkEffs(m_useBCOkEffs);
+  }
+
+  if (garfield->GetUse2DElectricFieldMap() != m_use2DElectricFieldMap)
+  {
+    std::cout << Name() << "::reconfigure_garfield - use 2D electric-field map "
+              << garfield->GetUse2DElectricFieldMap() << " -> "
+              << m_use2DElectricFieldMap << std::endl;
+    garfield->SetUse2DElectricFieldMap(m_use2DElectricFieldMap);
+  }
+
+  if (m_field3DCoefficientFileOverride)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual kEff coefficient file: "
+              << m_field3DCoefficientFile << std::endl;
+    garfield->SetField3DCoefficientFile(m_field3DCoefficientFile);
+  }
+
+  if (m_electricFieldMapOverride)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual 2D electric-field map: "
+              << m_electricFieldMap << std::endl;
+    garfield->SetElectricFieldMap(m_electricFieldMap);
+  }
+
+  if (m_kEffSide0Override)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual kEff side0: "
+              << m_kEffSide0 << std::endl;
+    garfield->SetSpaceChargeScaleSide0(m_kEffSide0);
+  }
+
+  if (m_kEffSide1Override)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual kEff side1: "
+              << m_kEffSide1 << std::endl;
+    garfield->SetSpaceChargeScaleSide1(m_kEffSide1);
+  }
+
+  if (m_field3DSide0Override)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual 3D field map side0: "
+              << m_field3DSide0 << std::endl;
+    garfield->SetElectricFieldMap3DSide0(m_field3DSide0);
+  }
+
+  if (m_field3DSide1Override)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual 3D field map side1: "
+              << m_field3DSide1 << std::endl;
+    garfield->SetElectricFieldMap3DSide1(m_field3DSide1);
+  }
+
+  if (m_framesSide0Override)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual frame map side0: "
+              << m_framesSide0 << std::endl;
+    garfield->SetFrameElectricFieldMap3DSide0(m_framesSide0);
+  }
+
+  if (m_framesSide1Override)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual frame map side1: "
+              << m_framesSide1 << std::endl;
+    garfield->SetFrameElectricFieldMap3DSide1(m_framesSide1);
+  }
+
+  if (m_frameChargeScaleOverride)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual frame charge scale: "
+              << m_frameChargeScale << std::endl;
+    garfield->SetFrameChargeScale(m_frameChargeScale);
+  }
+
+  if (m_tpcGeometryOverride)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual TPC translation: "
+              << "(" << m_tpcMove[0] << ", "
+              << m_tpcMove[1] << ", "
+              << m_tpcMove[2] << ") cm" << std::endl;
+
+    garfield->MoveTpc(m_tpcMove[0], m_tpcMove[1], m_tpcMove[2]);
+
+    for (std::size_t i = 0; i < m_tpcRotations.size(); ++i)
+    {
+      const auto& rotation = m_tpcRotations[i];
+
+      std::cout << Name() << "::reconfigure_garfield - manual TPC rotation "
+                << i << ": ("
+                << rotation[0] << ", "
+                << rotation[1] << ", "
+                << rotation[2] << ") rad" << std::endl;
+
+      garfield->RotateTpc(rotation[0], rotation[1], rotation[2]);
+    }
+  }
+
+  if (m_fieldCageVoltageOverride)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual field-cage offsets:"
+              << " IFC South=" << m_fieldCageVoltageOffsets[0]
+              << " V, IFC North=" << m_fieldCageVoltageOffsets[1]
+              << " V, OFC South=" << m_fieldCageVoltageOffsets[2]
+              << " V, OFC North=" << m_fieldCageVoltageOffsets[3]
+              << " V" << std::endl;
+
+    garfield->SetUseIFCVoltageDistortion(true);
+    garfield->SetUseOFCVoltageDistortion(true);
+    garfield->SetFieldCageVoltageOffsets(
+        m_fieldCageVoltageOffsets[0],
+        m_fieldCageVoltageOffsets[1],
+        m_fieldCageVoltageOffsets[2],
+        m_fieldCageVoltageOffsets[3]);
+  }
 }
 
 void Tpc_PolyClusterizer::configure_garfield(PHGarfield* garfield) const
@@ -319,10 +538,27 @@ void Tpc_PolyClusterizer::configure_garfield(PHGarfield* garfield) const
 
   garfield->SetFrameChargeScale(m_frameChargeScale);
 
-  garfield->SetUseIFCVoltageDistortion(true);
-  garfield->SetUseOFCVoltageDistortion(true);
+  recoConsts* rc = recoConsts::instance();
+  int runnumber = rc->get_IntFlag("RUNNUMBER");
 
-  garfield->SetFieldCageVoltageOffsets(m_fieldCageVoltageOffsets[0], m_fieldCageVoltageOffsets[1], m_fieldCageVoltageOffsets[2], m_fieldCageVoltageOffsets[3]);
+  if (runnumber > RunnumberRange::RUN3AUAU_IFC_V_CHANGE)
+  {
+    garfield->SetUseIFCVoltageDistortion(true);
+    garfield->SetUseOFCVoltageDistortion(true);
+
+    garfield->SetFieldCageVoltageOffsets(m_fieldCageVoltageOffsets[0], m_fieldCageVoltageOffsets[1], m_fieldCageVoltageOffsets[2], m_fieldCageVoltageOffsets[3]);
+
+    std::cout << Name() << "::configure_garfield - using IFC and OFC voltage distortion with offsets: "
+              << "IFC South = " << m_fieldCageVoltageOffsets[0] << " V, "
+              << "IFC North = " << m_fieldCageVoltageOffsets[1] << " V, "
+              << "OFC South = " << m_fieldCageVoltageOffsets[2] << " V, "
+              << "OFC North = " << m_fieldCageVoltageOffsets[3] << " V"
+              << std::endl;
+  }
+  else
+  {
+    std::cout << Name() << "::configure_garfield - not using IFC and OFC voltage distortion for run number " << runnumber << std::endl;
+  }
 
   garfield->MoveTpc(m_tpcMove[0], m_tpcMove[1], m_tpcMove[2]);
   for (const auto& rotation : m_tpcRotations)
@@ -360,6 +596,25 @@ int Tpc_PolyClusterizer::getNodes(PHCompositeNode* topNode)
   {
     std::cerr << Name() << "::getNodes - missing TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  if (!m_usePHGarfieldDefaults && m_useBCOkEffs)
+  {
+    m_conditions = findNode::getClass<TpcConditions>(topNode, "TpcConditions");
+    if (!m_conditions)
+    {
+      std::cout << Name()
+                << "::getNodes - WARNING: TpcConditions node not found; "
+                << "continuing with unscaled kEff"
+                << std::endl;
+    }
+    else if (!m_conditions->get_ConditionsAvailable())
+    {
+      std::cout << Name()
+                << "::getNodes - WARNING: TpcConditions are not available; "
+                << "continuing with unscaled kEff"
+                << std::endl;
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1040,7 +1295,7 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
 
               const int iphi = static_cast<int>(p.pad);
               const int it = static_cast<int>(p.tbin);
-              if(it >= layergeom->get_zbins())
+              if (it >= layergeom->get_zbins())
               {
                 continue;
               }

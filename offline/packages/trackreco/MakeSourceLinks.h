@@ -72,7 +72,8 @@ class MakeSourceLinks
       TrkrClusterContainer* /*clusters*/,
       ActsGeometry* /*geometry*/,
       const TpcGlobalPositionWrapper& /*globalpositionWrapper*/,
-      short int crossing);
+      short int crossing,
+      bool use_modified_clus_error = true);
 
  private:
 

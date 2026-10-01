@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstddef>
+#include <limits>
 #include <numbers>
 #include <string>
 #include <vector>
@@ -30,8 +31,8 @@ class PHGarfield : public SubsysReco
   // Backward-compatible constructor used by existing sPHENIX/Devon TPC code.
   PHGarfield(const std::string &name = "PHGarfield",
              const std::string &electricFieldMap = "",
-             double spaceChargeScale_side0 = 1.0,
-             double spaceChargeScale_side1 = 1.0);
+             double spaceChargeScale_side0 = std::numeric_limits<double>::quiet_NaN(),
+             double spaceChargeScale_side1 = std::numeric_limits<double>::quiet_NaN());
 
   // Extended constructor for direct side-separated 3D field-map configuration.
   PHGarfield(const std::string &name,
@@ -70,24 +71,29 @@ class PHGarfield : public SubsysReco
   void MoveTpc(double x_cm, double y_cm, double z_cm);
   void RotateTpc(double theta_x, double theta_y, double theta_z);
   void SetCMVoltageDefault(double voltage) { m_CMVoltageDefault = voltage; }
+  double GetCMVoltageDefault() const { return m_CMVoltageDefault; }
+  bool GetSpaceChargeScaleOverride() const { return m_spaceChargeScaleOverride[0] && m_spaceChargeScaleOverride[1]; }
 
-  
   //  These are left in public namespace for easy plotting macros...
   //  The user is encouraged to add more routine to fit their analysis goals...
   // Existing macros should call this one.  Input and returned polyline are in
   // local TPC/Garfield coordinates.
-  TPolyLine3D *ReverseDrift(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus* status = nullptr);
+  TPolyLine3D *ReverseDrift(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus *status = nullptr);
 
   // Debug/visualization helper.  Input and returned polyline are in global
   // detector coordinates.  Internally the drift is still computed in local TPC
   // coordinates to keep the Garfield gas tables valid.
-  TPolyLine3D *ReverseDriftGlobalCoords(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus* status = nullptr);
+  TPolyLine3D *ReverseDriftGlobalCoords(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus *status = nullptr);
 
   double GetRadius(size_t index) const { return radii.at(index); }
 
   // Axisymmetric ROOT map must contain QA/hErDefault and QA/hEzDefault.
   // The histograms are expected in cm on the axes and V/m in the bins.
-  void SetElectricFieldMap(const std::string &filename) { m_electricFieldMap = filename; }
+  void SetElectricFieldMap(const std::string &filename)
+  {
+    m_electricFieldMap = filename;
+    m_electricFieldMapOverride = true;
+  }
 
   // Side-separated 3D ROOT maps must contain Field3D/hEx, Field3D/hEy,
   // and Field3D/hEz. Axes are (r [cm], phi [rad], |z| [cm]); bin contents
@@ -96,38 +102,82 @@ class PHGarfield : public SubsysReco
   {
     m_electricFieldMap3D[0] = side0_filename;
     m_electricFieldMap3D[1] = side1_filename;
+    m_electricFieldMap3DOverride = {{true, true}};
   }
-  void SetElectricFieldMap3DSide0(const std::string &filename) { m_electricFieldMap3D[0] = filename; }
-  void SetElectricFieldMap3DSide1(const std::string &filename) { m_electricFieldMap3D[1] = filename; }
+  void SetElectricFieldMap3DSide0(const std::string &filename)
+  {
+    m_electricFieldMap3D[0] = filename;
+    m_electricFieldMap3DOverride[0] = true;
+  }
 
+  void SetElectricFieldMap3DSide1(const std::string &filename)
+  {
+    m_electricFieldMap3D[1] = filename;
+    m_electricFieldMap3DOverride[1] = true;
+  }
   // Optional frame-charge correction maps are added on top of the existing
   // space-charge correction. The 2D format is QA/hErDefault + QA/hEzDefault;
   // the side-separated 3D format may be either Field3D/hEx + hEy + hEz
   // or the Rossegger cylindrical format hEr + hEphi + hEz at file root.
-  void SetFrameElectricFieldMap(const std::string &filename) { m_frameElectricFieldMap = filename; }
+  void SetFrameElectricFieldMap(const std::string &filename)
+  {
+    m_frameElectricFieldMap = filename;
+    m_frameElectricFieldMapOverride = true;
+  }
+
   void SetFrameElectricFieldMap3D(const std::string &side0_filename, const std::string &side1_filename)
   {
     m_frameElectricFieldMap3D[0] = side0_filename;
     m_frameElectricFieldMap3D[1] = side1_filename;
+    m_frameElectricFieldMap3DOverride = {{true, true}};
   }
-  void SetFrameElectricFieldMap3DSide0(const std::string &filename) { m_frameElectricFieldMap3D[0] = filename; }
-  void SetFrameElectricFieldMap3DSide1(const std::string &filename) { m_frameElectricFieldMap3D[1] = filename; }
-  void SetFrameChargeScale(double value)
+
+  void SetFrameElectricFieldMap3DSide0(const std::string &filename)
   {
-    m_frameChargeScale_side0 = value;
-    m_frameChargeScale_side1 = value;
+    m_frameElectricFieldMap3D[0] = filename;
+    m_frameElectricFieldMap3DOverride[0] = true;
   }
-  void SetFrameChargeScaleSide0(double value) { m_frameChargeScale_side0 = value; }
-  void SetFrameChargeScaleSide1(double value) { m_frameChargeScale_side1 = value; }
+
+  void SetFrameElectricFieldMap3DSide1(const std::string &filename)
+  {
+    m_frameElectricFieldMap3D[1] = filename;
+    m_frameElectricFieldMap3DOverride[1] = true;
+  }
 
   void SetSpaceChargeScale(double value)
   {
     m_spaceChargeScale_side0 = value;
     m_spaceChargeScale_side1 = value;
+    m_spaceChargeScaleOverride = {{true, true}};
   }
 
-  void SetSpaceChargeScaleSide0(double value) { m_spaceChargeScale_side0 = value; }
-  void SetSpaceChargeScaleSide1(double value) { m_spaceChargeScale_side1 = value; }
+  void SetSpaceChargeScaleSide0(double value)
+  {
+    m_spaceChargeScale_side0 = value;
+    m_spaceChargeScaleOverride[0] = true;
+  }
+  void SetSpaceChargeScaleSide1(double value)
+  {
+    m_spaceChargeScale_side1 = value;
+    m_spaceChargeScaleOverride[1] = true;
+  }
+
+  void SetFrameChargeScale(double value)
+  {
+    m_frameChargeScale_side0 = value;
+    m_frameChargeScale_side1 = value;
+    m_frameChargeScaleOverride = {{true, true}};
+  }
+  void SetFrameChargeScaleSide0(double value)
+  {
+    m_frameChargeScale_side0 = value;
+    m_frameChargeScaleOverride[0] = true;
+  }
+  void SetFrameChargeScaleSide1(double value)
+  {
+    m_frameChargeScale_side1 = value;
+    m_frameChargeScaleOverride[1] = true;
+  }
 
   double GetSpaceChargeScaleSide0() const { return m_spaceChargeScale_side0; }
   double GetSpaceChargeScaleSide1() const { return m_spaceChargeScale_side1; }
@@ -139,25 +189,51 @@ class PHGarfield : public SubsysReco
   // Offsets are endpoint perturbations relative to the nominal resistor-chain
   // boundary voltage, in volts. IFC and OFC are independent, giving four
   // tunable parameters: IFC South/North and OFC South/North.
-  void SetUseIFCVoltageDistortion(bool value) { m_useIFCVoltageDistortion = value; }
+  void SetUseIFCVoltageDistortion(bool value)
+  {
+    m_useIFCVoltageDistortion = value;
+    m_fieldCageConfigurationOverride = true;
+  }
   void SetIFCVoltageOffset(double side0_south_v, double side1_north_v)
   {
     m_ifcVoltageOffset_side0 = side0_south_v;
     m_ifcVoltageOffset_side1 = side1_north_v;
+    m_fieldCageConfigurationOverride = true;
   }
-  void SetIFCVoltageOffsetSide0(double value_v) { m_ifcVoltageOffset_side0 = value_v; }
-  void SetIFCVoltageOffsetSide1(double value_v) { m_ifcVoltageOffset_side1 = value_v; }
+  void SetIFCVoltageOffsetSide0(double value_v)
+  {
+    m_ifcVoltageOffset_side0 = value_v;
+    m_fieldCageConfigurationOverride = true;
+  }
+  void SetIFCVoltageOffsetSide1(double value_v)
+  {
+    m_ifcVoltageOffset_side1 = value_v;
+    m_fieldCageConfigurationOverride = true;
+  }
   double GetIFCVoltageOffsetSide0() const { return m_ifcVoltageOffset_side0; }
   double GetIFCVoltageOffsetSide1() const { return m_ifcVoltageOffset_side1; }
 
-  void SetUseOFCVoltageDistortion(bool value) { m_useOFCVoltageDistortion = value; }
+  void SetUseOFCVoltageDistortion(bool value)
+  {
+    m_useOFCVoltageDistortion = value;
+    m_fieldCageConfigurationOverride = true;
+  }
   void SetOFCVoltageOffset(double side0_south_v, double side1_north_v)
   {
     m_ofcVoltageOffset_side0 = side0_south_v;
     m_ofcVoltageOffset_side1 = side1_north_v;
+    m_fieldCageConfigurationOverride = true;
   }
-  void SetOFCVoltageOffsetSide0(double value_v) { m_ofcVoltageOffset_side0 = value_v; }
-  void SetOFCVoltageOffsetSide1(double value_v) { m_ofcVoltageOffset_side1 = value_v; }
+  void SetOFCVoltageOffsetSide0(double value_v)
+  {
+    m_ofcVoltageOffset_side0 = value_v;
+    m_fieldCageConfigurationOverride = true;
+  }
+  void SetOFCVoltageOffsetSide1(double value_v)
+  {
+    m_ofcVoltageOffset_side1 = value_v;
+    m_fieldCageConfigurationOverride = true;
+  }
   double GetOFCVoltageOffsetSide0() const { return m_ofcVoltageOffset_side0; }
   double GetOFCVoltageOffsetSide1() const { return m_ofcVoltageOffset_side1; }
 
@@ -181,6 +257,21 @@ class PHGarfield : public SubsysReco
   {
     m_ifcGridNR = nr;
     m_ifcGridNZ = nz;
+  }
+
+  void SetUseSurveyGeometry(bool value) { use_survey_geometry = value; }
+  bool GetUseSurveyGeometry() const { return use_survey_geometry; }
+
+  void SetUseBCOkEffs(bool value) { m_useBCOkEffs = value; }
+  bool GetUseBCOkEffs() const { return m_useBCOkEffs; }
+
+  void SetUse2DElectricFieldMap(bool value) { m_use2DElectricFieldMap = value; }
+  bool GetUse2DElectricFieldMap() const { return m_use2DElectricFieldMap; }
+
+  void SetField3DCoefficientFile(const std::string &filename)
+  {
+    m_field3DCoefficientFile = filename;
+    m_field3DCoefficientFileOverride = true;
   }
 
  private:
@@ -212,8 +303,11 @@ class PHGarfield : public SubsysReco
   void FillRadii();
   static double bounder(double phi, double phi_min);
 
-  CDBTTree *m_cdbTPCMAPttree{nullptr};            // Locations of the pads from CDB...
-  //PHField3DCartesian *m_field{nullptr};           // The standard sPHENIX field holding container.
+  bool LoadCDBInputs(PHCompositeNode *topNode);
+  void ConfigureRunDependentFieldCage();
+
+  CDBTTree *m_cdbTPCMAPttree{nullptr};  // Locations of the pads from CDB...
+  // PHField3DCartesian *m_field{nullptr};           // The standard sPHENIX field holding container.
   PHField *m_field{nullptr};
   Garfield::ComponentUser *m_component{nullptr};  // This handles the interface of the electric and magnetic fields as handed to Garfield
   Garfield::MediumMagboltz *m_gas{nullptr};       // This is the pre-tabulated gas properties required by Garfield...
@@ -236,10 +330,10 @@ class PHGarfield : public SubsysReco
   std::array<std::string, 2> m_electricFieldMap3D{};
   double m_spaceChargeScale_side0{1.0};  // south, z < 0
   double m_spaceChargeScale_side1{1.0};  // north, z > 0
-  double m_CMVoltageDefault{380.0};      // V/cm, nominal TPC field
+  double m_CMVoltageDefault{375.0};      // V/cm, nominal TPC field
   bool m_zerofield{false};
-  TH2 *m_erCorrection{nullptr};          // radial correction, input bins in V/m
-  TH2 *m_ezCorrection{nullptr};          // local longitudinal correction, input bins in V/m
+  TH2 *m_erCorrection{nullptr};  // radial correction, input bins in V/m
+  TH2 *m_ezCorrection{nullptr};  // local longitudinal correction, input bins in V/m
   // Component order is Ex, Ey, Ez. Ez is along +|z| in the map.
   std::array<std::array<TH3 *, 3>, 2> m_field3DCorrection{};
 
@@ -248,8 +342,8 @@ class PHGarfield : public SubsysReco
   // over the optional axisymmetric frame map on that side.
   std::string m_frameElectricFieldMap;
   std::array<std::string, 2> m_frameElectricFieldMap3D{};
-  double m_frameChargeScale_side0{1.0};
-  double m_frameChargeScale_side1{1.0};
+  double m_frameChargeScale_side0{-180.0};
+  double m_frameChargeScale_side1{-180.0};
   TH2 *m_frameErCorrection{nullptr};
   TH2 *m_frameEzCorrection{nullptr};
   std::array<std::array<TH3 *, 3>, 2> m_frameField3DCorrection{};
@@ -275,6 +369,20 @@ class PHGarfield : public SubsysReco
   double m_ifcGridDr_cm{0.0};
   double m_ifcGridDz_cm{0.0};
   bool m_fieldCageGridReady{false};
+  bool m_tpcGeometryOverride{false};
+  bool m_electricFieldMapOverride{false};
+  std::array<bool, 2> m_electricFieldMap3DOverride{{false, false}};
+  bool m_frameElectricFieldMapOverride{false};
+  std::array<bool, 2> m_frameElectricFieldMap3DOverride{{false, false}};
+  std::array<bool, 2> m_spaceChargeScaleOverride{{false, false}};
+  std::array<bool, 2> m_frameChargeScaleOverride{{false, false}};
+  bool m_fieldCageConfigurationOverride{false};
+  bool use_survey_geometry{true};
+  bool m_useBCOkEffs{true};
+  bool m_use2DElectricFieldMap{false};
+  std::string m_field3DCoefficientFile;
+  bool m_field3DCoefficientFileOverride{false};
+
   std::vector<double> m_ifcUnitErGrid;  // V/cm for +1 V IFC endpoint perturbation
   std::vector<double> m_ifcUnitEsGrid;  // V/cm along +|z| for +1 V IFC endpoint perturbation
   std::vector<double> m_ofcUnitErGrid;  // V/cm for +1 V OFC endpoint perturbation

@@ -16,7 +16,7 @@ class TH2;
 
 // Jet energy scale calibration. Two methods are available:
 //
-// EMfrac method (DEFAULT; CDB payload "JES_Calib_EMfrac"):
+// EMfrac method (DEFAULT; CDB entry "JES_Calibration_EMfrac"):
 //   1) first pass: calibrated (truth-equivalent) pT read from a 2D map versus
 //      (reco pT, EMCal energy fraction), by clamped bilinear interpolation;
 //   2) residual correction: multiplicative scale factor versus (signed z-vertex,
@@ -54,7 +54,7 @@ class JetCalib : public SubsysReco
 
  private:
   // Functions (common).
-  static std::string fetchCalibDir(const char *calibType);
+  static std::string fetchCalibDir(const char *calibName);
 
   // Functions (EMfrac method).
   int initEMfracCalib();

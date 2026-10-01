@@ -85,6 +85,10 @@ class PHActsTrkFitter : public SubsysReco
   {
     m_forceSiOnlyFit = forceSiOnlyFit;
   }
+  void forceSiOnlyFitTpcSeedPT()
+  {
+    m_siOnlyTpcSeedPt = true;
+  }
 
   /// FOR ALIGNMENT STUDIES ONLY, USE AT OWN RISK. With direct navigation, force a fit with only tpc hits and a full
   /// matched (si+tpc track seed). This requires a standard track fit to be run first, followed by refit configured with
@@ -240,6 +244,7 @@ class PHActsTrkFitter : public SubsysReco
   /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
   bool m_fitSiliconMMs = false;
   bool m_forceSiOnlyFit = false;
+  bool m_siOnlyTpcSeedPt = false;
   bool m_forceTpcOnlyFit = false;
 
   /// requires micromegas present when fitting silicon-MM surfaces

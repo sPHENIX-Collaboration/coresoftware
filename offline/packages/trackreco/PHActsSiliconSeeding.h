@@ -153,7 +153,7 @@ class PHActsSiliconSeeding : public SubsysReco
   void makeSvtxTracks(const std::vector<seed_type> &seedVector);
 
   /// Take final seeds and fill the TrackSeedContainer
-  void makeSvtxTracksWithTime(const std::vector<seed_type> &seedVector, const int &strobe);
+  void makeSvtxTracksWithTime(const std::vector<seed_type> &seedVector);
 
   /// Create a seeding space point out of an Acts::SourceLink
   SpacePointPtr makeSpacePoint(const Surface &surf, const TrkrDefs::cluskey,
@@ -172,9 +172,9 @@ class PHActsSiliconSeeding : public SubsysReco
   /// belonging to track stub
   std::vector<TrkrDefs::cluskey> findMatches(std::vector<Acts::Vector3> &clusters, std::vector<TrkrDefs::cluskey> &keys, TrackSeed &seed);
 
-  std::vector<std::vector<TrkrDefs::cluskey>> findMatchesWithTime(std::map<TrkrDefs::cluskey, Acts::Vector3> &positions, const int &strobe);
+  std::vector<std::vector<TrkrDefs::cluskey>> findMatchesWithTime(std::map<TrkrDefs::cluskey, Acts::Vector3> &positions);
   std::vector<std::vector<TrkrDefs::cluskey>> iterateLayers(
-      const int &startLayer, const int &endLayer, const int &strobe, const std::vector<TrkrDefs::cluskey> &keys, const std::vector<Acts::Vector3> &positions);
+      const int &startLayer, const int &endLayer, const std::vector<TrkrDefs::cluskey> &keys, const std::vector<Acts::Vector3> &positions);
   std::vector<TrkrDefs::cluskey> matchInttClusters(std::vector<Acts::Vector3> &clusters, TrackSeed &seed, const double xProj[], const double yProj[], const double zProj[]);
   short int getCrossingIntt(TrackSeed &si_track);
   std::vector<short int> getInttCrossings(TrackSeed &si_track);
