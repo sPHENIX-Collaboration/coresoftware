@@ -454,47 +454,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 
     Surface surf = surf_global.first;
     
-    /*
-  // move the cluster positions back to the original readout surface
-  auto global_moved = _clusterMover.processTrack(global_raw);
-
-  if (m_verbosity > 1)
-  {
-    std::cout << "Cluster global positions after mover puts them on readout surface:" << std::endl;
-  }
-
-  // loop over global positions returned by cluster mover
-  for (auto&& [cluskey, global] : global_moved)
-  {
-    if (m_ignoreLayer.contains(TrkrDefs::getLayer(cluskey)))
-    {
-      if (m_verbosity > 3)
-      {
-        std::cout << PHWHERE << "skipping cluster in layer "
-                  << (unsigned int) TrkrDefs::getLayer(cluskey) << std::endl;
-      }
-      continue;
-    }
-
-    if (std::isnan(global.x()) || std::isnan(global.y()))
-    {
-      if (m_verbosity > 1)
-      {
-        std::cout << "MakeSourceLinks::getSourceLinksClusterMover - invalid position"
-          << " key: " << cluskey
-          << " layer: " << (int) TrkrDefs::getLayer(cluskey)
-          << " position: " << global
-          << std::endl;
-        }
-        continue;
-    }
-
-    // clustermover updates the subsurface key after moving the clusters to the surface, so this is safe
-    auto* cluster = clusterContainer->findCluster(cluskey);
-    if(!cluster) { continue; }
-    Surface surf = tGeometry->maps().getSurface(cluskey, cluster);
-    */
-
     // now we have the surface and the global position on the surface
     // we also need the clusterkey
 

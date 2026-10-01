@@ -280,7 +280,6 @@ void TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track, std::array<float,10> &cluste
   }
 
   // move the corrected cluster positions back to the original readout surface
-  // global_moved = m_clusterMover.processTrack(global_raw);
   global_moved = m_clusterMover.processTrack(global_raw);
  
   float fcorr = std::fabs(std::sin(eta_to_theta(track->get_eta())));
@@ -306,9 +305,7 @@ void TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track, std::array<float,10> &cluste
   float adc_z9 = 0;
   int nclus_z9 = 0;
   for (auto&& [cluskey, surf_global] : global_moved)
-    //  for (const auto &pair : global_moved)
   {
-    // auto ckey = pair.first;
     auto ckey =cluskey;
     auto *cluster = clustermap->findCluster(ckey);
     clusglob_moved = surf_global.second;
