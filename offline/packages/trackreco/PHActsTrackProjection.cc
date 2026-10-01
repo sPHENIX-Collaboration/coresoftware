@@ -194,7 +194,7 @@ void PHActsTrackProjection::projectTrack( SvtxTrack* track ) const
     // check calorimeter surface
     const auto surface_iter = m_caloSurfaces.find(layer);
     if( surface_iter == m_caloSurfaces.end() ) { continue; }
-    
+
     const auto& cylSurf = surface_iter->second;
 
     // propagate track and update if successful
