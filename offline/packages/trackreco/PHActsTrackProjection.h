@@ -59,6 +59,12 @@ class PHActsTrackProjection : public SubsysReco
   void setLayerRadius(SvtxTrack::CAL_LAYER layer, float rad)
   { m_caloRadii[layer] = rad; }
 
+  /// set the cluster container name
+  /** actual clusters are needed when extrapolating forward from the TPC,
+   * in order to get the right subsurface from which to extrapolate the track
+   */
+  void setTrkrClusterContainerName(const std::string& name) { m_clusterContainerName = name; }
+
   // extrapolation mode
   enum class ExtrapolationMode
   {
@@ -102,6 +108,9 @@ class PHActsTrackProjection : public SubsysReco
 
   /// constant field value
   float m_constFieldVal = 1.4;
+
+  // name of TRKR_CLUSTER container
+  std::string m_clusterContainerName = "TRKR_CLUSTER";
 
   /// extrapolation mode
   ExtrapolationMode m_extrapolation_mode = ExtrapolationMode::Legacy;

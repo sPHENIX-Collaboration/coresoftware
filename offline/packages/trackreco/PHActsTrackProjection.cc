@@ -61,13 +61,13 @@ PHActsTrackProjection::PHActsTrackProjection(const std::string& name)
 //_______________________________________________________________________________________
 int PHActsTrackProjection::InitRun(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 1)
-  {
-    std::cout << "PHActsTrackProjection begin Init" << std::endl;
-  }
+  std::cout << "PHActsTrackProjection::InitRun - m_clusterContainerName: " << m_clusterContainerName << std::endl;
+  std::cout << "PHActsTrackProjection::InitRun - m_extrapolation_mode: " << (int) m_extrapolation_mode << std::endl;
 
+  // create calorimeter surfaces
   int ret = makeCaloSurfacePtrs(topNode);
 
+  // load nodes
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     ret = Fun4AllReturnCodes::ABORTEVENT;
@@ -372,10 +372,14 @@ int PHActsTrackProjection::getNodes(PHCompositeNode* topNode)
   }
 
   // clusters
-  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   if( !m_clusterContainer )
-    {
-      std::cout << "PHActsTrackProjection::getNodes - unable to find cluster container node. Will not be able to extrapolate from TPC" << std::endl;
-    }
+  {
+    std::cout << "PHActsTrackProjection::getNodes -"
+      << " unable to find cluster container node " << m_clusterContainerName
+      << " Will not be able to extrapolate from TPC"
+      << std::endl;
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
