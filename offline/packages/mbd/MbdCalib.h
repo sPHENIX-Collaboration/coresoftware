@@ -33,6 +33,7 @@ class MbdCalib
   virtual ~MbdCalib() {}
 
   float get_qgain(const int ipmt) const { return _qfit_mpv[ipmt]; }
+  float get_ttgain(const int ipmt) const { return _ttgain_mean[ipmt]; }
   float get_tt0(const int ipmt) const { return _ttfit_t0mean[ipmt]; }
   float get_tq0(const int ipmt) const { return _tqfit_t0mean[ipmt]; }
   float get_t0corr() const { return _t0corrmean; }
@@ -129,10 +130,12 @@ class MbdCalib
   void set_status(const int ifeech, const int val) { _mbdstatus[ifeech] = val; }
   void set_ped(const int ifeech, const float m, const float merr, const float s, const float serr);
   void set_pileup(const int ifeech, const int ipar, const float val);
+  void set_ttgain(const int ipmt, const float val) { _ttgain_mean[ipmt] = val; }
   void set_tt0(const int ipmt, const float t0) { _ttfit_t0mean[ipmt] = t0; }
   void set_tq0(const int ipmt, const float t0) { _tqfit_t0mean[ipmt] = t0; }
 
   int Download_Gains(const std::string& dbase_location);
+  int Download_TTGain(const std::string& dbase_location);
   int Download_TQT0(const std::string& dbase_location);
   int Download_TTT0(const std::string& dbase_location);
   int Download_T0Corr(const std::string& dbase_location);
@@ -150,6 +153,7 @@ class MbdCalib
 #ifndef ONLINE
   int Write_CDB_SampMax(const std::string& dbfile);
   int Write_CDB_Status(const std::string& dbfile);
+  int Write_CDB_TTGain(const std::string& dbfile);
   int Write_CDB_TTT0(const std::string& dbfile);
   int Write_CDB_TQT0(const std::string& dbfile);
   int Write_CDB_T0Corr(const std::string& dbfile);
@@ -166,6 +170,7 @@ class MbdCalib
 
   int Write_SampMax(const std::string& dbfile);
   int Write_Status(const std::string& dbfile);
+  int Write_TTGain(const std::string& dbfile);
   int Write_TQT0(const std::string& dbfile);
   int Write_TTT0(const std::string& dbfile);
   int Write_T0Corr(const std::string& dbfile);
@@ -179,6 +184,7 @@ class MbdCalib
 
   void Reset_TQT0();
   void Reset_TTT0();
+  void Reset_TTGain();
   void Reset_T0Corr();
   void Reset_Ped();
   void Reset_Gains();
@@ -228,6 +234,12 @@ class MbdCalib
   std::array<float, MbdDefs::MBD_N_PMT> _qfit_mpverr{};
   std::array<float, MbdDefs::MBD_N_PMT> _qfit_sigmaerr{};
   std::array<float, MbdDefs::MBD_N_PMT> _qfit_chi2ndf{};
+
+  // TDC gain, time channels
+  std::array<float, MbdDefs::MBD_N_PMT> _ttgain_mean{};
+  std::array<float, MbdDefs::MBD_N_PMT> _ttgain_meanerr{};
+  std::array<float, MbdDefs::MBD_N_PMT> _ttgain_sigma{};
+  std::array<float, MbdDefs::MBD_N_PMT> _ttgain_sigmaerr{};
 
   // T0 offsets, time channels
   std::array<float, MbdDefs::MBD_N_PMT> _ttfit_t0mean{};

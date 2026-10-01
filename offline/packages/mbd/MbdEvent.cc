@@ -803,6 +803,8 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
       {
         m_ttdc[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();   // no hit
       }
+
+      m_ttdc[pmtch] *= _mbdcal->get_ttgain(pmtch);
     }
     else if ( type == 1 && (!std::isnan(m_ttdc[pmtch]) || _always_process_charge ) )
     {
