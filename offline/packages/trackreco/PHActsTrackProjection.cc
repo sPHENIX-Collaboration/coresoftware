@@ -236,10 +236,14 @@ void PHActsTrackProjection::updateSvtxTrack(
   out.set_py(momentum.y());
   out.set_pz(momentum.z());
 
-  if (Verbosity() > 1)
+  // if (Verbosity() > 1)
   {
-    std::cout << "Adding track state for caloLayer " << caloLayer
-              << " at pathlength " << pathlength << " with position " << projectionPos.transpose() << std::endl;
+    std::cout << "PHActsTrackProjection::updateSvtxTrack -"
+      << " caloLayer: " << caloLayer
+      << " pathlength: " << pathlength
+      << " position: (" << out.get_x() << ", " << out.get_y() << ", " << out.get_z() << ")"
+      << " momentum: (" << out.get_px() << ", " << out.get_py() << ", " << out.get_pz() << ")"
+      << std::endl;
   }
 
   ActsTransformations transformer;
