@@ -1,5 +1,6 @@
 #include "PHHerwig7.h"
 #include "PHHerwig7Core.h"
+#include "PHHerwig7GenTrigger.h"
 
 #include <phhepmc/PHGenIntegral.h>
 #include <phhepmc/PHGenIntegralv1.h>
@@ -44,7 +45,10 @@ int PHHerwig7::Init(PHCompositeNode *topNode)
     exit(EXIT_FAILURE);
   }
 
-  create_node_tree(topNode);
+  if (create_node_tree(topNode) != Fun4AllReturnCodes::EVENT_OK)
+  {
+    exit(EXIT_FAILURE);
+  }
 
   int seed = m_Seed;
   if (seed <= 0)
@@ -136,28 +140,52 @@ int PHHerwig7::process_event(PHCompositeNode * /*topNode*/)
       cand->weights().push_back(w);
     }
 
-    const HepMCTruthTriggerCore::Result r = HepMCTruthTriggerCore::evaluate(cand, m_Trig);
-    if (Verbosity() > 1)
+    // Apply the registered triggers to the event
+    bool passedTrigger = false;
+    bool andScoreKeeper = true;
+
+    for (auto *trigger : m_RegisteredTriggers)
     {
-      std::cout << Name() << ": generated " << m_NGenerated
-                << " leadJetPt=" << r.leadJetPt << " leadPhotonPt=" << r.leadPhotonPt
-                << " pass=" << r.pass << std::endl;
+      const bool trigResult = trigger->Apply(cand);
+
+      if (Verbosity() > 1)
+      {
+        std::cout << Name() << ": trigger " << trigger->GetName() << " pass = " << trigResult << std::endl;
+      }
+
+      if (m_TriggersOR && trigResult)
+      {
+        passedTrigger = true;
+        break;
+      }
+
+      if (m_TriggersAND)
+      {
+        andScoreKeeper = andScoreKeeper && trigResult;
+      }
     }
-    if (r.pass)
+
+    if ((andScoreKeeper && m_TriggersAND) || m_RegisteredTriggers.empty())
     {
-      genevent = cand;
-      m_SumWPass += w;
+      passedTrigger = true;
+    }
+
+    if (passedTrigger)
+    {
+        genevent = cand;
+        m_SumWPass += w;
     }
     else
     {
-      delete cand;
-      ++attempts;
-      if (m_MaxAttempts > 0 && attempts >= m_MaxAttempts)
-      {
-        std::cout.copyfmt(old_state);
-        std::cout << PHWHERE << " no event passed the trigger in " << attempts << " attempts" << std::endl;
-        return Fun4AllReturnCodes::ABORTRUN;
-      }
+        delete cand;
+        ++attempts;
+        if (m_MaxAttempts > 0 && attempts >= m_MaxAttempts)
+        {
+            std::cout.copyfmt(old_state);
+            std::cout << PHWHERE << " failed to pass trigger after " << attempts
+                    << " attempts, aborting run" << std::endl;
+            return Fun4AllReturnCodes::ABORTRUN;
+        }
     }
   }
 
@@ -242,11 +270,22 @@ void PHHerwig7::Print(const std::string & /*what*/) const
             << "  run file       : " << m_RunFile << std::endl
             << "  setup file     : " << (m_SetupFile.empty() ? "(none)" : m_SetupFile) << std::endl
             << "  embedding id   : " << PHHepMCGenHelper::get_embedding_id() << std::endl
-            << "  jet trigger    : " << (m_Trig.requireJet ? "on" : "off")
-            << "  R=" << m_Trig.jetR << " pT>=" << m_Trig.jetPtMin << " |eta|<" << m_Trig.jetEtaMax << std::endl
-            << "  leadjet window : [" << m_Trig.windowLo << ", " << m_Trig.windowHi << ")" << std::endl
-            << "  photon trigger : " << (m_Trig.requirePhoton ? "on" : "off")
-            << "  pT>=" << m_Trig.photonPtMin << " |eta|<=" << m_Trig.photonEtaMax
-            << " iso=" << (m_Trig.photonIso ? "on" : "off") << " prompt=" << (m_Trig.photonPrompt ? "on" : "off") << std::endl
-            << "  combine        : " << (m_Trig.andMode ? "AND" : "OR") << std::endl;
+            << "  triggers       : " << m_RegisteredTriggers.size() << std::endl
+            << "  combine        : " << (m_TriggersAND ? "AND" : "OR") << std::endl;
+
+    for (auto *trigger : m_RegisteredTriggers)
+    {
+      std::cout << "  trigger        : " << trigger->GetName() << std::endl;
+    }
+}
+
+// Same register_trigger() as PHPythia8
+void PHHerwig7::register_trigger(PHHerwig7GenTrigger *trigger)
+{
+    if (Verbosity() > 0)
+    {
+        std::cout << Name() << ": trigger " << trigger->GetName() << " registered" << std::endl;
+    }
+
+    m_RegisteredTriggers.push_back(trigger);
 }

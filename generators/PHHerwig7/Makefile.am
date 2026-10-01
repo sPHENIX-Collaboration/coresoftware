@@ -18,7 +18,9 @@ lib_LTLIBRARIES = libPHHerwig7.la
 
 pkginclude_HEADERS = \
   PHHerwig7.h \
-  PHHerwig7Core.h
+  PHHerwig7Core.h \
+  PHHerwig7GenTrigger.h \
+  PHHerwig7JetTrigger.h
 
 libPHHerwig7_la_LDFLAGS = \
   -L$(libdir) \
@@ -36,7 +38,9 @@ libPHHerwig7_la_LIBADD = \
   -lThePEG
 
 libPHHerwig7_la_SOURCES = \
-  PHHerwig7.cc
+  PHHerwig7.cc \
+  PHHerwig7GenTrigger.cc \
+  PHHerwig7JetTrigger.cc
 
 BUILT_SOURCES = \
   testexternals.cc

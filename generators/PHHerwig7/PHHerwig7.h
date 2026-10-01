@@ -14,8 +14,6 @@
 #include <fun4all/SubsysReco.h>
 #include <phhepmc/PHHepMCGenHelper.h>
 
-#include <hepmctruthtrigger/HepMCTruthTriggerCore.h>
-
 #include <memory>
 #include <string>
 #include <vector>
@@ -23,6 +21,7 @@
 class PHCompositeNode;
 class PHGenIntegral;
 class PHHerwig7Core;
+class PHHerwig7GenTrigger;
 
 class PHHerwig7 : public SubsysReco, public PHHepMCGenHelper
 {
@@ -44,27 +43,6 @@ class PHHerwig7 : public SubsysReco, public PHHepMCGenHelper
   // 0 (default): seed from PHRandomSeed(); >0: use this seed
   void set_seed(int s) { m_Seed = s; }
 
-  // ---- truth trigger, same definitions as hwfilter / HepMCTruthTrigger -----
-  void require_jet(bool b = true) { m_Trig.requireJet = b; }
-  void set_jet_R(double r) { m_Trig.jetR = r; }
-  void set_jet_ptmin(double pt) { m_Trig.jetPtMin = pt; }
-  void set_jet_etamax(double eta) { m_Trig.jetEtaMax = eta; }
-  void set_leadjet_window(double lo, double hi)
-  {
-    m_Trig.windowLo = lo;
-    m_Trig.windowHi = hi;
-  }
-  void require_photon(bool b = true) { m_Trig.requirePhoton = b; }
-  void set_photon_ptmin(double pt) { m_Trig.photonPtMin = pt; }
-  void set_photon_etamax(double eta) { m_Trig.photonEtaMax = eta; }
-  void set_photon_isolation(bool on, double r = 0.4, double frac = 0.1)
-  {
-    m_Trig.photonIso = on;
-    m_Trig.photonIsoR = r;
-    m_Trig.photonIsoFrac = frac;
-  }
-  void set_photon_prompt(bool b = true) { m_Trig.photonPrompt = b; }
-  void set_and_mode(bool b = true) { m_Trig.andMode = b; }
   // give up after this many consecutive failed attempts (0 = never)
   void set_max_trigger_attempts(long n) { m_MaxAttempts = n; }
 
@@ -75,7 +53,24 @@ class PHHerwig7 : public SubsysReco, public PHHepMCGenHelper
   unsigned long get_n_generated() const { return m_NGenerated; }
   unsigned long get_n_passed() const { return m_NPassed; }
 
+  // ---- public setters to register trigger and logic as PHPythia8
+  void register_trigger(PHHerwig7GenTrigger *trigger);
+  void set_trigger_OR()
+  {
+    set_trigger_logic(true);
+  }
+  void set_trigger_AND()
+  {
+    set_trigger_logic(false);
+  }
+
  private:
+  void set_trigger_logic(bool triggerOR)
+  {
+    m_TriggersOR = triggerOR;
+    m_TriggersAND = !triggerOR;
+  }
+
   int create_node_tree(PHCompositeNode *topNode) override;
 
   std::string m_RunFile;
@@ -83,7 +78,6 @@ class PHHerwig7 : public SubsysReco, public PHHepMCGenHelper
   std::vector<std::string> m_ReadDirs;
   int m_Seed = 0;
 
-  HepMCTruthTriggerCore::Config m_Trig;
   long m_MaxAttempts = 0;
 
   bool m_SaveIntegratedLuminosityFlag = true;
@@ -96,6 +90,11 @@ class PHHerwig7 : public SubsysReco, public PHHepMCGenHelper
   unsigned long m_NPassed = 0;
   double m_SumWAll = 0.0;
   double m_SumWPass = 0.0;
+
+  // event selection
+  std::vector<PHHerwig7GenTrigger *> m_RegisteredTriggers;
+  bool m_TriggersOR{true};
+  bool m_TriggersAND{false};
 };
 
 #endif
