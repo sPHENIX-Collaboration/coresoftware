@@ -204,11 +204,11 @@ void PHActsTrackProjection::projectTrack( SvtxTrack* track ) const
       // retrieve result
       auto parameter_pair = result.value();
 
-      // update pathlength
-      parameter_pair.first += sourcePathlength;
+      // update pathlength (need to convert to the right Acts unit)
+      parameter_pair.first += sourcePathlength*Acts::UnitConstants::cm;
 
       // update track
-      updateSvtxTrack(result.value(), track, layer);
+      updateSvtxTrack(parameter_pair, track, layer);
     }
 
   }
