@@ -1065,13 +1065,15 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   {
     auto thiskey = pair.first;
     clusglob_moved = pair.second.second;
-    surf = pair.second.first;
     if (thiskey == ckey)
     {
+      surf = pair.second.first;
       break;
     }
   }
 
+  if(!surf) { return; }
+  
   unsigned int layer = TrkrDefs::getLayer(ckey);
 
   if (Verbosity() > 1)
@@ -1436,12 +1438,14 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   {
     auto thiskey = pair.first;
     clusglob_moved = pair.second.second;
-    surf = pair.second.first;
     if (thiskey == ckey)
     {
+      surf = pair.second.first;
       break;
     }
   }
+
+  if(!surf) { return; }
 
   switch (TrkrDefs::getTrkrId(ckey))
   {

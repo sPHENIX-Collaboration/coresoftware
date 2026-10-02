@@ -388,12 +388,15 @@ namespace TrackAnalysisUtils
       {
         auto thiskey = cluskey;
         clusglob_moved = surf_global.second;
-	surf = surf_global.first;
         if (thiskey == ckey)
         {
+	  surf = surf_global.first;
           break;
         }
       }
+
+      if(!surf) { continue; }
+
       SvtxTrackState* state = nullptr;
       for (auto state_iter = track->begin_states();
            state_iter != track->end_states();
