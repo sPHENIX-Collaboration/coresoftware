@@ -84,12 +84,10 @@ class PHActsTrackProjection : public SubsysReco
   void projectTrack( SvtxTrack* ) const;
 
   /// Make Acts::CylinderSurface objects corresponding to the calos
-  int makeCaloSurfacePtrs(PHCompositeNode *topNode);
+  int makeCaloSurfacePtrs(PHCompositeNode*);
 
   /// Update the SvtxTrack object with the track-cluster match
-  void updateSvtxTrack(const ActsPropagator::BoundTrackParamPair &params,
-                       SvtxTrack *svtxTrack,
-                       SvtxTrack::CAL_LAYER) const;
+  void updateSvtxTrack(const ActsPropagator::BoundTrackParamPair&, SvtxTrack*, SvtxTrack::CAL_LAYER) const;
 
   /// Objects containing the Acts track fit results
   ActsGeometry *m_tGeometry = nullptr;

@@ -107,7 +107,7 @@ int PHActsTrackProjection::End(PHCompositeNode* /*topNode*/)
 void PHActsTrackProjection::projectTrack( SvtxTrack* track ) const
 {
   // check track
-  if( !track ) return;
+  if( !track ) { return; }
 
   // create propagator
   ActsPropagator propagator(m_tGeometry);
@@ -123,7 +123,10 @@ void PHActsTrackProjection::projectTrack( SvtxTrack* track ) const
     case ExtrapolationMode::Legacy:
     {
       auto result = propagator.makeTrackParams(track, m_vertexMap);
-      if( result.ok() ) parameters = std::make_optional( std::move(result.value()) );
+      if( result.ok() )
+      {
+        parameters = std::make_optional( std::move(result.value()) );
+      }
       break;
     }
 
