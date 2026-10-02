@@ -1,5 +1,11 @@
 #include "SvtxAlignmentState.h"
 
+// The in-class initializers alone are not definitions when these constants are
+// odr-used. In particular, unoptimized Eigen code can take their addresses.
+const int SvtxAlignmentState::NGL;
+const int SvtxAlignmentState::NLOC;
+const int SvtxAlignmentState::NRES;
+
 namespace
 {
   SvtxAlignmentState::GlobalMatrix globalMatrix = SvtxAlignmentState::GlobalMatrix::Zero();
@@ -33,4 +39,3 @@ const SvtxAlignmentState::GlobalMatrix& SvtxAlignmentState::get_global_derivativ
 {
   return globalMatrix;
 }
-
