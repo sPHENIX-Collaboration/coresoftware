@@ -1554,8 +1554,6 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
               << clusglob.transpose() << std::endl;
   }
 
-  //auto surf = geometry->maps().getSurface(ckey, cluster);
-
   auto misaligncenter = surf->center(geometry->geometry().getGeoContext());
   auto misalignnorm = -1 * surf->normal(geometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
   auto misrot = surf->localToGlobalTransform(geometry->geometry().getGeoContext()).rotation();
@@ -1615,11 +1613,11 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
 
   if (m_zeroField)
   {
-    fillStatesWithLineFit(ckey, cluster, geometry);
+    fillStatesWithLineFit(surf, geometry);
   }
   else
   {
-    fillStatesWithCircleFit(ckey, cluster, clusglob, geometry);
+      fillStatesWithCircleFit(clusglob, surf, geometry);
   }
 
   //! skip filling the state information if a state is not there
@@ -1632,10 +1630,8 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   return;
 }
 
-void TrackResiduals::fillStatesWithCircleFit(const TrkrDefs::cluskey& key,
-                                             TrkrCluster* cluster, Acts::Vector3& glob, ActsGeometry* geometry)
+void TrackResiduals::fillStatesWithCircleFit(Acts::Vector3& glob, Surface surf, ActsGeometry* geometry)
 {
-  auto surf = geometry->maps().getSurface(key, cluster);
   std::vector<float> fitpars;
   fitpars.push_back(m_R);
   fitpars.push_back(m_X0);
@@ -1663,13 +1659,11 @@ void TrackResiduals::fillStatesWithCircleFit(const TrkrDefs::cluskey& key,
     m_statelz.push_back(local.y());
   }
 }
-void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
-                                           TrkrCluster* cluster, ActsGeometry* geometry)
+void TrackResiduals::fillStatesWithLineFit(Surface surf, ActsGeometry* geometry)
 {
-  auto intersection = TrackFitUtils::surface_3Dline_intersection(key, cluster, geometry, m_xyslope,
+  auto intersection = TrackFitUtils::surface_3Dline_intersection(surf, geometry, m_xyslope,
                                                                  m_xyint, m_yzslope, m_yzint);
 
-  auto surf = geometry->maps().getSurface(key, cluster);
   Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
   if (!std::isnan(intersection.x()))
   {
