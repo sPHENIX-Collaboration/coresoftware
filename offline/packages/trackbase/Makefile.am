@@ -64,6 +64,10 @@ pkginclude_HEADERS = \
   InttDefs.h \
   InttEventInfo.h \
   InttEventInfov1.h \
+  LaserAggregatedPad.h \
+  LaserAggregatedPadContainer.h \
+  LaserAggregatedPadContainerv1.h \
+  LaserAggregatedPadv1.h \
   LaserCluster.h \
   LaserClusterContainer.h \
   LaserClusterContainerv1.h \
@@ -71,6 +75,7 @@ pkginclude_HEADERS = \
   LaserClusterv2.h \
   LaserClusterv3.h \
   LaserClusterv4.h \
+  LaserClusterv5.h \
   MaterialWiper.h \
   MagneticFieldOptions.h \
   MvtxDefs.h \
@@ -78,6 +83,7 @@ pkginclude_HEADERS = \
   MvtxEventInfov1.h \
   MvtxEventInfov2.h \
   MvtxEventInfov3.h \
+  padkey.h \
   RawHit.h \
   RawHitSet.h \
   RawHitSetContainer.h \
@@ -149,6 +155,10 @@ ROOTDICTS = \
   ClusHitsVerbosev1_Dict.cc \
   InttEventInfo_Dict.cc \
   InttEventInfov1_Dict.cc \
+  LaserAggregatedPad_Dict.cc \
+  LaserAggregatedPadContainer_Dict.cc \
+  LaserAggregatedPadContainerv1_Dict.cc \
+  LaserAggregatedPadv1_Dict.cc \
   LaserClusterContainer_Dict.cc \
   LaserClusterContainerv1_Dict.cc \
   LaserCluster_Dict.cc \
@@ -156,6 +166,7 @@ ROOTDICTS = \
   LaserClusterv2_Dict.cc \
   LaserClusterv3_Dict.cc \
   LaserClusterv4_Dict.cc \
+  LaserClusterv5_Dict.cc \
   MvtxEventInfo_Dict.cc \
   MvtxEventInfov1_Dict.cc \
   MvtxEventInfov2_Dict.cc \
@@ -242,11 +253,14 @@ libtrack_io_la_SOURCES = \
   InttDefs.cc \
   InttEventInfo.cc \
   InttEventInfov1.cc \
+  LaserAggregatedPadContainerv1.cc \
+  LaserAggregatedPadv1.cc \
   LaserClusterContainerv1.cc \
   LaserClusterv1.cc \
   LaserClusterv2.cc \
   LaserClusterv3.cc \
   LaserClusterv4.cc \
+  LaserClusterv5.cc \
   MvtxDefs.cc \
   MvtxEventInfo.cc \
   MvtxEventInfov1.cc \

@@ -21,6 +21,15 @@ struct LaserClusterHitInfo
   TrkrDefs::hitsetkey hitsetkey = 0;
   TrkrDefs::hitkey hitkey = 0;
   uint16_t adc    = 0;
+  ClassDefNV(LaserClusterHitInfo, 1)
+};
+
+struct LaserClusterHitInfoDouble
+{
+  TrkrDefs::hitsetkey hitsetkey = 0;
+  TrkrDefs::hitkey hitkey = 0;
+  double adc    = 0;
+  ClassDefNV(LaserClusterHitInfoDouble, 1)
 };
 
 /**
@@ -84,9 +93,14 @@ class LaserCluster : public PHObject
   virtual void setAdc(unsigned int) {}
   virtual unsigned int getAdc() const { return std::numeric_limits<unsigned int>::max(); }
 
+  virtual void setAdcDouble(double) {}
+  virtual double getAdcDouble() const { return std::numeric_limits<double>::max(); }
 
   virtual unsigned int getNhits() const {return std::numeric_limits<unsigned int>::max();}
   virtual void setNhits( unsigned int) {}
+
+  virtual unsigned int getNhitsDouble() const {return std::numeric_limits<unsigned int>::max();}
+  virtual void setNhitsDouble( unsigned int) {}
 
   virtual void setNLayers(unsigned int) {}
   virtual unsigned int getNLayers() const { return std::numeric_limits<unsigned int>::max();}
@@ -141,6 +155,15 @@ class LaserCluster : public PHObject
 
   virtual void addHit(TrkrDefs::hitsetkey, TrkrDefs::hitkey, uint16_t) {}
   virtual LaserClusterHitInfo getHit(int) const { return LaserClusterHitInfo(std::numeric_limits<TrkrDefs::hitsetkey>::max(), std::numeric_limits<TrkrDefs::hitkey>::max(), std::numeric_limits<uint16_t>::max()); }
+
+  virtual void addHitDouble(TrkrDefs::hitsetkey, TrkrDefs::hitkey, double) {}
+  virtual LaserClusterHitInfoDouble getHitDouble(int) const { return LaserClusterHitInfoDouble(std::numeric_limits<TrkrDefs::hitsetkey>::max(), std::numeric_limits<TrkrDefs::hitkey>::max(), std::numeric_limits<double>::max()); }
+
+  virtual void setTruthIndex(int) {}
+  virtual int getTruthIndex() const { return std::numeric_limits<int>::max(); }
+
+  virtual void setIsLamination(bool) {}
+  virtual bool getIsLamination() const { return std::numeric_limits<bool>::max(); }
 
  protected:
   LaserCluster() = default;
