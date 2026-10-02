@@ -62,9 +62,8 @@ Surface ActsSurfaceMaps::getSurface(TrkrDefs::cluskey key, TrkrCluster* cluster)
       if( cluster ) {
         const auto surfkey = cluster->getSubSurfKey();
         return getTpcSurface(hitsetkey, surfkey);
-      } else {
-        return {};
       }
+      break;
     }
 
     case TrkrDefs::TrkrId::mvtxId:
@@ -79,8 +78,8 @@ Surface ActsSurfaceMaps::getSurface(TrkrDefs::cluskey key, TrkrCluster* cluster)
     }
   }
 
-  // unreachable
   return {};
+
 }
 
 Surface ActsSurfaceMaps::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const
