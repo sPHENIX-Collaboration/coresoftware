@@ -1182,8 +1182,9 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
     return;
   }
 
-  Surface surf_ideal = surf;
-    
+  // This is the nominal readout surface, it should be used with the nominal readout local position
+  Surface surf_ideal = geometry->maps().getSurface(ckey, cluster);
+
   // get local coordinates
   Acts::Vector2 loc;
   loc = geometry->getLocalCoords(ckey, cluster, m_crossing);
@@ -1567,12 +1568,13 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   float malpha = atan2(misrot(1, 1), misrot(2, 1));
 
   //! Switch to get ideal transforms
+  Surface surf_ideal = geometry->maps().getSurface(ckey, cluster);
   alignmentTransformationContainer::use_alignment = false;
-  auto idealcenter = surf->center(geometry->geometry().getGeoContext());
-  auto idealnorm = -1 * surf->normal(geometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
+  auto idealcenter = surf_ideal->center(geometry->geometry().getGeoContext());
+  auto idealnorm = -1 * surf_ideal->normal(geometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
   Acts::Vector3 ideal_local(loc.x(), loc.y(), 0.0);
-  Acts::Vector3 ideal_glob = surf->localToGlobalTransform(geometry->geometry().getGeoContext()) * (ideal_local * Acts::UnitConstants::cm);
-  auto idealrot = surf->localToGlobalTransform(geometry->geometry().getGeoContext()).rotation();
+  Acts::Vector3 ideal_glob = surf_ideal->localToGlobalTransform(geometry->geometry().getGeoContext()) * (ideal_local * Acts::UnitConstants::cm);
+  auto idealrot = surf_ideal->localToGlobalTransform(geometry->geometry().getGeoContext()).rotation();
 
   //! These calculations are taken from the wikipedia page for Euler angles,
   //! under the Tait-Bryan angle explanation. Formulas for the angles
@@ -2663,7 +2665,6 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
     m_tracklength = maxR - minR;
 
     // Call clusterMover for the entire track
-    //auto global_moved = m_clusterMover.processTrack(global_raw);
     std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>> global_moved = m_clusterMover.processTrack(global_raw);
         
     if (!m_doAlignment)
