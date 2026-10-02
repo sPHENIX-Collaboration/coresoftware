@@ -72,6 +72,11 @@ Surface ActsSurfaceMaps::getSurface(TrkrDefs::cluskey key, TrkrCluster* cluster)
     {
       return getSiliconSurface(hitsetkey);
     }
+
+    default:
+    {
+      break;
+    }
   }
 
   // unreachable
