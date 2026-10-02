@@ -236,7 +236,7 @@ void PHActsTrackProjection::updateSvtxTrack(
   out.set_py(momentum.y());
   out.set_pz(momentum.z());
 
-  // if (Verbosity() > 1)
+  if (Verbosity() > 1)
   {
     std::cout << "PHActsTrackProjection::updateSvtxTrack -"
       << " caloLayer: " << caloLayer
