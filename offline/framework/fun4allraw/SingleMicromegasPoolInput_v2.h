@@ -170,6 +170,24 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   /* it is filled on the fly. It allows to quickly retrieve BCO matching information from FEE index */
   std::array<unsigned int,MAX_FEECOUNT> m_fee_packet{};
 
+  /// keep track of found GL1 BCO in data stream
+  class packet_stat_t
+  {
+    public:
+
+    // total number of GL1 BCO
+    uint64_t total {0};
+
+    // per packet number of found GL1 BCO
+    std::map<int,uint64_t> found_packet;
+
+    // number of found GL1 for all packets
+    uint64_t found_all {0};
+  };
+
+  /// keep track of found GL1 BCO in data stream
+  packet_stat_t m_packet_stat;
+
   class counter_t
   {
    public:
@@ -189,19 +207,19 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
     double dropped_fraction_pool() const { return double(dropped_pool) / total; }
   };
 
-  // keep track of waveform statistics per fee
+  /// keep track of waveform statistics per fee
   std::map<int, counter_t> m_fee_waveform_counters{};
 
-  // keep track of waveform statistics per packet
+  /// keep track of waveform statistics per packet
   std::map<int, counter_t> m_waveform_counters{};
 
-  // keep track of heartbeat statistics per fee
+  /// keep track of heartbeat statistics per fee
   std::map<int, counter_t> m_fee_heartbeat_counters{};
 
-  // keep track of heartbeat statistics per packet
+  /// keep track of heartbeat statistics per packet
   std::map<int, counter_t> m_heartbeat_counters{};
 
-  // timer
+  /// timer
   PHTimer m_timer{"SingleMicromegasPoolInput_v2"};
 
   ///@name QA histograms

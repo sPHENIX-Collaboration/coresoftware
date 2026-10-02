@@ -33,7 +33,7 @@ class PHG4VtxPoint : public PHObject
   bool operator==(const PHG4VtxPoint&) const;
 
  protected:
-  PHG4VtxPoint() {}
+  PHG4VtxPoint() = default;
   ClassDefOverride(PHG4VtxPoint, 1)
 };
 

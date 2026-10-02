@@ -17,6 +17,8 @@ class PHG4Hitv1 : public PHG4Hit
   PHG4Hitv1() = default;
   explicit PHG4Hitv1(const PHG4Hit* g4hit);
   ~PHG4Hitv1() override = default;
+  PHObject* CloneMe() const override { return new PHG4Hitv1(*this);}
+  
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override;
 

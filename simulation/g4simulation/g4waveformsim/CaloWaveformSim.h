@@ -233,8 +233,8 @@ class CaloWaveformSim : public SubsysReco
 
   LightCollectionModel light_collection_model;
 
-  bool m_use_photon_statistics{false};
-  bool m_use_sipm_occupancy{false};
+  bool m_use_photon_statistics{true};
+  bool m_use_sipm_occupancy{true};
   double kSamplingFraction = 2e-2;
   double kPhotoelectronsPerGeV = 500.;
   double kSiPMEffectivePixel = 40000 * 4.;

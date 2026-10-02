@@ -3,12 +3,16 @@
 #ifndef TPCSEEDSQA_H
 #define TPCSEEDSQA_H
 
-#include <fun4all/SubsysReco.h>
 #include <tpc/TpcClusterMover.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
-#include <trackbase/TpcDefs.h>
+
 #include <trackbase/TrkrDefs.h>
 
+#include <fun4all/SubsysReco.h>
+
+#include <array>
+#include <limits>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -24,7 +28,6 @@ class TProfile;
 class TProfile2D;
 class TNtuple;
 class SvtxVertexMap;
-class TrackSeedContainer;
 class PHG4TpcGeomContainer;
 class TrackSeed;
 
@@ -63,7 +66,7 @@ class TpcSeedsQA : public SubsysReco
   std::multimap<int, int> m_layerRegionMap;
   static std::pair<float, float> cal_tpc_eta_min_max(float vtxz);
   static float eta_to_theta(float eta);
-  float* cal_dedx_cluster(SvtxTrack* track);
+  void cal_dedx_cluster(SvtxTrack* track, std::array<float,10> &cluster_dedx);
   float cal_track_length(SvtxTrack* track);
 
   std::string m_clusterContainerName{"TRKR_CLUSTER"};

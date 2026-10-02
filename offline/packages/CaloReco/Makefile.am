@@ -31,6 +31,7 @@ libcalo_reco_la_LIBADD = \
   -lphg4hit \
   -lphparameter_io \
   -lphool \
+  -lqautils \
   -lSubsysReco \
   -lTMVA \
   -lTMVAUtils
@@ -54,6 +55,7 @@ pkginclude_HEADERS = \
   CaloTowerBuilder.h \
   CaloTowerCalib.h \
   CaloTowerStatus.h \
+  CaloTowerTimeCalibration.h \
   CaloTowerDefs.h \
   PhotonClusterBuilder.h \
   RawClusterBuilderGraph.h \
@@ -88,6 +90,7 @@ libcalo_reco_la_SOURCES = \
   CaloTowerBuilder.cc \
   CaloTowerCalib.cc \
   CaloTowerStatus.cc \
+  CaloTowerTimeCalibration.cc \
   PhotonClusterBuilder.cc \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \

@@ -43,7 +43,7 @@ class MakeSourceLinks
  public:
   MakeSourceLinks() = default;
 
-  void initialize(PHG4TpcGeomContainer* cellgeo, ActsGeometry *tGeometry, PHCompositeNode * topNode);
+  void initialize(ActsGeometry*, PHCompositeNode* );
 
   void setVerbosity(int verbosity) { m_verbosity = verbosity; }
 
@@ -72,7 +72,8 @@ class MakeSourceLinks
       TrkrClusterContainer* /*clusters*/,
       ActsGeometry* /*geometry*/,
       const TpcGlobalPositionWrapper& /*globalpositionWrapper*/,
-      short int crossing);
+      short int crossing,
+      bool use_modified_clus_error = true);
 
  private:
 

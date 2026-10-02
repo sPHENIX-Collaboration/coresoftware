@@ -1,14 +1,10 @@
 #include "TpcSiliconQA.h"
 
-#include <trackbase/TpcDefs.h>
-#include <trackbase/TrkrDefs.h>
-
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedHelper.h>
 
 #include <qautils/QAHistManagerDef.h>
-#include <qautils/QAUtil.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -20,9 +16,11 @@
 #include <TH1.h>
 #include <TH2.h>
 
-#include <boost/format.hpp>
+#include <cassert>
 #include <cmath>
 #include <iomanip>
+#include <iostream>
+#include <vector>
 
 //____________________________________________________________________________..
 TpcSiliconQA::TpcSiliconQA(const std::string& name)

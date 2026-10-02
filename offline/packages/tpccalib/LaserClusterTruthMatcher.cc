@@ -1187,6 +1187,7 @@ int LaserClusterTruthMatcher::getNodes(PHCompositeNode *topNode)
   }
 
   m_laserClusterHelper.set_useZ(false);
+  m_laserClusterHelper.set_useDouble(true);
   m_laserClusterHelper.set_useGlobal(m_useGlobal);
   if(m_usePHGarfieldDistortions)
   {

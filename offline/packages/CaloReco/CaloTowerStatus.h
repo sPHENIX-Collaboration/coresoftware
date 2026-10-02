@@ -75,6 +75,11 @@ class CaloTowerStatus : public SubsysReco
     m_directURL_chi2 = str;
     return;
   }
+  void set_directURL_globalHotMap(const std::string &str)
+  {
+    m_directURL_globalHotMap = str;
+    return;
+  }
   void set_doAbortNoHotMap(bool status = true)
   {
     m_doAbortNoHotMap = status;
@@ -91,12 +96,18 @@ class CaloTowerStatus : public SubsysReco
     m_doAbortNoChi2 = status;
     return;
   }
+  void set_doGlobalHotMap(bool status = true)
+  {
+    m_doGlobalHotMap = status;
+    return;
+  }
 
  private:
   TowerInfoContainer *m_raw_towers{nullptr};
 
   bool m_doHotChi2{true};
   bool m_doHotMap{true};
+  bool m_doGlobalHotMap{true};
   bool m_doAbortNoHotMap{false};
   bool m_doAbortNoChi2{false};
 
@@ -108,11 +119,13 @@ class CaloTowerStatus : public SubsysReco
   std::string m_fieldname_hotMap;
   std::string m_fieldname_z_score;
   std::string m_calibName_hotMap;
+  std::string m_calibName_globalHotMap;
   std::string m_inputNodePrefix{"TOWERS_"};
   std::string m_inputNode;
 
   std::string m_directURL_hotMap;
   std::string m_directURL_chi2;
+  std::string m_directURL_globalHotMap;
 
   float badChi2_treshold_const = {1e4};
   float badChi2_treshold_quadratic = {1. / 100};
@@ -121,13 +134,14 @@ class CaloTowerStatus : public SubsysReco
   float z_score_threshold = {5};
   float z_score_threshold_default = {5};
 
-  void LoadCalib(CDBTTree *cdbttree_chi2, CDBTTree *cdbttree_hotMap);
+  void LoadCalib(CDBTTree *cdbttree_chi2, CDBTTree *cdbttree_hotMap, CDBTTree *cdbttree_globalHotMap);
 
   struct CDBInfo
   {
     float fraction_badChi2{0};
     float z_score{0};
     int hotMap_val{0};
+    int globalHotMap_val{0};
   };
 
   std::vector<CDBInfo> m_cdbInfo_vec;

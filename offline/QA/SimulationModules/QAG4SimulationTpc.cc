@@ -12,6 +12,7 @@
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
@@ -427,8 +428,9 @@ void QAG4SimulationTpc::evaluate_clusters()
         const auto z_cluster = global(2);
         const auto phi_cluster = (float) std::atan2(global(1), global(0));
 
-        double const phi_error = rclus->getRPhiError() / r_cluster;
-        double const z_error = rclus->getZError();
+        const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(rclus, r_cluster, rkey);
+        double const phi_error = std::sqrt(cluster_errors.first) / r_cluster;
+        double const z_error = std::sqrt(cluster_errors.second);
 
         const auto dphi = QAG4Util::delta_phi(phi_cluster, gphi);
         const auto dz = z_cluster - gz;

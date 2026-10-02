@@ -3,7 +3,9 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
 
+#include <malloc.h>
 #include <algorithm>  // for max
+#include <fstream>
 #include <iostream>
 #include <vector>
 
@@ -58,4 +60,46 @@ Fun4AllUtils::GetRunSegment(const std::string& filename)
     std::cout << "returning " << runnumber << " as run number" << std::endl;
   }
   return std::make_pair(runnumber, segment);
+}
+
+void Fun4AllUtils::GetMemory(memoryvals& ret)
+{
+  const struct mallinfo2 m = mallinfo2();
+  ret.arena = m.arena;
+  ret.uordblks = m.uordblks;
+  ret.fordblks = m.fordblks;
+  ret.hblkhd = m.hblkhd;
+  std::ifstream status("/proc/self/status");
+  std::string line;
+  static uint64_t save_VmHWM = 0;
+  while (std::getline(status, line))
+  {
+    if (line.rfind("VmRSS:", 0) == 0)
+    {
+      std::istringstream fields(line);
+      std::string label;
+      uint64_t kib = 0;
+      std::string unit;
+
+      fields >> label >> kib >> unit;
+      ret.VmRSS = kib;
+    }
+    else if (line.rfind("VmHWM:", 0) == 0)
+    {
+      std::istringstream fields(line);
+      std::string label;
+      uint64_t kib = 0;
+      std::string unit;
+
+      fields >> label >> kib >> unit;
+      ret.VmHWM = kib;
+      if (save_VmHWM > kib)
+      {
+        std::cout << "VmHWM has decreased from " << save_VmHWM << " to " << kib
+                  << std::endl;
+        std::cout << "line: " << line << std::endl;
+      }
+      save_VmHWM = kib;
+    }
+  }
 }

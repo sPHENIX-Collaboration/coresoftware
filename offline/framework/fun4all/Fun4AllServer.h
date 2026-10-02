@@ -111,7 +111,7 @@ class Fun4AllServer : public Fun4AllBase
   void NodeIdentify(const std::string &name);
   void KeepDBConnection(const int i = 1) { keep_db_connected = i; }
   void PrintTimer(const std::string &name = "");
-  static void PrintMemoryTracker(const std::string &name = "");
+  void PrintMemoryTracker(const std::string &name = "");
   int RunNumber() const { return runnumber; }
   int EventCounter() const { return eventcounter; }
   std::map<const std::string, PHTimer>::const_iterator timer_begin() { return timer_map.begin(); }

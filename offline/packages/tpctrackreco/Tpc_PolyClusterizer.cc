@@ -1,20 +1,24 @@
 #include "Tpc_PolyClusterizer.h"
 
 #include "IdealPadMap.h"
+#include "TpcCrossingDecision.h"
+#include "TpcCrossingDecisionContainer.h"
 #include "Tpc_AssembledTrack.h"
 #include "Tpc_AssembledTrackContainer.h"
 #include "Tpc_PolyClusterContainerv1.h"
 #include "Tpc_PolyClusterv1.h"
-#include "TpcCrossingDecision.h"
-#include "TpcCrossingDecisionContainer.h"
 
+#include <cdbobjects/CDBTTree.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <ffamodules/CDBInterface.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/RunnumberRange.h>
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
@@ -22,12 +26,13 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
-#include <trackbase/ActsGeometry.h>
+#include <tpcconditions/TpcConditions.h>
+
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
-
+#include <trackbase/ActsGeometry.h>
 
 #include <TPolyLine3D.h>
 #include <phgarfield/PHGarfield.h>
@@ -38,6 +43,7 @@
 #include <iostream>
 #include <limits>
 #include <map>
+#include <memory>
 #include <set>
 #include <vector>
 
@@ -49,6 +55,13 @@ namespace
   constexpr unsigned int NSides = 2;
   constexpr unsigned int NSectors = 12;
   constexpr double PhiConsistencyTolerance = 1.0e-10;
+
+  constexpr const char* CdbEField2D = "Tpc_PolySeeding_EField";
+  constexpr const char* CdbEField3DSide0 = "Tpc_PolySeeding_EField3D_Side0";
+  constexpr const char* CdbEField3DSide1 = "Tpc_PolySeeding_EField3D_Side1";
+  constexpr const char* CdbModuleFrames3DSide0 = "Tpc_PolySeeding_ModuleFrames3D_Side0";
+  constexpr const char* CdbModuleFrames3DSide1 = "Tpc_PolySeeding_ModuleFrames3D_Side1";
+  constexpr const char* CdbKEff = "Tpc_PolyClusterizer_kEff";
 
   double wrap_phi(double phi)
   {
@@ -107,8 +120,158 @@ Tpc_PolyClusterizer::~Tpc_PolyClusterizer()
 {
   delete m_idealPadMap;
   m_idealPadMap = nullptr;
-  delete m_garfield;
-  m_garfield = nullptr;
+}
+
+bool Tpc_PolyClusterizer::load_cdb_inputs()
+{
+  auto resolve_file = [this](const std::string& payload, std::string& filename, const bool manual_override) -> bool
+  {
+    if (manual_override)
+    {
+      std::cout << Name() << "::load_cdb_inputs - manual override for " << payload << ": " << filename << std::endl;
+
+      if (filename.empty())
+      {
+        std::cout << Name() << "::load_cdb_inputs - manual filename is empty for " << payload << std::endl;
+        return false;
+      }
+
+      return true;
+    }
+
+    filename = CDBInterface::instance()->getUrl(payload);
+
+    if (filename.empty())
+    {
+      std::cout << Name() << "::load_cdb_inputs - CDB payload not found: " << payload << std::endl;
+      return false;
+    }
+
+    std::cout << Name() << "::load_cdb_inputs - loaded " << payload << " from CDB: " << filename << std::endl;
+    return true;
+  };
+
+  bool ok = true;
+
+  if (m_use2DElectricFieldMap)
+  {
+    if (!resolve_file(CdbEField2D, m_electricFieldMap, m_electricFieldMapOverride))
+    {
+      ok = false;
+    }
+  }
+  else
+  {
+    if (!resolve_file(CdbEField3DSide0, m_field3DSide0, m_field3DSide0Override))
+    {
+      ok = false;
+    }
+    if (!resolve_file(CdbEField3DSide1, m_field3DSide1, m_field3DSide1Override))
+    {
+      ok = false;
+    }
+  }
+  if (!resolve_file(CdbModuleFrames3DSide0, m_framesSide0, m_framesSide0Override))
+  {
+    ok = false;
+  }
+  if (!resolve_file(CdbModuleFrames3DSide1, m_framesSide1, m_framesSide1Override))
+  {
+    ok = false;
+  }
+
+  // Read kEff unless both sides were explicitly set from the macro.
+  if (!m_kEffSide0Override || !m_kEffSide1Override)
+  {
+    std::string kefffile;
+
+    if (m_field3DCoefficientFileOverride)
+    {
+      kefffile = m_field3DCoefficientFile;
+      std::cout << Name() << "::load_cdb_inputs - manual kEff coefficient file: " << kefffile << std::endl;
+    }
+    else
+    {
+      kefffile = CDBInterface::instance()->getUrl(CdbKEff);
+      std::cout << Name() << "::load_cdb_inputs - kEff coefficient file from CDB: " << kefffile << std::endl;
+    }
+
+    if (kefffile.empty())
+    {
+      std::cout << Name() << "::load_cdb_inputs - kEff coefficient file is empty" << std::endl;
+      ok = false;
+    }
+    else
+    {
+      auto keffcdbtree = std::make_unique<CDBTTree>(kefffile);
+      keffcdbtree->LoadCalibrations();
+
+      if (!m_kEffSide0Override)
+      {
+        m_kEffSide0 = keffcdbtree->GetSingleFloatValue("keffside0");
+      }
+      if (!m_kEffSide1Override)
+      {
+        m_kEffSide1 = keffcdbtree->GetSingleFloatValue("keffside1");
+      }
+    }
+  }
+
+  auto keff_source = [this](bool side_override)
+  {
+    if (side_override)
+    {
+      return " [manual value]";
+    }
+    if (m_field3DCoefficientFileOverride)
+    {
+      return " [manual file]";
+    }
+    return " [CDB]";
+  };
+
+  if (m_useBCOkEffs)
+  {
+    if (!m_conditions)
+    {
+      std::cout << Name()
+                << "::load_cdb_inputs - WARNING: TpcConditions node not found; "
+                << "using unscaled kEff"
+                << std::endl;
+    }
+    else if (!m_conditions->get_ConditionsAvailable())
+    {
+      std::cout << Name()
+                << "::load_cdb_inputs - WARNING: TpcConditions are not available; "
+                << "using unscaled kEff"
+                << std::endl;
+    }
+    else
+    {
+      const double averageSR1 = m_conditions->get_AverageLoadSR1();
+      const double averageNR1 = m_conditions->get_AverageLoadNR1();
+
+      std::cout << Name() << "::load_cdb_inputs"
+                << " - SR1=" << m_conditions->get_LoadSR1()
+                << " avgSR1=" << averageSR1
+                << " NR1=" << m_conditions->get_LoadNR1()
+                << " avgNR1=" << averageNR1
+                << std::endl;
+      if (averageSR1 != 0.0 && averageNR1 != 0.0)
+      {
+        m_kEffSide0 *= m_conditions->get_LoadSR1() / averageSR1;
+        m_kEffSide1 *= m_conditions->get_LoadNR1() / averageNR1;
+      }
+      else
+      {
+        std::cout << Name() << "::load_cdb_inputs - warning: average SR1 or NR1 is zero, cannot apply BC correction" << std::endl;
+      }
+    }
+  }
+
+  std::cout << Name() << "::load_cdb_inputs - final kEff values: side0 = " << m_kEffSide0 << keff_source(m_kEffSide0Override)
+            << ", side1 = " << m_kEffSide1 << keff_source(m_kEffSide1Override) << std::endl;
+  return ok;
 }
 
 int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
@@ -130,27 +293,72 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4TpcGeom *layergeom = m_geomContainerTpc->GetLayerCellGeom(20); 
-  double rot_x = layergeom->get_rot_x();
-  double rot_y = layergeom->get_rot_y();
-  double rot_z = layergeom->get_rot_z();
-  double place_x = layergeom->get_place_x();
-  double place_y = layergeom->get_place_y();
-  double place_z = layergeom->get_place_z();
-  if (use_survey_geometry) 
+  // get layer geometry for layer 20.
+  auto* layergeom = m_geomContainerTpc->GetLayerCellGeom(20);
+  if (!layergeom)
   {
+    std::cout << Name() << "::InitRun - missing TPC geometry for layer 20"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  if (!m_usePHGarfieldDefaults && use_survey_geometry)
+  {
+    // apply survey geometry
+    const double rot_x = layergeom->get_rot_x();
+    const double rot_y = layergeom->get_rot_y();
+    const double rot_z = layergeom->get_rot_z();
+
+    const double place_x = layergeom->get_place_x();
+    const double place_y = layergeom->get_place_y();
+    const double place_z = layergeom->get_place_z();
+
     m_tpcMove = {place_x, place_y, place_z};
     m_tpcRotations = {{{rot_x, rot_y, rot_z}, {0.0, 0.0, 0.0}}};
   }
 
-  delete m_garfield;
-  // m_garfield = new PHGarfield(Name() + "_PHGarfield");
+  // update m_startZSouth and m_startZNorth, based on TPC geometry
+  m_startZSouth = -(layergeom->get_max_driftlength() + layergeom->get_CM_halfwidth());
+  m_startZNorth = layergeom->get_max_driftlength() + layergeom->get_CM_halfwidth();
 
-  const std::string electricFieldMap = "/sphenix/user/mitrankov/garf/include/sphenix_rossegger_garfield_field.root";
-  // sphenix_3d_ibf_field_new.root sphenix_rossegger_garfield_field.root;
+  // printout
+  std::cout << Name() << "::InitRun - m_startZSouth: " << m_startZSouth << " cm" << std::endl;
+  std::cout << Name() << "::InitRun - m_startZNorth: " << m_startZNorth << " cm" << std::endl;
 
-  m_garfield = new PHGarfield(Name() + "_PHGarfield", electricFieldMap, m_kEffSide0, m_kEffSide1);
-  configure_garfield(m_garfield);
+  if (!m_usePHGarfieldDefaults)
+  {
+    if (!load_cdb_inputs())
+    {
+      std::cout << Name() << "::InitRun - failed to load CDB inputs" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  }
+
+  m_garfield.reset();
+
+  if (m_usePHGarfieldDefaults)
+  {
+    std::cout << Name()
+              << "::InitRun - using PHGarfield default configuration"
+              << std::endl;
+
+    m_garfield = std::make_unique<PHGarfield>(Name() + "_PHGarfield");
+
+    reconfigure_garfield(m_garfield.get());
+  }
+  else
+  {
+    std::cout << Name()
+              << "::InitRun - using PolyClusterizer/manual PHGarfield configuration"
+              << std::endl;
+
+    m_garfield = std::make_unique<PHGarfield>(
+        Name() + "_PHGarfield", "", m_kEffSide0, m_kEffSide1);
+
+    m_garfield->SetUseSurveyGeometry(false);
+    configure_garfield(m_garfield.get());
+  }
+
   if (m_garfield->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     std::cerr << Name() << "::InitRun - PHGarfield InitRun failed" << std::endl;
@@ -166,11 +374,190 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void Tpc_PolyClusterizer::reconfigure_garfield(PHGarfield* garfield) const
+{
+  if (!garfield)
+  {
+    return;
+  }
+
+  if (garfield->GetCMVoltageDefault() != m_cmVoltageDefault)
+  {
+    std::cout << Name() << "::reconfigure_garfield - CM voltage "
+              << garfield->GetCMVoltageDefault() << " -> "
+              << m_cmVoltageDefault << " V/cm" << std::endl;
+    garfield->SetCMVoltageDefault(m_cmVoltageDefault);
+  }
+
+  if (garfield->GetUseSurveyGeometry() != use_survey_geometry)
+  {
+    std::cout << Name() << "::reconfigure_garfield - survey geometry "
+              << garfield->GetUseSurveyGeometry() << " -> "
+              << use_survey_geometry << std::endl;
+    garfield->SetUseSurveyGeometry(use_survey_geometry);
+  }
+
+  if (garfield->GetUseBCOkEffs() != m_useBCOkEffs)
+  {
+    std::cout << Name() << "::reconfigure_garfield - BCO/current correction "
+              << garfield->GetUseBCOkEffs() << " -> "
+              << m_useBCOkEffs << std::endl;
+    garfield->SetUseBCOkEffs(m_useBCOkEffs);
+  }
+
+  if (garfield->GetUse2DElectricFieldMap() != m_use2DElectricFieldMap)
+  {
+    std::cout << Name() << "::reconfigure_garfield - use 2D electric-field map "
+              << garfield->GetUse2DElectricFieldMap() << " -> "
+              << m_use2DElectricFieldMap << std::endl;
+    garfield->SetUse2DElectricFieldMap(m_use2DElectricFieldMap);
+  }
+
+  if (m_field3DCoefficientFileOverride)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual kEff coefficient file: "
+              << m_field3DCoefficientFile << std::endl;
+    garfield->SetField3DCoefficientFile(m_field3DCoefficientFile);
+  }
+
+  if (m_electricFieldMapOverride)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual 2D electric-field map: "
+              << m_electricFieldMap << std::endl;
+    garfield->SetElectricFieldMap(m_electricFieldMap);
+  }
+
+  if (m_kEffSide0Override)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual kEff side0: "
+              << m_kEffSide0 << std::endl;
+    garfield->SetSpaceChargeScaleSide0(m_kEffSide0);
+  }
+
+  if (m_kEffSide1Override)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual kEff side1: "
+              << m_kEffSide1 << std::endl;
+    garfield->SetSpaceChargeScaleSide1(m_kEffSide1);
+  }
+
+  if (m_field3DSide0Override)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual 3D field map side0: "
+              << m_field3DSide0 << std::endl;
+    garfield->SetElectricFieldMap3DSide0(m_field3DSide0);
+  }
+
+  if (m_field3DSide1Override)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual 3D field map side1: "
+              << m_field3DSide1 << std::endl;
+    garfield->SetElectricFieldMap3DSide1(m_field3DSide1);
+  }
+
+  if (m_framesSide0Override)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual frame map side0: "
+              << m_framesSide0 << std::endl;
+    garfield->SetFrameElectricFieldMap3DSide0(m_framesSide0);
+  }
+
+  if (m_framesSide1Override)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual frame map side1: "
+              << m_framesSide1 << std::endl;
+    garfield->SetFrameElectricFieldMap3DSide1(m_framesSide1);
+  }
+
+  if (m_frameChargeScaleOverride)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual frame charge scale: "
+              << m_frameChargeScale << std::endl;
+    garfield->SetFrameChargeScale(m_frameChargeScale);
+  }
+
+  if (m_tpcGeometryOverride)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual TPC translation: "
+              << "(" << m_tpcMove[0] << ", "
+              << m_tpcMove[1] << ", "
+              << m_tpcMove[2] << ") cm" << std::endl;
+
+    garfield->MoveTpc(m_tpcMove[0], m_tpcMove[1], m_tpcMove[2]);
+
+    for (std::size_t i = 0; i < m_tpcRotations.size(); ++i)
+    {
+      const auto& rotation = m_tpcRotations[i];
+
+      std::cout << Name() << "::reconfigure_garfield - manual TPC rotation "
+                << i << ": ("
+                << rotation[0] << ", "
+                << rotation[1] << ", "
+                << rotation[2] << ") rad" << std::endl;
+
+      garfield->RotateTpc(rotation[0], rotation[1], rotation[2]);
+    }
+  }
+
+  if (m_fieldCageVoltageOverride)
+  {
+    std::cout << Name() << "::reconfigure_garfield - manual field-cage offsets:"
+              << " IFC South=" << m_fieldCageVoltageOffsets[0]
+              << " V, IFC North=" << m_fieldCageVoltageOffsets[1]
+              << " V, OFC South=" << m_fieldCageVoltageOffsets[2]
+              << " V, OFC North=" << m_fieldCageVoltageOffsets[3]
+              << " V" << std::endl;
+
+    garfield->SetUseIFCVoltageDistortion(true);
+    garfield->SetUseOFCVoltageDistortion(true);
+    garfield->SetFieldCageVoltageOffsets(
+        m_fieldCageVoltageOffsets[0],
+        m_fieldCageVoltageOffsets[1],
+        m_fieldCageVoltageOffsets[2],
+        m_fieldCageVoltageOffsets[3]);
+  }
+}
+
 void Tpc_PolyClusterizer::configure_garfield(PHGarfield* garfield) const
 {
   if (!garfield)
   {
     return;
+  }
+
+  if (m_use2DElectricFieldMap)
+  {
+    garfield->SetElectricFieldMap(m_electricFieldMap);
+  }
+  else
+  {
+    garfield->SetElectricFieldMap3D(m_field3DSide0, m_field3DSide1);
+  }
+
+  garfield->SetFrameElectricFieldMap3D(m_framesSide0, m_framesSide1);
+
+  garfield->SetFrameChargeScale(m_frameChargeScale);
+
+  recoConsts* rc = recoConsts::instance();
+  int runnumber = rc->get_IntFlag("RUNNUMBER");
+
+  if (runnumber > RunnumberRange::RUN3AUAU_IFC_V_CHANGE)
+  {
+    garfield->SetUseIFCVoltageDistortion(true);
+    garfield->SetUseOFCVoltageDistortion(true);
+
+    garfield->SetFieldCageVoltageOffsets(m_fieldCageVoltageOffsets[0], m_fieldCageVoltageOffsets[1], m_fieldCageVoltageOffsets[2], m_fieldCageVoltageOffsets[3]);
+
+    std::cout << Name() << "::configure_garfield - using IFC and OFC voltage distortion with offsets: "
+              << "IFC South = " << m_fieldCageVoltageOffsets[0] << " V, "
+              << "IFC North = " << m_fieldCageVoltageOffsets[1] << " V, "
+              << "OFC South = " << m_fieldCageVoltageOffsets[2] << " V, "
+              << "OFC North = " << m_fieldCageVoltageOffsets[3] << " V"
+              << std::endl;
+  }
+  else
+  {
+    std::cout << Name() << "::configure_garfield - not using IFC and OFC voltage distortion for run number " << runnumber << std::endl;
   }
 
   garfield->MoveTpc(m_tpcMove[0], m_tpcMove[1], m_tpcMove[2]);
@@ -209,6 +596,25 @@ int Tpc_PolyClusterizer::getNodes(PHCompositeNode* topNode)
   {
     std::cerr << Name() << "::getNodes - missing TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  if (!m_usePHGarfieldDefaults && m_useBCOkEffs)
+  {
+    m_conditions = findNode::getClass<TpcConditions>(topNode, "TpcConditions");
+    if (!m_conditions)
+    {
+      std::cout << Name()
+                << "::getNodes - WARNING: TpcConditions node not found; "
+                << "continuing with unscaled kEff"
+                << std::endl;
+    }
+    else if (!m_conditions->get_ConditionsAvailable())
+    {
+      std::cout << Name()
+                << "::getNodes - WARNING: TpcConditions are not available; "
+                << "continuing with unscaled kEff"
+                << std::endl;
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -397,15 +803,17 @@ bool Tpc_PolyClusterizer::build_drift_lookup()
       {
         symmetry_ok = false;
       }
-
-      std::cout << Name() << "::build_drift_lookup - phi symmetry "
-                << (symmetry_ok ? "holds" : "broken")
-                << " layer=" << layer
-                << " side=" << side
-                << " max_dr=" << max_delta_r
-                << " max_r_dphi=" << max_delta_phi_arc
-                << " max_dz=" << max_delta_z
-                << " length_mismatches=" << length_mismatches << std::endl;
+      if (Verbosity() > 0)
+      {
+        std::cout << Name() << "::build_drift_lookup - phi symmetry "
+                  << (symmetry_ok ? "holds" : "broken")
+                  << " layer=" << layer
+                  << " side=" << side
+                  << " max_dr=" << max_delta_r
+                  << " max_r_dphi=" << max_delta_phi_arc
+                  << " max_dz=" << max_delta_z
+                  << " length_mismatches=" << length_mismatches << std::endl;
+      }
     }
   }
 
@@ -767,8 +1175,10 @@ Tpc_PolyClusterizer::make_centroid(const std::vector<Point>& points)
 
 int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
 {
-  if (!m_assembledTracks || !m_clusters || !m_crossingDecisions || !m_garfield) { return Fun4AllReturnCodes::EVENT_OK;
-}
+  if (!m_assembledTracks || !m_clusters || !m_crossingDecisions || !m_garfield)
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   ActsGeometry* tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!tGeometry)
@@ -780,6 +1190,9 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
   const unsigned int nassembled = m_assembledTracks->size();
   unsigned int nclusters = 0;
   std::map<TrkrDefs::hitsetkey, unsigned int> next_cluster_index_by_hitset;
+  unsigned int nmissing_decision = 0;
+  unsigned int nskipped_tier = 0;
+  unsigned int nempty_points = 0;
 
   for (int side = 0; side < 2; ++side)
   {
@@ -788,42 +1201,62 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
       for (unsigned int iassembled = 0; iassembled < nassembled; ++iassembled)
       {
         const Tpc_AssembledTrack* assembled = m_assembledTracks->get_track(iassembled);
-        if (!assembled) { continue;
-}
-        if (assembled->get_side() != side) { continue;
-}
-        if (assembled->get_first_sector() % 12U != sector) { continue;
-}
+        if (!assembled)
+        {
+          continue;
+        }
+        if (assembled->get_side() != side)
+        {
+          continue;
+        }
+        if (assembled->get_first_sector() % 12U != sector)
+        {
+          continue;
+        }
         const TpcCrossingDecision* crossing_decision = m_crossingDecisions->get_decision(assembled->get_track_id());
-        if (!crossing_decision) { continue;
-}
+        if (!crossing_decision)
+        {
+          ++nmissing_decision;
+          continue;
+        }
         const unsigned char selected_tier = crossing_decision->get_selected_tier();
-        if (selected_tier > m_maxAcceptedTier) { continue;
-}
+        if (selected_tier > m_maxAcceptedTier)
+        {
+          ++nskipped_tier;
+          continue;
+        }
         const short selected_crossing = crossing_decision->get_selected_crossing();
-
 
         std::map<TrkrDefs::hitsetkey, std::vector<Point>> points_by_hitset;
         for (unsigned int ih = 0; ih < assembled->size_hit_indices(); ++ih)
         {
           const Tpc_AssembledTrack::HitIndex hi = assembled->get_hit_index(ih);
-          if (TpcDefs::getSide(hi.first) != static_cast<unsigned int>(side)) { continue;
-}
+          if (TpcDefs::getSide(hi.first) != static_cast<unsigned int>(side))
+          {
+            continue;
+          }
 
           Point p;
-          if (make_xyz_point(hi.first, hi.second, selected_crossing, p)) { points_by_hitset[p.hitsetkey].push_back(p);
-}
+          if (make_xyz_point(hi.first, hi.second, selected_crossing, p))
+          {
+            points_by_hitset[p.hitsetkey].push_back(p);
+          }
         }
-        if (points_by_hitset.empty()) { continue;
-}
+        if (points_by_hitset.empty())
+        {
+          ++nempty_points;
+          continue;
+        }
 
         for (const auto& hitset_points : points_by_hitset)
         {
           const TrkrDefs::hitsetkey cluster_hitsetkey = hitset_points.first;
           const std::vector<Point>& points = hitset_points.second;
           const Centroid centroid = make_centroid(points);
-          if (!centroid.ok) { continue;
-}
+          if (!centroid.ok)
+          {
+            continue;
+          }
 
           const unsigned int cluster_index = next_cluster_index_by_hitset[cluster_hitsetkey]++;
           const TrkrDefs::cluskey trkr_cluster_key = TrkrDefs::genClusKey(cluster_hitsetkey, cluster_index);
@@ -855,11 +1288,17 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
 
             for (const Point& p : points)
             {
-              if (p.adc <= 0.0) { continue;
-}
+              if (p.adc <= 0.0)
+              {
+                continue;
+              }
 
               const int iphi = static_cast<int>(p.pad);
               const int it = static_cast<int>(p.tbin);
+              if (it >= layergeom->get_zbins())
+              {
+                continue;
+              }
               const double adc = p.adc;
               phibinhi = std::max(iphi, phibinhi);
               phibinlo = std::min(iphi, phibinlo);
@@ -883,18 +1322,18 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
               const double clust = t_sum / adc_sum;
               const double phi_cov = std::max(0.0, (iphi2_sum / adc_sum - square(clusiphi)) * square(layergeom->get_phistep()));
               const double t_cov = std::max(0.0, t2_sum / adc_sum - square(clust));
-              const double phi_err_square = (phibinhi == phibinlo) ?
-                  9.0 * (square(radius * layergeom->get_phistep()) / 12.0) :
-                  square(radius) * phi_cov / (adc_sum * 0.14);
-              const double t_err_square = (tbinhi == tbinlo) ?
-                  9.0 * (square(layergeom->get_zstep()) / 12.0) :
-                  t_cov / (adc_sum * 0.14);
+              const double phi_err_square = (phibinhi == phibinlo) ? 9.0 * (square(radius * layergeom->get_phistep()) / 12.0) : square(radius) * phi_cov / (adc_sum * 0.14);
+              const double t_err_square = (tbinhi == tbinlo) ? 9.0 * (square(layergeom->get_zstep()) / 12.0) : t_cov / (adc_sum * 0.14);
 
-              if (phi_err_square >= 0.0 && std::isfinite(phi_err_square)) { phi_error = std::sqrt(phi_err_square);
-}
+              if (phi_err_square >= 0.0 && std::isfinite(phi_err_square))
+              {
+                phi_error = std::sqrt(phi_err_square);
+              }
               const double z_err_square = t_err_square * square(drift_velocity);
-              if (z_err_square >= 0.0 && std::isfinite(z_err_square)) { z_error = std::sqrt(z_err_square);
-}
+              if (z_err_square >= 0.0 && std::isfinite(z_err_square))
+              {
+                z_error = std::sqrt(z_err_square);
+              }
             }
           }
 
@@ -907,8 +1346,10 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
           out->set_phi_width(params.phi_width);
           out->set_time_width(params.time_width);
           out->set_phase(params.phase);
-          for (const Point& p : points) { out->add_hit(p.hitsetkey, p.hitkey, p.x, p.y, p.z);
-}
+          for (const Point& p : points)
+          {
+            out->add_hit(p.hitsetkey, p.hitkey, p.x, p.y, p.z);
+          }
           if (out->size_hits() == 0)
           {
             delete out;
@@ -926,7 +1367,10 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
     std::cout << Name() << "::process_event - event " << m_event
               << " assembled_tracks=" << nassembled
               << " poly_clusters=" << m_clusters->size()
-              << " layer_clusters=" << nclusters << std::endl;
+              << " layer_clusters=" << nclusters
+              << " missing_decisions=" << nmissing_decision
+              << " skipped_tier=" << nskipped_tier
+              << " empty_points=" << nempty_points << std::endl;
   }
 
   ++m_event;

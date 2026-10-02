@@ -15,6 +15,7 @@
 
 #include <micromegas/MicromegasDefs.h>
 
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
@@ -46,6 +47,7 @@
 #include <algorithm>
 #include <bitset>
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <numeric>
 
@@ -218,8 +220,9 @@ namespace
     cluster_struct.z = cluster->getZ();
     cluster_struct.r = get_r(cluster_struct.x, cluster_struct.y);
     cluster_struct.phi = std::atan2(cluster_struct.y, cluster_struct.x);
-    cluster_struct.phi_error = cluster->getPhiError();
-    cluster_struct.z_error = cluster->getZError();
+    const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, cluster_struct.r, key);
+    cluster_struct.phi_error = std::sqrt(cluster_errors.first) / cluster_struct.r;
+    cluster_struct.z_error = std::sqrt(cluster_errors.second);
     std::cout << " (x|y|z|r|l) "
               << cluster_struct.x << " | "
               << cluster_struct.y << " | "

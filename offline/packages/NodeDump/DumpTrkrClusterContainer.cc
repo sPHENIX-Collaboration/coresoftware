@@ -2,9 +2,12 @@
 
 #include <phool/PHIODataNode.h>
 
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrDefs.h>
 
+#include <cmath>
 #include <map>
 #include <ostream>
 #include <string>
@@ -37,10 +40,14 @@ int DumpTrkrClusterContainer::process_Node(PHNode *myNode)
       TrkrClusterContainer::ConstRange begin_end = trkrclustercontainer->getClusters(iter);
       for (hiter = begin_end.first; hiter != begin_end.second; ++hiter)
       {
+        const TrkrDefs::cluskey cluster_key = hiter->first;
         TrkrCluster *trkrcluster = hiter->second;
+        const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(trkrcluster, 0.0, cluster_key);
         *fout << "getAdc: " << trkrcluster->getAdc() << std::endl;
         *fout << "getRPhiError: " << trkrcluster->getRPhiError() << std::endl;
         *fout << "getZError: " << trkrcluster->getZError() << std::endl;
+        *fout << "ClusterErrorPara RPhiError: " << std::sqrt(cluster_errors.first) << std::endl;
+        *fout << "ClusterErrorPara ZError: " << std::sqrt(cluster_errors.second) << std::endl;
       }
     }
   }

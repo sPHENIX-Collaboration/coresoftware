@@ -156,7 +156,7 @@ class TrackResiduals : public SubsysReco
   uint64_t m_bcotr = std::numeric_limits<uint64_t>::quiet_NaN();
   unsigned int m_trackid = std::numeric_limits<unsigned int>::quiet_NaN();
   int m_crossing = std::numeric_limits<int>::quiet_NaN();
-  int m_crossing_estimate = std::numeric_limits<int>::quiet_NaN();
+  int m_geometric_crossing = std::numeric_limits<int>::quiet_NaN();
   unsigned int m_tpcid = std::numeric_limits<unsigned int>::quiet_NaN();
   unsigned int m_silid = std::numeric_limits<unsigned int>::quiet_NaN();
   float m_px = std::numeric_limits<float>::quiet_NaN();
@@ -202,6 +202,7 @@ class TrackResiduals : public SubsysReco
   float m_tracklength = std::numeric_limits<float>::quiet_NaN();
   
   int m_silseedit = std::numeric_limits<int>::quiet_NaN();
+  int m_silseed_crossing = std::numeric_limits<int>::quiet_NaN();
   float m_silseedx = std::numeric_limits<float>::quiet_NaN();
   float m_silseedy = std::numeric_limits<float>::quiet_NaN();
   float m_silseedz = std::numeric_limits<float>::quiet_NaN();
@@ -221,7 +222,7 @@ class TrackResiduals : public SubsysReco
   float m_tpcseedphi = std::numeric_limits<float>::quiet_NaN();
   float m_tpcseedeta = std::numeric_limits<float>::quiet_NaN();
   int m_tpcseedit = std::numeric_limits<int>::quiet_NaN();
-  
+  int m_tpcseed_crossing = std::numeric_limits<int>::quiet_NaN();  
   float m_dedx = std::numeric_limits<float>::quiet_NaN();
 
   //! hit tree info
@@ -242,6 +243,12 @@ class TrackResiduals : public SubsysReco
 
   int m_ntracks = std::numeric_limits<int>::quiet_NaN();
   int m_nvertices = std::numeric_limits<int>::quiet_NaN();
+  std::vector<float> m_pcax_vtx_trk;
+  std::vector<float> m_pcay_vtx_trk;
+  std::vector<float> m_pcaz_vtx_trk;
+  std::vector<float> m_px_vtx_trk;
+  std::vector<float> m_py_vtx_trk;
+  std::vector<float> m_pz_vtx_trk;
 
   //! cluster tree info
   float m_sclusgr = std::numeric_limits<float>::quiet_NaN();

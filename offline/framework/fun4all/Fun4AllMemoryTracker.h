@@ -26,9 +26,12 @@ class Fun4AllMemoryTracker : public Fun4AllBase
   static int GetRSSMemory();
   void PrintMemoryTracker(const std::string &name = "") const;
   std::vector<int> GetMemoryVector(const std::string &name) const;
+  void Enable(bool b = true) {enabled = b;}
+  bool isEnabled() const {return enabled;}
 
  private:
   Fun4AllMemoryTracker();
+  bool enabled {false};
   static std::string CreateFullTrackerName(const std::string &trackername, const std::string &group = "");
   static Fun4AllMemoryTracker *mInstance;
   std::map<std::string, std::vector<int>> mMemoryTrackerMap;

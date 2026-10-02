@@ -5,7 +5,7 @@
 #include <iostream>
 #include <utility>  // for pair, make_pair
 
-Fun4AllMemoryTracker *Fun4AllMemoryTracker::mInstance = nullptr;
+Fun4AllMemoryTracker *Fun4AllMemoryTracker::mInstance {nullptr};
 
 Fun4AllMemoryTracker::Fun4AllMemoryTracker()
   : Fun4AllBase("Fun4AllMemoryTracker")
@@ -27,6 +27,10 @@ Fun4AllMemoryTracker::~Fun4AllMemoryTracker()
 
 void Fun4AllMemoryTracker::Snapshot(const std::string &trackername, const std::string &group)
 {
+  if (! enabled)
+  {
+    return;
+  }
   std::string name = CreateFullTrackerName(trackername, group);
   auto iter = mMemoryTrackerMap.find(name);
   if (iter != mMemoryTrackerMap.end())
@@ -48,6 +52,10 @@ void Fun4AllMemoryTracker::Snapshot(const std::string &trackername, const std::s
 
 void Fun4AllMemoryTracker::Start(const std::string &trackername, const std::string &group)
 {
+  if (! enabled)
+  {
+    return;
+  }
   std::string name = CreateFullTrackerName(trackername, group);
   auto iter = mStartMem.find(name);
   int RSSMemory = GetRSSMemory();
@@ -67,6 +75,10 @@ void Fun4AllMemoryTracker::Start(const std::string &trackername, const std::stri
 
 void Fun4AllMemoryTracker::Stop(const std::string &trackername, const std::string &group)
 {
+  if (! enabled)
+  {
+    return;
+  }
   std::string name = CreateFullTrackerName(trackername, group);
   auto iter = mStartMem.find(name);
   int RSSMemory = GetRSSMemory();
@@ -104,6 +116,12 @@ std::string Fun4AllMemoryTracker::CreateFullTrackerName(const std::string &track
 
 void Fun4AllMemoryTracker::PrintMemoryTracker(const std::string &name) const
 {
+    if (! enabled)
+  {
+    std::cout << "Fun4AllMemoryTracker is not enabled" << std::endl;
+    return;
+  }
+
   std::map<std::string, std::vector<int>>::const_iterator iter;
   if (name.empty())
   {

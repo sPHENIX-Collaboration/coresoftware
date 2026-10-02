@@ -204,13 +204,16 @@ int CentralityReco::FillVars()
   {
     m_mbd_hit = m_mbd_container->get_pmt(i);
 
-    if ((m_mbd_hit->get_q()) < mbd_charge_cut)
+    if (!m_sum_all_channels)
     {
-      continue;
-    }
-    if (fabs(m_mbd_hit->get_time()) > mbd_time_cut)
-    {
-      continue;
+      if ((m_mbd_hit->get_q()) < mbd_charge_cut)
+      {
+        continue;
+      }
+      if (fabs(m_mbd_hit->get_time()) > mbd_time_cut)
+      {
+        continue;
+      }
     }
     m_mbd_total_charge += m_mbd_hit->get_q() * scale_factor * m_centrality_scale;
   }

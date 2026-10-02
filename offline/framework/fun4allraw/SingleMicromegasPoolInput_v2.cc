@@ -167,6 +167,21 @@ SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2()
   // timer statistics
   m_timer.print_stat();
 
+  // dropped GL1 statistics
+  for( const auto& [packet,found]:m_packet_stat.found_packet )
+  {
+    const auto& total = m_packet_stat.total;
+    const auto dropped = total-found;
+    const double dropped_fraction = double(dropped)/total;
+    std::cout << "SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2 -"
+      << " packet: " << packet
+      << " gl1_bco_total: " << total
+      << " gl1_dropped: " << dropped
+      << " ratio_bco: " << dropped_fraction
+      << std::endl;
+  }
+  std::cout << std::endl;
+
   // dropped waveforms
   for (const auto& [packet, counter] : m_waveform_counters)
   {
@@ -234,7 +249,10 @@ void SingleMicromegasPoolInput_v2::FillPool(const uint64_t target_bco)
 {
 
   if (AllDone())  // no more files and all events read
-  { return; }
+  {
+    std::cout << "SingleMicromegasPoolInput_v2::FillPool - We are done." << std::endl;
+    return;
+  }
 
   while (!GetEventiterator())  // at startup this is a null pointer
   {
@@ -470,12 +488,19 @@ void SingleMicromegasPoolInput_v2::FillBcoQA(uint64_t gtm_bco)
 
   // per packet statistics
   h_packet_stat->Fill("Reference", 1);
+  ++m_packet_stat.total;
 
   for (const auto& packet_id : found_packets)
   {
     h_packet_stat->Fill(std::to_string(packet_id).c_str(), 1);
+    ++m_packet_stat.found_packet[packet_id];
   }
-  h_packet_stat->Fill("All", found_packets.size() >= m_npackets_active);
+
+  if( found_packets.size() >= m_npackets_active )
+  {
+    h_packet_stat->Fill("All", 1);
+    ++m_packet_stat.found_all;
+  }
 
   // how many packet_id found for this BCO
   h_packet->Fill(found_packets.size());

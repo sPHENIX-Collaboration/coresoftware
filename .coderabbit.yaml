@@ -64,11 +64,7 @@ reviews:
       instructions: |
         Check for modern CMake target usage, correct scoping, and avoiding global flags.
   auto_review:
-    ignore_title_keywords:
-      - WIP
-      - DRAFT
-      - DO NOT MERGE
-      - RFC
+    drafts: true
   finishing_touches:
     unit_tests:
       enabled: false

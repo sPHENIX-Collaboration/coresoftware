@@ -292,8 +292,9 @@ void QAG4SimulationMvtx::evaluate_clusters()
       const auto z_cluster = global(2);
       const auto phi_cluster = (float) std::atan2(global(1), global(0));
 
-      double const phi_error = cluster->getRPhiError() / r_cluster;
-      double const z_error = cluster->getZError();
+      const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, r_cluster, key);
+      double const phi_error = std::sqrt(cluster_errors.first) / r_cluster;
+      double const z_error = std::sqrt(cluster_errors.second);
 
       // find associated g4hits
       const auto g4hits = find_g4hits(key);

@@ -15,7 +15,7 @@
 class PHG4Hit : public PHObject
 {
  public:
-  PHG4Hit() {}
+  PHG4Hit() = default;
   ~PHG4Hit() = default;
 
   void identify(std::ostream &os = std::cout) const override;
@@ -199,7 +199,7 @@ class PHG4Hit : public PHObject
  protected:
   virtual unsigned int get_property_nocheck(const PROPERTY /*prop_id*/) const { return std::numeric_limits<unsigned int>::max(); }
   virtual void set_property_nocheck(const PROPERTY /*prop_id*/, const unsigned int) { return; }
-  ClassDefOverride(PHG4Hit, 1)
+  ClassDefOverride(PHG4Hit, 0)
 };
 
 inline float PHG4Hit::get_avg_x() const { return 0.5 * (get_x(0) + get_x(1)); }

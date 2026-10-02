@@ -9,6 +9,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <trackbase/TrkrDefs.h>
+
 #include <TMatrixFfwd.h>
 #include <TMatrixT.h>
 #include <TMatrixTUtils.h>
@@ -81,7 +83,7 @@ class SvtxEvaluator : public SubsysReco
   // eval stack
   SvtxEvalStack *_svtxevalstack {nullptr};
 
-  TMatrixF calculateClusterError(TrkrCluster *c, float &clusphi);
+  TMatrixF calculateClusterError(TrkrCluster *c, float &clusphi, TrkrDefs::cluskey cluster_key);
   void get_dca(SvtxTrack *track, GlobalVertexMap *vertexmap,
                float &dca3dxy, float &dca3dz,
                float &dca3dxysigma, float &dca3dzsigma);

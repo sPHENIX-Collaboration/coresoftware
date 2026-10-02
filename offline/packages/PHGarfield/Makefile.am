@@ -1,5 +1,8 @@
 AUTOMAKE_OPTIONS = foreign
 
+EXTRA_DIST = \
+  tpc_frame_geometry.csv
+
 AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include \
@@ -12,7 +15,8 @@ AM_LDFLAGS = \
   `root-config --libs`
 
 pkginclude_HEADERS = \
-  PHGarfield.h
+  PHGarfield.h \
+  PHGarfieldRossegger.h
 
 lib_LTLIBRARIES = \
   libPHGarfield.la
@@ -21,6 +25,7 @@ libPHGarfield_la_LIBADD = \
   -lffamodules \
   -lffarawobjects \
   -lcdbobjects \
+  -lg4detectors \
   -lEvent \
   -lphool \
   -lphfield \
@@ -28,7 +33,8 @@ libPHGarfield_la_LIBADD = \
   -lSubsysReco
 
 libPHGarfield_la_SOURCES = \
-  PHGarfield.cc
+  PHGarfield.cc \
+  PHGarfieldRossegger.cc
 
 bin_PROGRAMS = \
   GasModel \

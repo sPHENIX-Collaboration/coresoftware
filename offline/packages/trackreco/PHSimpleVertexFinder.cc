@@ -990,6 +990,14 @@ std::vector<std::set<unsigned int>> PHSimpleVertexFinder::findConnectedTracks()
     used.insert(id1);
     connected.insert(id2);
     used.insert(id2);
+    
+    //--- Repeat the pair scan until no new connected tracks are found
+    bool added_track = true;
+    while (added_track)
+    {
+      
+    const auto connected_size_before_scan = connected.size(); 
+    
     for (auto cit : _track_pair_map)
     {
       unsigned int id3 = cit.first;
@@ -1023,6 +1031,8 @@ std::vector<std::set<unsigned int>> PHSimpleVertexFinder::findConnectedTracks()
         connected.insert(id4);
         used.insert(id4);
       }
+    }
+    added_track = connected.size() > connected_size_before_scan;
     }
   }
 

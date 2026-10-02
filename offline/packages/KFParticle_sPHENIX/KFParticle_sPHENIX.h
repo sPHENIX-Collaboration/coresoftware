@@ -204,6 +204,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMinTPOThits(int nHits) { m_nTPOTStates = nHits; } //Actually state counting but use this for backwards compatibility!
 
+  void useTPConlyTracks(bool use = true) { m_use_tpc_only_tracks = use; }
+
   void setMaximumDaughterDCA_XY(float dca) { m_comb_DCA_xy = dca; }
 
   void setMaximumDaughterDCA(float dca) { m_comb_DCA = dca; }
@@ -257,7 +259,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void allowZeroMassTracks(bool allow = true) { m_allowZeroMassTracks = allow; }
 
-  void extraolateTracksToSV(bool extrapolate = true)
+  void extrapolateTracksToSV(bool extrapolate = true)
   {
     m_extrapolateTracksToSV = extrapolate;
     m_extrapolateTracksToSV_nTuple = extrapolate;
@@ -388,6 +390,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void getAllPVInfo(bool pvinfo = true) { m_get_all_PVs = pvinfo; }
 
   void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_bunch_crossing_zero_only = bcZeroOnly; }
+
+  void forceMixedEvent(bool force = true) { m_force_mixed_event = force; }
 
   void requireBunchCrossingMatch(bool require = true) { m_require_bunch_crossing_match = require; }
 
