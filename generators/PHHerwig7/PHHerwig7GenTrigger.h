@@ -19,7 +19,7 @@ class PHHerwig7GenTrigger
  public:
   virtual ~PHHerwig7GenTrigger() {}
 
-  virtual bool Apply(HepMC::GenEvent* /*herwig*/)
+  virtual bool Apply(HepMC::GenEvent * /*herwig*/)
   {
     std::cout << "PHHerwig7GenTrigger::Apply - in virtual function" << std::endl;
     return false;

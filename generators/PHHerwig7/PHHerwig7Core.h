@@ -15,12 +15,12 @@
 #include <Herwig/API/HerwigAPI.h>
 #include <Herwig/API/HerwigUI.h>
 
+#include <ThePEG/Config/Unitsystem.h>
 #include <ThePEG/EventRecord/Event.h>
+#include <ThePEG/Interface/InterfaceBase.h>
+#include <ThePEG/Repository/BaseRepository.h>
 #include <ThePEG/Repository/EventGenerator.h>
 #include <ThePEG/Repository/Repository.h>
-#include <ThePEG/Repository/BaseRepository.h>
-#include <ThePEG/Interface/InterfaceBase.h>
-#include <ThePEG/Config/Unitsystem.h>
 
 #include <cstdlib>
 #include <iostream>

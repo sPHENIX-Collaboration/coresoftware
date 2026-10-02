@@ -34,7 +34,7 @@ PHHerwig7JetTrigger::~PHHerwig7JetTrigger()
   }
 }
 
-bool PHHerwig7JetTrigger::Apply(HepMC::GenEvent* herwig)
+bool PHHerwig7JetTrigger::Apply(HepMC::GenEvent *herwig)
 {
   if (Verbosity() > 2)
   {
@@ -47,27 +47,27 @@ bool PHHerwig7JetTrigger::Apply(HepMC::GenEvent* herwig)
   for (auto iter = herwig->particles_begin(); iter != herwig->particles_end(); ++iter)
   {
     const HepMC::GenParticle *particle = *iter;
-    if (particle->status() != 1) // if not a stable particle, skip
+    if (particle->status() != 1)  // if not a stable particle, skip
     {
-        continue;
+      continue;
     }
 
     // PHPy8JetTrigger selection
     const int absPid = std::abs(particle->pdg_id());
-    if (absPid >= 12 && absPid <= 16) // skip muons, taus, and neutrinos
+    if (absPid >= 12 && absPid <= 16)  // skip muons, taus, and neutrinos
     {
-        continue;
+      continue;
     }
 
     const auto &momentum = particle->momentum();
     if (momentum.px() == 0.0 && momentum.py() == 0.0)
     {
-        continue;
+      continue;
     }
 
     if (momentum.eta() < _theEtaLow || momentum.eta() > _theEtaHigh)
     {
-        continue;
+      continue;
     }
 
     fastjet::PseudoJet pseudojet(momentum.px(), momentum.py(), momentum.pz(), momentum.e());

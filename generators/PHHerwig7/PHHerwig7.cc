@@ -18,8 +18,8 @@
 
 // HepMC2 flavour of ThePEG's converter.  HepMCDefs.h must come first so the
 // traits see HEPMC_HAS_CROSS_SECTION and carry sigma into the record.
-#include <HepMC/HepMCDefs.h>
 #include <HepMC/GenEvent.h>
+#include <HepMC/HepMCDefs.h>
 #include <HepMC/Units.h>
 #include <HepMC/WeightContainer.h>
 #include <ThePEG/Config/HepMCHelper.h>
@@ -172,20 +172,20 @@ int PHHerwig7::process_event(PHCompositeNode * /*topNode*/)
 
     if (passedTrigger)
     {
-        genevent = cand;
-        m_SumWPass += w;
+      genevent = cand;
+      m_SumWPass += w;
     }
     else
     {
-        delete cand;
-        ++attempts;
-        if (m_MaxAttempts > 0 && attempts >= m_MaxAttempts)
-        {
-            std::cout.copyfmt(old_state);
-            std::cout << PHWHERE << " failed to pass trigger after " << attempts
-                    << " attempts, aborting run" << std::endl;
-            return Fun4AllReturnCodes::ABORTRUN;
-        }
+      delete cand;
+      ++attempts;
+      if (m_MaxAttempts > 0 && attempts >= m_MaxAttempts)
+      {
+        std::cout.copyfmt(old_state);
+        std::cout << PHWHERE << " failed to pass trigger after " << attempts
+                  << " attempts, aborting run" << std::endl;
+        return Fun4AllReturnCodes::ABORTRUN;
+      }
     }
   }
 
@@ -273,19 +273,19 @@ void PHHerwig7::Print(const std::string & /*what*/) const
             << "  triggers       : " << m_RegisteredTriggers.size() << std::endl
             << "  combine        : " << (m_TriggersAND ? "AND" : "OR") << std::endl;
 
-    for (auto *trigger : m_RegisteredTriggers)
-    {
-      std::cout << "  trigger        : " << trigger->GetName() << std::endl;
-    }
+  for (auto *trigger : m_RegisteredTriggers)
+  {
+    std::cout << "  trigger        : " << trigger->GetName() << std::endl;
+  }
 }
 
 // Same register_trigger() as PHPythia8
 void PHHerwig7::register_trigger(PHHerwig7GenTrigger *trigger)
 {
-    if (Verbosity() > 0)
-    {
-        std::cout << Name() << ": trigger " << trigger->GetName() << " registered" << std::endl;
-    }
+  if (Verbosity() > 0)
+  {
+    std::cout << Name() << ": trigger " << trigger->GetName() << " registered" << std::endl;
+  }
 
-    m_RegisteredTriggers.push_back(trigger);
+  m_RegisteredTriggers.push_back(trigger);
 }

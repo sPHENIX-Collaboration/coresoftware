@@ -16,7 +16,7 @@ class PHHerwig7JetTrigger : public PHHerwig7GenTrigger
   PHHerwig7JetTrigger(const std::string &name = "PHHerwig7JetTrigger");
   ~PHHerwig7JetTrigger() override;
 
-  bool Apply(HepMC::GenEvent* herwig) override;
+  bool Apply(HepMC::GenEvent *herwig) override;
 
   void SetEtaHighLow(double etaHigh, double etaLow);
   void SetMinJetPt(double minPt);
