@@ -19,11 +19,17 @@ class GlobalVertex : public PHObject
   {
     UNDEFINED = 0,
     TRUTH = 100,
+    ZERO = 150,
     SMEARED = 200,
     MBD = 300,
     SVTX = 400,
     SVTX_MBD = 500,
     CALO = 250,
+    CALO_JETSKEW = 251,
+    CALO_AVGZ = 252,
+    CALO_JETMLP = 253,
+    CALO_CNN = 254,
+    CALO_VIT = 255,
     MBD_CALO = 350
   };
 
