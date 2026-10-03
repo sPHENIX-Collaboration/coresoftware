@@ -151,6 +151,9 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_double_param("tpc_length", 205.21);  // 2 * (maxdrift 102.325 + CM halfwidth 0.28) cm 
 
   set_default_double_param("steplimits", 1);  // 1cm by default
+  // Temporarily enable the primary-cluster response for quantitative CI
+  // validation. 
+  set_default_int_param("use_primary_cluster_ionization", 1);
 
   // material budget:
   // Cu (all layers): 0.5 oz cu per square foot, 1oz == 0.0347mm --> 0.5 oz ==  0.00347cm/2.
