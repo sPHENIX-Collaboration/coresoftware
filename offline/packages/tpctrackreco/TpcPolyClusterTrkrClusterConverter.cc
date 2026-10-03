@@ -136,7 +136,7 @@ int TpcPolyClusterTrkrClusterConverter::createNodes(PHCompositeNode* topNode)
 void TpcPolyClusterTrkrClusterConverter::clearOutputTpcClusters()
 {
   if (!m_outputClusters) { return;
-}
+  }
 
   const auto hitsetkeys = m_outputClusters->getHitSetKeys(TrkrDefs::TrkrId::tpcId);
   for (const auto hitsetkey : hitsetkeys)
@@ -149,13 +149,13 @@ void TpcPolyClusterTrkrClusterConverter::buildTrackMap()
 {
   m_tracksBySourceId.clear();
   if (!m_polyTracks) { return;
-}
+  }
 
   for (unsigned int itrack = 0; itrack < m_polyTracks->size(); ++itrack)
   {
     const Tpc_PolyTrack* track = m_polyTracks->get_track(itrack);
     if (!isAcceptedTrack(track)) { continue;
-}
+    }
     m_tracksBySourceId[track->get_source_assembled_track_id()] = track;
   }
 }
@@ -163,9 +163,9 @@ void TpcPolyClusterTrkrClusterConverter::buildTrackMap()
 bool TpcPolyClusterTrkrClusterConverter::isAcceptedTrack(const Tpc_PolyTrack* track) const
 {
   if (!track || !track->isValid() || track->get_fit_status() == 0) { return false;
-}
+  }
   if (track->get_nclusters() <= 20) { return false;
-}
+  }
 
   const double pt = std::hypot(track->get_px(), track->get_py());
   return std::isfinite(pt) && pt > 0.1;
@@ -183,7 +183,7 @@ bool TpcPolyClusterTrkrClusterConverter::initializeClusterMover(PHCompositeNode*
 TrkrDefs::cluskey TpcPolyClusterTrkrClusterConverter::getClusterKey(const Tpc_PolyCluster* cluster) const
 {
   if (!cluster || cluster->size_hits() == 0) { return TrkrDefs::CLUSKEYMAX;
-}
+  }
 
   const TrkrDefs::hitsetkey hitsetkey = cluster->get_hit_index(0).first;
   TrkrDefs::cluskey cluskey = cluster->get_trkr_cluster_key();
@@ -208,12 +208,12 @@ bool TpcPolyClusterTrkrClusterConverter::localFromMovedGlobal(const Tpc_PolyClus
                                                               unsigned long long& surface_id) const
 {
   if (!cluster || !m_geometry || cluster->size_hits() == 0) { return false;
-}
+  }
 
   const TrkrDefs::hitsetkey hitsetkey = cluster->get_hit_index(0).first;
   const Acts::Vector3 global(moved_global[0], moved_global[1], moved_global[2]);
   if (!std::isfinite(global.x()) || !std::isfinite(global.y()) || !std::isfinite(global.z())) { return false;
-}
+  }
 
   TrkrDefs::subsurfkey new_subsurfkey = 0;
   Surface surface = m_geometry->get_tpc_surface_from_coords(hitsetkey, global, new_subsurfkey);
@@ -221,12 +221,12 @@ bool TpcPolyClusterTrkrClusterConverter::localFromMovedGlobal(const Tpc_PolyClus
   {
     const auto seed_iter = m_seedSubSurfKeys.find(cluskey);
     if (seed_iter == m_seedSubSurfKeys.end()) { return false;
-}
+    }
     new_subsurfkey = seed_iter->second;
     surface = m_geometry->maps().getTpcSurface(hitsetkey, new_subsurfkey);
   }
   if (!surface) { return false;
-}
+  }
   surface_id = surface->geometryId().value();
 
   const auto& geo_context = m_geometry->geometry().getGeoContext();
@@ -235,7 +235,7 @@ bool TpcPolyClusterTrkrClusterConverter::localFromMovedGlobal(const Tpc_PolyClus
   const unsigned int side = TpcDefs::getSide(hitsetkey);
   const double drift_velocity = m_geometry->get_drift_velocity();
   if (drift_velocity <= 0.0 || !std::isfinite(drift_velocity)) { return false;
-}
+  }
 
   const double half_drift = 0.5 * m_geometry->get_max_driftlength();
   const double z_bunch_separation = m_crossingPeriodNs * drift_velocity;
@@ -301,18 +301,18 @@ void TpcPolyClusterTrkrClusterConverter::buildMovedClusterMap()
 
   std::map<unsigned int, std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>> clusters_by_track;
   for (unsigned int icluster = 0; icluster < m_polyClusters->size(); ++icluster)
-  {
-    const Tpc_PolyCluster* cluster = m_polyClusters->get_cluster(icluster);
-    if (!cluster || !cluster->isValid()) { continue;
-}
+    {
+      const Tpc_PolyCluster* cluster = m_polyClusters->get_cluster(icluster);
+      if (!cluster || !cluster->isValid()) { continue;
+      }
 
-    const auto track_iter = m_tracksBySourceId.find(cluster->get_source_assembled_track_id());
-    if (track_iter == m_tracksBySourceId.end()) { continue;
-}
-
-    TrkrDefs::cluskey cluskey = TrkrDefs::CLUSKEYMAX;
-    if (!seedOutputCluster(cluster, cluskey)) { continue;
-}
+      const auto track_iter = m_tracksBySourceId.find(cluster->get_source_assembled_track_id());
+      if (track_iter == m_tracksBySourceId.end()) { continue;
+      }
+      
+      TrkrDefs::cluskey cluskey = TrkrDefs::CLUSKEYMAX;
+      if (!seedOutputCluster(cluster, cluskey)) { continue;
+      }
 
     const Acts::Vector3 centroid(cluster->get_centroid_x(),
                                  cluster->get_centroid_y(),
@@ -326,9 +326,12 @@ void TpcPolyClusterTrkrClusterConverter::buildMovedClusterMap()
 
   for (const auto& track_clusters : clusters_by_track)
   {
-    const auto moved_globals = m_clusterMover.processTrack(track_clusters.second);
-    for (const auto& [cluskey, moved_global] : moved_globals)
+    //  const auto moved_globals = m_clusterMover.processTrack(track_clusters.second);
+    const  std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>> moved_surf_globals
+                            = m_clusterMover.processTrack(track_clusters.second);
+    for (const auto& [cluskey, moved_surf_global] : moved_surf_globals)
     {
+      const Acts::Vector3 moved_global = moved_surf_global.second;
       m_movedGlobals[cluskey] = {{moved_global.x(), moved_global.y(), moved_global.z()}};
     }
   }
@@ -340,28 +343,28 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
                                                         const Tpc_PolyTrack* track) const
 {
   if (!cluster || !cluster->isValid() || !track || !m_outputClusters) { return false;
-}
+  }
   if (cluster->size_hits() == 0) { return false;
-}
+  }
 
   const TrkrDefs::hitsetkey hitsetkey = cluster->get_hit_index(0).first;
   if (static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(hitsetkey)) != TrkrDefs::TrkrId::tpcId) { return false;
-}
+  }
 
   const TrkrDefs::cluskey cluskey = getClusterKey(cluster);
   if (static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(cluskey)) != TrkrDefs::TrkrId::tpcId) { return false;
-}
+  }
 
   const auto moved_iter = m_movedGlobals.find(cluskey);
   if (moved_iter == m_movedGlobals.end()) { return false;
-}
+  }
 
   if (!m_crossingDecisions) { return false;
-}
+  }
   const TpcCrossingDecision* crossing_decision =
       m_crossingDecisions->get_decision(track->get_source_assembled_track_id());
   if (!crossing_decision) { return false;
-}
+  }
   const short crossing = crossing_decision->get_selected_crossing();
 
   float local_x = std::numeric_limits<float>::quiet_NaN();
