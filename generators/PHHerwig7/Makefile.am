@@ -6,9 +6,6 @@ AM_CPPFLAGS = \
   -isystem$(OFFLINE_MAIN)/include \
   -isystem`root-config --incdir`
 
-# ThePEG headers are not clean under -Wextra -Wshadow -pedantic with gcc 14
-#AM_CXXFLAGS = -Wno-shadow -Wno-unused-parameter -Wno-deprecated-declarations
-
 lib_LTLIBRARIES = libPHHerwig7.la
 
 pkginclude_HEADERS = \
