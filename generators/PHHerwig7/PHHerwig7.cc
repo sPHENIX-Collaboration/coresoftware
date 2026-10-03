@@ -53,7 +53,7 @@ int PHHerwig7::Init(PHCompositeNode *topNode)
   {
     unsigned int s = PHRandomSeed();
     // ThePEG takes an int seed through the UI; keep it positive and in range
-    seed = static_cast<int>(s % 2000000000u);
+    seed = static_cast<int>(s % 2000000000U);
     if (seed <= 0)
     {
       seed = 1;
