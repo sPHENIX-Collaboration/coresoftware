@@ -27,12 +27,12 @@ class PHHerwig7JetTrigger : public PHHerwig7GenTrigger
   void PrintConfig() const;
 
  private:
-  double _theEtaHigh;
-  double _theEtaLow;
-  double _minPt;
-  double _minZ;
-  double _R;
-  int _nconst;
+  double _theEtaHigh{4.0};
+  double _theEtaLow{1.0};
+  double _minPt{0.0};
+  double _minZ{0.0};
+  double _R{1.0};
+  int _nconst{0};
 };
 
 #endif

@@ -27,7 +27,7 @@ class PHHerwig7 : public SubsysReco, public PHHepMCGenHelper
 {
  public:
   explicit PHHerwig7(const std::string &name = "PHHerwig7");
-  ~PHHerwig7() override;
+  ~PHHerwig7() override = default;
 
   int Init(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;

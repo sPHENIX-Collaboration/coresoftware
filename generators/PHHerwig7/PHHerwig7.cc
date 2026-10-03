@@ -35,8 +35,6 @@ PHHerwig7::PHHerwig7(const std::string &name)
   PHHepMCGenHelper::set_embedding_id(1);  // same default as PHPythia8
 }
 
-PHHerwig7::~PHHerwig7() = default;
-
 int PHHerwig7::Init(PHCompositeNode *topNode)
 {
   if (m_RunFile.empty())

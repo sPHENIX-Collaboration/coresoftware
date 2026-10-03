@@ -17,12 +17,6 @@
 //__________________________________________________________
 PHHerwig7JetTrigger::PHHerwig7JetTrigger(const std::string &name)
   : PHHerwig7GenTrigger(name)
-  , _theEtaHigh(4.0)
-  , _theEtaLow(1.0)
-  , _minPt(10.0)
-  , _minZ(0.0)
-  , _R(1.0)
-  , _nconst(0)
 {
 }
 

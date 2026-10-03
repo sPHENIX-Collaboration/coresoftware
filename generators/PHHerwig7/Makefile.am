@@ -1,18 +1,13 @@
 AUTOMAKE_OPTIONS = foreign
 
-# ThePEG headers live next to its libraries on cvmfs, not under OFFLINE_MAIN;
-# herwig-config --ldflags gives -L<ThePEG>/lib/ThePEG, so derive include from it.
-THEPEG_LIBDIR = $(shell herwig-config --ldflags | sed 's/^-L//')
-THEPEG_INCDIR = $(THEPEG_LIBDIR)/../../include
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include \
-  -isystem$(THEPEG_INCDIR) \
   -isystem`root-config --incdir`
 
 # ThePEG headers are not clean under -Wextra -Wshadow -pedantic with gcc 14
-AM_CXXFLAGS = -Wno-shadow -Wno-unused-parameter -Wno-deprecated-declarations
+#AM_CXXFLAGS = -Wno-shadow -Wno-unused-parameter -Wno-deprecated-declarations
 
 lib_LTLIBRARIES = libPHHerwig7.la
 
@@ -25,7 +20,6 @@ pkginclude_HEADERS = \
 libPHHerwig7_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(THEPEG_LIBDIR) \
   `root-config --libs` \
   `fastjet-config --libs`
 
