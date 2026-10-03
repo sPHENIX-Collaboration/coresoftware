@@ -276,7 +276,7 @@ bool TpcPolyClusterTrkrClusterConverter::seedOutputCluster(const Tpc_PolyCluster
 }
 
   const Acts::Vector3 sphenix_centroid =  m_geometry->transformTpcEnvelopeToWorld(centroid);
-  
+
   TrkrDefs::subsurfkey subsurfkey = 0;
   Surface surface = m_geometry->get_tpc_surface_from_coords(hitsetkey, sphenix_centroid, subsurfkey);
   if (!surface)
@@ -320,7 +320,7 @@ void TpcPolyClusterTrkrClusterConverter::buildMovedClusterMap()
 
     const Acts::Vector3 sphenix_centroid =  m_geometry->transformTpcEnvelopeToWorld(centroid);
     m_movedGlobals[cluskey] = {{sphenix_centroid.x(), sphenix_centroid.y(), sphenix_centroid.z()}};
-    
+
     clusters_by_track[track_iter->first].emplace_back(cluskey, sphenix_centroid);
   }
 
@@ -457,6 +457,11 @@ int TpcPolyClusterTrkrClusterConverter::process_event(PHCompositeNode* topNode)
     }
   }
 
+  // store previous use_alignment flag and disable
+  const auto old_use_alignment_flag = alignmentTransformationContainer::use_alignment;
+  alignmentTransformationContainer::use_alignment = false;
+
+  // process clusters
   clearOutputTpcClusters();
   buildTrackMap();
   buildMovedClusterMap();
@@ -467,8 +472,7 @@ int TpcPolyClusterTrkrClusterConverter::process_event(PHCompositeNode* topNode)
   for (unsigned int icluster = 0; icluster < m_polyClusters->size(); ++icluster)
   {
     const Tpc_PolyCluster* cluster = m_polyClusters->get_cluster(icluster);
-    if (!cluster || !cluster->isValid()) { continue;
-}
+    if (!cluster || !cluster->isValid()) { continue; }
 
     const auto track_iter = m_tracksBySourceId.find(cluster->get_source_assembled_track_id());
     if (track_iter == m_tracksBySourceId.end())
@@ -477,10 +481,15 @@ int TpcPolyClusterTrkrClusterConverter::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    if (publishCluster(cluster, track_iter->second)) { ++nconverted;
-    } else { ++nfailed;
-}
+    if (publishCluster(cluster, track_iter->second)) {
+      ++nconverted;
+    } else {
+      ++nfailed;
+    }
   }
+
+  // restore use_alignment flag
+  alignmentTransformationContainer::use_alignment = old_use_alignment_flag;
 
   if (Verbosity() > 0)
   {
