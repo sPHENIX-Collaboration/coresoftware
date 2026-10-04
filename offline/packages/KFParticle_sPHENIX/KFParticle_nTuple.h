@@ -3,7 +3,6 @@
 
 #include "KFParticle_triggerInfo.h"
 #include "KFParticle_truthAndDetTools.h"
-#include "KFParticle_Tools.h"
 
 #include <KFParticle.h>
 
@@ -14,6 +13,7 @@
 
 class PHCompositeNode;
 class TTree;
+class KFParticle_Tools;
 
 class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_triggerInfo
 {
