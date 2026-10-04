@@ -1,7 +1,5 @@
 #include "KFParticle_nTuple.h"
 
-#include "KFParticle_Tools.h"
-
 #include <ffaobjects/EventHeader.h>
 #include <ffarawobjects/Gl1Packet.h>
 
