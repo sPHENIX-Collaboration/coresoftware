@@ -3,6 +3,7 @@
 
 #include "KFParticle_triggerInfo.h"
 #include "KFParticle_truthAndDetTools.h"
+#include "KFParticle_Tools.h"
 
 #include <KFParticle.h>
 
