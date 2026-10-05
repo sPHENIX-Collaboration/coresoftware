@@ -235,6 +235,15 @@ void TpcCrossingFinder::configure_garfield(PHGarfield* garfield) const
     garfield->RotateTpc(rotation[0], rotation[1], rotation[2]);
   }
   garfield->SetCMVoltageDefault(m_cmVoltageDefault);
+
+  if (m_isNonDistortedMC)
+  {
+    std::cout << Name()
+              << "::configure_garfield - configuring PHGarfield for non-distorted MC"
+              << std::endl;
+
+    garfield->SetIsNonDistortedMC(true);
+  }
 }
 
 unsigned int TpcCrossingFinder::drift_lookup_index(const unsigned int layer_index,
