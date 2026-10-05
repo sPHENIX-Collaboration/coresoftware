@@ -1381,7 +1381,7 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode * /*topNode*/)
   // needs to run once per side per call here -- there is no meaningful
   // "next event" for this data
 
-  std::vector<Cluster> clusters[2];
+  std::vector<Cluster> clusters[2]{};
   
   auto clusrange = m_laserClusterContainer->getClusters();
   for (auto cmitr = clusrange.first; cmitr != clusrange.second; ++cmitr)
