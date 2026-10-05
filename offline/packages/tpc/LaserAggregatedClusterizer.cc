@@ -56,7 +56,7 @@ namespace
 
   struct thread_data
   {
-    uint8_t block;
+    uint8_t block = 0;
     std::map<padkey::key, double> adcMap;
     std::vector<LaserCluster *> cluster_vector;
     std::vector<TrkrDefs::cluskey> cluster_key_vector;
@@ -226,22 +226,22 @@ namespace
       {
         for(int dPhi = -1; dPhi <= 1; ++dPhi)
         {
-          if(dLayer == 0 && dPhi == 0) continue;
+          if(dLayer == 0 && dPhi == 0){ continue; }
 
           int nextLayer = padkey::get_layer(current) + dLayer;
           int nextPhi = padkey::get_phibin(current) + dPhi;
 
-          if(nextLayer < padkey::kFirstTpcLayer || nextLayer >= padkey::kFirstTpcLayer + padkey::kNTpcLayers || nextPhi < 0) continue;
+          if(nextLayer < padkey::kFirstTpcLayer || nextLayer >= padkey::kFirstTpcLayer + padkey::kNTpcLayers || nextPhi < 0){ continue; }
 
           padkey::key nextKey = padkey::genkey(nextLayer, padkey::get_side(current), padkey::get_sector(current), nextPhi);
 
-          if(!adcMap.count(nextKey)) continue;
+          if(!adcMap.count(nextKey)){ continue; }
 
-          if(nextLayer != seedLayer && nextLayer != allowedAdjacentLayer) continue;
+          if(nextLayer != seedLayer && nextLayer != allowedAdjacentLayer){ continue; }
 
-          if(std::abs(nextPhi - seedPhi) > 6) continue;
+          if(std::abs(nextPhi - seedPhi) > 6){ continue; }
 
-          if(used.count(nextKey)) continue;
+          if(used.count(nextKey)){ continue; }
 
           queue.push(nextKey);
           used.insert(nextKey);
@@ -432,7 +432,10 @@ int LaserAggregatedClusterizer::InitRun(PHCompositeNode *topNode)
         m_aggregatedPads->merge(seg);
         nMerged++;
       }
-      else std::cout << PHWHERE << " duplicate segment in list, skipped" << std::endl;
+      else
+      {
+        std::cout << PHWHERE << " duplicate segment in list, skipped" << std::endl;
+      }
     }
     else
     {
@@ -442,7 +445,10 @@ int LaserAggregatedClusterizer::InitRun(PHCompositeNode *topNode)
 
   }
 
-  if (m_aggregatedPads->size() == 0) return Fun4AllReturnCodes::ABORTRUN;
+  if (m_aggregatedPads->size() == 0)
+  {
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   std::cout << "merged " << seen.size() << " segments, "
             << nMerged << " actually merged, "
@@ -450,7 +456,7 @@ int LaserAggregatedClusterizer::InitRun(PHCompositeNode *topNode)
             << m_aggregatedPads->getNLaserEvents() << " laser events" << std::endl;
 
   auto *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-  runNode->addNode(new PHIODataNode<PHObject>(m_aggregatedPads, std::format("{}Sum",m_padContainerNodeName).c_str(), "PHObject"));
+  runNode->addNode(new PHIODataNode<PHObject>(m_aggregatedPads, std::format("{}Sum",m_padContainerNodeName), "PHObject"));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -520,7 +526,7 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
         for(auto iter = range.first; iter != range.second; ++iter)
         {
           const double nHits = iter->second->getNHits();
-          if(nHits / nEvents < m_nHitPerLaserEventMin) continue;
+          if(nHits / nEvents < m_nHitPerLaserEventMin){ continue; }
           const double ADC = iter->second->getAdc() / nEvents;
           const padkey::key k = iter->first;
           adcMap[k] = ADC;
@@ -557,7 +563,7 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
 
   PHG4TpcGeomContainer *geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   TFile *QAFile = nullptr;
-  if(m_QAName != "")
+  if(!m_QAName.empty())
   {
     QAFile = new TFile(m_QAName.c_str(),"RECREATE");
   }
@@ -585,11 +591,11 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
       auto *cluster = thread_pair.data.cluster_vector[index];
       const auto ckey = thread_pair.data.cluster_key_vector[index];
 
-      if(Verbosity() > 4) cluster->identify();
+      if(Verbosity() > 4){ cluster->identify(); }
 
       m_clusterlist->addClusterSpecifyKey(ckey, cluster);
 
-      if(m_QAName != "" && geom_container)
+      if(!m_QAName.empty() && geom_container)
       {
         if(Verbosity() > 3) std::cout << "   working on cluster " << m_clusterlist->size() - 1 << std::endl;
         int side = TpcDefs::getSide(ckey);
@@ -606,8 +612,8 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
           double layerWidth = layer_geom->get_thickness() / 2.0;
 
           double hitPhi = atan2(global[1], global[0]);
-          while(hitPhi < 0) hitPhi += 2*TMath::Pi();
-          while(hitPhi > 2*TMath::Pi()) hitPhi -= 2*TMath::Pi();
+          while(hitPhi < 0){ hitPhi += 2*TMath::Pi(); }
+          while(hitPhi > 2*TMath::Pi()){ hitPhi -= 2*TMath::Pi(); }
           double hitR = sqrt(global[0]*global[0] + global[1]*global[1]);      
 
           double phis[5] = {hitPhi - phiWidth,hitPhi + phiWidth,hitPhi + phiWidth,hitPhi - phiWidth,hitPhi - phiWidth};
@@ -615,14 +621,14 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
 
           int bin = h[side]->AddBin(5, phis, rs);
           h[side]->SetBinContent(bin, LCHI.adc);
-          if(Verbosity() > 3) std::cout << "         added bin " << bin << " to TH2Poly " << (side ? "North" : "South") << " with content " << LCHI.adc << std::endl;
+          if(Verbosity() > 3){ std::cout << "         added bin " << bin << " to TH2Poly " << (side ? "North" : "South") << " with content " << LCHI.adc << std::endl; }
         }
       }
 
     }
   }
 
-  if(m_QAName != "")
+  if(!m_QAName.empty())
   {
     QAFile->cd();
     for(int s=0; s<2; s++)
@@ -652,10 +658,10 @@ void LaserAggregatedClusterizer::SetSegmentList(const std::string &listfile)
   {
     // strip comments and surrounding whitespace
     const size_t hash = line.find('#');
-    if (hash != std::string::npos) line.erase(hash);
+    if (hash != std::string::npos){ line.erase(hash); }
 
     const size_t first = line.find_first_not_of(" \t\r\n");
-    if (first == std::string::npos) continue;          // blank or comment-only
+    if (first == std::string::npos){ continue; }          // blank or comment-only
     const size_t last = line.find_last_not_of(" \t\r\n");
     line = line.substr(first, last - first + 1);
 

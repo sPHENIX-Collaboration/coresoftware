@@ -42,7 +42,7 @@ class LaserPadAggregator : public SubsysReco
   //void remove_hits(std::vector<pointKeyLaser> &clusHits, boost::geometry::index::rtree<pointKeyLaser, boost::geometry::index::quadratic<16>> &rtree, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
 
   void set_adc_threshold(double val) { m_adc_threshold = val; }
-  void set_padContainerNodeName(std::string nodeName) { m_padContainerNodeName = nodeName; }
+  void set_padContainerNodeName(std::string &nodeName) { m_padContainerNodeName = nodeName; }
 
  private:
   int m_event {-1};

@@ -32,6 +32,9 @@ class LaserAggregatedPadContainerv1 : public LaserAggregatedPadContainer
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
   LaserAggregatedPadContainerv1() = default;
+  ~LaserAggregatedPadContainerv1() override { LaserAggregatedPadContainerv1::Reset(); }
+  LaserAggregatedPadContainerv1(const LaserAggregatedPadContainerv1&) = delete;
+  LaserAggregatedPadContainerv1& operator=(const LaserAggregatedPadContainerv1&) = delete;
   
   void Reset() override;
 

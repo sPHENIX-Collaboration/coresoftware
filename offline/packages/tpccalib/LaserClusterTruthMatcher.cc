@@ -40,7 +40,7 @@
 
 namespace
 {
-  static constexpr double kPetalDefault = TMath::Pi() / 9.0;  // 20 degrees
+  constexpr double kPetalDefault = TMath::Pi() / 9.0;  // 20 degrees
 
   struct Cluster
   {
@@ -60,8 +60,8 @@ namespace
 
   double layerPitch(double R)
   {
-    if (R < 40.0) return 0.625;
-    if (R < 60.0) return 1.25;
+    if (R < 40.0){ return 0.625; }
+    if (R < 60.0){ return 1.25; }
     return 1.125;
   }
 
@@ -78,22 +78,22 @@ namespace
                           double rlo = 28.0, double rhi = 78.0, int ngrid = 4000)
   {
     Result out;
-    if (cl.empty()) return out;
+    if (cl.empty()){ return out; }
 
     std::vector<double> adcs;
     adcs.reserve(cl.size());
-    for (const auto &c : cl) adcs.push_back(c.adc);
+    for (const auto &c : cl){ adcs.push_back(c.adc); }
     std::nth_element(adcs.begin(), adcs.begin() + adcs.size() / 2, adcs.end());
     const double adc_ref = std::max(adcs[adcs.size() / 2], 1.0);
 
     const double dr = (rhi - rlo) / ngrid;
     out.grid.resize(ngrid);
     out.density.assign(ngrid, 0.0);
-    for (int b = 0; b < ngrid; ++b) out.grid[b] = rlo + (b + 0.5) * dr;
+    for (int b = 0; b < ngrid; ++b){ out.grid[b] = rlo + (b + 0.5) * dr; }
 
     for (const auto &c : cl)
     {
-      if (c.R < rlo || c.R > rhi) continue;
+      if (c.R < rlo || c.R > rhi){ continue; }
       const double s = clusSigma(c, sigma_ref, adc_ref);
       const int lo = std::max(0, (int)((c.R - 4 * s - rlo) / dr));
       const int hi = std::min(ngrid - 1, (int)((c.R + 4 * s - rlo) / dr));
@@ -107,29 +107,31 @@ namespace
     std::vector<int> pk;
     for (int i = 1; i < ngrid - 1; ++i)
     {
-      if (out.density[i] <= out.density[i - 1] || out.density[i] < out.density[i + 1]) continue;
+      if (out.density[i] <= out.density[i - 1] || out.density[i] < out.density[i + 1]){ continue; }
       double minL = out.density[i];
       for (int j = i - 1; j >= 0; --j)
       {
-        if (out.density[j] > out.density[i]) break;
+        if (out.density[j] > out.density[i]){ break; }
         minL = std::min(minL, out.density[j]);
       }
       double minR = out.density[i];
       for (int j = i + 1; j < ngrid; ++j)
       {
-        if (out.density[j] > out.density[i]) break;
+        if (out.density[j] > out.density[i]){ break; }
         minR = std::min(minR, out.density[j]);
       }
-      if (out.density[i] - std::max(minL, minR) > promfrac * out.density[i]) pk.push_back(i);
+      if (out.density[i] - std::max(minL, minR) > promfrac * out.density[i]){ pk.push_back(i); }
     }
 
-    for (int i : pk) out.peakR.push_back(out.grid[i]);
+    for (int i : pk){ out.peakR.push_back(out.grid[i]); }
 
     for (size_t ir = 0; ir + 1 < pk.size(); ++ir)
     {
       int imin = pk[ir];
       for (int b = pk[ir]; b <= pk[ir + 1]; ++b)
-        if (out.density[b] < out.density[imin]) imin = b;
+      {
+        if (out.density[b] < out.density[imin]){ imin = b; }
+      }
       out.bound.push_back(out.grid[imin]);
     }
     return out;
@@ -146,13 +148,13 @@ namespace
     std::vector<double> sw(n, 0.0), swr(n, 0.0);
     for (const auto &c : cl)
     {
-      if (c.R < res.grid.front() || c.R > res.grid.back()) continue;
+      if (c.R < res.grid.front() || c.R > res.grid.back()){ continue; }
       const int ir = rowOf(c.R, res.bound);
       sw[ir] += c.adc;
       swr[ir] += c.adc * c.R;
     }
     std::vector<double> R(n, 0.0);
-    for (size_t i = 0; i < n; ++i) R[i] = (sw[i] > 0.0) ? swr[i] / sw[i] : res.peakR[i];
+    for (size_t i = 0; i < n; ++i){ R[i] = (sw[i] > 0.0) ? swr[i] / sw[i] : res.peakR[i]; }
     return R;
   }
 
@@ -167,8 +169,8 @@ namespace
   double circDiff(double a, double b, double petal)
   {
     double d = a - b;
-    while (d > 0.5 * petal) d -= petal;
-    while (d < -0.5 * petal) d += petal;
+    while (d > 0.5 * petal){ d -= petal; }
+    while (d < -0.5 * petal){ d += petal; }
     return d;
   }
 
@@ -189,7 +191,7 @@ namespace
       {
         unsigned int truthIndex = (side ? 18 : 0)*10000 + (row*100) + iphi;
         double phiVal = cdbttree.GetDoubleValue(truthIndex, "truthPhi");
-        if (std::isnan(phiVal)) continue;
+        if (std::isnan(phiVal)){ continue; }
         entries.push_back({iphi, phiVal});
       }
       std::sort(entries.begin(), entries.end(), [](auto &a, auto &b){ return a.second < b.second; });
@@ -232,7 +234,7 @@ namespace
                       double edgeFloorFrac = 0.5)
   {
     Stripes out;
-    if(clusters.empty()) return out;
+    if(clusters.empty()){ return out; }
 
     std::vector<double> adcs;
     adcs.reserve(clusters.size());
@@ -304,7 +306,7 @@ namespace
       int prevIdx = cand.back();
       int j0 = prevIdx + searchStep - searchWidth;
       int j1 = std::min(prevIdx + searchStep + searchWidth, ngrid-1);
-      if(j0 > j1) break;
+      if(j0 > j1){ break; }
 
       int localCand = -1;
       double localMax = 0.0;
@@ -317,7 +319,7 @@ namespace
           localCand = j;
         }
       }
-      if(localCand < 0 || nLoop > 20) break;
+      if(localCand < 0 || nLoop > 20){ break; }
       cand.push_back(localCand);
       nLoop++;
     }
@@ -330,7 +332,7 @@ namespace
       int prevIdx = cand.front();
       int j0 = std::max(prevIdx - searchStep - searchWidth, 0);
       int j1 = prevIdx - searchStep + searchWidth;
-      if(j0 > j1) break;
+      if(j0 > j1){ break; }
 
       int localCand = -1;
       double localMax = 0.0;
@@ -343,7 +345,7 @@ namespace
           localCand = j;
         }
       }
-      if(localCand < 0 || nLoop > 20) break;
+      if(localCand < 0 || nLoop > 20){ break; }
       cand.insert(cand.begin(), localCand);
       nLoop++;
     }
@@ -369,8 +371,8 @@ namespace
     };
 
     //! Iteratively remove first or last peak if it is rising toward wrap boundary
-    while (cand.size() > 1 && !isEdgeStable(cand.front())) cand.erase(cand.begin());
-    while (cand.size() > 1 && !isEdgeStable(cand.back())) cand.pop_back();
+    while (cand.size() > 1 && !isEdgeStable(cand.front())){ cand.erase(cand.begin()); }
+    while (cand.size() > 1 && !isEdgeStable(cand.back())){ cand.pop_back(); }
 
     auto isLocalMax = [&](int idx)
     {
@@ -396,7 +398,7 @@ namespace
       double bestH = 0.0;
       for(int i=i0; i<=i1; i++)
       {
-        if(!isLocalMax(i)) continue;
+        if(!isLocalMax(i)){ continue; }
         if(dens(i) > bestH)
         {
           bestH = dens(i);
@@ -420,7 +422,7 @@ namespace
       {
         auto [a, b] = ranges.back();
         ranges.pop_back();
-        if(a > b) continue;
+        if(a > b){ continue; }
 
         int best = scanForPeak(a, b);
         if(best < 0 || dens(best) <= edgeFloorFrac * medPeakHeight) continue;
@@ -431,16 +433,16 @@ namespace
       }
 
       std::sort(found.begin(), found.end());
-      if(prepend) cand.insert(cand.begin(), found.begin(), found.end());
-      else cand.insert(cand.end(), found.begin(), found.end());
+      if(prepend){ cand.insert(cand.begin(), found.begin(), found.end()); }
+      else{ cand.insert(cand.end(), found.begin(), found.end()); }
     };
 
     //! Search between first grid point and first peak and the last peak and last grid point
     //! for any additional peaks that may have been missed (searching for laminations).
     if(!cand.empty())
     {
-      if(cand.front() > 0) scanRangeForPeaks(0, cand.front() - 1, true);
-      if(cand.back() < ngrid - 1) scanRangeForPeaks(cand.back() + 1, ngrid - 1, false);
+      if(cand.front() > 0){ scanRangeForPeaks(0, cand.front() - 1, true); }
+      if(cand.back() < ngrid - 1){ scanRangeForPeaks(cand.back() + 1, ngrid - 1, false); }
     }
 
     //! Backstop: collapse any two candidates sitting closer together than mergeFrac of this
@@ -468,7 +470,7 @@ namespace
         {
           if (cand[ci] - merged.back() < mergeGap)
           {
-            if (dens(cand[ci]) > dens(merged.back())) merged.back() = cand[ci];
+            if (dens(cand[ci]) > dens(merged.back())){ merged.back() = cand[ci]; }
             mergedAny = true;
           }
           else
@@ -483,8 +485,8 @@ namespace
           const int wrapGap = (merged.front() + ngrid) - merged.back();
           if (wrapGap < mergeGap)
           {
-            if (dens(merged.front()) > dens(merged.back())) merged.erase(merged.end() - 1);
-            else merged.erase(merged.begin());
+            if (dens(merged.front()) > dens(merged.back())){ merged.erase(merged.end() - 1); }
+            else{ merged.erase(merged.begin()); }
             mergedAny = true;
           }
         }
@@ -517,23 +519,23 @@ namespace
     int bestMatches = -1;
     for(size_t idx=0; idx<peaks.size(); idx++)
     {
-      if(fabs(circDiff(peaks[idx], edge, petal)) > searchGate) continue;
+      if(fabs(circDiff(peaks[idx], edge, petal)) > searchGate){ continue; }
 
       int nMatched = 0, nChecked = 0;
       for(int j=std::max(0, rowIdx - rowHalfWindow);
           j<=std::min(nrow - 1, rowIdx + rowHalfWindow);
           j++)
       {
-        if(j == rowIdx || peaksPerRow[j].empty()) continue;
+        if(j == rowIdx || peaksPerRow[j].empty()){ continue; }
         nChecked++;
         double best = 1e9;
         for(double q : peaksPerRow[j])
         {
           best = std::min(best, fabs(circDiff(peaks[idx], q, petal)));
         }
-        if(best < matchTol) nMatched++;
+        if(best < matchTol){ nMatched++; }
       }
-      if(nChecked == 0) continue;
+      if(nChecked == 0){ continue; }
       if((double) nMatched / nChecked >= matchFrac && nMatched > bestMatches)
       {
         bestMatches = nMatched;
@@ -563,7 +565,7 @@ namespace
     snap.pos.assign(nrow, 0.0);
     for(int i=0; i<nrow; i++)
     {
-      if(edgeIdx[i] < 0) continue;
+      if(edgeIdx[i] < 0){ continue; }
       snap.confirmed[i] = true;
       snap.pos[i] = peaksPerRow[i][edgeIdx[i]];
     }
@@ -599,8 +601,8 @@ namespace
       double frac = double(row - below) / (double)(above - below);
       return { snap.pos[below] + frac * circDiff(snap.pos[above], snap.pos[below], petal), true};
     }
-    if(below >= 0) return {snap.pos[below], true};
-    if(above >= 0) return {snap.pos[above], true};
+    if(below >= 0){ return {snap.pos[below], true}; }
+    if(above >= 0){ return {snap.pos[above], true}; }
     return {0.0, false};
   }
 
@@ -608,7 +610,7 @@ namespace
   //! row-local scale for the recovery floor below.
   double medianPeakDensity(const Stripes &stripeRow, const std::vector<double> &peaks)
   {
-    if(peaks.empty() || stripeRow.grid.size() < 2) return 0.0;
+    if(peaks.empty() || stripeRow.grid.size() < 2){ return 0.0; }
     const double dp = stripeRow.grid[1] - stripeRow.grid[0];
     std::vector<double> h;
     for(double p : peaks)
@@ -640,7 +642,7 @@ namespace
       }
     }
 
-    if(stripeRow.grid.size() < 2) return false;
+    if(stripeRow.grid.size() < 2){ return false; }
     const double dp = stripeRow.grid[1] - stripeRow.grid[0];
     const int half = std::max(1, (int) (matchTol / dp));
     const int ngrid = (int) stripeRow.grid.size();
@@ -656,7 +658,7 @@ namespace
         c0 = b;
       }
     }
-    if(c0 < 0) return false;
+    if(c0 < 0){ return false; }
 
     int bestBin = -1;
     double bestH = 0.0;
@@ -669,7 +671,7 @@ namespace
         bestBin = b;
       }
     }
-    if(bestBin < 0 || bestH < absFloor) return false;
+    if(bestBin < 0 || bestH < absFloor){ return false; }
 
     double newPeakPos = stripeRow.grid[bestBin];
 
@@ -708,8 +710,8 @@ namespace
     double rChi2;
     bool operator<(const Cost &o) const
     {
-      if (nMismatch != o.nMismatch) return nMismatch < o.nMismatch;
-      if (gapChi2 != o.gapChi2) return gapChi2 < o.gapChi2;
+      if (nMismatch != o.nMismatch){ return nMismatch < o.nMismatch; }
+      if (gapChi2 != o.gapChi2){ return gapChi2 < o.gapChi2; }
       return rChi2 < o.rChi2;
     }
     Cost operator+(const Cost &o) const
@@ -760,7 +762,7 @@ namespace
     best = MatchResult();
     if(nr == 0 || nt == 0 || nr > nt)
     {
-      if(verbosity) std::cout << "rowmatch: " << nr << " reco rows vs " << nt << " truth rows -- cannot align" << std::endl;
+      if(verbosity){ std::cout << "rowmatch: " << nr << " reco rows vs " << nt << " truth rows -- cannot align" << std::endl; }
       return;
     }
 
@@ -802,7 +804,7 @@ namespace
       }
     }
 
-    if(bestJ < 0) return;
+    if(bestJ < 0){ return; }
 
     std::vector<int> truthOf(nr);
     int i = nr - 1, j = bestJ;
@@ -815,11 +817,11 @@ namespace
     }
 
     std::vector<bool> used(nt, false);
-    for(int t : truthOf) used[t] = true;
+    for(int t : truthOf){ used[t] = true; }
     std::vector<int> skipped;
     for(int t=0; t<nt; t++)
     {
-      if(!used[t]) skipped.push_back(t);
+      if(!used[t]){ skipped.push_back(t); }
     }
 
     best = {truthOf, skipped, bestCost};
@@ -848,13 +850,13 @@ namespace
     }
 
     std::vector<int> iphiAssignment(peaks.size(), -1);
-    if(!haveLam || peaksToUse.empty()) return iphiAssignment;
+    if(!haveLam || peaksToUse.empty()){ return iphiAssignment; }
 
     for(auto &p : peaksToUse)
     {
       p = p - lamPhi + lo;
-      while(p < lo) p += petal;
-      while(p >= lo + petal) p -= petal;
+      while(p < lo){ p += petal; }
+      while(p >= lo + petal){ p -= petal; }
     }
 
     std::vector<std::size_t> phiSortIdx(peaksToUse.size());
@@ -979,7 +981,7 @@ namespace
       }
 
       hRADC->Draw();
-      for(int i=0; i<nrow; i++) hRADCrow[i]->Draw("HIST SAME");
+      for(int i=0; i<nrow; i++){ hRADCrow[i]->Draw("HIST SAME"); }
 
 
       for (double b : rowResult.bound)
@@ -1055,7 +1057,7 @@ namespace
       //! same point on the circle -- one lamination per petal, found by a single search.
       int lamIdx = findLaminationNear(peaksPerRow, i, lo, lamSearchGate, lamRowHalfWindow,
                                       lamMatchTol, lamMatchFrac, petal);
-      if (lamIdx >= 0) isLamRow[i][lamIdx] = true;
+      if (lamIdx >= 0){ isLamRow[i][lamIdx] = true; }
       lamIdxPerRow[i] = lamIdx;
 
       recoN[i] = (int) std::count(isLamRow[i].begin(), isLamRow[i].end(), false);
@@ -1128,7 +1130,7 @@ namespace
     // ---- step 3: match to truth R pattern using number of stripes in each row (uses gaps and dR as backups) ----
     if(truth.empty())
     {
-      if(verbosity) std::cout << "no truth table for " << sname << ", skipping matching" << std::endl;
+      if(verbosity){ std::cout << "no truth table for " << sname << ", skipping matching" << std::endl; }
       return keyMatch;
     }
 
@@ -1136,7 +1138,7 @@ namespace
     matchDP(rowR, recoN, truth, sigR, sigGap, best, verbosity);
     if(best.truthOf.empty())
     {
-      if(verbosity) std::cout << "no good matching found for " << sname << ", returning without matches" << std::endl;
+      if(verbosity){ std::cout << "no good matching found for " << sname << ", returning without matches" << std::endl; }
       return keyMatch;
     }
 
@@ -1148,7 +1150,7 @@ namespace
       std::cout << "  best rChi2      " << best.dp.rChi2     << "  (last resort)" << std::endl;
 
       std::cout << "  unmatched truth rows:";
-      if (best.skipped.empty()) std::cout << " none";
+      if (best.skipped.empty()){ std::cout << " none"; }
       for (int t : best.skipped)
       {
         std::cout << " " << t << " (R=" << truth[t].R << ")";
@@ -1188,14 +1190,14 @@ namespace
       bool haveRealPeak = false, allAssigned = true;
       for(size_t k=0; k<isLamRow[i].size(); k++)
       {
-        if(isLamRow[i][k]) continue;
+        if(isLamRow[i][k]){ continue; }
         haveRealPeak = true;
-        if(iphiAssignment[k] < 0) allAssigned = false;
+        if(iphiAssignment[k] < 0){ allAssigned = false; }
       }          
       if(haveRealPeak)
       {
         nRowsWithRealPeaks++;
-        if(allAssigned) nRowsFullyAligned++;
+        if(allAssigned){ nRowsFullyAligned++; }
       }
       
       if(verbosity > 1)
@@ -1209,7 +1211,7 @@ namespace
       iphiAssignments.push_back(iphiAssignment);
     }
 
-    if(verbosity) std::cout << "  phi alignment: " << nRowsFullyAligned << "/" << nRowsWithRealPeaks << " rows fully assigned" << std::endl;
+    if(verbosity){ std::cout << "  phi alignment: " << nRowsFullyAligned << "/" << nRowsWithRealPeaks << " rows fully assigned" << std::endl; }
 
     // ---- step 5a: per cluster truth assignment ----
     //! For every cluster, find its (row, iphi); lamination never get a phi-slot and never enert
@@ -1236,7 +1238,7 @@ namespace
 
       const int iphi = iphiAssignments[row][peak];
       clusterIphi[ci] = iphi;
-      if(iphi < 0) continue;
+      if(iphi < 0){ continue; }
 
       std::vector<PetalCand> cands;
       cands.reserve(18);
@@ -1254,7 +1256,7 @@ namespace
     std::map<std::pair<int,int>, std::vector<int>> groups;
     for(size_t ci = 0; ci < clusters.size(); ci++)
     {
-      if(clusterIphi[ci] < 0) continue;
+      if(clusterIphi[ci] < 0){ continue; }
       groups[{clusterRow[ci], clusterIphi[ci]}].push_back((int) ci);
     }
 
@@ -1273,8 +1275,8 @@ namespace
         bool gotOne = false;
         for(const auto &c : clusterPetalCands[ci])
         {
-          if(c.dPhi > petal / 2.0) break;
-          if(takenPetals.count(c.petal)) continue;
+          if(c.dPhi > petal / 2.0){ break; }
+          if(takenPetals.count(c.petal)){ continue; }
           resolvedPetal[ci] = c.petal;
           takenPetals.insert(c.petal);
           gotOne = true;
@@ -1283,8 +1285,8 @@ namespace
         if(!gotOne)
         {
           bool haveValidCandidate = !clusterPetalCands[ci].empty() && clusterPetalCands[ci].front().dPhi <= petal / 2.0;
-          if(haveValidCandidate) nLostToConflict++;
-          else nNoPetal++;
+          if(haveValidCandidate){ nLostToConflict++; }
+          else{ nNoPetal++; }
         }
       }
     }
@@ -1329,6 +1331,7 @@ int LaserClusterTruthMatcher::getNodes(PHCompositeNode *topNode)
   m_laserClusterHelper.set_useZ(false);
   m_laserClusterHelper.set_useDouble(true);
   m_laserClusterHelper.set_useGlobal(m_useGlobal);
+  m_laserClusterHelper.set_useGarfield(m_usePHGarfieldDistortions);
   if(m_usePHGarfieldDistortions)
   {
     m_laserClusterHelper.set_garfield_cmvoltage(m_garfield_cmvoltage);
@@ -1354,13 +1357,15 @@ int LaserClusterTruthMatcher::InitRun(PHCompositeNode *topNode)
   for(int side=0; side<2; side++)
   {
     m_truthRowPatterns[side] = buildTruthRowPattern(*m_cdbttree, side);
+    m_truthRows[side].clear();
     for(int row=0; row<(int)m_truthRowPatterns[side].size(); row++)
     {
       TruthRow newRow;
       unsigned int truthIndex = (side ? 18 : 0)*10000 + (row*100) + 0;
       newRow.R = m_cdbttree->GetDoubleValue(truthIndex, "truthR");
-      newRow.dphi = m_truthRowPatterns[side][row].stripePhi[1] - m_truthRowPatterns[side][row].stripePhi[0];
-      newRow.nstripes = m_truthRowPatterns[side][row].stripePhi.size();
+      const auto &sp = m_truthRowPatterns[side][row].stripePhi;
+      newRow.dphi = (sp.size() >= 2) ? sp[1] - sp[0] : -1.0;
+      newRow.nstripes = static_cast<int>(sp.size());
 
       m_truthRows[side].push_back(newRow);
     }
@@ -1387,8 +1392,8 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode * /*topNode*/)
     int side = TpcDefs::getSide(cmkey);
 
     Acts::Vector3 pos;
-    if(m_usePHGarfieldDistortions) pos = m_laserClusterHelper.getClusterCentroidWithPHGarfield(cmclus);
-    else pos = m_laserClusterHelper.getClusterCentroid(cmclus);
+    if(m_usePHGarfieldDistortions){ pos = m_laserClusterHelper.getClusterCentroidWithPHGarfield(cmclus); }
+    else{ pos = m_laserClusterHelper.getClusterCentroid(cmclus); }
     if(pos.hasNaN())
     {
       continue;

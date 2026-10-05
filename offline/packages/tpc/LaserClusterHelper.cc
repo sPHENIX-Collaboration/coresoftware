@@ -92,7 +92,7 @@ Acts::Vector3 LaserClusterHelper::getHitPosition(TrkrDefs::hitsetkey hitsetkey, 
 
     if(!m_tGeometry || !m_geom_container)
     {
-        if(Verbosity()) std::cout << "no ACTS geometry or TPC Geom container" << std::endl;
+        if(Verbosity()){ std::cout << "no ACTS geometry or TPC Geom container" << std::endl; }
         return invalid;
     }
 
@@ -102,7 +102,7 @@ Acts::Vector3 LaserClusterHelper::getHitPosition(TrkrDefs::hitsetkey hitsetkey, 
     PHG4TpcGeom *layer_geom = m_geom_container->GetLayerCellGeom(layer);
     if(!layer_geom)
     {
-        if(Verbosity()) std::cout << "no layer geometry" << std::endl;
+        if(Verbosity()){ std::cout << "no layer geometry" << std::endl; }
         return invalid;
     }
 
@@ -165,7 +165,7 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroid(LaserCluster* cluster) cons
             const Acts::Vector3 hitCoords = getHitPosition(hit.hitsetkey, hit.hitkey);
             if(hitCoords.hasNaN())
             {
-                if(Verbosity()) std::cout << "double hit has NaN" << std::endl;
+                if(Verbosity()){ std::cout << "double hit has NaN" << std::endl; }
                 continue;
             }
 
@@ -182,7 +182,7 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroid(LaserCluster* cluster) cons
             const Acts::Vector3 hitCoords = getHitPosition(hit.hitsetkey, hit.hitkey);
             if(hitCoords.hasNaN())
             {
-                if(Verbosity()) std::cout << "regular hit has NaN" << std::endl;
+                if(Verbosity()){ std::cout << "regular hit has NaN" << std::endl; }
                 continue;
             }
 
@@ -193,7 +193,7 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroid(LaserCluster* cluster) cons
 
     if(adcSum <= 0.0)
     {
-        if(Verbosity()) std::cout << "ADC sum <= 0" << std::endl;
+        if(Verbosity()){ std::cout << "ADC sum <= 0" << std::endl; }
         return invalid;
     }
 
@@ -274,7 +274,8 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroidWithPHGarfield(LaserCluster*
         return invalid;
     }
 
-    if (cluster->getNhits() < 1)
+    const unsigned int nhits = m_useDouble ? cluster->getNhitsDouble() : cluster->getNhits();
+    if (nhits < 1)
     {
         return invalid;
     }
@@ -291,8 +292,8 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroidWithPHGarfield(LaserCluster*
         centroid = m_tGeometry->transformTpcWorldToEnvelope(centroid);
     }
 
-    const LaserClusterHitInfo hit = cluster->getHit(0);
-    const int side = TpcDefs::getSide(hit.hitsetkey);
+    const TrkrDefs::hitsetkey hsk = m_useDouble ? cluster->getHitDouble(0).hitsetkey : cluster->getHit(0).hitsetkey;
+    const int side = TpcDefs::getSide(hsk);
 
     Acts::Vector3 readoutPos(centroid[0], centroid[1], (side == 1 ? 1.0 : -1.0)*m_tGeometry->get_max_driftlength());
     if (m_useGlobal)

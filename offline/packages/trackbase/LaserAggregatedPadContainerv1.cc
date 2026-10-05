@@ -47,7 +47,7 @@ void LaserAggregatedPadContainerv1::addPad(const padkey::key pad, LaserAggregate
 
 void LaserAggregatedPadContainerv1::removePad(padkey::key pad)
 { 
-  auto padToRem = findPad(pad);
+  auto *padToRem = findPad(pad);
   delete padToRem;
 
   m_padMap.erase(pad); 
@@ -71,7 +71,7 @@ unsigned int LaserAggregatedPadContainerv1::size() const
 
 void LaserAggregatedPadContainerv1::merge(const LaserAggregatedPadContainer *other)
 {
-  if (!other || other == this) return;
+  if (!other || other == this){ return; }
 
   const auto range = other->getPads();
   auto hint = m_padMap.begin();
@@ -86,7 +86,7 @@ void LaserAggregatedPadContainerv1::merge(const LaserAggregatedPadContainer *oth
     else
     {
       auto *clone = dynamic_cast<LaserAggregatedPad*>(iter->second->CloneMe());
-      if (clone) hint = m_padMap.emplace_hint(hint, iter->first, clone);
+      if (clone){ hint = m_padMap.emplace_hint(hint, iter->first, clone); }
     }
   }
 

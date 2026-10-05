@@ -38,7 +38,7 @@ int LaserAggregatedPadv1::isValid() const
 
 void LaserAggregatedPadv1::CopyFrom( const LaserAggregatedPad& source )
 {
-  if( this == &source ) return;
+  if( this == &source ){ return; }
   LaserAggregatedPad::CopyFrom( source );
   m_adc   = source.getAdc();
   m_nHits = source.getNHits();
