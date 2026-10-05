@@ -164,6 +164,11 @@ class Tpc_PolyClusterizer : public SubsysReco
 
   void setUsePHGarfieldDefaults(bool v) { m_usePHGarfieldDefaults = v; }
 
+  void setIsNonDistortedMC(bool v)
+  {
+    m_isNonDistortedMC = v;
+  }
+
  private:
   struct Point
   {
@@ -285,6 +290,7 @@ class Tpc_PolyClusterizer : public SubsysReco
   bool m_frameChargeScaleOverride{false};
   bool m_fieldCageVoltageOverride{false};
   bool m_useBCOkEffsOverride{false};
+  bool m_isNonDistortedMC{false};
 
   std::array<double, 3> m_tpcMove{{0.0, 0.0, 0.0}};                                             //{{-0.16775, -0.0337, -0.71365}};
   std::array<std::array<double, 3>, 2> m_tpcRotations{{{{0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}}}};  //{{{{0.0, 0.01485 / 10.0, 0.0}}, {{0.0298 / 8.0, 0.0, 0.0}}}};
