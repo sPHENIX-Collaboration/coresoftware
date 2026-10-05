@@ -161,9 +161,7 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroid(LaserCluster* cluster) cons
         const unsigned int nhits = cluster->getNhitsDouble();
         for(unsigned int i=0; i<nhits; ++i)
         {
-            std::cout << "doing double for hit " << i << std::endl;
             const LaserClusterHitInfoDouble hit= cluster->getHitDouble(i);
-            std::cout << "got double hit" << std::endl;
             const Acts::Vector3 hitCoords = getHitPosition(hit.hitsetkey, hit.hitkey);
             if(hitCoords.hasNaN())
             {
@@ -180,9 +178,7 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroid(LaserCluster* cluster) cons
        const unsigned int nhits = cluster->getNhits();
         for(unsigned int i=0; i<nhits; ++i)
         {
-            std::cout << "doing regular for hit " << i << std::endl;
             const LaserClusterHitInfo hit= cluster->getHit(i);
-            std::cout << "got regular hit" << std::endl;
             const Acts::Vector3 hitCoords = getHitPosition(hit.hitsetkey, hit.hitkey);
             if(hitCoords.hasNaN())
             {

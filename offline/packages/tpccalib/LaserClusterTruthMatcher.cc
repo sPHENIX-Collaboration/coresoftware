@@ -352,7 +352,7 @@ namespace
 
     //! Check first and last peaks to ensure they don't continue rising on either side (peak split by petal wrapping)
     const int checkSamples = 8;  // samples checked on each side to confirm a local peak
-    auto isLocalPeak = [&](int idx)
+    auto isEdgeStable = [&](int idx)
     {
       for (int k = 1; k <= checkSamples; ++k)
       {
@@ -369,8 +369,13 @@ namespace
     };
 
     //! Iteratively remove first or last peak if it is rising toward wrap boundary
-    while (cand.size() > 1 && !isLocalPeak(cand.front())) cand.erase(cand.begin());
-    while (cand.size() > 1 && !isLocalPeak(cand.back())) cand.pop_back();
+    while (cand.size() > 1 && !isEdgeStable(cand.front())) cand.erase(cand.begin());
+    while (cand.size() > 1 && !isEdgeStable(cand.back())) cand.pop_back();
+
+    auto isLocalMax = [&](int idx)
+    {
+      return dens(idx) >= dens(idx - 1) && dens(idx) >= dens(idx + 1);
+    };
 
     double medPeakHeight = 0.0;
     if(!cand.empty())
@@ -391,7 +396,7 @@ namespace
       double bestH = 0.0;
       for(int i=i0; i<=i1; i++)
       {
-        if(!isLocalPeak(i)) continue;
+        if(!isLocalMax(i)) continue;
         if(dens(i) > bestH)
         {
           bestH = dens(i);
@@ -436,6 +441,57 @@ namespace
     {
       if(cand.front() > 0) scanRangeForPeaks(0, cand.front() - 1, true);
       if(cand.back() < ngrid - 1) scanRangeForPeaks(cand.back() + 1, ngrid - 1, false);
+    }
+
+    //! Backstop: collapse any two candidates sitting closer together than mergeFrac of this
+    //! row's stripe spacing into one, keeping the taller. Guards against a single physical
+    //! stripe getting split into two nearby candidates (KDE under-smoothing, or a shoulder that
+    //! independently clears the isLocalMax/floor tests above) regardless of what produced it --
+    //! including a lamination sitting right at the petal wrap seam, whose two flanks land near
+    //! index 0 and index ngrid-1: isEdgeStable above only trims the walk-found candidates, and
+    //! scanRangeForPeaks can then re-add the other flank as a seemingly independent "new" peak
+    //! near phi~0 while recovering missed laminations further in. So this pass treats cand as
+    //! circular: it merges adjacent-in-index pairs first, then checks the wrap gap from the
+    //! last candidate back around to the first and merges that too if it's equally close.
+    if (recoDphi > 0.0 && cand.size() > 1)
+    {
+      constexpr double mergeFrac = 0.3;
+      const int mergeGap = std::max(1, (int) std::round(mergeFrac * recoDphi / dp));
+
+      bool mergedAny = true;
+      while (mergedAny && cand.size() > 1)
+      {
+        mergedAny = false;
+
+        std::vector<int> merged;
+        merged.push_back(cand.front());
+        for (size_t ci = 1; ci < cand.size(); ++ci)
+        {
+          if (cand[ci] - merged.back() < mergeGap)
+          {
+            if (dens(cand[ci]) > dens(merged.back())) merged.back() = cand[ci];
+            mergedAny = true;
+          }
+          else
+          {
+            merged.push_back(cand[ci]);
+          }
+        }
+
+        //! Circular wrap: gap from the last candidate forward (mod ngrid) to the first.
+        if (merged.size() > 1)
+        {
+          const int wrapGap = (merged.front() + ngrid) - merged.back();
+          if (wrapGap < mergeGap)
+          {
+            if (dens(merged.front()) > dens(merged.back())) merged.erase(merged.end() - 1);
+            else merged.erase(merged.begin());
+            mergedAny = true;
+          }
+        }
+
+        cand = std::move(merged);
+      }
     }
 
 
@@ -574,7 +630,7 @@ namespace
   //! if it clears absFloor, inserts it as a NEW peak -- recovers a lamination that was fully abosorbed into
   //! a taller neighbour and never became a distinct peak
   bool recoverLamination(std::vector<double> &peaks, std::vector<bool> &isLam, const Stripes &stripeRow,
-                          double predicted, double matchTol, double petal, double absFloor)
+                          double predicted, double matchTol, double petal, double absFloor, double recoDphi)
   {
     for(size_t k=0; k<peaks.size(); k++)
     {
@@ -617,7 +673,31 @@ namespace
     if(bestBin < 0 || bestH < absFloor) return false;
 
     double newPeakPos = stripeRow.grid[bestBin];
+
+    //! The rescan found the lamination at the cross-row-consistent position, but this row can
+    //! also have a separate secondary peak just next to it (e.g. a distortion-shifted shoulder of
+    //! the lamination) that findStripes kept as an ordinary stripe. That peak is part of the same
+    //! physical feature, so merge it INTO the lamination: drop any existing peak within mergeFrac
+    //! of this row's stripe spacing of the recovered lamination, then insert the lamination at the
+    //! rescan position. Clusters that were nearest the dropped peak will then fall to the lamination.
+    if (recoDphi > 0.0)
+    {
+      constexpr double mergeFrac = 0.3;
+      const double mergeTol = mergeFrac * recoDphi;
+      for(size_t k=peaks.size(); k-- > 0;)
+      {
+        //! never absorb a peak already flagged as the other edge's lamination (the two edges
+        //! are circularly adjacent across the wrap)
+        if(!isLam[k] && fabs(circDiff(peaks[k], newPeakPos, petal)) < mergeTol)
+        {
+          peaks.erase(peaks.begin() + k);
+          isLam.erase(isLam.begin() + k);
+        }
+      }
+    }
+
     size_t insertAt = std::lower_bound(peaks.begin(), peaks.end(), newPeakPos) - peaks.begin();
+
     peaks.insert(peaks.begin() + insertAt, newPeakPos);
     isLam.insert(isLam.begin() + insertAt, true);
     return true;
@@ -922,7 +1002,7 @@ namespace
     {
       hDPhi[i] = new TH1D(std::format("hDPhi_{}_row{}",sname,i).c_str(),
                           std::format("#Delta#phi, {} row {};#Delta#phi [rad]",sname, i).c_str(),
-                          400, 0, petal);
+                          1000, 0, petal);
 
       std::sort(rowClus[i].begin(), rowClus[i].end(),
                 [](const Cluster &a, const Cluster &b){ return a.phi < b.phi; });
@@ -1013,7 +1093,7 @@ namespace
         {
           double floor = lamRecoveryFloorFrac * medianPeakDensity(stripes[i], peaksPerRow[i]);
           recoverLamination(peaksPerRow[i], isLamRow[i], stripes[i], pred,
-                                lamRecoveryMatchTol, petal, floor);
+                                lamRecoveryMatchTol, petal, floor, recoDphi[i]);
           if(verbosity)
           {
             std::cout << "  row " << i << " front lamination recovered near " << pred << std::endl;
@@ -1027,7 +1107,7 @@ namespace
         {
           double floor = lamRecoveryFloorFrac * medianPeakDensity(stripes[i], peaksPerRow[i]);
           recoverLamination(peaksPerRow[i], isLamRow[i], stripes[i], pred,
-                                lamRecoveryMatchTol, petal, floor);
+                                lamRecoveryMatchTol, petal, floor, recoDphi[i]);
           if(verbosity)
           {
             std::cout << "  row " << i << " back lamination recovered near " << pred << std::endl;
@@ -1095,7 +1175,7 @@ namespace
       std::cout << std::endl;
     }
 
-    if(verbosity > 2)
+    if(verbosity > 1)
     {
       for (int i = 0; i < nrow; i++)
       {
