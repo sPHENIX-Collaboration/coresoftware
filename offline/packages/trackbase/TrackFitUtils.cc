@@ -99,14 +99,13 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
 
   return line;
 }
-Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const TrkrDefs::cluskey& key,
-                                                         TrkrCluster* cluster, ActsGeometry* geometry, float& xyslope, float& xyint, float& yzslope, float& yzint)
+
+Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(Surface surf, ActsGeometry* geometry,
+							 float& xyslope, float& xyint, float& yzslope, float& yzint)
 {
   Acts::Vector3 intersection(std::numeric_limits<float>::quiet_NaN(),
                              std::numeric_limits<float>::quiet_NaN(),
                              std::numeric_limits<float>::quiet_NaN());
-
-  auto surf = geometry->maps().getSurface(key, cluster);
 
   //! Take two random x points and calculate y and z on the line to find 2
   //! 3D points with which to calculate the 3D line

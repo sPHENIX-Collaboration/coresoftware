@@ -23,11 +23,12 @@
 
 class PHCompositeNode;
 class RawClusterContainer;
-class TowerInfoContainer;
 class RawTowerGeomContainer;
 class SvtxTrackMap;
 class SvtxTrack;
 class SvtxVertexMap;
+class TowerInfoContainer;
+class TrkrClusterContainer;
 
 /**
  * This class takes final fitted tracks from the Acts track fitting
@@ -52,34 +53,49 @@ class PHActsTrackProjection : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-  void useConstField(bool field) { m_constField = field; }
   void setConstFieldVal(float b) { m_constFieldVal = b; }
 
   /// Set an arbitrary radius to project to, in cm
   void setLayerRadius(SvtxTrack::CAL_LAYER layer, float rad)
   { m_caloRadii[layer] = rad; }
 
+  /// set the cluster container name
+  /** actual clusters are needed when extrapolating forward from the TPC,
+   * in order to get the right subsurface from which to extrapolate the track
+   */
+  void setTrkrClusterContainerName(const std::string& name) { m_clusterContainerName = name; }
+
+  // extrapolation mode
+  enum class ExtrapolationMode
+  {
+    Legacy, // the default extrapolation mode, using fitter track parameters at origin
+    Forward // uses the track state vector closest to the requested layer, before
+  };
+
+  /// extrapolation mode
+  void setExtrapolationMode( const ExtrapolationMode value )
+  { m_extrapolation_mode = value; }
+
  private:
   int getNodes(PHCompositeNode *topNode);
   int projectTracks(SvtxTrack::CAL_LAYER);
 
-  /// Propagate the fitted track parameters to a surface with Acts
-  BoundTrackParamResult propagateTrack(
-      const Acts::BoundTrackParameters &params,
-      const SurfacePtr &targetSurf);
+  // project a give track to all available calorimeter layers
+  void projectTrack( SvtxTrack* ) const;
 
   /// Make Acts::CylinderSurface objects corresponding to the calos
-  int makeCaloSurfacePtrs(PHCompositeNode *topNode);
+  int makeCaloSurfacePtrs(PHCompositeNode*);
 
   /// Update the SvtxTrack object with the track-cluster match
-  void updateSvtxTrack(const ActsPropagator::BoundTrackParamPair &params,
-                       SvtxTrack *svtxTrack,
-                       SvtxTrack::CAL_LAYER);
+  void updateSvtxTrack(const ActsPropagator::BoundTrackParamPair&, SvtxTrack*, SvtxTrack::CAL_LAYER) const;
 
   /// Objects containing the Acts track fit results
   ActsGeometry *m_tGeometry = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
+
+  /// cluster container
+  TrkrClusterContainer *m_clusterContainer = nullptr;
 
   /// Objects to hold calorimeter information.
   std::map<SvtxTrack::CAL_LAYER, SurfacePtr> m_caloSurfaces;
@@ -88,11 +104,15 @@ class PHActsTrackProjection : public SubsysReco
   /// Results are written to the SvtxTrack based on the provided CAL_LAYER
   std::map<SvtxTrack::CAL_LAYER, float> m_caloRadii;
 
-  /// use constant field
-  bool m_constField = true;
-
   /// constant field value
   float m_constFieldVal = 1.4;
+
+  // name of TRKR_CLUSTER container
+  std::string m_clusterContainerName = "TRKR_CLUSTER";
+
+  /// extrapolation mode
+  ExtrapolationMode m_extrapolation_mode = ExtrapolationMode::Legacy;
+
 };
 
 #endif

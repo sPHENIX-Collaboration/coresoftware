@@ -146,10 +146,10 @@ int CosmicTrackQA::process_event(PHCompositeNode *topNode)
       i++;
       auto *cluster = clustermap->findCluster(ckey);
 
-      auto intersection = TrackFitUtils::surface_3Dline_intersection(ckey, cluster, geometry,
-                                                                     std::get<0>(lineFitParams), std::get<1>(lineFitParams), std::get<2>(lineFitParams), std::get<3>(lineFitParams));
-
       auto surf = geometry->maps().getSurface(ckey, cluster);
+      
+      auto intersection = TrackFitUtils::surface_3Dline_intersection(surf, geometry,
+                                                                     std::get<0>(lineFitParams), std::get<1>(lineFitParams), std::get<2>(lineFitParams), std::get<3>(lineFitParams));
 
       Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext(), Acts::Vector3(0, 0, 0), Acts::Vector3(0, 0, 0));
       float statelx = std::numeric_limits<float>::quiet_NaN();
