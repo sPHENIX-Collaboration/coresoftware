@@ -15,9 +15,14 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-#include <TFile.h>
+
+#include <TCanvas.h>
+#include <TColor.h>
+#include <TGraph.h>
 #include <TH1D.h>
+#include <TLine.h>
 #include <TMath.h>
+#include <TStyle.h>
 
 #include <algorithm>
 #include <cmath>
@@ -830,7 +835,7 @@ namespace
     return (unsigned int) (pp*10000 + row*100 + stripeIdx);
   }
 
-  std::map<TrkrDefs::cluskey, std::pair<int,bool>> matchSide(const std::vector<Cluster>& clusters, CDBTTree &cdbttree, const std::map<int, TruthRowPattern> &truthRowPatterns, const std::vector<TruthRow> &truth, int side, TFile *QAFile, int verbosity)
+  std::map<TrkrDefs::cluskey, std::pair<int,bool>> matchSide(const std::vector<Cluster>& clusters, CDBTTree &cdbttree, const std::map<int, TruthRowPattern> &truthRowPatterns, const std::vector<TruthRow> &truth, int side, std::string QABase, int verbosity)
   {
     const char *sname = side ? "North" : "South";
     const double lo = phiPetalLo[side];
@@ -860,13 +865,56 @@ namespace
 
     // ---- assign clusters to rows ----
     std::vector<std::vector<Cluster>> rowClus(nrow);
-    for (const auto &c : clusters) rowClus[rowOf(c.R, rowResult.bound)].push_back(c);
-
-    // ---- pass 1: stripe spacing per rof from the neighbour-gap spectrum ----
-    if(QAFile)
+    for (const auto &c : clusters)
     {
-      QAFile->cd();
+      rowClus[rowOf(c.R, rowResult.bound)].push_back(c);
     }
+
+    if(!QABase.empty())
+    {
+      auto palette = TColor::GetPalette();
+      const Int_t nColors = palette.GetSize();
+
+      std::vector<TH1D *> hRADCrow(nrow);
+      TCanvas *c1 = new TCanvas();
+      gStyle->SetOptStat(0);
+      TH1D *hRADC = new TH1D(std::format("hRADC_{}", sname).c_str(),
+                        std::format("R of {} ADC-Weighted Aggregated Clusters;R [cm]",
+                                    sname).c_str(),
+                        400, 28, 78);      
+      for(int i=0; i<nrow; i++)
+      {
+        hRADCrow[i] = new TH1D(std::format("hRADC_{}_row{}", sname, i).c_str(),
+                        std::format("R of {} ADC-Weighted Aggregated Clusters;R [cm]",
+                                    sname).c_str(),
+                        400, 28, 78);
+        const Int_t code = palette.At(i * (nColors / std::max(nrow, 1)));
+        hRADCrow[i]->SetLineColor(code);
+        hRADCrow[i]->SetFillColor(code);
+
+        for(const auto& c : rowClus[i])
+        {
+          hRADCrow[i]->Fill(c.R, c.adc);
+        }
+
+        hRADC->Add(hRADCrow[i]);
+      }
+
+      hRADC->Draw();
+      for(int i=0; i<nrow; i++) hRADCrow[i]->Draw("HIST SAME");
+
+
+      for (double b : rowResult.bound)
+      {
+        TLine *l = new TLine(b, 0, b, hRADC->GetMaximum());
+        l->SetLineColor(kRed);
+        l->Draw("same");
+      }
+      c1->SaveAs(std::format("{}_RPeaks_{}.pdf",QABase, sname).c_str());
+    }
+
+    // ---- pass 1: stripe spacing per row from the neighbour-gap spectrum ----
+
     std::vector<TH1D *> hDPhi(nrow);
     std::vector<double> recoDphi(nrow, -1.0);
 
@@ -892,13 +940,17 @@ namespace
       }
     }
 
-    if(QAFile)
+    if(!QABase.empty())
     {
-      QAFile->cd();
+      TCanvas *c1 = new TCanvas();
+      c1->SaveAs(std::format("{}_dPhi_{}.pdf[",QABase, sname).c_str());
       for(int i=0; i<nrow; i++)
       {
-        hDPhi[i]->Write();
+        c1->Clear();
+        hDPhi[i]->Draw();
+        c1->SaveAs(std::format("{}_dPhi_{}.pdf",QABase, sname).c_str());
       }
+      c1->SaveAs(std::format("{}_dPhi_{}.pdf]",QABase, sname).c_str());
     }
 
     // ---- pass 2a: stripe peak positions per row, stepping by dPhi ----
@@ -983,6 +1035,33 @@ namespace
         }
       }
       recoN[i] = std::count(isLamRow[i].begin(), isLamRow[i].end(), false);
+    }
+
+    if(!QABase.empty())
+    {
+      TCanvas *c1 = new TCanvas();
+      gStyle->SetOptStat(0);
+      c1->SaveAs(std::format("{}_phiPeaks_{}.pdf[",QABase, sname).c_str());
+      for(int i=0; i<nrow; i++)
+      {
+        TGraph *gr = new TGraph(stripes[i].grid.size(), &stripes[i].grid[0], &stripes[i].density[0]);
+        gr->SetTitle(std::format("{} row {} (R = {:.2f}, spacing = {:.4f}, stripes = {});"
+                              "folded #phi [rad];density",
+                              sname, i, rowR[i], recoDphi[i], recoN[i]).c_str());
+        gr->GetXaxis()->SetRangeUser(lo, lo+petal);
+        gr->SetMarkerStyle(20);
+        gr->SetMarkerSize(0.5);
+        gr->Draw("ALP");
+        for (size_t ip = 0; ip < peaksPerRow[i].size(); ip++)
+        {
+          const double p = peaksPerRow[i][ip];
+          TLine *l = new TLine(p, 0, p, gr->GetHistogram()->GetMaximum());
+          l->SetLineColor(isLamRow[i][ip] ? kRed : kBlue);
+          l->Draw("same");
+        }
+        c1->SaveAs(std::format("{}_phiPeaks_{}.pdf",QABase, sname).c_str());
+      }
+      c1->SaveAs(std::format("{}_phiPeaks_{}.pdf]",QABase, sname).c_str());
     }
 
     // ---- step 3: match to truth R pattern using number of stripes in each row (uses gaps and dR as backups) ----
@@ -1236,12 +1315,6 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode * /*topNode*/)
   // needs to run once per side per call here -- there is no meaningful
   // "next event" for this data
 
-  TFile *QAFile = nullptr;
-  if(m_QAName != "")
-  {
-    QAFile = new TFile(m_QAName.c_str(), "RECREATE");
-  }
-
   std::vector<Cluster> clusters[2];
   
   auto clusrange = m_laserClusterContainer->getClusters();
@@ -1268,7 +1341,7 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode * /*topNode*/)
 
   for(int side=0; side<2; side++)
   {
-    std::map<TrkrDefs::cluskey, std::pair<int,bool>> matched = matchSide(clusters[side], *m_cdbttree, m_truthRowPatterns[side], m_truthRows[side], side, QAFile, Verbosity());
+    std::map<TrkrDefs::cluskey, std::pair<int,bool>> matched = matchSide(clusters[side], *m_cdbttree, m_truthRowPatterns[side], m_truthRows[side], side, m_QABase, Verbosity());
     for(auto &[key, matchedIndex] : matched)
     {
       LaserCluster *clus = m_laserClusterContainer->findCluster(key);
@@ -1280,10 +1353,6 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode * /*topNode*/)
     }
   }
 
-  if(QAFile)
-  {
-    QAFile->Close();
-  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

@@ -418,7 +418,10 @@ int LaserAggregatedClusterizer::InitRun(PHCompositeNode *topNode)
       continue;
     }
 
-
+    if(Verbosity()>1)
+    {
+      std::cout << "working on segement " << nMerged << "/" << m_segfiles.size() << std::endl;
+    }
 
     LaserAggregatedPadContainer *seg = findNode::getClass<LaserAggregatedPadContainer>(scratch, m_padContainerNodeName);
     if (seg)
@@ -588,11 +591,11 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
 
       if(m_QAName != "" && geom_container)
       {
-        std::cout << "   working on cluster " << m_clusterlist->size() - 1 << std::endl;
+        if(Verbosity() > 2) std::cout << "   working on cluster " << m_clusterlist->size() - 1 << std::endl;
         int side = TpcDefs::getSide(ckey);
         for(int i=0; i<(int)cluster->getNhitsDouble(); i++)
         {
-          std::cout << "      working on hit " << i << std::endl;
+          if(Verbosity() > 2) std::cout << "      working on hit " << i << std::endl;
           LaserClusterHitInfoDouble LCHI = cluster->getHitDouble(i);
           int layer = TrkrDefs::getLayer(LCHI.hitsetkey);
           PHG4TpcGeom *layer_geom = geom_container->GetLayerCellGeom(layer);
@@ -612,7 +615,7 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
 
           int bin = h[side]->AddBin(5, phis, rs);
           h[side]->SetBinContent(bin, LCHI.adc);
-          std::cout << "         added bin " << bin << " to TH2Poly " << (side ? "North" : "South") << " with content " << LCHI.adc << std::endl;
+          if(Verbosity() > 3) std::cout << "         added bin " << bin << " to TH2Poly " << (side ? "North" : "South") << " with content " << LCHI.adc << std::endl;
         }
       }
 

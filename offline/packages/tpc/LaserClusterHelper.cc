@@ -52,30 +52,33 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
         std::cout << "LaserClusterHelper::loadNodes - TPCGEOMCONTAINER not found on node tree" << std::endl;
     }
 
-    const std::string m_spacechargefieldmap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_EField");
-    const auto kefffile = CDBInterface::instance()->getUrl("Tpc_PolyClusterizer_kEff");
-    if (!kefffile.empty())
+    if(m_useGarfield)
     {
-        auto keffcdbtree = std::make_unique<CDBTTree>(kefffile);
-        keffcdbtree->LoadCalibrations();
-        m_garfield_keffside0 = keffcdbtree->GetSingleFloatValue("keffside0");
-        m_garfield_keffside1 = keffcdbtree->GetSingleFloatValue("keffside1");
-    }
+        const std::string m_spacechargefieldmap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_EField");
+        const auto kefffile = CDBInterface::instance()->getUrl("Tpc_PolyClusterizer_kEff");
+        if (!kefffile.empty())
+        {
+            auto keffcdbtree = std::make_unique<CDBTTree>(kefffile);
+            keffcdbtree->LoadCalibrations();
+            m_garfield_keffside0 = keffcdbtree->GetSingleFloatValue("keffside0");
+            m_garfield_keffside1 = keffcdbtree->GetSingleFloatValue("keffside1");
+        }
 
-    m_phgarfield = std::make_unique<PHGarfield>();
-    m_phgarfield->SetElectricFieldMap(m_spacechargefieldmap);
-    ROOT::Math::XYZVector Northxyz(-0.001, -0.001, 1123.109);
-    ROOT::Math::XYZVector Southxyz(-3.354, -0.673, -1137.382);
-    ROOT::Math::XYZVector center = 0.5 * (Northxyz + Southxyz);
-    center *= 0.1;  // mm to cm
-    m_phgarfield->MoveTpc(center.X(), center.Y(), center.Z());
-    m_phgarfield->RotateTpc(0, 0.001485, 0);
-    m_phgarfield->RotateTpc(0.000298, 0, 0);
-    m_phgarfield->SetCMVoltageDefault(m_garfield_cmvoltage);
-    m_phgarfield->SetZeroField(m_garfield_zerofield);
-    m_phgarfield->SetSpaceChargeScaleSide0(m_garfield_keffside0);
-    m_phgarfield->SetSpaceChargeScaleSide1(m_garfield_keffside1);
-    m_phgarfield->InitRun(topNode);
+        m_phgarfield = std::make_unique<PHGarfield>();
+        m_phgarfield->SetElectricFieldMap(m_spacechargefieldmap);
+        ROOT::Math::XYZVector Northxyz(-0.001, -0.001, 1123.109);
+        ROOT::Math::XYZVector Southxyz(-3.354, -0.673, -1137.382);
+        ROOT::Math::XYZVector center = 0.5 * (Northxyz + Southxyz);
+        center *= 0.1;  // mm to cm
+        m_phgarfield->MoveTpc(center.X(), center.Y(), center.Z());
+        m_phgarfield->RotateTpc(0, 0.001485, 0);
+        m_phgarfield->RotateTpc(0.000298, 0, 0);
+        m_phgarfield->SetCMVoltageDefault(m_garfield_cmvoltage);
+        m_phgarfield->SetZeroField(m_garfield_zerofield);
+        m_phgarfield->SetSpaceChargeScaleSide0(m_garfield_keffside0);
+        m_phgarfield->SetSpaceChargeScaleSide1(m_garfield_keffside1);
+        m_phgarfield->InitRun(topNode);
+    }
     
     
 }
@@ -295,7 +298,7 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroidWithPHGarfield(LaserCluster*
     const LaserClusterHitInfo hit = cluster->getHit(0);
     const int side = TpcDefs::getSide(hit.hitsetkey);
 
-    Acts::Vector3 readoutPos(centroid[0], centroid[1], side == 1 ? 102 : -102);
+    Acts::Vector3 readoutPos(centroid[0], centroid[1], (side == 1 ? 1.0 : -1.0)*m_tGeometry->get_max_driftlength());
     if (m_useGlobal)
     {
         readoutPos = m_tGeometry->transformTpcEnvelopeToWorld(readoutPos);

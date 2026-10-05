@@ -34,6 +34,7 @@ class LaserClusterHelper : public SubsysReco
     void set_useZ(bool use) { m_useZ = use; }
     void set_useGlobal(bool use) { m_useGlobal = use; }
     void set_useDouble(bool use) { m_useDouble = use; }
+    void set_useGarfield(bool use) { m_useGarfield = use; }    
     void set_garfield_cmvoltage(double use) { m_garfield_cmvoltage = use; }
     void set_garfield_zerofield(bool use) { m_garfield_zerofield = use; }
     void set_garfield_keffside0(double use) { m_garfield_keffside0 = use; }
@@ -47,6 +48,7 @@ class LaserClusterHelper : public SubsysReco
     bool m_useZ{false};
     bool m_useGlobal{true};
     bool m_useDouble{false};
+    bool m_useGarfield{false};
 
     double m_garfield_cmvoltage{380.0};
     bool m_garfield_zerofield{false};

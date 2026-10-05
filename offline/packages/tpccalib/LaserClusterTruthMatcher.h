@@ -76,7 +76,7 @@ class LaserClusterTruthMatcher : public SubsysReco
   void set_garfield_keffside1(double use) { m_garfield_keffside1 = use; }
   void set_garfield_stepns(double use) { m_garfield_stepns = use; }
 
-  void set_QAFile(const std::string &name) { m_QAName = name; }
+  void set_QABase(const std::string &name) { m_QABase = name; }
 
 
  private:
@@ -84,7 +84,7 @@ class LaserClusterTruthMatcher : public SubsysReco
 
   std::string m_truthFile{"CMStripePattern_full.root"};
   std::string m_laserClusterNodeName{"LASER_CLUSTER"};  // TODO: confirm actual node name
-  std::string m_QAName{""};
+  std::string m_QABase{""};
 
   LaserClusterContainer *m_laserClusterContainer{nullptr};
   CDBTTree *m_cdbttree{nullptr};
