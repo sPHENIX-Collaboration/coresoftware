@@ -254,7 +254,7 @@ namespace
 
   void ClusterModuleData(thread_data *my_data)
   {
-    if (my_data->Verbosity > 1)
+    if (my_data->Verbosity > 2)
     {
       pthread_mutex_lock(&mythreadlock);
       std::cout << "clustering block: " << +my_data->block << "   side: " << +padkey::block_side(my_data->block) << "   sector: " << +padkey::block_sector(my_data->block) << "   module: " << +padkey::block_module(my_data->block) << std::endl;
@@ -274,7 +274,7 @@ namespace
       uint8_t layer = padkey::get_layer(k);
       uint8_t module = padkey::get_module(k);
 
-      if (my_data->Verbosity > 2)
+      if (my_data->Verbosity > 3)
       {
         pthread_mutex_lock(&mythreadlock);
         // NOLINTNEXTLINE (readability-avoid-nested-conditional-operator)
@@ -507,7 +507,7 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
       for (uint8_t mod = 0; mod < padkey::kNModules; ++mod)
       {
         const uint8_t block = padkey::genblock(side, sec, mod);
-        if (Verbosity() > 1)
+        if (Verbosity() > 2)
         {
           std::cout << "making thread for block " << block << std::endl;
           std::cout << "   side: " << +padkey::block_side(block) << "   sector: " << +padkey::block_sector(block) << "   module: " << +padkey::block_module(block) << std::endl;
@@ -585,17 +585,17 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
       auto *cluster = thread_pair.data.cluster_vector[index];
       const auto ckey = thread_pair.data.cluster_key_vector[index];
 
-      if(Verbosity() > 3) cluster->identify();
+      if(Verbosity() > 4) cluster->identify();
 
       m_clusterlist->addClusterSpecifyKey(ckey, cluster);
 
       if(m_QAName != "" && geom_container)
       {
-        if(Verbosity() > 2) std::cout << "   working on cluster " << m_clusterlist->size() - 1 << std::endl;
+        if(Verbosity() > 3) std::cout << "   working on cluster " << m_clusterlist->size() - 1 << std::endl;
         int side = TpcDefs::getSide(ckey);
         for(int i=0; i<(int)cluster->getNhitsDouble(); i++)
         {
-          if(Verbosity() > 2) std::cout << "      working on hit " << i << std::endl;
+          if(Verbosity() > 4) std::cout << "      working on hit " << i << std::endl;
           LaserClusterHitInfoDouble LCHI = cluster->getHitDouble(i);
           int layer = TrkrDefs::getLayer(LCHI.hitsetkey);
           PHG4TpcGeom *layer_geom = geom_container->GetLayerCellGeom(layer);

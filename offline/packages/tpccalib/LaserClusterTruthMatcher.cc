@@ -209,7 +209,7 @@ namespace
   constexpr double sigR = 0.10;
   constexpr double sigGap = 0.15;
   constexpr double stripeEdgeFloorFrac = 0.25;
-  constexpr double stripePromFrac = 0.05;
+  constexpr double mergeFrac = 0.3;  // peaks closer than mergeFrac * row spacing are one feature
   constexpr double lamSearchGate = 0.04;
   constexpr int lamRowHalfWindow = 3;
   constexpr double lamMatchTol = 0.010;
@@ -455,7 +455,6 @@ namespace
     //! last candidate back around to the first and merges that too if it's equally close.
     if (recoDphi > 0.0 && cand.size() > 1)
     {
-      constexpr double mergeFrac = 0.3;
       const int mergeGap = std::max(1, (int) std::round(mergeFrac * recoDphi / dp));
 
       bool mergedAny = true;
@@ -682,7 +681,6 @@ namespace
     //! rescan position. Clusters that were nearest the dropped peak will then fall to the lamination.
     if (recoDphi > 0.0)
     {
-      constexpr double mergeFrac = 0.3;
       const double mergeTol = mergeFrac * recoDphi;
       for(size_t k=peaks.size(); k-- > 0;)
       {
@@ -1047,22 +1045,18 @@ namespace
     // ---- pass 2b: classify each row's first/last peaks as lamination or stripe ----
     std::vector<std::vector<bool>> isLamRow(nrow);
     std::vector<int> recoN(nrow, 0);
-    std::vector<int> lamFrontIdxPerRow(nrow, -1), lamBackIdxPerRow(nrow, -1);
+    std::vector<int> lamIdxPerRow(nrow, -1);
 
     for(int i=0; i<nrow; i++)
     {
       isLamRow[i] = std::vector<bool>(peaksPerRow[i].size(), false);
 
-      int lamFrontIdx = findLaminationNear(peaksPerRow, i, lo, lamSearchGate, lamRowHalfWindow,
-                                            lamMatchTol, lamMatchFrac, petal);
-      int lamBackIdx = findLaminationNear(peaksPerRow, i, lo+petal, lamSearchGate, lamRowHalfWindow,
-                                            lamMatchTol, lamMatchFrac, petal);  
-                                            
-      if (lamFrontIdx >= 0) isLamRow[i][lamFrontIdx] = true;
-      if (lamBackIdx >= 0 && lamBackIdx != lamFrontIdx) isLamRow[i][lamBackIdx] = true;
-      
-      lamFrontIdxPerRow[i] = lamFrontIdx;
-      lamBackIdxPerRow[i]  = lamBackIdx;
+      //! The petal is folded with period `petal`, so its two edges (lo and lo+petal) are the
+      //! same point on the circle -- one lamination per petal, found by a single search.
+      int lamIdx = findLaminationNear(peaksPerRow, i, lo, lamSearchGate, lamRowHalfWindow,
+                                      lamMatchTol, lamMatchFrac, petal);
+      if (lamIdx >= 0) isLamRow[i][lamIdx] = true;
+      lamIdxPerRow[i] = lamIdx;
 
       recoN[i] = (int) std::count(isLamRow[i].begin(), isLamRow[i].end(), false);
 
@@ -1081,37 +1075,24 @@ namespace
 
     // ---- pass 2c: recover laminations findLaminationNear missed, using
     // positions predicted from independently-confirmed neighbouring rows ----
-    auto snapFront = snapshotLamEdge(peaksPerRow, lamFrontIdxPerRow);
-    auto snapBack = snapshotLamEdge(peaksPerRow, lamBackIdxPerRow);
+    auto snapLam = snapshotLamEdge(peaksPerRow, lamIdxPerRow);
 
     for(int i=0; i<nrow; i++)
     {
-      if(lamFrontIdxPerRow[i] < 0)
+      if(lamIdxPerRow[i] < 0)
       {
-        auto [pred, have] = predictLamPos(snapFront, i, lamRecoverySearchRows, petal);
+        auto [pred, have] = predictLamPos(snapLam, i, lamRecoverySearchRows, petal);
         if(have)
         {
           double floor = lamRecoveryFloorFrac * medianPeakDensity(stripes[i], peaksPerRow[i]);
-          recoverLamination(peaksPerRow[i], isLamRow[i], stripes[i], pred,
-                                lamRecoveryMatchTol, petal, floor, recoDphi[i]);
+          const bool recovered = recoverLamination(peaksPerRow[i], isLamRow[i], stripes[i], pred,
+                                                   lamRecoveryMatchTol, petal, floor, recoDphi[i]);
           if(verbosity)
           {
-            std::cout << "  row " << i << " front lamination recovered near " << pred << std::endl;
-          }                                
-        }
-      }
-      if(lamBackIdxPerRow[i] < 0)
-      {
-        auto [pred, have] = predictLamPos(snapBack, i, lamRecoverySearchRows, petal);
-        if(have)
-        {
-          double floor = lamRecoveryFloorFrac * medianPeakDensity(stripes[i], peaksPerRow[i]);
-          recoverLamination(peaksPerRow[i], isLamRow[i], stripes[i], pred,
-                                lamRecoveryMatchTol, petal, floor, recoDphi[i]);
-          if(verbosity)
-          {
-            std::cout << "  row " << i << " back lamination recovered near " << pred << std::endl;
-          }                                
+            std::cout << "  row " << i << " lamination "
+                      << (recovered ? "recovered" : "NOT recovered")
+                      << " near predicted " << pred << std::endl;
+          }
         }
       }
       recoN[i] = std::count(isLamRow[i].begin(), isLamRow[i].end(), false);
