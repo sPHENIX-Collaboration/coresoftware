@@ -359,6 +359,15 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
     configure_garfield(m_garfield.get());
   }
 
+  if (m_isNonDistortedMC)
+  {
+    std::cout << Name()
+              << "::InitRun - configuring PHGarfield for non-distorted MC"
+              << std::endl;
+
+    m_garfield->SetIsNonDistortedMC(true);
+  }
+
   if (m_garfield->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     std::cerr << Name() << "::InitRun - PHGarfield InitRun failed" << std::endl;

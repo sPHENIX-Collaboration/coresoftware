@@ -75,6 +75,7 @@ class TpcCrossingFinder : public SubsysReco
     m_startZSouth = south_z;
     m_startZNorth = north_z;
   }
+  void setIsNonDistortedMC(bool v) { m_isNonDistortedMC = v; }
 
  private:
   struct DriftPoint
@@ -225,6 +226,7 @@ class TpcCrossingFinder : public SubsysReco
   short m_triggeredCrossing {0};
   bool use_survey_geometry {false};
   bool m_triggeredMode {false};
+  bool m_isNonDistortedMC{false};
   std::array<double, 3> m_tpcMove {{0.0, 0.0, 0.0}};
   std::array<std::array<double, 3>, 2> m_tpcRotations {{{{0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}}}};
 };
