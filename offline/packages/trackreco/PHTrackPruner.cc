@@ -8,7 +8,7 @@
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey, getTrkrId, tpcId
 
-#include <trackbase_historic/SvtxTrackSeed_v2.h>
+#include <trackbase_historic/SvtxTrackSeed_v3.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
 #include <trackbase_historic/TrackSeedHelper.h>
@@ -113,7 +113,7 @@ int PHTrackPruner::process_event(PHCompositeNode * /*unused*/)
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  std::multimap<size_t, size_t> good_matches;
+  std::multimap<size_t, std::pair<size_t, short int>> good_matches;
 
   // increment number of processed tracks
   m_total_tracks += _svtx_track_map->size();
@@ -140,18 +140,22 @@ int PHTrackPruner::process_event(PHCompositeNode * /*unused*/)
       // check index validity
       if( tpcid < _tpc_seed_map->size() && siid < _si_seed_map->size() )
       {
-        good_matches.emplace(tpcid, siid);
+        good_matches.emplace(
+            tpcid,
+            std::make_pair(siid, svtx_track->get_crossing()));
         ++m_accepted_tracks;
       }
     }
   }
 
-  for (const auto& [tpcid, siid] : good_matches)
+  for (const auto& [tpcid, match] : good_matches)
   {
+    const auto& [siid, crossing] = match;
       if (Verbosity() > 1) { std::cout  <<"Insert pruned svtx seed map"<<std::endl; }
-    auto _svtx_seed = std::make_unique<SvtxTrackSeed_v2>();
+    auto _svtx_seed = std::make_unique<SvtxTrackSeed_v3>();
     _svtx_seed->set_silicon_seed_index(siid);
     _svtx_seed->set_tpc_seed_index(tpcid);
+    _svtx_seed->set_crossing(crossing);
     // In pp mode, if a matched track does not have INTT clusters we have to find the crossing geometrically
     // Record the geometrically estimated crossing in the track seeds for later use if needed
     short int crossing_estimate = findCrossingGeometrically(tpcid, siid);
@@ -160,7 +164,7 @@ int PHTrackPruner::process_event(PHCompositeNode * /*unused*/)
 
     if (Verbosity() > 1)
     {
-      std::cout   << "  combined seed id " << _pruned_svtx_seed_map->size() - 1 << " si id " << siid << " tpc id " << tpcid << " crossing estimate " << crossing_estimate << std::endl;
+      std::cout   << "  combined seed id " << _pruned_svtx_seed_map->size() - 1 << " si id " << siid << " tpc id " << tpcid << " crossing " << _svtx_seed->get_crossing() << " crossing estimate " << crossing_estimate << std::endl;
     }
   }
 
