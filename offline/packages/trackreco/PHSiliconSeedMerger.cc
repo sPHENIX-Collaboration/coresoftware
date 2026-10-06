@@ -13,6 +13,51 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 
+#include <algorithm>
+#include <iterator>
+#include <limits>
+#include <map>
+#include <set>
+#include <vector>
+
+namespace
+{
+  /// selected cluster keys and MVTX strobe of a single seed
+  struct SeedKeys
+  {
+    bool valid{false};
+    std::vector<TrkrDefs::cluskey> keys;  // sorted, no duplicates
+    int strobe{std::numeric_limits<int>::quiet_NaN()};
+  };
+
+  /// number of keys common to two sorted, duplicate-free key lists
+  std::size_t countOverlap(const std::vector<TrkrDefs::cluskey>& keys1,
+                           const std::vector<TrkrDefs::cluskey>& keys2)
+  {
+    std::size_t noverlap = 0;
+    auto iter1 = keys1.begin();
+    auto iter2 = keys2.begin();
+    while (iter1 != keys1.end() && iter2 != keys2.end())
+    {
+      if (*iter1 < *iter2)
+      {
+        ++iter1;
+      }
+      else if (*iter2 < *iter1)
+      {
+        ++iter2;
+      }
+      else
+      {
+        ++noverlap;
+        ++iter1;
+        ++iter2;
+      }
+    }
+    return noverlap;
+  }
+}  // namespace
+
 /**
  * @brief Construct a PHSiliconSeedMerger with the given subsystem name.
  *
@@ -83,20 +128,21 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
     std::cout << "Silicon seed track container has " << m_siliconTracks->size() << std::endl;
   }
 
-  for (unsigned int track1ID = 0;
-       track1ID != m_siliconTracks->size();
-       ++track1ID)
+  /// Collect the keys of each seed once, rather than rebuilding them for
+  /// every seed pair. Seeds are not modified until after the pair loop
+  const unsigned int nseeds = m_siliconTracks->size();
+  std::vector<SeedKeys> seedKeys(nseeds);
+  for (unsigned int trackID = 0; trackID < nseeds; ++trackID)
   {
-    TrackSeed* track1 = m_siliconTracks->get(track1ID);
-    if (seedsToDelete.contains(track1ID))
+    TrackSeed* track = m_siliconTracks->get(trackID);
+    if (!track)
     {
       continue;
     }
-
-    std::set<TrkrDefs::cluskey> mvtx1Keys;
-    int track1Strobe = std::numeric_limits<int>::quiet_NaN();
-    for (auto iter = track1->begin_cluster_keys();
-         iter != track1->end_cluster_keys();
+    auto& seed = seedKeys[trackID];
+    seed.valid = true;
+    for (auto iter = track->begin_cluster_keys();
+         iter != track->end_cluster_keys();
          ++iter)
     {
       TrkrDefs::cluskey ckey = *iter;
@@ -105,59 +151,46 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
       {
         continue;
       }
-      if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
+      if (trkrid == TrkrDefs::TrkrId::mvtxId)
       {
-        track1Strobe = MvtxDefs::getStrobeId(ckey);
+        seed.strobe = MvtxDefs::getStrobeId(ckey);
       }
-      mvtx1Keys.insert(ckey);
+      seed.keys.push_back(ckey);
     }
+    std::sort(seed.keys.begin(), seed.keys.end());
+    seed.keys.erase(std::unique(seed.keys.begin(), seed.keys.end()), seed.keys.end());
+  }
+
+  for (unsigned int track1ID = 0; track1ID < nseeds; ++track1ID)
+  {
+    if (seedsToDelete.contains(track1ID))
+    {
+      continue;
+    }
+    const auto& seed1 = seedKeys[track1ID];
+    if (!seed1.valid)
+    {
+      continue;
+    }
+    const auto& mvtx1Keys = seed1.keys;
 
     /// We can speed up the code by only iterating over the track seeds
     /// that are further in the map container from the current track,
     /// since the comparison of e.g. track 1 with track 2 doesn't need
     /// to be repeated with track 2 to track 1.
-    for (unsigned int track2ID = track1ID;
-         track2ID != m_siliconTracks->size();
-         ++track2ID)
+    for (unsigned int track2ID = track1ID + 1; track2ID < nseeds; ++track2ID)
     {
-      if (track1ID == track2ID)
+      const auto& seed2 = seedKeys[track2ID];
+      if (!seed2.valid)
       {
         continue;
       }
-      TrackSeed* track2 = m_siliconTracks->get(track2ID);
-      if (track2 == nullptr)
-      {
-        continue;
-      }
-      int track2Strobe = std::numeric_limits<int>::quiet_NaN();
+      const auto& mvtx2Keys = seed2.keys;
 
-      std::set<TrkrDefs::cluskey> mvtx2Keys;
-      for (TrackSeed::ConstClusterKeyIter iter = track2->begin_cluster_keys();
-           iter != track2->end_cluster_keys();
-           ++iter)
-      {
-        TrkrDefs::cluskey ckey = *iter;
-        auto trkrid = TrkrDefs::getTrkrId(ckey);
-        if (m_mvtxOnly && trkrid == TrkrDefs::TrkrId::inttId)
-        {
-          continue;
-        }
-        mvtx2Keys.insert(ckey);
-        if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
-        {
-          track2Strobe = MvtxDefs::getStrobeId(ckey);
-        }
-      }
-
-      std::vector<TrkrDefs::cluskey> intersection;
-      std::set_intersection(mvtx1Keys.begin(),
-                            mvtx1Keys.end(),
-                            mvtx2Keys.begin(),
-                            mvtx2Keys.end(),
-                            std::back_inserter(intersection));
+      const std::size_t noverlap = countOverlap(mvtx1Keys, mvtx2Keys);
 
       /// If the intersection fully encompasses one of the tracks, it is completely duplicated
-      if (intersection.size() == mvtx1Keys.size() || intersection.size() == mvtx2Keys.size())
+      if (noverlap == mvtx1Keys.size() || noverlap == mvtx2Keys.size())
       {
         if (Verbosity() > 2)
         {
@@ -171,42 +204,34 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
           {
             std::cout << "   ckey: " << key << std::endl;
           }
+          std::vector<TrkrDefs::cluskey> intersection;
+          std::set_intersection(mvtx1Keys.begin(), mvtx1Keys.end(),
+                                mvtx2Keys.begin(), mvtx2Keys.end(),
+                                std::back_inserter(intersection));
           std::cout << "Intersection keys " << std::endl;
-          for (auto& key : intersection)
+          for (const auto& key : intersection)
           {
             std::cout << "   ckey: " << key << std::endl;
           }
         }
 
         /// one of the tracks is encompassed in the other. Take the larger one
-        std::set<TrkrDefs::cluskey> keysToKeep;
-        if (mvtx1Keys.size() >= mvtx2Keys.size())
+        const bool keepTrack1 = mvtx1Keys.size() >= mvtx2Keys.size();
+        const unsigned int keepID = keepTrack1 ? track1ID : track2ID;
+        const unsigned int deleteID = keepTrack1 ? track2ID : track1ID;
+        const auto& keepKeys = keepTrack1 ? mvtx1Keys : mvtx2Keys;
+        const auto& otherKeys = keepTrack1 ? mvtx2Keys : mvtx1Keys;
+
+        std::set<TrkrDefs::cluskey> keysToKeep(keepKeys.begin(), keepKeys.end());
+        if (seed1.strobe == seed2.strobe && m_mergeSeeds)
         {
-          keysToKeep = mvtx1Keys;
-          if (track1Strobe == track2Strobe && m_mergeSeeds)
-          {
-            keysToKeep.insert(mvtx2Keys.begin(), mvtx2Keys.end());
-          }
-          matches.insert(std::make_pair(track1ID, keysToKeep));
-          seedsToDelete.insert(track2ID);
-          if (Verbosity() > 2)
-          {
-            std::cout << "     will delete seed " << track2ID << std::endl;
-          }
+          keysToKeep.insert(otherKeys.begin(), otherKeys.end());
         }
-        else
+        matches.insert(std::make_pair(keepID, keysToKeep));
+        seedsToDelete.insert(deleteID);
+        if (Verbosity() > 2)
         {
-          keysToKeep = mvtx2Keys;
-          if (track1Strobe == track2Strobe && m_mergeSeeds)
-          {
-            keysToKeep.insert(mvtx1Keys.begin(), mvtx1Keys.end());
-          }
-          matches.insert(std::make_pair(track2ID, keysToKeep));
-          seedsToDelete.insert(track1ID);
-          if (Verbosity() > 2)
-          {
-            std::cout << "     will delete seed " << track1ID << std::endl;
-          }
+          std::cout << "     will delete seed " << deleteID << std::endl;
         }
       }
     }
