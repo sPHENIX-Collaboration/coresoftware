@@ -1057,6 +1057,17 @@ namespace
 
     for(int i=0; i<nrow; i++)
     {
+      //! too few clusters to measure a stripe spacing: leave this row without
+      //! peaks (its clusters stay unmatched) instead of walking with no valid step
+      if(recoDphi[i] <= 0.0)
+      {
+        if(verbosity)
+        {
+          std::cout << "  row " << i << ": no stripe spacing (" << rowClus[i].size()
+                    << " clusters), skipping stripe finding" << std::endl;
+        }
+        continue;
+      }
       stripes[i] = findStripes(rowClus[i], lo, 0.004, 0.0015, 720,
                                 petal, recoDphi[i], stripeEdgeFloorFrac);
       peaksPerRow[i] = stripes[i].peakPhi;                            
@@ -1125,6 +1136,7 @@ namespace
       c1->SaveAs(std::format("{}_phiPeaks_{}.pdf[",QABase, sname).c_str());
       for(int i=0; i<nrow; i++)
       {
+        if(stripes[i].grid.empty()){ continue; }        
         TGraph *gr = new TGraph(stripes[i].grid.size(), stripes[i].grid.data(), stripes[i].density.data());
         gr->SetTitle(std::format("{} row {} (R = {:.2f}, spacing = {:.4f}, stripes = {});"
                               "folded #phi [rad];density",
