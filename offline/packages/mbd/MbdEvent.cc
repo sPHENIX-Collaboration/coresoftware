@@ -357,6 +357,94 @@ int MbdEvent::InitRun()
     orig_dir->cd();
   }
 
+  // If these are set in recoConsts, it overrides any other calibration
+  if ( rc->FlagExist("MBD_SHAPES") )
+  {
+    std::string calfname = rc->get_StringFlag("MBD_SHAPES");
+    std::cout << "Loading local mbd_shapes, " << calfname << std::endl;
+    _mbdcal->Download_Shapes( calfname );
+  }
+  if ( rc->FlagExist("MBD_TIMECORR") )
+  {
+    std::string calfname = rc->get_StringFlag("MBD_TIMECORR");
+    std::cout << "Loading local mbd_timecorr, " << calfname << std::endl;
+    _mbdcal->Download_TimeCorr( calfname );
+  }
+  if ( rc->FlagExist("MBD_SLEWCORR") )
+  {
+    std::string calfname = rc->get_StringFlag("MBD_SLEWCORR");
+    std::cout << "Loading local mbd_slewcorr, " << calfname << std::endl;
+    _mbdcal->Download_SlewCorr( calfname );
+  }
+  if ( rc->FlagExist("MBD_PILEUP") )
+  {
+    std::string calfname = rc->get_StringFlag("MBD_PILEUP");
+    std::cout << "Loading local mbd_pileup, " << calfname << std::endl;
+    _mbdcal->Download_Pileup( calfname );
+  }
+  if ( rc->FlagExist("MBD_SAMPMAX") )
+  {
+    std::string calfname = rc->get_StringFlag("MBD_SAMPMAX");
+    std::cout << "Loading local mbd_sampmax, " << calfname << std::endl;
+    _mbdcal->Download_SampMax( calfname );
+  }
+  if ( rc->FlagExist("MBD_PED") )
+  {
+    std::string calfname = rc->get_StringFlag("MBD_PED");
+    std::cout << "Loading local mbd_ped, " << calfname << std::endl;
+    _mbdcal->Download_Ped( calfname );
+  }
+  if ( rc->FlagExist("MBD_TT_T0") )
+  {
+    std::string calfname = rc->get_StringFlag("MBD_TT_T0");
+    std::cout << "Loading local mbd_tt_t0, " << calfname << std::endl;
+    _mbdcal->Download_TTT0( calfname );
+  }
+  if ( rc->FlagExist("MBD_TQ_T0") )
+  {
+    std::string calfname = rc->get_StringFlag("MBD_TQ_T0");
+    std::cout << "Loading local mbd_tq_t0, " << calfname << std::endl;
+    _mbdcal->Download_TQT0( calfname );
+  }
+  if ( rc->FlagExist("MBD_QFIT") )
+  {
+    std::string calfname = rc->get_StringFlag("MBD_QFIT");
+    std::cout << "Loading local mbd_qfit, " << calfname << std::endl;
+    _mbdcal->Download_Gains( calfname );
+  }
+  if ( rc->FlagExist("MBD_T0CORR") )
+  {
+    std::string calfname = rc->get_StringFlag("MBD_T0CORR");
+    std::cout << "Loading local mbd_t0corr, " << calfname << std::endl;
+    _mbdcal->Download_T0Corr( calfname );
+  }
+  /*
+  if ( rc->FlagExist("MBD_TQCORR") )
+  {
+    std::string calfname = rc->get_StringFlag("MBD_TQCORR");
+    std::cout << "Loading local mbd_tqcorr, " << calfname << std::endl;
+    _mbdcal->Download_TQCorr( calfname );
+  }
+  */
+  if ( rc->FlagExist("MBD_TIMERMS") )
+  {
+    std::string calfname = rc->get_StringFlag("MBD_TIMERMS");
+    std::cout << "Loading local mbd_timerms, " << calfname << std::endl;
+    _mbdcal->Download_TimeRMS( calfname );
+  }
+  if ( rc->FlagExist("MBD_THRESHOLDS") )
+  {
+    std::string calfname = rc->get_StringFlag("MBD_THRESHOLDS");
+    std::cout << "Loading local mbd_thresholds, " << calfname << std::endl;
+    _mbdcal->Download_Thresholds( calfname );
+  }
+  if ( rc->FlagExist("MBD_STATUS") )
+  {
+    std::string calfname = rc->get_StringFlag("MBD_STATUS");
+    std::cout << "Loading local mbd_status, " << calfname << std::endl;
+    _mbdcal->Download_Status( calfname );
+  }
+
   // Create TCanvas for debugging if requested
   //_verbose = 5;
   if (_verbose)
@@ -582,8 +670,8 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
         
         if ( _nsamples > 0 && _nsamples <= 30 )
         {
-          _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
           _mbdsig[feech].SetEvtNum( evtseq );
+          _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
         }
         /*
         else
@@ -713,8 +801,8 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
         }
 
         _mbdsig[feech].SetNSamples( _nsamples );
-        _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
         _mbdsig[feech].SetEvtNum( m_evt );
+        _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
         //_mbdsig[feech].Print();
       }
 
@@ -748,7 +836,8 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
 
 int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
 {
-  //std::cout << "In ProcessPackets" << std::endl;
+  //std::cout << "In ProcessPackets, evt " << m_evt << std::endl;
+
   // Do a quick sanity check that all fem counters agree
   if (m_xmitclocks[0] != m_xmitclocks[1])
   {
@@ -803,8 +892,6 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
       {
         m_ttdc[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();   // no hit
       }
-
-      m_ttdc[pmtch] *= _mbdcal->get_ttgain(pmtch);
     }
     else if ( type == 1 && (!std::isnan(m_ttdc[pmtch]) || _always_process_charge ) )
     {
@@ -877,6 +964,8 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
       {
         m_pmttt[pmtch] = _mbdcal->get_tcorr(ifeech,bbcraws->get_pmt(pmtch)->get_ttdc());
 
+        m_pmttt[pmtch] *= _mbdcal->get_ttgain(pmtch);
+
         // at calpass 2, we use tcorr (uncal_mbd pass). make sure tt_t0 = 0.
         m_pmttt[pmtch] -= _mbdcal->get_tt0(pmtch);
       }
@@ -916,7 +1005,7 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
 
         // if ( m_pmttq[pmtch]<-50. && ifeech==255 ) std::cout << "hit_times " << ifeech << "\t" << m_pmttq[pmtch] << std::endl;
 
-        // if tt is bad, use tq
+        // if tt is marked bad, just use tq
         if ( _mbdcal->get_status(ifeech-8)>0 )
         {
           m_pmttt[pmtch] = m_pmttq[pmtch];
@@ -966,13 +1055,19 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
     bbcpmts->get_pmt(ipmt)->set_pmt(ipmt, m_pmtq[ipmt], m_pmttt[ipmt], m_pmttq[ipmt]);
     bbcraws->get_pmt(ipmt)->set_chi2ndf( _mbdsig[feech].GetChi2NDF() );
     bbcraws->get_pmt(ipmt)->set_fitinfo( _mbdsig[feech].GetFitInfo() );
+
+    if ( std::isnan(m_pmttt[ipmt]) && !std::isnan(m_pmttq[ipmt]) )
+    {
+      bbcraws->get_pmt(ipmt)->set_badtdc( 1 );
+    }
+    bbcpmts->get_pmt(ipmt)->set_fitstat( bbcraws->get_pmt(ipmt)->get_fitstat() );
   }
   bbcpmts->set_npmt(MbdDefs::BBC_N_PMT);
 
   m_clk = bbcraws->get_clock();
   m_femclk = bbcraws->get_femclock();
 
-  PostProcessChannels(bbcpmts);
+  //PostProcessChannels(bbcpmts);
 
   m_evt++;
 
@@ -1130,8 +1225,11 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNod
 
     if (std::fabs(t_pmt) < 25. && q_pmt > 0.)
     {
-      hit_times[arm].push_back(t_pmt);
-      hevt_bbct[arm]->Fill(t_pmt);
+      if ( bbcpmt->get_badtdc() == 0 )
+      {
+        hit_times[arm].push_back(t_pmt);
+        hevt_bbct[arm]->Fill(t_pmt);
+      }
 
       m_bbcn[arm]++;
       m_bbcq[arm] += q_pmt;
@@ -1146,6 +1244,26 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNod
           tepmt[arm] = t_pmt;
         }
         tlpmt[arm] = std::max<double>(t_pmt, tlpmt[arm]);
+      }
+    }
+  }
+
+  // in case there are no good time channels, but there are hits
+  for (int iarm=0; iarm<2; iarm++)
+  {
+    if ( m_bbcn[iarm]>0 && hit_times[iarm].empty() )
+    {
+      for (int ipmt = iarm*64; ipmt < (iarm+1)*64; ipmt++)
+      {
+        MbdPmtHit *bbcpmt = bbcpmts->get_pmt(ipmt);
+        float t_pmt = bbcpmt->get_time();  // hit time of pmt
+        float q_pmt = bbcpmt->get_q();     // charge in pmt
+
+        if (std::fabs(t_pmt) < 25. && q_pmt > 0.)
+        {
+          hit_times[iarm].push_back(t_pmt);
+          hevt_bbct[iarm]->Fill(t_pmt);
+        }
       }
     }
   }
