@@ -29,16 +29,16 @@ class LaserAggregatedClusterizer : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
 
-  void set_padContainerNodeName(std::string &nodeName) { m_padContainerNodeName = nodeName; }
-  void set_clusterNodeName(std::string &nodeName) { m_clusterNodeName = nodeName; }
+  void set_padContainerNodeName(const std::string &nodeName) { m_padContainerNodeName = nodeName; }
+  void set_clusterNodeName(const std::string &nodeName) { m_clusterNodeName = nodeName; }
   void set_nHitPerLaserEventMin(double nHitPerLaserEventMin) { m_nHitPerLaserEventMin = nHitPerLaserEventMin; }
-  void set_QAFile(std::string &name) { m_QAName = name; }
+  void set_QAFile(const std::string &name) { m_QAName = name; }
 
   void AddSegmentFile(const std::string &f) { m_segfiles.push_back(f); }
   void SetSegmentList(const std::string &listfile);   // parse a text file of paths
 
  private:  
-  pthread_mutex_t m_threadlock;
+  pthread_mutex_t m_threadlock = PTHREAD_MUTEX_INITIALIZER;
   LaserClusterContainer *m_clusterlist {nullptr};
   double m_nHitPerLaserEventMin {1.0};
 
@@ -50,7 +50,7 @@ class LaserAggregatedClusterizer : public SubsysReco
 
   bool m_done {false};
 
-  std::string m_QAName{""};
+  std::string m_QAName;
 
 
   // TPC shaping offset correction parameter

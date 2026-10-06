@@ -35,6 +35,8 @@ class LaserAggregatedPadContainerv1 : public LaserAggregatedPadContainer
   ~LaserAggregatedPadContainerv1() override { LaserAggregatedPadContainerv1::Reset(); }
   LaserAggregatedPadContainerv1(const LaserAggregatedPadContainerv1&) = delete;
   LaserAggregatedPadContainerv1& operator=(const LaserAggregatedPadContainerv1&) = delete;
+  LaserAggregatedPadContainerv1(LaserAggregatedPadContainerv1&&) = delete;
+  LaserAggregatedPadContainerv1& operator=(LaserAggregatedPadContainerv1&&) = delete;
   
   void Reset() override;
 

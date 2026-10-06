@@ -1,6 +1,6 @@
-// TPC_LASERCLUSTERTRUTHMATCHER_H
-#ifndef TPC_LASERCLUSTERTRUTHMATCHER_H
-#define TPC_LASERCLUSTERTRUTHMATCHER_H
+// TPCCALIB_LASERCLUSTERTRUTHMATCHER_H
+#ifndef TPCCALIB_LASERCLUSTERTRUTHMATCHER_H
+#define TPCCALIB_LASERCLUSTERTRUTHMATCHER_H
 
 #include <cdbobjects/CDBTTree.h>
 #include <tpc/LaserClusterHelper.h>
@@ -14,7 +14,6 @@
 
 class PHCompositeNode;
 class LaserClusterContainer;
-class CDBTTree;
 
 /*
  * Matches already-aggregated-and-clustered laser clusters (LaserClusterv5,
@@ -77,8 +76,8 @@ class LaserClusterTruthMatcher : public SubsysReco
   void set_usePHGarfieldDistortions(bool use) { m_usePHGarfieldDistortions = use; }
   void set_garfield_cmvoltage(double use) { m_garfield_cmvoltage = use; }
   void set_garfield_zerofield(bool use) { m_garfield_zerofield = use; }
-  void set_garfield_keffside0(double use) { m_garfield_keffside0 = use; }
-  void set_garfield_keffside1(double use) { m_garfield_keffside1 = use; }
+  void set_garfield_keffside0(double use) { m_garfield_keffside0 = use; m_manual_garfield_keffside0 = true; }
+  void set_garfield_keffside1(double use) { m_garfield_keffside1 = use; m_manual_garfield_keffside1 = true;}
   void set_garfield_stepns(double use) { m_garfield_stepns = use; }
 
   void set_QABase(const std::string &name) { m_QABase = name; }
@@ -90,7 +89,7 @@ class LaserClusterTruthMatcher : public SubsysReco
   std::string m_truthFile{"CMStripePattern_full.root"};
   std::string m_laserClusterNodeName{"LASER_AGGREGATED_CLUSTER"};
   std::string m_laserClusterNodeNameOut{"LASER_AGGREGATED_CLUSTER_MATCHED"};
-  std::string m_QABase{""};
+  std::string m_QABase;
 
   LaserClusterContainer *m_laserClusterContainer{nullptr};
   CDBTTree *m_cdbttree{nullptr};
@@ -103,6 +102,8 @@ class LaserClusterTruthMatcher : public SubsysReco
   bool m_usePHGarfieldDistortions{false};
   double m_garfield_cmvoltage{380.0};
   bool m_garfield_zerofield{false};
+  bool m_manual_garfield_keffside0{false};
+  bool m_manual_garfield_keffside1{false};  
   double m_garfield_keffside0{1.0};
   double m_garfield_keffside1{1.0};
   double m_garfield_stepns{50.0};

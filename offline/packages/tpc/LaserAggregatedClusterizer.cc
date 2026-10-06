@@ -563,6 +563,11 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
 
  
   pthread_attr_destroy(&attr);
+  if(failed)
+  {
+    pthread_mutex_destroy(&m_threadlock);
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   LaserClusterHelper lch;
   lch.set_useDouble(true);
@@ -577,7 +582,7 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
     QAFile = new TFile(m_QAName.c_str(),"RECREATE");
   }
 
-  TH2Poly *h[2];
+  TH2Poly *h[2] = {nullptr, nullptr};
   if(QAFile)
   {
     for(int s=0; s<2; s++)
@@ -642,8 +647,20 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
       }
 
     }
-    if(failed){ return Fun4AllReturnCodes::ABORTRUN; }
   }
+  pthread_mutex_destroy(&m_threadlock);
+
+  if(failed)
+  {
+    for(auto &hist : h)
+    {
+      delete hist;
+    }
+    QAFile->Close();
+    delete QAFile;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
 
   if(!m_QAName.empty())
   {
@@ -651,13 +668,13 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
     for(auto &hist : h)
     {
       hist->Write();
+      delete hist;
     }
     QAFile->Close();
   }
   delete QAFile;
 
-  pthread_mutex_destroy(&m_threadlock);
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

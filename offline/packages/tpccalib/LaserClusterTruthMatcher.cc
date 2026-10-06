@@ -1,9 +1,5 @@
 #include "LaserClusterTruthMatcher.h"
 
-// TODO: fix these include paths / class names to match the real headers --
-// written from memory of the macro and the conventions described, not from
-// the actual LaserClusterContainer / LaserClusterv5 / TpcDistortionCorrection
-// headers, since those weren't available while drafting this.
 #include <trackbase/LaserClusterContainer.h>
 #include <trackbase/LaserClusterContainerv1.h>
 #include <trackbase/LaserCluster.h>
@@ -196,9 +192,9 @@ namespace
         unsigned int truthIndex = (side ? 18 : 0)*10000 + (row*100) + iphi;
         double phiVal = cdbttree.GetDoubleValue(truthIndex, "truthPhi");
         if (std::isnan(phiVal)){ continue; }
-        entries.emplace_back(std::make_pair(iphi, phiVal));
+        entries.emplace_back(iphi, phiVal);
       }
-      std::sort(entries.begin(), entries.end(), [](auto &a, auto &b){ return a.second < b.second; });
+      std::sort(entries.begin(), entries.end(), [](const auto &a, const auto &b){ return a.second < b.second; });
 
       TruthRowPattern truthRow;
       for (auto &[iphi, phiVal] : entries)
@@ -434,8 +430,8 @@ namespace
         if(best < 0 || dens(best) <= edgeFloorFrac * medPeakHeight){ continue; }
 
         found.emplace_back(best);
-        ranges.emplace_back(std::make_pair(a, best - 1));
-        ranges.emplace_back(std::make_pair(best + 1, b));
+        ranges.emplace_back(a, best - 1);
+        ranges.emplace_back(best + 1, b);
       }
 
       std::sort(found.begin(), found.end());
@@ -1050,9 +1046,10 @@ namespace
       }
       c1->SaveAs(std::format("{}_dPhi_{}.pdf]",QABase, sname).c_str());
 
-      for(auto *hp : hDPhi){ delete hp; }
       delete c1;
     }
+
+    for(auto *hp : hDPhi){ delete hp; }
 
     // ---- pass 2a: stripe peak positions per row, stepping by dPhi ----
     std::vector<Stripes> stripes(nrow);
@@ -1379,8 +1376,8 @@ int LaserClusterTruthMatcher::getNodes(PHCompositeNode *topNode)
   {
     m_laserClusterHelper.set_garfield_cmvoltage(m_garfield_cmvoltage);
     m_laserClusterHelper.set_garfield_zerofield(m_garfield_zerofield);
-    m_laserClusterHelper.set_garfield_keffside0(m_garfield_keffside0);
-    m_laserClusterHelper.set_garfield_keffside1(m_garfield_keffside1);
+    if(m_manual_garfield_keffside0){ m_laserClusterHelper.set_garfield_keffside0(m_garfield_keffside0); }
+    if(m_manual_garfield_keffside1){ m_laserClusterHelper.set_garfield_keffside1(m_garfield_keffside1); }
     m_laserClusterHelper.set_garfield_stepns(m_garfield_stepns);
   }
   m_laserClusterHelper.loadNodes(topNode);
@@ -1440,6 +1437,13 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode *topNode)
     const auto &[cmkey, cmclus_orig] = *cmitr;
     LaserCluster *cmclus = cmclus_orig;
 
+    if (auto *outClus = dynamic_cast<LaserCluster *>(cmclus->CloneMe()))
+    {
+      outClus->setTruthIndex(-999);
+      outClus->setIsLamination(false);
+      laserClusterContainerOut->addClusterSpecifyKey(cmkey, outClus);
+    }
+
     int side = TpcDefs::getSide(cmkey);
 
     Acts::Vector3 pos;
@@ -1461,13 +1465,11 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode *topNode)
     std::map<TrkrDefs::cluskey, std::pair<int,bool>> matched = matchSide(clusters[side], *m_cdbttree, m_truthRowPatterns[side], m_truthRows[side], side, m_QABase, Verbosity());
     for(auto &[key, matchedIndex] : matched)
     {
-      LaserCluster *clus = m_laserClusterContainer->findCluster(key);
+      LaserCluster *clus = laserClusterContainerOut->findCluster(key);
       if(clus)
       {
-        LaserCluster *outClus = (LaserCluster*)clus->CloneMe();
-        outClus->setTruthIndex(matchedIndex.first);
-        outClus->setIsLamination(matchedIndex.second);
-        laserClusterContainerOut->addClusterSpecifyKey(key, outClus);
+        clus->setTruthIndex(matchedIndex.first);
+        clus->setIsLamination(matchedIndex.second);
       }
     }
   }

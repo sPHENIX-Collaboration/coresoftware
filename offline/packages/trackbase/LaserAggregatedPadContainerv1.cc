@@ -74,11 +74,9 @@ void LaserAggregatedPadContainerv1::merge(const LaserAggregatedPadContainer *oth
   if (!other || other == this){ return; }
 
   const auto range = other->getPads();
-  auto hint = m_padMap.begin();
   for (auto iter = range.first; iter != range.second; ++iter)
   {
     const auto it = m_padMap.lower_bound(iter->first);
-    hint = m_padMap.lower_bound(iter->first);   // or advance manually
     if (it != m_padMap.end() && it->first == iter->first)
     {
       it->second->addAdc(iter->second->getAdc());

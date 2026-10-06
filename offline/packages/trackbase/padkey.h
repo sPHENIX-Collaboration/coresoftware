@@ -106,8 +106,8 @@ namespace padkey
   inline key block_begin(uint8_t blk) { return static_cast<key>(blk) << kBlockShift; }
   inline key block_end(uint8_t blk)   { return static_cast<key>(blk + 1) << kBlockShift; }
 
-  inline uint8_t block_side(uint8_t blk)   { return (blk >> 6U) & kSideMask; }
-  inline uint8_t block_sector(uint8_t blk) { return (blk >> 2U) & kSectorMask; }
+  inline uint8_t block_side(uint8_t blk)   { return (static_cast<unsigned>(blk) >> 6U) & kSideMask; }
+  inline uint8_t block_sector(uint8_t blk) { return (static_cast<unsigned>(blk) >> 2U) & kSectorMask; }
   inline uint8_t block_module(uint8_t blk) { return blk & 0x3U; }
 
   //! blocks are 0-71 but the 7-bit field allows 0-127; module 3 never occurs
@@ -122,7 +122,7 @@ namespace padkey
   inline bool phi_neighbor(key k, int d, uint16_t nphi_per_sector, key& out)
   {
     const int p = static_cast<int>(get_phibin(k)) + d;
-    if (p < 0 || p >= static_cast<int>(nphi_per_sector)) return false;
+    if (p < 0 || p >= static_cast<int>(nphi_per_sector)){ return false; }
     out = (k & ~kPhiMask) | static_cast<key>(p);
     return true;
   }
@@ -131,8 +131,8 @@ namespace padkey
   inline bool layer_neighbor(key k, int d, key& out)
   {
     const int L = static_cast<int>(get_rlayer(k)) + d;
-    if (L < 0 || L >= static_cast<int>(kNTpcLayers)) return false;
-    if ((static_cast<unsigned>(L) >> kModuleShiftInLayer) != get_module(k)) return false;
+    if (L < 0 || L >= static_cast<int>(kNTpcLayers)){ return false; }
+    if ((static_cast<unsigned>(L) >> kModuleShiftInLayer) != get_module(k)){ return false; }
     out = (k & ~kLayerFieldMask) | (static_cast<key>(L) << kLayerShift);
     return true;
   }

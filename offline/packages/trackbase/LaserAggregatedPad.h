@@ -22,8 +22,6 @@
 class LaserAggregatedPad : public PHObject
 {
  public:
-  //! dtor
-  ~LaserAggregatedPad() override = default;
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override
   {

@@ -99,7 +99,7 @@ namespace
         int iphi = TpcDefs::getPad(hitr->first);
         int it = TpcDefs::getTBin(hitr->first);
 
-        if (fabs(it - my_data->peakTimeBin) > 5)
+        if (std::abs(it - my_data->peakTimeBin) > 5)
         {
           continue;
         }
@@ -292,6 +292,13 @@ int LaserPadAggregator::process_event(PHCompositeNode *topNode)
 
   pthread_attr_destroy(&attr);
 
+  if (failed)
+  {
+    threads.clear();
+    pthread_mutex_destroy(&mythreadlock);
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
   for (const auto &thread_pair : threads)
   {
     if(!thread_pair.started){ continue; }
@@ -316,10 +323,12 @@ int LaserPadAggregator::process_event(PHCompositeNode *topNode)
 
   }
 
-  if (failed) { return Fun4AllReturnCodes::ABORTRUN; }
 
   threads.clear();
   pthread_mutex_destroy(&mythreadlock);
+
+  if (failed) { return Fun4AllReturnCodes::ABORTRUN; }
+
 
   if (Verbosity() > 1)
   {
