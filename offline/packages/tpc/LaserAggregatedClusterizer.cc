@@ -563,11 +563,6 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
 
  
   pthread_attr_destroy(&attr);
-  if(failed)
-  {
-    pthread_mutex_destroy(&m_threadlock);
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
 
   LaserClusterHelper lch;
   lch.set_useDouble(true);

@@ -38,7 +38,7 @@ class LaserAggregatedClusterizer : public SubsysReco
   void SetSegmentList(const std::string &listfile);   // parse a text file of paths
 
  private:  
-  pthread_mutex_t m_threadlock = PTHREAD_MUTEX_INITIALIZER;
+  pthread_mutex_t m_threadlock;
   LaserClusterContainer *m_clusterlist {nullptr};
   double m_nHitPerLaserEventMin {1.0};
 

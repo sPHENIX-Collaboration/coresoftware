@@ -292,13 +292,6 @@ int LaserPadAggregator::process_event(PHCompositeNode *topNode)
 
   pthread_attr_destroy(&attr);
 
-  if (failed)
-  {
-    threads.clear();
-    pthread_mutex_destroy(&mythreadlock);
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
   for (const auto &thread_pair : threads)
   {
     if(!thread_pair.started){ continue; }
