@@ -29,7 +29,7 @@ class LaserPadAggregator : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
   void set_adc_threshold(double val) { m_adc_threshold = val; }
-  void set_padContainerNodeName(std::string &nodeName) { m_padContainerNodeName = nodeName; }
+  void set_padContainerNodeName(const std::string &nodeName) { m_padContainerNodeName = nodeName; }
 
  private:
   int m_event {-1};

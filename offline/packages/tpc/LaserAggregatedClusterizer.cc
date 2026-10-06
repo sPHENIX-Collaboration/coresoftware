@@ -651,7 +651,7 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
     {
       delete hist;
     }
-    QAFile->Close();
+    if(QAFile){ QAFile->Close(); }
     delete QAFile;
     return Fun4AllReturnCodes::ABORTRUN;
   }
