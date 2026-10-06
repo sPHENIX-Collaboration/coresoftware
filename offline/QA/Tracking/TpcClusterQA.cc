@@ -361,7 +361,7 @@ void TpcClusterQA::createHistos()
 
   {
     h_totalclusters = new TH2F(std::string(getHistoPrefix() + "stotal_clusters").c_str(),
-                               "TPC clusters per hitsetkey", 1152, 0, 1152, 10000, 0, 10000);
+                               "TPC clusters per hitsetkey", 1152, 0, 1152, 600, 0, 600);
     h_totalclusters->GetXaxis()->SetTitle("Hitsetkey number");
     h_totalclusters->GetYaxis()->SetTitle("Number of clusters");
     hm->registerHisto(h_totalclusters);
