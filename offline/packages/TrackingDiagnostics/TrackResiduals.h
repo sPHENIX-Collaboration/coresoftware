@@ -66,8 +66,7 @@ class TrackResiduals : public SubsysReco
   void set_use_clustermover(bool flag) { m_use_clustermover = flag; }
 
  private:
-  void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
-                             TrkrCluster *cluster, ActsGeometry *geometry);
+  void fillStatesWithLineFit(Surface surf, ActsGeometry *geometry);
   void clearClusterStateVectors();
   void createBranches();
   static float convertTimeToZ(ActsGeometry *geometry, TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
@@ -80,16 +79,15 @@ class TrackResiduals : public SubsysReco
   void fillResidualTreeSeeds(PHCompositeNode *topNode);
   void fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack *track,
                              const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global,
-			     const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_moved,
-                             PHCompositeNode *topNode);
+			     const std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>>& global_moved,
+			     PHCompositeNode *topNode);
   void fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTrack* track,
                                 const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global,
-				const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_moved,
+				const std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>>& global_moved,			
                                 PHCompositeNode *topNode);
   void lineFitClusters(std::vector<TrkrDefs::cluskey> &keys, TrkrClusterContainer *clusters, const short int &crossing);
   void circleFitClusters(std::vector<TrkrDefs::cluskey> &keys, TrkrClusterContainer *clusters, const short int &crossing);
-  void fillStatesWithCircleFit(const TrkrDefs::cluskey &key, TrkrCluster *cluster,
-                               Acts::Vector3 &glob, ActsGeometry *geometry);
+  void fillStatesWithCircleFit(Acts::Vector3 &glob, Surface surf, ActsGeometry *geometry);
   void fillVertexTree(PHCompositeNode *topNode);
   void fillFailedSeedTree(PHCompositeNode *topNode, std::set<unsigned int> &tpc_seed_ids);
 

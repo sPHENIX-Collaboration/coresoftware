@@ -184,6 +184,20 @@ class PHGarfield : public SubsysReco
 
   void SetZeroField(bool zerofield) { m_zerofield = zerofield; }
 
+  void SetIsNonDistortedMC(bool value)
+  {
+    if (!value)
+    {
+      return;
+    }
+
+    SetZeroField(true);
+    SetSpaceChargeScale(0.0);
+    SetFrameChargeScale(0.0);
+    SetUseIFCVoltageDistortion(false);
+    SetUseOFCVoltageDistortion(false);
+  }
+
   // Static field-cage boundary-voltage distortions.
   // side0 = south (z < 0), side1 = north (z > 0).
   // Offsets are endpoint perturbations relative to the nominal resistor-chain
