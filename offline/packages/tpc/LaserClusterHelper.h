@@ -22,7 +22,11 @@ class LaserClusterHelper : public SubsysReco
 {
   public:
     LaserClusterHelper ();
-    ~LaserClusterHelper();
+    ~LaserClusterHelper() override;
+    LaserClusterHelper(const LaserClusterHelper&) = delete;
+    LaserClusterHelper& operator=(const LaserClusterHelper&) = delete;
+    LaserClusterHelper(LaserClusterHelper&&) = delete;
+    LaserClusterHelper& operator=(LaserClusterHelper&&) = delete;
 
     void loadNodes(PHCompositeNode *topNode);
   
@@ -37,8 +41,8 @@ class LaserClusterHelper : public SubsysReco
     void set_useGarfield(bool use) { m_useGarfield = use; }    
     void set_garfield_cmvoltage(double use) { m_garfield_cmvoltage = use; }
     void set_garfield_zerofield(bool use) { m_garfield_zerofield = use; }
-    void set_garfield_keffside0(double use) { m_garfield_keffside0 = use; }
-    void set_garfield_keffside1(double use) { m_garfield_keffside1 = use; }
+    void set_garfield_keffside0(double use) { m_garfield_keffside0 = use; m_manual_garfield_keffside0 = true; }
+    void set_garfield_keffside1(double use) { m_garfield_keffside1 = use; m_manual_garfield_keffside1 = true; }
     void set_garfield_stepns(double use) { m_garfield_stepns = use; }
   private:
     ActsGeometry *m_tGeometry{nullptr};
@@ -52,6 +56,8 @@ class LaserClusterHelper : public SubsysReco
 
     double m_garfield_cmvoltage{380.0};
     bool m_garfield_zerofield{false};
+    bool m_manual_garfield_keffside0{false};
+    bool m_manual_garfield_keffside1{false};
     double m_garfield_keffside0{1.0};
     double m_garfield_keffside1{1.0};
     double m_garfield_stepns{50.0};

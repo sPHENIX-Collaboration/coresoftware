@@ -54,15 +54,15 @@ namespace padkey
 
   static constexpr unsigned kModuleShiftInLayer = kBlockShift - kLayerShift;  // 4
 
-  static constexpr key kPhiMask       = (1u << kPhiBits) - 1;
-  static constexpr key kLayerMask     = (1u << kLayerBits) - 1;
-  static constexpr key kSectorMask    = (1u << kSectorBits) - 1;
-  static constexpr key kSideMask      = (1u << kSideBits) - 1;
+  static constexpr key kPhiMask       = (1U << kPhiBits) - 1;
+  static constexpr key kLayerMask     = (1U << kLayerBits) - 1;
+  static constexpr key kSectorMask    = (1U << kSectorBits) - 1;
+  static constexpr key kSideMask      = (1U << kSideBits) - 1;
   static constexpr key kLayerFieldMask = kLayerMask << kLayerShift;
-  static constexpr key kBlockMask     = (1u << (kSideBits + kSectorBits + 2)) - 1;  // 7 bits
+  static constexpr key kBlockMask     = (1U << (kSideBits + kSectorBits + 2)) - 1;  // 7 bits
 
   //! step between adjacent layers within a module
-  static constexpr key kLayerStep = 1u << kLayerShift;
+  static constexpr key kLayerStep = 1U << kLayerShift;
 
   //! sentinel — the unused high bits guarantee this is not a legal key
   static constexpr key kInvalidKey = std::numeric_limits<key>::max();
@@ -72,9 +72,9 @@ namespace padkey
   //! block index 0-71, ordered side -> sector -> module
   inline uint8_t genblock(uint8_t side, uint8_t sector, uint8_t module)
   {
-    return static_cast<uint8_t>(((side & kSideMask) << 6)
-                              | ((sector & kSectorMask) << 2)
-                              | (module & 0x3u));
+    return static_cast<uint8_t>(((side & kSideMask) << 6U)
+                              | ((sector & kSectorMask) << 2U)
+                              | (module & 0x3U));
   }
 
   //! key from absolute layer (7-54), side (0-1), sector (0-11), phi bin
@@ -106,9 +106,9 @@ namespace padkey
   inline key block_begin(uint8_t blk) { return static_cast<key>(blk) << kBlockShift; }
   inline key block_end(uint8_t blk)   { return static_cast<key>(blk + 1) << kBlockShift; }
 
-  inline uint8_t block_side(uint8_t blk)   { return (blk >> 6) & kSideMask; }
-  inline uint8_t block_sector(uint8_t blk) { return (blk >> 2) & kSectorMask; }
-  inline uint8_t block_module(uint8_t blk) { return blk & 0x3u; }
+  inline uint8_t block_side(uint8_t blk)   { return (blk >> 6U) & kSideMask; }
+  inline uint8_t block_sector(uint8_t blk) { return (blk >> 2U) & kSectorMask; }
+  inline uint8_t block_module(uint8_t blk) { return blk & 0x3U; }
 
   //! blocks are 0-71 but the 7-bit field allows 0-127; module 3 never occurs
   inline bool is_valid_block(uint8_t blk) { return block_module(blk) < kNModules; }
@@ -132,7 +132,7 @@ namespace padkey
   {
     const int L = static_cast<int>(get_rlayer(k)) + d;
     if (L < 0 || L >= static_cast<int>(kNTpcLayers)) return false;
-    if ((L >> kModuleShiftInLayer) != get_module(k)) return false;
+    if ((static_cast<unsigned>(L) >> kModuleShiftInLayer) != get_module(k)) return false;
     out = (k & ~kLayerFieldMask) | (static_cast<key>(L) << kLayerShift);
     return true;
   }

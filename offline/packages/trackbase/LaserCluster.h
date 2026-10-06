@@ -160,10 +160,10 @@ class LaserCluster : public PHObject
   virtual LaserClusterHitInfoDouble getHitDouble(int) const { return LaserClusterHitInfoDouble(std::numeric_limits<TrkrDefs::hitsetkey>::max(), std::numeric_limits<TrkrDefs::hitkey>::max(), std::numeric_limits<double>::max()); }
 
   virtual void setTruthIndex(int) {}
-  virtual int getTruthIndex() const { return std::numeric_limits<int>::max(); }
+  virtual int getTruthIndex() const { return -999; }
 
   virtual void setIsLamination(bool) {}
-  virtual bool getIsLamination() const { return std::numeric_limits<bool>::max(); }
+  virtual bool getIsLamination() const { return false; }
 
  protected:
   LaserCluster() = default;

@@ -25,11 +25,11 @@ class LaserAggregatedPad;
 class LaserAggregatedPadContainerv1 : public LaserAggregatedPadContainer
 {
  public:
-  typedef std::map<padkey::key, LaserAggregatedPad *> Map;
-  typedef Map::iterator Iterator;
-  typedef Map::const_iterator ConstIterator;
-  typedef std::pair<Iterator, Iterator> Range;
-  typedef std::pair<ConstIterator, ConstIterator> ConstRange;
+  using Map = std::map<padkey::key, LaserAggregatedPad *>;
+  using Iterator = Map::iterator;
+  using ConstIterator = Map::const_iterator;
+  using Range = std::pair<Iterator, Iterator>;
+  using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
   LaserAggregatedPadContainerv1() = default;
   ~LaserAggregatedPadContainerv1() override { LaserAggregatedPadContainerv1::Reset(); }
@@ -40,7 +40,7 @@ class LaserAggregatedPadContainerv1 : public LaserAggregatedPadContainer
 
   void identify(std::ostream &os = std::cout) const override;
 
-  void addPad(const padkey::key pad, LaserAggregatedPad *newPad) override;
+  void addPad(padkey::key pad, LaserAggregatedPad *newPad) override;
 
   void merge(const LaserAggregatedPadContainer *other) override;
 

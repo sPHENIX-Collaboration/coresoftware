@@ -50,7 +50,7 @@ class LaserAggregatedPadv1 : public LaserAggregatedPad
 
   void identify(std::ostream& os = std::cout) const override;
 
- protected:
+ private:
 
   double m_adc {0.0};
   double m_nHits {0.0};

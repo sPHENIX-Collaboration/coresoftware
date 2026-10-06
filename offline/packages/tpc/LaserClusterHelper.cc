@@ -60,8 +60,8 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
         {
             auto keffcdbtree = std::make_unique<CDBTTree>(kefffile);
             keffcdbtree->LoadCalibrations();
-            m_garfield_keffside0 = keffcdbtree->GetSingleFloatValue("keffside0");
-            m_garfield_keffside1 = keffcdbtree->GetSingleFloatValue("keffside1");
+            if(!m_manual_garfield_keffside0){ m_garfield_keffside0 = keffcdbtree->GetSingleFloatValue("keffside0"); }
+            if(!m_manual_garfield_keffside1){ m_garfield_keffside1 = keffcdbtree->GetSingleFloatValue("keffside1"); }
         }
 
         m_phgarfield = std::make_unique<PHGarfield>();
@@ -149,7 +149,7 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroid(LaserCluster* cluster) cons
     
     if(!cluster)
     {
-        if(Verbosity()) std::cout << "no cluster" << std::endl;
+        if(Verbosity()){ std::cout << "no cluster" << std::endl; }
         return invalid;
     }
 

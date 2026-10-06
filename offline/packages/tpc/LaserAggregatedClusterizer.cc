@@ -2,7 +2,7 @@
 
 #include "LaserEventInfo.h"
 
-#include <tpc/LaserClusterHelper.h>
+#include "LaserClusterHelper.h"
 
 #include <trackbase/LaserAggregatedPad.h>
 #include <trackbase/LaserAggregatedPadContainer.h>
@@ -49,8 +49,6 @@
 #include <utility>  // for pair
 #include <vector>
 
-#include <pthread.h>
-
 namespace
 {
 
@@ -61,9 +59,8 @@ namespace
     std::vector<LaserCluster *> cluster_vector;
     std::vector<TrkrDefs::cluskey> cluster_key_vector;
     int Verbosity = 0;
+    pthread_mutex_t *mutex = nullptr;
   };
-
-  pthread_mutex_t mythreadlock;
 
   void remove_hits(std::map<padkey::key, double> &adcMap, std::vector<padkey::key> &clusPads)
   {
@@ -235,13 +232,13 @@ namespace
 
           padkey::key nextKey = padkey::genkey(nextLayer, padkey::get_side(current), padkey::get_sector(current), nextPhi);
 
-          if(!adcMap.count(nextKey)){ continue; }
+          if(!adcMap.contains(nextKey)){ continue; }
 
           if(nextLayer != seedLayer && nextLayer != allowedAdjacentLayer){ continue; }
 
           if(std::abs(nextPhi - seedPhi) > 6){ continue; }
 
-          if(used.count(nextKey)){ continue; }
+          if(used.contains(nextKey)){ continue; }
 
           queue.push(nextKey);
           used.insert(nextKey);
@@ -256,9 +253,9 @@ namespace
   {
     if (my_data->Verbosity > 2)
     {
-      pthread_mutex_lock(&mythreadlock);
+      pthread_mutex_lock(my_data->mutex);
       std::cout << "clustering block: " << +my_data->block << "   side: " << +padkey::block_side(my_data->block) << "   sector: " << +padkey::block_sector(my_data->block) << "   module: " << +padkey::block_module(my_data->block) << std::endl;
-      pthread_mutex_unlock(&mythreadlock);
+      pthread_mutex_unlock(my_data->mutex);
     }
 
     while (!my_data->adcMap.empty())
@@ -276,10 +273,9 @@ namespace
 
       if (my_data->Verbosity > 3)
       {
-        pthread_mutex_lock(&mythreadlock);
-        // NOLINTNEXTLINE (readability-avoid-nested-conditional-operator)
+        pthread_mutex_lock(my_data->mutex);
         std::cout << "working on cluster " << my_data->cluster_vector.size() << "   side: " << +padkey::get_side(k) << "   sector: " << +padkey::get_sector(k) << "   module: " << +module << std::endl;
-        pthread_mutex_unlock(&mythreadlock);
+        pthread_mutex_unlock(my_data->mutex);
       }
 
       uint8_t minLayer;
@@ -447,6 +443,8 @@ int LaserAggregatedClusterizer::InitRun(PHCompositeNode *topNode)
 
   if (m_aggregatedPads->size() == 0)
   {
+    delete m_aggregatedPads;
+    m_aggregatedPads = nullptr;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -456,6 +454,11 @@ int LaserAggregatedClusterizer::InitRun(PHCompositeNode *topNode)
             << m_aggregatedPads->getNLaserEvents() << " laser events" << std::endl;
 
   auto *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  if (!runNode)
+  {
+    std::cout << PHWHERE << "RUN Node missing, doing nothing." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
   runNode->addNode(new PHIODataNode<PHObject>(m_aggregatedPads, std::format("{}Sum",m_padContainerNodeName), "PHObject"));
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -464,7 +467,7 @@ int LaserAggregatedClusterizer::InitRun(PHCompositeNode *topNode)
 int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
 {
 
-  std::cout << "m_done: " << m_done << std::endl;
+  if(Verbosity()){ std::cout << "Already completed a round of clustering? " << m_done << std::endl; }
 
   if (m_done)
   {
@@ -475,14 +478,14 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
 
   if(!m_aggregatedPads || m_aggregatedPads->size() == 0)
   {
-    std::cout << "LaserAggregatedClusterizer::process_event laser aggregated pads not found or were empty, aborting run";
+    std::cout << "LaserAggregatedClusterizer::process_event laser aggregated pads not found or were empty, aborting run" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   const double nEvents = m_aggregatedPads->getNLaserEvents();
   if(nEvents <= 0)
   {
-    std::cout << "Zero laser events found in laser aggregated pads, aborting run";
+    std::cout << "Zero laser events found in laser aggregated pads, aborting run" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -490,22 +493,24 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
   {
     pthread_t thread{};
     thread_data data;
+    bool started{false};
   };
 
   std::vector<thread_pair_t> threads;
-  threads.reserve(72);
+  threads.reserve(padkey::kNBlocks);
 
   pthread_attr_t attr;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-  if (pthread_mutex_init(&mythreadlock, nullptr) != 0)
+  if (pthread_mutex_init(&m_threadlock, nullptr) != 0)
   {
     std::cout << std::endl
               << " mutex init failed" << std::endl;
-    return 1;
+    return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  bool failed = false;
   for (uint8_t side = 0; side < padkey::kNSides; ++side)
   {
     for (uint8_t sec = 0; sec < padkey::kNSectors; ++sec)
@@ -515,7 +520,7 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
         const uint8_t block = padkey::genblock(side, sec, mod);
         if (Verbosity() > 2)
         {
-          std::cout << "making thread for block " << block << std::endl;
+          std::cout << "making thread for block " << +block << std::endl;
           std::cout << "   side: " << +padkey::block_side(block) << "   sector: " << +padkey::block_sector(block) << "   module: " << +padkey::block_module(block) << std::endl;
         }
 
@@ -540,14 +545,18 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
         thread_pair.data.cluster_vector = cluster_vector;
         thread_pair.data.cluster_key_vector = cluster_key_vector;
         thread_pair.data.Verbosity = Verbosity();
+        thread_pair.data.mutex = &m_threadlock;
 
         int rc;
         rc = pthread_create(&thread_pair.thread, &attr, ClusterModule, (void *) &thread_pair.data);
 
-        if (rc)
+        if (rc != 0)
         {
-          std::cout << "Error:unable to create thread," << rc << std::endl;
+          std::cerr << "Error:unable to create thread," << rc << std::endl;
+          failed = true;
+          continue;
         }
+        thread_pair.started = true;
       }
     }
   }
@@ -569,21 +578,27 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
   }
 
   TH2Poly *h[2];
-  for(int s=0; s<2; s++)
+  if(QAFile)
   {
-    h[s] = new TH2Poly(std::format("hADC_perLaserFlash_{}",s ? "North" : "South").c_str(), std::format("ADC Per Laser Flash (nHits_perLaserFlash>=1) {}",s ? "North" : "South").c_str(),
-                        100, 0.0, 2.0*TMath::Pi(), 100, 28, 78);
-    h[s]->SetFloat(false);
-    h[s]->SetDirectory(nullptr);
+    for(int s=0; s<2; s++)
+    {
+      h[s] = new TH2Poly(std::format("hADC_perLaserFlash_{}",s ? "North" : "South").c_str(), std::format("ADC Per Laser Flash (nHits_perLaserFlash>=1) {}",s ? "North" : "South").c_str(),
+                          100, 0.0, 2.0*TMath::Pi(), 100, 28, 78);
+      h[s]->SetFloat(false);
+      h[s]->SetDirectory(nullptr);
+    }
   }
 
 
   for (const auto &thread_pair : threads)
   {
+    if(!thread_pair.started){ continue; }
     int rc2 = pthread_join(thread_pair.thread, nullptr);
-    if (rc2)
+    if (rc2 != 0)
     {
       std::cout << "Error:unable to join," << rc2 << std::endl;
+      failed = true;
+      continue;
     }
 
     for (int index = 0; index < (int) thread_pair.data.cluster_vector.size(); ++index)
@@ -597,14 +612,15 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
 
       if(!m_QAName.empty() && geom_container)
       {
-        if(Verbosity() > 3) std::cout << "   working on cluster " << m_clusterlist->size() - 1 << std::endl;
+        if(Verbosity() > 3){ std::cout << "   working on cluster " << m_clusterlist->size() - 1 << std::endl; }
         int side = TpcDefs::getSide(ckey);
         for(int i=0; i<(int)cluster->getNhitsDouble(); i++)
         {
-          if(Verbosity() > 4) std::cout << "      working on hit " << i << std::endl;
+          if(Verbosity() > 4){ std::cout << "      working on hit " << i << std::endl; }
           LaserClusterHitInfoDouble LCHI = cluster->getHitDouble(i);
           int layer = TrkrDefs::getLayer(LCHI.hitsetkey);
           PHG4TpcGeom *layer_geom = geom_container->GetLayerCellGeom(layer);
+          if(!layer_geom){ continue; }
 
           Acts::Vector3 global = lch.getHitPosition(LCHI.hitsetkey, LCHI.hitkey);
 
@@ -626,19 +642,21 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
       }
 
     }
+    if(failed){ return Fun4AllReturnCodes::ABORTRUN; }
   }
 
   if(!m_QAName.empty())
   {
     QAFile->cd();
-    for(int s=0; s<2; s++)
+    for(auto &hist : h)
     {
-      h[s]->Write();
+      hist->Write();
     }
     QAFile->Close();
   }
+  delete QAFile;
 
-  pthread_mutex_destroy(&mythreadlock);
+  pthread_mutex_destroy(&m_threadlock);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

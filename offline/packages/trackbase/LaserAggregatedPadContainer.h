@@ -43,12 +43,12 @@ class LaserAggregatedPadContainer : public PHObject
   void identify(std::ostream &/*os*/ = std::cout) const override {}
   
   //! add a cluster with specific key
-  virtual void addPad(const padkey::key, LaserAggregatedPad*) = 0;
+  virtual void addPad(padkey::key, LaserAggregatedPad*) = 0;
 
-  virtual void merge(const LaserAggregatedPadContainer*) {};
+  virtual void merge(const LaserAggregatedPadContainer*) {}
 
   //! remove cluster
-  virtual void removePad(padkey::key) {}
+  virtual void removePad(padkey::key /*pad*/) {}
   
   //! return all clusters
   virtual ConstRange getPads() const = 0;
@@ -56,13 +56,13 @@ class LaserAggregatedPadContainer : public PHObject
   virtual ConstRange getPadsInBlock(uint8_t) const = 0;
   
   //! find cluster matching given key
-  virtual LaserAggregatedPad* findPad(padkey::key) const { return nullptr; }
+  virtual LaserAggregatedPad* findPad(padkey::key /*pad*/) const { return nullptr; }
 
   //! total number of clusters
   virtual unsigned int size() const { return 0; }
 
   virtual double getNLaserEvents() const { return 0; }
-  virtual void setNLaserEvents(double) {}
+  virtual void setNLaserEvents(double /*nLaser*/) {}
 
   protected:
   //! constructor

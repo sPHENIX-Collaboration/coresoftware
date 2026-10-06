@@ -95,7 +95,7 @@ class LaserClusterv5 : public LaserCluster
 
   void identify(std::ostream& os = std::cout) const override;
 
- protected:
+ private:
 
   std::vector<LaserClusterHitInfo> m_hits;
   std::vector<LaserClusterHitInfoDouble> m_hitsDouble;

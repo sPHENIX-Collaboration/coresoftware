@@ -1,9 +1,8 @@
-// TODO: put this in the right coresoftware package (probably tpc/, next to
-// LaserPadAggregator / LaserAggregatedClusterizer) and fix the include guard
-// / header path below to match.
+// TPC_LASERCLUSTERTRUTHMATCHER_H
 #ifndef TPC_LASERCLUSTERTRUTHMATCHER_H
 #define TPC_LASERCLUSTERTRUTHMATCHER_H
 
+#include <cdbobjects/CDBTTree.h>
 #include <tpc/LaserClusterHelper.h>
 
 #include <fun4all/SubsysReco.h>
@@ -30,16 +29,17 @@ class CDBTTree;
  * than clustering itself. Because distortions differ run to run, matching is
  * always redone from scratch here -- nothing is cached across runs.
  *
- * This module never loads its own TpcDistortionCorrectionContainer -- it
- * expects one to already be on the node tree (loaded by the macro / an
- * upstream module) and will abort the run if it isn't there.
+ * If wanting to run with PHGarfield distortion corrections, turn on
+ * set_usePHGarfieldDistortions, and the CDB variables for PHGarfield will
+ * automatically be pulled and used to propagate the clusters through the
+ * fields along the poly lines before doing the matching.
  */
 
 struct TruthRow
 {
-  double R;
-  double dphi;
-  int nstripes;
+  double R{0.0};
+  double dphi{0.0};
+  int nstripes{0};
 };
 
 struct TruthRowPattern
@@ -52,7 +52,11 @@ class LaserClusterTruthMatcher : public SubsysReco
 {
  public:
   explicit LaserClusterTruthMatcher(const std::string &name = "LaserClusterTruthMatcher");
-  ~LaserClusterTruthMatcher() override = default;
+  ~LaserClusterTruthMatcher() override { delete m_cdbttree; }
+  LaserClusterTruthMatcher(const LaserClusterTruthMatcher&) = delete;
+  LaserClusterTruthMatcher& operator=(const LaserClusterTruthMatcher&) = delete;
+  LaserClusterTruthMatcher(LaserClusterTruthMatcher&&) = delete;
+  LaserClusterTruthMatcher& operator=(LaserClusterTruthMatcher&&) = delete;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -66,6 +70,7 @@ class LaserClusterTruthMatcher : public SubsysReco
   
   //! node name of the LaserClusterContainer written by LaserAggregatedClusterizer
   void setLaserClusterNodeName(const std::string &name) { m_laserClusterNodeName = name; }
+  void setLaserClusterNodeNameOut(const std::string &name) { m_laserClusterNodeNameOut = name; }
 
   void set_useGlobal(bool use) { m_useGlobal = use; }
 
@@ -83,7 +88,8 @@ class LaserClusterTruthMatcher : public SubsysReco
   int getNodes(PHCompositeNode *topNode);
 
   std::string m_truthFile{"CMStripePattern_full.root"};
-  std::string m_laserClusterNodeName{"LASER_CLUSTER"};  // TODO: confirm actual node name
+  std::string m_laserClusterNodeName{"LASER_AGGREGATED_CLUSTER"};
+  std::string m_laserClusterNodeNameOut{"LASER_AGGREGATED_CLUSTER_MATCHED"};
   std::string m_QABase{""};
 
   LaserClusterContainer *m_laserClusterContainer{nullptr};

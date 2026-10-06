@@ -7,6 +7,8 @@
 #include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
 
+#include <pthread.h>
+
 #include <map>
 #include <string>
 #include <vector>
@@ -22,8 +24,7 @@ class PHCompositeNode;
 class LaserAggregatedClusterizer : public SubsysReco
 {
  public:
-  LaserAggregatedClusterizer(const std::string &name = "LaserAggregatedClusterizer");
-  ~LaserAggregatedClusterizer() override = default;
+  explicit LaserAggregatedClusterizer(const std::string &name = "LaserAggregatedClusterizer");
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -37,6 +38,7 @@ class LaserAggregatedClusterizer : public SubsysReco
   void SetSegmentList(const std::string &listfile);   // parse a text file of paths
 
  private:  
+  pthread_mutex_t m_threadlock;
   LaserClusterContainer *m_clusterlist {nullptr};
   double m_nHitPerLaserEventMin {1.0};
 
@@ -48,7 +50,8 @@ class LaserAggregatedClusterizer : public SubsysReco
 
   bool m_done {false};
 
-  std::string m_QAName {""};
+  std::string m_QAName{""};
+
 
   // TPC shaping offset correction parameter
   // From Tony Frawley July 5, 2022

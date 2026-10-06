@@ -28,6 +28,7 @@
 #include <array>
 #include <cmath>  // for sqrt, cos, sin
 #include <format>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <map>  // for _Rb_tree_cons...
@@ -144,6 +145,19 @@ int LaserPadAggregator::InitRun(PHCompositeNode *topNode)
         new PHIODataNode<PHObject>(padlist, m_padContainerNodeName, "PHObject");
     runNode->addNode(LaserAggregatedPadContainerNode);
   }
+
+  for(int s=0; s<2; s++)
+  {
+    for(int sec=0; sec<12; sec++)
+    {
+      for(int mod=0; mod<3; mod++)
+      {
+        m_adcMap[s][sec][mod].clear();
+        m_hitMap[s][sec][mod].clear();
+      }
+    }
+  }
+  nLaserEvents = 0;
   
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -196,10 +210,11 @@ int LaserPadAggregator::process_event(PHCompositeNode *topNode)
   {
     pthread_t thread{};
     thread_data data;
+    bool started{false};
   };
 
   std::vector<thread_pair_t> threads;
-  threads.reserve(72);
+  threads.reserve(padkey::kNBlocks);
 
   pthread_attr_t attr;
   pthread_attr_init(&attr);
@@ -209,9 +224,10 @@ int LaserPadAggregator::process_event(PHCompositeNode *topNode)
   {
     std::cout << std::endl
               << " mutex init failed" << std::endl;
-    return 1;
+    return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  bool failed = false;
   for (unsigned int sec = 0; sec < 12; sec++)
   {
     for (int s = 0; s < 2; s++)
@@ -263,10 +279,13 @@ int LaserPadAggregator::process_event(PHCompositeNode *topNode)
         int rc;
         rc = pthread_create(&thread_pair.thread, &attr, ProcessModule, (void *) &thread_pair.data);
 
-        if (rc)
+        if (rc != 0)
         {
           std::cout << "Error:unable to create thread," << rc << std::endl;
+          failed = true;
+          continue;
         }
+        thread_pair.started = true;
       }
     }
   }
@@ -275,10 +294,13 @@ int LaserPadAggregator::process_event(PHCompositeNode *topNode)
 
   for (const auto &thread_pair : threads)
   {
+    if(!thread_pair.started){ continue; }
     int rc2 = pthread_join(thread_pair.thread, nullptr);
-    if (rc2)
+    if (rc2 != 0)
     {
       std::cout << "Error:unable to join," << rc2 << std::endl;
+      failed = true;
+      continue;
     }
 
     const auto& data = thread_pair.data;
@@ -293,6 +315,8 @@ int LaserPadAggregator::process_event(PHCompositeNode *topNode)
     }
 
   }
+
+  if (failed) { return Fun4AllReturnCodes::ABORTRUN; }
 
   threads.clear();
   pthread_mutex_destroy(&mythreadlock);
@@ -351,7 +375,7 @@ int LaserPadAggregator::End(PHCompositeNode *topNode)
 
   if (Verbosity() > 1)
   {
-    std::cout << "LaserAggregatedClusterizer::End pads per sector: " << std::endl;
+    std::cout << "LaserPadAggregator::End pads per sector: " << std::endl;
     std::cout << std::setw(5) << "side" << std::setw(7) << "sector" << std::setw(7) << "R1" << std::setw(7) << "R2" << std::setw(7) << "R3" << std::endl;
     for(int s=0; s<2; s++)
     {

@@ -23,7 +23,7 @@ class LaserAggregatedPad : public PHObject
 {
  public:
   //! dtor
-  ~LaserAggregatedPad() override {}
+  ~LaserAggregatedPad() override = default;
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override
   {
@@ -36,15 +36,15 @@ class LaserAggregatedPad : public PHObject
   using PHObject::CopyFrom;
   
   //! copy content from base class
-  virtual void CopyFrom( const LaserAggregatedPad& )  {}
+  virtual void CopyFrom( const LaserAggregatedPad& /*source*/)  {}
 
   //! copy content from base class
-  virtual void CopyFrom( LaserAggregatedPad* )  {}
+  virtual void CopyFrom( LaserAggregatedPad* /*source*/)  {}
 
-  virtual void addAdc(double) {}
+  virtual void addAdc(double /*adc*/) {}
   virtual double getAdc() const { return std::numeric_limits<double>::max(); }
 
-  virtual void addNHits(double) {}
+  virtual void addNHits(double /*nhits*/) {}
   virtual double getNHits() const { return std::numeric_limits<double>::max(); }
 
  protected:

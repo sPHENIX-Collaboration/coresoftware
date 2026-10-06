@@ -77,16 +77,21 @@ void LaserAggregatedPadContainerv1::merge(const LaserAggregatedPadContainer *oth
   auto hint = m_padMap.begin();
   for (auto iter = range.first; iter != range.second; ++iter)
   {
+    const auto it = m_padMap.lower_bound(iter->first);
     hint = m_padMap.lower_bound(iter->first);   // or advance manually
-    if (hint != m_padMap.end() && hint->first == iter->first)
+    if (it != m_padMap.end() && it->first == iter->first)
     {
-      hint->second->addAdc(iter->second->getAdc());
-      hint->second->addNHits(iter->second->getNHits());
+      it->second->addAdc(iter->second->getAdc());
+      it->second->addNHits(iter->second->getNHits());
     }
     else
     {
-      auto *clone = dynamic_cast<LaserAggregatedPad*>(iter->second->CloneMe());
-      if (clone){ hint = m_padMap.emplace_hint(hint, iter->first, clone); }
+      PHObject *obj = iter->second->CloneMe();
+      if(auto *clone = dynamic_cast<LaserAggregatedPad*>(obj))
+      {
+        m_padMap.emplace_hint(it, iter->first, clone);
+      }
+      else { delete obj; }
     }
   }
 

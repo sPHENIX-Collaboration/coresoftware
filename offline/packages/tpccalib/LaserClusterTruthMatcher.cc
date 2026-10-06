@@ -5,6 +5,8 @@
 // the actual LaserClusterContainer / LaserClusterv5 / TpcDistortionCorrection
 // headers, since those weren't available while drafting this.
 #include <trackbase/LaserClusterContainer.h>
+#include <trackbase/LaserClusterContainerv1.h>
+#include <trackbase/LaserCluster.h>
 #include <trackbase/LaserClusterv5.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
@@ -27,6 +29,7 @@
 #include <algorithm>
 #include <cmath>
 #include <format>
+#include <iomanip>
 #include <iostream>
 #include <numeric>
 #include <set>
@@ -145,7 +148,8 @@ namespace
   std::vector<double> refine(const std::vector<Cluster> &cl, const Result &res)
   {
     const size_t n = res.peakR.size();
-    std::vector<double> sw(n, 0.0), swr(n, 0.0);
+    std::vector<double> sw(n, 0.0);
+    std::vector<double> swr(n, 0.0);
     for (const auto &c : cl)
     {
       if (c.R < res.grid.front() || c.R > res.grid.back()){ continue; }
@@ -162,7 +166,7 @@ namespace
   double foldPetal(double phi, double lo, double petal)
   {
     double p = fmod(phi - lo, petal);
-    if (p < 0.0) p += petal;
+    if (p < 0.0){ p += petal; }
     return lo + p;
   }
 
@@ -192,7 +196,7 @@ namespace
         unsigned int truthIndex = (side ? 18 : 0)*10000 + (row*100) + iphi;
         double phiVal = cdbttree.GetDoubleValue(truthIndex, "truthPhi");
         if (std::isnan(phiVal)){ continue; }
-        entries.push_back({iphi, phiVal});
+        entries.emplace_back(std::make_pair(iphi, phiVal));
       }
       std::sort(entries.begin(), entries.end(), [](auto &a, auto &b){ return a.second < b.second; });
 
@@ -289,6 +293,7 @@ namespace
       }
     }
 
+    if(maxCand < 0){ return out; }
     std::vector<int> cand;
     cand.push_back(maxCand);
 
@@ -383,6 +388,7 @@ namespace
     if(!cand.empty())
     {
       std::vector<double> candH;
+      candH.reserve(cand.size());
       for(const auto &c : cand)
       {
         candH.push_back(dens(c));
@@ -425,11 +431,11 @@ namespace
         if(a > b){ continue; }
 
         int best = scanForPeak(a, b);
-        if(best < 0 || dens(best) <= edgeFloorFrac * medPeakHeight) continue;
+        if(best < 0 || dens(best) <= edgeFloorFrac * medPeakHeight){ continue; }
 
-        found.push_back(best);
-        ranges.push_back({a, best - 1});
-        ranges.push_back({best + 1, b});
+        found.emplace_back(best);
+        ranges.emplace_back(std::make_pair(a, best - 1));
+        ranges.emplace_back(std::make_pair(best + 1, b));
       }
 
       std::sort(found.begin(), found.end());
@@ -521,7 +527,8 @@ namespace
     {
       if(fabs(circDiff(peaks[idx], edge, petal)) > searchGate){ continue; }
 
-      int nMatched = 0, nChecked = 0;
+      int nMatched = 0;
+      int nChecked = 0;
       for(int j=std::max(0, rowIdx - rowHalfWindow);
           j<=std::min(nrow - 1, rowIdx + rowHalfWindow);
           j++)
@@ -578,7 +585,8 @@ namespace
   std::pair<double, bool> predictLamPos(const LamEdgeSnapshot &snap, int row, int maxSearchRows, double petal)
   {
     int nrow = (int) snap.confirmed.size();
-    int below = -1, above = -1;
+    int below = -1;
+    int above = -1;
     for(int j=row-1; j>=std::max(0, row-maxSearchRows); j--)
     {
       if(snap.confirmed[j])
@@ -705,20 +713,24 @@ namespace
   
   struct Cost
   {
-    double nMismatch;
-    double gapChi2;
-    double rChi2;
-    bool operator<(const Cost &o) const
-    {
-      if (nMismatch != o.nMismatch){ return nMismatch < o.nMismatch; }
-      if (gapChi2 != o.gapChi2){ return gapChi2 < o.gapChi2; }
-      return rChi2 < o.rChi2;
-    }
-    Cost operator+(const Cost &o) const
-    {
-      return {nMismatch + o.nMismatch, gapChi2 + o.gapChi2, rChi2 + o.rChi2};
-    }
+    double nMismatch{1e300};
+    double gapChi2{1e300};
+    double rChi2{1e300};
   };
+
+  //! lexicographic ordering: stripe-count mismatch first, then gap chi2, then R chi2
+  bool operator<(const Cost &a, const Cost &b)
+  {
+    if (a.nMismatch != b.nMismatch){ return a.nMismatch < b.nMismatch; }
+    if (a.gapChi2 != b.gapChi2){ return a.gapChi2 < b.gapChi2; }
+    return a.rChi2 < b.rChi2;
+  }
+
+  Cost operator+(const Cost &a, const Cost &b)
+  {
+    return {a.nMismatch + b.nMismatch, a.gapChi2 + b.gapChi2, a.rChi2 + b.rChi2};
+  }
+
 
   const Cost INF = {1e300, 1e300, 1e300};
 
@@ -781,7 +793,7 @@ namespace
         Cost matchP = pairCost(recoR[i], recoN[i], truth[j], sigmaR);
         for(int jp = i - 1; jp < j; jp++)
         {
-          if(!(dp[i-1][jp] < INF)) continue;
+          if(!(dp[i-1][jp] < INF)){ continue; }
           double gc = gapCost(recoR[i-1], recoR[i], truth[jp].R, truth[j].R, sigmaGap);
           Cost cand = dp[i-1][jp] + Cost{matchP.nMismatch, gc, matchP.rChi2};
           if(cand < dp[i][j])
@@ -807,7 +819,8 @@ namespace
     if(bestJ < 0){ return; }
 
     std::vector<int> truthOf(nr);
-    int i = nr - 1, j = bestJ;
+    int i = nr - 1;
+    int j = bestJ;
     while(i>=0)
     {
       truthOf[i] = j;
@@ -952,7 +965,7 @@ namespace
 
     if(!QABase.empty())
     {
-      auto palette = TColor::GetPalette();
+      const auto palette = TColor::GetPalette();
       const Int_t nColors = palette.GetSize();
 
       std::vector<TH1D *> hRADCrow(nrow);
@@ -987,10 +1000,15 @@ namespace
       for (double b : rowResult.bound)
       {
         TLine *l = new TLine(b, 0, b, hRADC->GetMaximum());
+        l->SetBit(kCanDelete);
         l->SetLineColor(kRed);
         l->Draw("same");
       }
       c1->SaveAs(std::format("{}_RPeaks_{}.pdf",QABase, sname).c_str());
+
+      delete hRADC;
+      for(auto *hr : hRADCrow){ delete hr; }
+      delete c1;
     }
 
     // ---- pass 1: stripe spacing per row from the neighbour-gap spectrum ----
@@ -1031,6 +1049,9 @@ namespace
         c1->SaveAs(std::format("{}_dPhi_{}.pdf",QABase, sname).c_str());
       }
       c1->SaveAs(std::format("{}_dPhi_{}.pdf]",QABase, sname).c_str());
+
+      for(auto *hp : hDPhi){ delete hp; }
+      delete c1;
     }
 
     // ---- pass 2a: stripe peak positions per row, stepping by dPhi ----
@@ -1107,10 +1128,11 @@ namespace
       c1->SaveAs(std::format("{}_phiPeaks_{}.pdf[",QABase, sname).c_str());
       for(int i=0; i<nrow; i++)
       {
-        TGraph *gr = new TGraph(stripes[i].grid.size(), &stripes[i].grid[0], &stripes[i].density[0]);
+        TGraph *gr = new TGraph(stripes[i].grid.size(), stripes[i].grid.data(), stripes[i].density.data());
         gr->SetTitle(std::format("{} row {} (R = {:.2f}, spacing = {:.4f}, stripes = {});"
                               "folded #phi [rad];density",
                               sname, i, rowR[i], recoDphi[i], recoN[i]).c_str());
+        gr->SetBit(kCanDelete);                              
         gr->GetXaxis()->SetRangeUser(lo, lo+petal);
         gr->SetMarkerStyle(20);
         gr->SetMarkerSize(0.5);
@@ -1119,12 +1141,14 @@ namespace
         {
           const double p = peaksPerRow[i][ip];
           TLine *l = new TLine(p, 0, p, gr->GetHistogram()->GetMaximum());
+          l->SetBit(kCanDelete);
           l->SetLineColor(isLamRow[i][ip] ? kRed : kBlue);
           l->Draw("same");
         }
         c1->SaveAs(std::format("{}_phiPeaks_{}.pdf",QABase, sname).c_str());
       }
       c1->SaveAs(std::format("{}_phiPeaks_{}.pdf]",QABase, sname).c_str());
+      delete c1;
     }
 
     // ---- step 3: match to truth R pattern using number of stripes in each row (uses gaps and dR as backups) ----
@@ -1156,10 +1180,7 @@ namespace
         std::cout << " " << t << " (R=" << truth[t].R << ")";
       }
       std::cout << std::endl;
-    }
 
-    if(verbosity > 1)
-    {
       for (int i = 0; i < nrow; i++)
       {
         const TruthRow &t = truth[best.truthOf[i]];
@@ -1181,13 +1202,15 @@ namespace
     
     // ---- step 4: truth iphi assignment for each peak in each row ----
     std::vector<std::vector<int>> iphiAssignments;
-    int nRowsFullyAligned = 0, nRowsWithRealPeaks = 0;
+    int nRowsFullyAligned = 0;
+    int nRowsWithRealPeaks = 0;
     for(int i=0; i<nrow; i++)
     {
       std::vector<int> iphiAssignment = alignPhiPeaksToTruth(peaksPerRow[i], isLamRow[i], recoDphi[i],
                                                               lo, petal, truthRowPatterns.at(best.truthOf[i]));
 
-      bool haveRealPeak = false, allAssigned = true;
+      bool haveRealPeak = false;
+      bool allAssigned = true;
       for(size_t k=0; k<isLamRow[i].size(); k++)
       {
         if(isLamRow[i][k]){ continue; }
@@ -1228,6 +1251,7 @@ namespace
       const int row = rowOf(c.R, rowResult.bound);
       clusterRow[ci] = row;
 
+      if(peaksPerRow[row].empty()){ continue; }  // clusterIphi stays -1 -> unmatched
       int peak = nearestPeak(foldPetal(c.phi, lo, petal), peaksPerRow[row], petal);
       if(isLamRow[row][peak])
       {
@@ -1261,7 +1285,6 @@ namespace
     }
 
     std::vector<int> resolvedPetal(clusters.size(), -1);
-    int nNoPetal = 0, nLostToConflict = 0;
     for(auto &[key, members] : groups)
     {
       std::sort(members.begin(), members.end(), [&](int a, int b)
@@ -1272,21 +1295,13 @@ namespace
       std::set<int> takenPetals;
       for(int ci : members)
       {
-        bool gotOne = false;
         for(const auto &c : clusterPetalCands[ci])
         {
           if(c.dPhi > petal / 2.0){ break; }
-          if(takenPetals.count(c.petal)){ continue; }
+          if(takenPetals.contains(c.petal)){ continue; }
           resolvedPetal[ci] = c.petal;
           takenPetals.insert(c.petal);
-          gotOne = true;
           break;
-        }
-        if(!gotOne)
-        {
-          bool haveValidCandidate = !clusterPetalCands[ci].empty() && clusterPetalCands[ci].front().dPhi <= petal / 2.0;
-          if(haveValidCandidate){ nLostToConflict++; }
-          else{ nNoPetal++; }
         }
       }
     }
@@ -1328,6 +1343,34 @@ int LaserClusterTruthMatcher::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  PHNodeIterator iter(topNode);
+
+  // Looking for the DST node
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+  {
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  auto *laserClusterContainerOut = findNode::getClass<LaserClusterContainer>(dstNode, m_laserClusterNodeNameOut);
+  if (!laserClusterContainerOut)
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
+    }
+
+    laserClusterContainerOut = new LaserClusterContainerv1;
+    PHIODataNode<PHObject> *LaserClusterContainerNodeOut =
+        new PHIODataNode<PHObject>(laserClusterContainerOut, m_laserClusterNodeNameOut, "PHObject");
+    DetNode->addNode(LaserClusterContainerNodeOut);
+  }
+
   m_laserClusterHelper.set_useZ(false);
   m_laserClusterHelper.set_useDouble(true);
   m_laserClusterHelper.set_useGlobal(m_useGlobal);
@@ -1348,8 +1391,7 @@ int LaserClusterTruthMatcher::getNodes(PHCompositeNode *topNode)
 int LaserClusterTruthMatcher::InitRun(PHCompositeNode *topNode)
 {
 
-  // truth pattern is reloaded every run since it's cheap; distortions are
-  // what actually differ run to run, and those come from m_dcc above
+  // truth pattern is reloaded every run since it's cheap;
   delete m_cdbttree;
   m_cdbttree = new CDBTTree(m_truthFile);
   m_cdbttree->LoadCalibrations();
@@ -1374,12 +1416,21 @@ int LaserClusterTruthMatcher::InitRun(PHCompositeNode *topNode)
   return getNodes(topNode);
 }
 
-int LaserClusterTruthMatcher::process_event(PHCompositeNode * /*topNode*/)
+int LaserClusterTruthMatcher::process_event(PHCompositeNode *topNode)
 {
   // the aggregated clusters represent one run's worth of laser data
   // collapsed into a single pseudo-event, so this whole-side pipeline only
   // needs to run once per side per call here -- there is no meaningful
   // "next event" for this data
+
+  LaserClusterContainer *laserClusterContainerOut = findNode::getClass<LaserClusterContainer>(topNode, m_laserClusterNodeNameOut);
+  if (!laserClusterContainerOut)
+  {
+    std::cout << PHWHERE << " no output LaserClusterContainer named " << m_laserClusterNodeNameOut
+              << " on the node tree" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
 
   std::vector<Cluster> clusters[2]{};
   
@@ -1413,8 +1464,10 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode * /*topNode*/)
       LaserCluster *clus = m_laserClusterContainer->findCluster(key);
       if(clus)
       {
-        clus->setTruthIndex(matchedIndex.first);
-        clus->setIsLamination(matchedIndex.second);
+        LaserCluster *outClus = (LaserCluster*)clus->CloneMe();
+        outClus->setTruthIndex(matchedIndex.first);
+        outClus->setIsLamination(matchedIndex.second);
+        laserClusterContainerOut->addClusterSpecifyKey(key, outClus);
       }
     }
   }
