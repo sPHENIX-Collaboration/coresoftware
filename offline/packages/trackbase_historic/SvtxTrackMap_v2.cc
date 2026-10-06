@@ -7,6 +7,7 @@
 #include <iterator>  // for reverse_iterator
 #include <map>       // for _Rb_tree_const_iterator, _Rb_tree_iterator
 #include <ostream>   // for operator<<, endl, ostream, basic_ostream, bas...
+#include <set>
 #include <utility>   // for pair, make_pair
 
 SvtxTrackMap_v2::SvtxTrackMap_v2()
@@ -48,10 +49,26 @@ SvtxTrackMap_v2::~SvtxTrackMap_v2()
 
 void SvtxTrackMap_v2::Reset()
 {
+  std::set<TrackSeed*> owned;
   for (auto& iter : _map)
   {
-    SvtxTrack* track = iter.second;
-    delete track;
+    if (iter.second)
+    {
+      if (auto* seed = iter.second->get_tpc_seed())
+      {
+        owned.insert(seed);
+      }
+      if (auto* seed = iter.second->get_silicon_seed())
+      {
+        owned.insert(seed);
+      }
+    }
+    delete iter.second;
+  }
+
+  for (auto* s : owned)
+  {
+    delete s;
   }
   _map.clear();
 }
