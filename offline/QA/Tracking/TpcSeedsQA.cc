@@ -255,8 +255,9 @@ void TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track, std::array<float,10> &cluste
 {
   // get the fully corrected cluster global positions
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
-  std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_moved;
-  float minR = std::numeric_limits<float>::max();
+  //std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_moved;
+  std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>> global_moved;
+ float minR = std::numeric_limits<float>::max();
   float maxR = 0;
   for (const auto &ckey : get_cluster_keys(track))
   {
@@ -280,7 +281,7 @@ void TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track, std::array<float,10> &cluste
 
   // move the corrected cluster positions back to the original readout surface
   global_moved = m_clusterMover.processTrack(global_raw);
-
+ 
   float fcorr = std::fabs(std::sin(eta_to_theta(track->get_eta())));
   Acts::Vector3 clusglob_moved(0, 0, 0);
   float adc_z0 = 0;
@@ -303,11 +304,11 @@ void TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track, std::array<float,10> &cluste
   int nclus_z8 = 0;
   float adc_z9 = 0;
   int nclus_z9 = 0;
-  for (const auto &pair : global_moved)
+  for (auto&& [cluskey, surf_global] : global_moved)
   {
-    auto ckey = pair.first;
+    auto ckey =cluskey;
     auto *cluster = clustermap->findCluster(ckey);
-    clusglob_moved = pair.second;
+    clusglob_moved = surf_global.second;
 
     auto detid = TrkrDefs::getTrkrId(ckey);
     if (detid != TrkrDefs::TrkrId::tpcId)

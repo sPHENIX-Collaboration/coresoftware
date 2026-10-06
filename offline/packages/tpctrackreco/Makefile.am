@@ -137,9 +137,6 @@ libtpctrackreco_la_LIBADD = \
   -ltpc_io \
   -ltrack_io \
   -ltrackbase_historic_io \
-  -lgenfit2 \
-  -lgenfit2exp \
-  -lPHGenFit \
   -lphfield \
   -lPHGarfield \
   -lTpcConditions
