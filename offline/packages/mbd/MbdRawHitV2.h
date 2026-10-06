@@ -35,7 +35,20 @@ class MbdRawHitV2 : public MbdRawHit
   Float_t get_chi2ndf() const override { return (fitstat&0xfff)/100.; }
 
   //! Info about charge channel waveform fit
-  UShort_t get_fitinfo() const override { return (fitstat>>12); }
+  UShort_t get_fitinfo() const override { return ((fitstat&0x7000)>>12); }
+
+  //! Whether time channel was bad
+  UShort_t get_badtdc() const override
+  {
+    if ( (fitstat&0x8000) != 0 )
+    {
+      return true;
+    }
+    return false;
+  }
+
+  //! Raw Info on Fits
+  UShort_t get_fitstat() const override { return fitstat; }
 
   //! Set PMT data values
   void set_pmt(const Short_t pmt, const Float_t a, const Float_t tt, const Float_t tq) override
@@ -62,8 +75,21 @@ class MbdRawHitV2 : public MbdRawHit
   //! Store fitinfo (encoded in fitstat)
   void set_fitinfo(const UShort_t fitinfo) override
   {
-    fitstat &= 0xfff;
-    fitstat |= (fitinfo<<12);
+    fitstat &= 0x8fff;
+    fitstat |= ((fitinfo&0x7)<<12);
+  }
+
+  //! Was a bad tdc (encoded in fitstat)
+  void set_badtdc(const UShort_t badtdc) override
+  {
+    if ( badtdc==0 )
+    {
+      fitstat &= 0x7fff;
+    }
+    else
+    {
+      fitstat |= 0x8000;
+    }
   }
 
   //! Prints out exact identity of object

@@ -53,8 +53,9 @@ void MbdPmtContainer::Print(Option_t * /*option*/) const
     Float_t q = get_pmt(ipmt)->get_q();
     Float_t tt = get_pmt(ipmt)->get_tt();
     Float_t tq = get_pmt(ipmt)->get_tq();
+    Float_t time = get_pmt(ipmt)->get_time();
 
-    if ( std::fabs(tt)<100. )
+    if ( std::fabs(time)<100. )
     {
       std::cout << std::setw(8) << ipmt << std::setw(12) << q << "\t" << std::setw(12) << tt <<"\t" << std::setw(12) << tq << std::endl;
     }
