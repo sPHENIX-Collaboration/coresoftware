@@ -5,6 +5,7 @@
 void CaloVertexv1::identify(std::ostream& os) const
 {
   os << "---CaloVertexv1--------------------------------" << std::endl;
+  os << "algo: " << get_calo_algo() << std::endl;
   os << "vertexid: " << get_id() << std::endl;
   os << " t = " << get_t() << " +/- " << get_t_err() << std::endl;
   os << " z =  " << get_z() << " +/- " << get_z_err() << std::endl;
