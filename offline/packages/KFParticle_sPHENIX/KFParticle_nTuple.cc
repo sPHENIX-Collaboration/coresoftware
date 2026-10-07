@@ -300,7 +300,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 
   if(m_use_centrality_nTuple)
   {
-    m_tree->Branch("centrality_mbd", &m_centrality_mbd);
+    m_tree->Branch("centrality_MBD", &m_centrality_mbd);
   }
 
   if (m_get_all_PVs)
@@ -716,9 +716,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
         }
         else
         {
-            std::cout << "[WARNING/ERROR] No centrality information found in CentralityInfo. Setting centrality_mbd to -2. Please check!" << std::endl;
+            std::cout << "[WARNING/ERROR] No centrality information found in CentralityInfo. Setting centrality_mbd to -99. Please check!" << std::endl;
             m_CentInfo->identify();
-            m_centrality_mbd = -999.;
+            m_centrality_mbd = -99.;
         }
     }
   }
