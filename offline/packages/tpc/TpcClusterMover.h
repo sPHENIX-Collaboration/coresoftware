@@ -20,7 +20,8 @@ class TpcClusterMover
 
   void set_verbosity(int verb) { _verbosity = verb; }
 
-  std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> processTrack(const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global_in) const;
+  //  std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> processTrack(const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global_in) const;
+  std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>> processTrack(const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global_in) const;
 
   //! Updates the assumed default geometry below to that contained in the
   //! cell geo
@@ -29,7 +30,8 @@ class TpcClusterMover
  private:
   int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xclus, double yclus, double &x, double &y) const;
 
-  bool get_moved_position(TrkrDefs::cluskey cluskey, TrkrCluster *cluster, std::vector<float> &fitpars, Acts::Vector3 &global, Acts::Vector3 &global_new, TrkrDefs::subsurfkey &new_subsurfkey) const;
+  //  bool get_moved_position(TrkrDefs::cluskey cluskey, TrkrCluster *cluster, std::vector<float> &fitpars, Acts::Vector3 &global, Acts::Vector3 &global_new, TrkrDefs::subsurfkey &new_subsurfkey) const;
+  bool get_moved_position(TrkrDefs::cluskey cluskey, TrkrCluster* cluster, std::vector<float>& fitpars, Acts::Vector3& global, Acts::Vector3& global_new, TrkrDefs::subsurfkey& new_subsurfkey, Surface& new_surface) const;
 
   //! verbosity
   int _verbosity = 0;
