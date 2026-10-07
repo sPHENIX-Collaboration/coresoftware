@@ -52,7 +52,6 @@ TpcCombinedRawDataUnpacker::TpcCombinedRawDataUnpacker(std::string const& name, 
 
 TpcCombinedRawDataUnpacker::~TpcCombinedRawDataUnpacker()
 {
-  delete m_cdbttree;
   for (auto& hiter2 : feeadc_map)
   {
     delete  hiter2.second;
@@ -99,9 +98,7 @@ int TpcCombinedRawDataUnpacker::Init(PHCompositeNode* /*topNode*/)
 
   if (calibdir[0] == '/')
   {
-    // use generic CDBTree to load
-    m_cdbttree = new CDBTTree(calibdir);
-    m_cdbttree->LoadCalibrations();
+    m_feeChannelMap = loadFeeChannelMap(calibdir);
   }
   else
   {
@@ -110,6 +107,28 @@ int TpcCombinedRawDataUnpacker::Init(PHCompositeNode* /*topNode*/)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+std::shared_ptr<const TpcCombinedRawDataUnpacker::FeeChannelMap> TpcCombinedRawDataUnpacker::loadFeeChannelMap(const std::string& filename)
+{
+  // one unpacker is registered per EBDC endpoint, so cache the map to avoid
+  // holding a separate copy of the full CDBTTree in each instance
+  static std::map<std::string, std::weak_ptr<const FeeChannelMap>> cache;
+  if (auto cached = cache[filename].lock())
+  {
+    return cached;
+  }
+
+  CDBTTree cdbttree(filename);
+  cdbttree.LoadCalibrations();
+  auto feeChannelMap = std::make_shared<FeeChannelMap>();
+  for (unsigned int key = 0; key < FeeChannelMap::nkeys; ++key)
+  {
+    feeChannelMap->layer[key] = cdbttree.GetIntValue(key, "layer");
+    feeChannelMap->phi[key] = cdbttree.GetDoubleValue(key, "phi");
+  }
+  cache[filename] = feeChannelMap;
+  return feeChannelMap;
 }
 
 int TpcCombinedRawDataUnpacker::InitRun(PHCompositeNode* topNode)
@@ -300,8 +319,11 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     }
 
     unsigned int key = (256 * (feeM)) + channel;
-    std::string varname = "layer";
-    int layer = m_cdbttree->GetIntValue(key, varname);
+    if (key >= FeeChannelMap::nkeys)
+    {
+      continue;
+    }
+    int layer = m_feeChannelMap->layer[key];
     // antenna pads will be in 0 layer
     if (layer <= 6)
     {
@@ -323,8 +345,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       region = 1;
     }
 
-    varname = "phi";  // + std::to_string(key);
-    double phi = ((side == 1 ? 1 : -1) * (m_cdbttree->GetDoubleValue(key, varname) - M_PI / 2.)) + ((sector % 12) * M_PI / 6);
+    double phi = ((side == 1 ? 1 : -1) * (m_feeChannelMap->phi[key] - M_PI / 2.)) + ((sector % 12) * M_PI / 6);
     PHG4TpcGeom* layergeom = geom_container->GetLayerCellGeom(layer);
     unsigned int phibin = layergeom->get_phibin(phi, side);
   

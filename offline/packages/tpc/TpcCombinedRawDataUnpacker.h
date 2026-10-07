@@ -5,14 +5,15 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <array>
 #include <limits>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
 
 class CDBInterface;
-class CDBTTree;
 class TFile;
 class TH1;
 class TH2;
@@ -92,11 +93,21 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
     double width = -1;
     int entries = 0;
   };
+
+  //! FEE channel map lookup, indexed by 256 * mapped fee + channel.
+  //! Shared between all unpacker instances that use the same CDB file
+  struct FeeChannelMap
+  {
+    static constexpr unsigned int nkeys = 26 * 256;
+    std::array<int, nkeys> layer{};
+    std::array<double, nkeys> phi{};
+  };
+  static std::shared_ptr<const FeeChannelMap> loadFeeChannelMap(const std::string &filename);
   TNtuple *m_ntup{nullptr};
   TNtuple *m_ntup_hits{nullptr};
   TNtuple *m_ntup_hits_corr{nullptr};
   TFile *m_file{nullptr};
-  CDBTTree *m_cdbttree{nullptr};
+  std::shared_ptr<const FeeChannelMap> m_feeChannelMap;
   CDBInterface *m_cdb{nullptr};
 
   int m_presampleShift{40};  // number of presamples shifted to line up t0
