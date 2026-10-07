@@ -695,7 +695,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     if (!m_CentInfo)
     {
         std::cout << "KFparticle - [WARNING] - can't find CentralityInfo node " << "CentralityInfo" << std::endl;
-        m_centrality_mbd = -1.;
+        m_centrality_mbd = -999.;
     }
     else
     {
@@ -707,15 +707,18 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
           }
           else
           {
-            std::cout << "KFparticle - Invalid bunch crossing" << std::endl; //TODO
-            m_centrality_mbd = -1;
+            if (m_verbosity_nTuple > 0)
+            {
+              std::cout << "KFparticle - Invalid bunch crossing" << std::endl;
+            }
+            m_centrality_mbd = std::numeric_limits<float>::quiet_NaN();
           }
         }
         else
         {
             std::cout << "[WARNING/ERROR] No centrality information found in CentralityInfo. Setting centrality_mbd to -2. Please check!" << std::endl;
             m_CentInfo->identify();
-            m_centrality_mbd = -2.;
+            m_centrality_mbd = -999.;
         }
     }
   }
