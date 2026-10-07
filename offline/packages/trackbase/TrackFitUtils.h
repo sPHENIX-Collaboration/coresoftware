@@ -133,7 +133,7 @@ namespace TrackFitUtils
                                   TrkrClusterContainer* _cluster_map,
                                   std::vector<Acts::Vector3>& global_vec,
                                   const std::vector<TrkrDefs::cluskey>& cluskey_vec);
-  Acts::Vector3 surface_3Dline_intersection(Surface surf, ActsGeometry* geometry,
+  Acts::Vector3 surface_3Dline_intersection(const Surface& surf, ActsGeometry* geometry,
 					    float& xyslope, float& xyint, float& yzslope, float& yzint);
 
   Acts::Vector3 getPCALinePoint(const Acts::Vector3& global, const Acts::Vector3& tangent, const Acts::Vector3& posref);
