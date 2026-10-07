@@ -100,7 +100,7 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
   return line;
 }
 
-Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(Surface surf, ActsGeometry* geometry,
+Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const Surface& surf, ActsGeometry* geometry,
 							 float& xyslope, float& xyint, float& yzslope, float& yzint)
 {
   Acts::Vector3 intersection(std::numeric_limits<float>::quiet_NaN(),
