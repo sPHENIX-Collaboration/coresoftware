@@ -961,7 +961,7 @@ namespace
 
     if(!QABase.empty())
     {
-      const auto palette = TColor::GetPalette();
+      const auto &palette = TColor::GetPalette();
       const Int_t nColors = palette.GetSize();
 
       std::vector<TH1D *> hRADCrow(nrow);
