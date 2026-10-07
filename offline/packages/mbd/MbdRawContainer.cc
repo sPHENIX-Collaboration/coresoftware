@@ -68,6 +68,12 @@ MbdRawHit *MbdRawContainer::get_pmt(const int /*iPmt*/) const
   return nullptr;
 }
 
+int MbdRawContainer::get_badtdc() const
+{
+  virtual_warning("get_badtdc()");
+  return 0;
+}
+
 void MbdRawContainer::Print(Option_t * /*option*/) const
 {
   Short_t npmt = get_npmt();

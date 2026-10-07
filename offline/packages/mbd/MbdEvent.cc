@@ -1062,7 +1062,7 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
     }
     bbcpmts->get_pmt(ipmt)->set_fitstat( bbcraws->get_pmt(ipmt)->get_fitstat() );
   }
-  bbcpmts->set_npmt(MbdDefs::BBC_N_PMT);
+  //bbcpmts->set_npmt(MbdDefs::BBC_N_PMT); // this would need to be changed if we zero-suppressed
 
   m_clk = bbcraws->get_clock();
   m_femclk = bbcraws->get_femclock();

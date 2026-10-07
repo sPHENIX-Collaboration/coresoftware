@@ -44,6 +44,12 @@ MbdPmtHit *MbdPmtContainer::get_pmt(const int /*iPmt*/) const
   return nullptr;
 }
 
+int MbdPmtContainer::get_badtdc() const
+{
+  virtual_warning("get_badtdc()");
+  return 0;
+}
+
 void MbdPmtContainer::Print(Option_t * /*option*/) const
 {
   Short_t npmt = get_npmt();

@@ -8,16 +8,34 @@
 
 static const int NPMTMBDV2 = 128;
 
-MbdPmtContainerV2::MbdPmtContainerV2() : MbdPmtHits(new TClonesArray("MbdPmtHitV2", NPMTMBDV2))
+MbdPmtContainerV2::MbdPmtContainerV2() :
+  npmt(NPMTMBDV2),
+  MbdPmtHits(new TClonesArray("MbdPmtHitV2", NPMTMBDV2))
 {
   // MbdPmtHit is class for single hit (members: pmt,adc,tdc0,tdc1), do not mix
   // with TClonesArray *MbdPmtHits
-  
 }
 
 MbdPmtContainerV2::~MbdPmtContainerV2()
 {
   delete MbdPmtHits;
+}
+
+int MbdPmtContainerV2::get_badtdc() const
+{
+  int has_badtdc = 0;
+
+  for (int ipmt=0; ipmt < get_npmt(); ipmt++)
+  {
+    MbdPmtHit* mbdpmt = get_pmt(ipmt);
+    if ( mbdpmt->get_badtdc() )
+    {
+      has_badtdc = 1;
+      break;
+    }
+  }
+
+  return has_badtdc;
 }
 
 int MbdPmtContainerV2::isValid() const
