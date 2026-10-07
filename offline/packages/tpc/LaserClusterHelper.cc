@@ -12,6 +12,7 @@
 #include <cdbobjects/CDBTTree.h>
  
 #include <ffamodules/CDBInterface.h>
+#include <fun4all/Fun4AllServer.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
@@ -52,14 +53,23 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
         std::cout << "LaserClusterHelper::loadNodes - TPCGEOMCONTAINER not found on node tree" << std::endl;
     }
 
+    // PHGarfield is created on first use in getClusterCentroidWithPHGarfield
+    m_phgarfield.reset();
+}
+
+//____________________________________________________________________________
+void LaserClusterHelper::initPHGarfield() const
+{
     const std::string m_spacechargefieldmap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_EField");
     const auto kefffile = CDBInterface::instance()->getUrl("Tpc_PolyClusterizer_kEff");
+    double keffside0 = m_garfield_keffside0;
+    double keffside1 = m_garfield_keffside1;
     if (!kefffile.empty())
     {
         auto keffcdbtree = std::make_unique<CDBTTree>(kefffile);
         keffcdbtree->LoadCalibrations();
-        m_garfield_keffside0 = keffcdbtree->GetSingleFloatValue("keffside0");
-        m_garfield_keffside1 = keffcdbtree->GetSingleFloatValue("keffside1");
+        keffside0 = keffcdbtree->GetSingleFloatValue("keffside0");
+        keffside1 = keffcdbtree->GetSingleFloatValue("keffside1");
     }
 
     m_phgarfield = std::make_unique<PHGarfield>();
@@ -73,9 +83,9 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
     m_phgarfield->RotateTpc(0.000298, 0, 0);
     m_phgarfield->SetCMVoltageDefault(m_garfield_cmvoltage);
     m_phgarfield->SetZeroField(m_garfield_zerofield);
-    m_phgarfield->SetSpaceChargeScaleSide0(m_garfield_keffside0);
-    m_phgarfield->SetSpaceChargeScaleSide1(m_garfield_keffside1);
-    m_phgarfield->InitRun(topNode);
+    m_phgarfield->SetSpaceChargeScaleSide0(keffside0);
+    m_phgarfield->SetSpaceChargeScaleSide1(keffside1);
+    m_phgarfield->InitRun(Fun4AllServer::instance()->topNode());
     
     
 }
@@ -217,7 +227,7 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroidWithPHGarfield(LaserCluster*
 {
     if (!m_phgarfield)
     {
-        return invalid;
+        initPHGarfield();
     }
 
     if(!cluster)

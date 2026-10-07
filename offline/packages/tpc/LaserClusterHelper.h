@@ -36,9 +36,14 @@ class LaserClusterHelper
     void set_garfield_keffside1(double use) { m_garfield_keffside1 = use; }
     void set_garfield_stepns(double use) { m_garfield_stepns = use; }
   private:
+    //! PHGarfield is large and only needed by getClusterCentroidWithPHGarfield,
+    //! so it is built the first time that is called.
+    //! Note: data members are deliberately unchanged, since modules hold this class by value
+    void initPHGarfield() const;
+
     ActsGeometry *m_tGeometry{nullptr};
     PHG4TpcGeomContainer *m_geom_container{nullptr};
-    std::unique_ptr<PHGarfield> m_phgarfield;
+    mutable std::unique_ptr<PHGarfield> m_phgarfield;
 
     bool m_useZ{false};
     bool m_useGlobal{true};
