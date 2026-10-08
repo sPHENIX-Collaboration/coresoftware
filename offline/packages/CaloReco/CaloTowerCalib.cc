@@ -287,9 +287,16 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
     if (isZS && m_doZScrosscalib)
     {
       float crosscalibconst = m_cdbInfo_vec[channel].crosscalibconst;
-      if (crosscalibconst == 0)
+      // The ZSCrossCalib CDB tree stores <E_ZS / E_template> directly from CaloFittingQA.
+      // Invert the ratio (E_template / E_ZS) so multiplying raw ZS amplitude (E_ZS) scales it back
+      // to the template-fit energy scale. Default to 1.0 if unmeasured or non-positive.
+      if (crosscalibconst > 0.0F)
       {
-        crosscalibconst = 1;
+        crosscalibconst = 1.0F / crosscalibconst;
+      }
+      else
+      {
+        crosscalibconst = 1.0F;
       }
       calib_energy = raw_amplitude * calibconst * crosscalibconst;
     }
