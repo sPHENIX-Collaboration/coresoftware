@@ -265,10 +265,6 @@ std::array<double, 3> LaserClusterHelper::getClusterHardwareCentroid(LaserCluste
 
 Acts::Vector3 LaserClusterHelper::getClusterCentroidWithPHGarfield(LaserCluster* cluster) const
 {
-    if (!m_phgarfield)
-    {
-        initPHGarfield();
-    }
 
     if(!cluster)
     {
