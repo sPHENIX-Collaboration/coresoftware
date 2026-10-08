@@ -1094,8 +1094,11 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
     std::vector<TpcCrossingCandidate> candidate_qa_records;
     auto add_decision_with_candidates = [&candidate_qa_records, decision, this]()
     {
-      for (const TpcCrossingCandidate& candidate : candidate_qa_records) { decision->add_candidate(candidate);
+      if (m_storeCandidateQA)
+      {
+        for (const TpcCrossingCandidate& candidate : candidate_qa_records) { decision->add_candidate(candidate);
 }
+      }
       m_decisions->add_decision(decision);
     };
     decision->set_assembled_track_id(assembled->get_track_id());
