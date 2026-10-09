@@ -70,7 +70,22 @@ class PHGarfield : public SubsysReco
   void RotateMagnet(double theta_x, double theta_y, double theta_z);
   void MoveTpc(double x_cm, double y_cm, double z_cm);
   void RotateTpc(double theta_x, double theta_y, double theta_z);
-  void SetCMVoltageDefault(double voltage) { m_CMVoltageDefault = voltage; }
+  // A manual CM field disables the P/T correction.
+  void SetCMVoltageDefault(double voltage)
+  {
+    m_CMVoltageDefault = voltage;
+    m_CMVoltageOverride = true;
+  }
+  // P/T correction of the nominal drift field (on by default):
+  // E = E_ref * (P_ref/P_run) * (T_run/T_ref), P/T from TpcConditions.
+  void SetUsePTCorrection(bool value) { m_usePTCorrection = value; }
+  bool GetUsePTCorrection() const { return m_usePTCorrection; }
+  void SetPTReference(double cmField_vcm, double pressure, double temperatureK)
+  {
+    m_referenceCMFieldVcm = cmField_vcm;
+    m_referencePressure = pressure;
+    m_referenceTemperatureK = temperatureK;
+  }
   double GetCMVoltageDefault() const { return m_CMVoltageDefault; }
   bool GetSpaceChargeScaleOverride() const { return m_spaceChargeScaleOverride[0] && m_spaceChargeScaleOverride[1]; }
 
@@ -196,6 +211,7 @@ class PHGarfield : public SubsysReco
     SetFrameChargeScale(0.0);
     SetUseIFCVoltageDistortion(false);
     SetUseOFCVoltageDistortion(false);
+    SetUsePTCorrection(false);
   }
 
   // Static field-cage boundary-voltage distortions.
@@ -319,6 +335,7 @@ class PHGarfield : public SubsysReco
 
   bool LoadCDBInputs(PHCompositeNode *topNode);
   void ConfigureRunDependentFieldCage();
+  void ConfigurePTCorrectedField(PHCompositeNode *topNode);
 
   CDBTTree *m_cdbTPCMAPttree{nullptr};  // Locations of the pads from CDB...
   // PHField3DCartesian *m_field{nullptr};           // The standard sPHENIX field holding container.
@@ -344,7 +361,13 @@ class PHGarfield : public SubsysReco
   std::array<std::string, 2> m_electricFieldMap3D{};
   double m_spaceChargeScale_side0{1.0};  // south, z < 0
   double m_spaceChargeScale_side1{1.0};  // north, z > 0
-  double m_CMVoltageDefault{375.0};      // V/cm, nominal TPC field
+  double m_CMVoltageDefault{376.85};     // V/cm, nominal TPC field (P/T corrected in InitRun)
+  bool m_CMVoltageOverride{false};
+  bool m_usePTCorrection{true};
+  // Reference conditions: run 79513.
+  double m_referenceCMFieldVcm{376.85};
+  double m_referencePressure{30.0968906};
+  double m_referenceTemperatureK{299.98646566};
   bool m_zerofield{false};
   TH2 *m_erCorrection{nullptr};  // radial correction, input bins in V/m
   TH2 *m_ezCorrection{nullptr};  // local longitudinal correction, input bins in V/m

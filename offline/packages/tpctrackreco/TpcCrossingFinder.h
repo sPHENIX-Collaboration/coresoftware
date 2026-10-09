@@ -196,7 +196,7 @@ class TpcCrossingFinder : public SubsysReco
   PHG4TpcGeomContainer* m_geomContainerTpc {nullptr};
   SvtxVertexMap* m_vertexMap {nullptr};
   std::unique_ptr<IdealPadMap> m_idealPadMap {};
-  std::unique_ptr<PHGarfield> m_garfield {};
+  PHGarfield* m_garfield {};
 
   std::array<DriftPolyline, 48 * 2 * 12 * NPhiSamples> m_driftLookup;
   unsigned int m_event {0};

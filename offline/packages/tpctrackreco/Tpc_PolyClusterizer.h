@@ -251,7 +251,8 @@ class Tpc_PolyClusterizer : public SubsysReco
   TrkrHitSetContainer* m_hits{nullptr};
   IdealPadMap* m_idealPadMap{nullptr};
 
-  std::unique_ptr<PHGarfield> m_garfield{};
+  PHGarfield* m_garfield{nullptr};                // shared instance from PAR node (not owned)
+  std::unique_ptr<PHGarfield> m_ownedGarfield{};  // private instance, only with setUsePHGarfieldDefaults(false)
 
   PHG4TpcGeomContainer* m_geomContainerTpc{nullptr};
   TpcConditions* m_conditions{nullptr};

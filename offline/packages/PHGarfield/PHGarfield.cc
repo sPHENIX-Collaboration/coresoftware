@@ -8,6 +8,9 @@
 #include <phfield/PHField3DCartesian.h>
 #include <phfield/PHFieldConfig.h>
 #include <phfield/PHFieldUtility.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHDataNode.h>
+#include <phool/PHNodeIterator.h>
 #include <phool/RunnumberRange.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
@@ -43,7 +46,19 @@
 #include <vector>
 
 namespace fs = std::filesystem;
+class PHGarfieldNode final : public PHDataNode<PHGarfield>
+{
+ public:
+  explicit PHGarfieldNode(PHGarfield* garfield)
+    : PHDataNode<PHGarfield>(garfield, "PHGarfield", "Data")
+  {
+  }
 
+  ~PHGarfieldNode() override
+  {
+    setData(nullptr);  // Fun4AllServer deletes PHGarfield.
+  }
+};
 namespace
 {
   constexpr const char* CdbEField3DSide0 = "Tpc_PolySeeding_EField3D_Side0";
@@ -399,6 +414,66 @@ void PHGarfield::ConfigureRunDependentFieldCage()
   }
 }
 
+void PHGarfield::ConfigurePTCorrectedField(PHCompositeNode* topNode)
+{
+  if (m_CMVoltageOverride)
+  {
+    std::cout << Name() << "::ConfigurePTCorrectedField - manual CM field "
+              << m_CMVoltageDefault << " V/cm; P/T correction not applied" << std::endl;
+    return;
+  }
+
+  // Start from the reference every run, so corrections never compound.
+  m_CMVoltageDefault = m_referenceCMFieldVcm;
+
+  if (!m_usePTCorrection)
+  {
+    std::cout << Name() << "::ConfigurePTCorrectedField - P/T correction disabled; CM field "
+              << m_CMVoltageDefault << " V/cm" << std::endl;
+    return;
+  }
+
+  auto* conditions = findNode::getClass<TpcConditions>(topNode, "TpcConditions");
+  if (!conditions || !conditions->get_ConditionsAvailable())
+  {
+    std::cout << Name() << "::ConfigurePTCorrectedField - WARNING: TpcConditions "
+              << (conditions ? "not available" : "node not found")
+              << "; using reference CM field " << m_CMVoltageDefault << " V/cm" << std::endl;
+    return;
+  }
+
+  const double pressure = conditions->get_Pressure();
+  double temperatureK = conditions->get_Temperature();
+  if (temperatureK > 0.0 && temperatureK < 150.0)
+  {
+    // Stored in Celsius.
+    std::cout << Name() << "::ConfigurePTCorrectedField - converting T="
+              << temperatureK << " C to K" << std::endl;
+    temperatureK += 273.15;
+  }
+
+  if (!(pressure > 0.0 && temperatureK > 0.0 &&
+        m_referencePressure > 0.0 && m_referenceTemperatureK > 0.0))
+  {
+    std::cout << Name() << "::ConfigurePTCorrectedField - WARNING: invalid P/T:"
+              << " P=" << pressure << " T=" << temperatureK
+              << "; using reference CM field " << m_CMVoltageDefault << " V/cm" << std::endl;
+    return;
+  }
+
+  // Match the run-dependent reduced field E/N with the reference gas table:
+  // E_eff = E_ref * (P_ref/P_run) * (T_run/T_ref).
+  m_CMVoltageDefault = m_referenceCMFieldVcm *
+                       (m_referencePressure / pressure) *
+                       (temperatureK / m_referenceTemperatureK);
+
+  std::cout << Name() << "::ConfigurePTCorrectedField -"
+            << " P=" << pressure << " (ref " << m_referencePressure << ")"
+            << " T=" << temperatureK << " K (ref " << m_referenceTemperatureK << " K)"
+            << " -> CM field " << m_CMVoltageDefault
+            << " V/cm (ref " << m_referenceCMFieldVcm << " V/cm)" << std::endl;
+}
+
 int PHGarfield::InitRun(PHCompositeNode* topNode)
 {
   if (Verbosity() > 1)
@@ -437,6 +512,7 @@ int PHGarfield::InitRun(PHCompositeNode* topNode)
   }
 
   ConfigureRunDependentFieldCage();
+  ConfigurePTCorrectedField(topNode);
 
   // Load the optional axisymmetric space-charge correction map.
   // Failure is non-fatal: Garfield then uses only the nominal 400 V/cm field.
@@ -527,6 +603,30 @@ int PHGarfield::InitRun(PHCompositeNode* topNode)
   {
     PrintMaps();
   }
+
+  auto* existing = findNode::getClass<PHGarfield>(topNode, "PHGarfield");
+  if (existing && existing != this)
+  {
+    std::cerr << Name() << "::InitRun - conflicting PHGarfield instance"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  if (!existing)
+  {
+    PHNodeIterator iter(topNode);
+    auto* parNode = dynamic_cast<PHCompositeNode*>(
+        iter.findFirst("PHCompositeNode", "PAR"));
+
+    if (!parNode)
+    {
+      parNode = new PHCompositeNode("PAR");
+      topNode->addNode(parNode);
+    }
+
+    parNode->addNode(new PHGarfieldNode(this));
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

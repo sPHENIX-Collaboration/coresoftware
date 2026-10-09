@@ -334,44 +334,65 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
     }
   }
 
-  m_garfield.reset();
+  m_garfield = nullptr;
+  m_ownedGarfield.reset();
 
   if (m_usePHGarfieldDefaults)
   {
-    std::cout << Name()
-              << "::InitRun - using PHGarfield default configuration"
-              << std::endl;
+    // Default: use the shared PHGarfield from the node tree, unchanged.
+    m_garfield = findNode::getClass<PHGarfield>(topNode, "PHGarfield");
+    if (!m_garfield)
+    {
+      std::cerr << Name() << "::InitRun - PHGarfield node not found. "
+                << "Register PHGarfield as a subsystem before " << Name() << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
 
-    m_garfield = std::make_unique<PHGarfield>(Name() + "_PHGarfield");
+    std::cout << Name() << "::InitRun - using shared PHGarfield "
+              << static_cast<const void*>(m_garfield)
+              << ", nominal field " << m_garfield->GetCMVoltageDefault()
+              << " V/cm" << std::endl;
 
-    reconfigure_garfield(m_garfield.get());
+    // The shared instance is not modified here; module-level Garfield setters are ignored.
+    if (m_kEffSide0Override || m_kEffSide1Override || m_cmVoltageDefaultOverride ||
+        m_electricFieldMapOverride || m_field3DSide0Override || m_field3DSide1Override ||
+        m_framesSide0Override || m_framesSide1Override || m_frameChargeScaleOverride ||
+        m_tpcGeometryOverride || m_fieldCageVoltageOverride || m_useBCOkEffsOverride ||
+        m_useSurveyGeometryOverride || m_field3DCoefficientFileOverride || m_isNonDistortedMC)
+    {
+      std::cout << Name() << "::InitRun - WARNING: PolyClusterizer Garfield setters are IGNORED "
+                << "when using the shared PHGarfield. Configure PHGarfield in the macro, "
+                << "or call setUsePHGarfieldDefaults(false) for a private instance." << std::endl;
+    }
   }
   else
   {
+    // Expert mode: private, fully reconfigured instance (old behavior).
     std::cout << Name()
-              << "::InitRun - using PolyClusterizer/manual PHGarfield configuration"
+              << "::InitRun - using PolyClusterizer/manual PHGarfield configuration (private instance)"
               << std::endl;
 
-    m_garfield = std::make_unique<PHGarfield>(
+    m_ownedGarfield = std::make_unique<PHGarfield>(
         Name() + "_PHGarfield", "", m_kEffSide0, m_kEffSide1);
 
-    m_garfield->SetUseSurveyGeometry(false);
-    configure_garfield(m_garfield.get());
-  }
+    m_ownedGarfield->SetUseSurveyGeometry(false);
+    configure_garfield(m_ownedGarfield.get());
 
-  if (m_isNonDistortedMC)
-  {
-    std::cout << Name()
-              << "::InitRun - configuring PHGarfield for non-distorted MC"
-              << std::endl;
+    if (m_isNonDistortedMC)
+    {
+      std::cout << Name()
+                << "::InitRun - configuring private PHGarfield for non-distorted MC"
+                << std::endl;
+      m_ownedGarfield->SetIsNonDistortedMC(true);
+    }
 
-    m_garfield->SetIsNonDistortedMC(true);
-  }
+    if (m_ownedGarfield->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    {
+      std::cerr << Name() << "::InitRun - PHGarfield InitRun failed" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
 
-  if (m_garfield->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK)
-  {
-    std::cerr << Name() << "::InitRun - PHGarfield InitRun failed" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    m_garfield = m_ownedGarfield.get();
   }
 
   if (!build_drift_lookup())

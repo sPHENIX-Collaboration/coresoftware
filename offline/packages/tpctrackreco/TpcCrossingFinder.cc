@@ -130,29 +130,24 @@ int TpcCrossingFinder::InitRun(PHCompositeNode* topNode)
       m_tpcRotations = {{{{rot_x, rot_y, rot_z}}, {{0.0, 0.0, 0.0}}}};
     }
   }
-
-  const std::string electricFieldMap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_EField");
-  const auto kefffile = CDBInterface::instance()->getUrl("Tpc_PolyClusterizer_kEff");
-
-  if (!kefffile.empty())
+  // Shared PHGarfield: must be registered in the macro before this module.
+  m_garfield = findNode::getClass<PHGarfield>(topNode, "PHGarfield");
+  if (!m_garfield)
   {
-    auto keffcdbtree = std::make_unique<CDBTTree>(kefffile);
-    keffcdbtree->LoadCalibrations();
-    m_kEffSide0 = keffcdbtree->GetSingleFloatValue("keffside0");
-    m_kEffSide1 = keffcdbtree->GetSingleFloatValue("keffside1");
- }
-
-  // initialize garfield
-  m_garfield.reset( new PHGarfield(Name() + "_PHGarfield", electricFieldMap, m_kEffSide0, m_kEffSide1));
-  configure_garfield(m_garfield.get());
-  if (m_garfield->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK)
-  {
-    std::cerr << Name() << "::InitRun - PHGarfield InitRun failed" << std::endl;
+    std::cerr << Name() << "::InitRun - PHGarfield node not found. "
+              << "Register PHGarfield as a subsystem before " << Name() << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if (!build_drift_lookup()) { return Fun4AllReturnCodes::ABORTRUN;
-}
+  std::cout << Name() << "::InitRun - using shared PHGarfield "
+            << static_cast<const void*>(m_garfield)
+            << ", nominal field " << m_garfield->GetCMVoltageDefault()
+            << " V/cm" << std::endl;
+
+ if (!build_drift_lookup())
+ {
+  return Fun4AllReturnCodes::ABORTRUN;
+ }
 
   m_event = 0;
   return Fun4AllReturnCodes::EVENT_OK;
