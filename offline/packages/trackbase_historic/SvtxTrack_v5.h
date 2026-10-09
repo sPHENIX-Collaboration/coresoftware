@@ -48,6 +48,12 @@ class SvtxTrack_v5 : public SvtxTrack
   // basic track information ---------------------------------------------------
   //
 
+  unsigned short get_silicon_seed_id() const override { return _silicon_seed_id; }
+  void set_silicon_seed_id(unsigned short id) override { _silicon_seed_id = id; }
+
+  unsigned short get_tpc_seed_id() const override { return _tpc_seed_id; }
+  void set_tpc_seed_id(unsigned short id) override { _tpc_seed_id = id; }
+  
   unsigned int get_id() const override { return _track_id; }
   void set_id(unsigned int id) override { _track_id = id; }
 
@@ -149,6 +155,8 @@ class SvtxTrack_v5 : public SvtxTrack
 
   // track information
   float _chisq = std::numeric_limits<float>::quiet_NaN(); //4byte
+  unsigned short _silicon_seed_id = std::numeric_limits<unsigned short>::max(); //2byte
+  unsigned short _tpc_seed_id = std::numeric_limits<unsigned short>::max(); //2byte
   unsigned int _track_id = std::numeric_limits<unsigned int>::max(); //4byte
   unsigned int _vertex_id = std::numeric_limits<unsigned int>::max(); //4byte
   short int _track_crossing = std::numeric_limits<short int>::max(); //2byte

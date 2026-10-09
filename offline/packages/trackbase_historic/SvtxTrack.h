@@ -78,6 +78,12 @@ class SvtxTrack : public PHObject
   virtual TrackSeed* get_silicon_seed() const { return nullptr; }
   virtual void set_silicon_seed(TrackSeed*) {}
 
+  virtual unsigned short get_silicon_seed_id() const { return USHRT_MAX; }
+  virtual void set_silicon_seed_id(unsigned short) {}
+  
+  virtual unsigned short get_tpc_seed_id() const { return USHRT_MAX; }
+  virtual void set_tpc_seed_id(unsigned short) {}
+
   virtual short int get_crossing() const { return SHRT_MAX; }
   virtual void set_crossing(short int) {}
 
