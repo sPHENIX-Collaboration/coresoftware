@@ -60,9 +60,9 @@ class CopyAndSubtractJets : public SubsysReco
 
   bool _use_flow_modulation{false};
   std::string m_towerNodePrefix{"TOWERINFO_CALIB"};
-  std::string m_emcal_input_node{};
-  std::string m_ihcal_input_node{};
-  std::string m_ohcal_input_node{};
+  std::string m_emcal_input_node;
+  std::string m_ihcal_input_node;
+  std::string m_ohcal_input_node;
   std::string m_ihcal_geom_node{"TOWERGEOM_HCALIN"};
   std::string m_ohcal_geom_node{"TOWERGEOM_HCALOUT"};
   std::string emcal_input_node() const { return m_emcal_input_node.empty() ? m_towerNodePrefix + "_CEMC_RETOWER" : m_emcal_input_node; }

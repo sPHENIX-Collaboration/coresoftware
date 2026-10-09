@@ -88,6 +88,8 @@ int TowerRhoToBackground::process_event(PHCompositeNode *topNode)
     }
   }
 
+  ++m_n_events;
+
   // calibration bin of this event, -1 (w = 1) if no calibration or out of range
   int izbin = -1;
   int imbd = -1;
@@ -99,9 +101,27 @@ int TowerRhoToBackground::process_event(PHCompositeNode *topNode)
       std::cout << PHWHERE << " MBD node " << m_mbd_node << " needed for the eta calibration not found, exiting" << std::endl;
       exit(1);
     }
+    const float mbdq = mbdout->get_q(0) + mbdout->get_q(1);
     izbin = find_bin(vtxz, m_calib_zvtx_edges);
-    imbd = find_bin(mbdout->get_q(0) + mbdout->get_q(1), m_calib_mbdq_edges);
+    imbd = find_bin(mbdq, m_calib_mbdq_edges);
+    if (izbin < 0 || imbd < 0)
+    {
+      ++m_n_out_of_range;
+      m_n_zvtx_out += (izbin < 0) ? 1 : 0;
+      m_n_mbdq_out += (imbd < 0) ? 1 : 0;
+      if (Verbosity() > 1)
+      {
+        std::cout << "TowerRhoToBackground::process_event - fallback to w = 1: vertex z = " << vtxz
+                  << (izbin < 0 ? " (out of range)" : "") << ", MBD charge = " << mbdq
+                  << (imbd < 0 ? " (out of range)" : "") << std::endl;
+      }
+    }
   }
+  else
+  {
+    ++m_n_no_calib;
+  }
+  bool event_has_invalid_w = false;
   const int n_mbd_bins = static_cast<int>(m_calib_mbdq_edges.size()) - 1;
 
   // layer 0 is the retowered EMCal: IHCal strips at the EMCal radius
@@ -151,6 +171,17 @@ int TowerRhoToBackground::process_event(PHCompositeNode *topNode)
         {
           ue_tower *= w;
         }
+        else
+        {
+          ++m_n_invalid_w;
+          event_has_invalid_w = true;
+          if (Verbosity() > 1)
+          {
+            std::cout << "TowerRhoToBackground::process_event - fallback to w = 1: invalid weight " << w
+                      << " for " << calib_field[layer] << ", eta strip " << ieta << " (vertex z bin " << izbin
+                      << ", MBD charge bin " << imbd << ")" << std::endl;
+          }
+        }
       }
       ue[ieta] = static_cast<float>(ue_tower);
     }
@@ -162,7 +193,26 @@ int TowerRhoToBackground::process_event(PHCompositeNode *topNode)
                 << (is_area ? " (AREA)" : " (MULT)") << ", vertex z = " << vtxz << std::endl;
     }
   }
+  m_n_events_invalid_w += event_has_invalid_w ? 1 : 0;
 
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int TowerRhoToBackground::End(PHCompositeNode * /*topNode*/)
+{
+  std::cout << "TowerRhoToBackground::End - " << m_n_events << " events";
+  if (m_n_no_calib > 0)
+  {
+    std::cout << "; no eta calibration configured, w = 1 in all " << m_n_no_calib << " of them";
+  }
+  std::cout << std::endl;
+  if (m_n_events > m_n_no_calib)
+  {
+    std::cout << "TowerRhoToBackground::End - fallbacks to w = 1: " << m_n_out_of_range
+              << " events out of the calibrated range (vertex z: " << m_n_zvtx_out
+              << ", MBD charge: " << m_n_mbdq_out << "), " << m_n_invalid_w << " invalid weights in "
+              << m_n_events_invalid_w << " events" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -201,6 +251,19 @@ int TowerRhoToBackground::LoadEtaCalib()
   for (int i = 0; i <= n_mbdq; i++)
   {
     m_calib_mbdq_edges[i] = m_eta_calib->GetSingleFloatValue("mbdQ_edge_" + std::to_string(i));
+  }
+
+  // bin edges must be finite and strictly increasing
+  for (const auto *edges : {&m_calib_zvtx_edges, &m_calib_mbdq_edges})
+  {
+    for (size_t i = 0; i < edges->size(); i++)
+    {
+      if (!std::isfinite(edges->at(i)) || (i > 0 && edges->at(i) <= edges->at(i - 1)))
+      {
+        std::cout << PHWHERE << " invalid bin edges in eta calibration " << url << std::endl;
+        return Fun4AllReturnCodes::ABORTRUN;
+      }
+    }
   }
 
   if (Verbosity() > 0)

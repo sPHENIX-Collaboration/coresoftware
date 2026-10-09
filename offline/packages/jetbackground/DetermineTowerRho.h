@@ -91,7 +91,7 @@ class DetermineTowerRho : public SubsysReco
   std::vector<JetInput *> m_inputs{};
 
   std::vector<std::string> m_output_nodes{};
-  std::vector<std::string> m_jet_output_nodes{};
+  std::vector<std::string> m_jet_output_nodes;
 
   std::vector<TowerRho::Method> m_rho_methods{};
 

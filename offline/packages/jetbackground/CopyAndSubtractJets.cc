@@ -125,7 +125,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 
       double comp_background = 0;
 
-      if (comp.first == Jet::SRC::HCALIN_TOWER || comp.first == Jet::SRC::HCALIN_TOWERINFO)
+      if (comp.first == Jet::SRC::HCALIN_TOWERINFO)
       {
         towerinfo = towerinfosIH3->get_tower_at_channel(comp.second);
         unsigned int towerkey = towerinfosIH3->encode_key(comp.second);
@@ -136,7 +136,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
         tower_geom = geomIH->get_tower_geometry(key);
         comp_background = background_UE_1.at(comp_ieta);
       }
-      else if (comp.first == Jet::SRC::HCALOUT_TOWER || comp.first == Jet::SRC::HCALOUT_TOWERINFO)
+      else if (comp.first == Jet::SRC::HCALOUT_TOWERINFO)
       {
         towerinfo = towerinfosOH3->get_tower_at_channel(comp.second);
         unsigned int towerkey = towerinfosOH3->encode_key(comp.second);
@@ -146,7 +146,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
         tower_geom = geomOH->get_tower_geometry(key);
         comp_background = background_UE_2.at(comp_ieta);
       }
-      else if (comp.first == Jet::SRC::CEMC_TOWER_RETOWER || comp.first == Jet::SRC::CEMC_TOWERINFO_RETOWER)
+      else if (comp.first == Jet::SRC::CEMC_TOWERINFO_RETOWER)
       {
         towerinfo = towerinfosEM3->get_tower_at_channel(comp.second);
         unsigned int towerkey = towerinfosEM3->encode_key(comp.second);
@@ -156,6 +156,12 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 
         tower_geom = geomIH->get_tower_geometry(key);
         comp_background = background_UE_0.at(comp_ieta);
+      }
+      else
+      {
+        std::cout << PHWHERE << " unsupported constituent source " << comp.first
+                  << " (only TowerInfo inputs are supported), exiting" << std::endl;
+        exit(1);
       }
       if (towerinfo)
       {

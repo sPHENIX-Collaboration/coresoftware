@@ -568,6 +568,12 @@ void DetermineTowerRho::CalcRho(JetContainer *jets,
   rho = 0;
   sigma = 0;
 
+  // no jets left after the acceptance and the omitted seeds: rho = sigma = 0
+  if (keep.empty())
+  {
+    return;
+  }
+
   if (rho_method == TowerRho::Method::AREA)
   {
     const Jet::PROPERTY area_idx = jets->property_index(Jet::PROPERTY::prop_area);

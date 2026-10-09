@@ -6,6 +6,7 @@
 #include <globalvertex/GlobalVertex.h>
 
 #include <array>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -28,18 +29,26 @@ class PHCompositeNode;
 /// n_eta, n_zvtx_bins, n_mbdQ_bins, zvtx_edge_<i>, mbdQ_edge_<i> and per-channel
 /// fields w_cemc / w_hcalin / w_hcalout, channel = izbin * (n_mbdQ_bins * n_eta) +
 /// imbd * n_eta + ieta. Events outside the calibrated vertex z / MBD charge range,
-/// and non-positive weights, use w = 1.
+/// and non-positive weights, use w = 1. These fallbacks are counted (summary at
+/// End, getters below) and printed per event for Verbosity() > 1.
 class TowerRhoToBackground : public SubsysReco
 {
  public:
-  TowerRhoToBackground(const std::string &name = "TowerRhoToBackground")
+  explicit TowerRhoToBackground(const std::string &name = "TowerRhoToBackground")
     : SubsysReco(name)
   {
   }
   ~TowerRhoToBackground() override;
 
+  // owns the calibration tree, so not copyable or movable
+  TowerRhoToBackground(const TowerRhoToBackground &) = delete;
+  TowerRhoToBackground &operator=(const TowerRhoToBackground &) = delete;
+  TowerRhoToBackground(TowerRhoToBackground &&) = delete;
+  TowerRhoToBackground &operator=(TowerRhoToBackground &&) = delete;
+
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   void set_emcal_rho_node(const std::string &name) { m_rho_nodes[0] = name; }
   void set_ihcal_rho_node(const std::string &name) { m_rho_nodes[1] = name; }
@@ -64,6 +73,18 @@ class TowerRhoToBackground : public SubsysReco
     m_use_vertex_type = true;
   }
 
+  // fallback counters (w = 1)
+  uint64_t get_n_events() const { return m_n_events; }
+  // events processed with no eta calibration configured: w = 1 everywhere
+  uint64_t get_n_events_no_calib() const { return m_n_no_calib; }
+  // events outside the calibrated vertex z or MBD charge range: w = 1 everywhere
+  uint64_t get_n_events_out_of_range() const { return m_n_out_of_range; }
+  uint64_t get_n_events_zvtx_out_of_range() const { return m_n_zvtx_out; }
+  uint64_t get_n_events_mbdq_out_of_range() const { return m_n_mbdq_out; }
+  // (layer, eta strip) weights that were <= 0 or NaN, and the events with any
+  uint64_t get_n_invalid_weights() const { return m_n_invalid_w; }
+  uint64_t get_n_events_invalid_weight() const { return m_n_events_invalid_w; }
+
  private:
   std::array<std::string, 3> m_rho_nodes{"TowerRho_CEMC_MULT", "TowerRho_HCALIN_MULT", "TowerRho_HCALOUT_MULT"};
   std::array<std::string, 3> m_geom_nodes{"TOWERGEOM_CEMC", "TOWERGEOM_HCALIN", "TOWERGEOM_HCALOUT"};
@@ -73,13 +94,21 @@ class TowerRhoToBackground : public SubsysReco
   bool m_use_vertex_type{false};
 
   // eta-shape calibration
-  std::string m_eta_calib_tag{};
-  std::string m_eta_calib_path{};
+  std::string m_eta_calib_tag;
+  std::string m_eta_calib_path;
   std::string m_mbd_node{"MbdOut"};
-  CDBTTree *m_eta_calib{nullptr};
+  CDBTTree * m_eta_calib{nullptr};
   int m_calib_neta{0};
-  std::vector<float> m_calib_zvtx_edges{};
-  std::vector<float> m_calib_mbdq_edges{};
+  std::vector<float> m_calib_zvtx_edges;
+  std::vector<float> m_calib_mbdq_edges;
+
+  uint64_t m_n_events{0};
+  uint64_t m_n_no_calib{0};
+  uint64_t m_n_out_of_range{0};
+  uint64_t m_n_zvtx_out{0};
+  uint64_t m_n_mbdq_out{0};
+  uint64_t m_n_invalid_w{0};
+  uint64_t m_n_events_invalid_w{0};
 
   int LoadEtaCalib();
   // index of the bin of val in edges, -1 if outside

@@ -133,11 +133,11 @@ class DetermineTowerBackground : public SubsysReco
   // Seed jets to read. Empty (default) = the standard node for the seed type:
   // type 0 (1st iteration) AntiKt_TowerInfo_HIRecoSeedsRaw_r02,
   // type 1 (2nd iteration) AntiKt_TowerInfo_HIRecoSeedsSub_r02 (from CopyAndSubtractJets).
-  std::string m_jetnode{};
+  std::string m_jetnode;
 
-  std::string m_emcal_input_node{};
-  std::string m_ihcal_input_node{};
-  std::string m_ohcal_input_node{};
+  std::string m_emcal_input_node;
+  std::string m_ihcal_input_node;
+  std::string m_ohcal_input_node;
   std::string m_ihcal_geom_node{"TOWERGEOM_HCALIN"};
   std::string m_ohcal_geom_node{"TOWERGEOM_HCALOUT"};
   std::string emcal_input_node() const { return m_emcal_input_node.empty() ? m_towerNodePrefix + "_CEMC_RETOWER" : m_emcal_input_node; }

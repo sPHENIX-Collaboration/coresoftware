@@ -55,6 +55,11 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
   TowerInfoContainer *towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
   TowerInfoContainer *towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
   TowerInfoContainer *towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
+  if (!towerinfosEM3 || !towerinfosIH3 || !towerinfosOH3)
+  {
+    std::cout << PHWHERE << " missing input tower node " << EMTowerName << ", " << IHTowerName << " or " << OHTowerName << ", exiting" << std::endl;
+    exit(1);
+  }
 
   if (Verbosity() > 0)
   {
@@ -65,6 +70,11 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
 
   RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, m_ihcal_geom_node);
   RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, m_ohcal_geom_node);
+  if (_use_flow_modulation && (!geomIH || !geomOH))
+  {
+    std::cout << PHWHERE << " missing tower geometry " << m_ihcal_geom_node << " or " << m_ohcal_geom_node << ", exiting" << std::endl;
+    exit(1);
+  }
 
   // these should have already been created during InitRun()
   EMTowerName = emcal_output_node();
@@ -73,6 +83,11 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
   TowerInfoContainer *emcal_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
   TowerInfoContainer *ihcal_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
   TowerInfoContainer *ohcal_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
+  if (!emcal_towerinfos || !ihcal_towerinfos || !ohcal_towerinfos)
+  {
+    std::cout << PHWHERE << " missing output tower node " << EMTowerName << ", " << IHTowerName << " or " << OHTowerName << ", exiting" << std::endl;
+    exit(1);
+  }
 
   if (Verbosity() > 0)
   {
@@ -82,6 +97,11 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
   }
 
   TowerBackground *towerbackground = findNode::getClass<TowerBackground>(topNode, m_towerBackgroundNode);
+  if (!towerbackground)
+  {
+    std::cout << PHWHERE << " TowerBackground node " << m_towerBackgroundNode << " not found (see set_inputTowerBackgroundNode), exiting" << std::endl;
+    exit(1);
+  }
   // read these in to use, even if we don't use flow modulation in the subtraction
   float background_v2 = towerbackground->get_v2();
   float background_Psi2 = towerbackground->get_Psi2();
@@ -164,7 +184,6 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
   }
 
   // OHCal
-
   // replicate existing towers
   unsigned int nchannels_oh = towerinfosOH3->size();
   for (unsigned int channel = 0; channel < nchannels_oh; channel++)
