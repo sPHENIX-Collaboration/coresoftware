@@ -39,6 +39,9 @@ class MbdPmtContainer : public PHObject
   //! get MbdPmtHit Object
   virtual MbdPmtHit *get_pmt(const int ipmt) const;
 
+  //! whether this event had a bad TDC
+  virtual int get_badtdc() const;
+
   virtual void Print(Option_t *option="") const override;
 
  private:

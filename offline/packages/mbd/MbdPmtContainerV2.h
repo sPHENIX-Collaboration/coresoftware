@@ -1,5 +1,5 @@
-#ifndef MBD_MBDPMTCONTAINERV1_H__
-#define MBD_MBDPMTCONTAINERV1_H__
+#ifndef MBD_MBDPMTCONTAINERV2_H__
+#define MBD_MBDPMTCONTAINERV2_H__
 
 #include "MbdPmtContainer.h"
 
@@ -8,14 +8,14 @@
 #include <TClonesArray.h>
 
 ///
-class MbdPmtContainerV1 : public MbdPmtContainer
+class MbdPmtContainerV2 : public MbdPmtContainer
 {
 public:
   /// ctor
-  MbdPmtContainerV1();
+  MbdPmtContainerV2();
 
   /// dtor
-  virtual ~MbdPmtContainerV1();
+  virtual ~MbdPmtContainerV2();
 
   /// Clear Event
   void Reset() override;
@@ -46,13 +46,16 @@ public:
    */
   MbdPmtHit *get_pmt(const int iPmt) const override { return (MbdPmtHit*)MbdPmtHits->ConstructedAt(iPmt); }
 
+  /// whether this event had a bad TDC
+  int get_badtdc() const override;
+
 private:
   TClonesArray *GetMbdPmtHits() const { return MbdPmtHits; }
 
   Short_t npmt = 0;
   TClonesArray *MbdPmtHits = nullptr;
 
-  ClassDefOverride(MbdPmtContainerV1, 1)
+  ClassDefOverride(MbdPmtContainerV2, 1)
 };
 
 #endif

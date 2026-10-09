@@ -37,6 +37,7 @@ class MbdEvent
 {
  public:
   MbdEvent(const int cal_pass = 0, const bool proc_charge = false);
+
   virtual ~MbdEvent();
 
   int InitRun();
