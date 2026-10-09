@@ -581,6 +581,14 @@ namespace
   void build_blobs(InModuleThreadData* d)
   {
     d->blobs.clear();
+    if (d->blobs_by_layer.size() < 64)
+    {
+      d->blobs_by_layer.resize(64);
+    }
+    for (auto& layer_blobs : d->blobs_by_layer)
+    {
+      layer_blobs.clear();
+    }
 
     const unsigned int n = static_cast<unsigned int>(d->raw_hits.size());
     if (n == 0)
@@ -725,6 +733,10 @@ namespace
       bl.nhits = nh;
       bl.used = 0;
 
+      if (layer < d->blobs_by_layer.size())
+      {
+        d->blobs_by_layer[layer].push_back(static_cast<unsigned int>(d->blobs.size()));
+      }
       d->blobs.push_back(std::move(bl));
     }
   }
@@ -737,14 +749,15 @@ namespace
     int best = -1;
     double best_score = std::numeric_limits<double>::max();
 
-    for (unsigned int i = 0; i < d->blobs.size(); ++i)
+    if (target_layer >= d->blobs_by_layer.size())
+    {
+      return -1;
+    }
+
+    for (const unsigned int i : d->blobs_by_layer[target_layer])
     {
       const InModuleThreadData::Blob& bl = d->blobs[i];
       if (bl.used)
-      {
-        continue;
-      }
-      if (bl.layer != target_layer)
       {
         continue;
       }

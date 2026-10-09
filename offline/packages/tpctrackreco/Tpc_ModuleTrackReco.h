@@ -129,6 +129,8 @@ struct InModuleThreadData
   std::vector<LayerHitSet> layer_hitsets;
   std::vector<RawHit> raw_hits;
   std::vector<Blob> blobs;
+  // blobs_by_layer[layer] = indices into blobs, in increasing order.
+  std::vector<std::vector<unsigned int>> blobs_by_layer;
   std::vector<Track> tracks;
 };
 
