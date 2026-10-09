@@ -1167,37 +1167,53 @@ Tpc_PolyClusterizer::make_centroid(const std::vector<Point>& points)
     return c;
   }
 
+  // ADC-weighted centroid; hits with ADC <= 0 get zero weight.
+  // Guard: if no hit has positive ADC, use equal weights.
+  double sw = 0.0;
+  for (const Point& p : points)
+  {
+    sw += std::max(p.adc, 0.0);
+  }
+  const bool use_adc = sw > 0.0;
+  if (!use_adc)
+  {
+    sw = static_cast<double>(points.size());
+  }
+  auto weight = [use_adc](const Point& p)
+  { return use_adc ? std::max(p.adc, 0.0) : 1.0; };
+
   double sx = 0.0;
   double sy = 0.0;
   double sz = 0.0;
   for (const Point& p : points)
   {
-    sx += p.x;
-    sy += p.y;
-    sz += p.z;
+    const double w = weight(p);
+    sx += w * p.x;
+    sy += w * p.y;
+    sz += w * p.z;
   }
 
-  const double n = static_cast<double>(points.size());
-  c.x = sx / n;
-  c.y = sy / n;
-  c.z = sz / n;
+  c.x = sx / sw;
+  c.y = sy / sw;
+  c.z = sz / sw;
 
   double sxx = 0.0;
   double syy = 0.0;
   double szz = 0.0;
   for (const Point& p : points)
   {
+    const double w = weight(p);
     const double dx = p.x - c.x;
     const double dy = p.y - c.y;
     const double dz = p.z - c.z;
-    sxx += dx * dx;
-    syy += dy * dy;
-    szz += dz * dz;
+    sxx += w * dx * dx;
+    syy += w * dy * dy;
+    szz += w * dz * dz;
   }
 
-  c.rms_x = std::sqrt(sxx / n);
-  c.rms_y = std::sqrt(syy / n);
-  c.rms_z = std::sqrt(szz / n);
+  c.rms_x = std::sqrt(sxx / sw);
+  c.rms_y = std::sqrt(syy / sw);
+  c.rms_z = std::sqrt(szz / sw);
   c.layer = points.front().layer;
   c.ok = std::isfinite(c.x) && std::isfinite(c.y) && std::isfinite(c.z);
   return c;
