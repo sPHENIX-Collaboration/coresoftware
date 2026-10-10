@@ -50,7 +50,8 @@ libkfparticle_sphenix_la_SOURCES = \
 
 libkfparticle_sphenix_io_la_LIBADD = \
   -lKFParticle \
-  -lphool
+  -lphool\
+  -lcentrality
 
 libkfparticle_sphenix_la_LIBADD = \
   libkfparticle_sphenix_io.la \

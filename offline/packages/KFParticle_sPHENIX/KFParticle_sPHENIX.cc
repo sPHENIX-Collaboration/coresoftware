@@ -89,6 +89,7 @@ KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
 int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
 {
   m_verbosity = Verbosity();
+  m_verbosity_nTuple = m_verbosity;
   
   if (m_save_output && Verbosity() >= VERBOSITY_SOME)
   {

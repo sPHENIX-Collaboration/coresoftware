@@ -249,6 +249,11 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_use_mbd_vertex_truth = use;
   }
 
+  void useCentrality(bool use = true)
+  {
+    m_use_centrality_nTuple = use;
+  }
+
   void dontUseGlobalVertex(bool dont = true) { m_dont_use_global_vertex = m_dont_use_global_vertex_truth  = dont; }
 
   void useFakePrimaryVertex(bool use_fake = true)
