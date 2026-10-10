@@ -76,6 +76,9 @@ class Tpc_AssembledTrackReco : public SubsysReco
   // Compare connection predictions at a lever-arm weighted radius between the
   // two pieces instead of the gap midpoint. Default: off.
   void setWeightedMatchPoint(bool v) { m_useWeightedMatchPoint = v; }
+  // Accept a connection only if no other unused piece/candidate connects to
+  // the same piece with a lower score. Default: off.
+  void setMutualBest(bool v) { m_useMutualBest = v; }
 
   void setSeedCovarianceDiagonal(double sigmaX, double sigmaY, double sigmaZ,
                                  double sigmaPx, double sigmaPy, double sigmaPz)
@@ -265,6 +268,7 @@ class Tpc_AssembledTrackReco : public SubsysReco
   bool m_useSagittaPhiFit;
   unsigned int m_minSagittaLayers{3};
   bool m_useWeightedMatchPoint{true};
+  bool m_useMutualBest{true};
   bool m_doDebugHistograms;
   unsigned int m_minClustersPerTrack;
   double m_linearPhiPrecutScale;

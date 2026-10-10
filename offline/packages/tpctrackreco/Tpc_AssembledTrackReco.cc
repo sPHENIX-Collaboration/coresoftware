@@ -1208,6 +1208,14 @@ void Tpc_AssembledTrackReco::connect_sector_pieces(const std::vector<Piece>& pie
 
   std::sort(order.begin(), order.end(), PieceStartSort(&pieces));
   std::vector<uint8_t> used(pieces.size(), 0);
+  // Mutual-best only: single-piece candidates, built on first use.
+  std::vector<Candidate> single;
+  std::vector<uint8_t> single_state;  // 0 = not built, 1 = ok, 2 = fit failed
+  if (m_useMutualBest)
+  {
+    single.resize(pieces.size());
+    single_state.assign(pieces.size(), 0);
+  }
 
   for (unsigned int io = 0; io < order.size(); ++io)
   {
@@ -1233,26 +1241,72 @@ void Tpc_AssembledTrackReco::connect_sector_pieces(const std::vector<Piece>& pie
       merged_any = false;
       int best_j = -1;
       double best_score = std::numeric_limits<double>::max();
+      std::vector<uint8_t> vetoed;  // pieces that another unused piece fits better
 
-      for (unsigned int j : order)
+      while (true)
       {
-        if (used[j])
+        best_j = -1;
+        best_score = std::numeric_limits<double>::max();
+
+        for (unsigned int j : order)
         {
-          continue;
+          if (used[j] || (!vetoed.empty() && vetoed[j]))
+          {
+            continue;
+          }
+
+          double score = 0.0;
+          double shifted_intercept = 0.0;
+          if (!candidates_can_connect(current, pieces[j], score, shifted_intercept))
+          {
+            continue;
+          }
+
+          if (score < best_score)
+          {
+            best_score = score;
+            best_j = static_cast<int>(j);
+          }
         }
 
-        double score = 0.0;
-        double shifted_intercept = 0.0;
-        if (!candidates_can_connect(current, pieces[j], score, shifted_intercept))
+        if (best_j < 0 || !m_useMutualBest)
         {
-          continue;
+          break;
         }
 
-        if (score < best_score)
+        // Mutual best: does another unused piece connect to best_j better?
+        bool beaten = false;
+        for (unsigned int k : order)
         {
-          best_score = score;
-          best_j = static_cast<int>(j);
+          if (used[k] || k == static_cast<unsigned int>(best_j))
+          {
+            continue;
+          }
+          if (single_state[k] == 0)
+          {
+            single_state[k] = refit_candidate(pieces, std::vector<unsigned int>{k}, single[k]) ? 1 : 2;
+          }
+          if (single_state[k] != 1)
+          {
+            continue;
+          }
+          double s = 0.0;
+          double sh = 0.0;
+          if (candidates_can_connect(single[k], pieces[static_cast<unsigned int>(best_j)], s, sh) && s < best_score)
+          {
+            beaten = true;
+            break;
+          }
         }
+        if (!beaten)
+        {
+          break;
+        }
+        if (vetoed.empty())
+        {
+          vetoed.assign(pieces.size(), 0);
+        }
+        vetoed[static_cast<unsigned int>(best_j)] = 1;
       }
 
       if (best_j >= 0)
@@ -1493,25 +1547,62 @@ void Tpc_AssembledTrackReco::connect_side_candidates(const std::vector<Piece>& p
       merged_any = false;
       int best_j = -1;
       double best_score = std::numeric_limits<double>::max();
+      std::vector<uint8_t> vetoed;  // candidates that another unused candidate fits better
 
-      for (unsigned int j : order)
+      while (true)
       {
-        if (used[j])
+        best_j = -1;
+        best_score = std::numeric_limits<double>::max();
+
+        for (unsigned int j : order)
         {
-          continue;
+          if (used[j] || (!vetoed.empty() && vetoed[j]))
+          {
+            continue;
+          }
+
+          double score = 0.0;
+          if (!candidates_can_connect(current, seeds[j], score))
+          {
+            continue;
+          }
+
+          if (score < best_score)
+          {
+            best_score = score;
+            best_j = static_cast<int>(j);
+          }
         }
 
-        double score = 0.0;
-        if (!candidates_can_connect(current, seeds[j], score))
+        if (best_j < 0 || !m_useMutualBest)
         {
-          continue;
+          break;
         }
 
-        if (score < best_score)
+        // Mutual best: does another unused candidate connect to best_j better?
+        bool beaten = false;
+        for (unsigned int k : order)
         {
-          best_score = score;
-          best_j = static_cast<int>(j);
+          if (used[k] || k == static_cast<unsigned int>(best_j))
+          {
+            continue;
+          }
+          double s = 0.0;
+          if (candidates_can_connect(seeds[k], seeds[static_cast<unsigned int>(best_j)], s) && s < best_score)
+          {
+            beaten = true;
+            break;
+          }
         }
+        if (!beaten)
+        {
+          break;
+        }
+        if (vetoed.empty())
+        {
+          vetoed.assign(seeds.size(), 0);
+        }
+        vetoed[static_cast<unsigned int>(best_j)] = 1;
       }
 
       if (best_j >= 0)
