@@ -86,6 +86,20 @@ class PHGarfield : public SubsysReco
     m_referencePressure = pressure;
     m_referenceTemperatureK = temperatureK;
   }
+  void SetCMFieldRunFactor(double side0, double side1)
+  {
+    m_cmFieldFactor = {{side0, side1}};
+    m_cmFieldFactorOverride = true;
+  }
+  void SetDeltaT0Tbins(double side0, double side1)
+  {
+    m_deltaT0Tbins = {{side0, side1}};
+    m_deltaT0Override = true;
+  }
+  void SetUseCDBDriftCorrections(bool value) { m_useCDBDriftCorrections = value; }
+  double GetCMFieldRunFactor(std::size_t side) const { return m_cmFieldFactor.at(side); }
+  double GetCMVoltage(std::size_t side) const { return m_CMVoltageDefault * m_cmFieldFactor.at(side); }
+  double GetDeltaT0Tbins(std::size_t side) const { return m_deltaT0Tbins.at(side); }
   double GetCMVoltageDefault() const { return m_CMVoltageDefault; }
   bool GetSpaceChargeScaleOverride() const { return m_spaceChargeScaleOverride[0] && m_spaceChargeScaleOverride[1]; }
 
@@ -336,6 +350,7 @@ class PHGarfield : public SubsysReco
   bool LoadCDBInputs(PHCompositeNode *topNode);
   void ConfigureRunDependentFieldCage();
   void ConfigurePTCorrectedField(PHCompositeNode *topNode);
+  void ConfigureRunDriftCorrections();
 
   CDBTTree *m_cdbTPCMAPttree{nullptr};  // Locations of the pads from CDB...
   // PHField3DCartesian *m_field{nullptr};           // The standard sPHENIX field holding container.
@@ -368,6 +383,11 @@ class PHGarfield : public SubsysReco
   double m_referenceCMFieldVcm{376.85};
   double m_referencePressure{30.0968906};
   double m_referenceTemperatureK{299.98646566};
+  std::array<double, 2> m_cmFieldFactor{{1.0, 1.0}};
+  std::array<double, 2> m_deltaT0Tbins{{0.0, 0.0}};
+  bool m_cmFieldFactorOverride{false};
+  bool m_deltaT0Override{false};
+  bool m_useCDBDriftCorrections{false};
   bool m_zerofield{false};
   TH2 *m_erCorrection{nullptr};  // radial correction, input bins in V/m
   TH2 *m_ezCorrection{nullptr};  // local longitudinal correction, input bins in V/m

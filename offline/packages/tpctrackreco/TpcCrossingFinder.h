@@ -185,6 +185,8 @@ class TpcCrossingFinder : public SubsysReco
                            const std::map<short, std::vector<SiliconVertexHypothesis>>& vertices_by_crossing) const;
   static unsigned int drift_lookup_index(unsigned int layer_index, unsigned int side, unsigned int sector, unsigned int sample);
 
+  double t0_for_side(unsigned int side) const { return m_t0 + m_deltaT0Tbins[side & 1U]; }
+
   std::string m_inputNodeName {"TPC_ASSEMBLEDTRACKS"};
   std::string m_outputNodeName {"TPC_CROSSING_DECISIONS"};
   std::string m_vertexMapNodeName {"SvtxVertexMap"};
@@ -203,6 +205,7 @@ class TpcCrossingFinder : public SubsysReco
   double m_maxLookupTimeNs {0.0};
 
   double m_t0 {8};
+  std::array<double, 2> m_deltaT0Tbins {{0.0, 0.0}};  // from PHGarfield in InitRun
   double m_tpcAdcClock {56.881262};
   double m_crossingPeriodNs {106.56};
   double m_reverseDriftStepNs {56.881262};

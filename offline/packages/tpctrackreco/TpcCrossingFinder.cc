@@ -144,6 +144,11 @@ int TpcCrossingFinder::InitRun(PHCompositeNode* topNode)
             << ", nominal field " << m_garfield->GetCMVoltageDefault()
             << " V/cm" << std::endl;
 
+  // Per-side run dt0 (time bins), read once.
+  m_deltaT0Tbins = {{m_garfield->GetDeltaT0Tbins(0), m_garfield->GetDeltaT0Tbins(1)}};
+  std::cout << Name() << "::InitRun - t0 side0=" << t0_for_side(0)
+            << " side1=" << t0_for_side(1) << " tbins" << std::endl;
+
  if (!build_drift_lookup())
  {
   return Fun4AllReturnCodes::ABORTRUN;
@@ -365,7 +370,7 @@ bool TpcCrossingFinder::sample_drift_lookup(const unsigned int layer,
   if (!std::isfinite(hit_radius) || !std::isfinite(hit_phi)) { return false;
 }
 
-  const double target_time_ns = (static_cast<double>(tbin) - m_t0) * m_tpcAdcClock
+  const double target_time_ns = (static_cast<double>(tbin) - t0_for_side(side)) * m_tpcAdcClock
     - static_cast<double>(crossing) * m_crossingPeriodNs;
   if (target_time_ns <= 0.0 || !std::isfinite(target_time_ns)) { return false;
 }
@@ -785,8 +790,8 @@ TpcCrossingFinder::test_candidate(const Tpc_AssembledTrack* track,
   qa.was_tested = true;
   qa.rejection_status = static_cast<unsigned char>(TpcCrossingStatus::Unknown);
   qa.max_lookup_time_ns = finite_float_or_nan(m_maxLookupTimeNs);
-  qa.min_tbin_time_crossing0_ns = finite_float_or_nan((static_cast<double>(TpcDefs::getTBin(min_hk)) - m_t0) * m_tpcAdcClock);
-  qa.max_tbin_time_crossing0_ns = finite_float_or_nan((static_cast<double>(TpcDefs::getTBin(max_hk)) - m_t0) * m_tpcAdcClock);
+  qa.min_tbin_time_crossing0_ns = finite_float_or_nan((static_cast<double>(TpcDefs::getTBin(min_hk)) - t0_for_side(TpcDefs::getSide(min_hsk))) * m_tpcAdcClock);
+  qa.max_tbin_time_crossing0_ns = finite_float_or_nan((static_cast<double>(TpcDefs::getTBin(max_hk)) - t0_for_side(TpcDefs::getSide(max_hsk))) * m_tpcAdcClock);
   qa.candidate_min_time_ns = finite_float_or_nan(static_cast<double>(qa.min_tbin_time_crossing0_ns) - static_cast<double>(crossing) * m_crossingPeriodNs);
   qa.candidate_max_time_ns = finite_float_or_nan(static_cast<double>(qa.max_tbin_time_crossing0_ns) - static_cast<double>(crossing) * m_crossingPeriodNs);
   qa.min_time_margin_ns = qa.candidate_min_time_ns;
@@ -1129,8 +1134,8 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
     std::vector<short> allowed_crossings;
     for (const short crossing : available_crossings)
     {
-      const double min_time0_ns = (static_cast<double>(min_tbin) - m_t0) * m_tpcAdcClock;
-      const double max_time0_ns = (static_cast<double>(max_tbin) - m_t0) * m_tpcAdcClock;
+      const double min_time0_ns = (static_cast<double>(min_tbin) - t0_for_side(TpcDefs::getSide(min_hsk))) * m_tpcAdcClock;
+      const double max_time0_ns = (static_cast<double>(max_tbin) - t0_for_side(TpcDefs::getSide(max_hsk))) * m_tpcAdcClock;
       const double min_time_ns = min_time0_ns - static_cast<double>(crossing) * m_crossingPeriodNs;
       const double max_time_ns = max_time0_ns - static_cast<double>(crossing) * m_crossingPeriodNs;
       const bool passes_time_window = std::isfinite(min_time_ns) && std::isfinite(max_time_ns) &&

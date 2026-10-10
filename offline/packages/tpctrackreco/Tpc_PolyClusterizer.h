@@ -235,6 +235,8 @@ class Tpc_PolyClusterizer : public SubsysReco
   void configure_garfield(PHGarfield* garfield) const;
   void reconfigure_garfield(PHGarfield* garfield) const;
   static unsigned int drift_lookup_index(unsigned int layer_index, unsigned int side, unsigned int sector, unsigned int sample);
+  // t0 in time bins for one TPC side: macro/default t0 plus PHGarfield's run dt0.
+  double t0_for_side(unsigned int side) const { return m_t0 + m_deltaT0Tbins[side & 1U]; }
   std::string m_inputNodeName;
   std::string m_outputNodeName;
   std::string m_crossingDecisionNodeName{"TPC_CROSSING_DECISIONS"};
@@ -259,6 +261,7 @@ class Tpc_PolyClusterizer : public SubsysReco
   std::array<DriftPolyline, 48 * 2 * 12 * NPhiSamples> m_driftLookup;
   unsigned int m_event{0};
   double m_t0{8};
+  std::array<double, 2> m_deltaT0Tbins{{0.0, 0.0}};  // from PHGarfield in InitRun
   double m_tpcAdcClock{56.881262};
   double m_crossingPeriodNs{106.56};
   double m_reverseDriftStepNs{56.881262};

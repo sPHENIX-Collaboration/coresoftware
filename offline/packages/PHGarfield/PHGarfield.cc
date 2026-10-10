@@ -66,6 +66,8 @@ namespace
   constexpr const char* CdbModuleFrames3DSide0 = "Tpc_PolySeeding_ModuleFrames3D_Side0";
   constexpr const char* CdbModuleFrames3DSide1 = "Tpc_PolySeeding_ModuleFrames3D_Side1";
   constexpr const char* CdbKEff = "Tpc_PolyClusterizer_kEff";
+  constexpr const char* CdbCMFieldFactor = "Tpc_PolyClusterizer_CMFieldVcm_keff";
+  constexpr const char* CdbDeltaT0 = "Tpc_PolyClusterizer_CMFieldVcm_dt0";
   constexpr const char* CdbEField2D = "Tpc_PolySeeding_EField";
 }  // namespace
 
@@ -474,6 +476,59 @@ void PHGarfield::ConfigurePTCorrectedField(PHCompositeNode* topNode)
             << " V/cm (ref " << m_referenceCMFieldVcm << " V/cm)" << std::endl;
 }
 
+void PHGarfield::ConfigureRunDriftCorrections()
+{
+  if (m_useCDBDriftCorrections)
+  {
+    auto read_pair = [this](const char* payload, const char* key0, const char* key1,
+                            std::array<double, 2>& value, const bool override, const bool must_be_positive)
+    {
+      if (override)
+      {
+        std::cout << Name() << "::ConfigureRunDriftCorrections - " << payload
+                  << ": manual value set, CDB not used" << std::endl;
+        return;
+      }
+      const std::string file = CDBInterface::instance()->getUrl(payload);
+      if (file.empty())
+      {
+        std::cout << Name() << "::ConfigureRunDriftCorrections - WARNING: CDB payload "
+                  << payload << " not found; keeping defaults" << std::endl;
+        return;
+      }
+      CDBTTree tree(file);
+      tree.LoadCalibrations();
+      const std::array<double, 2> read{{tree.GetSingleFloatValue(key0), tree.GetSingleFloatValue(key1)}};
+      for (std::size_t side = 0; side < 2; ++side)
+      {
+        if (!std::isfinite(read[side]) || (must_be_positive && read[side] <= 0.0))
+        {
+          std::cout << Name() << "::ConfigureRunDriftCorrections - WARNING: invalid "
+                    << payload << " side" << side << " value " << read[side]
+                    << "; keeping default" << std::endl;
+          continue;
+        }
+        value[side] = read[side];
+      }
+      std::cout << Name() << "::ConfigureRunDriftCorrections - loaded " << payload
+                << " from CDB: " << file << std::endl;
+    };
+
+    read_pair(CdbCMFieldFactor, "keffside0", "keffside1", m_cmFieldFactor, m_cmFieldFactorOverride, true);
+    read_pair(CdbDeltaT0, "dt0side0", "dt0side1", m_deltaT0Tbins, m_deltaT0Override, false);
+  }
+
+  std::cout << Name() << "::ConfigureRunDriftCorrections -"
+            << " CM field factor side0=" << m_cmFieldFactor[0]
+            << " side1=" << m_cmFieldFactor[1]
+            << " -> CM field side0=" << GetCMVoltage(0)
+            << " side1=" << GetCMVoltage(1) << " V/cm;"
+            << " dt0 side0=" << m_deltaT0Tbins[0]
+            << " side1=" << m_deltaT0Tbins[1] << " tbins"
+            << (m_useCDBDriftCorrections ? "" : " [CDB drift corrections off]")
+            << std::endl;
+}
+
 int PHGarfield::InitRun(PHCompositeNode* topNode)
 {
   if (Verbosity() > 1)
@@ -513,6 +568,7 @@ int PHGarfield::InitRun(PHCompositeNode* topNode)
 
   ConfigureRunDependentFieldCage();
   ConfigurePTCorrectedField(topNode);
+  ConfigureRunDriftCorrections();
 
   // Load the optional axisymmetric space-charge correction map.
   // Failure is non-fatal: Garfield then uses only the nominal 400 V/cm field.
@@ -880,7 +936,8 @@ void PHGarfield::GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, doub
   // therefore E_z points toward the central membrane on both sides.
   ex_vcm = 0.0;
   ey_vcm = 0.0;
-  ez_vcm = z_cm > 0.0 ? -m_CMVoltageDefault : m_CMVoltageDefault;
+  const double nominal_vcm = m_CMVoltageDefault * m_cmFieldFactor[side];
+  ez_vcm = z_cm > 0.0 ? -nominal_vcm : nominal_vcm;
 
   const double spaceChargeScale = side == 0 ? m_spaceChargeScale_side0
                                             : m_spaceChargeScale_side1;

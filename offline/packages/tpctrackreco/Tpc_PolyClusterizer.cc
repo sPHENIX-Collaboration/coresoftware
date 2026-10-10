@@ -395,6 +395,11 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
     m_garfield = m_ownedGarfield.get();
   }
 
+  // Per-side run dt0 (time bins), read once.
+  m_deltaT0Tbins = {{m_garfield->GetDeltaT0Tbins(0), m_garfield->GetDeltaT0Tbins(1)}};
+  std::cout << Name() << "::InitRun - t0 side0=" << t0_for_side(0)
+            << " side1=" << t0_for_side(1) << " tbins" << std::endl;
+
   if (!build_drift_lookup())
   {
     return Fun4AllReturnCodes::ABORTRUN;
@@ -899,7 +904,7 @@ bool Tpc_PolyClusterizer::sample_drift_lookup(const unsigned int layer,
     return false;
   }
 
-  const double target_time_ns = (static_cast<double>(tbin) - m_t0) * m_tpcAdcClock - static_cast<double>(crossing) * m_crossingPeriodNs;
+  const double target_time_ns = (static_cast<double>(tbin) - t0_for_side(side)) * m_tpcAdcClock - static_cast<double>(crossing) * m_crossingPeriodNs;
   if (target_time_ns <= 0.0 || !std::isfinite(target_time_ns))
   {
     return false;
