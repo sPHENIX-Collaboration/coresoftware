@@ -70,6 +70,10 @@ class Tpc_AssembledTrackReco : public SubsysReco
 
   void setUseSagittaPhiFit(bool v) { m_useSagittaPhiFit = v; }
 
+  // Use the sagitta (curvature) phi fit only with at least this many distinct
+  // layers; shorter pieces/candidates use the straight-line fit. Default 3.
+  void setMinSagittaLayers(unsigned int n) { m_minSagittaLayers = std::max(3U, n); }
+
   void setSeedCovarianceDiagonal(double sigmaX, double sigmaY, double sigmaZ,
                                  double sigmaPx, double sigmaPy, double sigmaPz)
   {
@@ -254,6 +258,7 @@ class Tpc_AssembledTrackReco : public SubsysReco
   double m_connect_dphi_slope;
   double m_connect_dtbin_slope;
   bool m_useSagittaPhiFit;
+  unsigned int m_minSagittaLayers{3};
   bool m_doDebugHistograms;
   unsigned int m_minClustersPerTrack;
   double m_linearPhiPrecutScale;

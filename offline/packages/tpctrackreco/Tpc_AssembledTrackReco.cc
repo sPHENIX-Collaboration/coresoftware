@@ -36,6 +36,7 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <set>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -176,6 +177,16 @@ namespace
     }
 
     return bline + yy;
+  }
+  // Number of distinct TPC layers among the fit points.
+  unsigned int count_layers(const std::vector<Tpc_AssembledTrackReco::PiecePoint>& points)
+  {
+    std::set<unsigned int> layers;
+    for (const auto& point : points)
+    {
+      layers.insert(TrkrDefs::getLayer(point.hitsetkey));
+    }
+    return static_cast<unsigned int>(layers.size());
   }
 
   bool fit_points(const std::vector<Tpc_AssembledTrackReco::PiecePoint>& points,
@@ -816,7 +827,7 @@ void Tpc_AssembledTrackReco::ensure_piece_sagitta(const Piece& p) const
   p.phi_sagitta_evaluated = true;
   p.phi_sagitta_ok = false;
 
-  if (p.points.size() < 3)
+  if (p.points.size() < 3 || count_layers(p.points) < m_minSagittaLayers)
   {
     return;
   }
@@ -966,7 +977,7 @@ bool Tpc_AssembledTrackReco::refit_candidate(const std::vector<Piece>& pieces,
   c.nsegments = static_cast<unsigned int>(piece_indices.size());
 
   return fit_points(points,
-                    m_useSagittaPhiFit,
+                    m_useSagittaPhiFit && count_layers(points) >= m_minSagittaLayers,
                     c.phi_slope,
                     c.phi_intercept,
                     c.phi_S,
