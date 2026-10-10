@@ -56,19 +56,15 @@ namespace
 
   double wrap_phi(double phi)
   {
-    while (phi > M_PI) { phi -= 2.0 * M_PI;
-}
-    while (phi <= -M_PI) { phi += 2.0 * M_PI;
-}
+    while (phi > M_PI) { phi -= 2.0 * M_PI; }
+    while (phi <= -M_PI) { phi += 2.0 * M_PI; }
     return phi;
   }
 
   double unwrap_phi_near(double phi, const double reference)
   {
-    while (phi - reference > M_PI) { phi -= 2.0 * M_PI;
-}
-    while (phi - reference <= -M_PI) { phi += 2.0 * M_PI;
-}
+    while (phi - reference > M_PI) { phi -= 2.0 * M_PI; }
+    while (phi - reference <= -M_PI) { phi += 2.0 * M_PI; }
     return phi;
   }
 
@@ -79,8 +75,7 @@ namespace
 
   double phi_sample_fraction(const unsigned int sample)
   {
-    if (TpcCrossingFinder::NPhiSamples <= 1U) { return 0.0;
-}
+    if (TpcCrossingFinder::NPhiSamples <= 1U) { return 0.0; }
     return static_cast<double>(sample) / static_cast<double>(TpcCrossingFinder::NPhiSamples - 1U);
   }
 
@@ -226,8 +221,7 @@ int TpcCrossingFinder::createNodes(PHCompositeNode* topNode)
 
 void TpcCrossingFinder::configure_garfield(PHGarfield* garfield) const
 {
-  if (!garfield) { return;
-}
+  if (!garfield) { return; }
 
   garfield->MoveTpc(m_tpcMove[0], m_tpcMove[1], m_tpcMove[2]);
   for (const auto& rotation : m_tpcRotations)
@@ -256,10 +250,8 @@ unsigned int TpcCrossingFinder::drift_lookup_index(const unsigned int layer_inde
 
 bool TpcCrossingFinder::build_drift_lookup()
 {
-  if (!m_idealPadMap || !m_garfield) { return false;
-}
-  if (m_reverseDriftStepNs <= 0.0 || !std::isfinite(m_reverseDriftStepNs)) { return false;
-}
+  if (!m_idealPadMap || !m_garfield) { return false; }
+  if (m_reverseDriftStepNs <= 0.0 || !std::isfinite(m_reverseDriftStepNs)) { return false; }
 
   m_maxLookupTimeNs = std::numeric_limits<double>::max();
   for (DriftPolyline& polyline : m_driftLookup)
@@ -274,8 +266,7 @@ bool TpcCrossingFinder::build_drift_lookup()
     const unsigned int layer_index = layer - FirstLayer;
     const double radius = m_idealPadMap->get_radius(layer);
     const unsigned int pads_per_sector = m_idealPadMap->get_pads_per_sector_for_layer(layer);
-    if (!std::isfinite(radius) || pads_per_sector == 0U) { return false;
-}
+    if (!std::isfinite(radius) || pads_per_sector == 0U) { return false; }
 
     for (unsigned int side = 0; side < NSides; ++side)
     {
@@ -289,10 +280,8 @@ bool TpcCrossingFinder::build_drift_lookup()
           const unsigned int global_pad = sector * pads_per_sector + local_phibin;
           const double phi_local = m_idealPadMap->get_phi(side, sector, layer, local_phibin);
           const double phi_global = m_idealPadMap->get_phi(side, layer, global_pad);
-          if (!std::isfinite(phi_local) || !std::isfinite(phi_global)) { return false;
-}
-          if (std::abs(wrap_phi(phi_global - phi_local)) > PhiConsistencyTolerance) { return false;
-}
+          if (!std::isfinite(phi_local) || !std::isfinite(phi_global)) { return false; }
+          if (std::abs(wrap_phi(phi_global - phi_local)) > PhiConsistencyTolerance) { return false; }
 
           const double x0 = radius * std::cos(phi_local);
           const double y0 = radius * std::sin(phi_local);
@@ -349,31 +338,27 @@ bool TpcCrossingFinder::sample_drift_lookup(const unsigned int layer,
                                             double& y,
                                             double& z) const
 {
-  if (!m_idealPadMap) { return false;
-}
-  if (layer < FirstLayer || layer > LastLayer) { return false;
-}
-  if (side >= NSides) { return false;
-}
-  if (m_reverseDriftStepNs <= 0.0 || !std::isfinite(m_reverseDriftStepNs)) { return false;
-}
+  if (!m_idealPadMap) { return false; }
+  if (layer < FirstLayer || layer > LastLayer) { return false; }
+  if (side >= NSides) { return false; }
+  if (m_reverseDriftStepNs <= 0.0 || !std::isfinite(m_reverseDriftStepNs)) { return false; }
 
   const unsigned int pads_per_sector = m_idealPadMap->get_pads_per_sector_for_layer(layer);
-  if (pads_per_sector == 0U) { return false;
-}
+  if (pads_per_sector == 0U) { return false; }
   const unsigned int sector = pad / pads_per_sector;
-  if (sector >= NSectors) { return false;
-}
+  if (sector >= NSectors) { return false; }
 
   const double hit_radius = m_idealPadMap->get_radius(layer);
   const double hit_phi = m_idealPadMap->get_phi(side, layer, pad);
-  if (!std::isfinite(hit_radius) || !std::isfinite(hit_phi)) { return false;
-}
+  if (!std::isfinite(hit_radius) || !std::isfinite(hit_phi)) { return false; }
 
-  const double target_time_ns = (static_cast<double>(tbin) - t0_for_side(side)) * m_tpcAdcClock
+    const double edge_tolerance_ns = m_edgeToleranceTbins * m_tpcAdcClock;
+  const double raw_time_ns = (static_cast<double>(tbin) - t0_for_side(side)) * m_tpcAdcClock
     - static_cast<double>(crossing) * m_crossingPeriodNs;
-  if (target_time_ns <= 0.0 || !std::isfinite(target_time_ns)) { return false;
-}
+  if (!std::isfinite(raw_time_ns) || raw_time_ns <= -edge_tolerance_ns) { return false; }
+  // Within the tolerance, a time just before the pad plane is clamped onto it.
+  const double target_time_ns = std::max(raw_time_ns, 0.0);
+  if (target_time_ns <= 0.0 && edge_tolerance_ns <= 0.0) { return false; }
 
   const unsigned int layer_index = layer - FirstLayer;
   std::array<const DriftPolyline*, NPhiSamples> samples{};
@@ -381,11 +366,9 @@ bool TpcCrossingFinder::sample_drift_lookup(const unsigned int layer,
   for (unsigned int sample = 0; sample < NPhiSamples; ++sample)
   {
     samples[sample] = &m_driftLookup[drift_lookup_index(layer_index, side, sector, sample)];
-    if (samples[sample]->points.empty()) { return false;
-}
+    if (samples[sample]->points.empty()) { return false; }
     sample_phi[sample] = samples[sample]->phi;
-    if (sample > 0U) { sample_phi[sample] = unwrap_phi_near(sample_phi[sample], sample_phi[sample - 1U]);
-}
+    if (sample > 0U) { sample_phi[sample] = unwrap_phi_near(sample_phi[sample], sample_phi[sample - 1U]); }
   }
 
   const double unwrapped_hit_phi = unwrap_phi_near(hit_phi, sample_phi[NPhiSamples / 2U]);
@@ -413,8 +396,7 @@ bool TpcCrossingFinder::sample_drift_lookup(const unsigned int layer,
       const bool in_interval = increasing ?
         (unwrapped_hit_phi >= sample_phi[sample] && unwrapped_hit_phi <= sample_phi[sample + 1U]) :
         (unwrapped_hit_phi <= sample_phi[sample] && unwrapped_hit_phi >= sample_phi[sample + 1U]);
-      if (!in_interval) { continue;
-}
+      if (!in_interval) { continue; }
 
       sample0 = sample;
       sample1 = sample + 1U;
@@ -424,22 +406,22 @@ bool TpcCrossingFinder::sample_drift_lookup(const unsigned int layer,
       break;
     }
   }
-  if (!bracket_found) { return false;
-}
+  if (!bracket_found) { return false; }
 
-  auto sample_time = [this, target_time_ns](const DriftPolyline& polyline,
+  auto sample_time = [this, target_time_ns, edge_tolerance_ns](const DriftPolyline& polyline,
                                             double& delta_r,
                                             double& delta_phi,
                                             double& point_z) -> bool
   {
     const int npoints = static_cast<int>(polyline.points.size());
-    if (npoints <= 0) { return false;
-}
+    if (npoints <= 0) { return false; }
+    // The last point in the drift line is at time (npoints - 1) * m_reverseDriftStepNs.
     const double max_time_ns = static_cast<double>(npoints - 1) * m_reverseDriftStepNs;
-    if (target_time_ns > max_time_ns) { return false;
-}
+    if (target_time_ns > max_time_ns + edge_tolerance_ns) { return false; }
+    // Within the tolerance, a time just past the end of the drift line is clamped to it.
+    const double time_ns = std::min(target_time_ns, max_time_ns);
 
-    const double fbin = target_time_ns / m_reverseDriftStepNs;
+    const double fbin = time_ns / m_reverseDriftStepNs;
     const int i0 = std::min(static_cast<int>(std::floor(fbin)), npoints - 1);
     const int i1 = std::min(i0 + 1, npoints - 1);
     const double frac = fbin - static_cast<double>(i0);
@@ -469,8 +451,7 @@ bool TpcCrossingFinder::sample_drift_lookup(const unsigned int layer,
     delta_phi1 = delta_phi0;
     z1 = z0;
   }
-  if (!valid0 && !valid1) { return false;
-}
+  if (!valid0 && !valid1) { return false; }
 
   double delta_r = 0.0;
   double delta_phi = 0.0;
@@ -514,8 +495,7 @@ bool TpcCrossingFinder::make_xyz_point(TrkrDefs::hitsetkey hsk,
   double x = 0.0;
   double y = 0.0;
   double z = 0.0;
-  if (!sample_drift_lookup(layer, hit_side, pad, tbin, crossing, x, y, z)) { return false;
-}
+  if (!sample_drift_lookup(layer, hit_side, pad, tbin, crossing, x, y, z)) { return false; }
 
   p.hitsetkey = hsk;
   p.hitkey = hk;
@@ -535,8 +515,7 @@ bool TpcCrossingFinder::find_time_extrema(const Tpc_AssembledTrack* track,
                                           TrkrDefs::hitsetkey& max_hsk,
                                           TrkrDefs::hitkey& max_hk) const
 {
-  if (!track || track->size_hit_indices() == 0) { return false;
-}
+  if (!track || track->size_hit_indices() == 0) { return false; }
 
   unsigned int min_tbin = std::numeric_limits<unsigned int>::max();
   unsigned int max_tbin = 0;
@@ -565,14 +544,12 @@ bool TpcCrossingFinder::find_time_extrema(const Tpc_AssembledTrack* track,
 std::set<short> TpcCrossingFinder::get_available_crossings() const
 {
   std::set<short> available_crossings;
-  if (!m_vertexMap) { return available_crossings;
-}
+  if (!m_vertexMap) { return available_crossings; }
 
   for (auto & iter : *m_vertexMap)
   {
     const SvtxVertex* vertex = iter.second;
-    if (!vertex) { continue;
-}
+    if (!vertex) { continue; }
     available_crossings.insert(vertex->get_beam_crossing());
   }
   return available_crossings;
@@ -581,13 +558,11 @@ std::set<short> TpcCrossingFinder::get_available_crossings() const
 std::set<short> TpcCrossingFinder::get_intt_crossings() const
 {
   std::set<short> intt_crossings;
-  if (!m_clusterMap) { return intt_crossings;
-}
+  if (!m_clusterMap) { return intt_crossings; }
 
   for (const auto& hitsetkey : m_clusterMap->getHitSetKeys())
   {
-    if (static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(hitsetkey)) != TrkrDefs::TrkrId::inttId) { continue;
-}
+    if (static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(hitsetkey)) != TrkrDefs::TrkrId::inttId) { continue; }
     intt_crossings.insert(static_cast<short>(InttDefs::getTimeBucketId(hitsetkey)));
   }
   return intt_crossings;
@@ -597,14 +572,12 @@ std::map<short, std::vector<TpcCrossingFinder::SiliconVertexHypothesis>>
 TpcCrossingFinder::get_vertices_by_crossing() const
 {
   std::map<short, std::vector<SiliconVertexHypothesis>> vertices_by_crossing;
-  if (!m_vertexMap) { return vertices_by_crossing;
-}
+  if (!m_vertexMap) { return vertices_by_crossing; }
 
   for (auto & iter : *m_vertexMap)
   {
     const SvtxVertex* vertex = iter.second;
-    if (!vertex) { continue;
-}
+    if (!vertex) { continue; }
 
     SiliconVertexHypothesis hyp;
     hyp.crossing = vertex->get_beam_crossing();
@@ -638,8 +611,7 @@ TpcCrossingFinder::select_representatives(const Tpc_AssembledTrack* track,
 
   add_unique({min_hsk, min_hk});
   add_unique({max_hsk, max_hk});
-  if (!track) { return representatives;
-}
+  if (!track) { return representatives; }
 
   std::map<unsigned int, Tpc_AssembledTrack::HitIndex> hit_by_layer;
   for (unsigned int ih = 0; ih < track->size_hit_indices(); ++ih)
@@ -647,21 +619,18 @@ TpcCrossingFinder::select_representatives(const Tpc_AssembledTrack* track,
     const Tpc_AssembledTrack::HitIndex hi = track->get_hit_index(ih);
     hit_by_layer.emplace(TrkrDefs::getLayer(hi.first), hi);
   }
-  if (hit_by_layer.empty()) { return representatives;
-}
+  if (hit_by_layer.empty()) { return representatives; }
 
   add_unique(hit_by_layer.begin()->second);
   add_unique(hit_by_layer.rbegin()->second);
 
   std::vector<unsigned int> layers;
   layers.reserve(hit_by_layer.size());
-  for (const auto& item : hit_by_layer) { layers.push_back(item.first);
-}
+  for (const auto& item : hit_by_layer) { layers.push_back(item.first); }
   const unsigned int fractions[] = {1U, 2U};
   for (const unsigned int fraction : fractions)
   {
-    if (layers.size() < 3U) { continue;
-}
+    if (layers.size() < 3U) { continue; }
     const std::size_t index = (fraction * (layers.size() - 1U)) / 3U;
     add_unique(hit_by_layer[layers[index]]);
   }
@@ -672,8 +641,7 @@ TpcCrossingFinder::select_representatives(const Tpc_AssembledTrack* track,
 TpcCrossingFinder::ZFitResult TpcCrossingFinder::estimate_tpc_z0_diagnostics(std::vector<Point> points) const
 {
   ZFitResult result;
-  if (points.size() < 2U) { return result;
-}
+  if (points.size() < 2U) { return result; }
   std::sort(points.begin(), points.end(), [](const Point& a, const Point& b) {
     return a.layer < b.layer;
   });
@@ -695,8 +663,7 @@ TpcCrossingFinder::ZFitResult TpcCrossingFinder::estimate_tpc_z0_diagnostics(std
   }
   const Tpc_FittingTools::LineFit zfit = Tpc_FittingTools::fitLine(fit_points);
   const Tpc_FittingTools::LineFit radial_zfit = Tpc_FittingTools::fitLine(radial_fit_points);
-  if (!zfit.ok || !radial_zfit.ok) { return result;
-}
+  if (!zfit.ok || !radial_zfit.ok) { return result; }
 
   double best_s = s.front();
   double best_d2 = std::numeric_limits<double>::max();
@@ -731,8 +698,7 @@ TpcCrossingFinder::ZFitResult TpcCrossingFinder::estimate_tpc_z0_diagnostics(std
   result.z_at_r0 = radial_zfit.intercept;
   result.points = std::move(points);
   result.path_length.reserve(s.size());
-  for (const double value : s) { result.path_length.push_back(finite_float_or_nan(value));
-}
+  for (const double value : s) { result.path_length.push_back(finite_float_or_nan(value)); }
   result.valid = result.valid && std::isfinite(result.z_at_pca) && std::isfinite(result.z_at_r0);
   return result;
 }
@@ -740,8 +706,7 @@ TpcCrossingFinder::ZFitResult TpcCrossingFinder::estimate_tpc_z0_diagnostics(std
 bool TpcCrossingFinder::estimate_tpc_z0(std::vector<Point>& points, double& z0) const
 {
   const ZFitResult result = estimate_tpc_z0_diagnostics(points);
-  if (!result.valid) { return false;
-}
+  if (!result.valid) { return false; }
   z0 = result.z_at_r0;
   return true;
 }
@@ -860,8 +825,7 @@ TpcCrossingFinder::test_candidate(const Tpc_AssembledTrack* track,
   }
 
   qa.endpoints_inside_tpc = qa.min_time_inside_tpc && qa.max_time_inside_tpc;
-  if (qa.endpoints_inside_tpc) { qa.candidate_qa_bits |= EndpointsInsideTPC;
-}
+  if (qa.endpoints_inside_tpc) { qa.candidate_qa_bits |= EndpointsInsideTPC;}
   if (!qa.endpoints_inside_tpc)
   {
     qa.first_failed_stage = static_cast<unsigned char>(TpcCrossingCandidateStage::InsideTpc);
@@ -871,8 +835,7 @@ TpcCrossingFinder::test_candidate(const Tpc_AssembledTrack* track,
   }
 
   qa.endpoints_on_correct_side = qa.min_time_correct_side && qa.max_time_correct_side;
-  if (qa.endpoints_on_correct_side) { qa.candidate_qa_bits |= EndpointsCorrectSide;
-}
+  if (qa.endpoints_on_correct_side) { qa.candidate_qa_bits |= EndpointsCorrectSide; }
   if (!qa.endpoints_on_correct_side)
   {
     qa.first_failed_stage = static_cast<unsigned char>(TpcCrossingCandidateStage::CorrectSide);
@@ -885,10 +848,8 @@ TpcCrossingFinder::test_candidate(const Tpc_AssembledTrack* track,
   for (const auto& hi : select_representatives(track, min_hsk, min_hk, max_hsk, max_hk))
   {
     Point p;
-    if (!make_xyz_point(hi.first, hi.second, crossing, p)) { continue;
-}
-    if (!point_in_tpc(p) || !point_in_correct_side(p)) { continue;
-}
+    if (!make_xyz_point(hi.first, hi.second, crossing, p)) { continue; }
+    if (!point_in_tpc(p) || !point_in_correct_side(p)) { continue; }
     points.push_back(p);
   }
 
@@ -981,8 +942,7 @@ TpcCrossingFinder::test_candidate(const Tpc_AssembledTrack* track,
       qa.candidate_vertex_ntracks.push_back(vertex.ntracks);
       qa.candidate_vertex_delta_z.push_back(finite_float_or_nan(delta_z));
       qa.candidate_vertex_pull_z.push_back(finite_float_or_nan(pull_z));
-      if (!std::isfinite(abs_delta) || abs_delta >= best_abs_delta) { continue;
-}
+      if (!std::isfinite(abs_delta) || abs_delta >= best_abs_delta) { continue; }
 
       best_abs_delta = abs_delta;
       candidate.has_silicon_vertex = true;
@@ -999,12 +959,10 @@ TpcCrossingFinder::test_candidate(const Tpc_AssembledTrack* track,
   }
 
   qa.has_silicon_vertex = candidate.has_silicon_vertex;
-  if (qa.has_silicon_vertex) { qa.candidate_qa_bits |= HasSiliconVertex;
-}
+  if (qa.has_silicon_vertex) { qa.candidate_qa_bits |= HasSiliconVertex; }
   candidate.vertex_compatible = candidate.has_silicon_vertex && std::abs(candidate.delta_z) <= m_maxVertexDz;
   qa.vertex_compatible = candidate.vertex_compatible;
-  if (qa.vertex_compatible) { qa.candidate_qa_bits |= PassesVertexDz;
-}
+  if (qa.vertex_compatible) { qa.candidate_qa_bits |= PassesVertexDz; }
 
   candidate.tpc_valid = true;
   qa.tpc_valid = candidate.tpc_valid;
@@ -1059,11 +1017,9 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
   if (Verbosity() > 0)
   {
     std::cout << Name() << "::process_event - event " << m_event << " available candidate crossings:";
-    for (const short crossing : available_crossings) { std::cout << " " << crossing;
-}
+    for (const short crossing : available_crossings) { std::cout << " " << crossing; }
     std::cout << " | intt crossings:";
-    for (const short crossing : intt_crossings) { std::cout << " " << crossing;
-}
+    for (const short crossing : intt_crossings) { std::cout << " " << crossing; }
     std::cout << " | vertices by crossing:";
     for (const auto& item : vertices_by_crossing)
     {
@@ -1071,8 +1027,7 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
       for (std::size_t ivtx = 0; ivtx < item.second.size(); ++ivtx)
       {
         const SiliconVertexHypothesis& vertex = item.second[ivtx];
-        if (ivtx != 0U) { std::cout << ",";
-}
+        if (ivtx != 0U) { std::cout << ","; }
         std::cout << " id=" << vertex.vertex_id
                   << " x=" << vertex.x
                   << " y=" << vertex.y
@@ -1087,15 +1042,13 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
   for (unsigned int iassembled = 0; iassembled < nassembled; ++iassembled)
   {
     const Tpc_AssembledTrack* assembled = m_assembledTracks->get_track(iassembled);
-    if (!assembled) { continue;
-}
+    if (!assembled) { continue; }
 
     TpcCrossingDecisionv1* decision = new TpcCrossingDecisionv1();
     std::vector<TpcCrossingCandidate> candidate_qa_records;
     auto add_decision_with_candidates = [&candidate_qa_records, decision, this]()
     {
-      for (const TpcCrossingCandidate& candidate : candidate_qa_records) { decision->add_candidate(candidate);
-}
+      for (const TpcCrossingCandidate& candidate : candidate_qa_records) { decision->add_candidate(candidate); }
       m_decisions->add_decision(decision);
     };
     decision->set_assembled_track_id(assembled->get_track_id());
@@ -1138,8 +1091,9 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
       const double max_time0_ns = (static_cast<double>(max_tbin) - t0_for_side(TpcDefs::getSide(max_hsk))) * m_tpcAdcClock;
       const double min_time_ns = min_time0_ns - static_cast<double>(crossing) * m_crossingPeriodNs;
       const double max_time_ns = max_time0_ns - static_cast<double>(crossing) * m_crossingPeriodNs;
+      const double edge_tolerance_ns = m_edgeToleranceTbins * m_tpcAdcClock;
       const bool passes_time_window = std::isfinite(min_time_ns) && std::isfinite(max_time_ns) &&
-        min_time_ns > 0.0 && max_time_ns <= m_maxLookupTimeNs;
+        min_time_ns > -edge_tolerance_ns && max_time_ns <= m_maxLookupTimeNs + edge_tolerance_ns;
       if (passes_time_window)
       {
         allowed_crossings.push_back(crossing);
@@ -1186,8 +1140,7 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
       Candidate candidate = test_candidate(assembled, crossing, min_hsk, min_hk, max_hsk, max_hk, vertices_by_crossing);
       decision->set_number_of_tested_crossings(decision->get_number_of_tested_crossings() + 1U);
       candidate.qa.is_available_from_intt = intt_crossings.contains(crossing);
-      if (!candidate.qa.is_available_from_intt) { candidate.qa.candidate_qa_bits &= ~FromInttCrossing;
-}
+      if (!candidate.qa.is_available_from_intt) { candidate.qa.candidate_qa_bits &= ~FromInttCrossing; }
       candidate_qa_records.push_back(candidate.qa);
       if (candidate.tpc_valid)
       {
@@ -1223,25 +1176,20 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
     std::vector<Candidate> ranked_candidates;
     for (const Candidate& candidate : valid_candidates)
     {
-      if (!candidate.tpc_valid) { continue;
-}
-      if (candidate.confidence_tier == InvalidConfidenceTier) { continue;
-}
-      if (!std::isfinite(candidate.confidence_score)) { continue;
-}
+      if (!candidate.tpc_valid) { continue; }
+      if (candidate.confidence_tier == InvalidConfidenceTier) { continue; }
+      if (!std::isfinite(candidate.confidence_score)) { continue; }
       ranked_candidates.push_back(candidate);
     }
 
     for (TpcCrossingCandidate& qa : candidate_qa_records)
     {
       const auto iq = std::find_if(valid_candidates.begin(), valid_candidates.end(), [&qa](const Candidate& candidate) { return candidate.crossing == qa.crossing; });
-      if (iq == valid_candidates.end()) { continue;
-}
+      if (iq == valid_candidates.end()) { continue; }
       qa.confidence_tier = iq->confidence_tier;
       qa.confidence_score = finite_float_or_nan(iq->confidence_score);
       qa.tpc_valid = iq->tpc_valid;
-      if (!iq->tpc_valid && iq->rejection_status != 0U) { qa.rejection_status = iq->rejection_status;
-}
+      if (!iq->tpc_valid && iq->rejection_status != 0U) { qa.rejection_status = iq->rejection_status; }
     }
 
     decision->set_number_of_tpc_valid_crossings(static_cast<unsigned short>(std::min<std::size_t>(ranked_candidates.size(), std::numeric_limits<unsigned short>::max())));
@@ -1256,10 +1204,8 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
     }
 
     std::sort(ranked_candidates.begin(), ranked_candidates.end(), [](const Candidate& a, const Candidate& b) {
-      if (a.confidence_tier != b.confidence_tier) { return a.confidence_tier < b.confidence_tier;
-}
-      if (a.confidence_score != b.confidence_score) { return a.confidence_score < b.confidence_score;
-}
+      if (a.confidence_tier != b.confidence_tier) { return a.confidence_tier < b.confidence_tier; }
+      if (a.confidence_score != b.confidence_score) { return a.confidence_score < b.confidence_score; }
       return a.crossing < b.crossing;
     });
 
@@ -1268,8 +1214,7 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
     double second_score = std::numeric_limits<double>::infinity();
     for (std::size_t icandidate = 1; icandidate < ranked_candidates.size(); ++icandidate)
     {
-      if (ranked_candidates[icandidate].confidence_tier != best_candidate.confidence_tier) { break;
-}
+      if (ranked_candidates[icandidate].confidence_tier != best_candidate.confidence_tier) { break; }
       second_score = ranked_candidates[icandidate].confidence_score;
       break;
     }
@@ -1314,8 +1259,7 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
       const auto ib = std::find_if(valid_candidates.begin(), valid_candidates.end(), [b](const Candidate& c) { return c.crossing == b; });
       const double da = std::isfinite(ia->delta_z) ? std::abs(ia->delta_z) : std::numeric_limits<double>::max();
       const double db = std::isfinite(ib->delta_z) ? std::abs(ib->delta_z) : std::numeric_limits<double>::max();
-      if (da != db) { return da < db;
-}
+      if (da != db) { return da < db; }
       return a < b;
     });
     std::sort(by_collision.begin(), by_collision.end(), [this, &valid_candidates](short a, short b) {
@@ -1323,27 +1267,23 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
       const auto ib = std::find_if(valid_candidates.begin(), valid_candidates.end(), [b](const Candidate& c) { return c.crossing == b; });
       const double da = std::isfinite(ia->tpc_z0) ? std::abs(ia->tpc_z0 - m_collisionZ) : std::numeric_limits<double>::max();
       const double db = std::isfinite(ib->tpc_z0) ? std::abs(ib->tpc_z0 - m_collisionZ) : std::numeric_limits<double>::max();
-      if (da != db) { return da < db;
-}
+      if (da != db) { return da < db; }
       return a < b;
     });
 
     for (TpcCrossingCandidate& qa : candidate_qa_records)
     {
       const auto iv = std::find(by_vertex.begin(), by_vertex.end(), qa.crossing);
-      if (iv != by_vertex.end()) { qa.candidate_rank_by_abs_delta_z = std::distance(by_vertex.begin(), iv);
-}
+      if (iv != by_vertex.end()) { qa.candidate_rank_by_abs_delta_z = std::distance(by_vertex.begin(), iv); }
       const auto ic = std::find(by_collision.begin(), by_collision.end(), qa.crossing);
-      if (ic != by_collision.end()) { qa.candidate_rank_by_abs_collision_z = std::distance(by_collision.begin(), ic);
-}
+      if (ic != by_collision.end()) { qa.candidate_rank_by_abs_collision_z = std::distance(by_collision.begin(), ic); }
       const auto iq = std::find_if(valid_candidates.begin(), valid_candidates.end(), [&qa](const Candidate& candidate) { return candidate.crossing == qa.crossing; });
       if (iq != valid_candidates.end())
       {
         qa.confidence_tier = iq->confidence_tier;
         qa.confidence_score = finite_float_or_nan(iq->confidence_score);
         qa.tpc_valid = iq->tpc_valid;
-        if (!iq->tpc_valid && iq->rejection_status != 0U) { qa.rejection_status = iq->rejection_status;
-}
+        if (!iq->tpc_valid && iq->rejection_status != 0U) { qa.rejection_status = iq->rejection_status; }
       }
       qa.is_selected = qa.crossing == decision->get_selected_crossing();
       if (qa.is_selected)
@@ -1351,8 +1291,7 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
         qa.candidate_qa_bits |= IsSelected;
         qa.first_failed_stage = static_cast<unsigned char>(TpcCrossingCandidateStage::Selected);
       }
-      if (qa.candidate_rank_by_abs_delta_z == 0) { qa.candidate_qa_bits |= IsBestVertexCandidate;
-}
+      if (qa.candidate_rank_by_abs_delta_z == 0) { qa.candidate_qa_bits |= IsBestVertexCandidate; }
     }
 
     add_decision_with_candidates();

@@ -7,6 +7,7 @@
 #include "TpcCrossingDecision.h"
 #include <trackbase/TrkrDefs.h>
 
+#include <algorithm>
 #include <array>
 #include <limits>
 #include <map>
@@ -64,6 +65,10 @@ class TpcCrossingFinder : public SubsysReco
     m_centralMembraneTolerance = central_membrane_cm;
   }
   void setTpcHalfLength(double v) { m_tpcHalfLength = v; }
+  // Tolerance (time bins) at the pad-plane and central-membrane edges of the
+  // drift lookup: times up to n bins outside are clamped to the edge instead of
+  // rejecting the crossing. Decision only; no positions leave this module. Default 0.
+  void setEdgeToleranceTbins(double n) { m_edgeToleranceTbins = std::max(0.0, n); }
   void setUseSurveyGeometry(bool v) { use_survey_geometry = v; }
   void setMoveTpc(double x, double y, double z) { m_tpcMove = {{x, y, z}}; }
   void setRotateTpc(unsigned int index, double x, double y, double z)
@@ -212,6 +217,7 @@ class TpcCrossingFinder : public SubsysReco
   double m_startZSouth {-102.325};
   double m_startZNorth {102.325};
   double m_tpcHalfLength {105.5};
+  double m_edgeToleranceTbins {1.0};
   double m_radialTolerance {2.0};
   double m_zTolerance {1.0};
   double m_centralMembraneTolerance {1.0};
