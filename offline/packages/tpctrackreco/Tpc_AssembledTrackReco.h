@@ -64,6 +64,9 @@ class Tpc_AssembledTrackReco : public SubsysReco
     m_connect_dphi_slope = dphi_slope;
     m_connect_dtbin_slope = dtbin_slope;
   }
+  // Reject a connection whose combined score (sum of squared residuals over
+  // their cuts, plus gap penalty) exceeds this value. Default: off.
+  void setMaxConnectScore(double v) { m_maxConnectScore = v; }
 
   void setUseSagittaPhiFit(bool v) { m_useSagittaPhiFit = v; }
 
@@ -254,6 +257,7 @@ class Tpc_AssembledTrackReco : public SubsysReco
   bool m_doDebugHistograms;
   unsigned int m_minClustersPerTrack;
   double m_linearPhiPrecutScale;
+  double m_maxConnectScore{1.5};  // Reject a connection whose combined score exceeds this value. Default: on.
 
   double m_seedSigmaX;
   double m_seedSigmaY;

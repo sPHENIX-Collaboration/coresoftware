@@ -413,7 +413,7 @@ int Tpc_AssembledTrackReco::Init(PHCompositeNode* /*unused*/)
     }
     create_debug_histograms();
   }
-
+  m_outputFile->cd();
   m_tree = new TTree("Tpc_AssembledTracks", "Assembled tracks connected from Tpc_ModuleTrackReco");
   m_tree->Branch("event", &m_tree_event, "event/I");
   m_tree->Branch("track_id", &m_tree_track_id);
@@ -1144,6 +1144,11 @@ bool Tpc_AssembledTrackReco::candidates_can_connect(const Candidate& a,
       w_mphi * (dmphi / m_connect_dphi_slope) * (dmphi / m_connect_dphi_slope) +
       w_mtbin * (dmtbin / m_connect_dtbin_slope) * (dmtbin / m_connect_dtbin_slope) +
       0.05 * static_cast<double>(gap);
+
+  if (score > m_maxConnectScore)
+  {
+    return false;
+  }
 
   return true;
 }
