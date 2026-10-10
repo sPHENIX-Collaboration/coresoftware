@@ -814,6 +814,30 @@ bool Tpc_AssembledTrackReco::make_piece(unsigned int source_index, Piece& p) con
   p.phi_sagitta_evaluated = !m_useSagittaPhiFit;
   return fit_ok;
 }
+// Radius at which two fits are compared. Each prediction's variance grows as
+// sigma_slope^2 * (r - c)^2 away from its own centre c, with
+// sigma_slope^2 ~ 1 / (N * L^2). The sum is smallest at the sigma_slope^2
+// weighted mean of the two centres, i.e. close to the less precise piece.
+double Tpc_AssembledTrackReco::weighted_match_radius(unsigned int a_first, unsigned int a_last, unsigned int a_n,
+                                                     unsigned int b_first, unsigned int b_last, unsigned int b_n) const
+{
+  const double ra1 = m_idealPadMap->get_radius(a_first);
+  const double ra2 = m_idealPadMap->get_radius(a_last);
+  const double rb1 = m_idealPadMap->get_radius(b_first);
+  const double rb2 = m_idealPadMap->get_radius(b_last);
+  const double ca = 0.5 * (ra1 + ra2);
+  const double cb = 0.5 * (rb1 + rb2);
+  const double la = std::max(ra2 - ra1, 0.5);  // cm, guard against 1-layer pieces
+  const double lb = std::max(rb2 - rb1, 0.5);
+  const double wa = 1.0 / (std::max(1U, a_n) * la * la);
+  const double wb = 1.0 / (std::max(1U, b_n) * lb * lb);
+  const double r = (wa * ca + wb * cb) / (wa + wb);
+  if (!std::isfinite(r))
+  {
+    return 0.5 * (ra2 + rb1);
+  }
+  return std::clamp(r, std::min(ca, cb), std::max(ca, cb));
+}
 
 void Tpc_AssembledTrackReco::ensure_piece_sagitta(const Piece& p) const
 {
@@ -1024,7 +1048,10 @@ bool Tpc_AssembledTrackReco::candidates_can_connect(const Candidate& a,
     return false;
   }
 
-  const double rmatch = 0.5 * (ra + rb);
+  const double rmatch = m_useWeightedMatchPoint
+                            ? weighted_match_radius(a.first_layer, a.last_layer, a.nblobs,
+                                                    b.first_layer, b.last_layer, b.nblobs)
+                            : 0.5 * (ra + rb);
 
   // ------------------------------------------------------------------
   // Cheap cuts first.

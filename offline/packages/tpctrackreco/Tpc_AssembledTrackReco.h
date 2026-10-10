@@ -73,6 +73,9 @@ class Tpc_AssembledTrackReco : public SubsysReco
   // Use the sagitta (curvature) phi fit only with at least this many distinct
   // layers; shorter pieces/candidates use the straight-line fit. Default 3.
   void setMinSagittaLayers(unsigned int n) { m_minSagittaLayers = std::max(3U, n); }
+  // Compare connection predictions at a lever-arm weighted radius between the
+  // two pieces instead of the gap midpoint. Default: off.
+  void setWeightedMatchPoint(bool v) { m_useWeightedMatchPoint = v; }
 
   void setSeedCovarianceDiagonal(double sigmaX, double sigmaY, double sigmaZ,
                                  double sigmaPx, double sigmaPy, double sigmaPz)
@@ -202,6 +205,8 @@ class Tpc_AssembledTrackReco : public SubsysReco
 
   bool make_piece(unsigned int source_index, Piece& p) const;
   void ensure_piece_sagitta(const Piece& p) const;
+  double weighted_match_radius(unsigned int a_first, unsigned int a_last, unsigned int a_n,
+                               unsigned int b_first, unsigned int b_last, unsigned int b_n) const;
 
   double predict_phi(const Piece& p, double radius) const;
   double predict_phi(const Candidate& c, double radius) const;
@@ -259,6 +264,7 @@ class Tpc_AssembledTrackReco : public SubsysReco
   double m_connect_dtbin_slope;
   bool m_useSagittaPhiFit;
   unsigned int m_minSagittaLayers{3};
+  bool m_useWeightedMatchPoint{true};
   bool m_doDebugHistograms;
   unsigned int m_minClustersPerTrack;
   double m_linearPhiPrecutScale;
