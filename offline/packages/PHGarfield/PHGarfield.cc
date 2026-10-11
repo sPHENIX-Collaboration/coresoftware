@@ -54,6 +54,11 @@ class PHGarfieldNode final : public PHDataNode<PHGarfield>
   {
   }
 
+  PHGarfieldNode(const PHGarfieldNode&) = delete;
+  PHGarfieldNode& operator=(const PHGarfieldNode&) = delete;
+  PHGarfieldNode(PHGarfieldNode&&) = delete;
+  PHGarfieldNode& operator=(PHGarfieldNode&&) = delete;
+
   ~PHGarfieldNode() override
   {
     setData(nullptr);  // Fun4AllServer deletes PHGarfield.
@@ -670,7 +675,7 @@ int PHGarfield::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  if (!existing)
+  if (!existing && m_publishToNodeTree)
   {
     PHNodeIterator iter(topNode);
     auto* parNode = dynamic_cast<PHCompositeNode*>(

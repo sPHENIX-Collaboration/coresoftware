@@ -124,6 +124,15 @@ int TpcCrossingFinder::InitRun(PHCompositeNode* topNode)
       m_tpcMove = {{place_x, place_y, place_z}};
       m_tpcRotations = {{{{rot_x, rot_y, rot_z}}, {{0.0, 0.0, 0.0}}}};
     }
+    // Drift start = pad plane from the geometry, as in Tpc_PolyClusterizer.
+    if (!m_startZOverride)
+    {
+      m_startZSouth = -(layergeom->get_max_driftlength() + layergeom->get_CM_halfwidth());
+      m_startZNorth = layergeom->get_max_driftlength() + layergeom->get_CM_halfwidth();
+    }
+    std::cout << Name() << "::InitRun - drift start z: south=" << m_startZSouth
+              << " north=" << m_startZNorth << " cm"
+              << (m_startZOverride ? " [macro]" : "") << std::endl;
   }
   // Shared PHGarfield: must be registered in the macro before this module.
   m_garfield = findNode::getClass<PHGarfield>(topNode, "PHGarfield");

@@ -87,6 +87,7 @@ class TpcCrossingFinder : public SubsysReco
   {
     m_startZSouth = south_z;
     m_startZNorth = north_z;
+    m_startZOverride = true;
   }
   void setIsNonDistortedMC(bool v) { m_isNonDistortedMC = v; }
 
@@ -224,8 +225,9 @@ class TpcCrossingFinder : public SubsysReco
   double m_tpcAdcClock {56.881262};
   double m_crossingPeriodNs {106.56};
   double m_reverseDriftStepNs {56.881262};
-  double m_startZSouth {-102.325};
-  double m_startZNorth {102.325};
+  double m_startZSouth {-102.605};
+  double m_startZNorth {102.605};
+  bool m_startZOverride {false};
   double m_tpcHalfLength {105.5};
   double m_edgeToleranceTbins {1.0};
   double m_radialTolerance {2.0};

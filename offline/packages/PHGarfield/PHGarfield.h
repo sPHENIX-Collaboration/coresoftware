@@ -325,6 +325,10 @@ class PHGarfield : public SubsysReco
   void SetUseSurveyGeometry(bool value) { use_survey_geometry = value; }
   bool GetUseSurveyGeometry() const { return use_survey_geometry; }
 
+  // Publish this instance as the shared "PHGarfield" node in InitRun (default).
+  // Private instances owned by another module set this to false.
+  void SetPublishToNodeTree(bool value) { m_publishToNodeTree = value; }
+
   void SetUseBCOkEffs(bool value) { m_useBCOkEffs = value; }
   bool GetUseBCOkEffs() const { return m_useBCOkEffs; }
 
@@ -408,6 +412,7 @@ class PHGarfield : public SubsysReco
   bool m_deltaT0Override{false};
   bool m_useCDBDriftCorrections{false};
   bool m_isNonDistortedMC{false};
+  bool m_publishToNodeTree{true};
   double m_nonDistortedMCFieldVcm{387.5};
   double m_nonDistortedMCT0Tbins{1.5};
   bool m_zerofield{false};

@@ -376,6 +376,7 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
         Name() + "_PHGarfield", "", m_kEffSide0, m_kEffSide1);
 
     m_ownedGarfield->SetUseSurveyGeometry(false);
+    m_ownedGarfield->SetPublishToNodeTree(false);  // owned here, never shared
     configure_garfield(m_ownedGarfield.get());
 
     if (m_isNonDistortedMC)

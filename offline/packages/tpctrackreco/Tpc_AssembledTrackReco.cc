@@ -1383,7 +1383,10 @@ bool Tpc_AssembledTrackReco::candidates_can_connect(const Candidate& a,
     return false;
   }
 
-  const double rmatch = 0.5 * (ra + rb);
+    const double rmatch = m_useWeightedMatchPoint
+                            ? weighted_match_radius(a.first_layer, a.last_layer, a.nblobs,
+                                                    b.first_layer, b.last_layer, b.nblobs)
+                            : 0.5 * (ra + rb);
 
   // Cheap tbin compatibility first.
   const double tbin_a = a.tbin_slope_r * rmatch + a.tbin_intercept_r;
@@ -1499,6 +1502,11 @@ bool Tpc_AssembledTrackReco::candidates_can_connect(const Candidate& a,
       w_mphi * (dmphi / m_connect_dphi_slope) * (dmphi / m_connect_dphi_slope) +
       w_mtbin * (dmtbin / m_connect_dtbin_slope) * (dmtbin / m_connect_dtbin_slope) +
       0.05 * static_cast<double>(gap);
+
+  if (score > m_maxConnectScore)
+  {
+    return false;
+  }
 
   return true;
 }
