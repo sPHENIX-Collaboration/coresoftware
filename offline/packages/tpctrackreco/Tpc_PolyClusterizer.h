@@ -40,11 +40,13 @@ class Tpc_PolyClusterizer : public SubsysReco
   void setT0(double v)
   {
     m_t0 = v;
+    m_t0Override = true;
   }
 
   void setTpcAdcClock(double v)
   {
     m_tpcAdcClock = v;
+    m_tpcAdcClockOverride = true;
   }
 
   void setCrossingPeriodNs(double v)
@@ -295,6 +297,8 @@ class Tpc_PolyClusterizer : public SubsysReco
   bool m_fieldCageVoltageOverride{false};
   bool m_useBCOkEffsOverride{false};
   bool m_isNonDistortedMC{false};
+  bool m_t0Override{false};
+  bool m_tpcAdcClockOverride{false};
 
   std::array<double, 3> m_tpcMove{{0.0, 0.0, 0.0}};                                             //{{-0.16775, -0.0337, -0.71365}};
   std::array<std::array<double, 3>, 2> m_tpcRotations{{{{0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}}}};  //{{{{0.0, 0.01485 / 10.0, 0.0}}, {{0.0298 / 8.0, 0.0, 0.0}}}};

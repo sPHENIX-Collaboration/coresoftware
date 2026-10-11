@@ -41,8 +41,16 @@ class TpcCrossingFinder : public SubsysReco
   void setInputNodeName(const std::string& n) { m_inputNodeName = n; }
   void setOutputNodeName(const std::string& n) { m_outputNodeName = n; }
   void setVertexMapNodeName(const std::string& n) { m_vertexMapNodeName = n; }
-  void setT0(double v) { m_t0 = v; }
-  void setTpcAdcClock(double v) { m_tpcAdcClock = v; }
+  void setT0(double v)
+  {
+    m_t0 = v;
+    m_t0Override = true;
+  }
+  void setTpcAdcClock(double v)
+  {
+    m_tpcAdcClock = v;
+    m_tpcAdcClockOverride = true;
+  }
   void setCrossingPeriodNs(double v) { m_crossingPeriodNs = v; }
   void setReverseDriftStepNs(double v) { m_reverseDriftStepNs = v; }
   void setKEffSide0(double v) { m_kEffSide0 = v; }
@@ -211,6 +219,8 @@ class TpcCrossingFinder : public SubsysReco
 
   double m_t0 {8};
   std::array<double, 2> m_deltaT0Tbins {{0.0, 0.0}};  // from PHGarfield in InitRun
+  bool m_t0Override {false};
+  bool m_tpcAdcClockOverride {false};
   double m_tpcAdcClock {56.881262};
   double m_crossingPeriodNs {106.56};
   double m_reverseDriftStepNs {56.881262};

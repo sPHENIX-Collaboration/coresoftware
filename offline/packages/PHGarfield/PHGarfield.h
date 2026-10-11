@@ -226,6 +226,22 @@ class PHGarfield : public SubsysReco
     SetUseIFCVoltageDistortion(false);
     SetUseOFCVoltageDistortion(false);
     SetUsePTCorrection(false);
+    m_isNonDistortedMC = true;
+    // Garfield v(E, B=0) at this field reproduces G4TPC::tpc_drift_velocity_sim = 7.55 cm/us.
+    if (!m_CMVoltageOverride)
+    {
+      SetCMVoltageDefault(m_nonDistortedMCFieldVcm);
+    }
+  }
+  // Non-distorted MC timing, validated with single-pion MC against G4 truth:
+  // 387.5 V/cm, t0 = 1.5 time bins (SAMPA shaping delay + half-bin), clock from
+  // the simulated TPC geometry. Consumers read these in InitRun.
+  bool GetIsNonDistortedMC() const { return m_isNonDistortedMC; }
+  double GetNonDistortedMCT0Tbins() const { return m_nonDistortedMCT0Tbins; }
+  void SetNonDistortedMCParameters(double field_vcm, double t0_tbins)
+  {
+    m_nonDistortedMCFieldVcm = field_vcm;
+    m_nonDistortedMCT0Tbins = t0_tbins;
   }
 
   // Static field-cage boundary-voltage distortions.
@@ -388,6 +404,9 @@ class PHGarfield : public SubsysReco
   bool m_cmFieldFactorOverride{false};
   bool m_deltaT0Override{false};
   bool m_useCDBDriftCorrections{false};
+  bool m_isNonDistortedMC{false};
+  double m_nonDistortedMCFieldVcm{387.5};
+  double m_nonDistortedMCT0Tbins{1.5};
   bool m_zerofield{false};
   TH2 *m_erCorrection{nullptr};  // radial correction, input bins in V/m
   TH2 *m_ezCorrection{nullptr};  // local longitudinal correction, input bins in V/m

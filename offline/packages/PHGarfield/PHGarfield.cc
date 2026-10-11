@@ -663,9 +663,11 @@ int PHGarfield::InitRun(PHCompositeNode* topNode)
   auto* existing = findNode::getClass<PHGarfield>(topNode, "PHGarfield");
   if (existing && existing != this)
   {
-    std::cerr << Name() << "::InitRun - conflicting PHGarfield instance"
-              << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    // A shared instance is already registered; this one stays private
+    // (e.g. Tpc_PolyClusterizer with setUsePHGarfieldDefaults(false)).
+    std::cout << Name() << "::InitRun - another PHGarfield is already in the node tree; "
+              << "this instance stays private" << std::endl;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   if (!existing)

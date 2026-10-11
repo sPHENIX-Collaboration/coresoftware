@@ -394,6 +394,22 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
 
     m_garfield = m_ownedGarfield.get();
   }
+  // Non-distorted MC: t0 and sampling clock of the simulation, unless set in the macro.
+  if (m_garfield->GetIsNonDistortedMC())
+  {
+    if (!m_t0Override)
+    {
+      m_t0 = m_garfield->GetNonDistortedMCT0Tbins();
+    }
+    if (!m_tpcAdcClockOverride && layergeom->get_adc_clock() > 0.0)
+    {
+      m_tpcAdcClock = layergeom->get_adc_clock();
+    }
+    std::cout << Name() << "::InitRun - non-distorted MC: t0=" << m_t0 << " tbins"
+              << (m_t0Override ? " [macro]" : "")
+              << ", ADC clock=" << m_tpcAdcClock << " ns"
+              << (m_tpcAdcClockOverride ? " [macro]" : "") << std::endl;
+  }
 
   // Per-side run dt0 (time bins), read once.
   m_deltaT0Tbins = {{m_garfield->GetDeltaT0Tbins(0), m_garfield->GetDeltaT0Tbins(1)}};

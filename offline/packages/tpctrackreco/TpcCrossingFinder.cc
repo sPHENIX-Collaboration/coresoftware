@@ -138,6 +138,23 @@ int TpcCrossingFinder::InitRun(PHCompositeNode* topNode)
             << static_cast<const void*>(m_garfield)
             << ", nominal field " << m_garfield->GetCMVoltageDefault()
             << " V/cm" << std::endl;
+  // Non-distorted MC: t0 and sampling clock of the simulation, unless set in the macro.
+  if (m_garfield->GetIsNonDistortedMC())
+  {
+    if (!m_t0Override)
+    {
+      m_t0 = m_garfield->GetNonDistortedMCT0Tbins();
+    }
+    auto* clockgeom = m_geomContainerTpc ? m_geomContainerTpc->GetLayerCellGeom(20) : nullptr;
+    if (!m_tpcAdcClockOverride && clockgeom && clockgeom->get_adc_clock() > 0.0)
+    {
+      m_tpcAdcClock = clockgeom->get_adc_clock();
+    }
+    std::cout << Name() << "::InitRun - non-distorted MC: t0=" << m_t0 << " tbins"
+              << (m_t0Override ? " [macro]" : "")
+              << ", ADC clock=" << m_tpcAdcClock << " ns"
+              << (m_tpcAdcClockOverride ? " [macro]" : "") << std::endl;
+  }
 
   // Per-side run dt0 (time bins), read once.
   m_deltaT0Tbins = {{m_garfield->GetDeltaT0Tbins(0), m_garfield->GetDeltaT0Tbins(1)}};
@@ -1048,7 +1065,8 @@ int TpcCrossingFinder::process_event(PHCompositeNode* topNode)
     std::vector<TpcCrossingCandidate> candidate_qa_records;
     auto add_decision_with_candidates = [&candidate_qa_records, decision, this]()
     {
-      for (const TpcCrossingCandidate& candidate : candidate_qa_records) { decision->add_candidate(candidate); }
+      for (const TpcCrossingCandidate& candidate : candidate_qa_records) { decision->add_candidate(candidate);
+}
       m_decisions->add_decision(decision);
     };
     decision->set_assembled_track_id(assembled->get_track_id());
