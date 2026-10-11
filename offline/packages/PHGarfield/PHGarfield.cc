@@ -1961,7 +1961,7 @@ double PHGarfield::bounder(double phi, double phi_min)
   return phi;
 }
 
-TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_ns, ReverseDriftStatus* driftStatus)
+TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_ns, ReverseDriftStatus* driftStatus, unsigned int substeps)
 {
   // Public/default drift function: input and output are local TPC coordinates.
   // Do not transform these coordinates before asking Garfield for E/gas values;
@@ -1991,38 +1991,49 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
   constexpr int maxSteps = 20000;
   int step = 0;
 
+    const unsigned int nsub = std::max(1U, substeps);
+  const double dt_ns = step_ns / static_cast<double>(nsub);
+
   ReverseDriftStatus status = StopHere(x, y, z, zPrevious);
   while (status == ReverseDriftStatus::Running && step < maxSteps)
   {
-    zPrevious = z;
-
-    GetMagneticFieldTesla(x, y, z, bx, by, bz);
-    GetElectricFieldVcm(x, y, z, ex, ey, ez);
-    m_gas->ElectronVelocity(ex, ey, ez, bx, by, bz, vx, vy, vz);
-
-    if (!std::isfinite(vx) || !std::isfinite(vy) || !std::isfinite(vz) ||
-        (vx == 0.0 && vy == 0.0 && vz == 0.0))
+    // One stored step = nsub Euler sub-steps; only its end point is stored.
+    for (unsigned int isub = 0; isub < nsub && status == ReverseDriftStatus::Running; ++isub)
     {
-      std::cout << PHWHERE
-                << " Garfield returned invalid/zero electron velocity; stopping drift. "
-                << " p_tpc=(" << x << ", " << y << ", " << z << ") cm"
-                << " E=(" << ex << ", " << ey << ", " << ez << ") V/cm"
-                << " B=(" << bx << ", " << by << ", " << bz << ") T"
-                << std::endl;
-      status = ReverseDriftStatus::InvalidVelocity;
+      zPrevious = z;
+
+      GetMagneticFieldTesla(x, y, z, bx, by, bz);
+      GetElectricFieldVcm(x, y, z, ex, ey, ez);
+      m_gas->ElectronVelocity(ex, ey, ez, bx, by, bz, vx, vy, vz);
+
+      if (!std::isfinite(vx) || !std::isfinite(vy) || !std::isfinite(vz) ||
+          (vx == 0.0 && vy == 0.0 && vz == 0.0))
+      {
+        std::cout << PHWHERE
+                  << " Garfield returned invalid/zero electron velocity; stopping drift. "
+                  << " p_tpc=(" << x << ", " << y << ", " << z << ") cm"
+                  << " E=(" << ex << ", " << ey << ", " << ez << ") V/cm"
+                  << " B=(" << bx << ", " << by << ", " << bz << ") T"
+                  << std::endl;
+        status = ReverseDriftStatus::InvalidVelocity;
+        break;
+      }
+
+      x = x - vx * dt_ns;
+      y = y - vy * dt_ns;
+      z = z - vz * dt_ns;
+
+      status = StopHere(x, y, z, zPrevious);
+    }
+    if (status != ReverseDriftStatus::Running)
+    {
       break;
     }
-
-    x = x - vx * step_ns;
-    y = y - vy * step_ns;
-    z = z - vz * step_ns;
 
     xlist.push_back(x);
     ylist.push_back(y);
     zlist.push_back(z);
     ++step;
-
-    status = StopHere(x, y, z, zPrevious);
   }
 
   if (step >= maxSteps && status == ReverseDriftStatus::Running)
@@ -2039,12 +2050,10 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
     *driftStatus = status;
   }
 
-  // Keep all stored points, including the initial point.  This avoids returning
-  // an empty TPolyLine3D if the starting point is already outside the active volume.
-  // Drop the final point. It is the first point that triggered StopHere
-  // on the next loop iteration, for example after crossing the central membrane.
-  // This restores the old PHGarfield behavior.
-  const size_t nGoodPoints = (xlist.size() > 1) ? xlist.size() - 1 : xlist.size();
+  // All stored points are inside the drift volume and step_ns apart: an interval
+  // that ends outside (central membrane, boundary) or with an invalid velocity is
+  // never stored. The initial point is always kept, so the polyline is never empty.
+  const size_t nGoodPoints = xlist.size();
 
   TPolyLine3D* poly = new TPolyLine3D(static_cast<int>(nGoodPoints));
   for (size_t i = 0; i < nGoodPoints; ++i)
@@ -2053,6 +2062,11 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
   }
 
   return poly;
+}
+
+TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_ns, ReverseDriftStatus* driftStatus)
+{
+  return ReverseDrift(x, y, z, step_ns, driftStatus, 1);
 }
 
 TPolyLine3D* PHGarfield::ReverseDriftGlobalCoords(double x_cm, double y_cm, double z_cm, double step_ns, ReverseDriftStatus* status)

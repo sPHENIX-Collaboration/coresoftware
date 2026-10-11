@@ -772,7 +772,7 @@ bool Tpc_PolyClusterizer::build_drift_lookup()
           const double phi = phi_local;
           const double x0 = radius * std::cos(phi);
           const double y0 = radius * std::sin(phi);
-          TPolyLine3D* drift = m_garfield->ReverseDrift(x0, y0, z0, m_reverseDriftStepNs);
+          TPolyLine3D* drift = m_garfield->ReverseDrift(x0, y0, z0, m_reverseDriftStepNs, nullptr, m_reverseDriftSubsteps);
           if (!drift || drift->GetN() <= 0)
           {
             delete drift;

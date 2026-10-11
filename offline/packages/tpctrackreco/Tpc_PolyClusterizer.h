@@ -59,6 +59,10 @@ class Tpc_PolyClusterizer : public SubsysReco
     m_reverseDriftStepNs = v;
   }
 
+  void setReverseDriftSubsteps(unsigned int n) {
+    m_reverseDriftSubsteps = std::max(1U, n);
+  }
+
   void setKEffSide0(double v)
   {
     m_kEffSide0 = v;
@@ -267,6 +271,7 @@ class Tpc_PolyClusterizer : public SubsysReco
   double m_tpcAdcClock{56.881262};
   double m_crossingPeriodNs{106.56};
   double m_reverseDriftStepNs{56.881262};
+  unsigned int m_reverseDriftSubsteps{10};
 
   //! starting z position for primary electron backward drift
   /**

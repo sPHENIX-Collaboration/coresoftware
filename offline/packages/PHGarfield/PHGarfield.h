@@ -108,6 +108,9 @@ class PHGarfield : public SubsysReco
   // Existing macros should call this one.  Input and returned polyline are in
   // local TPC/Garfield coordinates.
   TPolyLine3D *ReverseDrift(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus *status = nullptr);
+  // Same, with substeps Euler steps of step_ns/substeps per stored step; only the
+  // end point of each full step is stored, so the polyline keeps step_ns spacing.
+  TPolyLine3D *ReverseDrift(double x_cm, double y_cm, double z_cm, double step_ns, ReverseDriftStatus *status, unsigned int substeps);
 
   // Debug/visualization helper.  Input and returned polyline are in global
   // detector coordinates.  Internally the drift is still computed in local TPC
