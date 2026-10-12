@@ -167,6 +167,10 @@ class PHActsTrkFitter : public SubsysReco
   void setDirectNavigation(bool flag) { m_directNavigation = flag; }
   void setClusterEdgeRejection(int edge ) { m_cluster_edge_rejection = edge; }
 
+  /// minimum radial distance (mm) between a tpc material surface and any tpc
+  /// measurement surface for the material surface to be used in direct navigation
+  void setTpcMaterialSurfaceMargin(double margin) { m_tpcMaterialSurfaceMargin = margin; }
+
   /// extrapolation mode
   enum class ExtrapolationMode
   {
@@ -298,6 +302,9 @@ class PHActsTrkFitter : public SubsysReco
 
   /// true if clusters on edge are removed from the fit
   int m_cluster_edge_rejection = 0;
+
+  /// minimum radial distance (mm) between a tpc material surface and a tpc measurement surface
+  double m_tpcMaterialSurfaceMargin = 2.;
 
   /// extrapolation mode
   ExtrapolationMode m_extrapolation_mode = ExtrapolationMode::Bidirectional;

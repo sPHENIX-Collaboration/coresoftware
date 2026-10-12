@@ -66,6 +66,7 @@
 #include <cmath>
 #include <filesystem>
 #include <iostream>
+#include <iterator>
 #include <set>
 #include <utility>
 #include <vector>
@@ -1165,10 +1166,30 @@ SurfacePtrVec PHActsTrkFitter::getDirectNavigationSurfaces(const SurfacePtrVec& 
 
   std::vector<std::pair<double, const Acts::Surface*>> sortedSurfaces;
   sortedSurfaces.reserve(measurementSurfaces.size() + m_materialSurfaces.size());
+
+  // radii of the tpc measurement surfaces, used to reject tpc material surfaces
+  // that are too close to a measurement surface to be ordered reliably
+  std::vector<double> tpcMeasurementRadii;
   for (const auto* surface : measurementSurfaces)
   {
-    sortedSurfaces.emplace_back(getSurfaceRadius(surface), surface);
+    const double radius = getSurfaceRadius(surface);
+    sortedSurfaces.emplace_back(radius, surface);
+    if (m_tGeometry->maps().isTpcSurface(surface))
+    {
+      tpcMeasurementRadii.push_back(radius);
+    }
   }
+  std::sort(tpcMeasurementRadii.begin(), tpcMeasurementRadii.end());
+
+  const auto closeToTpcMeasurement = [this, &tpcMeasurementRadii](double radius)
+  {
+    const auto iter = std::lower_bound(tpcMeasurementRadii.begin(), tpcMeasurementRadii.end(), radius);
+    if (iter != tpcMeasurementRadii.end() && *iter - radius < m_tpcMaterialSurfaceMargin)
+    {
+      return true;
+    }
+    return iter != tpcMeasurementRadii.begin() && radius - *std::prev(iter) < m_tpcMaterialSurfaceMargin;
+  };
 
   for (const auto* surface : m_materialSurfaces)
   {
@@ -1184,7 +1205,24 @@ SurfacePtrVec PHActsTrkFitter::getDirectNavigationSurfaces(const SurfacePtrVec& 
       continue;
     }
 
-    sortedSurfaces.emplace_back(getSurfaceRadius(surface), surface);
+    const double radius = getSurfaceRadius(surface);
+
+    // the tpc approach surfaces of neighboring layers interleave with the measurement
+    // surfaces at the sub-mm level. A material surface placed just after a measurement
+    // surface it actually lies beyond makes the navigator skip that measurement, so
+    // drop tpc material surfaces that are too close to a measurement surface
+    if (m_tGeometry->maps().isTpcSurface(surface) && closeToTpcMeasurement(radius))
+    {
+      if (Verbosity() > 2)
+      {
+        std::cout << "PHActsTrkFitter::getDirectNavigationSurfaces - "
+                  << "removing material surface " << surface->geometryId()
+                  << " with radius " << radius << ", too close to a tpc measurement surface" << std::endl;
+      }
+      continue;
+    }
+
+    sortedSurfaces.emplace_back(radius, surface);
   }
 
   std::stable_sort(sortedSurfaces.begin(), sortedSurfaces.end(),
