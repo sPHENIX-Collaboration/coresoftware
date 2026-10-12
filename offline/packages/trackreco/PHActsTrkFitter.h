@@ -212,6 +212,13 @@ class PHActsTrkFitter : public SubsysReco
   /// get list of sorted surfaces for direct navigation, if applicable
   SurfacePtrVec getSurfaceVector(const SourceLinkVec& sourceLinks) const;
 
+  /// get the measurement surfaces and the material surfaces of the measurement layers,
+  /// sorted by volume and radius, for direct navigation
+  SurfacePtrVec getDirectNavigationSurfaces(const SurfacePtrVec& measurementSurfaces) const;
+
+  /// radial position of a surface. Uses the bounds radius for cylinders
+  double getSurfaceRadius(const Acts::Surface* surface) const;
+
   /// check ordering of the surfaces
   void checkSurfaceVec(SurfacePtrVec& surfaces) const;
 

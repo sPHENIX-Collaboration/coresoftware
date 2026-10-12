@@ -52,6 +52,7 @@
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 #include <Acts/EventData/SourceLink.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
+#include <Acts/Surfaces/CylinderBounds.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
@@ -61,9 +62,12 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
+#include <algorithm>
 #include <cmath>
 #include <filesystem>
 #include <iostream>
+#include <set>
+#include <utility>
 #include <vector>
 
 namespace
@@ -714,68 +718,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           continue;
         }
 
-        for (const auto& surface_apr : m_materialSurfaces)
-        {
-          if (m_forceSiOnlyFit)
-          {
-            if (surface_apr->geometryId().volume() > 12)
-            {
-              continue;
-            }
-          }
-          //else if (m_forceTpcOnlyFit)
-          //{
-          //  if (surface_apr->geometryId().volume() < 14)
-          //  {
-          //    continue;
-          //  }
-          //}
-          bool pop_flag = false;
-          if (surface_apr->geometryId().approach() == 1)
-          {
-            surfaces.push_back(surface_apr);
-          }
-          else
-          {
-            pop_flag = true;
-            for (const auto& surface_sns : surfaces_tmp)
-            {
-              if (surface_apr->geometryId().volume() == surface_sns->geometryId().volume())
-              {
-                if (surface_apr->geometryId().layer() == surface_sns->geometryId().layer())
-                {
-                  pop_flag = false;
-                  surfaces.push_back(surface_sns);
-                }
-              }
-            }
-            if (!pop_flag)
-            {
-              surfaces.push_back(surface_apr);
-            }
-            else
-            {
-              surfaces.pop_back();
-              pop_flag = false;
-            }
-            if (surface_apr->geometryId().volume() == 12 && surface_apr->geometryId().layer() == 8)
-            {
-              for (const auto& surface_sns : surfaces_tmp)
-              {
-                if (14 == surface_sns->geometryId().volume())
-                {
-                  surfaces.push_back(surface_sns);
-                }
-              }
-            }
-          }
-        }
-        // With an empty ACTS material map, m_materialSurfaces is empty.
-        // Use the measurement surfaces directly for directed navigation.
-        if (surfaces.empty())
-        {
-          surfaces = surfaces_tmp;
-        }
+        // add the material surfaces of the layers with measurements, sorted radially
+        surfaces = getDirectNavigationSurfaces(surfaces_tmp);
 
         checkSurfaceVec(surfaces);
         if (Verbosity() > 1)
@@ -1190,6 +1134,81 @@ SurfacePtrVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
   return surfaces;
 }
 
+//__________________________________________________________________________________
+double PHActsTrkFitter::getSurfaceRadius(const Acts::Surface* surface) const
+{
+  // approach and layer material surfaces are cylinders centered on the beam axis,
+  // so their center does not give their radial position
+  if (surface->type() == Acts::Surface::Cylinder)
+  {
+    const auto& bounds = static_cast<const Acts::CylinderBounds&>(surface->bounds());
+    return bounds.get(Acts::CylinderBounds::eR);
+  }
+
+  const Acts::Vector3 center = surface->center(m_tGeometry->geometry().getGeoContext());
+  return std::sqrt(center.x() * center.x() + center.y() * center.y());
+}
+
+//__________________________________________________________________________________
+SurfacePtrVec PHActsTrkFitter::getDirectNavigationSurfaces(const SurfacePtrVec& measurementSurfaces) const
+{
+  // the acts layer id does not follow the radial ordering of the surfaces it contains
+  // (e.g. tpc surfaces with vol=14|lay=16 span ~31-40 cm), so the layer id cannot be
+  // used to order the surfaces. Instead, collect the measurement surfaces and the
+  // non-sensitive material surfaces of the layers with measurements, and sort them by
+  // volume and radius
+  std::set<std::pair<unsigned int, unsigned int>> measurementLayers;
+  for (const auto* surface : measurementSurfaces)
+  {
+    measurementLayers.emplace(surface->geometryId().volume(), surface->geometryId().layer());
+  }
+
+  std::vector<std::pair<double, const Acts::Surface*>> sortedSurfaces;
+  sortedSurfaces.reserve(measurementSurfaces.size() + m_materialSurfaces.size());
+  for (const auto* surface : measurementSurfaces)
+  {
+    sortedSurfaces.emplace_back(getSurfaceRadius(surface), surface);
+  }
+
+  for (const auto* surface : m_materialSurfaces)
+  {
+    // material on sensitive surfaces is picked up from the measurement surfaces
+    if (surface->geometryId().sensitive() != 0)
+    {
+      continue;
+    }
+
+    // only navigate through the material of layers with measurements
+    if (!measurementLayers.contains({surface->geometryId().volume(), surface->geometryId().layer()}))
+    {
+      continue;
+    }
+
+    sortedSurfaces.emplace_back(getSurfaceRadius(surface), surface);
+  }
+
+  std::stable_sort(sortedSurfaces.begin(), sortedSurfaces.end(),
+                   [](const auto& lhs, const auto& rhs)
+                   {
+                     const auto lhsVolume = lhs.second->geometryId().volume();
+                     const auto rhsVolume = rhs.second->geometryId().volume();
+                     if (lhsVolume != rhsVolume)
+                     {
+                       return lhsVolume < rhsVolume;
+                     }
+                     return lhs.first < rhs.first;
+                   });
+
+  SurfacePtrVec surfaces;
+  surfaces.reserve(sortedSurfaces.size());
+  for (const auto& [radius, surface] : sortedSurfaces)
+  {
+    surfaces.push_back(surface);
+  }
+
+  return surfaces;
+}
+
 void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
 {
   if (surfaces.size() < 2)
@@ -1210,14 +1229,12 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
 
     const auto thisVolume = surface->geometryId().volume();
 
-    const Acts::Vector3 this_center = surface->center(m_tGeometry->geometry().getGeoContext());
-    double thisRadius = sqrt(this_center.x()*this_center.x()+this_center.y()*this_center.y());
+    const double thisRadius = getSurfaceRadius(surface);
 
     const auto* nextSurface = surfaces.at(i + 1);
     const auto nextVolume = nextSurface->geometryId().volume();
 
-    const Acts::Vector3 next_center = nextSurface->center(m_tGeometry->geometry().getGeoContext());
-    double nextRadius = sqrt(next_center.x()*next_center.x()+next_center.y()*next_center.y());
+    const double nextRadius = getSurfaceRadius(nextSurface);
 
     if (surface->geometryId().approach() == 2 || nextSurface->geometryId().approach() == 2)
     {
