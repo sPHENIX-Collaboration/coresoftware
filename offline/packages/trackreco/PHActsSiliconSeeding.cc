@@ -44,6 +44,8 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <numeric>
+#include <random>
 #include <utility>
 
 namespace
@@ -52,15 +54,6 @@ namespace
   constexpr T square(const T &x)
   {
     return x * x;
-  }
-
-  /// splitmix64 bit mixer, used for reproducible pseudo-random choices
-  constexpr std::uint64_t splitmix64(std::uint64_t x)
-  {
-    x += 0x9e3779b97f4a7c15ULL;
-    x = (x ^ (x >> 30U)) * 0xbf58476d1ce4e5b9ULL;
-    x = (x ^ (x >> 27U)) * 0x94d049bb133111ebULL;
-    return x ^ (x >> 31U);
   }
 
   Acts::Vector3 get_line_surface_intersection(const Surface &surf, const std::vector<float> &fitpars, const Acts::Vector3 &global, ActsGeometry *tGeometry)
@@ -739,14 +732,12 @@ short int PHActsSiliconSeeding::getCrossingIntt(TrackSeed &si_track)
 
   // if the crossings are the same, then you will still get the correct crossing
 
-  // The random choice is seeded by the seed's cluster keys, so the same seed
-  // always gets the same crossing and results are reproducible run to run
-  std::uint64_t hash = 0;
-  for (auto it = si_track.begin_cluster_keys(); it != si_track.end_cluster_keys(); ++it)
-  {
-    hash = splitmix64(hash ^ *it);
-  }
-  return intt_crossings[(hash & 1U) ? 0 : 1];
+  // Seed the random generator with the seed's cluster keys, so the same
+  // seed always gets the same crossing and results are reproducible
+  const TrkrDefs::cluskey keySum = std::accumulate(si_track.begin_cluster_keys(), si_track.end_cluster_keys(), TrkrDefs::cluskey{0});
+  std::mt19937_64 gen(keySum);
+  std::bernoulli_distribution dist(0.5);
+  return intt_crossings[dist(gen) ? 0 : 1];
 }
 
 std::vector<short int> PHActsSiliconSeeding::getInttCrossings(TrackSeed &si_track)
