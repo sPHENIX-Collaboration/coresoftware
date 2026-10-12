@@ -9,19 +9,21 @@
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Definitions/Units.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
-#include <Acts/Seeding/SeedFinder.hpp>
-
-#include <Acts/Seeding/SpacePointGrid.hpp>
-#include <Acts/Utilities/GridBinFinder.hpp>
+#include <Acts/Seeding2/BroadTripletSeedFilter.hpp>
+#include <Acts/Seeding2/CylindricalSpacePointGrid2.hpp>
+#include <Acts/Seeding2/DoubletSeedFinder.hpp>
+#include <Acts/Seeding2/TripletSeedFinder.hpp>
+#include <Acts/Seeding2/TripletSeeder.hpp>
 
 #include <trackbase/SpacePoint.h>
-#include <ActsExamples/EventData/SpacePointContainer.hpp>
 
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
 #include <TTree.h>
+#include <array>
 #include <map>
+#include <memory>
 #include <string>
 
 class PHCompositeNode;
@@ -33,11 +35,6 @@ class TrkrClusterContainer;
 class TrkrClusterIterationMap;
 class TrkrClusterCrossingAssoc;
 
-using GridSeeds = std::vector<std::vector<Acts::Seed<SpacePoint>>>;
-using SpacePointContainerRefHolder = Acts::SpacePointContainer<SpacePointContainerType, Acts::detail::RefHolder>;
-using SpacePointProxy_type = typename SpacePointContainerRefHolder::SpacePointProxyType;
-using value_type = SpacePointContainerRefHolder::SpacePointProxyType;
-using seed_type = Acts::Seed<value_type>;
 /**
  * This class runs the Acts seeder over the MVTX measurements
  * to create track stubs for the rest of the stub matching pattern
@@ -109,6 +106,10 @@ class PHActsSiliconSeeding : public SubsysReco
   void bfield(const float field) { m_bField = field; }
   void zeroField(const bool flag = true) { m_zeroField = flag; }
   void minpt(const float pt) { m_minSeedPt = pt; }
+  /// Apply the Acts triplet min helix radius and scattering compatibility
+  /// cuts. Off by default to reproduce the legacy seeder behavior, where
+  /// these cuts were disabled (derived quantities were never computed)
+  void applyTripletScatteringCuts(const bool flag = true) { m_applyTripletScatteringCuts = flag; }
   void set_mvtxCenterXY(const float X, const float Y)
   {
     m_mvtx_x0 = X;
@@ -141,19 +142,26 @@ class PHActsSiliconSeeding : public SubsysReco
   int m_strobeLowWindow = -1;
   int m_strobeHighWindow = 2;
 
+  /// Acts seed triplet, bottom-middle-top, mapped back to sPHENIX space points
+  struct SeedTriplet
+  {
+    std::array<const SpacePoint *, 3> sps{};
+    float vertexZ = 0;
+  };
+
   void runSeeder();
 
   /// Configure the seeding parameters for Acts. There
   /// are a number of tunable parameters for the seeder here
   void configureSeeder();
   void configureSPGrid();
-  Acts::SeedFilterConfig configureSeedFilter() const;
+  void configureSeedFilter();
 
   /// Take final seeds and fill the TrackSeedContainer
-  void makeSvtxTracks(const std::vector<seed_type> &seedVector);
+  void makeSvtxTracks(const std::vector<SeedTriplet> &seedVector);
 
   /// Take final seeds and fill the TrackSeedContainer
-  void makeSvtxTracksWithTime(const std::vector<seed_type> &seedVector);
+  void makeSvtxTracksWithTime(const std::vector<SeedTriplet> &seedVector);
 
   /// Create a seeding space point out of an Acts::SourceLink
   SpacePointPtr makeSpacePoint(const Surface &surf, const TrkrDefs::cluskey,
@@ -162,7 +170,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Get all space points for the seeder
   std::vector<const SpacePoint *> getSiliconSpacePoints(const int strobe);
-  void printSeedConfigs(Acts::SeedFilterConfig &sfconfig);
+  void printSeedConfigs() const;
   bool isTimingMismatched(TrackSeed &seed) const;
 
   // function for INTT cluster cuts
@@ -214,10 +222,24 @@ class PHActsSiliconSeeding : public SubsysReco
   int m_lowStrobeIndex = 0;
   int m_highStrobeIndex = 1;
   /// Configuration classes for Acts seeding
-  Acts::SeedFinderConfig<SpacePointProxy_type> m_seedFinderCfg;
-  Acts::CylindricalSpacePointGridConfig m_gridCfg;
-  Acts::CylindricalSpacePointGridOptions m_gridOptions;
-  Acts::SeedFinderOptions m_seedFinderOptions;
+  Acts::CylindricalSpacePointGrid2::Config m_gridCfg;
+  Acts::DoubletSeedFinder::Config m_bottomDoubletCfg;
+  Acts::DoubletSeedFinder::Config m_topDoubletCfg;
+  Acts::TripletSeedFinder::Config m_tripletCfg;
+  Acts::BroadTripletSeedFilter::Config m_seedFilterCfg;
+
+  /// Acts seeding tools, built once in Init
+  std::unique_ptr<Acts::DoubletSeedFinder> m_bottomDoubletFinder;
+  std::unique_ptr<Acts::DoubletSeedFinder> m_topDoubletFinder;
+  std::unique_ptr<Acts::TripletSeedFinder> m_tripletFinder;
+  std::unique_ptr<Acts::TripletSeeder> m_seeder;
+  Acts::TripletSeeder::Cache m_seederCache;
+
+  /// Radial range for the middle space point of the triplet
+  float m_rMinMiddle = 2.5 * Acts::UnitConstants::cm;
+  float m_rMaxMiddle = 4.3 * Acts::UnitConstants::cm;
+
+  bool m_applyTripletScatteringCuts = false;
 
   /// boolean whether or not we are going to match the intt clusters
   /// per strobe with crossing information and take all possible matches
@@ -248,6 +270,9 @@ class PHActsSiliconSeeding : public SubsysReco
   float m_zMin = -500. * Acts::UnitConstants::mm;
 
   /// misalignment parameters
+  /// m_ralign, m_zalign, m_maxPtScattering, m_sigmaError (and m_rMin,
+  /// m_deltaRMin) were never read by the Acts triplet seeder and have
+  /// no equivalent in Seeding2. They are kept for macro compatibility
   float m_helixcut = 1;
   float m_tolerance = 1.1 * Acts::UnitConstants::mm;
   float m_ralign = 0;
@@ -280,8 +305,6 @@ class PHActsSiliconSeeding : public SubsysReco
   std::vector<std::pair<int, int>> zBinNeighborsTop;
   std::vector<std::pair<int, int>> zBinNeighborsBottom;
   int nphineighbors = 1;
-  std::unique_ptr<const Acts::GridBinFinder<3ul>> m_bottomBinFinder;
-  std::unique_ptr<const Acts::GridBinFinder<3ul>> m_topBinFinder;
 
   int m_event = 0;
 
