@@ -183,6 +183,9 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   m_calibName_ZScrosscalib = m_detector + "_ZSCrossCalib";
   m_calibName_ZScrosscalibT0 = m_detector + "_ZSCrossCalibT0";
   m_fieldname_ZScrosscalib = "ratio";
+  m_fieldname_ZScrosscalib_minus5 = "ratio_minus5";
+  m_fieldname_ZScrosscalib_main = "ratio_main";
+  m_fieldname_ZScrosscalib_plus5 = "ratio_plus5";
   m_has_ZScrosscalibT0 = false;
 
   if (m_doZScrosscalib)
@@ -303,9 +306,9 @@ void CaloTowerCalib::LoadCalib(PHCompositeNode *topNode)
       m_cdbInfo_vec[channel].crosscalibconst = cdbttree_ZScrosscalib->GetFloatValue(key, m_fieldname_ZScrosscalib);
       if (m_has_ZScrosscalibT0)
       {
-        m_cdbInfo_vec[channel].crosscalibconst_minus5 = cdbttree_ZScrosscalib->GetFloatValue(key, "ratio_minus5");
-        m_cdbInfo_vec[channel].crosscalibconst_main = cdbttree_ZScrosscalib->GetFloatValue(key, "ratio_main");
-        m_cdbInfo_vec[channel].crosscalibconst_plus5 = cdbttree_ZScrosscalib->GetFloatValue(key, "ratio_plus5");
+        m_cdbInfo_vec[channel].crosscalibconst_minus5 = cdbttree_ZScrosscalib->GetFloatValue(key, m_fieldname_ZScrosscalib_minus5);
+        m_cdbInfo_vec[channel].crosscalibconst_main = cdbttree_ZScrosscalib->GetFloatValue(key, m_fieldname_ZScrosscalib_main);
+        m_cdbInfo_vec[channel].crosscalibconst_plus5 = cdbttree_ZScrosscalib->GetFloatValue(key, m_fieldname_ZScrosscalib_plus5);
       }
     }
 

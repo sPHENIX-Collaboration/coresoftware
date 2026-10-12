@@ -155,6 +155,9 @@ class CaloTowerCalib : public SubsysReco
   std::string m_fieldname_time;
   std::string m_calibName_time;
   std::string m_fieldname_ZScrosscalib;
+  std::string m_fieldname_ZScrosscalib_minus5;
+  std::string m_fieldname_ZScrosscalib_main;
+  std::string m_fieldname_ZScrosscalib_plus5;
   std::string m_calibName_ZScrosscalib;
   std::string m_calibName_ZScrosscalibT0;
   bool m_overrideCalibName{false};
