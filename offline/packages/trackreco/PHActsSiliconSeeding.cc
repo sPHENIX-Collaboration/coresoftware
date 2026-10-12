@@ -46,6 +46,7 @@
 #include <Acts/EventData/Seed.hpp>
 #include <Acts/Seeding/SeedFilter.hpp>
 #include <cmath>
+#include <numeric>
 #include <random>
 
 namespace
@@ -682,8 +683,10 @@ short int PHActsSiliconSeeding::getCrossingIntt(TrackSeed &si_track)
 
   // if the crossings are the same, then you will still get the correct crossing
 
-  std::random_device rd;
-  std::mt19937 gen(rd());
+  // Seed the random generator with the seed's cluster keys, so the same
+  // seed always gets the same crossing and results are reproducible
+  const TrkrDefs::cluskey keySum = std::accumulate(si_track.begin_cluster_keys(), si_track.end_cluster_keys(), TrkrDefs::cluskey{0});
+  std::mt19937_64 gen(keySum);
   std::bernoulli_distribution dist(0.5);
   return intt_crossings[dist(gen) ? 0 : 1];
 }
