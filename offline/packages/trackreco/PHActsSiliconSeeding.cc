@@ -456,7 +456,7 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<SeedTriplet>
     }
   }
 
-  if (Verbosity() == 0)
+  if (Verbosity() > 1)
   {
     std::cout << "Total number of seeds found in " << seedVector.size() << " volume regions gives " << numGoodSeeds << " Acts seeds " << std::endl
               << std::endl
@@ -633,7 +633,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const std::vector<SeedTriplet> &seedVe
     h_nSeeds->Fill(numGoodSeeds);
     h_nActsSeeds->Fill(numSeeds);
   }
-  if (Verbosity() == 0)
+  if (Verbosity() > 1)
   {
     std::cout << "Total number of seeds found in " << seedVector.size() << " volume regions gives " << numSeeds << " Acts seeds " << std::endl
               << std::endl
