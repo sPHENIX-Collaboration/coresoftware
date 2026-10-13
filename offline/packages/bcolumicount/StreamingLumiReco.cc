@@ -97,9 +97,10 @@ int StreamingLumiReco::process_event(PHCompositeNode *topNode)
   }
 
   // SYNTAX TAKEN FROM ZHIWANS CODE, why = and not +=? If this is correct it seems like a waste to call it for every event (would just need it for the last event in a particular crossing?)
-  m_bunchnumber_MBDNS_raw[bunchno] = gl1packet->lValue(0, "GL1PRAW");
-  m_bunchnumber_MBDNS_live[bunchno] = gl1packet->lValue(0, "GL1PLIVE");
-  m_bunchnumber_MBDNS_scaled[bunchno] = gl1packet->lValue(0, "GL1PSCALED");
+  // Are these really MBDNS scalers? The name seems misleading
+  m_bunchnumber_MBDNS[bunchno] = gl1packet->lValue(0, "GL1PRAW");
+  //m_bunchnumber_MBDNS_live[bunchno] = gl1packet->lValue(0, "GL1PLIVE");
+  //m_bunchnumber_MBDNS_scaled[bunchno] = gl1packet->lValue(0, "GL1PSCALED");
 
 
   if(gl1packet->lValue(0, 0))
@@ -143,17 +144,13 @@ int StreamingLumiReco::EndRun(int /*runnumber*/)
   uint64_t rawgl1scalers_per_bunch = m_rawgl1scaler/120.;
   for (int i=0; i<m_bunches; i++)
   {
-    m_bunchnumber_lumi_raw[i] = ( m_bunchnumber_crossings[i] * m_bunchnumber_MBDNS_raw[i] ) / ( rawgl1scalers_per_bunch * sphenix_constants::m_xsec_MBDNS );
-    m_bunchnumber_lumi_live[i] = ( m_bunchnumber_crossings[i] * m_bunchnumber_MBDNS_live[i]) / ( rawgl1scalers_per_bunch * sphenix_constants::m_xsec_MBDNS );
-    m_bunchnumber_lumi_scaled[i] = ( m_bunchnumber_crossings[i] * m_bunchnumber_MBDNS_scaled[i] ) / ( rawgl1scalers_per_bunch * sphenix_constants::m_xsec_MBDNS );
+    m_bunchnumber_lumi[i] = ( m_bunchnumber_crossings[i] * m_bunchnumber_MBDNS[i] ) / ( rawgl1scalers_per_bunch * sphenix_constants::m_xsec_MBDNS );
 
-    m_lumi_raw += m_bunchnumber_lumi_raw[i];
-    m_lumi_live += m_bunchnumber_lumi_live[i];
-    m_lumi_scaled += m_bunchnumber_lumi_scaled[i];
+    m_lumi += m_bunchnumber_lumi[i];
 
     if (Verbosity() > 1)
     {
-     std::cout << "bunchno : " << i << " lumi_raw : " << m_bunchnumber_lumi_raw[i] << std::endl;
+     std::cout << "bunchno : " << i << " lumi : " << m_bunchnumber_lumi[i] << std::endl;
     }
   }
   if (!m_streaming_lumi_info)
@@ -162,30 +159,20 @@ int StreamingLumiReco::EndRun(int /*runnumber*/)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_streaming_lumi_info->set_bunchnumber_lumi_raw(get_bunchnumber_lumi_raw());
-  m_streaming_lumi_info->set_bunchnumber_lumi_live(get_bunchnumber_lumi_live());
-  m_streaming_lumi_info->set_bunchnumber_lumi_scaled(get_bunchnumber_lumi_scaled());
+  m_streaming_lumi_info->set_bunchnumber_lumi(get_bunchnumber_lumi());
+  m_streaming_lumi_info->set_lumi(get_lumi());
 
-  m_streaming_lumi_info->set_lumi_raw(get_lumi_raw());
-  m_streaming_lumi_info->set_lumi_live(get_lumi_live());
-  m_streaming_lumi_info->set_lumi_scaled(get_lumi_scaled());
   
   if (Verbosity() > 1)
   {
     std::cout << "MBD xsec : " << sphenix_constants::m_xsec_MBDNS << std::endl;
-    std::cout << "total lumi (raw) : " << m_lumi_raw << std::endl;
+    std::cout << "total lumi : " << m_lumi << std::endl;
   }
 
-  m_bunchnumber_lumi_raw.fill(0);
-  m_bunchnumber_lumi_live.fill(0);
-  m_bunchnumber_lumi_scaled.fill(0);
+  m_bunchnumber_lumi.fill(0);
   m_bunchnumber_crossings.fill(0);
-  m_bunchnumber_MBDNS_raw.fill(0);
-  m_bunchnumber_MBDNS_live.fill(0);
-  m_bunchnumber_MBDNS_scaled.fill(0);
-  m_lumi_raw = 0.;
-  m_lumi_live = 0.;
-  m_lumi_scaled = 0.;
+  m_bunchnumber_MBDNS.fill(0);
+  m_lumi = 0.;
   m_rawgl1scaler = 0;
 
   return Fun4AllReturnCodes::EVENT_OK;
