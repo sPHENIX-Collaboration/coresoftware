@@ -8,7 +8,6 @@
 #include <array>
 #include <limits>
 #include <map>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -95,19 +94,20 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   };
 
   //! FEE channel map lookup, indexed by 256 * mapped fee + channel.
-  //! Shared between all unpacker instances that use the same CDB file
+  //! One unpacker is registered per EBDC endpoint, so the map is static and
+  //! loaded from the CDB only once per job, by the first instance
   struct FeeChannelMap
   {
     static constexpr unsigned int nkeys = 26 * 256;
     std::array<int, nkeys> layer{};
     std::array<double, nkeys> phi{};
   };
-  static std::shared_ptr<const FeeChannelMap> loadFeeChannelMap(const std::string &filename);
+  static FeeChannelMap m_feeChannelMap;
+  static bool m_feeChannelMapLoaded;
   TNtuple *m_ntup{nullptr};
   TNtuple *m_ntup_hits{nullptr};
   TNtuple *m_ntup_hits_corr{nullptr};
   TFile *m_file{nullptr};
-  std::shared_ptr<const FeeChannelMap> m_feeChannelMap;
   CDBInterface *m_cdb{nullptr};
 
   int m_presampleShift{40};  // number of presamples shifted to line up t0
