@@ -36,6 +36,7 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <set>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -176,6 +177,16 @@ namespace
     }
 
     return bline + yy;
+  }
+  // Number of distinct TPC layers among the fit points.
+  unsigned int count_layers(const std::vector<Tpc_AssembledTrackReco::PiecePoint>& points)
+  {
+    std::set<unsigned int> layers;
+    for (const auto& point : points)
+    {
+      layers.insert(TrkrDefs::getLayer(point.hitsetkey));
+    }
+    return static_cast<unsigned int>(layers.size());
   }
 
   bool fit_points(const std::vector<Tpc_AssembledTrackReco::PiecePoint>& points,
@@ -413,7 +424,7 @@ int Tpc_AssembledTrackReco::Init(PHCompositeNode* /*unused*/)
     }
     create_debug_histograms();
   }
-
+  m_outputFile->cd();
   m_tree = new TTree("Tpc_AssembledTracks", "Assembled tracks connected from Tpc_ModuleTrackReco");
   m_tree->Branch("event", &m_tree_event, "event/I");
   m_tree->Branch("track_id", &m_tree_track_id);
@@ -803,6 +814,30 @@ bool Tpc_AssembledTrackReco::make_piece(unsigned int source_index, Piece& p) con
   p.phi_sagitta_evaluated = !m_useSagittaPhiFit;
   return fit_ok;
 }
+// Radius at which two fits are compared. Each prediction's variance grows as
+// sigma_slope^2 * (r - c)^2 away from its own centre c, with
+// sigma_slope^2 ~ 1 / (N * L^2). The sum is smallest at the sigma_slope^2
+// weighted mean of the two centres, i.e. close to the less precise piece.
+double Tpc_AssembledTrackReco::weighted_match_radius(unsigned int a_first, unsigned int a_last, unsigned int a_n,
+                                                     unsigned int b_first, unsigned int b_last, unsigned int b_n) const
+{
+  const double ra1 = m_idealPadMap->get_radius(a_first);
+  const double ra2 = m_idealPadMap->get_radius(a_last);
+  const double rb1 = m_idealPadMap->get_radius(b_first);
+  const double rb2 = m_idealPadMap->get_radius(b_last);
+  const double ca = 0.5 * (ra1 + ra2);
+  const double cb = 0.5 * (rb1 + rb2);
+  const double la = std::max(ra2 - ra1, 0.5);  // cm, guard against 1-layer pieces
+  const double lb = std::max(rb2 - rb1, 0.5);
+  const double wa = 1.0 / (std::max(1U, a_n) * la * la);
+  const double wb = 1.0 / (std::max(1U, b_n) * lb * lb);
+  const double r = (wa * ca + wb * cb) / (wa + wb);
+  if (!std::isfinite(r))
+  {
+    return 0.5 * (ra2 + rb1);
+  }
+  return std::clamp(r, std::min(ca, cb), std::max(ca, cb));
+}
 
 void Tpc_AssembledTrackReco::ensure_piece_sagitta(const Piece& p) const
 {
@@ -816,7 +851,7 @@ void Tpc_AssembledTrackReco::ensure_piece_sagitta(const Piece& p) const
   p.phi_sagitta_evaluated = true;
   p.phi_sagitta_ok = false;
 
-  if (p.points.size() < 3)
+  if (p.points.size() < 3 || count_layers(p.points) < m_minSagittaLayers)
   {
     return;
   }
@@ -966,7 +1001,7 @@ bool Tpc_AssembledTrackReco::refit_candidate(const std::vector<Piece>& pieces,
   c.nsegments = static_cast<unsigned int>(piece_indices.size());
 
   return fit_points(points,
-                    m_useSagittaPhiFit,
+                    m_useSagittaPhiFit && count_layers(points) >= m_minSagittaLayers,
                     c.phi_slope,
                     c.phi_intercept,
                     c.phi_S,
@@ -1013,7 +1048,10 @@ bool Tpc_AssembledTrackReco::candidates_can_connect(const Candidate& a,
     return false;
   }
 
-  const double rmatch = 0.5 * (ra + rb);
+  const double rmatch = m_useWeightedMatchPoint
+                            ? weighted_match_radius(a.first_layer, a.last_layer, a.nblobs,
+                                                    b.first_layer, b.last_layer, b.nblobs)
+                            : 0.5 * (ra + rb);
 
   // ------------------------------------------------------------------
   // Cheap cuts first.
@@ -1145,6 +1183,11 @@ bool Tpc_AssembledTrackReco::candidates_can_connect(const Candidate& a,
       w_mtbin * (dmtbin / m_connect_dtbin_slope) * (dmtbin / m_connect_dtbin_slope) +
       0.05 * static_cast<double>(gap);
 
+  if (score > m_maxConnectScore)
+  {
+    return false;
+  }
+
   return true;
 }
 
@@ -1165,6 +1208,14 @@ void Tpc_AssembledTrackReco::connect_sector_pieces(const std::vector<Piece>& pie
 
   std::sort(order.begin(), order.end(), PieceStartSort(&pieces));
   std::vector<uint8_t> used(pieces.size(), 0);
+  // Mutual-best only: single-piece candidates, built on first use.
+  std::vector<Candidate> single;
+  std::vector<uint8_t> single_state;  // 0 = not built, 1 = ok, 2 = fit failed
+  if (m_useMutualBest)
+  {
+    single.resize(pieces.size());
+    single_state.assign(pieces.size(), 0);
+  }
 
   for (unsigned int io = 0; io < order.size(); ++io)
   {
@@ -1190,26 +1241,72 @@ void Tpc_AssembledTrackReco::connect_sector_pieces(const std::vector<Piece>& pie
       merged_any = false;
       int best_j = -1;
       double best_score = std::numeric_limits<double>::max();
+      std::vector<uint8_t> vetoed;  // pieces that another unused piece fits better
 
-      for (unsigned int j : order)
+      while (true)
       {
-        if (used[j])
+        best_j = -1;
+        best_score = std::numeric_limits<double>::max();
+
+        for (unsigned int j : order)
         {
-          continue;
+          if (used[j] || (!vetoed.empty() && vetoed[j]))
+          {
+            continue;
+          }
+
+          double score = 0.0;
+          double shifted_intercept = 0.0;
+          if (!candidates_can_connect(current, pieces[j], score, shifted_intercept))
+          {
+            continue;
+          }
+
+          if (score < best_score)
+          {
+            best_score = score;
+            best_j = static_cast<int>(j);
+          }
         }
 
-        double score = 0.0;
-        double shifted_intercept = 0.0;
-        if (!candidates_can_connect(current, pieces[j], score, shifted_intercept))
+        if (best_j < 0 || !m_useMutualBest)
         {
-          continue;
+          break;
         }
 
-        if (score < best_score)
+        // Mutual best: does another unused piece connect to best_j better?
+        bool beaten = false;
+        for (unsigned int k : order)
         {
-          best_score = score;
-          best_j = static_cast<int>(j);
+          if (used[k] || k == static_cast<unsigned int>(best_j))
+          {
+            continue;
+          }
+          if (single_state[k] == 0)
+          {
+            single_state[k] = refit_candidate(pieces, std::vector<unsigned int>{k}, single[k]) ? 1 : 2;
+          }
+          if (single_state[k] != 1)
+          {
+            continue;
+          }
+          double s = 0.0;
+          double sh = 0.0;
+          if (candidates_can_connect(single[k], pieces[static_cast<unsigned int>(best_j)], s, sh) && s < best_score)
+          {
+            beaten = true;
+            break;
+          }
         }
+        if (!beaten)
+        {
+          break;
+        }
+        if (vetoed.empty())
+        {
+          vetoed.assign(pieces.size(), 0);
+        }
+        vetoed[static_cast<unsigned int>(best_j)] = 1;
       }
 
       if (best_j >= 0)
@@ -1286,7 +1383,10 @@ bool Tpc_AssembledTrackReco::candidates_can_connect(const Candidate& a,
     return false;
   }
 
-  const double rmatch = 0.5 * (ra + rb);
+    const double rmatch = m_useWeightedMatchPoint
+                            ? weighted_match_radius(a.first_layer, a.last_layer, a.nblobs,
+                                                    b.first_layer, b.last_layer, b.nblobs)
+                            : 0.5 * (ra + rb);
 
   // Cheap tbin compatibility first.
   const double tbin_a = a.tbin_slope_r * rmatch + a.tbin_intercept_r;
@@ -1403,6 +1503,11 @@ bool Tpc_AssembledTrackReco::candidates_can_connect(const Candidate& a,
       w_mtbin * (dmtbin / m_connect_dtbin_slope) * (dmtbin / m_connect_dtbin_slope) +
       0.05 * static_cast<double>(gap);
 
+  if (score > m_maxConnectScore)
+  {
+    return false;
+  }
+
   return true;
 }
 
@@ -1450,25 +1555,62 @@ void Tpc_AssembledTrackReco::connect_side_candidates(const std::vector<Piece>& p
       merged_any = false;
       int best_j = -1;
       double best_score = std::numeric_limits<double>::max();
+      std::vector<uint8_t> vetoed;  // candidates that another unused candidate fits better
 
-      for (unsigned int j : order)
+      while (true)
       {
-        if (used[j])
+        best_j = -1;
+        best_score = std::numeric_limits<double>::max();
+
+        for (unsigned int j : order)
         {
-          continue;
+          if (used[j] || (!vetoed.empty() && vetoed[j]))
+          {
+            continue;
+          }
+
+          double score = 0.0;
+          if (!candidates_can_connect(current, seeds[j], score))
+          {
+            continue;
+          }
+
+          if (score < best_score)
+          {
+            best_score = score;
+            best_j = static_cast<int>(j);
+          }
         }
 
-        double score = 0.0;
-        if (!candidates_can_connect(current, seeds[j], score))
+        if (best_j < 0 || !m_useMutualBest)
         {
-          continue;
+          break;
         }
 
-        if (score < best_score)
+        // Mutual best: does another unused candidate connect to best_j better?
+        bool beaten = false;
+        for (unsigned int k : order)
         {
-          best_score = score;
-          best_j = static_cast<int>(j);
+          if (used[k] || k == static_cast<unsigned int>(best_j))
+          {
+            continue;
+          }
+          double s = 0.0;
+          if (candidates_can_connect(seeds[k], seeds[static_cast<unsigned int>(best_j)], s) && s < best_score)
+          {
+            beaten = true;
+            break;
+          }
         }
+        if (!beaten)
+        {
+          break;
+        }
+        if (vetoed.empty())
+        {
+          vetoed.assign(seeds.size(), 0);
+        }
+        vetoed[static_cast<unsigned int>(best_j)] = 1;
       }
 
       if (best_j >= 0)
