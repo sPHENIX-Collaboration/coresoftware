@@ -90,6 +90,8 @@ class TpcCrossingFinder : public SubsysReco
     m_startZOverride = true;
   }
   void setIsNonDistortedMC(bool v) { m_isNonDistortedMC = v; }
+  //! store per-candidate QA records in each decision (large; off by default)
+  void setStoreCandidateQA(bool v) { m_storeCandidateQA = v; }
 
  private:
   struct DriftPoint
@@ -248,6 +250,7 @@ class TpcCrossingFinder : public SubsysReco
   bool use_survey_geometry {false};
   bool m_triggeredMode {false};
   bool m_isNonDistortedMC{false};
+  bool m_storeCandidateQA{false};
   std::array<double, 3> m_tpcMove {{0.0, 0.0, 0.0}};
   std::array<std::array<double, 3>, 2> m_tpcRotations {{{{0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}}}};
 };
