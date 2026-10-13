@@ -112,6 +112,13 @@ class PHActsTrkFitter : public SubsysReco
     m_fillSvtxTrackStates = fillSvtxTrackStates;
   }
 
+  /// store slimmed SvtxTrack_v5 objects in the output track map instead of
+  /// the default SvtxTrack_v4 objects (which keep seed links for expert diagnostics)
+  void setUseSlimTracks(bool useSlimTracks)
+  {
+    m_useSlimTracks = useSlimTracks;
+  }
+
   void useActsEvaluator(bool actsEvaluator)
   {
     m_actsEvaluator = actsEvaluator;
@@ -213,6 +220,9 @@ class PHActsTrkFitter : public SubsysReco
                          const ActsTrackFittingAlgorithm::TrackContainer& tracks,
                          const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
+  /// insert the fitted track in the given map, converting to SvtxTrack_v5 if requested
+  void insertTrack(SvtxTrackMap* trackMap, const SvtxTrack* track, unsigned int trid) const;
+
   Acts::BoundSquareMatrix setDefaultCovariance() const;
   void printTrackSeed(const ActsTrackFittingAlgorithm::TrackParameters& seed) const;
 
@@ -252,6 +262,9 @@ class PHActsTrkFitter : public SubsysReco
 
   /// A bool to update the SvtxTrackState information (or not)
   bool m_fillSvtxTrackStates = true;
+
+  /// A bool to store SvtxTrack_v5 rather than SvtxTrack_v4 in the output map
+  bool m_useSlimTracks = false;
 
   /// bool to ignore the silicon clusters in the fit
   bool m_ignoreSilicon = false;

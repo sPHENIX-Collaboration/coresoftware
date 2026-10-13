@@ -7,6 +7,7 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
@@ -27,6 +28,7 @@
 #include <cmath>
 #include <format>
 #include <iostream>
+#include <iterator>
 
 //____________________________________________________________________________..
 TpcClusterQA::TpcClusterQA(const std::string &name)
@@ -79,6 +81,12 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
   }
   auto *geomContainer =
       findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  auto *clusterHitAssoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+  if (!clusterHitAssoc)
+  {
+    std::cout << PHWHERE << "No cluster-hit association found, bailing" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
   auto *hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!hitmap)
   {
@@ -97,6 +105,7 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
     TH1 *crphisize_side0 = nullptr;
     TH1 *crphisize_side1 = nullptr;
     TH1 *czsize = nullptr;
+    TH1 *cnhitassoc = nullptr;
     TH1 *crphierr = nullptr;
     TH1 *czerr = nullptr;
     TH1 *cedge = nullptr;
@@ -119,6 +128,7 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
     hist.crphisize_side0 = h_phisize_side0[region];
     hist.crphisize_side1 = h_phisize_side1[region];
     hist.czsize = h_zsize[region];
+    hist.cnhitassoc = h_nhitassoc[region];
     hist.crphierr = h_rphierror[region];
     hist.czerr = h_zerror[region];
     hist.cedge = h_clusedge[region];
@@ -217,6 +227,10 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
       {
         continue;
       }
+
+      const auto hitRange = clusterHitAssoc->getHits(cluskey);
+      fill(hiter->second.cnhitassoc, static_cast<float>(std::distance(hitRange.first, hitRange.second)));
+
       fill(hiter->second.czsize, cluster->getZSize());
       fill(hiter->second.crphierr, cluster->getRPhiError());
       fill(hiter->second.czerr, cluster->getZError());
@@ -296,6 +310,12 @@ void TpcClusterQA::createHistos()
                                  std::format("TPC cluster z size region_{}", region).c_str(), 10, 0, 10);
       h_zsize[region]->GetXaxis()->SetTitle("Cluster z_{size}");
       hm->registerHisto(h_zsize[region]);
+    }
+    {
+      h_nhitassoc[region] = new TH1F(std::format("{}nhitassoc_{}", getHistoPrefix(), region).c_str(),
+                                     std::format("TPC number of associated hits per cluster region_{}", region).c_str(), 31, -0.5, 30.5);
+      h_nhitassoc[region]->GetXaxis()->SetTitle("Number of associated hits per cluster");
+      hm->registerHisto(h_nhitassoc[region]);
     }
     {
       h_rphierror[region] = new TH1F(std::format("{}rphi_error_{}", getHistoPrefix(), region).c_str(),

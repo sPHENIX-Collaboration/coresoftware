@@ -26,10 +26,8 @@ class MbdSig
 {
  public:
   explicit MbdSig(const int chnum = 0, const int nsamp = 0);
-  // explicit MbdSig(const MbdSig &obj);    // never used
-  virtual ~MbdSig();
 
-  // MbdSig& operator= (const MbdSig& obj) = delete; // never used
+  virtual ~MbdSig();
 
   void SetNSamples( const int s ) { _nsamples = s; }
   void SetY(const Float_t *y, const int invert = 1);
@@ -37,6 +35,7 @@ class MbdSig
   void SetEvtNum(const int evtnum) { _evt_counter = evtnum; }
 
   int  GetNSamples() { return _nsamples; }
+  int  GetEvtNum() { return _evt_counter; }
 
   void SetCalib(MbdCalib *mcal);
 

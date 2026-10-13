@@ -19,6 +19,8 @@
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TpcDefs.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv5.h>
@@ -130,6 +132,26 @@ int TpcPolyClusterTrkrClusterConverter::createNodes(PHCompositeNode* topNode)
     std::cout << Name() << "::createNodes - created " << m_outputNodeName << " node" << std::endl;
   }
 
+  if (m_fillClusterHitAssoc)
+  {
+    m_clusterHitAssoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+    if (!m_clusterHitAssoc)
+    {
+      PHNodeIterator dstIter(dstNode);
+      auto* trkrNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode", "TRKR"));
+      if (!trkrNode)
+      {
+        trkrNode = new PHCompositeNode("TRKR");
+        dstNode->addNode(trkrNode);
+      }
+
+      m_clusterHitAssoc = new TrkrClusterHitAssocv3();
+      auto* node = new PHIODataNode<PHObject>(m_clusterHitAssoc, "TRKR_CLUSTERHITASSOC", "PHObject");
+      trkrNode->addNode(node);
+      std::cout << Name() << "::createNodes - created TRKR_CLUSTERHITASSOC node" << std::endl;
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -141,6 +163,10 @@ void TpcPolyClusterTrkrClusterConverter::clearOutputTpcClusters()
   const auto hitsetkeys = m_outputClusters->getHitSetKeys(TrkrDefs::TrkrId::tpcId);
   for (const auto hitsetkey : hitsetkeys)
   {
+    if (m_fillClusterHitAssoc && m_clusterHitAssoc)
+    {
+      m_clusterHitAssoc->removeAssocs(hitsetkey);
+    }
     m_outputClusters->removeClusters(hitsetkey);
   }
 }
@@ -442,12 +468,23 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
   }
 
   m_outputClusters->addClusterSpecifyKey(cluskey, out.release());
+  if (m_fillClusterHitAssoc && m_clusterHitAssoc)
+  {
+    for (const auto& [sourceHitSetKey, hitkey] : cluster->get_hit_indices())
+    {
+      if (sourceHitSetKey == hitsetkey)
+      {
+        m_clusterHitAssoc->addAssoc(cluskey, hitkey);
+      }
+    }
+  }
   return true;
 }
 
 int TpcPolyClusterTrkrClusterConverter::process_event(PHCompositeNode* topNode)
 {
-  if (!m_polyClusters || !m_polyTracks || !m_outputClusters || !m_crossingDecisions || !m_geometry)
+  if (!m_polyClusters || !m_polyTracks || !m_outputClusters || !m_crossingDecisions || !m_geometry ||
+      (m_fillClusterHitAssoc && !m_clusterHitAssoc))
   {
     if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK ||
         createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK ||

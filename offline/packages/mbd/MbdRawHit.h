@@ -62,6 +62,28 @@ class MbdRawHit : public PHObject
     return 0;
   }
 
+  virtual UShort_t get_badtdc() const
+  {
+    static int ctr = 0;
+    if ( ctr<3 )
+    {
+      PHOOL_VIRTUAL_WARNING;
+      ctr++;
+    }
+    return 0;
+  }
+
+  virtual UShort_t get_fitstat() const
+  {
+    static int ctr = 0;
+    if ( ctr<3 )
+    {
+      PHOOL_VIRTUAL_WARNING;
+      ctr++;
+    }
+    return 0;
+  }
+
   virtual void set_pmt(const Short_t /*pmt*/, const Float_t /*adc*/, const Float_t /*ttdc*/, const Float_t /*qtdc*/)
   {
     PHOOL_VIRTUAL_WARNING;
@@ -78,6 +100,16 @@ class MbdRawHit : public PHObject
   }
 
   virtual void set_fitinfo(const UShort_t /*fitinfo*/)
+  {
+    static int ctr = 0;
+    if ( ctr<3 )
+    {
+      PHOOL_VIRTUAL_WARNING;
+      ctr++;
+    }
+  }
+
+  virtual void set_badtdc(const UShort_t /*fitinfo*/)
   {
     static int ctr = 0;
     if ( ctr<3 )

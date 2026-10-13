@@ -27,6 +27,7 @@
 // #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrackState_v3.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
+#include <trackbase_historic/SvtxTrack_v5.h>
 #include <trackbase_historic/TrackSeed.h>
 //#include <trackbase_historic/SvtxTrackSeed_v3.h>
 #include <trackbase_historic/TrackSeedContainer.h>
@@ -964,7 +965,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           unsigned int trid = m_trackMap->size();
           svtx_vec[best_ivary].set_id(trid);
 
-          m_trackMap->insertWithKey(&svtx_vec[best_ivary], trid);
+          insertTrack(m_trackMap, &svtx_vec[best_ivary], trid);
         }
         else  // case where crossing is known
         {
@@ -981,7 +982,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
             if (getTrackFitResult(result, track, &newTrack, tracks, measurements))
             {
               // insert in dedicated map
-              m_directedTrackMap->insertWithKey(&newTrack, trid);
+              insertTrack(m_directedTrackMap, &newTrack, trid);
             }
 
           }  // end insert track for SC calib fit
@@ -992,7 +993,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
             if (getTrackFitResult(result, track, &newTrack, tracks, measurements))
             {
-              m_trackMap->insertWithKey(&newTrack, trid);
+              insertTrack(m_trackMap, &newTrack, trid);
             }
           }  // end insert track for normal fit
         }  // end case where crossing is known
@@ -1021,6 +1022,27 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
   }
 
   return;
+}
+
+void PHActsTrkFitter::insertTrack(SvtxTrackMap* trackMap, const SvtxTrack* track, unsigned int trid) const
+{
+  if (m_useSlimTracks)
+  {
+    // the v4 track is used during the fit since its seed links are needed for the
+    // alignment states and evaluator. The v5 copy keeps only the per-detector cluster counts
+    SvtxTrack_v5 slimTrack(*track);
+
+    slimTrack.set_silicon_seed_id(m_siliconSeeds->find(track->get_silicon_seed()));
+    slimTrack.set_tpc_seed_id(m_tpcSeeds->find(track->get_tpc_seed()));
+    std::cout << "v5 identify" << std::endl;
+    slimTrack.identify();
+    trackMap->insertWithKey(&slimTrack, trid);
+  }
+  else
+  {
+    track->identify();
+    trackMap->insertWithKey(track, trid);
+  }
 }
 
 bool PHActsTrkFitter::getTrackFitResult(

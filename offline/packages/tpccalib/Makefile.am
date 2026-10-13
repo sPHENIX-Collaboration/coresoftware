@@ -39,6 +39,7 @@ libtpccalib_la_LIBADD = \
   -ltpc_io
 
 pkginclude_HEADERS = \
+  LaserClusterTruthMatcher.h \
   MicromegasDriftEvaluator.h \
   SiliconDriftEvaluator.h \
   TpcDirectLaserReconstruction.h \
@@ -69,6 +70,7 @@ libtpccalib_io_la_SOURCES = \
   TpcSpaceChargeMatrixContainerv2.cc
 
 libtpccalib_la_SOURCES = \
+  LaserClusterTruthMatcher.cc \
   MicromegasDriftEvaluator.cc \
   SiliconDriftEvaluator.cc \
   TpcDirectLaserReconstruction.cc \
