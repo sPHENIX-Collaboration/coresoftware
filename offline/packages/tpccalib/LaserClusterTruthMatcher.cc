@@ -16,11 +16,15 @@
 
 #include <TCanvas.h>
 #include <TColor.h>
+#include <TFile.h>
 #include <TGraph.h>
+#include <TGraph2D.h>
 #include <TH1D.h>
+#include <TH2D.h>
 #include <TLine.h>
 #include <TMath.h>
 #include <TStyle.h>
+#include <TTree.h>
 
 #include <algorithm>
 #include <cmath>
@@ -1334,6 +1338,74 @@ namespace
     return keyMatch;
   }// end matchSide
 
+  struct RowPoints
+  {
+    std::vector<double> phi;
+    std::vector<double> dR;
+    std::vector<double> dPhi;
+    std::vector<double> adc;
+    double recoRow{0};
+  };
+
+  inline double wrapTwoPi(double phi)            // -> [0, 2pi)
+  {
+    phi = std::fmod(phi, 2*TMath::Pi());
+    return (phi < 0) ? phi + 2*TMath::Pi() : phi;
+  }
+
+  // y(phi) for one row at phi0: Gaussian-kernel local-linear, periodic on [0, 2pi).
+  // Requires phi[k] already in [0, 2pi) (the module does this when filling the points).
+  // h in rad.
+  double localLinear(const std::vector<double>& phi, const std::vector<double>& y,
+                    const std::vector<double>& w, double phi0, double h, double& wSum)
+  {
+    phi0 = wrapTwoPi(phi0);   // histogram edge bins can sit slightly outside [0, 2pi)
+
+    double S0=0, S1=0, S2=0, T0=0, T1=0;
+    for (size_t k = 0; k < phi.size(); ++k)
+    {
+      double d = phi[k] - phi0;                  // in (-2pi, 2pi) for inputs in [0, 2pi)
+      if      (d >  TMath::Pi()) d -= 2*TMath::Pi();           // shortest signed distance around the circle
+      else if (d < -TMath::Pi()) d += 2*TMath::Pi();
+      if (std::abs(d) > 4*h) continue;
+
+      const double K = w[k] * std::exp(-0.5*d*d/(h*h));
+      S0 += K; S1 += K*d; S2 += K*d*d; T0 += K*y[k]; T1 += K*d*y[k];
+    }
+    wSum = S0;                                   // effective weight -> fill hentries
+    if (S0 <= 0) return NAN;
+    const double det = S0*S2 - S1*S1;
+    if (det < 1e-12 * S0*S0*h*h) return T0/S0;   // too few points: local-constant fallback
+    return (S2*T0 - S1*T1) / det;                // local-linear intercept
+  }
+
+  void fill_guarding_bins(TpcDistortionCorrectionContainer *dcc)
+  {
+    for(int side=0; side<2; side++)
+    {
+      for(const auto& h : {dcc->m_hDRint[side], dcc->m_hDPint[side], dcc->m_hentries[side]})
+      {
+        // fill guarding phi bins
+        /*
+        * we use 2pi periodicity to do that:
+        * - last valid bin is copied to first guarding bin;
+        * - first valid bin is copied to last guarding bin
+        */
+        const auto phibins = h->GetNbinsX();
+        const auto rbins = h->GetNbinsY();
+        for (int ir = 0; ir < rbins; ++ir)
+        {
+          // copy last valid bin to first guarding bin
+          h->SetBinContent(1, ir + 1, h->GetBinContent(phibins - 1, ir + 1));
+          h->SetBinError(1, ir + 1, h->GetBinError(phibins - 1, ir + 1));
+
+          // copy first valid bin to last guarding bin
+          h->SetBinContent(phibins, ir + 1, h->GetBinContent(2, ir + 1));
+          h->SetBinError(phibins, ir + 1, h->GetBinError(2, ir + 1));
+        }
+      }
+    }
+  }
 
 }  // namespace
 
@@ -1393,6 +1465,31 @@ int LaserClusterTruthMatcher::getNodes(PHCompositeNode *topNode)
     m_laserClusterHelper.set_garfield_stepns(m_garfield_stepns);
   }
   m_laserClusterHelper.loadNodes(topNode);
+
+  const float phiMin = m_phiMin - (m_phiMax - m_phiMin) / m_phibins;
+  const float phiMax = m_phiMax + (m_phiMax - m_phiMin) / m_phibins;
+
+  const float rMin = m_rMin - (m_rMax - m_rMin) / m_rbins;
+  const float rMax = m_rMax + (m_rMax - m_rMin) / m_rbins;
+
+  const std::array<const std::string, 2> extension = {{"_negz", "_posz"}};
+
+  m_dcc_out = new TpcDistortionCorrectionContainer();
+  m_dcc_out->m_dimensions = 2;
+
+  // create all histograms
+  for (int i = 0; i < 2; ++i)
+  {
+    delete m_dcc_out->m_hDPint[i];
+    m_dcc_out->m_hDPint[i] = new TH2F(std::format("hIntDistortionP{}", extension[i]).c_str(), std::format("hIntDistortionP{}", extension[i]).c_str(), m_phibins + 2, phiMin, phiMax, m_rbins + 2, rMin, rMax);
+    delete m_dcc_out->m_hDRint[i];
+    m_dcc_out->m_hDRint[i] = new TH2F(std::format("hIntDistortionR{}", extension[i]).c_str(), std::format("hIntDistortionR{}", extension[i]).c_str(), m_phibins + 2, phiMin, phiMax, m_rbins + 2, rMin, rMax);
+    delete m_dcc_out->m_hDZint[i];
+    m_dcc_out->m_hDZint[i] = new TH2F(std::format("hIntDistortionZ{}", extension[i]).c_str(), std::format("hIntDistortionZ{}", extension[i]).c_str(), m_phibins + 2, phiMin, phiMax, m_rbins + 2, rMin, rMax);
+    delete m_dcc_out->m_hentries[i];
+    m_dcc_out->m_hentries[i] = new TH2I(std::format("hEntries{}", extension[i]).c_str(), std::format("hEntries{}", extension[i]).c_str(), m_phibins + 2, phiMin, phiMax, m_rbins + 2, rMin, rMax);
+  }
+
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1472,8 +1569,52 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode *topNode)
     clusters[side].push_back({R, phi, cmclus->getAdcDouble(), cmkey});
   }
 
+  TFile *distortionOutputfile = new TFile(m_distortionOutputfile.c_str(), "RECREATE");
+  TGraph2D *gr_dR{nullptr};
+  TGraph2D *gr_dPhi{nullptr};
+  TGraph *gr_recoPoints{nullptr};
+  TGraph *gr_truthPoints{nullptr};
+
+  TGraph2D *gr_dR_toInterp{nullptr};
+  TGraph2D *gr_dPhi_toInterp{nullptr};
+
+  TGraph *gR{nullptr};
+  TGraph *gP{nullptr};
+  
+
+  TTree *QATree = nullptr;
+  double recoR = 0.0;
+  double recoPhi = 0.0;
+  double truthR = 0.0;
+  double truthPhi = 0.0;
+  bool sideVar = false;
+  bool lamVar = false;
+  int truthIndex = 0;
+  if(!m_QABase.empty())
+  {
+    QATree = new TTree("QATree","Matching QA TTree");
+    QATree->Branch("recoR",&recoR);
+    QATree->Branch("recoPhi",&recoPhi);
+    QATree->Branch("truthR",&truthR);
+    QATree->Branch("truthPhi",&truthPhi);
+    QATree->Branch("side",&sideVar);
+    QATree->Branch("isLam",&lamVar);
+    QATree->Branch("truthIndex",&truthIndex);
+  }
+
+
   for(int side=0; side<2; side++)
   {
+    gr_dR = new TGraph2D();
+    gr_dPhi = new TGraph2D();
+    gr_recoPoints = new TGraph();
+    gr_truthPoints = new TGraph();
+
+    std::map<int, RowPoints> rowPts;
+
+    Result rowResult = findRows(clusters[side], 0.15, 0.05);
+    std::vector<double> rowR = refine(clusters[side], rowResult);
+
     std::map<TrkrDefs::cluskey, std::pair<int,bool>> matched = matchSide(clusters[side], *m_cdbttree, m_truthRowPatterns[side], m_truthRows[side], side, m_QABase, Verbosity());
     for(auto &[key, matchedIndex] : matched)
     {
@@ -1482,9 +1623,173 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode *topNode)
       {
         clus->setTruthIndex(matchedIndex.first);
         clus->setIsLamination(matchedIndex.second);
+
+        int matchedTruthRow = (matchedIndex.first - (10000*(matchedIndex.first / 10000)))/100;
+
+        Acts::Vector3 pos;
+        if(m_usePHGarfieldDistortions){ pos = m_laserClusterHelper.getClusterCentroidWithPHGarfield(clus); }
+        else{ pos = m_laserClusterHelper.getClusterCentroid(clus); }
+        if(pos.hasNaN())
+        {
+          continue;
+        }
+
+        recoR = sqrt(pos[0]*pos[0] + pos[1]*pos[1]);
+        recoPhi = atan2(pos[1], pos[0]);
+        if(recoPhi < 0) recoPhi += 2*TMath::Pi();
+        if(matchedIndex.first >= 0)
+        {
+          truthR = m_cdbttree->GetDoubleValue(matchedIndex.first, "truthR");
+          truthPhi = m_cdbttree->GetDoubleValue(matchedIndex.first, "truthPhi");
+        }
+        else
+        {
+          truthR = -999;
+          truthPhi = -999;
+        }
+        if(truthPhi < 0) truthPhi += 2*TMath::Pi();
+
+        int recoRow = rowOf(recoR, rowResult.bound);
+
+
+        if(!m_QABase.empty())
+        {
+          sideVar = (bool)side;
+          lamVar = matchedIndex.second;
+          truthIndex = matchedIndex.first;
+          QATree->Fill();
+        }
+
+
+        double dR = recoR - truthR;
+        double dPhi = recoPhi - truthPhi;
+        if(dPhi > TMath::Pi()) dPhi -= 2*TMath::Pi();
+        else if(dPhi < -TMath::Pi()) dPhi += 2*TMath::Pi();
+        if(!matchedIndex.second && matchedIndex.first >= 0 && matchedTruthRow != 23 && matchedTruthRow != 15)
+        {
+
+          auto &rp = rowPts[matchedTruthRow];
+          rp.phi.push_back(recoPhi);                      // already in [0, 2pi)
+          rp.dR.push_back(dR);
+          rp.dPhi.push_back(dPhi);
+          rp.adc.push_back(1.0);
+          //rp.adc.push_back(std::sqrt(clus->getAdcDouble()));
+          rp.recoRow = rowR[recoRow];
+
+          gr_dR->AddPoint(recoPhi, recoR, dR);
+          gr_dPhi->AddPoint(recoPhi, recoR, dPhi);
+          gr_recoPoints->AddPoint(recoPhi, recoR);
+          gr_truthPoints->AddPoint(truthPhi, truthR);
+
+          if(recoPhi < TMath::Pi()/12)
+          {
+            gr_dR->AddPoint(recoPhi+2*TMath::Pi(), recoR, dR);
+            gr_dPhi->AddPoint(recoPhi+2*TMath::Pi(), recoR, dPhi);
+          }
+          else if(recoPhi > 23*TMath::Pi()/12)
+          {
+            gr_dR->AddPoint(recoPhi-2*TMath::Pi(), recoR, dR);
+            gr_dPhi->AddPoint(recoPhi-2*TMath::Pi(), recoR, dPhi);
+          }
+          
+        }
       }
     }
+
+    const double hCm = 3.0;       // bandwidth in cm; tune this
+    const double minW = 2.0;      // minimum effective weight for a row to count at this phi
+
+
+    gr_dR_toInterp = (TGraph2D*)gr_dR->Clone();
+    gr_dPhi_toInterp = (TGraph2D*)gr_dPhi->Clone();
+
+    for(int i=2; i<=m_dcc_out->m_hDRint[side]->GetNbinsX()-1; i++)
+    {
+      const double phiVal = m_dcc_out->m_hDRint[side]->GetXaxis()->GetBinCenter(i);
+
+      std::vector<double> Rs, dRs, dPs;         // one entry per row with data here
+      for (auto &[row, rp] : rowPts)
+      {
+        double wS = 0.0;
+        const double binW = m_dcc_out->m_hDRint[side]->GetXaxis()->GetBinWidth(1);
+        const double h = std::max(hCm / rp.recoRow, 0.5 * binW);
+        const double vR = localLinear(rp.phi, rp.dR, rp.adc, phiVal, h, wS);
+        if (std::isnan(vR) || wS < minW) continue;
+        const double vP = localLinear(rp.phi, rp.dPhi, rp.adc, phiVal, h, wS);
+        Rs.push_back(rp.recoRow);
+        dRs.push_back(vR);
+        dPs.push_back(vP);
+      }
+      if (Rs.size() < 2) continue;              // leave the column empty
+
+      gR = new TGraph(Rs.size(), Rs.data(), dRs.data());   // rows are already ordered by R (std::map key)
+      gP = new TGraph(Rs.size(), Rs.data(), dPs.data());
+
+      for(int j=2; j<=m_dcc_out->m_hDRint[side]->GetNbinsY()-1; j++)
+      {
+        const double RVal = m_dcc_out->m_hDRint[side]->GetYaxis()->GetBinCenter(j);
+        const bool inside = (RVal >= Rs.front() && RVal <= Rs.back());
+        if(inside)
+        {
+          m_dcc_out->m_hDRint[side]->SetBinContent(i, j, gR->Eval(RVal));
+          m_dcc_out->m_hDPint[side]->SetBinContent(i, j, gP->Eval(RVal));
+          m_dcc_out->m_hentries[side]->SetBinContent(i, j, Rs.size());
+        }
+      }
+      if(!m_QABase.empty())
+      {
+        distortionOutputfile->cd();
+        gR->SetTitle(std::format("TPC {};R_{{reco}} [cm];#DeltaR [cm]",(side ? "North" : "South")).c_str());
+        gR->Write(std::format("dR_phiBin{}_{}z",i,(side == 1 ? "pos" : "neg")).c_str());
+        gP->SetTitle(std::format("TPC {};R_{{reco}} [cm];#Delta#phi [rad]",(side ? "North" : "South")).c_str());
+        gP->Write(std::format("dPhi_phiBin{}_{}z",i,(side == 1 ? "pos" : "neg")).c_str());
+      }
+
+      delete gR;
+      delete gP;
+    }
+
+    /*
+    for (int i = 2; i <= m_dcc_out->m_hDRint[side]->GetNbinsX() - 1; i++)
+    {
+      double phiVal = m_dcc_out->m_hDRint[side]->GetXaxis()->GetBinCenter(i);
+      for (int j = 1; j <= m_dcc_out->m_hDRint[side]->GetNbinsY(); j++)
+      {
+        double RVal = m_dcc_out->m_hDRint[side]->GetYaxis()->GetBinCenter(j);
+        m_dcc_out->m_hDRint[side]->SetBinContent(i, j, gr_dR_toInterp->Interpolate(phiVal,RVal));
+        m_dcc_out->m_hDPint[side]->SetBinContent(i, j, gr_dPhi_toInterp->Interpolate(phiVal,RVal));
+      }
+    }
+    */
+
+    fill_guarding_bins(m_dcc_out);
+
+    distortionOutputfile->cd();
+    for (const auto& h : {m_dcc_out->m_hDRint[side], m_dcc_out->m_hDPint[side], m_dcc_out->m_hDZint[side], m_dcc_out->m_hentries[side]})
+    {
+      if (h)
+      {
+        std::cout << "writing in " << m_distortionOutputfile << "   histogram " << h->GetName() << std::endl;
+        h->Write();
+      }
+    }
+    gr_recoPoints->Write(std::format("gr_recoPoints_{}z", (side == 1 ? "pos" : "neg")).c_str());
+    gr_truthPoints->Write(std::format("gr_truthPoints_{}z", (side == 1 ? "pos" : "neg")).c_str());
+    gr_dR->Write(std::format("gr_dr_{}z", (side == 1 ? "pos" : "neg")).c_str());
+    gr_dPhi->Write(std::format("gr_dPhi_{}z", (side == 1 ? "pos" : "neg")).c_str());
+
+    gr_dR_toInterp->Write(std::format("gr_dr_toInterp_{}z", (side == 1 ? "pos" : "neg")).c_str());
+    gr_dPhi_toInterp->Write(std::format("gr_dPhi_toInterp_{}z", (side == 1 ? "pos" : "neg")).c_str());
+
+    //gR->Write(std::format("g_dR_{}z", (side == 1 ? "pos" : "neg")).c_str());
+    //gP->Write(std::format("g_dP_{}z", (side == 1 ? "pos" : "neg")).c_str());
+
   }
+  if(!m_QABase.empty())
+  {
+    QATree->Write();
+  }
+  distortionOutputfile->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
