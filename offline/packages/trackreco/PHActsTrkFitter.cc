@@ -979,13 +979,11 @@ void PHActsTrkFitter::insertTrack(SvtxTrackMap* trackMap, const SvtxTrack* track
 
     slimTrack.set_silicon_seed_id(m_siliconSeeds->find(track->get_silicon_seed()));
     slimTrack.set_tpc_seed_id(m_tpcSeeds->find(track->get_tpc_seed()));
-    std::cout << "v5 identify" << std::endl;
-    slimTrack.identify();
+ 
     trackMap->insertWithKey(&slimTrack, trid);
   }
   else
   {
-    track->identify();
     trackMap->insertWithKey(track, trid);
   }
 }
