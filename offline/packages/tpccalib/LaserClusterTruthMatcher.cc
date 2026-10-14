@@ -1361,21 +1361,29 @@ namespace
   {
     phi0 = wrapTwoPi(phi0);   // histogram edge bins can sit slightly outside [0, 2pi)
 
-    double S0=0, S1=0, S2=0, T0=0, T1=0;
+    double S0=0;
+    double S1=0;
+    double S2=0;
+    double T0=0;
+    double T1=0;
     for (size_t k = 0; k < phi.size(); ++k)
     {
       double d = phi[k] - phi0;                  // in (-2pi, 2pi) for inputs in [0, 2pi)
-      if      (d >  TMath::Pi()) d -= 2*TMath::Pi();           // shortest signed distance around the circle
-      else if (d < -TMath::Pi()) d += 2*TMath::Pi();
-      if (std::abs(d) > 4*h) continue;
+      if      (d >  TMath::Pi()){ d -= 2*TMath::Pi(); }           // shortest signed distance around the circle
+      else if (d < -TMath::Pi()){ d += 2*TMath::Pi(); }
+      if (std::abs(d) > 4*h){ continue; }
 
       const double K = w[k] * std::exp(-0.5*d*d/(h*h));
-      S0 += K; S1 += K*d; S2 += K*d*d; T0 += K*y[k]; T1 += K*d*y[k];
+      S0 += K;
+      S1 += K*d;
+      S2 += K*d*d;
+      T0 += K*y[k];
+      T1 += K*d*y[k];
     }
     wSum = S0;                                   // effective weight -> fill hentries
-    if (S0 <= 0) return NAN;
+    if (S0 <= 0){ return NAN; }
     const double det = S0*S2 - S1*S1;
-    if (det < 1e-12 * S0*S0*h*h) return T0/S0;   // too few points: local-constant fallback
+    if (det < 1e-12 * S0*S0*h*h){ return T0/S0; }   // too few points: local-constant fallback
     return (S2*T0 - S1*T1) / det;                // local-linear intercept
   }
 
@@ -1636,7 +1644,7 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode *topNode)
 
         recoR = sqrt(pos[0]*pos[0] + pos[1]*pos[1]);
         recoPhi = atan2(pos[1], pos[0]);
-        if(recoPhi < 0) recoPhi += 2*TMath::Pi();
+        if(recoPhi < 0){ recoPhi += 2*TMath::Pi(); }
         if(matchedIndex.first >= 0)
         {
           truthR = m_cdbttree->GetDoubleValue(matchedIndex.first, "truthR");
@@ -1647,7 +1655,7 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode *topNode)
           truthR = -999;
           truthPhi = -999;
         }
-        if(truthPhi < 0) truthPhi += 2*TMath::Pi();
+        if(truthPhi < 0){ truthPhi += 2*TMath::Pi(); }
 
         int recoRow = rowOf(recoR, rowResult.bound);
 
@@ -1663,8 +1671,8 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode *topNode)
 
         double dR = recoR - truthR;
         double dPhi = recoPhi - truthPhi;
-        if(dPhi > TMath::Pi()) dPhi -= 2*TMath::Pi();
-        else if(dPhi < -TMath::Pi()) dPhi += 2*TMath::Pi();
+        if(dPhi > TMath::Pi()){ dPhi -= 2*TMath::Pi(); }
+        else if(dPhi < -TMath::Pi()){ dPhi += 2*TMath::Pi(); }
         if(!matchedIndex.second && matchedIndex.first >= 0 && matchedTruthRow != 23 && matchedTruthRow != 15)
         {
 
@@ -1707,20 +1715,22 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode *topNode)
     {
       const double phiVal = m_dcc_out->m_hDRint[side]->GetXaxis()->GetBinCenter(i);
 
-      std::vector<double> Rs, dRs, dPs;         // one entry per row with data here
+      std::vector<double> Rs;
+      std::vector<double> dRs;
+      std::vector<double> dPs;         // one entry per row with data here
       for (auto &[row, rp] : rowPts)
       {
         double wS = 0.0;
         const double binW = m_dcc_out->m_hDRint[side]->GetXaxis()->GetBinWidth(1);
         const double h = std::max(hCm / rp.recoRow, 0.5 * binW);
         const double vR = localLinear(rp.phi, rp.dR, rp.adc, phiVal, h, wS);
-        if (std::isnan(vR) || wS < minW) continue;
+        if (std::isnan(vR) || wS < minW){ continue; }
         const double vP = localLinear(rp.phi, rp.dPhi, rp.adc, phiVal, h, wS);
         Rs.push_back(rp.recoRow);
         dRs.push_back(vR);
         dPs.push_back(vP);
       }
-      if (Rs.size() < 2) continue;              // leave the column empty
+      if (Rs.size() < 2){ continue; }              // leave the column empty
 
       gR = new TGraph(Rs.size(), Rs.data(), dRs.data());   // rows are already ordered by R (std::map key)
       gP = new TGraph(Rs.size(), Rs.data(), dPs.data());
