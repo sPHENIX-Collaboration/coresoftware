@@ -43,6 +43,9 @@
 #include <memory>
 #include <utility>
 
+TpcCombinedRawDataUnpacker::FeeChannelMap TpcCombinedRawDataUnpacker::m_feeChannelMap;
+bool TpcCombinedRawDataUnpacker::m_feeChannelMapLoaded = false;
+
 TpcCombinedRawDataUnpacker::TpcCombinedRawDataUnpacker(std::string const& name, std::string const& outF)
   : SubsysReco(name)
   , outfile_name(outF)
@@ -52,7 +55,6 @@ TpcCombinedRawDataUnpacker::TpcCombinedRawDataUnpacker(std::string const& name, 
 
 TpcCombinedRawDataUnpacker::~TpcCombinedRawDataUnpacker()
 {
-  delete m_cdbttree;
   for (auto& hiter2 : feeadc_map)
   {
     delete  hiter2.second;
@@ -99,9 +101,17 @@ int TpcCombinedRawDataUnpacker::Init(PHCompositeNode* /*topNode*/)
 
   if (calibdir[0] == '/')
   {
-    // use generic CDBTree to load
-    m_cdbttree = new CDBTTree(calibdir);
-    m_cdbttree->LoadCalibrations();
+    if (!m_feeChannelMapLoaded)
+    {
+      CDBTTree cdbttree(calibdir);
+      cdbttree.LoadCalibrations();
+      for (unsigned int key = 0; key < FeeChannelMap::nkeys; ++key)
+      {
+        m_feeChannelMap.layer[key] = cdbttree.GetIntValue(key, "layer");
+        m_feeChannelMap.phi[key] = cdbttree.GetDoubleValue(key, "phi");
+      }
+      m_feeChannelMapLoaded = true;
+    }
   }
   else
   {
@@ -300,8 +310,11 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     }
 
     unsigned int key = (256 * (feeM)) + channel;
-    std::string varname = "layer";
-    int layer = m_cdbttree->GetIntValue(key, varname);
+    if (key >= FeeChannelMap::nkeys)
+    {
+      continue;
+    }
+    int layer = m_feeChannelMap.layer[key];
     // antenna pads will be in 0 layer
     if (layer <= 6)
     {
@@ -323,8 +336,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       region = 1;
     }
 
-    varname = "phi";  // + std::to_string(key);
-    double phi = ((side == 1 ? 1 : -1) * (m_cdbttree->GetDoubleValue(key, varname) - M_PI / 2.)) + ((sector % 12) * M_PI / 6);
+    double phi = ((side == 1 ? 1 : -1) * (m_feeChannelMap.phi[key] - M_PI / 2.)) + ((sector % 12) * M_PI / 6);
     PHG4TpcGeom* layergeom = geom_container->GetLayerCellGeom(layer);
     unsigned int phibin = layergeom->get_phibin(phi, side);
   
@@ -361,24 +373,28 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     int rx = get_rx(layer);
     unsigned int fee_key = create_fee_key(side, mc_sectors[sector % 12], rx, fee);
     // find or insert TH2C;
-    std::map<unsigned int, TH2*>::iterator fee_map_it;
-
-    fee_map_it = feeadc_map.find(fee_key);
-    if (fee_map_it != feeadc_map.end())
-    {
-      feehist = (*fee_map_it).second;
-    }
-    else
-    {
-      std::string histname = "h" + std::to_string(fee_key);
-      feehist = new TH2C(histname.c_str(), "histname", max_time_range + 1, -0.5, max_time_range + 0.5, 501, -0.5, 1000.5);
-      feeadc_map.insert(std::make_pair(fee_key, feehist));
-      std::vector<int> feeentries(feehist->GetNbinsX(), 0);
-      feeentries_map.insert(std::make_pair(fee_key, feeentries));
-    }
-    auto fee_entries_it = feeentries_map.find(fee_key);
-    std::vector<int>& fee_entries_vec = (*fee_entries_it).second;
-
+    
+    auto fee_map_it = feeadc_map.find(fee_key);
+    std::vector<int> fee_entries_vec;
+    if(m_do_baseline_corr || m_doChanHitsCut)
+      {
+	if (fee_map_it != feeadc_map.end())
+	  {
+	    feehist = (*fee_map_it).second;
+	  }
+	else
+	  {
+	    std::string histname = "h" + std::to_string(fee_key);
+	    feehist = new TH2C(histname.c_str(), "histname", max_time_range + 1, -0.5, max_time_range + 0.5, 501, -0.5, 1000.5);
+	    feeadc_map.insert(std::make_pair(fee_key, feehist));
+	    std::vector<int> feeentries(feehist->GetNbinsX(), 0);
+	    feeentries_map.insert(std::make_pair(fee_key, feeentries));
+	  }
+      
+	auto fee_entries_it = feeentries_map.find(fee_key);
+      
+	fee_entries_vec = (*fee_entries_it).second;
+      }
     double threshold_cut = m_zs_threshold[region];
 
     int nhitschan = 0;

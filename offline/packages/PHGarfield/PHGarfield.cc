@@ -8,6 +8,9 @@
 #include <phfield/PHField3DCartesian.h>
 #include <phfield/PHFieldConfig.h>
 #include <phfield/PHFieldUtility.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHDataNode.h>
+#include <phool/PHNodeIterator.h>
 #include <phool/RunnumberRange.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
@@ -43,7 +46,24 @@
 #include <vector>
 
 namespace fs = std::filesystem;
+class PHGarfieldNode final : public PHDataNode<PHGarfield>
+{
+ public:
+  explicit PHGarfieldNode(PHGarfield* garfield)
+    : PHDataNode<PHGarfield>(garfield, "PHGarfield", "Data")
+  {
+  }
 
+  PHGarfieldNode(const PHGarfieldNode&) = delete;
+  PHGarfieldNode& operator=(const PHGarfieldNode&) = delete;
+  PHGarfieldNode(PHGarfieldNode&&) = delete;
+  PHGarfieldNode& operator=(PHGarfieldNode&&) = delete;
+
+  ~PHGarfieldNode() override
+  {
+    setData(nullptr);  // Fun4AllServer deletes PHGarfield.
+  }
+};
 namespace
 {
   constexpr const char* CdbEField3DSide0 = "Tpc_PolySeeding_EField3D_Side0";
@@ -51,6 +71,8 @@ namespace
   constexpr const char* CdbModuleFrames3DSide0 = "Tpc_PolySeeding_ModuleFrames3D_Side0";
   constexpr const char* CdbModuleFrames3DSide1 = "Tpc_PolySeeding_ModuleFrames3D_Side1";
   constexpr const char* CdbKEff = "Tpc_PolyClusterizer_kEff";
+  constexpr const char* CdbCMFieldFactor = "Tpc_PolyClusterizer_CMFieldVcm_keff";
+  constexpr const char* CdbDeltaT0 = "Tpc_PolyClusterizer_CMFieldVcm_dt0";
   constexpr const char* CdbEField2D = "Tpc_PolySeeding_EField";
 }  // namespace
 
@@ -399,6 +421,119 @@ void PHGarfield::ConfigureRunDependentFieldCage()
   }
 }
 
+void PHGarfield::ConfigurePTCorrectedField(PHCompositeNode* topNode)
+{
+  if (m_CMVoltageOverride)
+  {
+    std::cout << Name() << "::ConfigurePTCorrectedField - manual CM field "
+              << m_CMVoltageDefault << " V/cm; P/T correction not applied" << std::endl;
+    return;
+  }
+
+  // Start from the reference every run, so corrections never compound.
+  m_CMVoltageDefault = m_referenceCMFieldVcm;
+
+  if (!m_usePTCorrection)
+  {
+    std::cout << Name() << "::ConfigurePTCorrectedField - P/T correction disabled; CM field "
+              << m_CMVoltageDefault << " V/cm" << std::endl;
+    return;
+  }
+
+  auto* conditions = findNode::getClass<TpcConditions>(topNode, "TpcConditions");
+  if (!conditions || !conditions->get_ConditionsAvailable())
+  {
+    std::cout << Name() << "::ConfigurePTCorrectedField - WARNING: TpcConditions "
+              << (conditions ? "not available" : "node not found")
+              << "; using reference CM field " << m_CMVoltageDefault << " V/cm" << std::endl;
+    return;
+  }
+
+  const double pressure = conditions->get_Pressure();
+  double temperatureK = conditions->get_Temperature();
+  if (temperatureK > 0.0 && temperatureK < 150.0)
+  {
+    // Stored in Celsius.
+    std::cout << Name() << "::ConfigurePTCorrectedField - converting T="
+              << temperatureK << " C to K" << std::endl;
+    temperatureK += 273.15;
+  }
+
+  if (!(pressure > 0.0 && temperatureK > 0.0 &&
+        m_referencePressure > 0.0 && m_referenceTemperatureK > 0.0))
+  {
+    std::cout << Name() << "::ConfigurePTCorrectedField - WARNING: invalid P/T:"
+              << " P=" << pressure << " T=" << temperatureK
+              << "; using reference CM field " << m_CMVoltageDefault << " V/cm" << std::endl;
+    return;
+  }
+
+  // Match the run-dependent reduced field E/N with the reference gas table:
+  // E_eff = E_ref * (P_ref/P_run) * (T_run/T_ref).
+  m_CMVoltageDefault = m_referenceCMFieldVcm *
+                       (m_referencePressure / pressure) *
+                       (temperatureK / m_referenceTemperatureK);
+
+  std::cout << Name() << "::ConfigurePTCorrectedField -"
+            << " P=" << pressure << " (ref " << m_referencePressure << ")"
+            << " T=" << temperatureK << " K (ref " << m_referenceTemperatureK << " K)"
+            << " -> CM field " << m_CMVoltageDefault
+            << " V/cm (ref " << m_referenceCMFieldVcm << " V/cm)" << std::endl;
+}
+
+void PHGarfield::ConfigureRunDriftCorrections()
+{
+  if (m_useCDBDriftCorrections)
+  {
+    auto read_pair = [this](const char* payload, const char* key0, const char* key1,
+                            std::array<double, 2>& value, const bool override, const bool must_be_positive)
+    {
+      if (override)
+      {
+        std::cout << Name() << "::ConfigureRunDriftCorrections - " << payload
+                  << ": manual value set, CDB not used" << std::endl;
+        return;
+      }
+      const std::string file = CDBInterface::instance()->getUrl(payload);
+      if (file.empty())
+      {
+        std::cout << Name() << "::ConfigureRunDriftCorrections - WARNING: CDB payload "
+                  << payload << " not found; keeping defaults" << std::endl;
+        return;
+      }
+      CDBTTree tree(file);
+      tree.LoadCalibrations();
+      const std::array<double, 2> read{{tree.GetSingleFloatValue(key0), tree.GetSingleFloatValue(key1)}};
+      for (std::size_t side = 0; side < 2; ++side)
+      {
+        if (!std::isfinite(read[side]) || (must_be_positive && read[side] <= 0.0))
+        {
+          std::cout << Name() << "::ConfigureRunDriftCorrections - WARNING: invalid "
+                    << payload << " side" << side << " value " << read[side]
+                    << "; keeping default" << std::endl;
+          continue;
+        }
+        value[side] = read[side];
+      }
+      std::cout << Name() << "::ConfigureRunDriftCorrections - loaded " << payload
+                << " from CDB: " << file << std::endl;
+    };
+
+    read_pair(CdbCMFieldFactor, "keffside0", "keffside1", m_cmFieldFactor, m_cmFieldFactorOverride, true);
+    read_pair(CdbDeltaT0, "dt0side0", "dt0side1", m_deltaT0Tbins, m_deltaT0Override, false);
+  }
+
+  std::cout << Name() << "::ConfigureRunDriftCorrections -"
+            << " CM field factor side0=" << m_cmFieldFactor[0]
+            << " side1=" << m_cmFieldFactor[1]
+            << " -> CM field side0=" << GetCMVoltage(0)
+            << " side1=" << GetCMVoltage(1) << " V/cm;"
+            << " dt0 side0=" << m_deltaT0Tbins[0]
+            << " side1=" << m_deltaT0Tbins[1] << " tbins"
+            << (m_useCDBDriftCorrections ? "" : " [CDB drift corrections off]")
+            << std::endl;
+}
+
 int PHGarfield::InitRun(PHCompositeNode* topNode)
 {
   if (Verbosity() > 1)
@@ -437,6 +572,8 @@ int PHGarfield::InitRun(PHCompositeNode* topNode)
   }
 
   ConfigureRunDependentFieldCage();
+  ConfigurePTCorrectedField(topNode);
+  ConfigureRunDriftCorrections();
 
   // Load the optional axisymmetric space-charge correction map.
   // Failure is non-fatal: Garfield then uses only the nominal 400 V/cm field.
@@ -527,6 +664,32 @@ int PHGarfield::InitRun(PHCompositeNode* topNode)
   {
     PrintMaps();
   }
+
+  auto* existing = findNode::getClass<PHGarfield>(topNode, "PHGarfield");
+  if (existing && existing != this)
+  {
+    // A shared instance is already registered; this one stays private
+    // (e.g. Tpc_PolyClusterizer with setUsePHGarfieldDefaults(false)).
+    std::cout << Name() << "::InitRun - another PHGarfield is already in the node tree; "
+              << "this instance stays private" << std::endl;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
+  if (!existing && m_publishToNodeTree)
+  {
+    PHNodeIterator iter(topNode);
+    auto* parNode = dynamic_cast<PHCompositeNode*>(
+        iter.findFirst("PHCompositeNode", "PAR"));
+
+    if (!parNode)
+    {
+      parNode = new PHCompositeNode("PAR");
+      topNode->addNode(parNode);
+    }
+
+    parNode->addNode(new PHGarfieldNode(this));
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -780,7 +943,8 @@ void PHGarfield::GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, doub
   // therefore E_z points toward the central membrane on both sides.
   ex_vcm = 0.0;
   ey_vcm = 0.0;
-  ez_vcm = z_cm > 0.0 ? -m_CMVoltageDefault : m_CMVoltageDefault;
+  const double nominal_vcm = m_CMVoltageDefault * m_cmFieldFactor[side];
+  ez_vcm = z_cm > 0.0 ? -nominal_vcm : nominal_vcm;
 
   const double spaceChargeScale = side == 0 ? m_spaceChargeScale_side0
                                             : m_spaceChargeScale_side1;
@@ -1802,7 +1966,7 @@ double PHGarfield::bounder(double phi, double phi_min)
   return phi;
 }
 
-TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_ns, ReverseDriftStatus* driftStatus)
+TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_ns, ReverseDriftStatus* driftStatus, unsigned int substeps)
 {
   // Public/default drift function: input and output are local TPC coordinates.
   // Do not transform these coordinates before asking Garfield for E/gas values;
@@ -1832,38 +1996,49 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
   constexpr int maxSteps = 20000;
   int step = 0;
 
+    const unsigned int nsub = std::max(1U, substeps);
+  const double dt_ns = step_ns / static_cast<double>(nsub);
+
   ReverseDriftStatus status = StopHere(x, y, z, zPrevious);
   while (status == ReverseDriftStatus::Running && step < maxSteps)
   {
-    zPrevious = z;
-
-    GetMagneticFieldTesla(x, y, z, bx, by, bz);
-    GetElectricFieldVcm(x, y, z, ex, ey, ez);
-    m_gas->ElectronVelocity(ex, ey, ez, bx, by, bz, vx, vy, vz);
-
-    if (!std::isfinite(vx) || !std::isfinite(vy) || !std::isfinite(vz) ||
-        (vx == 0.0 && vy == 0.0 && vz == 0.0))
+    // One stored step = nsub Euler sub-steps; only its end point is stored.
+    for (unsigned int isub = 0; isub < nsub && status == ReverseDriftStatus::Running; ++isub)
     {
-      std::cout << PHWHERE
-                << " Garfield returned invalid/zero electron velocity; stopping drift. "
-                << " p_tpc=(" << x << ", " << y << ", " << z << ") cm"
-                << " E=(" << ex << ", " << ey << ", " << ez << ") V/cm"
-                << " B=(" << bx << ", " << by << ", " << bz << ") T"
-                << std::endl;
-      status = ReverseDriftStatus::InvalidVelocity;
+      zPrevious = z;
+
+      GetMagneticFieldTesla(x, y, z, bx, by, bz);
+      GetElectricFieldVcm(x, y, z, ex, ey, ez);
+      m_gas->ElectronVelocity(ex, ey, ez, bx, by, bz, vx, vy, vz);
+
+      if (!std::isfinite(vx) || !std::isfinite(vy) || !std::isfinite(vz) ||
+          (vx == 0.0 && vy == 0.0 && vz == 0.0))
+      {
+        std::cout << PHWHERE
+                  << " Garfield returned invalid/zero electron velocity; stopping drift. "
+                  << " p_tpc=(" << x << ", " << y << ", " << z << ") cm"
+                  << " E=(" << ex << ", " << ey << ", " << ez << ") V/cm"
+                  << " B=(" << bx << ", " << by << ", " << bz << ") T"
+                  << std::endl;
+        status = ReverseDriftStatus::InvalidVelocity;
+        break;
+      }
+
+      x = x - vx * dt_ns;
+      y = y - vy * dt_ns;
+      z = z - vz * dt_ns;
+
+      status = StopHere(x, y, z, zPrevious);
+    }
+    if (status != ReverseDriftStatus::Running)
+    {
       break;
     }
-
-    x = x - vx * step_ns;
-    y = y - vy * step_ns;
-    z = z - vz * step_ns;
 
     xlist.push_back(x);
     ylist.push_back(y);
     zlist.push_back(z);
     ++step;
-
-    status = StopHere(x, y, z, zPrevious);
   }
 
   if (step >= maxSteps && status == ReverseDriftStatus::Running)
@@ -1880,12 +2055,10 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
     *driftStatus = status;
   }
 
-  // Keep all stored points, including the initial point.  This avoids returning
-  // an empty TPolyLine3D if the starting point is already outside the active volume.
-  // Drop the final point. It is the first point that triggered StopHere
-  // on the next loop iteration, for example after crossing the central membrane.
-  // This restores the old PHGarfield behavior.
-  const size_t nGoodPoints = (xlist.size() > 1) ? xlist.size() - 1 : xlist.size();
+  // All stored points are inside the drift volume and step_ns apart: an interval
+  // that ends outside (central membrane, boundary) or with an invalid velocity is
+  // never stored. The initial point is always kept, so the polyline is never empty.
+  const size_t nGoodPoints = xlist.size();
 
   TPolyLine3D* poly = new TPolyLine3D(static_cast<int>(nGoodPoints));
   for (size_t i = 0; i < nGoodPoints; ++i)
@@ -1894,6 +2067,11 @@ TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_
   }
 
   return poly;
+}
+
+TPolyLine3D* PHGarfield::ReverseDrift(double x, double y, double z, double step_ns, ReverseDriftStatus* driftStatus)
+{
+  return ReverseDrift(x, y, z, step_ns, driftStatus, 1);
 }
 
 TPolyLine3D* PHGarfield::ReverseDriftGlobalCoords(double x_cm, double y_cm, double z_cm, double step_ns, ReverseDriftStatus* status)

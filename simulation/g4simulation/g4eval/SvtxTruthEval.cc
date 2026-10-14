@@ -73,6 +73,8 @@ void SvtxTruthEval::next_event(PHCompositeNode* topNode)
   _cache_get_outermost_truth_hit.clear();
   _cache_get_primary_particle_g4hit.clear();
 
+  _truth_cluster_truth_hit_map.clear();
+
   _basetrutheval.next_event(topNode);
 
   get_node_pointers(topNode);

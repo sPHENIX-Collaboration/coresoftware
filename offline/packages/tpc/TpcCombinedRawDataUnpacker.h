@@ -5,6 +5,7 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <array>
 #include <limits>
 #include <map>
 #include <string>
@@ -12,7 +13,6 @@
 
 
 class CDBInterface;
-class CDBTTree;
 class TFile;
 class TH1;
 class TH2;
@@ -92,11 +92,22 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
     double width = -1;
     int entries = 0;
   };
+
+  //! FEE channel map lookup, indexed by 256 * mapped fee + channel.
+  //! One unpacker is registered per EBDC endpoint, so the map is static and
+  //! loaded from the CDB only once per job, by the first instance
+  struct FeeChannelMap
+  {
+    static constexpr unsigned int nkeys = 26 * 256;
+    std::array<int, nkeys> layer{};
+    std::array<double, nkeys> phi{};
+  };
+  static FeeChannelMap m_feeChannelMap;
+  static bool m_feeChannelMapLoaded;
   TNtuple *m_ntup{nullptr};
   TNtuple *m_ntup_hits{nullptr};
   TNtuple *m_ntup_hits_corr{nullptr};
   TFile *m_file{nullptr};
-  CDBTTree *m_cdbttree{nullptr};
   CDBInterface *m_cdb{nullptr};
 
   int m_presampleShift{40};  // number of presamples shifted to line up t0

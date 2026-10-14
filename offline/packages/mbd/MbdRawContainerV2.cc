@@ -62,3 +62,20 @@ UShort_t MbdRawContainerV2::get_femclock() const
   return femclk;
 }
 
+int MbdRawContainerV2::get_badtdc() const
+{
+  int has_badtdc = 0;
+
+  for (int ipmt=0; ipmt < get_npmt(); ipmt++)
+  {
+    MbdRawHit* mbdraw = get_pmt(ipmt);
+    if ( mbdraw->get_badtdc() )
+    {
+      has_badtdc = 1;
+      break;
+    }
+  }
+
+  return has_badtdc;
+}
+

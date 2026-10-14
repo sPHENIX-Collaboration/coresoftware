@@ -3,7 +3,7 @@
 #include "MbdGeomV1.h"
 #include "MbdOutV2.h"
 #include "MbdRawContainerV2.h"
-#include "MbdPmtContainerV1.h"
+#include "MbdPmtContainerV2.h"
 #include "MbdPmtSimContainerV1.h"
 
 #include <globalvertex/MbdVertexMapv1.h>
@@ -250,7 +250,7 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
   if (!m_mbdpmts && !_fitsonly)
   {
     std::cout << "Creating MbdPmtContainer Node " << std::endl;
-    m_mbdpmts = new MbdPmtContainerV1();
+    m_mbdpmts = new MbdPmtContainerV2();
     PHIODataNode<PHObject> *MbdPmtContainerNode = new PHIODataNode<PHObject>(m_mbdpmts, "MbdPmtContainer", "PHObject");
     bbcNode->addNode(MbdPmtContainerNode);
   }
@@ -266,7 +266,10 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
   else
   {
     //std::cout << "IS A DST_CALOFIT" << std::endl;
-    _rawdstflag = 1;
+    if ( !_fitsonly )
+    {
+      _rawdstflag = 1;
+    }
   }
 
   PHCompositeNode *globalNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "GLOBAL"));

@@ -70,7 +70,36 @@ class PHGarfield : public SubsysReco
   void RotateMagnet(double theta_x, double theta_y, double theta_z);
   void MoveTpc(double x_cm, double y_cm, double z_cm);
   void RotateTpc(double theta_x, double theta_y, double theta_z);
-  void SetCMVoltageDefault(double voltage) { m_CMVoltageDefault = voltage; }
+  // A manual CM field disables the P/T correction.
+  void SetCMVoltageDefault(double voltage)
+  {
+    m_CMVoltageDefault = voltage;
+    m_CMVoltageOverride = true;
+  }
+  // P/T correction of the nominal drift field (on by default):
+  // E = E_ref * (P_ref/P_run) * (T_run/T_ref), P/T from TpcConditions.
+  void SetUsePTCorrection(bool value) { m_usePTCorrection = value; }
+  bool GetUsePTCorrection() const { return m_usePTCorrection; }
+  void SetPTReference(double cmField_vcm, double pressure, double temperatureK)
+  {
+    m_referenceCMFieldVcm = cmField_vcm;
+    m_referencePressure = pressure;
+    m_referenceTemperatureK = temperatureK;
+  }
+  void SetCMFieldRunFactor(double side0, double side1)
+  {
+    m_cmFieldFactor = {{side0, side1}};
+    m_cmFieldFactorOverride = true;
+  }
+  void SetDeltaT0Tbins(double side0, double side1)
+  {
+    m_deltaT0Tbins = {{side0, side1}};
+    m_deltaT0Override = true;
+  }
+  void SetUseCDBDriftCorrections(bool value) { m_useCDBDriftCorrections = value; }
+  double GetCMFieldRunFactor(std::size_t side) const { return m_cmFieldFactor.at(side); }
+  double GetCMVoltage(std::size_t side) const { return m_CMVoltageDefault * m_cmFieldFactor.at(side); }
+  double GetDeltaT0Tbins(std::size_t side) const { return m_deltaT0Tbins.at(side); }
   double GetCMVoltageDefault() const { return m_CMVoltageDefault; }
   bool GetSpaceChargeScaleOverride() const { return m_spaceChargeScaleOverride[0] && m_spaceChargeScaleOverride[1]; }
 
@@ -79,6 +108,9 @@ class PHGarfield : public SubsysReco
   // Existing macros should call this one.  Input and returned polyline are in
   // local TPC/Garfield coordinates.
   TPolyLine3D *ReverseDrift(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus *status = nullptr);
+  // Same, with substeps Euler steps of step_ns/substeps per stored step; only the
+  // end point of each full step is stored, so the polyline keeps step_ns spacing.
+  TPolyLine3D *ReverseDrift(double x_cm, double y_cm, double z_cm, double step_ns, ReverseDriftStatus *status, unsigned int substeps);
 
   // Debug/visualization helper.  Input and returned polyline are in global
   // detector coordinates.  Internally the drift is still computed in local TPC
@@ -196,6 +228,23 @@ class PHGarfield : public SubsysReco
     SetFrameChargeScale(0.0);
     SetUseIFCVoltageDistortion(false);
     SetUseOFCVoltageDistortion(false);
+    SetUsePTCorrection(false);
+    m_isNonDistortedMC = true;
+    // Garfield v(E, B=0) at this field reproduces G4TPC::tpc_drift_velocity_sim = 7.55 cm/us.
+    if (!m_CMVoltageOverride)
+    {
+      SetCMVoltageDefault(m_nonDistortedMCFieldVcm);
+    }
+  }
+  // Non-distorted MC timing, validated with single-pion MC against G4 truth:
+  // 387.5 V/cm, t0 = 1.5 time bins (SAMPA shaping delay + half-bin), clock from
+  // the simulated TPC geometry. Consumers read these in InitRun.
+  bool GetIsNonDistortedMC() const { return m_isNonDistortedMC; }
+  double GetNonDistortedMCT0Tbins() const { return m_nonDistortedMCT0Tbins; }
+  void SetNonDistortedMCParameters(double field_vcm, double t0_tbins)
+  {
+    m_nonDistortedMCFieldVcm = field_vcm;
+    m_nonDistortedMCT0Tbins = t0_tbins;
   }
 
   // Static field-cage boundary-voltage distortions.
@@ -276,6 +325,10 @@ class PHGarfield : public SubsysReco
   void SetUseSurveyGeometry(bool value) { use_survey_geometry = value; }
   bool GetUseSurveyGeometry() const { return use_survey_geometry; }
 
+  // Publish this instance as the shared "PHGarfield" node in InitRun (default).
+  // Private instances owned by another module set this to false.
+  void SetPublishToNodeTree(bool value) { m_publishToNodeTree = value; }
+
   void SetUseBCOkEffs(bool value) { m_useBCOkEffs = value; }
   bool GetUseBCOkEffs() const { return m_useBCOkEffs; }
 
@@ -319,6 +372,8 @@ class PHGarfield : public SubsysReco
 
   bool LoadCDBInputs(PHCompositeNode *topNode);
   void ConfigureRunDependentFieldCage();
+  void ConfigurePTCorrectedField(PHCompositeNode *topNode);
+  void ConfigureRunDriftCorrections();
 
   CDBTTree *m_cdbTPCMAPttree{nullptr};  // Locations of the pads from CDB...
   // PHField3DCartesian *m_field{nullptr};           // The standard sPHENIX field holding container.
@@ -344,7 +399,22 @@ class PHGarfield : public SubsysReco
   std::array<std::string, 2> m_electricFieldMap3D{};
   double m_spaceChargeScale_side0{1.0};  // south, z < 0
   double m_spaceChargeScale_side1{1.0};  // north, z > 0
-  double m_CMVoltageDefault{375.0};      // V/cm, nominal TPC field
+  double m_CMVoltageDefault{376.85};     // V/cm, nominal TPC field (P/T corrected in InitRun)
+  bool m_CMVoltageOverride{false};
+  bool m_usePTCorrection{true};
+  // Reference conditions: run 79513.
+  double m_referenceCMFieldVcm{376.85};
+  double m_referencePressure{30.0968906};
+  double m_referenceTemperatureK{299.98646566};
+  std::array<double, 2> m_cmFieldFactor{{1.0, 1.0}};
+  std::array<double, 2> m_deltaT0Tbins{{0.0, 0.0}};
+  bool m_cmFieldFactorOverride{false};
+  bool m_deltaT0Override{false};
+  bool m_useCDBDriftCorrections{false};
+  bool m_isNonDistortedMC{false};
+  bool m_publishToNodeTree{true};
+  double m_nonDistortedMCFieldVcm{387.5};
+  double m_nonDistortedMCT0Tbins{1.5};
   bool m_zerofield{false};
   TH2 *m_erCorrection{nullptr};  // radial correction, input bins in V/m
   TH2 *m_ezCorrection{nullptr};  // local longitudinal correction, input bins in V/m

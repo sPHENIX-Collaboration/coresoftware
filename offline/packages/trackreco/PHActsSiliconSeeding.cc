@@ -35,18 +35,18 @@
 #include <trackbase_historic/TrackSeedHelper.h>
 #include <trackbase_historic/TrackSeed_v2.h>
 
-#ifndef __clang__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstringop-overread"
-#endif
-#include <Acts/Seeding/BinnedGroup.hpp>
-#ifndef __clang__
-#pragma GCC diagnostic pop
-#endif
-#include <Acts/EventData/Seed.hpp>
-#include <Acts/Seeding/SeedFilter.hpp>
+#include <Acts/Definitions/Direction.hpp>
+#include <Acts/EventData/SeedContainer2.hpp>
+#include <Acts/EventData/SpacePointContainer2.hpp>
+#include <Acts/EventData/Types.hpp>
+
+#include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <limits>
+#include <numeric>
 #include <random>
+#include <utility>
 
 namespace
 {
@@ -103,27 +103,19 @@ PHActsSiliconSeeding::~PHActsSiliconSeeding()
 }
 int PHActsSiliconSeeding::Init(PHCompositeNode * /*topNode*/)
 {
-  Acts::SeedFilterConfig sfCfg = configureSeedFilter();
-
-  m_seedFinderCfg.seedFilter = std::make_unique<Acts::SeedFilter<SpacePointProxy_type>>(sfCfg);
-
+  configureSeedFilter();
   configureSeeder();
   configureSPGrid();
 
   if (Verbosity() > 5)
   {
-    printSeedConfigs(sfCfg);
+    printSeedConfigs();
 
     // print the Intt cluster
     std::cout << "Intt cluster cuts: " << std::endl;
     std::cout << "  Intt cluster ADC min: " << m_inttClusterAdcMin << (m_inttClusterAdcMin == -1 ? " (no cut)" : "(alternate)") << std::endl;
     std::cout << "  Intt cluster phi size max: " << m_inttClusterPhiSizeMax << (m_inttClusterPhiSizeMax == -1 ? " (no cut)" : "(alternate)") << std::endl;
   }
-  // vector containing the map of z bins in the top and bottom layers
-
-  m_bottomBinFinder = std::make_unique<const Acts::GridBinFinder<3UL>>(nphineighbors, zBinNeighborsBottom, 0);
-  m_topBinFinder = std::make_unique<const Acts::GridBinFinder<3UL>>(nphineighbors, zBinNeighborsTop, 0);
-
   if (m_seedAnalysis)
   {
     m_file = new TFile(std::string(Name() + ".root").c_str(), "recreate");
@@ -211,8 +203,6 @@ int PHActsSiliconSeeding::End(PHCompositeNode * /*topNode*/)
 
 void PHActsSiliconSeeding::runSeeder()
 {
-  Acts::SeedFinder<SpacePointProxy_type, Acts::CylindricalSpacePointGrid<SpacePointProxy_type>> seedFinder(m_seedFinderCfg);
-
   auto eventTimer = std::make_unique<PHTimer>("eventTimer");
   eventTimer->stop();
   int circleFitTime = 0;
@@ -224,7 +214,6 @@ void PHActsSiliconSeeding::runSeeder()
     {
       std::cout << "Seeding for strobe " << strobe << std::endl;
     }
-    GridSeeds seedVector;
 
     eventTimer->restart();
     auto spVec = getSiliconSpacePoints(strobe);
@@ -235,57 +224,106 @@ void PHActsSiliconSeeding::runSeeder()
       h_nInputMeas->Fill(spVec.size());
     }
 
-    Acts::SpacePointContainerConfig spConfig;
-    spConfig.useDetailedDoubleMeasurementInfo = m_seedFinderCfg.useDetailedDoubleMeasurementInfo;
-    // Options
-    // TODO - check beam pos information
-    Acts::SpacePointContainerOptions spOptions;
-    spOptions.beamPos = {0., 0.};
-
-    // Prepare interface SpacePoint backend-ACTS
-    ActsExamples::SpacePointContainer container(spVec);
-    // Prepare Acts API
-    SpacePointContainerRefHolder spContainer(spConfig, spOptions, container);
-
-    Acts::CylindricalSpacePointGrid<value_type> grid = Acts::CylindricalSpacePointGridCreator::createGrid<value_type>(m_gridCfg, m_gridOptions);
-    Acts::CylindricalSpacePointGridCreator::fillGrid<value_type>(m_seedFinderCfg, m_seedFinderOptions, grid, spContainer);
-
-    // Compute radius Range
-    // we rely on the fact the grid is storing the proxies
-    // with a sorting in the radius
-    float minRange = std::numeric_limits<float>::max();
-    float maxRange = std::numeric_limits<float>::lowest();
-    for (const auto &coll : grid)
+    /// Seeding coordinates are single precision, computed the same way
+    /// the legacy Acts space point container did (beam position at 0,0)
+    std::vector<std::array<float, 4>> spCoords;  // x, y, z, r
+    spCoords.reserve(spVec.size());
+    Acts::CylindricalSpacePointGrid2 grid(m_gridCfg);
+    for (std::size_t i = 0; i < spVec.size(); ++i)
     {
-      if (coll.empty())
+      const auto *sp = spVec[i];
+      const float x = static_cast<float>(sp->x());
+      const float y = static_cast<float>(sp->y());
+      const float z = static_cast<float>(sp->z());
+      const float r = std::sqrt(x * x + y * y);
+      spCoords.push_back({x, y, z, r});
+      grid.insert(static_cast<Acts::SpacePointIndex2>(i), std::atan2(y, x), z, r);
+    }
+
+    /// The doublet finders require the space points sorted in radius
+    for (std::size_t i = 0; i < grid.numberOfBins(); ++i)
+    {
+      std::ranges::sort(grid.at(i), {}, [&](const Acts::SpacePointIndex2 index)
+                        { return spCoords[index][3]; });
+    }
+
+    /// Copy the space points into the Acts container in grid order so
+    /// that each grid bin is a contiguous range. coreToSp maps the Acts
+    /// space point index back to the sPHENIX space point
+    Acts::SpacePointContainer2 coreSpacePoints(
+        Acts::SpacePointColumns::XY | Acts::SpacePointColumns::ZR |
+        Acts::SpacePointColumns::VarianceZ | Acts::SpacePointColumns::VarianceR);
+    coreSpacePoints.reserve(grid.numberOfSpacePoints());
+    std::vector<const SpacePoint *> coreToSp;
+    coreToSp.reserve(grid.numberOfSpacePoints());
+    std::vector<Acts::SpacePointIndexRange2> gridSpacePointRanges;
+    gridSpacePointRanges.reserve(grid.numberOfBins());
+    for (std::size_t i = 0; i < grid.numberOfBins(); ++i)
+    {
+      const auto begin = static_cast<Acts::SpacePointIndex2>(coreSpacePoints.size());
+      for (const Acts::SpacePointIndex2 spIndex : grid.at(i))
+      {
+        const auto &coords = spCoords[spIndex];
+        auto newSp = coreSpacePoints.createSpacePoint();
+        newSp.xy() = {coords[0], coords[1]};
+        newSp.zr() = {coords[2], coords[3]};
+        newSp.varianceZ() = static_cast<float>(spVec[spIndex]->varianceZ());
+        newSp.varianceR() = static_cast<float>(spVec[spIndex]->varianceR());
+        coreToSp.push_back(spVec[spIndex]);
+      }
+      const auto end = static_cast<Acts::SpacePointIndex2>(coreSpacePoints.size());
+      gridSpacePointRanges.emplace_back(begin, end);
+    }
+
+    eventTimer->restart();
+
+    /// The filter state holds the best seed quality per space point,
+    /// so it must persist across all groups of a strobe
+    Acts::SeedContainer2 actsSeeds;
+    Acts::BroadTripletSeedFilter::State filterState;
+    Acts::BroadTripletSeedFilter::Cache filterCache;
+    Acts::BroadTripletSeedFilter seedFilter(m_seedFilterCfg, filterState, filterCache, Acts::getDummyLogger());
+
+    const auto &constSpacePoints = std::as_const(coreSpacePoints);
+    std::vector<Acts::SpacePointContainer2::ConstRange> bottomSpRanges;
+    std::vector<Acts::SpacePointContainer2::ConstRange> topSpRanges;
+    const std::pair<float, float> radiusRangeForMiddle{m_rMinMiddle, m_rMaxMiddle};
+    for (const auto [bottom, middle, top] : grid.binnedGroup())
+    {
+      const auto middleSpRange = constSpacePoints.range(gridSpacePointRanges.at(middle));
+      if (middleSpRange.empty())
       {
         continue;
       }
-      const auto *firstEl = coll.front();
-      const auto *lastEl = coll.back();
-      minRange = std::min(firstEl->radius(), minRange);
-      maxRange = std::max(lastEl->radius(), maxRange);
+
+      bottomSpRanges.clear();
+      for (const auto b : bottom)
+      {
+        bottomSpRanges.push_back(constSpacePoints.range(gridSpacePointRanges.at(b)));
+      }
+      topSpRanges.clear();
+      for (const auto t : top)
+      {
+        topSpRanges.push_back(constSpacePoints.range(gridSpacePointRanges.at(t)));
+      }
+
+      m_seeder->createSeedsFromGroups(m_seederCache, *m_bottomDoubletFinder, *m_topDoubletFinder,
+                                      *m_tripletFinder, seedFilter, coreSpacePoints,
+                                      bottomSpRanges, middleSpRange, topSpRanges,
+                                      radiusRangeForMiddle, actsSeeds);
     }
 
-    std::array<std::vector<std::size_t>, 3UL> navigation;
-    navigation[1UL] = m_seedFinderCfg.zBinsCustomLooping;
-
-    auto spacePointsGrouping = Acts::CylindricalBinnedGroup<value_type>(std::move(grid), *m_bottomBinFinder, *m_topBinFinder, std::move(navigation));
-
-    /// variable middle SP radial region of interest
-    const Acts::Range1D<float> rMiddleSPRange(
-        // TODO check these values in current code with Acts::Extent
-        std::floor(minRange / 2) * 2 + 1.5, std::floor(maxRange / 2) * 2 - 1.5);
-
-    eventTimer->restart();
-    static thread_local std::vector<seed_type> seeds;
-    seeds.clear();
-
-    decltype(seedFinder)::SeedingState state;
-    state.spacePointMutableData.resize(spContainer.size());
-    for (const auto [bottom, middle, top] : spacePointsGrouping)
+    std::vector<SeedTriplet> seeds;
+    seeds.reserve(actsSeeds.size());
+    for (const auto &actsSeed : actsSeeds)
     {
-      seedFinder.createSeedsForGroup(m_seedFinderOptions, state, spacePointsGrouping.grid(), seeds, bottom, middle, top, rMiddleSPRange);
+      const auto spIndices = actsSeed.spacePointIndices();
+      SeedTriplet &seed = seeds.emplace_back();
+      for (std::size_t spid = 0; spid < seed.sps.size(); ++spid)
+      {
+        seed.sps[spid] = coreToSp[spIndices[spid]];
+      }
+      seed.vertexZ = actsSeed.vertexZ();
     }
     eventTimer->stop();
     seederTime += eventTimer->get_accumulated_time();
@@ -320,7 +358,7 @@ void PHActsSiliconSeeding::runSeeder()
   return;
 }
 
-void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<seed_type> &seedVector)
+void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<SeedTriplet> &seedVector)
 
 {
   //  int numSeeds = 0;
@@ -338,10 +376,10 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<seed_type> &
 
     std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
     std::vector<Acts::Vector3> clus_positions;
-    const auto &sps = seed.sp();
+    const auto &sps = seed.sps;
     for (int spid = 0; spid < 3; spid++)
     {
-      const auto &cluskey = sps[spid]->externalSpacePoint()->Id();
+      const auto &cluskey = sps[spid]->Id();
 
       auto globalPosition = m_tGeometry->getGlobalPosition(cluskey, m_clusterMap->findCluster(cluskey));
       if (m_seedAnalysis)
@@ -353,7 +391,7 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<seed_type> &
       positions.insert(std::make_pair(cluskey, globalPosition));
       clus_positions.push_back(globalPosition);
     }
-    double z = seed.z() / Acts::UnitConstants::cm;
+    double z = seed.vertexZ / Acts::UnitConstants::cm;
 
     auto fitTimer = std::make_unique<PHTimer>("trackfitTimer");
     fitTimer->stop();
@@ -382,7 +420,7 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<seed_type> &
 
         for (int spid = 0; spid < 3; spid++)
         {
-          const auto &cluskey = sps[spid]->externalSpacePoint()->Id();
+          const auto &cluskey = sps[spid]->Id();
           trackSeed->insert_cluster_key(cluskey);
         }
         for (auto &intt_clus : intt_clus_vec)
@@ -405,7 +443,7 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<seed_type> &
       auto trackSeed = std::make_unique<TrackSeed_v2>();
       for (int spid = 0; spid < 3; spid++)
       {
-        const auto &cluskey = sps[spid]->externalSpacePoint()->Id();
+        const auto &cluskey = sps[spid]->Id();
         trackSeed->insert_cluster_key(cluskey);
       }
       TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 7);
@@ -417,12 +455,24 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<seed_type> &
       numGoodSeeds++;
     }
   }
-  if (Verbosity() > 4)
+
+  if (Verbosity() > 1)
   {
-    std::cout << "num good seeds : " << numGoodSeeds << std::endl;
+    std::cout << "Total number of seeds found in " << seedVector.size() << " volume regions gives " << numGoodSeeds << " Acts seeds " << std::endl
+              << std::endl
+              << std::endl;
+    m_seedContainer->identify();
+    for (auto &seed : *m_seedContainer)
+    {
+      if (!seed)
+      {
+        continue;
+      }
+      seed->identify();
+    }
   }
 }
-void PHActsSiliconSeeding::makeSvtxTracks(const std::vector<seed_type> &seedVector)
+void PHActsSiliconSeeding::makeSvtxTracks(const std::vector<SeedTriplet> &seedVector)
 {
   int numSeeds = 0;
   int numGoodSeeds = 0;
@@ -443,10 +493,10 @@ void PHActsSiliconSeeding::makeSvtxTracks(const std::vector<seed_type> &seedVect
     std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
     auto trackSeed = std::make_unique<TrackSeed_v2>();
 
-    const auto &sps = seed.sp();
+    const auto &sps = seed.sps;
     for (int spid = 0; spid < 3; spid++)
     {
-      const auto &cluskey = sps[spid]->externalSpacePoint()->Id();
+      const auto &cluskey = sps[spid]->Id();
       cluster_keys.push_back(cluskey);
 
       trackSeed->insert_cluster_key(cluskey);
@@ -461,7 +511,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const std::vector<seed_type> &seedVect
       positions.insert(std::make_pair(cluskey, globalPosition));
       if (Verbosity() > 1)
       {
-        std::cout << "Adding cluster with x,y " << sps[spid]->externalSpacePoint()->x() << ", " << sps[spid]->externalSpacePoint()->y() << " mm in detector "
+        std::cout << "Adding cluster with x,y " << sps[spid]->x() << ", " << sps[spid]->y() << " mm in detector "
                   << (unsigned int) TrkrDefs::getTrkrId(cluskey) << " with cluskey " << cluskey << std::endl;
       }
     }
@@ -481,7 +531,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const std::vector<seed_type> &seedVect
         continue;
       }
     }
-    double z = seed.z() / Acts::UnitConstants::cm;
+    double z = seed.vertexZ / Acts::UnitConstants::cm;
 
     auto fitTimer = std::make_unique<PHTimer>("trackfitTimer");
     fitTimer->stop();
@@ -682,8 +732,10 @@ short int PHActsSiliconSeeding::getCrossingIntt(TrackSeed &si_track)
 
   // if the crossings are the same, then you will still get the correct crossing
 
-  std::random_device rd;
-  std::mt19937 gen(rd());
+  // Seed the random generator with the seed's cluster keys, so the same
+  // seed always gets the same crossing and results are reproducible
+  const TrkrDefs::cluskey keySum = std::accumulate(si_track.begin_cluster_keys(), si_track.end_cluster_keys(), TrkrDefs::cluskey{0});
+  std::mt19937_64 gen(keySum);
   std::bernoulli_distribution dist(0.5);
   return intt_crossings[dist(gen) ? 0 : 1];
 }
@@ -1387,60 +1439,75 @@ void PHActsSiliconSeeding::configureSPGrid()
   m_gridCfg.cotThetaMax = m_cotThetaMax;
   m_gridCfg.impactMax = m_impactMax;
   m_gridCfg.phiBinDeflectionCoverage = m_numPhiNeighbors;
+  m_gridCfg.bFieldInZ = m_bField;
+  /// the legacy grid used 100 phi bins with no field, Seeding2 uses maxPhiBins
+  if (m_bField == 0)
+  {
+    m_gridCfg.maxPhiBins = 100;
+  }
 
-  m_gridOptions.bFieldInZ = m_bField;
+  // vector containing the map of z bins in the top and bottom layers
+  m_gridCfg.bottomBinFinder.emplace(nphineighbors, zBinNeighborsBottom, 0);
+  m_gridCfg.topBinFinder.emplace(nphineighbors, zBinNeighborsTop, 0);
 }
 
-Acts::SeedFilterConfig PHActsSiliconSeeding::configureSeedFilter() const
+void PHActsSiliconSeeding::configureSeedFilter()
 {
-  Acts::SeedFilterConfig config;
-  config.maxSeedsPerSpM = m_maxSeedsPerSpM;
-  return config;
+  m_seedFilterCfg.maxSeedsPerSpM = m_maxSeedsPerSpM;
+  /// the legacy filter did not limit the number of candidates per middle
+  /// space point, while Seeding2 defaults to 5
+  m_seedFilterCfg.maxSeedsPerSpMConf = std::numeric_limits<std::uint32_t>::max();
+  m_seedFilterCfg.maxQualitySeedsPerSpMConf = std::numeric_limits<std::uint32_t>::max();
 }
 
 void PHActsSiliconSeeding::configureSeeder()
 {
-  /// these are default values that used to be set in Acts
-  m_seedFinderCfg.deltaRMinTopSP = 5 * Acts::UnitConstants::mm;
-  m_seedFinderCfg.deltaRMaxTopSP = 270 * Acts::UnitConstants::mm;
-  m_seedFinderCfg.deltaRMinBottomSP = 5 * Acts::UnitConstants::mm;
-  m_seedFinderCfg.deltaRMaxBottomSP = 270 * Acts::UnitConstants::mm;
-
-  /// Limiting location of measurements (e.g. detector constraints)
-  m_seedFinderCfg.rMax = m_rMax;
-  m_seedFinderCfg.rMin = m_rMin;
-  m_seedFinderCfg.zMin = m_zMin;
-  m_seedFinderCfg.zMax = m_zMax;
-
-  /// Min/max distance between two measurements in one seed
-  m_seedFinderCfg.deltaRMin = m_deltaRMin;
-  m_seedFinderCfg.deltaRMax = m_deltaRMax;
+  /// Doublet finders. The deltaR window between doublet space points
+  /// is 5-270 mm for both bottom and top, as in the legacy seeder
+  m_bottomDoubletCfg.spacePointsSortedByRadius = true;
+  m_bottomDoubletCfg.deltaRMin = 5 * Acts::UnitConstants::mm;
+  m_bottomDoubletCfg.deltaRMax = 270 * Acts::UnitConstants::mm;
 
   /// Limiting collision region in z
-  m_seedFinderCfg.collisionRegionMin = -300. * Acts::UnitConstants::mm;
-  m_seedFinderCfg.collisionRegionMax = 300. * Acts::UnitConstants::mm;
-  m_seedFinderCfg.sigmaScattering = m_sigmaScattering;
-  m_seedFinderCfg.maxSeedsPerSpM = m_maxSeedsPerSpM;
-  m_seedFinderCfg.cotThetaMax = m_cotThetaMax;
-  m_seedFinderCfg.minPt = m_minSeedPt;
-  m_seedFinderOptions.bFieldInZ = m_bField;
+  m_bottomDoubletCfg.collisionRegionMin = -300. * Acts::UnitConstants::mm;
+  m_bottomDoubletCfg.collisionRegionMax = 300. * Acts::UnitConstants::mm;
+  m_bottomDoubletCfg.cotThetaMax = m_cotThetaMax;
+  m_bottomDoubletCfg.minPt = m_minSeedPt;
+  m_bottomDoubletCfg.impactMax = m_impactMax;
+  m_bottomDoubletCfg.helixCutTolerance = m_helixcut;
 
+  m_topDoubletCfg = m_bottomDoubletCfg;
+  m_bottomDoubletCfg.candidateDirection = Acts::Direction::Backward();
+  m_topDoubletCfg.candidateDirection = Acts::Direction::Forward();
+
+  /// Triplet finder
+  m_tripletCfg.useStripInfo = false;
+  m_tripletCfg.sortedByCotTheta = true;
+  m_tripletCfg.minPt = m_minSeedPt;
+  m_tripletCfg.sigmaScattering = m_sigmaScattering;
   /// Average radiation length traversed per seed
-  m_seedFinderCfg.radLengthPerSeed = 0.05;
-
+  m_tripletCfg.radLengthPerSeed = 0.05;
   /// Maximum impact parameter must be smaller than rMin
-  m_seedFinderCfg.impactMax = m_impactMax;
+  m_tripletCfg.impactMax = m_impactMax;
+  m_tripletCfg.helixCutTolerance = m_helixcut;
+  m_tripletCfg.toleranceParam = m_tolerance;
 
-  m_seedFinderCfg.rMinMiddle = 2.5 * Acts::UnitConstants::cm;
-  m_seedFinderCfg.rMaxMiddle = 4.3 * Acts::UnitConstants::cm;
+  m_bottomDoubletFinder = Acts::DoubletSeedFinder::create(Acts::DoubletSeedFinder::DerivedConfig(m_bottomDoubletCfg, m_bField));
+  m_topDoubletFinder = Acts::DoubletSeedFinder::create(Acts::DoubletSeedFinder::DerivedConfig(m_topDoubletCfg, m_bField));
 
-  /// Configurations for dealing with misalignment
-  m_seedFinderCfg.zAlign = m_zalign;
-  m_seedFinderCfg.rAlign = m_ralign;
-  m_seedFinderCfg.toleranceParam = m_tolerance;
-  m_seedFinderCfg.maxPtScattering = m_maxPtScattering;
-  m_seedFinderCfg.sigmaError = m_sigmaError;
-  m_seedFinderCfg.helixCutTolerance = m_helixcut;
+  Acts::TripletSeedFinder::DerivedConfig tripletDerivedCfg(m_tripletCfg, m_bField);
+  if (!m_applyTripletScatteringCuts)
+  {
+    /// The legacy seeder never computed these derived quantities, so they
+    /// were NaN and the min helix diameter and scattering compatibility cuts
+    /// always passed. Reproduce that behavior
+    tripletDerivedCfg.minHelixDiameter2 = std::numeric_limits<float>::quiet_NaN();
+    tripletDerivedCfg.sigmapT2perRadius = std::numeric_limits<float>::quiet_NaN();
+    tripletDerivedCfg.multipleScattering2 = std::numeric_limits<float>::quiet_NaN();
+  }
+  m_tripletFinder = Acts::TripletSeedFinder::create(tripletDerivedCfg);
+
+  m_seeder = std::make_unique<Acts::TripletSeeder>();
 }
 
 int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
@@ -1637,65 +1704,61 @@ void PHActsSiliconSeeding::largeGridSpacing(const bool spacing)
   }
 }
 
-void PHActsSiliconSeeding::printSeedConfigs(Acts::SeedFilterConfig &sfconfig)
+void PHActsSiliconSeeding::printSeedConfigs() const
 {
   // helper function for when updating acts to ensure all seeding parameters
   // are actually the same as before
 
-  std::cout << " --------------- SeedFilterConfig ------------------ " << std::endl;
-  std::cout << "deltaInvHelixDiameter = " << sfconfig.deltaInvHelixDiameter << std::endl
-            << "impactWeightFactor = " << sfconfig.impactWeightFactor << std::endl
-            << "zOriginWeightFactor = " << sfconfig.zOriginWeightFactor << std::endl
-            << "compatSeedWeight = " << sfconfig.compatSeedWeight << std::endl
-            << "deltaRMin = " << sfconfig.deltaRMin << std::endl
-            << "maxSeedsPerSpM = " << sfconfig.maxSeedsPerSpM << std::endl
-            << "compatSeedLimit = " << sfconfig.compatSeedLimit << std::endl
-            << "seedWeightIncrement = " << sfconfig.seedWeightIncrement << std::endl
-            << "numSeedIncrement = " << sfconfig.numSeedIncrement << std::endl;
+  std::cout << " --------------- BroadTripletSeedFilter::Config ------------------ " << std::endl;
+  std::cout << "deltaInvHelixDiameter = " << m_seedFilterCfg.deltaInvHelixDiameter << std::endl
+            << "impactWeightFactor = " << m_seedFilterCfg.impactWeightFactor << std::endl
+            << "zOriginWeightFactor = " << m_seedFilterCfg.zOriginWeightFactor << std::endl
+            << "compatSeedWeight = " << m_seedFilterCfg.compatSeedWeight << std::endl
+            << "deltaRMin = " << m_seedFilterCfg.deltaRMin << std::endl
+            << "maxSeedsPerSpM = " << m_seedFilterCfg.maxSeedsPerSpM << std::endl
+            << "compatSeedLimit = " << m_seedFilterCfg.compatSeedLimit << std::endl
+            << "seedWeightIncrement = " << m_seedFilterCfg.seedWeightIncrement << std::endl
+            << "numSeedIncrement = " << m_seedFilterCfg.numSeedIncrement << std::endl
+            << "maxSeedsPerSpMConf = " << m_seedFilterCfg.maxSeedsPerSpMConf << std::endl
+            << "maxQualitySeedsPerSpMConf = " << m_seedFilterCfg.maxQualitySeedsPerSpMConf << std::endl;
 
-  std::cout << " --------------- SeedFinderConfig ------------------ " << std::endl;
+  for (const auto *doubletFinder : {m_bottomDoubletFinder.get(), m_topDoubletFinder.get()})
+  {
+    const auto &cfg = doubletFinder->config();
+    std::cout << " --------------- DoubletSeedFinder::Config (" << (cfg.candidateDirection == Acts::Direction::Backward() ? "bottom" : "top") << ") ------------------ " << std::endl;
+    std::cout << "deltaRMin = " << cfg.deltaRMin << std::endl
+              << "deltaRMax = " << cfg.deltaRMax << std::endl
+              << "deltaZMin = " << cfg.deltaZMin << std::endl
+              << "deltaZMax = " << cfg.deltaZMax << std::endl
+              << "impactMax = " << cfg.impactMax << std::endl
+              << "interactionPointCut = " << cfg.interactionPointCut << std::endl
+              << "collisionRegionMin = " << cfg.collisionRegionMin << std::endl
+              << "collisionRegionMax = " << cfg.collisionRegionMax << std::endl
+              << "cotThetaMax = " << cfg.cotThetaMax << std::endl
+              << "minPt = " << cfg.minPt << std::endl
+              << "helixCutTolerance = " << cfg.helixCutTolerance << std::endl
+              << "bFieldInZ = " << cfg.bFieldInZ << std::endl
+              << "minHelixDiameter2 = " << cfg.minHelixDiameter2 << std::endl;
+  }
 
-  std::cout << "deltaRMinTopSp = " << m_seedFinderCfg.deltaRMinTopSP << std::endl
-            << "deltaRMaxTopSP = " << m_seedFinderCfg.deltaRMaxTopSP << std::endl
-            << "deltaRMinBottomSP = " << m_seedFinderCfg.deltaRMinBottomSP << std::endl
-            << "deltaRMaxBottomSP = " << m_seedFinderCfg.deltaRMaxBottomSP << std::endl
-            << "minpt = " << m_seedFinderCfg.minPt << std::endl
-            << "cotThetaMax = " << m_seedFinderCfg.cotThetaMax << std::endl
-            << "deltaRMin = " << m_seedFinderCfg.deltaRMin << std::endl
-            << "deltaRMax = " << m_seedFinderCfg.deltaRMax << std::endl
-            << "binSizeR = " << m_seedFinderCfg.binSizeR << std::endl
-            << "deltaRMiddleMinSPRange = " << m_seedFinderCfg.deltaRMiddleMinSPRange << std::endl
-            << "deltaRMiddleMaxSPRange = " << m_seedFinderCfg.deltaRMiddleMaxSPRange << std::endl
-            << "rMinMiddle = " << m_seedFinderCfg.rMinMiddle << std::endl
-            << "rMaxMiddle = " << m_seedFinderCfg.rMaxMiddle << std::endl
-            << "deltaZMax = " << m_seedFinderCfg.deltaZMax << std::endl
-            << "rMax = " << m_seedFinderCfg.rMax << std::endl
-            << "rMin = " << m_seedFinderCfg.rMin << std::endl
-            << "zMin = " << m_seedFinderCfg.zMin << std::endl
-            << "zMax = " << m_seedFinderCfg.zMax << std::endl
-            << "collisionRegionMin = " << m_seedFinderCfg.collisionRegionMin << std::endl
-            << "collisionRegionMax = " << m_seedFinderCfg.collisionRegionMax << std::endl
-            << "sigmaScattering = " << m_seedFinderCfg.sigmaScattering << std::endl
-            << "maxSeedsPerSpM = " << m_seedFinderCfg.maxSeedsPerSpM << std::endl
-            << "bFieldInZ = " << m_seedFinderOptions.bFieldInZ << std::endl
-            << "radLengthPerSeed = " << m_seedFinderCfg.radLengthPerSeed << std::endl
-            << "impactMax = " << m_seedFinderCfg.impactMax << std::endl
-            << "zAlign = " << m_seedFinderCfg.zAlign << std::endl
-            << "rAlign = " << m_seedFinderCfg.rAlign << std::endl
-            << "toleranceParam = " << m_seedFinderCfg.toleranceParam << std::endl
-            << "maxPtScattering = " << m_seedFinderCfg.maxPtScattering << std::endl
-            << "sigmaError = " << m_seedFinderCfg.sigmaError << std::endl
-            << "helixcut = " << m_seedFinderCfg.helixCutTolerance << std::endl;
+  const auto &tripletCfg = m_tripletFinder->config();
+  std::cout << " --------------- TripletSeedFinder::Config ------------------ " << std::endl;
+  std::cout << "minPt = " << tripletCfg.minPt << std::endl
+            << "sigmaScattering = " << tripletCfg.sigmaScattering << std::endl
+            << "radLengthPerSeed = " << tripletCfg.radLengthPerSeed << std::endl
+            << "impactMax = " << tripletCfg.impactMax << std::endl
+            << "helixCutTolerance = " << tripletCfg.helixCutTolerance << std::endl
+            << "toleranceParam = " << tripletCfg.toleranceParam << std::endl
+            << "bFieldInZ = " << tripletCfg.bFieldInZ << std::endl
+            << "highland = " << tripletCfg.highland << std::endl
+            << "pTPerHelixRadius = " << tripletCfg.pTPerHelixRadius << std::endl
+            << "minHelixDiameter2 = " << tripletCfg.minHelixDiameter2 << std::endl
+            << "sigmapT2perRadius = " << tripletCfg.sigmapT2perRadius << std::endl
+            << "multipleScattering2 = " << tripletCfg.multipleScattering2 << std::endl
+            << "rMinMiddle = " << m_rMinMiddle << std::endl
+            << "rMaxMiddle = " << m_rMaxMiddle << std::endl;
 
-  std::cout << " --------------- SeedFinderOptions ------------------ " << std::endl;
-  std::cout << "beamPos = " << m_seedFinderOptions.beamPos.transpose() << std::endl
-            << "bFieldInZ = " << m_seedFinderOptions.bFieldInZ << std::endl
-            << "pTPerHelixRadius = " << m_seedFinderOptions.pTPerHelixRadius << std::endl
-            << "minHelixDiameter2 = " << m_seedFinderOptions.minHelixDiameter2 << std::endl
-            << "pT2perRadius = " << m_seedFinderOptions.pT2perRadius << std::endl
-            << "sigmapT2perRadius = " << m_seedFinderOptions.sigmapT2perRadius << std::endl;
-
-  std::cout << " --------------- SpacePointGridConfig ------------------ " << std::endl;
+  std::cout << " --------------- CylindricalSpacePointGrid2::Config ------------------ " << std::endl;
 
   std::cout << "minpt = " << m_gridCfg.minPt << std::endl
             << "rMax = " << m_gridCfg.rMax << std::endl
@@ -1705,5 +1768,6 @@ void PHActsSiliconSeeding::printSeedConfigs(Acts::SeedFilterConfig &sfconfig)
             << "cotThetaMax = " << m_gridCfg.cotThetaMax << std::endl
             << "impactMax = " << m_gridCfg.impactMax << std::endl
             << "phiBinDeflectionCoverage = " << m_gridCfg.phiBinDeflectionCoverage << std::endl
-            << "bFieldInZ = " << m_gridOptions.bFieldInZ << std::endl;
+            << "maxPhiBins = " << m_gridCfg.maxPhiBins << std::endl
+            << "bFieldInZ = " << m_gridCfg.bFieldInZ << std::endl;
 }
