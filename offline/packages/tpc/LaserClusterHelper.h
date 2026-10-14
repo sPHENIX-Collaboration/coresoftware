@@ -45,9 +45,10 @@ class LaserClusterHelper : public SubsysReco
     void set_garfield_keffside1(double use) { m_garfield_keffside1 = use; m_manual_garfield_keffside1 = true; }
     void set_garfield_stepns(double use) { m_garfield_stepns = use; }
   private:
+
     ActsGeometry *m_tGeometry{nullptr};
     PHG4TpcGeomContainer *m_geom_container{nullptr};
-    std::unique_ptr<PHGarfield> m_phgarfield;
+    mutable std::unique_ptr<PHGarfield> m_phgarfield;
 
     bool m_useZ{false};
     bool m_useGlobal{true};

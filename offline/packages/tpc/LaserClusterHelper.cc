@@ -12,6 +12,7 @@
 #include <cdbobjects/CDBTTree.h>
  
 #include <ffamodules/CDBInterface.h>
+#include <fun4all/Fun4AllServer.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
@@ -264,10 +265,6 @@ std::array<double, 3> LaserClusterHelper::getClusterHardwareCentroid(LaserCluste
 
 Acts::Vector3 LaserClusterHelper::getClusterCentroidWithPHGarfield(LaserCluster* cluster) const
 {
-    if (!m_phgarfield)
-    {
-        return invalid;
-    }
 
     if(!cluster)
     {
