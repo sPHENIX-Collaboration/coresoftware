@@ -115,7 +115,7 @@ int StreamingLumiReco::process_event(PHCompositeNode *topNode)
     // Double check Zhiwan's logic for assigning the adjusted bunch!
     int lower = streaming_bcoinfo->get_bco_streaming_window().first - streaming_bcoinfo->get_bco();
     int upper = streaming_bcoinfo->get_bco_streaming_window().second - streaming_bcoinfo->get_bco();
-    for(int i = lower; i< upper;i++)
+    for(int i = lower; i <= upper; i++)
     {
       int adjusted_bunch = bunchno + i;
       while (adjusted_bunch < 0)
