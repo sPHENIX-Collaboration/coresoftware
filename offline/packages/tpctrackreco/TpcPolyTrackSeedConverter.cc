@@ -162,9 +162,9 @@ bool TpcPolyTrackSeedConverter::publishSeed(const Tpc_PolyTrack* track) const
 
   const double q_over_r = track->get_seed_q_over_r();
   const double helix_radius = std::fabs(1.0 / q_over_r);
-  const double helix_sign = q_over_r > 0.0 ? 1.0 : -1.0;
-  const double helix_center_x = track->get_seed_x0() - helix_sign * helix_radius * std::sin(track->get_seed_phi());
-  const double helix_center_y = track->get_seed_y0() + helix_sign * helix_radius * std::cos(track->get_seed_phi());
+  // Circle centre from the poly fit (fit.cx, fit.cy).
+  const double helix_center_x = track->get_helix_x0();
+  const double helix_center_y = track->get_helix_y0();
   if (!std::isfinite(helix_center_x) || !std::isfinite(helix_center_y)) { return false;
 }
 

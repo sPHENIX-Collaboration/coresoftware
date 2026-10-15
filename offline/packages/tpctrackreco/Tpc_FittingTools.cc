@@ -1,4 +1,5 @@
 #include "Tpc_FittingTools.h"
+#include <trackbase/TrackFitUtils.h>
 
 #include <algorithm>
 #include <cmath>
@@ -598,36 +599,21 @@ bool Tpc_FittingTools::fit(const std::vector<Point>& points, FitResult& fit)
     return false;
   }
 
-  double A[3][3] = {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}};
-  double b[3] = {0.0, 0.0, 0.0};
+  // Taubin circle fit, as in the standard sPHENIX seeding; the previous
+  // algebraic (Kasa) fit underestimates R on short arcs, which gives a
+  // charge-dependent phi0 bias.
+  TrackFitUtils::position_vector_t xy;
+  xy.reserve(points.size());
   for (const Point& p : points)
   {
-    const double row[3] = {p.x, p.y, 1.0};
-    const double rhs = -(p.x * p.x + p.y * p.y);
-    for (int i = 0; i < 3; ++i)
-    {
-      b[i] += row[i] * rhs;
-      for (int j = 0; j < 3; ++j)
-      {
-        A[i][j] += row[i] * row[j];
-      }
-    }
+    xy.emplace_back(p.x, p.y);
   }
-
-  double sol[3] = {0.0, 0.0, 0.0};
-  if (!solve_3x3(A, b, sol))
+  const auto [R, xc, yc] = TrackFitUtils::circle_fit_by_taubin(xy);
+  if (!std::isfinite(R) || !std::isfinite(xc) || !std::isfinite(yc))
   {
     return false;
   }
 
-  const double xc = -0.5 * sol[0];
-  const double yc = -0.5 * sol[1];
-  const double r2 = xc * xc + yc * yc - sol[2];
-  if (r2 <= 0.0)
-  {
-    return false;
-  }
-  const double R = std::sqrt(r2);
   const double dc = std::hypot(xc, yc);
   if (R <= 0.0 || dc <= 1.0e-12)
   {
