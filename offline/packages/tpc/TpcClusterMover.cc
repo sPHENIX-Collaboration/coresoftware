@@ -25,6 +25,7 @@
 #include <climits>
 #include <cmath>
 #include <iostream>
+#include <stdexcept>
 
 namespace
 {
@@ -51,10 +52,7 @@ void TpcClusterMover::initialize_geometry(ActsGeometry* tGeometry, PHCompositeNo
 //____________________________________________________________________________..
 std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>> TpcClusterMover::processTrack(const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_in) const
 {
-  // Get the global positions of the TPC clusters for this track, already corrected for distortions, and move them to the surfaces
-  // The input object contains all clusters for the track in world coordinates
-  // The surface radii are in global coordinates. Needed because we are dealing with aligned surfaces
-
+  // Preserve node lookup for callers using the original interface.
   auto* cluster_map = findNode::getClass<TrkrClusterContainer>(_topNode, "TRKR_CLUSTER_SEED");
   if (!cluster_map)
   {
@@ -65,6 +63,25 @@ std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>> Tpc
       exit(1);
     }
   }
+
+  return processTrack(global_in, cluster_map);
+}
+
+//____________________________________________________________________________..
+std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>>
+TpcClusterMover::processTrack(
+    const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_in,
+    TrkrClusterContainer* cluster_map) const
+{
+  if (!cluster_map || !_tGeometry)
+  {
+    throw std::runtime_error(
+        "TpcClusterMover::processTrack - missing cluster container or geometry");
+  }
+
+  // Get the global positions of the TPC clusters for this track, already corrected for distortions, and move them to the surfaces
+  // The input object contains all clusters for the track in world coordinates
+  // The surface radii are in global coordinates. Needed because we are dealing with aligned surfaces
 
   const auto& surfMaps = _tGeometry->maps();
 
