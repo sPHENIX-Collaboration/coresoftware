@@ -30,6 +30,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <TGraph.h>
 #include <TH2Poly.h>
 #include <TMath.h>
 #include <TFile.h>
@@ -569,6 +570,7 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
   lch.loadNodes(topNode); 
   lch.set_useZ(false);
   lch.set_useGlobal(true);
+  lch.set_useGarfield(false);
 
   PHG4TpcGeomContainer *geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   TFile *QAFile = nullptr;
@@ -578,14 +580,17 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
   }
 
   TH2Poly *h[2] = {nullptr, nullptr};
+  TGraph *gr[2] = {nullptr, nullptr};
   if(QAFile)
   {
     for(int s=0; s<2; s++)
     {
-      h[s] = new TH2Poly(std::format("hADC_perLaserFlash_{}",s ? "North" : "South").c_str(), std::format("ADC Per Laser Flash (nHits_perLaserFlash>=1) {}",s ? "North" : "South").c_str(),
+      h[s] = new TH2Poly(std::format("hADC_perLaserFlash_{}",s ? "North" : "South").c_str(), std::format("ADC Per Laser Flash (nHits_perLaserFlash>=1) {};#phi [rad];R [cm];ADC per Laser Flash",s ? "North" : "South").c_str(),
                           100, 0.0, 2.0*TMath::Pi(), 100, 28, 78);
       h[s]->SetFloat(false);
       h[s]->SetDirectory(nullptr);
+
+      gr[s] = new TGraph();
     }
   }
 
@@ -614,6 +619,13 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
       {
         if(Verbosity() > 3){ std::cout << "   working on cluster " << m_clusterlist->size() - 1 << std::endl; }
         int side = TpcDefs::getSide(ckey);
+        Acts::Vector3 cluster_global = lch.getClusterCentroid(cluster);
+        double clusterPhi = atan2(cluster_global[1], cluster_global[0]);
+        while(clusterPhi < 0){ clusterPhi += 2*TMath::Pi(); }
+        while(clusterPhi > 2*TMath::Pi()){ clusterPhi -= 2*TMath::Pi(); }
+        double clusterR = sqrt(cluster_global[0]*cluster_global[0] + cluster_global[1]*cluster_global[1]);   
+        gr[side]->AddPoint(clusterPhi, clusterR);
+
         for(int i=0; i<(int)cluster->getNhitsDouble(); i++)
         {
           if(Verbosity() > 4){ std::cout << "      working on hit " << i << std::endl; }
@@ -630,8 +642,8 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
           double hitPhi = atan2(global[1], global[0]);
           while(hitPhi < 0){ hitPhi += 2*TMath::Pi(); }
           while(hitPhi > 2*TMath::Pi()){ hitPhi -= 2*TMath::Pi(); }
-          double hitR = sqrt(global[0]*global[0] + global[1]*global[1]);      
-
+          double hitR = sqrt(global[0]*global[0] + global[1]*global[1]);    
+        
           double phis[5] = {hitPhi - phiWidth,hitPhi + phiWidth,hitPhi + phiWidth,hitPhi - phiWidth,hitPhi - phiWidth};
           double rs[5] = {hitR - layerWidth, hitR - layerWidth, hitR + layerWidth, hitR + layerWidth, hitR - layerWidth};
 
@@ -660,10 +672,12 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
   if(!m_QAName.empty())
   {
     QAFile->cd();
-    for(auto &hist : h)
+    for(int side=0; side<2; side++)
     {
-      hist->Write();
-      delete hist;
+      h[side]->Write();
+      gr[side]->Write(std::format("gr_clusters_{}",side ? "North" : "South").c_str());
+      delete h[side];
+      delete gr[side];
     }
     QAFile->Close();
   }

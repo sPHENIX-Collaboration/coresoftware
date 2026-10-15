@@ -2,7 +2,10 @@
 #define TPCCALIB_LASERCLUSTERTRUTHMATCHER_H
 
 #include <cdbobjects/CDBTTree.h>
+
 #include <tpc/LaserClusterHelper.h>
+#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcDistortionCorrectionContainer.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -81,6 +84,8 @@ class LaserClusterTruthMatcher : public SubsysReco
 
   void set_QABase(const std::string &name) { m_QABase = name; }
 
+  void set_grid_dimensions(int phibins, int rbins){ m_phibins = phibins; m_rbins = rbins; }
+  void setDistortionOutputfile(const std::string &outputfile) { m_distortionOutputfile = outputfile; }
 
  private:
   int getNodes(PHCompositeNode *topNode);
@@ -106,6 +111,22 @@ class LaserClusterTruthMatcher : public SubsysReco
   double m_garfield_keffside0{1.0};
   double m_garfield_keffside1{1.0};
   double m_garfield_stepns{50.0};
+
+  std::string m_distortionOutputfile{"CMDistortionCorrections.root"};
+
+  TpcDistortionCorrectionContainer *m_dcc_out{nullptr};
+
+  int m_phibins{500};
+
+  static constexpr float m_phiMin{0};
+  static constexpr float m_phiMax{2. * M_PI};
+
+  /// distortion correction grid size along r
+  // int m_rbins{12};
+  int m_rbins{500};
+
+  static constexpr float m_rMin{20};  // cm
+  static constexpr float m_rMax{80};  // cm
   
 };
 
