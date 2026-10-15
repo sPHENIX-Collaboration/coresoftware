@@ -69,7 +69,7 @@ int PHTrackCleaner::process_event(PHCompositeNode * /*topNode*/)
       continue;
     }
 
-    auto tpc_seed = track->get_tpc_seed();
+    auto *tpc_seed = getTpcSeed(track);
     unsigned int tpc_index = _tpc_seed_map->find(tpc_seed);
 
     auto tpc_track_pair = std::make_pair(tpc_index, track_id);
@@ -107,7 +107,7 @@ int PHTrackCleaner::process_event(PHCompositeNode * /*topNode*/)
       if (_track)
       {
         unsigned int si_index = UINT_MAX;
-        auto si_seed = _track->get_silicon_seed();
+        auto *si_seed = getSiliconSeed(_track);
         if (si_seed)
 	  {
 	    si_index = _silicon_seed_map->find(si_seed);
@@ -273,4 +273,33 @@ int PHTrackCleaner::GetNodes(PHCompositeNode *topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+TrackSeed *PHTrackCleaner::findSeed(TrackSeedContainer *container, unsigned short id)
+{
+  // find() does no bounds checking, so guard against unset (USHRT_MAX) or stale ids
+  if (!container || id >= container->size())
+  {
+    return nullptr;
+  }
+  return *container->find(id);
+}
+
+TrackSeed *PHTrackCleaner::getSiliconSeed(SvtxTrack *track) const
+{
+  // SvtxTrack_v4 and earlier carry the seed pointer, SvtxTrack_v5 only the seed id
+  if (TrackSeed *seed = track->get_silicon_seed())
+  {
+    return seed;
+  }
+  return findSeed(_silicon_seed_map, track->get_silicon_seed_id());
+}
+
+TrackSeed *PHTrackCleaner::getTpcSeed(SvtxTrack *track) const
+{
+  if (TrackSeed *seed = track->get_tpc_seed())
+  {
+    return seed;
+  }
+  return findSeed(_tpc_seed_map, track->get_tpc_seed_id());
 }
