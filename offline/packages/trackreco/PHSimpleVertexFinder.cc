@@ -9,6 +9,7 @@
 #include <trackbase/TrkrDefs.h>            // for cluskey, getLayer, TrkrId
 #include <trackbase_historic/SvtxTrack.h>  // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap_v2.h>
+#include <trackbase_historic/TrackSeedContainer.h>
 
 #include <globalvertex/SvtxVertexMap_v1.h>
 #include <globalvertex/SvtxVertex_v3.h>
@@ -97,7 +98,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
     // Here we skip those crossing = zero tracks that do not have silicon seeds
     if (_pp_mode)
     {
-      auto *siseed = track->get_silicon_seed();
+      auto *siseed = getSiliconSeed(track);
       if (crossing == 0 && !siseed)
       {
         continue;
@@ -282,7 +283,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
           SvtxTrack *track = _track_map->get(trid);
           if (track)
           {
-            auto *siseed = track->get_silicon_seed();
+            auto *siseed = getSiliconSeed(track);
             short int intt_crossing = siseed->get_crossing();
             std::cout << " vtxid " << thisid << " vertex crossing " << cross
                       << " track crossing " << cross
@@ -396,7 +397,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
           continue;
         }
 
-        auto *siseed = track->get_silicon_seed();
+        auto *siseed = getSiliconSeed(track);
         short int intt_crossing = siseed->get_crossing();
 
         // the track crossing may be from the INTT clusters or from geometric matching if there are no INTT clusters
@@ -500,6 +501,20 @@ int PHSimpleVertexFinder::GetNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  _silicon_seed_map = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  if (!_silicon_seed_map)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _tpc_seed_map = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  if (!_tpc_seed_map)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find TpcTrackSeedContainer" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -572,7 +587,7 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
 
     //    tr1->identify();
 
-    TrackSeed *siliconseed = tr1->get_silicon_seed();
+    TrackSeed *siliconseed = getSiliconSeed(tr1);
     const bool needs_mvtx_seed = _require_mvtx && _nmvtx_required > 0;
     const bool needs_intt_seed = _require_intt && _nintt_required > 0;
     if ((needs_mvtx_seed || needs_intt_seed) && !siliconseed)
@@ -587,7 +602,7 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
     {
       continue;
     }
-    TrackSeed *tpcseed = tr1->get_tpc_seed();
+    TrackSeed *tpcseed = getTpcSeed(tr1);
 
     std::vector<Acts::Vector3> global_vec;
     std::vector<TrkrDefs::cluskey> cluskey_vec;
@@ -1270,7 +1285,7 @@ bool PHSimpleVertexFinder::passClusterRequirement(SvtxTrack *track, const std::s
     return true;
   }
 
-  TrackSeed *siliconseed = track->get_silicon_seed();
+  TrackSeed *siliconseed = getSiliconSeed(track);
   if (!siliconseed)
   {
     return false;
@@ -1296,4 +1311,33 @@ bool PHSimpleVertexFinder::passClusterRequirement(SvtxTrack *track, const std::s
   }
 
   return pass;
+}
+
+TrackSeed *PHSimpleVertexFinder::findSeed(TrackSeedContainer *container, unsigned short id)
+{
+  // find() does no bounds checking, so guard against unset (USHRT_MAX) or stale ids
+  if (!container || id >= container->size())
+  {
+    return nullptr;
+  }
+  return *container->find(id);
+}
+
+TrackSeed *PHSimpleVertexFinder::getSiliconSeed(SvtxTrack *track) const
+{
+  // SvtxTrack_v4 and earlier carry the seed pointer, SvtxTrack_v5 only the seed id
+  if (TrackSeed *seed = track->get_silicon_seed())
+  {
+    return seed;
+  }
+  return findSeed(_silicon_seed_map, track->get_silicon_seed_id());
+}
+
+TrackSeed *PHSimpleVertexFinder::getTpcSeed(SvtxTrack *track) const
+{
+  if (TrackSeed *seed = track->get_tpc_seed())
+  {
+    return seed;
+  }
+  return findSeed(_tpc_seed_map, track->get_tpc_seed_id());
 }

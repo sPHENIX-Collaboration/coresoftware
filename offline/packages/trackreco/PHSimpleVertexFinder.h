@@ -28,6 +28,7 @@ class SvtxVertexMap;
 class TrkrCluster;
 class TrackVertexCrossingAssoc;
 class TrackSeed;
+class TrackSeedContainer;
 class TrkrClusterContainer;
 class ActsGeometry;
 
@@ -86,9 +87,14 @@ class PHSimpleVertexFinder : public SubsysReco
   double getMedian(std::vector<double> &v);
   double getAverage(std::vector<double> &v);
   bool passClusterRequirement(SvtxTrack *track, const std::string &type = "MVTX");
+  TrackSeed *getSiliconSeed(SvtxTrack *track) const;
+  TrackSeed *getTpcSeed(SvtxTrack *track) const;
+  static TrackSeed *findSeed(TrackSeedContainer *container, unsigned short id);
 
   SvtxTrackMap *_track_map{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};
+  TrackSeedContainer *_silicon_seed_map{nullptr};
+  TrackSeedContainer *_tpc_seed_map{nullptr};
   SvtxVertexMap *_svtx_vertex_map{nullptr};
   ActsGeometry *_tGeometry{nullptr};
 
