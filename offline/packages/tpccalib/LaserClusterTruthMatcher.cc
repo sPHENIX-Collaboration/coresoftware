@@ -31,6 +31,7 @@
 #include <format>
 #include <iomanip>
 #include <iostream>
+#include <numbers>
 #include <numeric>
 #include <set>
 
@@ -43,7 +44,8 @@
 
 namespace
 {
-  constexpr double kPetalDefault = TMath::Pi() / 9.0;  // 20 degrees
+  constexpr double pi_double = std::numbers::pi;
+  constexpr double kPetalDefault = pi_double / 9.0;  // 20 degrees
 
   struct Cluster
   {
@@ -223,7 +225,7 @@ namespace
   constexpr int lamRecoverySearchRows = 8;
   constexpr double lamRecoveryMatchTol = 0.005;
   constexpr double lamRecoveryFloorFrac = 0.10;
-  const double phiPetalLo[2] = {-TMath::Pi() / 18.0, 0.0};
+  const double phiPetalLo[2] = {-pi_double / 18.0, 0.0};
 
   //! Find stripe peaks in one row's folded-phi KDE.
   //! Seeds from the tallest intetior peak and walks outward in steps of ~recoDphi
@@ -1028,7 +1030,7 @@ namespace
       for(int j=0; j<(int)rowClus[i].size(); j++)
       {
         const double dPhi = (j == (int) rowClus[i].size() - 1)
-          ? rowClus[i][0].phi + 2*TMath::Pi() - rowClus[i][j].phi // wrap around in 2pi
+          ? rowClus[i][0].phi + 2*pi_double - rowClus[i][j].phi // wrap around in 2pi
           : rowClus[i][j+1].phi - rowClus[i][j].phi;
         hDPhi[i]->Fill(dPhi);
       }
@@ -1283,7 +1285,7 @@ namespace
       {
         unsigned int currentIndex = encodeTruthIndex(side, p, best.truthOf[row], iphi);
         double candTruthPhi = cdbttree.GetDoubleValue(currentIndex, "truthPhi");
-        double dPhi = std::abs(circDiff(c.phi, candTruthPhi, 2.0*TMath::Pi()));
+        double dPhi = std::abs(circDiff(c.phi, candTruthPhi, 2.0*pi_double));
         cands.push_back({dPhi, p});
       }
       std::sort(cands.begin(), cands.end(), [](const PetalCand &a, const PetalCand &b){ return a.dPhi < b.dPhi; });
@@ -1349,8 +1351,8 @@ namespace
 
   inline double wrapTwoPi(double phi)            // -> [0, 2pi)
   {
-    phi = std::fmod(phi, 2*TMath::Pi());
-    return (phi < 0) ? phi + 2*TMath::Pi() : phi;
+    phi = std::fmod(phi, 2*pi_double);
+    return (phi < 0) ? phi + 2*pi_double : phi;
   }
 
   // y(phi) for one row at phi0: Gaussian-kernel local-linear, periodic on [0, 2pi).
@@ -1369,8 +1371,8 @@ namespace
     for (size_t k = 0; k < phi.size(); ++k)
     {
       double d = phi[k] - phi0;                  // in (-2pi, 2pi) for inputs in [0, 2pi)
-      if      (d >  TMath::Pi()){ d -= 2*TMath::Pi(); }           // shortest signed distance around the circle
-      else if (d < -TMath::Pi()){ d += 2*TMath::Pi(); }
+      if      (d >  pi_double){ d -= 2*pi_double; }           // shortest signed distance around the circle
+      else if (d < -pi_double){ d += 2*pi_double; }
       if (std::abs(d) > 4*h){ continue; }
 
       const double K = w[k] * std::exp(-0.5*d*d/(h*h));
@@ -1387,30 +1389,27 @@ namespace
     return (S2*T0 - S1*T1) / det;                // local-linear intercept
   }
 
-  void fill_guarding_bins(TpcDistortionCorrectionContainer *dcc)
+  void fill_guarding_bins(TpcDistortionCorrectionContainer *dcc, int side)
   {
-    for(int side=0; side<2; side++)
+    for(const auto& h : {dcc->m_hDRint[side], dcc->m_hDPint[side], dcc->m_hentries[side]})
     {
-      for(const auto& h : {dcc->m_hDRint[side], dcc->m_hDPint[side], dcc->m_hentries[side]})
+      // fill guarding phi bins
+      /*
+      * we use 2pi periodicity to do that:
+      * - last valid bin is copied to first guarding bin;
+      * - first valid bin is copied to last guarding bin
+      */
+      const auto phibins = h->GetNbinsX();
+      const auto rbins = h->GetNbinsY();
+      for (int ir = 0; ir < rbins; ++ir)
       {
-        // fill guarding phi bins
-        /*
-        * we use 2pi periodicity to do that:
-        * - last valid bin is copied to first guarding bin;
-        * - first valid bin is copied to last guarding bin
-        */
-        const auto phibins = h->GetNbinsX();
-        const auto rbins = h->GetNbinsY();
-        for (int ir = 0; ir < rbins; ++ir)
-        {
-          // copy last valid bin to first guarding bin
-          h->SetBinContent(1, ir + 1, h->GetBinContent(phibins - 1, ir + 1));
-          h->SetBinError(1, ir + 1, h->GetBinError(phibins - 1, ir + 1));
+        // copy last valid bin to first guarding bin
+        h->SetBinContent(1, ir + 1, h->GetBinContent(phibins - 1, ir + 1));
+        h->SetBinError(1, ir + 1, h->GetBinError(phibins - 1, ir + 1));
 
-          // copy first valid bin to last guarding bin
-          h->SetBinContent(phibins, ir + 1, h->GetBinContent(2, ir + 1));
-          h->SetBinError(phibins, ir + 1, h->GetBinError(2, ir + 1));
-        }
+        // copy first valid bin to last guarding bin
+        h->SetBinContent(phibins, ir + 1, h->GetBinContent(2, ir + 1));
+        h->SetBinError(phibins, ir + 1, h->GetBinError(2, ir + 1));
       }
     }
   }
@@ -1473,6 +1472,16 @@ int LaserClusterTruthMatcher::getNodes(PHCompositeNode *topNode)
     m_laserClusterHelper.set_garfield_stepns(m_garfield_stepns);
   }
   m_laserClusterHelper.loadNodes(topNode);
+
+  if(m_useGlobal)
+  {
+    m_tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
+    if(!m_tGeometry)
+    {
+        std::cout << "LaserClusterTruthMatcher::loadNodes - ActsGeometry not found on node tree" << std::endl;
+        return Fun4AllReturnCodes::ABORTRUN;
+    }
+  }
 
   const float phiMin = m_phiMin - (m_phiMax - m_phiMin) / m_phibins;
   const float phiMax = m_phiMax + (m_phiMax - m_phiMin) / m_phibins;
@@ -1644,18 +1653,26 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode *topNode)
 
         recoR = sqrt(pos[0]*pos[0] + pos[1]*pos[1]);
         recoPhi = atan2(pos[1], pos[0]);
-        if(recoPhi < 0){ recoPhi += 2*TMath::Pi(); }
+        if(recoPhi < 0){ recoPhi += 2*pi_double; }
         if(matchedIndex.first >= 0)
         {
           truthR = m_cdbttree->GetDoubleValue(matchedIndex.first, "truthR");
           truthPhi = m_cdbttree->GetDoubleValue(matchedIndex.first, "truthPhi");
+          if(m_useGlobal && m_tGeometry)
+          {
+            Acts::Vector3 idealTruthPos(truthR*cos(truthPhi), truthR*sin(truthPhi), (side ? 1.0 : -1.0)*m_tGeometry->get_CM_halfwidth());
+            Acts::Vector3 globalTruthPos = m_tGeometry->transformTpcEnvelopeToWorld(idealTruthPos);
+
+            truthR = sqrt(globalTruthPos(0)*globalTruthPos(0) + globalTruthPos(1)*globalTruthPos(1));
+            truthPhi = atan2(globalTruthPos(1), globalTruthPos(0));
+          }
+          if(truthPhi < 0){ truthPhi += 2*pi_double; }
         }
         else
         {
           truthR = -999;
           truthPhi = -999;
         }
-        if(truthPhi < 0){ truthPhi += 2*TMath::Pi(); }
 
         int recoRow = rowOf(recoR, rowResult.bound);
 
@@ -1671,8 +1688,8 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode *topNode)
 
         double dR = recoR - truthR;
         double dPhi = recoPhi - truthPhi;
-        if(dPhi > TMath::Pi()){ dPhi -= 2*TMath::Pi(); }
-        else if(dPhi < -TMath::Pi()){ dPhi += 2*TMath::Pi(); }
+        if(dPhi > pi_double){ dPhi -= 2*pi_double; }
+        else if(dPhi < -pi_double){ dPhi += 2*pi_double; }
         if(!matchedIndex.second && matchedIndex.first >= 0 && matchedTruthRow != 23 && matchedTruthRow != 15)
         {
 
@@ -1689,15 +1706,15 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode *topNode)
           gr_recoPoints->AddPoint(recoPhi, recoR);
           gr_truthPoints->AddPoint(truthPhi, truthR);
 
-          if(recoPhi < TMath::Pi()/12)
+          if(recoPhi < pi_double/12)
           {
-            gr_dR->AddPoint(recoPhi+2*TMath::Pi(), recoR, dR);
-            gr_dPhi->AddPoint(recoPhi+2*TMath::Pi(), recoR, dPhi);
+            gr_dR->AddPoint(recoPhi+2*pi_double, recoR, dR);
+            gr_dPhi->AddPoint(recoPhi+2*pi_double, recoR, dPhi);
           }
-          else if(recoPhi > 23*TMath::Pi()/12)
+          else if(recoPhi > 23*pi_double/12)
           {
-            gr_dR->AddPoint(recoPhi-2*TMath::Pi(), recoR, dR);
-            gr_dPhi->AddPoint(recoPhi-2*TMath::Pi(), recoR, dPhi);
+            gr_dR->AddPoint(recoPhi-2*pi_double, recoR, dR);
+            gr_dPhi->AddPoint(recoPhi-2*pi_double, recoR, dPhi);
           }
           
         }
@@ -1771,8 +1788,8 @@ int LaserClusterTruthMatcher::process_event(PHCompositeNode *topNode)
       }
     }
     */
-
-    fill_guarding_bins(m_dcc_out);
+    
+    fill_guarding_bins(m_dcc_out, side);
 
     distortionOutputfile->cd();
     for (const auto& h : {m_dcc_out->m_hDRint[side], m_dcc_out->m_hDPint[side], m_dcc_out->m_hDZint[side], m_dcc_out->m_hentries[side]})
