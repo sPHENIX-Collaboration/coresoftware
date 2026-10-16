@@ -43,13 +43,6 @@ int StreamingBcoReco::Init(PHCompositeNode *topNode)
 {
   int iret = CreateNodeTree(topNode);
   h_bco_diff = new TH1I("h_bco_diff", ";bco diff;", 3500, 0, 3500);
-  //std::string hist_name = "h_bco_diff_bit";
-  //for (int bit=0; bit<trigbits; ++bit)
-  //{
-  //  hist_name += std::to_string(bit);
-  //  h_bco_diff_trigbits[bit] = new TH1I(hist_name.c_str(), ";bco diff;", 3500, 0, 3500);
-  //  hm->registerHisto(h_bco_diff_trigbits[bit]);
-  //}
   h_bco_tag = new TH1I("h_bco_tag", ";usable bco tag;", 2, -0.5, 1.5);
   hm->registerHisto(h_bco_diff);
   hm->registerHisto(h_bco_tag);
@@ -127,7 +120,7 @@ int StreamingBcoReco::process_event(PHCompositeNode *topNode)
     if (bco_diff_futu < m_default_positive_window_length)
     {
       // double check boundaries for overlap!!
-      m_bco_streaming_window = std::make_pair(get_bco() - m_default_negative_window_length, bco_futu - m_default_negative_window_length + 1);
+      m_bco_streaming_window = std::make_pair(get_bco() - m_default_negative_window_length, bco_futu - m_default_negative_window_length - 1);
     }
     else
     {
@@ -140,15 +133,6 @@ int StreamingBcoReco::process_event(PHCompositeNode *topNode)
     }
     h_bco_diff->Fill(bco_diff_prev);
     h_bco_tag->Fill(m_usable_bco_tag);
-    // There is no longer a need to read in the .evt file here, so we won't have access to this info. If we wish to access it we can in a different module
-    //for (int bit=0; bit<trigbits; ++bit)
-    //{
-    //  bool trigger_fired = ((gl1_scaledvec >> static_cast<uint64_t>(bit)) & 0x1U) == 0x1U;
-    //  if (trigger_fired)
-    //  {
-    //    h_bco_diff_trigbits[bit]->Fill(bco_diff_prev);
-    //  }
-    //}
 
     streaming_bco_info->set_bco(get_bco());
     streaming_bco_info->set_usable_bco_tag(get_usable_bco_tag());
