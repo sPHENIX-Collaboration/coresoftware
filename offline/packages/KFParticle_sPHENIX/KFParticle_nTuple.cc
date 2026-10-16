@@ -1,5 +1,4 @@
 #include "KFParticle_nTuple.h"
-
 #include "KFParticle_Tools.h"
 
 #include <ffaobjects/EventHeader.h>
@@ -12,6 +11,8 @@
 
 #include <KFParticle.h>
 #include <KFVertex.h>
+
+#include <centrality/CentralityInfo.h>
 
 #include <Rtypes.h>
 #include <TString.h>  // for TString, operator+
@@ -26,8 +27,8 @@ class PHCompositeNode;
 class PHNode;
 
 /// Create necessary objects
-KFParticle_Tools kfpTupleTools;
 float TempError;
+KFParticle_Tools kfpTupleTools;
 
 void KFParticle_nTuple::initializeVariables()
 {
@@ -242,7 +243,6 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
     // m_tree->Branch(TString(daughter_number) + "_expected_pion_dEdx", &m_calculated_daughter_expected_dedx_pion[i], TString(daughter_number) + "_expected_pion_dEdx/F");
     // m_tree->Branch(TString(daughter_number) + "_expected_kaon_dEdx", &m_calculated_daughter_expected_dedx_kaon[i], TString(daughter_number) + "_expected_kaon_dEdx/F");
     // m_tree->Branch(TString(daughter_number) + "_expected_proton_dEdx", &m_calculated_daughter_expected_dedx_proton[i], TString(daughter_number) + "_expected_proton_dEdx/F");
-
     if (m_calo_info)
     {
       initializeCaloBranches(m_tree, i, daughter_number);
@@ -297,6 +297,12 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
     // m_tree->Branch( "primary_vertex_Covariance",   m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
     m_tree->Branch("primary_vertex_Covariance", &m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6);
   }
+
+  if(m_use_centrality_nTuple)
+  {
+    m_tree->Branch("centrality_MBD", &m_centrality_mbd);
+  }
+
   if (m_get_all_PVs)
   {
     m_tree->Branch("all_primary_vertex_x", &allPV_x);
@@ -335,6 +341,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   KFParticle* daughterArray = daughters.data();
 
   bool switchTrackPosition;
+  kfpTupleTools.set_dont_use_global_vertex(m_dont_use_global_vertex_truth);
+  kfpTupleTools.set_use_mbd_vertex(m_use_mbd_vertex_truth);
 
   int num_tracks_used_by_intermediates = 0;
   for (int k = 0; k < m_num_intermediate_states_nTuple; ++k)  // Rearrange tracks from intermediate states
@@ -497,6 +505,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   }
 
   isTrackEMCalmatch = true;
+  bool bunchCrossingisZero = true;
   for (int i = 0; i < m_num_tracks_nTuple; ++i)
   {
     m_calculated_daughter_mass[i] = daughterArray[i].GetMass();
@@ -541,6 +550,10 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     SvtxTrackMap* thisTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
     SvtxTrack* thisTrack = getTrack(daughterArray[i].Id(), thisTrackMap);
     m_calculated_daughter_bunch_crossing[i] = thisTrack->get_crossing();
+    if (m_calculated_daughter_bunch_crossing[i] != 0)
+    {
+      bunchCrossingisZero = false;
+    }
     if (m_get_dEdx)
     {
       m_calculated_daughter_dedx[i] = kfpTupleTools.get_dEdx(topNode, daughterArray[i]);  // m_get_dEdx defaults to false; run get_dEdx_info() to change this
@@ -673,6 +686,44 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   {
     m_nTracksOfVertex = 0;
   }
+
+  if(m_use_centrality_nTuple)
+  {
+    CentralityInfo *m_CentInfo = nullptr;
+    m_CentInfo =  findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
+     
+    if (!m_CentInfo)
+    {
+        std::cout << "KFparticle - [WARNING] - can't find CentralityInfo node " << "CentralityInfo" << std::endl;
+        m_centrality_mbd = -999.;
+    }
+    else
+    {
+        if (m_CentInfo->has_centrality_bin(CentralityInfo::PROP::mbd_NS))
+        {
+          if(bunchCrossingisZero)
+          {
+            m_centrality_mbd = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
+          }
+          else
+          {
+            if (m_verbosity_nTuple > 0)
+            {
+              std::cout << "KFparticle - Invalid bunch crossing" << std::endl;
+            }
+            m_centrality_mbd = std::numeric_limits<float>::quiet_NaN();
+          }
+        }
+        else
+        {
+            std::cout << "[WARNING/ERROR] No centrality information found in CentralityInfo. Setting centrality_mbd to -99. Please check!" << std::endl;
+            m_CentInfo->identify();
+            m_centrality_mbd = -99.;
+        }
+    }
+  }
+
+
 
   PHNodeIterator nodeIter(topNode);
 
