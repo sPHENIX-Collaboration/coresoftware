@@ -509,7 +509,9 @@ int PHSimpleVertexFinder::GetNodes(PHCompositeNode *topNode)
   }
 
   _tpc_seed_map = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
-  if (!_tpc_seed_map)
+  // silicon-only vertexing runs before the TPC seeds exist
+  const bool silicon_vertexing = _vertex_map_name.find("Silicon") != std::string::npos;
+  if (!_tpc_seed_map && !silicon_vertexing)
   {
     std::cout << PHWHERE << " ERROR: Can't find TpcTrackSeedContainer" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
