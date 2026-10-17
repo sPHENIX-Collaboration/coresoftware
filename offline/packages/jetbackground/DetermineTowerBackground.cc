@@ -130,9 +130,9 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
   
   // pull out the tower containers and geometry objects at the start
-  EMTowerName = m_towerNodePrefix + "_CEMC_RETOWER";
-  IHTowerName = m_towerNodePrefix + "_HCALIN";
-  OHTowerName = m_towerNodePrefix + "_HCALOUT";
+  EMTowerName = emcal_input_node();
+  IHTowerName = ihcal_input_node();
+  OHTowerName = ohcal_input_node();
   auto * towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
   auto * towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
   auto * towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
@@ -152,16 +152,16 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
-  auto * geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
-  auto * geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+  auto *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, m_ihcal_geom_node);
+  auto *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, m_ohcal_geom_node);
   if ( !geomIH )
   {
-    std::cout << "DetermineTowerBackground::process_event: Cannot find TOWERGEOM_HCALIN, exiting" << std::endl;
+    std::cout << "DetermineTowerBackground::process_event: Cannot find " << m_ihcal_geom_node << ", exiting" << std::endl;
     exit(1);
   }
   if ( !geomOH )
   {
-    std::cout << "DetermineTowerBackground::process_event: Cannot find TOWERGEOM_HCALOUT, exiting" << std::endl;
+    std::cout << "DetermineTowerBackground::process_event: Cannot find " << m_ohcal_geom_node << ", exiting" << std::endl;
     exit(1);
   }
 
@@ -223,10 +223,11 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   // seed type 0 is D > 3 R=0.2 jets run on retowerized CEMC
   if (_seed_type == 0)
   {
-    auto * reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsRaw_r02");
+    const std::string seednode = m_jetnode.empty() ? "AntiKt_TowerInfo_HIRecoSeedsRaw_r02" : m_jetnode;
+    auto *reco2_jets = findNode::getClass<JetContainer>(topNode, seednode);
     if (!reco2_jets)
     {
-      std::cout << "DetermineTowerBackground::process_event: Cannot find AntiKt_TowerInfo_HIRecoSeedsRaw_r02, exiting" << std::endl;
+      std::cout << "DetermineTowerBackground::process_event: Cannot find " << seednode << " node, exiting" << std::endl;
       exit(1);
     }
     if (Verbosity() > 1)
@@ -242,7 +243,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       float this_phi = this_jet->get_phi();
       float this_eta = this_jet->get_eta();
 
-      if (this_jet->get_pt() < 5)
+      if (this_jet->get_pt() < _seed_jet_pt)
       {
         // mark that this jet was not selected as a seed (and did not have D determined)
         this_jet->set_property(_index_SeedD, 0);
@@ -394,10 +395,12 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   // pT > 20 GeV
   if (_seed_type == 1)
   {
-    auto * reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsSub_r02");
+    // 2nd iteration seeds from the UE-subtracted R=0.2 jets unless overridden
+    const std::string seednode = m_jetnode.empty() ? "AntiKt_TowerInfo_HIRecoSeedsSub_r02" : m_jetnode;
+    auto *reco2_jets = findNode::getClass<JetContainer>(topNode, seednode);
     if (!reco2_jets)
     {
-      std::cout << "DetermineTowerBackground::process_event: Cannot find AntiKt_TowerInfo_HIRecoSeedsSub_r02, exiting" << std::endl;
+      std::cout << "DetermineTowerBackground::process_event: Cannot find " << seednode << " node, exiting" << std::endl;
       exit(1);
     }
     if (Verbosity() > 1)
@@ -1045,7 +1048,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
             dphi += 2 * M_PI;
           }
           float dR = sqrt(pow(deta, 2) + pow(dphi, 2));
-          if (dR < 0.4)
+          if (dR < _seed_exclusion_DR)
           {
             isExcluded = true;
             if (Verbosity() > 10)
