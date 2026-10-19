@@ -284,6 +284,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
 {
   std::vector<KFParticle> daughterParticles;
   m_dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
+  m_silicon_seed_container = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");  // needed to resolve SvtxTrack_v5 silicon seed ids
   unsigned int trackID = 0;
 
   m_intermediate_crossings.clear();
@@ -306,10 +307,10 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
 
     std::string track_version = m_dst_track->ClassName();
 
-    if (m_dst_track->InheritsFrom("SvtxTrack_v1")
-    ||  m_dst_track->InheritsFrom("SvtxTrack_v2")
-    ||  m_dst_track->InheritsFrom("SvtxTrack_v3")
-    ||  m_dst_track->InheritsFrom("SvtxTrack_v5"))
+    // The per-detector cluster count getters only exist in SvtxTrack_v5 (not in the SvtxTrack base class)
+    const auto *v5_track = dynamic_cast<const SvtxTrack_v5 *>(m_dst_track);
+
+    if (!v5_track)  // v1-v4: count the per-cluster track states
     {
       for (auto state_iter = m_dst_track->begin_states();
            state_iter != m_dst_track->end_states();
@@ -344,10 +345,10 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
     }
     else
     {
-      m_nMVTXStates = m_dst_track->get_nmvtx_clusters();
-      m_nINTTStates = m_dst_track->get_nintt_clusters();
-      m_nTPCStates = m_dst_track->get_ntpc_clusters();
-      m_nTPOTStates = m_dst_track->get_ntpot_clusters();
+      MVTX_states = v5_track->get_nmvtx_clusters();
+      INTT_states = v5_track->get_nintt_clusters();
+      TPC_states = v5_track->get_ntpc_clusters();
+      TPOT_states = v5_track->get_ntpot_clusters();
     }
 
     if (m_verbosity > 100)
@@ -517,7 +518,19 @@ bool KFParticle_Tools::isTPConlyAtZeroCrossing(const KFParticle& track)
 {
   const auto* svtxTrack = KFParticle_truthAndDetTools::getTrack(track.Id(), m_dst_trackmap);
 
-  return svtxTrack && svtxTrack->get_crossing() == 0 && svtxTrack->get_silicon_seed() == nullptr;
+  if (!svtxTrack || svtxTrack->get_crossing() != 0)
+  {
+    return false;
+  }
+
+  // SvtxTrack_v4 and earlier carry the seed pointer, SvtxTrack_v5 only the seed id
+  TrackSeed *silseed = svtxTrack->get_silicon_seed();
+  if (!silseed && svtxTrack->InheritsFrom("SvtxTrack_v5"))
+  {
+    silseed = findSeed(m_silicon_seed_container, svtxTrack->get_silicon_seed_id());
+  }
+
+  return silseed == nullptr;
 }
 
 int KFParticle_Tools::calcMinPV_DCA(const KFParticle &track, const std::vector<KFParticle> &PVs,

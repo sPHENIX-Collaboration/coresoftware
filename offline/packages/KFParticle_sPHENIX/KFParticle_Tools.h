@@ -135,9 +135,15 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   std::vector<int> getParticleCrossings(const KFParticle &particle);
 
-  TrackSeed *findSeed(TrackSeedContainer *container, unsigned short id);
+  static TrackSeed *findSeed(TrackSeedContainer *container, unsigned short id);
 
-  void set_dont_use_global_vertex(bool set_variable) { m_dont_use_global_vertex = set_variable; }
+  // Read-only access to the settings that the nTuple/truth helper classes need.
+  // The helpers use the one KFParticle_Tools instance that owns the settings (see
+  // KFParticle_truthAndDetTools::setToolsInstance) rather than keeping their own copies.
+  bool get_use_mbd_vertex() const { return m_use_mbd_vertex; }
+  bool get_dont_use_global_vertex() const { return m_dont_use_global_vertex; }
+  const std::string &get_vtx_map_node_name() const { return m_vtx_map_node_name; }
+  const std::string &get_trk_map_node_name() const { return m_trk_map_node_name; }
 
  protected:
   int m_verbosity = 0;
@@ -297,6 +303,7 @@ class KFParticle_Tools : protected KFParticle_MVA
   MbdVertexMap *m_dst_mbdvertexmap{nullptr};
   MbdVertex *m_dst_mbdvertex{nullptr};
   SvtxTrackMap *m_dst_trackmap{nullptr};
+  TrackSeedContainer *m_silicon_seed_container{nullptr};
   SvtxTrack *m_dst_track{nullptr};
   SvtxVertexMap *m_dst_vertexmap{nullptr};
   SvtxVertex *m_dst_vertex{nullptr};

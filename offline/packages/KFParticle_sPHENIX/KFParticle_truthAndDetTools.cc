@@ -181,13 +181,13 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   float true_p;
   float true_pt;
 
-  dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
+  dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_tools->get_trk_map_node_name());
   if (!dst_trackmap)
   {
-    std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
+    std::cout << "KFParticle truth matching: " << m_tools->get_trk_map_node_name() << " does not exist" << std::endl;
   }
 
-  if (m_use_mbd_vertex_truth)
+  if (m_tools->get_use_mbd_vertex())
   {
     dst_mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
     if (!dst_mbdvertexmap)
@@ -197,10 +197,10 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   }
   else
   {
-    dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name_nTuple);
+    dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_tools->get_vtx_map_node_name());
     if (!dst_vertexmap)
     {
-      std::cout << "KFParticle truth matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+      std::cout << "KFParticle truth matching: " << m_tools->get_vtx_map_node_name() << " does not exist" << std::endl;
     }
   }
 
@@ -251,13 +251,13 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   {
     // Calculate true DCA
     GlobalVertex *recoVertex = getVertex(kfvertex.Id(), globalvertexmap);
-    GlobalVertex::VTXTYPE whichVtx = m_use_mbd_vertex_truth ? GlobalVertex::MBD : GlobalVertex::SVTX;
+    GlobalVertex::VTXTYPE whichVtx = m_tools->get_use_mbd_vertex() ? GlobalVertex::MBD : GlobalVertex::SVTX;
     auto svtxviter = recoVertex->find_vertexes(whichVtx);
 
     // check that it contains a track vertex
     if (svtxviter == recoVertex->end_vertexes())
     {
-      std::string vtxType = m_use_mbd_vertex_truth ? "MBD" : "silicon";
+      std::string vtxType = m_tools->get_use_mbd_vertex() ? "MBD" : "silicon";
       std::cout << "Have a global vertex with no " << vtxType << " vertex... shouldn't happen in KFParticle_truthAndDetTools::fillTruthBranch..." << std::endl;
     }
 
@@ -267,7 +267,7 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
 
     for (auto &vertex_iter : svtxvertexvector)
     {
-      if (m_use_mbd_vertex_truth)
+      if (m_tools->get_use_mbd_vertex())
       {
         mbdvertex = dst_mbdvertexmap->find(vertex_iter->get_id())->second;
       }
@@ -278,7 +278,7 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
     }
 
     PHG4VtxPoint *truePoint = nullptr;
-    if (m_use_mbd_vertex_truth)
+    if (m_tools->get_use_mbd_vertex())
     {
       std::set<PHG4VtxPoint *> truePointSet = vertexeval->all_truth_points(mbdvertex);
       truePoint = *truePointSet.begin();
@@ -383,10 +383,10 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
   dummyParticle->set_pdg_id(0);
   dummyParticle->set_generated_mass(0.);
 
-  dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
+  dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_tools->get_trk_map_node_name());
   if (!dst_trackmap)
   {
-    std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
+    std::cout << "KFParticle truth matching: " << m_tools->get_trk_map_node_name() << " does not exist" << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
@@ -527,10 +527,10 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
 {
 
   // Get track map
-  dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
+  dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_tools->get_trk_map_node_name());
   if (!dst_trackmap)
   {
-    std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
+    std::cout << "KFParticle truth matching: " << m_tools->get_trk_map_node_name() << " does not exist" << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
@@ -1359,10 +1359,10 @@ void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, c
 void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
                                                      TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id)
 {
-  dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
+  dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_tools->get_trk_map_node_name());
   if (!dst_trackmap)
   {
-    std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
+    std::cout << "KFParticle truth matching: " << m_tools->get_trk_map_node_name() << " does not exist" << std::endl;
   }
 
   std::string geoName = "ActsGeometry";
@@ -1394,13 +1394,12 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
 
   if (isTrack_v5)
   {
-    siliconSeedContainer = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+    siliconSeedContainer = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
     tpcSeedContainer = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   }
 
-  KFParticle_Tools kfpTupleTools;
-  TrackSeed *silseed = isTrack_v5 ? kfpTupleTools.findSeed(siliconSeedContainer, track->get_silicon_seed_id()) : track->get_silicon_seed();
-  TrackSeed *tpcseed = isTrack_v5 ? kfpTupleTools.findSeed(tpcSeedContainer, track->get_tpc_seed_id()) : track->get_tpc_seed();
+  TrackSeed *silseed = isTrack_v5 ? KFParticle_Tools::findSeed(siliconSeedContainer, track->get_silicon_seed_id()) : track->get_silicon_seed();
+  TrackSeed *tpcseed = isTrack_v5 ? KFParticle_Tools::findSeed(tpcSeedContainer, track->get_tpc_seed_id()) : track->get_tpc_seed();
 
   if (silseed)
   {
@@ -1533,9 +1532,9 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
 
 int KFParticle_truthAndDetTools::getPVID(PHCompositeNode *topNode, const KFParticle &kfpvertex)
 {
-  if (m_dont_use_global_vertex_truth)
+  if (m_tools->get_dont_use_global_vertex())
   {
-    if (m_use_mbd_vertex_truth)
+    if (m_tools->get_use_mbd_vertex())
     {
       dst_mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
       if (dst_mbdvertexmap)
@@ -1544,18 +1543,18 @@ int KFParticle_truthAndDetTools::getPVID(PHCompositeNode *topNode, const KFParti
         return m_dst_vertex->get_beam_crossing();
       }
 
-      std::cout << "KFParticle vertex matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+      std::cout << "KFParticle vertex matching: " << m_tools->get_vtx_map_node_name() << " does not exist" << std::endl;
     }
     else
     {
-      dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name_nTuple);
+      dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_tools->get_vtx_map_node_name());
       if (dst_vertexmap)
       {
         SvtxVertex *m_dst_vertex = dst_vertexmap->get(kfpvertex.Id());
         return m_dst_vertex->get_beam_crossing();
       }
 
-      std::cout << "KFParticle vertex matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+      std::cout << "KFParticle vertex matching: " << m_tools->get_vtx_map_node_name() << " does not exist" << std::endl;
     }
   }
   else
@@ -1579,9 +1578,7 @@ void KFParticle_truthAndDetTools::allPVInfo(PHCompositeNode *topNode,
                                             std::vector<KFParticle> daughters,
                                             std::vector<KFParticle> intermediates)
 {
-  KFParticle_Tools kfpTupleTools;
-  kfpTupleTools.set_dont_use_global_vertex(m_dont_use_global_vertex_truth);
-  std::vector<KFParticle> primaryVertices = kfpTupleTools.makeAllPrimaryVertices(topNode, m_vtx_map_node_name_nTuple);
+  std::vector<KFParticle> primaryVertices = m_tools->makeAllPrimaryVertices(topNode, m_tools->get_vtx_map_node_name());
 
   for (auto &primaryVertice : primaryVertices)
   {

@@ -246,10 +246,9 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void useMbdVertex(bool use = true)
   {
     m_use_mbd_vertex = use;
-    m_use_mbd_vertex_truth = use;
   }
 
-  void dontUseGlobalVertex(bool dont = true) { m_dont_use_global_vertex = m_dont_use_global_vertex_truth  = dont; }
+  void dontUseGlobalVertex(bool dont = true) { m_dont_use_global_vertex = dont; }
 
   void useFakePrimaryVertex(bool use_fake = true)
   {
@@ -408,10 +407,10 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void setPIDacceptFraction(float frac = 0.2){ m_dEdx_band_width = frac; }
 
   /// Use alternate vertex and track fitters
-  void setVertexMapNodeName(const std::string &vtx_map_node_name) { m_vtx_map_node_name = m_vtx_map_node_name_nTuple = vtx_map_node_name; }
+  void setVertexMapNodeName(const std::string &vtx_map_node_name) { m_vtx_map_node_name = vtx_map_node_name; }
 
   /// Use alternate vertex and track fitters
-  void setTrackMapNodeName(const std::string &trk_map_node_name) { m_trk_map_node_name = m_trk_map_node_name_nTuple = m_origin_track_map_node_name = trk_map_node_name; }
+  void setTrackMapNodeName(const std::string &trk_map_node_name) { m_trk_map_node_name = m_origin_track_map_node_name = trk_map_node_name; }
 
   void magFieldFile(const std::string &fname) { m_magField = fname; }
 
