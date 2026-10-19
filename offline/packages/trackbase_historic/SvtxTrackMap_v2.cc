@@ -49,26 +49,10 @@ SvtxTrackMap_v2::~SvtxTrackMap_v2()
 
 void SvtxTrackMap_v2::Reset()
 {
-  std::set<TrackSeed*> owned;
   for (auto& iter : _map)
   {
-    if (iter.second)
-    {
-      if (auto* seed = iter.second->get_tpc_seed())
-      {
-        owned.insert(seed);
-      }
-      if (auto* seed = iter.second->get_silicon_seed())
-      {
-        owned.insert(seed);
-      }
-    }
-    delete iter.second;
-  }
-
-  for (auto* s : owned)
-  {
-    delete s;
+    SvtxTrack* track = iter.second;
+    delete track;
   }
   _map.clear();
 }
