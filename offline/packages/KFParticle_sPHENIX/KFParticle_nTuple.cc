@@ -687,44 +687,6 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_nTracksOfVertex = 0;
   }
 
-  if(m_use_centrality_nTuple)
-  {
-    CentralityInfo *m_CentInfo = nullptr;
-    m_CentInfo =  findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
-     
-    if (!m_CentInfo)
-    {
-        std::cout << "KFparticle - [WARNING] - can't find CentralityInfo node " << "CentralityInfo" << std::endl;
-        m_centrality_mbd = -999.;
-    }
-    else
-    {
-        if (m_CentInfo->has_centrality_bin(CentralityInfo::PROP::mbd_NS))
-        {
-          if(bunchCrossingisZero)
-          {
-            m_centrality_mbd = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
-          }
-          else
-          {
-            if (m_verbosity_nTuple > 0)
-            {
-              std::cout << "KFparticle - Invalid bunch crossing" << std::endl;
-            }
-            m_centrality_mbd = std::numeric_limits<float>::quiet_NaN();
-          }
-        }
-        else
-        {
-            std::cout << "[WARNING/ERROR] No centrality information found in CentralityInfo. Setting centrality_mbd to -99. Please check!" << std::endl;
-            m_CentInfo->identify();
-            m_centrality_mbd = -99.;
-        }
-    }
-  }
-
-
-
   PHNodeIterator nodeIter(topNode);
 
   PHNode* evtNode = nodeIter.findFirst("EventHeader");
@@ -763,6 +725,53 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_runNumber = -1;
     m_evtNumber = -1;
     m_bco = -1;
+  }
+
+
+  if(m_use_centrality_nTuple)
+  {
+    CentralityInfo *m_CentInfo = nullptr;
+    m_CentInfo =  findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
+     
+    if (!m_CentInfo)
+    {
+        std::cout << "KFparticle - [WARNING] - can't find CentralityInfo node " << "CentralityInfo" << std::endl;
+        m_centrality_mbd = -9999.;
+    }
+    else
+    {
+        if (m_CentInfo->has_centrality_bin(CentralityInfo::PROP::mbd_NS))
+        {
+          if(bunchCrossingisZero)
+          {
+            const bool sameEvent = (m_runNumber == m_centrality_check_run && m_evtNumber == m_centrality_check_evt);
+            if (!sameEvent)
+            {
+              m_centrality_check_run = m_runNumber;
+              m_centrality_check_evt = m_evtNumber;
+              m_centrality_mbd = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
+            }
+            else
+            {
+              m_centrality_mbd = -m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
+            }
+          }
+          else
+          {
+            if (m_verbosity_nTuple > 0)
+            {
+              std::cout << "KFparticle - Invalid bunch crossing" << std::endl;
+            }
+            m_centrality_mbd = std::numeric_limits<float>::quiet_NaN();
+          }
+        }
+        else
+        {
+            std::cout << "[WARNING/ERROR] No centrality information found in CentralityInfo. Setting centrality_MBD to -999. Please check!" << std::endl;
+            m_CentInfo->identify();
+            m_centrality_mbd = -999.;
+        }
+    }
   }
 
   if (m_trigger_info_available)

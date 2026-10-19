@@ -234,6 +234,10 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   float m_calculated_vertex_cov[6]{0};
   float m_centrality_mbd{-1};
 
+  //Variables for Centrality Checks
+  int m_centrality_check_run{-1};
+  int m_centrality_check_evt{-1};
+
   float m_sv_mass{-1};
 
   int m_nPVs{-1};
