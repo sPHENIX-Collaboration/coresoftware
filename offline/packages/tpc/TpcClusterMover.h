@@ -11,6 +11,7 @@
 #include <vector>
 
 class PHCompositeNode;
+class TrkrClusterContainer;
 class TpcClusterMover
 {
  public:
@@ -22,6 +23,11 @@ class TpcClusterMover
 
   //  std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> processTrack(const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global_in) const;
   std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>> processTrack(const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global_in) const;
+
+  //! Use the caller's container for cluster and surface lookup.
+  std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>> processTrack(
+      const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_in,
+      TrkrClusterContainer* cluster_map) const;
 
   //! Updates the assumed default geometry below to that contained in the
   //! cell geo

@@ -354,7 +354,7 @@ void TpcPolyClusterTrkrClusterConverter::buildMovedClusterMap()
   {
     //  const auto moved_globals = m_clusterMover.processTrack(track_clusters.second);
     const  std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>> moved_surf_globals
-                            = m_clusterMover.processTrack(track_clusters.second);
+                            = m_clusterMover.processTrack(track_clusters.second, m_outputClusters);
     for (const auto& [cluskey, moved_surf_global] : moved_surf_globals)
     {
       const Acts::Vector3 moved_global = moved_surf_global.second;
