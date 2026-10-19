@@ -26,6 +26,8 @@
 
 #include <globalvertex/MbdVertex.h>
 #include <globalvertex/MbdVertexMap.h>
+#include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackSeedContainer.h>
 
 #include <dedxfitter/bethe_bloch.h> // included here so inline functions are defined on user end
 
@@ -46,6 +48,7 @@ class SvtxVertexMap;
 class SvtxTrackMap;
 class SvtxVertex;
 class SvtxTrack;
+class SvtxTrack_v5;
 class GlobalVertexMap;
 class GlobalVertex;
 class TrkrClusterContainer;
@@ -131,6 +134,8 @@ class KFParticle_Tools : protected KFParticle_MVA
   bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex);
 
   std::vector<int> getParticleCrossings(const KFParticle &particle);
+
+  TrackSeed *findSeed(TrackSeedContainer *container, unsigned short id);
 
   void set_dont_use_global_vertex(bool set_variable) { m_dont_use_global_vertex = set_variable; }
 

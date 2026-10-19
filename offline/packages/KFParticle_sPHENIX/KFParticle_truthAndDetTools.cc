@@ -14,6 +14,7 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/InttDefs.h>              // for getLadderPhiId, getLad...
 #include <trackbase/MvtxDefs.h>              // for getChipId, getStaveId
+#include <trackreco/PHTrackCleaner.h>
 #include <trackbase/TpcDefs.h>               // for getSectorId, getSide
 #include <trackbase/TrkrCluster.h>           // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>  // for TrkrClusterContainer
@@ -440,7 +441,6 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
   HepMC::GenEvent *theEvent = m_genevt->getEvent();
   HepMC::GenParticle *prevParticle = nullptr;
 
-  // int forbiddenPDGIDs[] = {21, 22};  //Stop tracing history when we reach quarks, gluons and photons
   int forbiddenPDGIDs[] = {0};  // 20230921 - Request made to have gluon information to see about gluon-splitting
 
   for (HepMC::GenEvent::particle_const_iterator p = theEvent->particles_begin(); p != theEvent->particles_end(); ++p)
@@ -553,7 +553,6 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     if (!EMCalGeo)
     {
       std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWERGEOM_CEMC" << std::endl;
-      // return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
   if (!_towersEM)
@@ -562,73 +561,28 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     if (!_towersEM)
     {
       std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWER_CALIB_CEMC" << std::endl;
-      // return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
   if (!clustersIH)
   {
     clustersIH = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_HCALIN");
-    // if (!clustersIH)
-    // {
-    //   std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "CLUSTER_HCALIN" << std::endl;
-    //   //return Fun4AllReturnCodes::ABORTEVENT;
-    // }
   }
   if (!IHCalGeo)
   {
     IHCalGeo = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
-    // if(!IHCalGeo)
-    // {
-    //   std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWERGEOM_HCALIN" << std::endl;
-    //   //return Fun4AllReturnCodes::ABORTEVENT;
-    // }
   }
-  // if(!_towersIH)
-  // {
-  //   _towersIH = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
-  //   if(!_towersIH)
-  //   {
-  //     std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWER_CALIB_HCALIN" << std::endl;
-  //     //return Fun4AllReturnCodes::ABORTEVENT;
-  //   }
-  // }
   if (!clustersOH)
   {
     clustersOH = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_HCALOUT");
-    // if (!clustersOH)
-    // {
-    //   std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "CLUSTER_HCALOUT" << std::endl;
-    //   //return Fun4AllReturnCodes::ABORTEVENT;
-    // }
   }
   if (!OHCalGeo)
   {
     OHCalGeo = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
-    // if(!OHCalGeo)
-    // {
-    //   std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWERGEOM_HCALOUT" << std::endl;
-    //   //return Fun4AllReturnCodes::ABORTEVENT;
-    // }
   }
-  // if(!_towersOH)
-  // {
-  //   _towersOH = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
-  //   if(!_towersOH)
-  //   {
-  //     std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWER_CALIB_HCALOUT" << std::endl;
-  //     //return Fun4AllReturnCodes::ABORTEVENT;
-  //   }
-  // }
 
   // Radii for track projections
   double caloRadiusEMCal;
   caloRadiusEMCal = m_emcal_radius_user;  // Use function set_emcal_radius_user(float set_variable) to set this in your Fun4All macro
-  // double caloRadiusIHCal;
-  // double caloRadiusOHCal;
-  // caloRadiusEMCal = 100.70;
-  // caloRadiusEMCal = EMCalGeo->get_radius();
-  // caloRadiusOHCal = OHCalGeo->get_radius();
-  // caloRadiusIHCal = IHCalGeo->get_radius();
 
   // Create variables and containers etc.
   bool is_match;
@@ -832,18 +786,6 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       }
     }
   }
-
-  /*
-  // Print out statements -- USeful for debugging
-  if (index != -1)
-  {
-    std::cout << "matched tracks!!!" << std::endl;
-    std::cout << "emcal x = " << v_emcal_x[index] << " , y = " << v_emcal_y[index] << " , z = " << v_emcal_z[index] << " , phi = " << v_emcal_phi[index] << " , eta = " << v_emcal_eta[index] << std::endl;
-    std::cout << "track projected x = " << _track_x_emc << " , y = " << _track_y_emc << " , z = " << _track_z_emc << " , phi = " << _track_phi_emc << " , eta = " << _track_eta_emc << std::endl;
-    std::cout << "track px = " << track->get_px() << " , py = " << track->get_py() << " , pz = " << track->get_pz() << " , pt = " << track->get_pt() << " , p = " << track->get_p() << " , charge = " << track->get_charge() << std::endl;
-  }
-  */
-
   // Save values to the branches!
   // If no match:
   if (index == -1)
@@ -873,9 +815,6 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     if (m_get_calo_5x5_cell_info)
     { 
       // Fill with nothing -- no match found, so vectors should be empty ! 
-      // detector_emcal_5x5Cell_Phi[daughter_id].push_back(std::numeric_limits<unsigned int>::quiet_NaN());
-      // detector_emcal_5x5Cell_Eta[daughter_id].push_back(std::numeric_limits<unsigned int>::quiet_NaN());
-      // detector_emcal_5x5Cell_E[daughter_id].push_back(std::numeric_limits<float>::quiet_NaN());
     }
 
     isTrackEMCalmatch = false;
@@ -1449,8 +1388,19 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
   detector_nHits_TPC[daughter_id] = 0;
   detector_nHits_TPOT[daughter_id] = 0;
 
-  TrackSeed *silseed = track->get_silicon_seed();
-  TrackSeed *tpcseed = track->get_tpc_seed();
+  bool isTrack_v5 = track->InheritsFrom("SvtxTrack_v5");
+  TrackSeedContainer *siliconSeedContainer = nullptr;
+  TrackSeedContainer *tpcSeedContainer = nullptr;
+
+  if (isTrack_v5)
+  {
+    siliconSeedContainer = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+    tpcSeedContainer = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  }
+
+  KFParticle_Tools kfpTupleTools;
+  TrackSeed *silseed = isTrack_v5 ? kfpTupleTools.findSeed(siliconSeedContainer, track->get_silicon_seed_id()) : track->get_silicon_seed();
+  TrackSeed *tpcseed = isTrack_v5 ? kfpTupleTools.findSeed(tpcSeedContainer, track->get_tpc_seed_id()) : track->get_tpc_seed();
 
   if (silseed)
   {
