@@ -334,45 +334,88 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
     }
   }
 
-  m_garfield.reset();
+  m_garfield = nullptr;
+  m_ownedGarfield.reset();
 
   if (m_usePHGarfieldDefaults)
   {
-    std::cout << Name()
-              << "::InitRun - using PHGarfield default configuration"
-              << std::endl;
+    // Default: use the shared PHGarfield from the node tree, unchanged.
+    m_garfield = findNode::getClass<PHGarfield>(topNode, "PHGarfield");
+    if (!m_garfield)
+    {
+      std::cerr << Name() << "::InitRun - PHGarfield node not found. "
+                << "Register PHGarfield as a subsystem before " << Name() << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
 
-    m_garfield = std::make_unique<PHGarfield>(Name() + "_PHGarfield");
+    std::cout << Name() << "::InitRun - using shared PHGarfield "
+              << static_cast<const void*>(m_garfield)
+              << ", nominal field " << m_garfield->GetCMVoltageDefault()
+              << " V/cm" << std::endl;
 
-    reconfigure_garfield(m_garfield.get());
+    // The shared instance is not modified here; module-level Garfield setters are ignored.
+    if (m_kEffSide0Override || m_kEffSide1Override || m_cmVoltageDefaultOverride ||
+        m_electricFieldMapOverride || m_field3DSide0Override || m_field3DSide1Override ||
+        m_framesSide0Override || m_framesSide1Override || m_frameChargeScaleOverride ||
+        m_tpcGeometryOverride || m_fieldCageVoltageOverride || m_useBCOkEffsOverride ||
+        m_useSurveyGeometryOverride || m_field3DCoefficientFileOverride || m_isNonDistortedMC)
+    {
+      std::cout << Name() << "::InitRun - WARNING: PolyClusterizer Garfield setters are IGNORED "
+                << "when using the shared PHGarfield. Configure PHGarfield in the macro, "
+                << "or call setUsePHGarfieldDefaults(false) for a private instance." << std::endl;
+    }
   }
   else
   {
+    // Expert mode: private, fully reconfigured instance (old behavior).
     std::cout << Name()
-              << "::InitRun - using PolyClusterizer/manual PHGarfield configuration"
+              << "::InitRun - using PolyClusterizer/manual PHGarfield configuration (private instance)"
               << std::endl;
 
-    m_garfield = std::make_unique<PHGarfield>(
+    m_ownedGarfield = std::make_unique<PHGarfield>(
         Name() + "_PHGarfield", "", m_kEffSide0, m_kEffSide1);
 
-    m_garfield->SetUseSurveyGeometry(false);
-    configure_garfield(m_garfield.get());
-  }
+    m_ownedGarfield->SetUseSurveyGeometry(false);
+    m_ownedGarfield->SetPublishToNodeTree(false);  // owned here, never shared
+    configure_garfield(m_ownedGarfield.get());
 
-  if (m_isNonDistortedMC)
+    if (m_isNonDistortedMC)
+    {
+      std::cout << Name()
+                << "::InitRun - configuring private PHGarfield for non-distorted MC"
+                << std::endl;
+      m_ownedGarfield->SetIsNonDistortedMC(true);
+    }
+
+    if (m_ownedGarfield->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    {
+      std::cerr << Name() << "::InitRun - PHGarfield InitRun failed" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+    m_garfield = m_ownedGarfield.get();
+  }
+  // Non-distorted MC: t0 and sampling clock of the simulation, unless set in the macro.
+  if (m_garfield->GetIsNonDistortedMC())
   {
-    std::cout << Name()
-              << "::InitRun - configuring PHGarfield for non-distorted MC"
-              << std::endl;
-
-    m_garfield->SetIsNonDistortedMC(true);
+    if (!m_t0Override)
+    {
+      m_t0 = m_garfield->GetNonDistortedMCT0Tbins();
+    }
+    if (!m_tpcAdcClockOverride && layergeom->get_adc_clock() > 0.0)
+    {
+      m_tpcAdcClock = layergeom->get_adc_clock();
+    }
+    std::cout << Name() << "::InitRun - non-distorted MC: t0=" << m_t0 << " tbins"
+              << (m_t0Override ? " [macro]" : "")
+              << ", ADC clock=" << m_tpcAdcClock << " ns"
+              << (m_tpcAdcClockOverride ? " [macro]" : "") << std::endl;
   }
 
-  if (m_garfield->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK)
-  {
-    std::cerr << Name() << "::InitRun - PHGarfield InitRun failed" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
+  // Per-side run dt0 (time bins), read once.
+  m_deltaT0Tbins = {{m_garfield->GetDeltaT0Tbins(0), m_garfield->GetDeltaT0Tbins(1)}};
+  std::cout << Name() << "::InitRun - t0 side0=" << t0_for_side(0)
+            << " side1=" << t0_for_side(1) << " tbins" << std::endl;
 
   if (!build_drift_lookup())
   {
@@ -730,7 +773,7 @@ bool Tpc_PolyClusterizer::build_drift_lookup()
           const double phi = phi_local;
           const double x0 = radius * std::cos(phi);
           const double y0 = radius * std::sin(phi);
-          TPolyLine3D* drift = m_garfield->ReverseDrift(x0, y0, z0, m_reverseDriftStepNs);
+          TPolyLine3D* drift = m_garfield->ReverseDrift(x0, y0, z0, m_reverseDriftStepNs, nullptr, m_reverseDriftSubsteps);
           if (!drift || drift->GetN() <= 0)
           {
             delete drift;
@@ -878,7 +921,7 @@ bool Tpc_PolyClusterizer::sample_drift_lookup(const unsigned int layer,
     return false;
   }
 
-  const double target_time_ns = (static_cast<double>(tbin) - m_t0) * m_tpcAdcClock - static_cast<double>(crossing) * m_crossingPeriodNs;
+  const double target_time_ns = (static_cast<double>(tbin) - t0_for_side(side)) * m_tpcAdcClock - static_cast<double>(crossing) * m_crossingPeriodNs;
   if (target_time_ns <= 0.0 || !std::isfinite(target_time_ns))
   {
     return false;
@@ -1146,37 +1189,53 @@ Tpc_PolyClusterizer::make_centroid(const std::vector<Point>& points)
     return c;
   }
 
+  // ADC-weighted centroid; hits with ADC <= 0 get zero weight.
+  // Guard: if no hit has positive ADC, use equal weights.
+  double sw = 0.0;
+  for (const Point& p : points)
+  {
+    sw += std::max(p.adc, 0.0);
+  }
+  const bool use_adc = sw > 0.0;
+  if (!use_adc)
+  {
+    sw = static_cast<double>(points.size());
+  }
+  auto weight = [use_adc](const Point& p)
+  { return use_adc ? std::max(p.adc, 0.0) : 1.0; };
+
   double sx = 0.0;
   double sy = 0.0;
   double sz = 0.0;
   for (const Point& p : points)
   {
-    sx += p.x;
-    sy += p.y;
-    sz += p.z;
+    const double w = weight(p);
+    sx += w * p.x;
+    sy += w * p.y;
+    sz += w * p.z;
   }
 
-  const double n = static_cast<double>(points.size());
-  c.x = sx / n;
-  c.y = sy / n;
-  c.z = sz / n;
+  c.x = sx / sw;
+  c.y = sy / sw;
+  c.z = sz / sw;
 
   double sxx = 0.0;
   double syy = 0.0;
   double szz = 0.0;
   for (const Point& p : points)
   {
+    const double w = weight(p);
     const double dx = p.x - c.x;
     const double dy = p.y - c.y;
     const double dz = p.z - c.z;
-    sxx += dx * dx;
-    syy += dy * dy;
-    szz += dz * dz;
+    sxx += w * dx * dx;
+    syy += w * dy * dy;
+    szz += w * dz * dz;
   }
 
-  c.rms_x = std::sqrt(sxx / n);
-  c.rms_y = std::sqrt(syy / n);
-  c.rms_z = std::sqrt(szz / n);
+  c.rms_x = std::sqrt(sxx / sw);
+  c.rms_y = std::sqrt(syy / sw);
+  c.rms_z = std::sqrt(szz / sw);
   c.layer = points.front().layer;
   c.ok = std::isfinite(c.x) && std::isfinite(c.y) && std::isfinite(c.z);
   return c;

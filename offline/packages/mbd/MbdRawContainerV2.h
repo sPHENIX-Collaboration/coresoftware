@@ -69,6 +69,9 @@ public:
    */
   MbdRawHit *get_pmt(const int iPmt) const override { return (MbdRawHit*)MbdRawHits->ConstructedAt(iPmt); }
 
+  /// whether this event had a bad TDC
+  int get_badtdc() const override;
+
 private:
   TClonesArray *GetMbdRawHits() const { return MbdRawHits; }
 

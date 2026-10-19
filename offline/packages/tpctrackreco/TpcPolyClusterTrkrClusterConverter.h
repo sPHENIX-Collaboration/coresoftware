@@ -18,6 +18,7 @@ class Tpc_PolyCluster;
 class Tpc_PolyClusterContainer;
 class Tpc_PolyTrack;
 class Tpc_PolyTrackContainer;
+class TrkrClusterHitAssoc;
 class TrkrClusterContainer;
 
 class TpcPolyClusterTrkrClusterConverter : public SubsysReco
@@ -35,6 +36,7 @@ class TpcPolyClusterTrkrClusterConverter : public SubsysReco
   void setCrossingDecisionNodeName(const std::string& name) { m_crossingDecisionNodeName = name; }
   void setCrossingPeriodNs(double value) { m_crossingPeriodNs = value; }
   void setMagneticFieldTesla(double value) { m_magneticFieldTesla = value; }
+  void setFillClusterHitAssoc(bool value) { m_fillClusterHitAssoc = value; }
 
  private:
   int getNodes(PHCompositeNode*);
@@ -59,6 +61,7 @@ class TpcPolyClusterTrkrClusterConverter : public SubsysReco
   Tpc_PolyClusterContainer* m_polyClusters {nullptr};
   Tpc_PolyTrackContainer* m_polyTracks {nullptr};
   TrkrClusterContainer* m_outputClusters {nullptr};
+  TrkrClusterHitAssoc* m_clusterHitAssoc {nullptr};
   TpcCrossingDecisionContainer* m_crossingDecisions {nullptr};
   ActsGeometry* m_geometry {nullptr};
   TpcClusterMover m_clusterMover;
@@ -68,4 +71,5 @@ class TpcPolyClusterTrkrClusterConverter : public SubsysReco
   std::map<TrkrDefs::cluskey, unsigned short> m_seedSubSurfKeys;
   double m_crossingPeriodNs {106.56};
   double m_magneticFieldTesla {1.4};
+  bool m_fillClusterHitAssoc {true};
 };

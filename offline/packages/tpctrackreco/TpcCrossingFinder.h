@@ -7,6 +7,7 @@
 #include "TpcCrossingDecision.h"
 #include <trackbase/TrkrDefs.h>
 
+#include <algorithm>
 #include <array>
 #include <limits>
 #include <map>
@@ -40,8 +41,16 @@ class TpcCrossingFinder : public SubsysReco
   void setInputNodeName(const std::string& n) { m_inputNodeName = n; }
   void setOutputNodeName(const std::string& n) { m_outputNodeName = n; }
   void setVertexMapNodeName(const std::string& n) { m_vertexMapNodeName = n; }
-  void setT0(double v) { m_t0 = v; }
-  void setTpcAdcClock(double v) { m_tpcAdcClock = v; }
+  void setT0(double v)
+  {
+    m_t0 = v;
+    m_t0Override = true;
+  }
+  void setTpcAdcClock(double v)
+  {
+    m_tpcAdcClock = v;
+    m_tpcAdcClockOverride = true;
+  }
   void setCrossingPeriodNs(double v) { m_crossingPeriodNs = v; }
   void setReverseDriftStepNs(double v) { m_reverseDriftStepNs = v; }
   void setKEffSide0(double v) { m_kEffSide0 = v; }
@@ -64,6 +73,10 @@ class TpcCrossingFinder : public SubsysReco
     m_centralMembraneTolerance = central_membrane_cm;
   }
   void setTpcHalfLength(double v) { m_tpcHalfLength = v; }
+  // Tolerance (time bins) at the pad-plane and central-membrane edges of the
+  // drift lookup: times up to n bins outside are clamped to the edge instead of
+  // rejecting the crossing. Decision only; no positions leave this module. Default 0.
+  void setEdgeToleranceTbins(double n) { m_edgeToleranceTbins = std::max(0.0, n); }
   void setUseSurveyGeometry(bool v) { use_survey_geometry = v; }
   void setMoveTpc(double x, double y, double z) { m_tpcMove = {{x, y, z}}; }
   void setRotateTpc(unsigned int index, double x, double y, double z)
@@ -74,8 +87,11 @@ class TpcCrossingFinder : public SubsysReco
   {
     m_startZSouth = south_z;
     m_startZNorth = north_z;
+    m_startZOverride = true;
   }
   void setIsNonDistortedMC(bool v) { m_isNonDistortedMC = v; }
+  //! store per-candidate QA records in each decision (large; off by default)
+  void setStoreCandidateQA(bool v) { m_storeCandidateQA = v; }
 
  private:
   struct DriftPoint
@@ -185,6 +201,8 @@ class TpcCrossingFinder : public SubsysReco
                            const std::map<short, std::vector<SiliconVertexHypothesis>>& vertices_by_crossing) const;
   static unsigned int drift_lookup_index(unsigned int layer_index, unsigned int side, unsigned int sector, unsigned int sample);
 
+  double t0_for_side(unsigned int side) const { return m_t0 + m_deltaT0Tbins[side & 1U]; }
+
   std::string m_inputNodeName {"TPC_ASSEMBLEDTRACKS"};
   std::string m_outputNodeName {"TPC_CROSSING_DECISIONS"};
   std::string m_vertexMapNodeName {"SvtxVertexMap"};
@@ -196,19 +214,24 @@ class TpcCrossingFinder : public SubsysReco
   PHG4TpcGeomContainer* m_geomContainerTpc {nullptr};
   SvtxVertexMap* m_vertexMap {nullptr};
   std::unique_ptr<IdealPadMap> m_idealPadMap {};
-  std::unique_ptr<PHGarfield> m_garfield {};
+  PHGarfield* m_garfield {};
 
   std::array<DriftPolyline, 48 * 2 * 12 * NPhiSamples> m_driftLookup;
   unsigned int m_event {0};
   double m_maxLookupTimeNs {0.0};
 
   double m_t0 {8};
+  std::array<double, 2> m_deltaT0Tbins {{0.0, 0.0}};  // from PHGarfield in InitRun
+  bool m_t0Override {false};
+  bool m_tpcAdcClockOverride {false};
   double m_tpcAdcClock {56.881262};
   double m_crossingPeriodNs {106.56};
   double m_reverseDriftStepNs {56.881262};
-  double m_startZSouth {-102.325};
-  double m_startZNorth {102.325};
+  double m_startZSouth {-102.605};
+  double m_startZNorth {102.605};
+  bool m_startZOverride {false};
   double m_tpcHalfLength {105.5};
+  double m_edgeToleranceTbins {1.0};
   double m_radialTolerance {2.0};
   double m_zTolerance {1.0};
   double m_centralMembraneTolerance {1.0};
@@ -227,6 +250,7 @@ class TpcCrossingFinder : public SubsysReco
   bool use_survey_geometry {false};
   bool m_triggeredMode {false};
   bool m_isNonDistortedMC{false};
+  bool m_storeCandidateQA{false};
   std::array<double, 3> m_tpcMove {{0.0, 0.0, 0.0}};
   std::array<std::array<double, 3>, 2> m_tpcRotations {{{{0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}}}};
 };
