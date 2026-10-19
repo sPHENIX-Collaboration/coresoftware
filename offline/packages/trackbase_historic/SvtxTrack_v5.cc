@@ -109,6 +109,8 @@ void SvtxTrack_v5::CopyFrom(const SvtxTrack& source)
   _chisq = source.get_chisq();
   set_ndf(source.get_ndf());
   _track_crossing = source.get_crossing();
+  _silicon_seed_id = source.get_silicon_seed_id();
+  _tpc_seed_id = source.get_tpc_seed_id();
 
   clear_states();
   for (auto iter = source.begin_states(); iter != source.end_states(); ++iter)
