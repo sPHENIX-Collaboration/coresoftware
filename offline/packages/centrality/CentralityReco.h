@@ -96,12 +96,13 @@ class CentralityReco : public SubsysReco
   static constexpr float mbd_charge_cut{0.4};
   static constexpr float mbd_time_cut{20};
 
-  // bunch classes (the calibration's hit cut: q > 0.4, |t_hit - t0 offset| < outer edge of the side-bunch windows)
+  // bunch classes (the calibration's hit cut: q > 0.4, |t_hit - t0 offset| < 25 ns per tube; the bunch windows are
+  // applied to the event t0 by MinimumBiasClassifier)
   bool m_use_bunch_classes{true};
   bool m_bunch_classes{false};  // this run: bunch-class payload found and used
   bool m_warned_no_bunch_class{false};
   double m_t0_offset{0.};
-  double m_hit_time_window{std::numeric_limits<double>::quiet_NaN()};
+  double m_hit_time_window{25.};
 
   unsigned int m_key{std::numeric_limits<unsigned int>::max()};
 

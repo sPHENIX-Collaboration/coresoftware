@@ -130,7 +130,8 @@ class MinimumBiasClassifier : public SubsysReco
   double m_t0_offset{0.};
   double m_spacing_m{std::numeric_limits<double>::quiet_NaN()};
   double m_spacing_p{std::numeric_limits<double>::quiet_NaN()};
-  double m_hit_time_window{std::numeric_limits<double>::quiet_NaN()};  // |t_hit - t0 offset| < this
+  // per-tube time cut, |t_hit - t0 offset| < this (the bunch windows themselves are applied to the event t0)
+  double m_hit_time_window{25.};
 
   MinimumBiasInfo::SPECIES m_species{MinimumBiasInfo::SPECIES::AUAU};
 

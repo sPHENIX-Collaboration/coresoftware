@@ -22,7 +22,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <algorithm>
 #include <cmath>
 #include <filesystem>
 #include <iostream>
@@ -116,8 +115,6 @@ int CentralityReco::Download_centralityScale(const std::string &dbfile)
       {
         m_bunch_classes = true;
         m_t0_offset = t0_offset;
-        // outer edge of the side-bunch windows (MinimumBiasClassifier uses the same)
-        m_hit_time_window = 1.5 * std::max(cdbttree->GetDoubleValue(0, "spacing_m"), cdbttree->GetDoubleValue(0, "spacing_p"));
         for (int ib = 1; ib < 3; ib++)
         {
           m_centrality_scale[ib] = cdbttree->GetDoubleValue(0, "centralityscale" + bunch_suffix[ib]);

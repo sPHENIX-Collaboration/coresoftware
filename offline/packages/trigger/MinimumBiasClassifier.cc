@@ -24,7 +24,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <algorithm>
 #include <cmath>
 #include <filesystem>
 #include <iostream>
@@ -195,8 +194,12 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     m_mb_info->setT0Corrected(t0_corrected);
   }
   m_mb_info->setBunchClass(bunch);
-  // outside the three bunches there is no centrality calibration; the min-bias decision below still uses the
-  // main-bunch scales for the max-charge cut
+  // the bunch windows are the t0 cut: an event outside all three is not min-bias (and has no centrality calibration;
+  // its charge sum below uses the main-bunch scales)
+  if (bunch == MinimumBiasInfo::BUNCH::NONE)
+  {
+    minbiascheck = false;
+  }
   const int scale_class = (bunch == MinimumBiasInfo::BUNCH::NONE ? MinimumBiasInfo::BUNCH::MAIN : bunch);
 
   m_vertex_scale = getVertexScale(scale_class);
@@ -441,8 +444,6 @@ int MinimumBiasClassifier::Download_centralityScale(const std::string &dbfile)
         m_t0_offset = t0_offset;
         m_spacing_m = cdbttree->GetDoubleValue(0, "spacing_m");
         m_spacing_p = cdbttree->GetDoubleValue(0, "spacing_p");
-        // outer edge of the side-bunch windows
-        m_hit_time_window = 1.5 * std::max(m_spacing_m, m_spacing_p);
         for (int ib = 1; ib < 3; ib++)
         {
           m_centrality_scale[ib] = cdbttree->GetDoubleValue(0, "centralityscale" + bunch_suffix[ib]);
