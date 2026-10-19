@@ -581,6 +581,14 @@ namespace
   void build_blobs(InModuleThreadData* d)
   {
     d->blobs.clear();
+    if (d->blobs_by_layer.size() < 64)
+    {
+      d->blobs_by_layer.resize(64);
+    }
+    for (auto& layer_blobs : d->blobs_by_layer)
+    {
+      layer_blobs.clear();
+    }
 
     const unsigned int n = static_cast<unsigned int>(d->raw_hits.size());
     if (n == 0)
@@ -725,6 +733,10 @@ namespace
       bl.nhits = nh;
       bl.used = 0;
 
+      if (layer < d->blobs_by_layer.size())
+      {
+        d->blobs_by_layer[layer].push_back(static_cast<unsigned int>(d->blobs.size()));
+      }
       d->blobs.push_back(std::move(bl));
     }
   }
@@ -737,14 +749,15 @@ namespace
     int best = -1;
     double best_score = std::numeric_limits<double>::max();
 
-    for (unsigned int i = 0; i < d->blobs.size(); ++i)
+    if (target_layer >= d->blobs_by_layer.size())
+    {
+      return -1;
+    }
+
+    for (const unsigned int i : d->blobs_by_layer[target_layer])
     {
       const InModuleThreadData::Blob& bl = d->blobs[i];
       if (bl.used)
-      {
-        continue;
-      }
-      if (bl.layer != target_layer)
       {
         continue;
       }
@@ -775,46 +788,50 @@ namespace
                           std::vector<unsigned int>& chain,
                           int direction)
   {
+    // Layers of this module.
+    const int module_first_layer = static_cast<int>(d->region) * 16 + 7;
+    const int module_last_layer = module_first_layer + 15;
+
     while (true)
     {
-      unsigned int edge_layer = d->blobs[chain.back()].layer;
-      if (direction < 0)
-      {
-        edge_layer = d->blobs[chain.front()].layer;
-      }
+      const unsigned int edge_blob = (direction > 0) ? chain.back() : chain.front();
+      const int edge_layer = static_cast<int>(d->blobs[edge_blob].layer);
 
-      if (direction > 0 && edge_layer >= 54)
-      {
-        break;
-      }
-      if (direction < 0 && edge_layer <= 7)
-      {
-        break;
-      }
+      // Straight-line fit of the current chain, reused for every step below.
+      InModuleThreadData::Track tmp;
+      const bool have_fit = chain.size() >= 2 &&
+                            fit_track_from_blobs(d->blobs, chain,
+                                                 d->weight_power, d->adc_weight_floor_frac, tmp);
 
-      const unsigned int target_layer =
-          static_cast<unsigned int>(static_cast<int>(edge_layer) + direction);
+      // Jumping over layers needs a slope: a one-blob seed (or a failed fit)
+      // only looks at the adjacent layer.
+      const unsigned int max_step = have_fit ? std::max(1U, d->max_layer_step) : 1U;
 
-      double pred_pad = d->blobs[chain.back()].pad;
-      double pred_tbin = d->blobs[chain.back()].tbin;
-      if (direction < 0)
+      int ibest = -1;
+      for (unsigned int step = 1; step <= max_step; ++step)
       {
-        pred_pad = d->blobs[chain.front()].pad;
-        pred_tbin = d->blobs[chain.front()].tbin;
-      }
+        const int target_layer = edge_layer + direction * static_cast<int>(step);
+        if (target_layer < module_first_layer || target_layer > module_last_layer)
+        {
+          break;
+        }
 
-      if (chain.size() >= 2)
-      {
-        InModuleThreadData::Track tmp;
-        if (fit_track_from_blobs(d->blobs, chain,
-                                 d->weight_power, d->adc_weight_floor_frac, tmp))
+        double pred_pad = d->blobs[edge_blob].pad;
+        double pred_tbin = d->blobs[edge_blob].tbin;
+        if (have_fit)
         {
           pred_pad = tmp.pad_slope * static_cast<double>(target_layer) + tmp.pad_intercept;
           pred_tbin = tmp.tbin_slope * static_cast<double>(target_layer) + tmp.tbin_intercept;
         }
+
+        // A layer is skipped only if it has no free blob inside the window.
+        ibest = find_best_blob_on_layer(d, static_cast<unsigned int>(target_layer), pred_pad, pred_tbin);
+        if (ibest >= 0)
+        {
+          break;
+        }
       }
 
-      const int ibest = find_best_blob_on_layer(d, target_layer, pred_pad, pred_tbin);
       if (ibest < 0)
       {
         break;
@@ -968,6 +985,7 @@ InModuleThreadData::InModuleThreadData()
   , search_dt(6)
   , search_dp(6)
   , min_track_blobs(4)
+  , max_layer_step(1)
   , connect_max_layer_gap(8)
   , connect_dp(8.0)
   , connect_dt(8.0)
@@ -1000,6 +1018,7 @@ Tpc_ModuleTrackReco::Tpc_ModuleTrackReco(const std::string& name,
   , m_search_dt(6)
   , m_search_dp(6)
   , m_minTrackBlobs(4)
+  , m_maxLayerStep(3)
   , m_connectMaxLayerGap(8)
   , m_connect_dp(8.0)
   , m_connect_dt(8.0)
@@ -1197,6 +1216,7 @@ int Tpc_ModuleTrackReco::process_event(PHCompositeNode* /*unused*/)
         td.search_dt = m_search_dt;
         td.search_dp = m_search_dp;
         td.min_track_blobs = m_minTrackBlobs;
+        td.max_layer_step = m_maxLayerStep;
         td.connect_max_layer_gap = m_connectMaxLayerGap;
         td.connect_dp = m_connect_dp;
         td.connect_dt = m_connect_dt;
