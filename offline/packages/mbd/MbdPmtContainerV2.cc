@@ -49,8 +49,10 @@ int MbdPmtContainerV2::isValid() const
 
 void MbdPmtContainerV2::Reset()
 {
-  MbdPmtHits->Clear();
-  npmt = 0;
+  for (int ipmt=0; ipmt < get_npmt(); ipmt++)
+  {
+    get_pmt(ipmt)->Clear();
+  }
 }
 
 void MbdPmtContainerV2::identify(std::ostream &out) const
