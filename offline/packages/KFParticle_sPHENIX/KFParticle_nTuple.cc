@@ -728,6 +728,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   }
 
 
+  bool isFirstInEvent = false;
+
   if(m_use_centrality_nTuple)
   {
     CentralityInfo *m_CentInfo = nullptr;
@@ -744,17 +746,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
         {
           if(bunchCrossingisZero)
           {
-            const bool sameEvent = (m_runNumber == m_centrality_check_run && m_evtNumber == m_centrality_check_evt);
-            if (!sameEvent)
-            {
-              m_centrality_check_run = m_runNumber;
-              m_centrality_check_evt = m_evtNumber;
-              m_centrality_mbd = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
-            }
-            else
-            {
-              m_centrality_mbd = -m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
-            }
+            const int bin = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
+            isFirstInEvent = (m_evtNumber < 0) ||!(m_runNumber == m_centrality_check_run && m_evtNumber == m_centrality_check_evt);
+            m_centrality_mbd = isFirstInEvent ? bin : -bin;
           }
           else
           {
@@ -767,9 +761,12 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
         }
         else
         {
+          if (m_verbosity_nTuple > 0)
+          {
             std::cout << "[WARNING/ERROR] No centrality information found in CentralityInfo. Setting centrality_MBD to -999. Please check!" << std::endl;
             m_CentInfo->identify();
-            m_centrality_mbd = -999.;
+          }
+          m_centrality_mbd = -999.;
         }
     }
   }
@@ -782,6 +779,11 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   if (fillConditionMet())
   {
     m_tree->Fill();
+    if(isFirstInEvent)
+    {
+      m_centrality_check_run = m_runNumber;
+      m_centrality_check_evt = m_evtNumber;
+    }
   }
 
   if (m_truth_matching || m_detector_info || m_get_calo_5x5_cell_info)
