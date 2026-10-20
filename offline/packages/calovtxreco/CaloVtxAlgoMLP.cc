@@ -72,21 +72,22 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
     }
 
 
-  std::vector<float> *b_reco_jet_pt = new std::vector<float>();
-  std::vector<float> *b_reco_jet_eta = new std::vector<float>();
-  std::vector<float> *b_reco_jet_phi = new std::vector<float>();
-  std::vector<float> *b_reco_jet_emcal_eta = new std::vector<float>();
-  std::vector<float> *b_reco_jet_ihcal_eta = new std::vector<float>();
-  std::vector<float> *b_reco_jet_ohcal_eta = new std::vector<float>();
-  std::vector<float> *b_reco_jet_emcal_zmean = new std::vector<float>();
-  std::vector<float> *b_reco_jet_ohcal_zmean = new std::vector<float>();
-  std::vector<float> *b_reco_jet_emcal_zsig = new std::vector<float>();
-  std::vector<float> *b_reco_jet_ohcal_zsig = new std::vector<float>();
-  std::vector<float> *b_reco_jet_emcal_zskew = new std::vector<float>();
-  std::vector<float> *b_reco_jet_ohcal_zskew = new std::vector<float>();
-  std::vector<float> *b_reco_jet_emcal = new std::vector<float>();
-  std::vector<float> *b_reco_jet_ohcal = new std::vector<float>();
-  std::vector<float> *b_reco_jet_ihcal = new std::vector<float>();
+  
+  std::vector<float> b_reco_jet_pt; //new std::vector<float>();
+  std::vector<float> b_reco_jet_eta; //new std::vector<float>();
+  std::vector<float> b_reco_jet_phi; //new std::vector<float>();
+  std::vector<float> b_reco_jet_emcal_eta; //new std::vector<float>();
+  std::vector<float> b_reco_jet_ihcal_eta; //new std::vector<float>();
+  std::vector<float> b_reco_jet_ohcal_eta; //new std::vector<float>();
+  std::vector<float> b_reco_jet_emcal_zmean; //new std::vector<float>();
+  std::vector<float> b_reco_jet_ohcal_zmean; //new std::vector<float>();
+  std::vector<float> b_reco_jet_emcal_zsig; //new std::vector<float>();
+  std::vector<float> b_reco_jet_ohcal_zsig; //new std::vector<float>();
+  std::vector<float> b_reco_jet_emcal_zskew; //new std::vector<float>();
+  std::vector<float> b_reco_jet_ohcal_zskew; //new std::vector<float>();
+  std::vector<float> b_reco_jet_emcal; //new std::vector<float>();
+  std::vector<float> b_reco_jet_ohcal; //new std::vector<float>();
+  std::vector<float> b_reco_jet_ihcal; //new std::vector<float>();
 
   JetContainer *jetscon = findNode::getClass<JetContainer>(topNode, m_jet_node);
 
@@ -269,25 +270,25 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
 	  jet_ohcal /= jet_E;
 	  
 
-	  b_reco_jet_pt->push_back(jet->get_pt());
-	  b_reco_jet_eta->push_back(jet->get_eta());
-	  b_reco_jet_phi->push_back(jet->get_phi());
+	  b_reco_jet_pt.push_back(jet->get_pt());
+	  b_reco_jet_eta.push_back(jet->get_eta());
+	  b_reco_jet_phi.push_back(jet->get_phi());
 
-	  b_reco_jet_emcal->push_back(jet_emcal);
-	  b_reco_jet_ohcal->push_back(jet_ohcal);
-	  b_reco_jet_ihcal->push_back(jet_ihcal);
+	  b_reco_jet_emcal.push_back(jet_emcal);
+	  b_reco_jet_ohcal.push_back(jet_ohcal);
+	  b_reco_jet_ihcal.push_back(jet_ihcal);
 
-	  b_reco_jet_emcal_zmean->push_back(em_mean);
-	  b_reco_jet_ohcal_zmean->push_back(oh_mean);
-	  b_reco_jet_emcal_zsig->push_back(em_sigma);
-	  b_reco_jet_ohcal_zsig->push_back(oh_sigma);
-	  b_reco_jet_emcal_zskew->push_back(em_skew);
-	  b_reco_jet_ohcal_zskew->push_back(oh_skew);
+	  b_reco_jet_emcal_zmean.push_back(em_mean);
+	  b_reco_jet_ohcal_zmean.push_back(oh_mean);
+	  b_reco_jet_emcal_zsig.push_back(em_sigma);
+	  b_reco_jet_ohcal_zsig.push_back(oh_sigma);
+	  b_reco_jet_emcal_zskew.push_back(em_skew);
+	  b_reco_jet_ohcal_zskew.push_back(oh_skew);
 
 
-	  b_reco_jet_emcal_eta->push_back(jet_emcal_eta);
-	  b_reco_jet_ohcal_eta->push_back(jet_ohcal_eta);
-	  b_reco_jet_ihcal_eta->push_back(jet_ihcal_eta);
+	  b_reco_jet_emcal_eta.push_back(jet_emcal_eta);
+	  b_reco_jet_ohcal_eta.push_back(jet_ohcal_eta);
+	  b_reco_jet_ihcal_eta.push_back(jet_ihcal_eta);
 
 
 	  if (jetpt > dijet_pt[0])
@@ -316,8 +317,8 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
   // VertexMLP.h (emcal/ohcal lead+sublead flags, zmean/zsig/zskew,
   // energy, exj). This is the same per-event extraction CaloVtxReco used
   // to do inline before the NN call -- move that block here unchanged.
-  double e1 = dijet_pt[0] * cosh(b_reco_jet_eta->at(dijet_index[0]));
-  double e2 = dijet_pt[1] * cosh(b_reco_jet_eta->at(dijet_index[1]));
+  double e1 = dijet_pt[0] * cosh(b_reco_jet_eta.at(dijet_index[0]));
+  double e2 = dijet_pt[1] * cosh(b_reco_jet_eta.at(dijet_index[1]));
 
   double exj = e2/e1;
   double emcal_lead_on = 1;
@@ -325,39 +326,39 @@ int CaloVtxAlgoMLP::CalculateVertex(PHCompositeNode *topNode, float &zvtx)
   double ohcal_lead_on = 1;
   double ohcal_sublead_on = 1;
 	  
-  if (std::isnan(b_reco_jet_emcal_zmean->at(dijet_index[0]))) { emcal_lead_on = 0; }//maxz_EM <<","
-  if (std::isnan(b_reco_jet_emcal_zsig->at(dijet_index[0]))) { emcal_lead_on = 0; }//maxz_EM <<","
-  if (std::isnan(b_reco_jet_emcal_zskew->at(dijet_index[0]))) { emcal_lead_on = 0; }//maxz_EM <<","
-  if (std::isnan(b_reco_jet_emcal->at(dijet_index[0]))) { emcal_lead_on = 0; }//<","
-  if (std::isnan(b_reco_jet_ohcal_zmean->at(dijet_index[0]))) { ohcal_lead_on = 0; }//maxz_OH <<","
-  if (std::isnan(b_reco_jet_ohcal_zsig->at(dijet_index[0]))) { ohcal_lead_on = 0; }//maxz_OH <<","
-  if (std::isnan(b_reco_jet_ohcal_zskew->at(dijet_index[0]))) { ohcal_lead_on = 0; }//maxz_OH <<","
-  if (std::isnan(b_reco_jet_ohcal->at(dijet_index[0]))) { ohcal_lead_on = 0; }//<","
-  if (std::isnan(b_reco_jet_emcal_zmean->at(dijet_index[1]))) { emcal_sublead_on = 0; }//maxz_EM <<","
-  if (std::isnan(b_reco_jet_emcal_zsig->at(dijet_index[1]))) { emcal_sublead_on = 0; }//maxz_EM <<","
-  if (std::isnan(b_reco_jet_emcal_zskew->at(dijet_index[1]))) { emcal_sublead_on = 0; }//maxz_EM <<","
-  if (std::isnan(b_reco_jet_emcal->at(dijet_index[1]))) { emcal_sublead_on = 0; }//<","
-  if (std::isnan(b_reco_jet_ohcal_zmean->at(dijet_index[1]))) { ohcal_sublead_on = 0; }//maxz_OH <<","
-  if (std::isnan(b_reco_jet_ohcal_zsig->at(dijet_index[1]))) { ohcal_sublead_on = 0; }//maxz_OH <<","
-  if (std::isnan(b_reco_jet_ohcal_zskew->at(dijet_index[1]))) { ohcal_sublead_on = 0; }//maxz_OH <<","
-  if (std::isnan(b_reco_jet_ohcal->at(dijet_index[1]))) { ohcal_sublead_on = 0; }//<","
+  if (std::isnan(b_reco_jet_emcal_zmean.at(dijet_index[0]))) { emcal_lead_on = 0; }//maxz_EM <<","
+  if (std::isnan(b_reco_jet_emcal_zsig.at(dijet_index[0]))) { emcal_lead_on = 0; }//maxz_EM <<","
+  if (std::isnan(b_reco_jet_emcal_zskew.at(dijet_index[0]))) { emcal_lead_on = 0; }//maxz_EM <<","
+  if (std::isnan(b_reco_jet_emcal.at(dijet_index[0]))) { emcal_lead_on = 0; }//<","
+  if (std::isnan(b_reco_jet_ohcal_zmean.at(dijet_index[0]))) { ohcal_lead_on = 0; }//maxz_OH <<","
+  if (std::isnan(b_reco_jet_ohcal_zsig.at(dijet_index[0]))) { ohcal_lead_on = 0; }//maxz_OH <<","
+  if (std::isnan(b_reco_jet_ohcal_zskew.at(dijet_index[0]))) { ohcal_lead_on = 0; }//maxz_OH <<","
+  if (std::isnan(b_reco_jet_ohcal.at(dijet_index[0]))) { ohcal_lead_on = 0; }//<","
+  if (std::isnan(b_reco_jet_emcal_zmean.at(dijet_index[1]))) { emcal_sublead_on = 0; }//maxz_EM <<","
+  if (std::isnan(b_reco_jet_emcal_zsig.at(dijet_index[1]))) { emcal_sublead_on = 0; }//maxz_EM <<","
+  if (std::isnan(b_reco_jet_emcal_zskew.at(dijet_index[1]))) { emcal_sublead_on = 0; }//maxz_EM <<","
+  if (std::isnan(b_reco_jet_emcal.at(dijet_index[1]))) { emcal_sublead_on = 0; }//<","
+  if (std::isnan(b_reco_jet_ohcal_zmean.at(dijet_index[1]))) { ohcal_sublead_on = 0; }//maxz_OH <<","
+  if (std::isnan(b_reco_jet_ohcal_zsig.at(dijet_index[1]))) { ohcal_sublead_on = 0; }//maxz_OH <<","
+  if (std::isnan(b_reco_jet_ohcal_zskew.at(dijet_index[1]))) { ohcal_sublead_on = 0; }//maxz_OH <<","
+  if (std::isnan(b_reco_jet_ohcal.at(dijet_index[1]))) { ohcal_sublead_on = 0; }//<","
 
-  double emcal_lead_z_moments[4] = {b_reco_jet_emcal_zmean->at(dijet_index[0]),
-    b_reco_jet_emcal_zsig->at(dijet_index[0]),
-    b_reco_jet_emcal_zskew->at(dijet_index[0]),
-    b_reco_jet_emcal->at(dijet_index[0])};
-  double emcal_sublead_z_moments[4] = {b_reco_jet_emcal_zmean->at(dijet_index[1]),
-    b_reco_jet_emcal_zsig->at(dijet_index[1]),
-    b_reco_jet_emcal_zskew->at(dijet_index[1]),
-    b_reco_jet_emcal->at(dijet_index[1])};
-  double ohcal_lead_z_moments[4] = {b_reco_jet_ohcal_zmean->at(dijet_index[0]),
-    b_reco_jet_ohcal_zsig->at(dijet_index[0]),
-    b_reco_jet_ohcal_zskew->at(dijet_index[0]),
-    b_reco_jet_ohcal->at(dijet_index[0])};
-  double ohcal_sublead_z_moments[4] = {b_reco_jet_ohcal_zmean->at(dijet_index[1]),
-    b_reco_jet_ohcal_zsig->at(dijet_index[1]),
-    b_reco_jet_ohcal_zskew->at(dijet_index[1]),
-    b_reco_jet_ohcal->at(dijet_index[1])};
+  double emcal_lead_z_moments[4] = {b_reco_jet_emcal_zmean.at(dijet_index[0]),
+    b_reco_jet_emcal_zsig.at(dijet_index[0]),
+    b_reco_jet_emcal_zskew.at(dijet_index[0]),
+    b_reco_jet_emcal.at(dijet_index[0])};
+  double emcal_sublead_z_moments[4] = {b_reco_jet_emcal_zmean.at(dijet_index[1]),
+    b_reco_jet_emcal_zsig.at(dijet_index[1]),
+    b_reco_jet_emcal_zskew.at(dijet_index[1]),
+    b_reco_jet_emcal.at(dijet_index[1])};
+  double ohcal_lead_z_moments[4] = {b_reco_jet_ohcal_zmean.at(dijet_index[0]),
+    b_reco_jet_ohcal_zsig.at(dijet_index[0]),
+    b_reco_jet_ohcal_zskew.at(dijet_index[0]),
+    b_reco_jet_ohcal.at(dijet_index[0])};
+  double ohcal_sublead_z_moments[4] = {b_reco_jet_ohcal_zmean.at(dijet_index[1]),
+    b_reco_jet_ohcal_zsig.at(dijet_index[1]),
+    b_reco_jet_ohcal_zskew.at(dijet_index[1]),
+    b_reco_jet_ohcal.at(dijet_index[1])};
 
   if (!emcal_lead_on)
     {
