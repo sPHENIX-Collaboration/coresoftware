@@ -61,11 +61,13 @@ class ActsGeometry
 
   Acts::Vector3 getGlobalPosition(
       TrkrDefs::cluskey key,
-      TrkrCluster* cluster) const;
+      TrkrCluster* cluster,
+      short int crossing = 0) const;
 
   Acts::Vector3 getGlobalPositionTpc(
       TrkrDefs::cluskey key,
-      TrkrCluster* cluster) const;
+      TrkrCluster* cluster,
+      short int crossing = 0) const;
 
   Acts::Vector3 getGlobalPositionTpc(
       const TrkrDefs::hitsetkey& hitsetkey, const TrkrDefs::hitkey& hitkey, const float& phi, const float& rad,
