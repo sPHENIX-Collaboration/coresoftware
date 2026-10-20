@@ -3,11 +3,14 @@
 #ifndef COSMICTRACKQA_H
 #define COSMICTRACKQA_H
 
-#include <fun4all/SubsysReco.h>
-#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 
+#include <fun4all/SubsysReco.h>
+
+#include <Acts/Definitions/Algebra.hpp>
+
 #include <string>
+#include <tuple>
 #include <vector>
 
 class SvtxTrack;

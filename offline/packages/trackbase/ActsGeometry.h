@@ -61,11 +61,13 @@ class ActsGeometry
 
   Acts::Vector3 getGlobalPosition(
       TrkrDefs::cluskey key,
-      TrkrCluster* cluster) const;
+      TrkrCluster* cluster,
+      short int crossing = 0) const;
 
   Acts::Vector3 getGlobalPositionTpc(
       TrkrDefs::cluskey key,
-      TrkrCluster* cluster) const;
+      TrkrCluster* cluster,
+      short int crossing = 0) const;
 
   Acts::Vector3 getGlobalPositionTpc(
       const TrkrDefs::hitsetkey& hitsetkey, const TrkrDefs::hitkey& hitkey, const float& phi, const float& rad,
@@ -80,7 +82,7 @@ class ActsGeometry
       TrkrDefs::hitsetkey hitsetkey,
       Acts::Vector3 clus_envelope,
       TrkrDefs::subsurfkey& subsurfkey) const;
-    
+
   Acts::Transform3 makeAffineTransform(Acts::Vector3 rotation, Acts::Vector3 translation) const;
 
   Acts::Vector3 transformTpcWorldToEnvelope(const Acts::Vector3& world) const ;
@@ -95,7 +97,7 @@ class ActsGeometry
   Acts::Transform3 m_tpc_world_envelope_transform;
   Acts::Transform3 m_tpc_envelope_world_transform;
   double _drift_velocity = 8.0e-3;  // cm/ns
-  double _max_driftlength = 102.235;  // cm
+  double _max_driftlength = 102.325;  // cm
   double _CM_halfwidth = 0.28;  // cm
   double _tpc_tzero = 0.0;  // ns
   double _sampa_tzero_bias = 0.0;  // ns

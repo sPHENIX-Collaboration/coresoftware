@@ -109,6 +109,8 @@ void SvtxTrack_v5::CopyFrom(const SvtxTrack& source)
   _chisq = source.get_chisq();
   set_ndf(source.get_ndf());
   _track_crossing = source.get_crossing();
+  _silicon_seed_id = source.get_silicon_seed_id();
+  _tpc_seed_id = source.get_tpc_seed_id();
 
   clear_states();
   for (auto iter = source.begin_states(); iter != source.end_states(); ++iter)
@@ -156,6 +158,8 @@ void SvtxTrack_v5::identify(std::ostream& os) const
 {
   os << "SvtxTrack_v5 Object ";
   os << "id: " << get_id() << " ";
+  os << "silicon seed id: " << get_silicon_seed_id() << " ";
+  os << "tpc seed id: " << get_tpc_seed_id() << " ";
   os << "vertex id: " << get_vertex_id() << " ";
   os << "charge: " << get_charge() << " ";
   os << "chisq: " << get_chisq() << " ndf:" << get_ndf() << " ";

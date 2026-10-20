@@ -4,20 +4,21 @@
 
 #include <trackbase/TrkrDefs.h>
 
+#include <tpc/TpcClusterMover.h>
+
 #include <array>
 #include <map>
 #include <memory>
 #include <string>
 
 class ActsGeometry;
-class PHG4TpcGeomContainer;
 class PHCompositeNode;
-class TpcClusterMover;
 class TpcCrossingDecisionContainer;
 class Tpc_PolyCluster;
 class Tpc_PolyClusterContainer;
 class Tpc_PolyTrack;
 class Tpc_PolyTrackContainer;
+class TrkrClusterHitAssoc;
 class TrkrClusterContainer;
 
 class TpcPolyClusterTrkrClusterConverter : public SubsysReco
@@ -35,6 +36,7 @@ class TpcPolyClusterTrkrClusterConverter : public SubsysReco
   void setCrossingDecisionNodeName(const std::string& name) { m_crossingDecisionNodeName = name; }
   void setCrossingPeriodNs(double value) { m_crossingPeriodNs = value; }
   void setMagneticFieldTesla(double value) { m_magneticFieldTesla = value; }
+  void setFillClusterHitAssoc(bool value) { m_fillClusterHitAssoc = value; }
 
  private:
   int getNodes(PHCompositeNode*);
@@ -59,13 +61,15 @@ class TpcPolyClusterTrkrClusterConverter : public SubsysReco
   Tpc_PolyClusterContainer* m_polyClusters {nullptr};
   Tpc_PolyTrackContainer* m_polyTracks {nullptr};
   TrkrClusterContainer* m_outputClusters {nullptr};
+  TrkrClusterHitAssoc* m_clusterHitAssoc {nullptr};
   TpcCrossingDecisionContainer* m_crossingDecisions {nullptr};
   ActsGeometry* m_geometry {nullptr};
-  PHG4TpcGeomContainer* m_tpcGeomContainer {nullptr};
-  std::unique_ptr<TpcClusterMover> m_clusterMover;
+  TpcClusterMover m_clusterMover;
+
   std::map<unsigned int, const Tpc_PolyTrack*> m_tracksBySourceId;
   std::map<TrkrDefs::cluskey, std::array<double, 3>> m_movedGlobals;
   std::map<TrkrDefs::cluskey, unsigned short> m_seedSubSurfKeys;
   double m_crossingPeriodNs {106.56};
   double m_magneticFieldTesla {1.4};
+  bool m_fillClusterHitAssoc {true};
 };

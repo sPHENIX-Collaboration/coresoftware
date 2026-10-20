@@ -27,6 +27,12 @@
 #include <iostream>
 #include <string>
 
+namespace
+{
+  // class-suffixed payload columns, indexed by MinimumBiasInfo::BUNCH
+  const std::array<std::string, 3> bunch_suffix{"", "_m5", "_p5"};
+}  // namespace
+
 CentralityReco::CentralityReco(const std::string &name)
   : SubsysReco(name)
 {
@@ -35,6 +41,23 @@ CentralityReco::CentralityReco(const std::string &name)
 int CentralityReco::InitRun(PHCompositeNode *topNode)
 {
   CDBInterface *m_cdb = CDBInterface::instance();
+
+  // the scale payload decides whether this run uses bunch classes, so it is read first
+  std::string centscale_url;
+  if (!m_overwrite_url_scale.empty())
+  {
+    centscale_url = m_overwrite_url_scale;
+    std::cout << " Overwriting Scale to " << m_overwrite_url_scale << std::endl;
+  }
+  else
+  {
+    centscale_url = m_cdb->getUrl("CentralityScale");
+  }
+
+  if (Download_centralityScale(centscale_url))
+  {
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   std::string centdiv_url;
   if (!m_overwrite_url_divs.empty())
@@ -48,22 +71,6 @@ int CentralityReco::InitRun(PHCompositeNode *topNode)
   }
 
   if (Download_centralityDivisions(centdiv_url))
-  {
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  std::string centscale_url;
-  if (!m_overwrite_url_scale.empty())
-  {
-    centscale_url = m_overwrite_url_scale;
-    std::cout << " Overwriting Scale to " << m_overwrite_url_scale << std::endl;
-  }
-  else
-  {
-    centscale_url = m_cdb->getUrl("CentralityScale");
-  }
-
-  if (Download_centralityScale(centscale_url))
   {
     return Fun4AllReturnCodes::ABORTRUN;
   }
@@ -90,17 +97,34 @@ int CentralityReco::InitRun(PHCompositeNode *topNode)
 
 int CentralityReco::Download_centralityScale(const std::string &dbfile)
 {
-  m_centrality_scale = 1.00;
+  m_centrality_scale.fill(1.00);
+  m_bunch_classes = false;
+  m_t0_offset = 0.;
 
   std::filesystem::path dbase_file = dbfile;
   if (dbase_file.extension() == ".root")
   {
     CDBTTree *cdbttree = new CDBTTree(dbase_file);
     cdbttree->LoadCalibrations();
-    m_centrality_scale = cdbttree->GetDoubleValue(0, "centralityscale");
+    m_centrality_scale[0] = cdbttree->GetDoubleValue(0, "centralityscale");
+    // bunch-class payload: t0 offset, bunch spacings and per-class scales in the same file
+    if (m_use_bunch_classes && !m_sum_all_channels)
+    {
+      const double t0_offset = cdbttree->GetDoubleValue(0, "t0offset");
+      if (std::isfinite(t0_offset))
+      {
+        m_bunch_classes = true;
+        m_t0_offset = t0_offset;
+        for (int ib = 1; ib < 3; ib++)
+        {
+          m_centrality_scale[ib] = cdbttree->GetDoubleValue(0, "centralityscale" + bunch_suffix[ib]);
+        }
+      }
+    }
     if (Verbosity())
     {
-      std::cout << "centscale = " << m_centrality_scale << std::endl;
+      std::cout << "centscale = " << m_centrality_scale[0] << " " << m_centrality_scale[1] << " " << m_centrality_scale[2]
+                << (m_bunch_classes ? " (bunch classes)" : " (single class)") << " t0offset = " << m_t0_offset << std::endl;
     }
     delete cdbttree;
   }
@@ -115,7 +139,10 @@ int CentralityReco::Download_centralityScale(const std::string &dbfile)
 
 int CentralityReco::Download_centralityDivisions(const std::string &dbfile)
 {
-  m_centrality_map.fill(0);
+  for (auto &map : m_centrality_map)
+  {
+    map.fill(0);
+  }
 
   std::filesystem::path dbase_file = dbfile;
 
@@ -127,12 +154,16 @@ int CentralityReco::Download_centralityDivisions(const std::string &dbfile)
     {
       cdbttree->Print();
     }
-    for (int idiv = 0; idiv < NDIVS; idiv++)
+    const int nclass = m_bunch_classes ? 3 : 1;
+    for (int ib = 0; ib < nclass; ib++)
     {
-      m_centrality_map[idiv] = cdbttree->GetFloatValue(idiv, "centralitydiv");
-      if (Verbosity())
+      for (int idiv = 0; idiv < NDIVS; idiv++)
       {
-        std::cout << "centdiv " << idiv << " : " << m_centrality_map[idiv] << std::endl;
+        m_centrality_map[ib][idiv] = cdbttree->GetFloatValue(idiv, "centralitydiv" + bunch_suffix[ib]);
+        if (Verbosity())
+        {
+          std::cout << "centdiv" << bunch_suffix[ib] << " " << idiv << " : " << m_centrality_map[ib][idiv] << std::endl;
+        }
       }
     }
     delete cdbttree;
@@ -160,12 +191,20 @@ int CentralityReco::Download_centralityVertexScales(const std::string &dbfile)
 
     int nvertexbins = cdbttree->GetIntValue(0, "nvertexbins");
 
-    for (int iv = 0; iv < nvertexbins; iv++)
+    const int nclass = m_bunch_classes ? 3 : 1;
+    for (auto &scales : m_vertex_scales)
     {
-      float scale = cdbttree->GetDoubleValue(iv, "scale");
-      float lowvertex = cdbttree->GetDoubleValue(iv, "low_vertex");
-      float highvertex = cdbttree->GetDoubleValue(iv, "high_vertex");
-      m_vertex_scales.emplace_back(std::make_pair(lowvertex, highvertex), scale);
+      scales.clear();
+    }
+    for (int ib = 0; ib < nclass; ib++)
+    {
+      for (int iv = 0; iv < nvertexbins; iv++)
+      {
+        float scale = cdbttree->GetDoubleValue(iv, "scale" + bunch_suffix[ib]);
+        float lowvertex = cdbttree->GetDoubleValue(iv, "low_vertex");
+        float highvertex = cdbttree->GetDoubleValue(iv, "high_vertex");
+        m_vertex_scales[ib].emplace_back(std::make_pair(lowvertex, highvertex), scale);
+      }
     }
 
     delete cdbttree;
@@ -193,26 +232,37 @@ int CentralityReco::FillVars()
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
 
-  float scale_factor = getVertexScale();
+  const int bunch = m_bunch_classes ? m_mb_info->getBunchClass() : MinimumBiasInfo::BUNCH::MAIN;
+  float scale_factor = getVertexScale(bunch);
 
   if (Verbosity())
   {
-    std::cout << scale_factor << "*" << m_centrality_scale << std::endl;
+    std::cout << scale_factor << "*" << m_centrality_scale[bunch] << std::endl;
   }
 
   for (int i = 0; i < 128; i++)
   {
     m_mbd_hit = m_mbd_container->get_pmt(i);
 
-    if ((m_mbd_hit->get_q()) < mbd_charge_cut)
+    if (m_bunch_classes)
     {
-      continue;
+      if (m_mbd_hit->get_q() <= mbd_charge_cut || std::fabs(m_mbd_hit->get_time() - m_t0_offset) >= m_hit_time_window)
+      {
+        continue;
+      }
     }
-    if (fabs(m_mbd_hit->get_time()) > mbd_time_cut)
+    else if (!m_sum_all_channels)
     {
-      continue;
+      if ((m_mbd_hit->get_q()) < mbd_charge_cut)
+      {
+        continue;
+      }
+      if (fabs(m_mbd_hit->get_time()) > mbd_time_cut)
+      {
+        continue;
+      }
     }
-    m_mbd_total_charge += m_mbd_hit->get_q() * scale_factor * m_centrality_scale;
+    m_mbd_total_charge += m_mbd_hit->get_q() * scale_factor * m_centrality_scale[bunch];
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -227,11 +277,13 @@ int CentralityReco::FillCentralityInfo()
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
 
-  int binvalue = std::numeric_limits<int>::quiet_NaN();
+  const int bunch = m_bunch_classes ? m_mb_info->getBunchClass() : MinimumBiasInfo::BUNCH::MAIN;
+  // no int NaN exists (quiet_NaN<int>() is 0); an event below every division gets no bin
+  int binvalue = -1;
   float value = std::numeric_limits<float>::quiet_NaN();
   for (int i = 0; i < NDIVS; i++)
   {
-    if (m_centrality_map[i] < m_mbd_total_charge)
+    if (m_centrality_map[bunch][i] < m_mbd_total_charge)
     {
       binvalue = i + 1;
       value = static_cast<float>(i + 1) / static_cast<float>(NDIVS);
@@ -244,8 +296,13 @@ int CentralityReco::FillCentralityInfo()
     std::cout << " Charge : " << m_mbd_total_charge << std::endl;
   }
 
+  // the (vertex- and run-scaled) charge sum compared with the divisions
+  m_central->set_quantity(CentralityInfo::PROP::mbd_NS, m_mbd_total_charge);
   m_central->set_centile(CentralityInfo::PROP::mbd_NS, value);
-  m_central->set_centrality_bin(CentralityInfo::PROP::mbd_NS, binvalue);
+  if (binvalue >= 0)
+  {
+    m_central->set_centrality_bin(CentralityInfo::PROP::mbd_NS, binvalue);
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -267,6 +324,27 @@ int CentralityReco::process_event(PHCompositeNode *topNode)
   if (!m_mb_info->isAuAuMinimumBias())
   {
     return Fun4AllReturnCodes::EVENT_OK;
+  }
+
+  if (m_bunch_classes)
+  {
+    // a bunch-class MinimumBiasClassifier sets t0 for every min-bias event; without it (MinimumBiasInfov1, or the
+    // classifier run with an older payload) the bunch class is unknown
+    if (!std::isfinite(m_mb_info->getT0Corrected()))
+    {
+      if (!m_warned_no_bunch_class)
+      {
+        std::cout << PHWHERE << " bunch-class centrality payload, but " << m_mb_info_nodename
+                  << " has no bunch class: rerun MinimumBiasClassifier with the same payload. No centrality is filled." << std::endl;
+        m_warned_no_bunch_class = true;
+      }
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+    // outside the three bunch windows there is no calibration: centrality stays unset (NaN)
+    if (m_mb_info->getBunchClass() == MinimumBiasInfo::BUNCH::NONE)
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
   }
 
   // Fill Arrays
@@ -366,10 +444,10 @@ void CentralityReco::CreateNodes(PHCompositeNode *topNode)
   return;
 }
 
-float CentralityReco::getVertexScale()
+float CentralityReco::getVertexScale(int bunch)
 {
   float mbd_vertex = m_mbd_out->get_zvtx();
-  for (auto v_range_scale : m_vertex_scales)
+  for (const auto &v_range_scale : m_vertex_scales[bunch])
   {
     auto v_range = v_range_scale.first;
     if (Verbosity())

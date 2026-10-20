@@ -18,7 +18,6 @@
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
 
-#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <Acts/EventData/ParticleHypothesis.hpp>
 #include <Acts/EventData/SourceLink.hpp>
@@ -50,12 +49,12 @@ namespace
 
 }  // namespace
 
-void MakeSourceLinks::initialize(PHG4TpcGeomContainer* cellgeo, ActsGeometry *tGeometry, PHCompositeNode *topNode)
+void MakeSourceLinks::initialize(ActsGeometry *tGeometry, PHCompositeNode *topNode)
 {
   // get the TPC layer radii from the geometry object
-  if (cellgeo && tGeometry && topNode)
+  if (tGeometry && topNode)
   {
-    _clusterMover.initialize_geometry(cellgeo, tGeometry, topNode);
+    _clusterMover.initialize_geometry(tGeometry, topNode);
     _clusterMover.set_verbosity(m_verbosity);
   }
 }
@@ -276,7 +275,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
         std::cout << std::endl;
         std::cout << "Corrected surface transform:" << std::endl;
         std::cout << transformMapTransient->getTransform(surf->geometryId()).matrix() << std::endl;
-        std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
+        std::cout << "Cluster error " << std::sqrt(para_errors.first) << " , " << std::sqrt(para_errors.second) << std::endl;
         std::cout << "For key " << cluskey << " with local pos " << std::endl
                   << localPos(0) << ", " << localPos(1)
                   << std::endl
@@ -327,7 +326,8 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     TrkrClusterContainer* clusterContainer,
     ActsGeometry* tGeometry,
     const TpcGlobalPositionWrapper& globalPositionWrapper,
-    short int crossing)
+    short int crossing,
+    bool use_modified_clus_error)
 {
   if (m_verbosity > 1)
   {
@@ -361,7 +361,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
        ++clusIter)
   {
     auto key = *clusIter;
-    
+
     auto* cluster = clusterContainer->findCluster(key);
     if (!cluster)
     {
@@ -421,15 +421,11 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
   }  // end loop over clusters here
 
   // move the cluster positions back to the original readout surface
-  auto global_moved = _clusterMover.processTrack(global_raw);
+  // the cluster mover now returns global_moved in a new format
+  std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>> global_moved = _clusterMover.processTrack(global_raw);
 
-  if (m_verbosity > 1)
-  {
-    std::cout << "Cluster global positions after mover puts them on readout surface:" << std::endl;
-  }
-
-  // loop over global positions returned by cluster mover
-  for (auto&& [cluskey, global] : global_moved)
+    // loop over global positions returned by cluster mover
+  for (auto&& [cluskey, surf_global] : global_moved)
   {
     if (m_ignoreLayer.contains(TrkrDefs::getLayer(cluskey)))
     {
@@ -441,24 +437,28 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       continue;
     }
 
+    Acts::Vector3 global = surf_global.second;
+    
     if (std::isnan(global.x()) || std::isnan(global.y()))
     {
       if (m_verbosity > 1)
-	{
-	  std::cout << "MakeSourceLinks::getSourceLinksClusterMover - invalid position"
-		    << " key: " << cluskey
-		    << " layer: " << (int) TrkrDefs::getLayer(cluskey)
-		    << " position: " << global
-		    << std::endl;
-	}
-      continue;
+      {
+        std::cout << "MakeSourceLinks::getSourceLinksClusterMover - invalid position"
+          << " key: " << cluskey
+          << " layer: " << (int) TrkrDefs::getLayer(cluskey)
+          << " position: " << global
+          << std::endl;
+        }
+        continue;
     }
 
-    // clustermover updates the subsurface key after moving the clusters to the surface, so this is safe
-    auto* cluster = clusterContainer->findCluster(cluskey);
-    if(!cluster) { continue; }
-    Surface surf = tGeometry->maps().getSurface(cluskey, cluster);
+    Surface surf = surf_global.first;
+    
+    // now we have the surface and the global position on the surface
+    // we also need the clusterkey
 
+    auto* cluster = clusterContainer->findCluster(cluskey);
+	  
     auto trkrid = TrkrDefs::getTrkrId(cluskey);
     if (trkrid == TrkrDefs::tpcId)
     {
@@ -467,7 +467,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
         continue;
       }
     }
-    
+
     if (!surf)
     {
       std::cout << "MakeSourceLinks::getSourceLinksClusterMover -  Failed to find surface for cluskey " << cluskey << std::endl;
@@ -524,13 +524,23 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
         {Acts::BoundIndices::eBoundLoc0, Acts::BoundIndices::eBoundLoc1};
 
     Acts::ActsSquareMatrix<2> cov = Acts::ActsSquareMatrix<2>::Zero();
-
     double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
     auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, clusRadius, cluskey);
-    cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
-    cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
-    cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
-    cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
+
+    if(use_modified_clus_error)
+    {
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
+    }
+    else
+    {
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = cluster->getRPhiError()*cluster->getRPhiError() * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = cluster->getZError()*cluster->getZError() * Acts::UnitConstants::cm2;
+    }
 
     ActsSourceLink::Index index = measurements.size();
 
@@ -546,7 +556,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       std::cout << "Surface : " << std::endl;
       surf.get()->toStream(tGeometry->geometry().getGeoContext());
       std::cout << std::endl;
-      std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
+      std::cout << "Cluster error " << std::sqrt(para_errors.first) << " , " << std::sqrt(para_errors.second) << std::endl;
       std::cout << "For key " << cluskey << " with local pos " << std::endl
                 << localPos(0) << ", " << localPos(1)
                 << std::endl;
@@ -554,7 +564,8 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 
     sourcelinks.push_back(actsSL);
   }
-
+  
+  // all done
   SLTrackTimer.stop();
   auto SLTime = SLTrackTimer.get_accumulated_time();
 

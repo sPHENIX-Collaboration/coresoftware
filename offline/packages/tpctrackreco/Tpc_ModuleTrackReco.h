@@ -111,6 +111,7 @@ struct InModuleThreadData
   int search_dt;
   int search_dp;
   unsigned int min_track_blobs;
+  unsigned int max_layer_step;// 1 = adjacent layer only; n = may jump over up to n-1 empty layers.
 
   // Track-piece connection.
   unsigned int connect_max_layer_gap;
@@ -129,6 +130,8 @@ struct InModuleThreadData
   std::vector<LayerHitSet> layer_hitsets;
   std::vector<RawHit> raw_hits;
   std::vector<Blob> blobs;
+  // blobs_by_layer[layer] = indices into blobs, in increasing order.
+  std::vector<std::vector<unsigned int>> blobs_by_layer;
   std::vector<Track> tracks;
 };
 
@@ -165,6 +168,11 @@ class Tpc_ModuleTrackReco : public SubsysReco
   {
     m_search_dt = dt;
     m_search_dp = dp;
+  }
+  // 1 = adjacent layer only (default); 2 = jump over 1 empty layer; 3 = over 2.
+  void setMaxLayerStep(unsigned int n)
+  {
+    m_maxLayerStep = std::max(1U, n);
   }
 
   // Reject long same-pad tails before blob/track building.
@@ -231,6 +239,7 @@ class Tpc_ModuleTrackReco : public SubsysReco
   int m_search_dt;
   int m_search_dp;
   unsigned int m_minTrackBlobs;
+  unsigned int m_maxLayerStep;
 
   // Track-piece connection parameters
   unsigned int m_connectMaxLayerGap;

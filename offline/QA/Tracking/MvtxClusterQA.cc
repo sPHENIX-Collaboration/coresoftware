@@ -7,16 +7,13 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/MvtxDefs.h>
-#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainerv1.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 #include <qautils/QAHistManagerDef.h>
-#include <qautils/QAUtil.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -24,11 +21,16 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <TH1.h>
 #include <TH2.h>
 
+#include <cassert>
+#include <cmath>
 #include <format>
+#include <iostream>
+#include <vector>
 
 //____________________________________________________________________________..
 MvtxClusterQA::MvtxClusterQA(const std::string &name)
@@ -39,8 +41,7 @@ MvtxClusterQA::MvtxClusterQA(const std::string &name)
 //____________________________________________________________________________..
 int MvtxClusterQA::InitRun(PHCompositeNode *topNode)
 {
-  auto *geomContainer = findNode::getClass<
-      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+  auto *geomContainer = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   if (!geomContainer)
   {
     std::cout << PHWHERE
@@ -75,7 +76,7 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  auto *trkrHitSetContainer = findNode::getClass<TrkrHitSetContainerv1>(topNode, "TRKR_HITSET");
+  TrkrHitSetContainer *trkrHitSetContainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!trkrHitSetContainer)
   {
     std::cout << PHWHERE << "No trkrhitset container, bailing" << std::endl;
@@ -190,10 +191,7 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
-int MvtxClusterQA::EndRun(const int /*runnumber*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
+
 //____________________________________________________________________________..
 
 std::string MvtxClusterQA::getHistoPrefix() const

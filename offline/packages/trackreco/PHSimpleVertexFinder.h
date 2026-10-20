@@ -11,8 +11,8 @@
 #define PHSIMPLEVERTEXFINDER_H
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <map>
 #include <set>
@@ -28,6 +28,7 @@ class SvtxVertexMap;
 class TrkrCluster;
 class TrackVertexCrossingAssoc;
 class TrackSeed;
+class TrackSeedContainer;
 class TrkrClusterContainer;
 class ActsGeometry;
 
@@ -42,8 +43,16 @@ class PHSimpleVertexFinder : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
   void setBeamLineCut(const double cut) { _beamline_xy_cut = cut; }
-  void setBeamSpotCutX(const double cutlo, const double cuthi) { _beamline_x_cut_lo = cutlo; _beamline_x_cut_hi = cuthi; }
-  void setBeamSpotCutY(const double cutlo, const double cuthi) { _beamline_y_cut_lo = cutlo; _beamline_y_cut_hi = cuthi; }
+  void setBeamSpotCutX(const double cutlo, const double cuthi)
+  {
+    _beamline_x_cut_lo = cutlo;
+    _beamline_x_cut_hi = cuthi;
+  }
+  void setBeamSpotCutY(const double cutlo, const double cuthi)
+  {
+    _beamline_y_cut_lo = cutlo;
+    _beamline_y_cut_hi = cuthi;
+  }
   void setDcaCut(const double cut) { _base_dcacut = cut; }
   void setTrackQualityCut(double cut) { _qual_cut = cut; }
   void setRequireMVTX(bool set = true) { _require_mvtx = set; }
@@ -56,7 +65,7 @@ class PHSimpleVertexFinder : public SubsysReco
   void setTrackMapName(const std::string &name) { _track_map_name = name; }
   void setVertexMapName(const std::string &name) { _vertex_map_name = name; }
   void zeroField(const bool flag = true) { _zero_field = flag; }
-  void setTrkrClusterContainerName(const std::string &name){ m_clusterContainerName = name; }
+  void setTrkrClusterContainerName(const std::string &name) { m_clusterContainerName = name; }
   void set_pp_mode(bool mode = true) { _pp_mode = mode; }
 
  private:
@@ -67,8 +76,8 @@ class PHSimpleVertexFinder : public SubsysReco
   void checkDCAsZF(SvtxTrackMap *track_map);
   void checkDCAs();
 
-  void getTrackletClusterList(TrackSeed* tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec);
-  
+  void getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey> &cluskey_vec);
+
   void findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2);
   double dcaTwoLines(const Eigen::Vector3d &a1, const Eigen::Vector3d &b1,
                      const Eigen::Vector3d &a2, const Eigen::Vector3d &b2,
@@ -78,20 +87,25 @@ class PHSimpleVertexFinder : public SubsysReco
   double getMedian(std::vector<double> &v);
   double getAverage(std::vector<double> &v);
   bool passClusterRequirement(SvtxTrack *track, const std::string &type = "MVTX");
+  TrackSeed *getSiliconSeed(SvtxTrack *track) const;
+  TrackSeed *getTpcSeed(SvtxTrack *track) const;
+  static TrackSeed *findSeed(TrackSeedContainer *container, unsigned short id);
 
   SvtxTrackMap *_track_map{nullptr};
-  TrkrClusterContainer* _cluster_map{nullptr};
+  TrkrClusterContainer *_cluster_map{nullptr};
+  TrackSeedContainer *_silicon_seed_map{nullptr};
+  TrackSeedContainer *_tpc_seed_map{nullptr};
   SvtxVertexMap *_svtx_vertex_map{nullptr};
-  ActsGeometry* _tGeometry{nullptr};
+  ActsGeometry *_tGeometry{nullptr};
 
   double _base_dcacut = 0.05;  // pair dca cut - 1000 microns
   double _active_dcacut = 0.05;
   double _beamline_xy_cut = 0.2;  // must be within this distance of beam line - no longer used
   // defines a box around the beam spot
-  double _beamline_x_cut_lo = -0.2;  
-  double _beamline_x_cut_hi = 0.2; 
-  double _beamline_y_cut_lo = -0.2;  
-  double _beamline_y_cut_hi = 0.2; 
+  double _beamline_x_cut_lo = -0.2;
+  double _beamline_x_cut_hi = 0.2;
+  double _beamline_y_cut_lo = -0.2;
+  double _beamline_y_cut_hi = 0.2;
   double _qual_cut = 10.0;
   bool _require_mvtx = true;
   bool _require_intt = false;
@@ -100,10 +114,10 @@ class PHSimpleVertexFinder : public SubsysReco
   double _track_pt_cut = 0.0;
   double _outlier_cut = 0.015;
 
-  //name of TRKR_CLUSTER Container
+  // name of TRKR_CLUSTER Container
   std::string m_clusterContainerName = "TRKR_CLUSTER";
 
-  bool _zero_field = false;     // fit straight lines if true
+  bool _zero_field = false;  // fit straight lines if true
 
   std::string _track_map_name = "SvtxTrackMap";
   std::string _vertex_map_name = "SvtxVertexMap";

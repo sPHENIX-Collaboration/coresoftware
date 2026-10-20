@@ -4,6 +4,7 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 
@@ -510,9 +511,10 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     const double clusPhi = std::atan2(globClusPos(1), globClusPos(0));
     const double clusZ = globClusPos(2);
 
-    // cluster errors
-    const double clusRPhiErr = cluster->getRPhiError();
-    const double clusZErr = cluster->getZError();
+    // parameterized cluster errors
+    const auto clusterErrors = ClusterErrorPara::get_clusterv5_modified_error(cluster, clusR, cluskey);
+    const double clusRPhiErr = std::sqrt(clusterErrors.first);
+    const double clusZErr = std::sqrt(clusterErrors.second);
     if (Verbosity() > 3)
     {
       std::cout << "PHTpcResiduals::processTrack -"

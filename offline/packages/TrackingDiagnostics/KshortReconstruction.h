@@ -86,7 +86,7 @@ class KshortReconstruction : public SubsysReco
   double pair_dca_cut {0.05};  // kshort relative cut 500 microns
   double track_dca_cut {0.01};
   double invariant_pt_cut {0.1};
-  double track_pt_cut {0.2};
+  double track_pt_cut {0.1};
   TFile* fout {nullptr};
   TH1* recomass {nullptr};
 

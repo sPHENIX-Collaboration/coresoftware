@@ -13,6 +13,7 @@
 class PHCompositeNode;
 class TH2;
 class TH1;
+
 class TpcClusterQA : public SubsysReco
 {
  public:
@@ -50,6 +51,7 @@ class TpcClusterQA : public SubsysReco
   TH1 *h_phisize_side0[3] = {nullptr};
   TH1 *h_phisize_side1[3] = {nullptr};
   TH1 *h_zsize[3] = {nullptr};
+  TH1 *h_nhitassoc[3] = {nullptr};
   TH1 *h_rphierror[3] = {nullptr};
   TH1 *h_zerror[3] = {nullptr};
   TH1 *h_clusedge[3] = {nullptr};

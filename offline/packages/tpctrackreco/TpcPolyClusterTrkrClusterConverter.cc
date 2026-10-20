@@ -17,7 +17,10 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TpcDefs.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv5.h>
@@ -107,13 +110,6 @@ int TpcPolyClusterTrkrClusterConverter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_tpcGeomContainer = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
-  if (!m_tpcGeomContainer)
-  {
-    std::cerr << Name() << "::getNodes - missing TPCGEOMCONTAINER" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -136,17 +132,41 @@ int TpcPolyClusterTrkrClusterConverter::createNodes(PHCompositeNode* topNode)
     std::cout << Name() << "::createNodes - created " << m_outputNodeName << " node" << std::endl;
   }
 
+  if (m_fillClusterHitAssoc)
+  {
+    m_clusterHitAssoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+    if (!m_clusterHitAssoc)
+    {
+      PHNodeIterator dstIter(dstNode);
+      auto* trkrNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode", "TRKR"));
+      if (!trkrNode)
+      {
+        trkrNode = new PHCompositeNode("TRKR");
+        dstNode->addNode(trkrNode);
+      }
+
+      m_clusterHitAssoc = new TrkrClusterHitAssocv3();
+      auto* node = new PHIODataNode<PHObject>(m_clusterHitAssoc, "TRKR_CLUSTERHITASSOC", "PHObject");
+      trkrNode->addNode(node);
+      std::cout << Name() << "::createNodes - created TRKR_CLUSTERHITASSOC node" << std::endl;
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void TpcPolyClusterTrkrClusterConverter::clearOutputTpcClusters()
 {
   if (!m_outputClusters) { return;
-}
+  }
 
   const auto hitsetkeys = m_outputClusters->getHitSetKeys(TrkrDefs::TrkrId::tpcId);
   for (const auto hitsetkey : hitsetkeys)
   {
+    if (m_fillClusterHitAssoc && m_clusterHitAssoc)
+    {
+      m_clusterHitAssoc->removeAssocs(hitsetkey);
+    }
     m_outputClusters->removeClusters(hitsetkey);
   }
 }
@@ -155,13 +175,13 @@ void TpcPolyClusterTrkrClusterConverter::buildTrackMap()
 {
   m_tracksBySourceId.clear();
   if (!m_polyTracks) { return;
-}
+  }
 
   for (unsigned int itrack = 0; itrack < m_polyTracks->size(); ++itrack)
   {
     const Tpc_PolyTrack* track = m_polyTracks->get_track(itrack);
     if (!isAcceptedTrack(track)) { continue;
-}
+    }
     m_tracksBySourceId[track->get_source_assembled_track_id()] = track;
   }
 }
@@ -169,9 +189,9 @@ void TpcPolyClusterTrkrClusterConverter::buildTrackMap()
 bool TpcPolyClusterTrkrClusterConverter::isAcceptedTrack(const Tpc_PolyTrack* track) const
 {
   if (!track || !track->isValid() || track->get_fit_status() == 0) { return false;
-}
+  }
   if (track->get_nclusters() <= 20) { return false;
-}
+  }
 
   const double pt = std::hypot(track->get_px(), track->get_py());
   return std::isfinite(pt) && pt > 0.1;
@@ -179,19 +199,17 @@ bool TpcPolyClusterTrkrClusterConverter::isAcceptedTrack(const Tpc_PolyTrack* tr
 
 bool TpcPolyClusterTrkrClusterConverter::initializeClusterMover(PHCompositeNode* topNode)
 {
-  if (!m_geometry || !m_tpcGeomContainer || !topNode) { return false;
-}
+  if (!m_geometry || !topNode) { return false;}
 
-  m_clusterMover = std::make_unique<TpcClusterMover>();
-  m_clusterMover->set_verbosity(Verbosity());
-  m_clusterMover->initialize_geometry(m_tpcGeomContainer, m_geometry, topNode);
+  m_clusterMover.set_verbosity(Verbosity());
+  m_clusterMover.initialize_geometry(m_geometry, topNode);
   return true;
 }
 
 TrkrDefs::cluskey TpcPolyClusterTrkrClusterConverter::getClusterKey(const Tpc_PolyCluster* cluster) const
 {
   if (!cluster || cluster->size_hits() == 0) { return TrkrDefs::CLUSKEYMAX;
-}
+  }
 
   const TrkrDefs::hitsetkey hitsetkey = cluster->get_hit_index(0).first;
   TrkrDefs::cluskey cluskey = cluster->get_trkr_cluster_key();
@@ -216,12 +234,12 @@ bool TpcPolyClusterTrkrClusterConverter::localFromMovedGlobal(const Tpc_PolyClus
                                                               unsigned long long& surface_id) const
 {
   if (!cluster || !m_geometry || cluster->size_hits() == 0) { return false;
-}
+  }
 
   const TrkrDefs::hitsetkey hitsetkey = cluster->get_hit_index(0).first;
   const Acts::Vector3 global(moved_global[0], moved_global[1], moved_global[2]);
   if (!std::isfinite(global.x()) || !std::isfinite(global.y()) || !std::isfinite(global.z())) { return false;
-}
+  }
 
   TrkrDefs::subsurfkey new_subsurfkey = 0;
   Surface surface = m_geometry->get_tpc_surface_from_coords(hitsetkey, global, new_subsurfkey);
@@ -229,12 +247,12 @@ bool TpcPolyClusterTrkrClusterConverter::localFromMovedGlobal(const Tpc_PolyClus
   {
     const auto seed_iter = m_seedSubSurfKeys.find(cluskey);
     if (seed_iter == m_seedSubSurfKeys.end()) { return false;
-}
+    }
     new_subsurfkey = seed_iter->second;
     surface = m_geometry->maps().getTpcSurface(hitsetkey, new_subsurfkey);
   }
   if (!surface) { return false;
-}
+  }
   surface_id = surface->geometryId().value();
 
   const auto& geo_context = m_geometry->geometry().getGeoContext();
@@ -243,7 +261,7 @@ bool TpcPolyClusterTrkrClusterConverter::localFromMovedGlobal(const Tpc_PolyClus
   const unsigned int side = TpcDefs::getSide(hitsetkey);
   const double drift_velocity = m_geometry->get_drift_velocity();
   if (drift_velocity <= 0.0 || !std::isfinite(drift_velocity)) { return false;
-}
+  }
 
   const double half_drift = 0.5 * m_geometry->get_max_driftlength();
   const double z_bunch_separation = m_crossingPeriodNs * drift_velocity;
@@ -283,8 +301,10 @@ bool TpcPolyClusterTrkrClusterConverter::seedOutputCluster(const Tpc_PolyCluster
   if (!std::isfinite(centroid.x()) || !std::isfinite(centroid.y()) || !std::isfinite(centroid.z())) { return false;
 }
 
+  const Acts::Vector3 sphenix_centroid =  m_geometry->transformTpcEnvelopeToWorld(centroid);
+
   TrkrDefs::subsurfkey subsurfkey = 0;
-  Surface surface = m_geometry->get_tpc_surface_from_coords(hitsetkey, centroid, subsurfkey);
+  Surface surface = m_geometry->get_tpc_surface_from_coords(hitsetkey, sphenix_centroid, subsurfkey);
   if (!surface)
   {
     subsurfkey = 0;
@@ -303,36 +323,41 @@ void TpcPolyClusterTrkrClusterConverter::buildMovedClusterMap()
 {
   m_movedGlobals.clear();
   m_seedSubSurfKeys.clear();
-  if (!m_polyClusters || !m_clusterMover) { return;
-}
+  if (!m_polyClusters ) { return; }
 
   std::map<unsigned int, std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>> clusters_by_track;
   for (unsigned int icluster = 0; icluster < m_polyClusters->size(); ++icluster)
-  {
-    const Tpc_PolyCluster* cluster = m_polyClusters->get_cluster(icluster);
-    if (!cluster || !cluster->isValid()) { continue;
-}
+    {
+      const Tpc_PolyCluster* cluster = m_polyClusters->get_cluster(icluster);
+      if (!cluster || !cluster->isValid()) { continue;
+      }
 
-    const auto track_iter = m_tracksBySourceId.find(cluster->get_source_assembled_track_id());
-    if (track_iter == m_tracksBySourceId.end()) { continue;
-}
-
-    TrkrDefs::cluskey cluskey = TrkrDefs::CLUSKEYMAX;
-    if (!seedOutputCluster(cluster, cluskey)) { continue;
-}
+      const auto track_iter = m_tracksBySourceId.find(cluster->get_source_assembled_track_id());
+      if (track_iter == m_tracksBySourceId.end()) { continue;
+      }
+      
+      TrkrDefs::cluskey cluskey = TrkrDefs::CLUSKEYMAX;
+      if (!seedOutputCluster(cluster, cluskey)) { continue;
+      }
 
     const Acts::Vector3 centroid(cluster->get_centroid_x(),
                                  cluster->get_centroid_y(),
                                  cluster->get_centroid_z());
-    m_movedGlobals[cluskey] = {{centroid.x(), centroid.y(), centroid.z()}};
-    clusters_by_track[track_iter->first].emplace_back(cluskey, centroid);
+
+    const Acts::Vector3 sphenix_centroid =  m_geometry->transformTpcEnvelopeToWorld(centroid);
+    m_movedGlobals[cluskey] = {{sphenix_centroid.x(), sphenix_centroid.y(), sphenix_centroid.z()}};
+
+    clusters_by_track[track_iter->first].emplace_back(cluskey, sphenix_centroid);
   }
 
   for (const auto& track_clusters : clusters_by_track)
   {
-    const auto moved_globals = m_clusterMover->processTrack(track_clusters.second);
-    for (const auto& [cluskey, moved_global] : moved_globals)
+    //  const auto moved_globals = m_clusterMover.processTrack(track_clusters.second);
+    const  std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>> moved_surf_globals
+                            = m_clusterMover.processTrack(track_clusters.second, m_outputClusters);
+    for (const auto& [cluskey, moved_surf_global] : moved_surf_globals)
     {
+      const Acts::Vector3 moved_global = moved_surf_global.second;
       m_movedGlobals[cluskey] = {{moved_global.x(), moved_global.y(), moved_global.z()}};
     }
   }
@@ -344,28 +369,28 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
                                                         const Tpc_PolyTrack* track) const
 {
   if (!cluster || !cluster->isValid() || !track || !m_outputClusters) { return false;
-}
+  }
   if (cluster->size_hits() == 0) { return false;
-}
+  }
 
   const TrkrDefs::hitsetkey hitsetkey = cluster->get_hit_index(0).first;
   if (static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(hitsetkey)) != TrkrDefs::TrkrId::tpcId) { return false;
-}
+  }
 
   const TrkrDefs::cluskey cluskey = getClusterKey(cluster);
   if (static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(cluskey)) != TrkrDefs::TrkrId::tpcId) { return false;
-}
+  }
 
   const auto moved_iter = m_movedGlobals.find(cluskey);
   if (moved_iter == m_movedGlobals.end()) { return false;
-}
+  }
 
   if (!m_crossingDecisions) { return false;
-}
+  }
   const TpcCrossingDecision* crossing_decision =
       m_crossingDecisions->get_decision(track->get_source_assembled_track_id());
   if (!crossing_decision) { return false;
-}
+  }
   const short crossing = crossing_decision->get_selected_crossing();
 
   float local_x = std::numeric_limits<float>::quiet_NaN();
@@ -402,6 +427,8 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
       std::numeric_limits<double>::quiet_NaN(),
       std::numeric_limits<double>::quiet_NaN(),
       std::numeric_limits<double>::quiet_NaN());
+    const double cluster_radius = std::hypot(trkr_global.x(), trkr_global.y());
+    const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(out.get(), cluster_radius, cluskey);
 
     std::cout << Name() << "::publishCluster"
               << " track_id=" << track->get_track_id()
@@ -431,6 +458,8 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
               << " overlap=" << static_cast<unsigned int>(out->getOverlap())
               << " phi_error=" << out->getRPhiError()
               << " z_error=" << out->getZError()
+              << " para_rphi_error=" << std::sqrt(cluster_errors.first)
+              << " para_z_error=" << std::sqrt(cluster_errors.second)
               << " trkr_global=(" << trkr_global.x()
               << ", " << trkr_global.y()
               << ", " << trkr_global.z() << ")"
@@ -439,12 +468,23 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
   }
 
   m_outputClusters->addClusterSpecifyKey(cluskey, out.release());
+  if (m_fillClusterHitAssoc && m_clusterHitAssoc)
+  {
+    for (const auto& [sourceHitSetKey, hitkey] : cluster->get_hit_indices())
+    {
+      if (sourceHitSetKey == hitsetkey)
+      {
+        m_clusterHitAssoc->addAssoc(cluskey, hitkey);
+      }
+    }
+  }
   return true;
 }
 
 int TpcPolyClusterTrkrClusterConverter::process_event(PHCompositeNode* topNode)
 {
-  if (!m_polyClusters || !m_polyTracks || !m_outputClusters || !m_crossingDecisions || !m_geometry || !m_tpcGeomContainer || !m_clusterMover)
+  if (!m_polyClusters || !m_polyTracks || !m_outputClusters || !m_crossingDecisions || !m_geometry ||
+      (m_fillClusterHitAssoc && !m_clusterHitAssoc))
   {
     if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK ||
         createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK ||
@@ -454,6 +494,11 @@ int TpcPolyClusterTrkrClusterConverter::process_event(PHCompositeNode* topNode)
     }
   }
 
+  // store previous use_alignment flag and disable
+  const auto old_use_alignment_flag = alignmentTransformationContainer::use_alignment;
+  alignmentTransformationContainer::use_alignment = false;
+
+  // process clusters
   clearOutputTpcClusters();
   buildTrackMap();
   buildMovedClusterMap();
@@ -464,8 +509,7 @@ int TpcPolyClusterTrkrClusterConverter::process_event(PHCompositeNode* topNode)
   for (unsigned int icluster = 0; icluster < m_polyClusters->size(); ++icluster)
   {
     const Tpc_PolyCluster* cluster = m_polyClusters->get_cluster(icluster);
-    if (!cluster || !cluster->isValid()) { continue;
-}
+    if (!cluster || !cluster->isValid()) { continue; }
 
     const auto track_iter = m_tracksBySourceId.find(cluster->get_source_assembled_track_id());
     if (track_iter == m_tracksBySourceId.end())
@@ -474,10 +518,15 @@ int TpcPolyClusterTrkrClusterConverter::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    if (publishCluster(cluster, track_iter->second)) { ++nconverted;
-    } else { ++nfailed;
-}
+    if (publishCluster(cluster, track_iter->second)) {
+      ++nconverted;
+    } else {
+      ++nfailed;
+    }
   }
+
+  // restore use_alignment flag
+  alignmentTransformationContainer::use_alignment = old_use_alignment_flag;
 
   if (Verbosity() > 0)
   {

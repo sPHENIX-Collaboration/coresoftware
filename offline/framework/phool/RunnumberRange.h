@@ -26,6 +26,7 @@ namespace RunnumberRange
   constexpr int RUN2AUAU_LAST = 54974;
   constexpr int RUN3_TPCFW_CLOCK_CHANGE = 58667;
   constexpr int RUN3AUAU_FIRST = 66457;
+  constexpr int RUN3AUAU_IFC_V_CHANGE = 75800;  // first run after IFC voltage change
   constexpr int RUN3AUAU_LAST = 78954;
   constexpr int RUN3PP_FIRST = 79146; // first beam data
   constexpr int RUN3PP_LAST = 81668;

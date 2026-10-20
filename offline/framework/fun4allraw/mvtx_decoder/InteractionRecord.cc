@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace mvtx
+namespace mvtx_offline
 {
 
   //________________________________________________________________________________
@@ -22,7 +22,7 @@ namespace mvtx
   }
 
   //________________________________________________________________________________
-  std::ostream& operator<<(std::ostream& stream, mvtx::InteractionRecord const& ir)
+  std::ostream& operator<<(std::ostream& stream, mvtx_offline::InteractionRecord const& ir)
   {
     stream << ir.asString();
     return stream;
@@ -34,4 +34,4 @@ namespace mvtx
     std::cout << (*this) << std::endl;
   }
 
-}  // namespace mvtx
+}  // namespace mvtx_offline

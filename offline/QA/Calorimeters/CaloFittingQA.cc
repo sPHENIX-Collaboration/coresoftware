@@ -20,6 +20,8 @@
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <mbd/MbdOut.h>
+
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
@@ -31,7 +33,9 @@
 #include <TH2.h>
 #include <TProfile2D.h>
 
+#include <array>
 #include <cassert>
+#include <cmath>
 #include <cstdlib>
 #include <format>
 #include <iostream>  // for operator<<, endl, basic_...
@@ -47,6 +51,10 @@ static const std::map<CaloTowerDefs::DetectorSystem, std::string> nodemap{
     {CaloTowerDefs::HCALOUT, "HCALPackets"},
     {CaloTowerDefs::ZDC, "ZDCPackets"},
     {CaloTowerDefs::SEPD, "SEPDPackets"}};
+
+// MBD t0 selections: t0 < -7.5, [-7.5,-2.5), [-2.5,2.5), [2.5,7.5), t0 >= 7.5 (ns)
+static const std::array<std::string, 5> m_t0bin_names{"minus10", "minus5", "main", "plus5", "plus10"};
+static const std::array<float, 4> m_t0bin_edges{-7.5, -2.5, 2.5, 7.5};
 
 CaloFittingQA::CaloFittingQA(const std::string& name)
   : SubsysReco(name)
@@ -216,6 +224,9 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
     }
   }
 
+  //-------------------------- MBD t0 ------------------------------//
+  const int t0bin = getT0Bin(topNode);
+
   //-------------------------- ZS and multiplicity variables ------------------------------//
   float event_multiplicity = 0;
   float cemc_zs_frac = 0;
@@ -280,6 +291,10 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         if (raw_energy > m_cemc_adc_threshold && raw_energy < m_cemc_high_adc_threshold)
         {
           h_cemc_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy / raw_energy);
+          if (t0bin >= 0)
+          {
+            h_cemc_etaphi_ZScrosscalib_t0[t0bin]->Fill(ieta, iphi, zs_energy / raw_energy);
+          }
         }
       }
     }
@@ -332,6 +347,10 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         if (raw_energy > m_hcal_adc_threshold && raw_energy < m_hcal_high_adc_threshold)
         {
           h_ohcal_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy / raw_energy);
+          if (t0bin >= 0)
+          {
+            h_ohcal_etaphi_ZScrosscalib_t0[t0bin]->Fill(ieta, iphi, zs_energy / raw_energy);
+          }
         }
       }
     }
@@ -384,6 +403,10 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         if (raw_energy > m_hcal_adc_threshold && raw_energy < m_hcal_high_adc_threshold)
         {
           h_ihcal_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy / raw_energy);
+          if (t0bin >= 0)
+          {
+            h_ihcal_etaphi_ZScrosscalib_t0[t0bin]->Fill(ieta, iphi, zs_energy / raw_energy);
+          }
         }
       }
     }
@@ -456,6 +479,14 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
           } else {
             h_sepd_south_rphi_ZScrosscalib->Fill(rbin, phibin, zs_energy / raw_energy);
           }
+          if (t0bin >= 0)
+          {
+            if (arm == 1) {
+              h_sepd_north_rphi_ZScrosscalib_t0[t0bin]->Fill(rbin, phibin, zs_energy / raw_energy);
+            } else {
+              h_sepd_south_rphi_ZScrosscalib_t0[t0bin]->Fill(rbin, phibin, zs_energy / raw_energy);
+            }
+          }
         }
       }
     }
@@ -467,6 +498,30 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
   h_sepd_zs_frac_vs_multiplicity->Fill(event_multiplicity, sepd_zs_frac / m_nchannels_sepd);
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int CaloFittingQA::getT0Bin(PHCompositeNode* topNode)
+{
+  MbdOut* mbdout = findNode::getClass<MbdOut>(topNode, "MbdOut");
+  if (!mbdout)
+  {
+    return -1;
+  }
+  float t0 = mbdout->get_t0();
+  if (!std::isfinite(t0))
+  {
+    return -1;
+  }
+  int bin = 0;
+  for (float edge : m_t0bin_edges)
+  {
+    if (t0 < edge)
+    {
+      break;
+    }
+    bin++;
+  }
+  return bin;
 }
 
 int CaloFittingQA::process_data(PHCompositeNode* topNode, CaloTowerDefs::DetectorSystem dettype, std::vector<std::vector<float>>& waveforms)
@@ -766,6 +821,31 @@ void CaloFittingQA::createHistos()
   h_sepd_south_rphi_ZScrosscalib = new TProfile2D(std::format("{}sepd_south_rphi_ZScrosscalib", getHistoPrefix()).c_str(), "sEPD South;r;phi", m_nrbins_sepd, 0, m_nrbins_sepd, m_nphibins_sepd, 0, m_nphibins_sepd, -10, 10);
   h_sepd_south_rphi_ZScrosscalib->SetDirectory(nullptr);
   hm->registerHisto(h_sepd_south_rphi_ZScrosscalib);
+
+  for (int it0 = 0; it0 < m_nt0bins; it0++)
+  {
+    const std::string& t0name = m_t0bin_names[it0];
+
+    h_cemc_etaphi_ZScrosscalib_t0[it0] = new TProfile2D(std::format("{}cemc_etaphi_ZScrosscalib_{}", getHistoPrefix(), t0name).c_str(), ";eta;phi", m_netabins_cemc, 0, m_netabins_cemc, m_nphibins_cemc, 0, m_nphibins_cemc, -10, 10);
+    h_cemc_etaphi_ZScrosscalib_t0[it0]->SetDirectory(nullptr);
+    hm->registerHisto(h_cemc_etaphi_ZScrosscalib_t0[it0]);
+
+    h_ihcal_etaphi_ZScrosscalib_t0[it0] = new TProfile2D(std::format("{}ihcal_etaphi_ZScrosscalib_{}", getHistoPrefix(), t0name).c_str(), ";eta;phi", m_netabins_hcal, 0, m_netabins_hcal, m_nphibins_hcal, 0, m_nphibins_hcal, -10, 10);
+    h_ihcal_etaphi_ZScrosscalib_t0[it0]->SetDirectory(nullptr);
+    hm->registerHisto(h_ihcal_etaphi_ZScrosscalib_t0[it0]);
+
+    h_ohcal_etaphi_ZScrosscalib_t0[it0] = new TProfile2D(std::format("{}ohcal_etaphi_ZScrosscalib_{}", getHistoPrefix(), t0name).c_str(), ";eta;phi", m_netabins_hcal, 0, m_netabins_hcal, m_nphibins_hcal, 0, m_nphibins_hcal, -10, 10);
+    h_ohcal_etaphi_ZScrosscalib_t0[it0]->SetDirectory(nullptr);
+    hm->registerHisto(h_ohcal_etaphi_ZScrosscalib_t0[it0]);
+
+    h_sepd_north_rphi_ZScrosscalib_t0[it0] = new TProfile2D(std::format("{}sepd_north_rphi_ZScrosscalib_{}", getHistoPrefix(), t0name).c_str(), "sEPD North;r;phi", m_nrbins_sepd, 0, m_nrbins_sepd, m_nphibins_sepd, 0, m_nphibins_sepd, -10, 10);
+    h_sepd_north_rphi_ZScrosscalib_t0[it0]->SetDirectory(nullptr);
+    hm->registerHisto(h_sepd_north_rphi_ZScrosscalib_t0[it0]);
+
+    h_sepd_south_rphi_ZScrosscalib_t0[it0] = new TProfile2D(std::format("{}sepd_south_rphi_ZScrosscalib_{}", getHistoPrefix(), t0name).c_str(), "sEPD South;r;phi", m_nrbins_sepd, 0, m_nrbins_sepd, m_nphibins_sepd, 0, m_nphibins_sepd, -10, 10);
+    h_sepd_south_rphi_ZScrosscalib_t0[it0]->SetDirectory(nullptr);
+    hm->registerHisto(h_sepd_south_rphi_ZScrosscalib_t0[it0]);
+  }
 
   h_cemc_etaphi_pedestal = new TProfile2D(std::format("{}cemc_etaphi_pedestal", getHistoPrefix()).c_str(), ";eta;phi", m_netabins_cemc, 0, m_netabins_cemc, m_nphibins_cemc, 0, m_nphibins_cemc, 0, 16400);
   h_cemc_etaphi_pedestal->SetErrorOption("s");

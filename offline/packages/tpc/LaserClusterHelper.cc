@@ -1,18 +1,28 @@
 #include "LaserClusterHelper.h"
  
+#include <phgarfield/PHGarfield.h>
+
 #include <trackbase/LaserCluster.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
  
 #include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
+
+#include <cdbobjects/CDBTTree.h>
  
+#include <ffamodules/CDBInterface.h>
+#include <fun4all/Fun4AllServer.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+
+#include <TPolyLine3D.h>
+#include <Math/Vector3D.h>
  
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <memory>
 
 namespace
 {
@@ -24,6 +34,9 @@ namespace
                         std::numeric_limits<double>::quiet_NaN(),
                         std::numeric_limits<double>::quiet_NaN()};
 }
+
+LaserClusterHelper::LaserClusterHelper() = default;
+LaserClusterHelper::~LaserClusterHelper() = default;
 
 //____________________________________________________________________________
 void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
@@ -39,6 +52,36 @@ void LaserClusterHelper::loadNodes(PHCompositeNode* topNode)
     {
         std::cout << "LaserClusterHelper::loadNodes - TPCGEOMCONTAINER not found on node tree" << std::endl;
     }
+
+    if(m_useGarfield)
+    {
+        const std::string m_spacechargefieldmap = CDBInterface::instance()->getUrl("Tpc_PolySeeding_EField");
+        const auto kefffile = CDBInterface::instance()->getUrl("Tpc_PolyClusterizer_kEff");
+        if (!kefffile.empty())
+        {
+            auto keffcdbtree = std::make_unique<CDBTTree>(kefffile);
+            keffcdbtree->LoadCalibrations();
+            if(!m_manual_garfield_keffside0){ m_garfield_keffside0 = keffcdbtree->GetSingleFloatValue("keffside0"); }
+            if(!m_manual_garfield_keffside1){ m_garfield_keffside1 = keffcdbtree->GetSingleFloatValue("keffside1"); }
+        }
+
+        m_phgarfield = std::make_unique<PHGarfield>();
+        m_phgarfield->SetElectricFieldMap(m_spacechargefieldmap);
+        ROOT::Math::XYZVector Northxyz(-0.001, -0.001, 1123.109);
+        ROOT::Math::XYZVector Southxyz(-3.354, -0.673, -1137.382);
+        ROOT::Math::XYZVector center = 0.5 * (Northxyz + Southxyz);
+        center *= 0.1;  // mm to cm
+        m_phgarfield->MoveTpc(center.X(), center.Y(), center.Z());
+        m_phgarfield->RotateTpc(0, 0.001485, 0);
+        m_phgarfield->RotateTpc(0.000298, 0, 0);
+        m_phgarfield->SetCMVoltageDefault(m_garfield_cmvoltage);
+        m_phgarfield->SetZeroField(m_garfield_zerofield);
+        m_phgarfield->SetSpaceChargeScaleSide0(m_garfield_keffside0);
+        m_phgarfield->SetSpaceChargeScaleSide1(m_garfield_keffside1);
+        m_phgarfield->InitRun(topNode);
+    }
+    
+    
 }
 
 //____________________________________________________________________________
@@ -50,6 +93,7 @@ Acts::Vector3 LaserClusterHelper::getHitPosition(TrkrDefs::hitsetkey hitsetkey, 
 
     if(!m_tGeometry || !m_geom_container)
     {
+        if(Verbosity()){ std::cout << "no ACTS geometry or TPC Geom container" << std::endl; }
         return invalid;
     }
 
@@ -59,6 +103,7 @@ Acts::Vector3 LaserClusterHelper::getHitPosition(TrkrDefs::hitsetkey hitsetkey, 
     PHG4TpcGeom *layer_geom = m_geom_container->GetLayerCellGeom(layer);
     if(!layer_geom)
     {
+        if(Verbosity()){ std::cout << "no layer geometry" << std::endl; }
         return invalid;
     }
 
@@ -70,8 +115,9 @@ Acts::Vector3 LaserClusterHelper::getHitPosition(TrkrDefs::hitsetkey hitsetkey, 
     
     const double env_x = radius * cos(phi);
     const double env_y = radius * sin(phi);
-    double env_z = 0.0;
-    //hard code at 0 until better z coordinate calibration is determined
+    double env_z = (side == 1 ? 1.0 : -1.0)*layer_geom->get_CM_halfwidth();
+    //hard code at CM half-width
+    //can override, but not recommended as the laser flash T0 is unknown
     if(m_useZ)
     {
         double vdrift = m_tGeometry->get_drift_velocity();
@@ -104,28 +150,51 @@ Acts::Vector3 LaserClusterHelper::getClusterCentroid(LaserCluster* cluster) cons
     
     if(!cluster)
     {
+        if(Verbosity()){ std::cout << "no cluster" << std::endl; }
         return invalid;
     }
 
     Acts::Vector3 weightedSum(0.0, 0.0, 0.0);
     double adcSum = 0.0;
 
-    const unsigned int nhits = cluster->getNhits();
-    for(unsigned int i=0; i<nhits; ++i)
+    if(m_useDouble)
     {
-        const LaserClusterHitInfo hit= cluster->getHit(i);
-        const Acts::Vector3 hitCoords = getHitPosition(hit.hitsetkey, hit.hitkey);
-        if(hitCoords.hasNaN())
+        const unsigned int nhits = cluster->getNhitsDouble();
+        for(unsigned int i=0; i<nhits; ++i)
         {
-            continue;
-        }
+            const LaserClusterHitInfoDouble hit= cluster->getHitDouble(i);
+            const Acts::Vector3 hitCoords = getHitPosition(hit.hitsetkey, hit.hitkey);
+            if(hitCoords.hasNaN())
+            {
+                if(Verbosity()){ std::cout << "double hit has NaN" << std::endl; }
+                continue;
+            }
 
-        weightedSum += hit.adc * hitCoords;
-        adcSum += hit.adc;
+            weightedSum += hit.adc * hitCoords;
+            adcSum += hit.adc;
+        }
+    }
+    else
+    {
+       const unsigned int nhits = cluster->getNhits();
+        for(unsigned int i=0; i<nhits; ++i)
+        {
+            const LaserClusterHitInfo hit= cluster->getHit(i);
+            const Acts::Vector3 hitCoords = getHitPosition(hit.hitsetkey, hit.hitkey);
+            if(hitCoords.hasNaN())
+            {
+                if(Verbosity()){ std::cout << "regular hit has NaN" << std::endl; }
+                continue;
+            }
+
+            weightedSum += hit.adc * hitCoords;
+            adcSum += hit.adc;
+        } 
     }
 
     if(adcSum <= 0.0)
     {
+        if(Verbosity()){ std::cout << "ADC sum <= 0" << std::endl; }
         return invalid;
     }
 
@@ -150,19 +219,39 @@ std::array<double, 3> LaserClusterHelper::getClusterHardwareCentroid(LaserCluste
     double iphiSum = 0.0;
     double itSum = 0.0;
 
-    const unsigned int nhits = cluster->getNhits();
-    for(unsigned int i=0; i<nhits; ++i)
+    if(m_useDouble)
     {
-        const LaserClusterHitInfo hit= cluster->getHit(i);
+        const unsigned int nhits = cluster->getNhitsDouble();
+        for(unsigned int i=0; i<nhits; ++i)
+        {
+            const LaserClusterHitInfoDouble hit= cluster->getHitDouble(i);
 
-        const int layer = TrkrDefs::getLayer(hit.hitsetkey);
-        const int iphi = TpcDefs::getPad(hit.hitkey);
-        const int it = TpcDefs::getTBin(hit.hitkey);
+            const int layer = TrkrDefs::getLayer(hit.hitsetkey);
+            const int iphi = TpcDefs::getPad(hit.hitkey);
+            const int it = TpcDefs::getTBin(hit.hitkey);
 
-        adcSum += hit.adc;
-        layerSum += layer * hit.adc;
-        iphiSum += iphi * hit.adc;
-        itSum += it * hit.adc;
+            adcSum += hit.adc;
+            layerSum += layer * hit.adc;
+            iphiSum += iphi * hit.adc;
+            itSum += it * hit.adc;
+        }
+    }
+    else
+    {
+        const unsigned int nhits = cluster->getNhits();
+        for(unsigned int i=0; i<nhits; ++i)
+        {
+            const LaserClusterHitInfo hit= cluster->getHit(i);
+
+            const int layer = TrkrDefs::getLayer(hit.hitsetkey);
+            const int iphi = TpcDefs::getPad(hit.hitkey);
+            const int it = TpcDefs::getTBin(hit.hitkey);
+
+            adcSum += hit.adc;
+            layerSum += layer * hit.adc;
+            iphiSum += iphi * hit.adc;
+            itSum += it * hit.adc;
+        }
     }
 
     if(adcSum <= 0.0)
@@ -171,4 +260,76 @@ std::array<double, 3> LaserClusterHelper::getClusterHardwareCentroid(LaserCluste
     }
 
     return {layerSum / adcSum, iphiSum / adcSum, itSum / adcSum};
+}
+
+
+Acts::Vector3 LaserClusterHelper::getClusterCentroidWithPHGarfield(LaserCluster* cluster) const
+{
+
+    if(!cluster)
+    {
+        return invalid;
+    }
+
+    const unsigned int nhits = m_useDouble ? cluster->getNhitsDouble() : cluster->getNhits();
+    if (nhits < 1)
+    {
+        return invalid;
+    }
+
+    Acts::Vector3 centroid = getClusterCentroid(cluster);
+    if (std::isnan(centroid[0]) || std::isnan(centroid[1]) || std::isnan(centroid[2]))
+    {
+        return invalid;
+    }
+
+    // transform back to local if necessary so that z position can be put at readout plane
+    if (m_useGlobal)
+    {
+        centroid = m_tGeometry->transformTpcWorldToEnvelope(centroid);
+    }
+
+    const TrkrDefs::hitsetkey hsk = m_useDouble ? cluster->getHitDouble(0).hitsetkey : cluster->getHit(0).hitsetkey;
+    const int side = TpcDefs::getSide(hsk);
+
+    Acts::Vector3 readoutPos(centroid[0], centroid[1], (side == 1 ? 1.0 : -1.0)*m_tGeometry->get_max_driftlength());
+    if (m_useGlobal)
+    {
+        readoutPos = m_tGeometry->transformTpcEnvelopeToWorld(readoutPos);
+    }
+
+    std::unique_ptr<TPolyLine3D> path;
+    PHGarfield::ReverseDriftStatus status = PHGarfield::ReverseDriftStatus::Running;
+    if (!m_useGlobal)
+    {
+        path.reset(m_phgarfield->ReverseDrift(readoutPos[0], readoutPos[1], readoutPos[2], m_garfield_stepns, &status));
+    }
+    else
+    {
+        path.reset(m_phgarfield->ReverseDriftGlobalCoords(readoutPos[0], readoutPos[1], readoutPos[2], m_garfield_stepns, &status));
+    }
+    
+    if (!path)
+    {
+        return invalid;
+    }
+
+    if (path->GetN() < 1)
+    {
+        return invalid;
+    }
+
+    if (status != PHGarfield::ReverseDriftStatus::CentralMembrane)
+    {
+        return invalid;
+    }
+
+    const int nPoints = path->GetN();
+    const float* points = path->GetP();
+    const double xCM = points[3 * (nPoints-1) + 0];
+    const double yCM = points[3 * (nPoints-1) + 1];
+    const double zCM = points[3 * (nPoints-1) + 2];
+    Acts::Vector3 centroidatCM(xCM,yCM,zCM);
+
+    return centroidatCM;
 }

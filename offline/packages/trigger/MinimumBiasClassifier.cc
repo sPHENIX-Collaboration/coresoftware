@@ -1,6 +1,6 @@
 #include "MinimumBiasClassifier.h"
 
-#include "MinimumBiasInfov1.h"
+#include "MinimumBiasInfov2.h"
 
 #include <zdcinfo/Zdcinfo.h>
 
@@ -29,6 +29,12 @@
 #include <iostream>
 #include <string>
 #include <utility>  // for pair
+
+namespace
+{
+  // class-suffixed payload columns, indexed by MinimumBiasInfo::BUNCH
+  const std::array<std::string, 3> bunch_suffix{"", "_m5", "_p5"};
+}  // namespace
 
 MinimumBiasClassifier::MinimumBiasClassifier(const std::string &name)
   : SubsysReco(name)
@@ -121,6 +127,12 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     std::cout << "Getting Vertex" << std::endl;
   }
 
+  // no t0 yet: events rejected before the classification below have no bunch class
+  if (m_bunch_classes)
+  {
+    m_mb_info->setBunchClass(MinimumBiasInfo::BUNCH::NONE);
+  }
+
   // if (!m_global_vertex_map)
   // {
   //   m_mb_info->setIsAuAuMinimumBias(false);
@@ -144,6 +156,12 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   }
 
   GlobalVertex *vtx = m_global_vertex_map->begin()->second;
+  if (m_bunch_classes)
+  {
+    // the calibration uses the MBD vertex (z and t0)
+    std::vector<GlobalVertex *> mbd_vtxs = m_global_vertex_map->get_gvtxs_with_type({GlobalVertex::VTXTYPE::MBD});
+    vtx = mbd_vtxs.empty() ? nullptr : mbd_vtxs.front();
+  }
   if (!vtx)
   {
     m_mb_info->setIsAuAuMinimumBias(false);
@@ -168,7 +186,23 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
 
   m_vertex = vtx->get_z();
 
-  m_vertex_scale = getVertexScale();
+  int bunch = MinimumBiasInfo::BUNCH::MAIN;
+  if (m_bunch_classes)
+  {
+    const float t0_corrected = vtx->get_t() - m_t0_offset;
+    bunch = bunchClass(t0_corrected);
+    m_mb_info->setT0Corrected(t0_corrected);
+  }
+  m_mb_info->setBunchClass(bunch);
+  // the bunch windows are the t0 cut: an event outside all three is not min-bias (and has no centrality calibration;
+  // its charge sum below uses the main-bunch scales)
+  if (bunch == MinimumBiasInfo::BUNCH::NONE)
+  {
+    minbiascheck = false;
+  }
+  const int scale_class = (bunch == MinimumBiasInfo::BUNCH::NONE ? MinimumBiasInfo::BUNCH::MAIN : bunch);
+
+  m_vertex_scale = getVertexScale(scale_class);
 
   if (Verbosity())
   {
@@ -207,7 +241,7 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
       continue;
     }
     m_mbd_hit[side]++;
-    m_mbd_charge_sum[side] += m_mbd_pmt->get_q() * m_vertex_scale * m_centrality_scale;
+    m_mbd_charge_sum[side] += m_mbd_pmt->get_q() * m_vertex_scale * m_centrality_scale[scale_class];
   }
   if (Verbosity())
   {
@@ -215,7 +249,7 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   }
 
   // MBD Background cut
-  if (m_box_cut && m_mbd_charge_sum[1] < m_mbd_north_cut && m_mbd_charge_sum[0] > m_mbd_south_cut && minbiascheck)
+  if (m_box_cut && !m_bunch_classes && m_mbd_charge_sum[1] < m_mbd_north_cut && m_mbd_charge_sum[0] > m_mbd_south_cut && minbiascheck)
   {
     minbiascheck = false;
     //    m_mb_info->setIsAuAuMinimumBias(false);
@@ -233,7 +267,7 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     }
     if (!m_issim && m_useZDC)
     {
-      if (m_zdcinfo->get_zdc_energy(iside) <= m_zdc_cut && minbiascheck)
+      if (m_zdcinfo->get_zdc_energy(iside) <= (m_bunch_classes ? m_bunch_zdc_cut : m_zdc_cut) && minbiascheck)
       {
         minbiascheck = false;
         // m_mb_info->setIsAuAuMinimumBias(false);
@@ -362,7 +396,7 @@ void MinimumBiasClassifier::CreateNodes(PHCompositeNode *topNode)
   }
 
   std::string nodename = m_mb_info_nodename;
-  MinimumBiasInfo *mb = new MinimumBiasInfov1();
+  MinimumBiasInfo *mb = new MinimumBiasInfov2();
 
   PHIODataNode<PHObject> *mbNode = new PHIODataNode<PHObject>(mb, nodename, "PHObject");
   detNode->addNode(mbNode);
@@ -372,6 +406,11 @@ void MinimumBiasClassifier::CreateNodes(PHCompositeNode *topNode)
 
 bool MinimumBiasClassifier::passesHitCut(MbdPmtHit *hit) const
 {
+  if (m_bunch_classes)
+  {
+    // hit times relative to the run's main-bunch offset, wide enough for all three bunch windows
+    return std::fabs(hit->get_time() - m_t0_offset) < m_hit_time_window && hit->get_q() > m_bunch_charge_cut;
+  }
   if (fabs(hit->get_time()) >= m_mbd_time_cut)
   {
     return false;
@@ -385,17 +424,36 @@ bool MinimumBiasClassifier::passesHitCut(MbdPmtHit *hit) const
 }
 int MinimumBiasClassifier::Download_centralityScale(const std::string &dbfile)
 {
-  m_centrality_scale = 1.00;
+  m_centrality_scale.fill(1.00);
+  m_bunch_classes = false;
+  m_t0_offset = 0.;
 
   std::filesystem::path dbase_file = dbfile;
   if (dbase_file.extension() == ".root")
   {
     CDBTTree *cdbttree = new CDBTTree(dbase_file);
     cdbttree->LoadCalibrations();
-    m_centrality_scale = cdbttree->GetDoubleValue(0, "centralityscale");
+    m_centrality_scale[0] = cdbttree->GetDoubleValue(0, "centralityscale");
+    // bunch-class payload: t0 offset, bunch spacings and per-class scales in the same file (Au+Au data only)
+    if (m_use_bunch_classes && !m_issim && m_species == MinimumBiasInfo::SPECIES::AUAU)
+    {
+      const double t0_offset = cdbttree->GetDoubleValue(0, "t0offset");
+      if (std::isfinite(t0_offset))
+      {
+        m_bunch_classes = true;
+        m_t0_offset = t0_offset;
+        m_spacing_m = cdbttree->GetDoubleValue(0, "spacing_m");
+        m_spacing_p = cdbttree->GetDoubleValue(0, "spacing_p");
+        for (int ib = 1; ib < 3; ib++)
+        {
+          m_centrality_scale[ib] = cdbttree->GetDoubleValue(0, "centralityscale" + bunch_suffix[ib]);
+        }
+      }
+    }
     if (Verbosity())
     {
-      std::cout << "centscale = " << m_centrality_scale << std::endl;
+      std::cout << "centscale = " << m_centrality_scale[0] << " " << m_centrality_scale[1] << " " << m_centrality_scale[2]
+                << (m_bunch_classes ? " (bunch classes)" : " (single class)") << " t0offset = " << m_t0_offset << std::endl;
     }
     delete cdbttree;
   }
@@ -423,12 +481,20 @@ int MinimumBiasClassifier::Download_centralityVertexScales(const std::string &db
 
     int nvertexbins = cdbttree->GetIntValue(0, "nvertexbins");
 
-    for (int iv = 0; iv < nvertexbins; iv++)
+    const int nclass = m_bunch_classes ? 3 : 1;
+    for (auto &scales : m_vertex_scales)
     {
-      float scale = cdbttree->GetDoubleValue(iv, "scale");
-      float lowvertex = cdbttree->GetDoubleValue(iv, "low_vertex");
-      float highvertex = cdbttree->GetDoubleValue(iv, "high_vertex");
-      m_vertex_scales.emplace_back(std::make_pair(lowvertex, highvertex), scale);
+      scales.clear();
+    }
+    for (int ib = 0; ib < nclass; ib++)
+    {
+      for (int iv = 0; iv < nvertexbins; iv++)
+      {
+        float scale = cdbttree->GetDoubleValue(iv, "scale" + bunch_suffix[ib]);
+        float lowvertex = cdbttree->GetDoubleValue(iv, "low_vertex");
+        float highvertex = cdbttree->GetDoubleValue(iv, "high_vertex");
+        m_vertex_scales[ib].emplace_back(std::make_pair(lowvertex, highvertex), scale);
+      }
     }
 
     delete cdbttree;
@@ -441,9 +507,30 @@ int MinimumBiasClassifier::Download_centralityVertexScales(const std::string &db
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-float MinimumBiasClassifier::getVertexScale()
+int MinimumBiasClassifier::bunchClass(float t0_corrected) const
 {
-  for (auto v_range_scale : m_vertex_scales)
+  // windows centred on each bunch, edges halfway between neighbouring bunches; the inner edges belong to the main
+  // bunch (same as the calibration); NaN falls through to NONE
+  const double hm = 0.5 * m_spacing_m;
+  const double hp = 0.5 * m_spacing_p;
+  if (t0_corrected >= -hm && t0_corrected <= hp)
+  {
+    return MinimumBiasInfo::BUNCH::MAIN;
+  }
+  if (t0_corrected >= -3 * hm && t0_corrected < -hm)
+  {
+    return MinimumBiasInfo::BUNCH::M5;
+  }
+  if (t0_corrected > hp && t0_corrected <= 3 * hp)
+  {
+    return MinimumBiasInfo::BUNCH::P5;
+  }
+  return MinimumBiasInfo::BUNCH::NONE;
+}
+
+float MinimumBiasClassifier::getVertexScale(int bunch) const
+{
+  for (const auto &v_range_scale : m_vertex_scales[bunch])
   {
     auto v_range = v_range_scale.first;
     if (m_vertex > v_range.first && m_vertex <= v_range.second)

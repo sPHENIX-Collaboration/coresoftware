@@ -8,6 +8,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <cstdint>
+#include <limits>
 #include <map>
 #include <string>
 #include <vector>
@@ -22,10 +23,13 @@ class TTree;
 class Tpc_PolyClusterContainer;
 class Tpc_PolyTrackContainer;
 class Tpc_PolyTrackVertexContainer;
+class TpcCrossingDecisionContainer;
 
 class TpcV0CandidateTree : public SubsysReco
 {
  public:
+  static constexpr int NoCrossingSelection = std::numeric_limits<short>::max();
+
   TpcV0CandidateTree(const std::string &name = "TpcV0CandidateTree",
                      const std::string &filename = "TpcV0Candidates.root");
   ~TpcV0CandidateTree() override = default;
@@ -40,6 +44,7 @@ class TpcV0CandidateTree : public SubsysReco
   void set_tpc_sa_cluster_node(const std::string &name) { m_tpc_sa_cluster_node = name; }
   void set_tpc_sa_track_node(const std::string &name) { m_tpc_sa_track_node = name; }
   void set_tpc_sa_track_vertex_node(const std::string &name) { m_tpc_sa_track_vertex_node = name; }
+  void set_crossing_decision_node(const std::string &name) { m_crossing_decision_node = name; }
   void use_pattern_cluster_tracks(const bool value = true) { m_use_pattern_cluster_tracks = value; }
   void set_use_truth_primary_vertex(const bool value) { m_use_truth_primary_vertex = value; }
   void set_primary_vertex(const double x, const double y, const double z);
@@ -176,6 +181,10 @@ class TpcV0CandidateTree : public SubsysReco
   void set_pair_alpha_abs_max(const double value) { m_pair_alpha_abs_max = value; }
   void set_pair_dca_max(const double value) { m_pair_dca_max = value; }
   void set_pair_dira_min(const double value) { m_pair_dira_min = value; }
+  void set_required_crossing(const int value) { m_required_crossing = value; }
+  void set_require_same_crossing(const bool value) { m_require_same_crossing = value; }
+  void set_max_crossing_tier(const int value) { m_max_crossing_tier = value; }
+  void set_reconstruct_pairs(const bool value) { m_reconstruct_pairs = value; }
   void set_write_same_sign_pairs(const bool value) { m_write_same_sign_pairs = value; }
   void set_write_cluster_residual_tree(const bool value) { m_write_cluster_residual_tree = value; }
 
@@ -204,6 +213,13 @@ class TpcV0CandidateTree : public SubsysReco
     int side{-1};
     int npoints{0};
     unsigned int ntpc_clusters{0};
+    unsigned int source_assembled_track_id{0};
+    bool has_crossing_decision{false};
+    bool has_selected_crossing{false};
+    short crossing{std::numeric_limits<short>::max()};
+    int crossing_status{0};
+    int crossing_tier{std::numeric_limits<unsigned char>::max()};
+    double crossing_score{std::numeric_limits<double>::quiet_NaN()};
     bool has_dedx{false};
     double dedx{0.0};
     Vec3 position;
@@ -246,8 +262,18 @@ class TpcV0CandidateTree : public SubsysReco
   {
     int run{0};
     int evt{0};
-    short cross1{0};
-    short cross2{0};
+    short cross1{std::numeric_limits<short>::max()};
+    short cross2{std::numeric_limits<short>::max()};
+    int has_crossing_decision1{0};
+    int has_crossing_decision2{0};
+    int has_selected_crossing1{0};
+    int has_selected_crossing2{0};
+    int crossing_status1{0};
+    int crossing_status2{0};
+    int crossing_tier1{std::numeric_limits<unsigned char>::max()};
+    int crossing_tier2{std::numeric_limits<unsigned char>::max()};
+    float crossing_score1{std::numeric_limits<float>::quiet_NaN()};
+    float crossing_score2{std::numeric_limits<float>::quiet_NaN()};
 
     float px1{0.0F};
     float py1{0.0F};
@@ -342,6 +368,13 @@ class TpcV0CandidateTree : public SubsysReco
     int side{-1};
     int npoints{0};
     unsigned int ntpc_clusters{0};
+    unsigned int source_assembled_track_id{0};
+    int has_crossing_decision{0};
+    int has_selected_crossing{0};
+    short crossing{std::numeric_limits<short>::max()};
+    int crossing_status{0};
+    int crossing_tier{std::numeric_limits<unsigned char>::max()};
+    float crossing_score{std::numeric_limits<float>::quiet_NaN()};
     int has_helix{0};
     int has_kalman{0};
     int is_primary{0};
@@ -491,7 +524,8 @@ class TpcV0CandidateTree : public SubsysReco
   std::map<int, Tracklet> build_tracklets(PHG4HitContainer *truth_points,
                                           PHG4TruthInfoContainer *truth_info) const;
   std::map<int, Tracklet> build_pattern_tracklets(Tpc_PolyClusterContainer *clusters,
-                                                  Tpc_PolyTrackContainer *tracks) const;
+                                                  Tpc_PolyTrackContainer *tracks,
+                                                  const TpcCrossingDecisionContainer *crossing_decisions) const;
   bool finalize_pattern_tracklet(Tracklet &tracklet, bool has_upstream_state) const;
   bool make_pair_row(const Tracklet &track1, const Tracklet &track2,
                      const Vec3 &primary_vertex, const int run_number,
@@ -613,6 +647,7 @@ class TpcV0CandidateTree : public SubsysReco
   std::string m_tpc_sa_cluster_node{"TPC_POLYCLUSTERS"};
   std::string m_tpc_sa_track_node{"TPC_POLYTRACKS"};
   std::string m_tpc_sa_track_vertex_node{"TPC_POLYTRACKVERTICES"};
+  std::string m_crossing_decision_node{"TPC_CROSSING_DECISIONS"};
   bool m_use_pattern_cluster_tracks{false};
 
   TFile *m_file{nullptr};
@@ -661,10 +696,15 @@ class TpcV0CandidateTree : public SubsysReco
   double m_pair_alpha_abs_max{-1.0};
   double m_pair_dca_max{-1.0};
   double m_pair_dira_min{-2.0};
+  int m_required_crossing{NoCrossingSelection};
+  int m_max_crossing_tier{-1};
+  bool m_require_same_crossing{false};
+  bool m_reconstruct_pairs{true};
   bool m_write_same_sign_pairs{false};
   bool m_print_timing{false};
 
   std::uint64_t m_counter_raw_pairs{0};
+  std::uint64_t m_counter_reject_pair_crossing{0};
   std::uint64_t m_counter_reject_charge{0};
   std::uint64_t m_counter_reject_preselection{0};
   std::uint64_t m_counter_reject_pca{0};
@@ -674,6 +714,9 @@ class TpcV0CandidateTree : public SubsysReco
   std::uint64_t m_counter_written{0};
   std::uint64_t m_counter_tracks_written{0};
   std::uint64_t m_counter_cluster_residuals_written{0};
+  mutable std::uint64_t m_counter_missing_crossing_decision{0};
+  mutable std::uint64_t m_counter_reject_required_crossing{0};
+  mutable std::uint64_t m_counter_reject_crossing_tier{0};
   mutable std::uint64_t m_counter_reject_helix_anchor{0};
   std::uint64_t m_timing_events{0};
   mutable std::uint64_t m_timing_kalman_fits{0};

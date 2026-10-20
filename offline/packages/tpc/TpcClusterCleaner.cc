@@ -2,6 +2,7 @@
 
 /// Tracking includes
 
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
@@ -83,10 +84,14 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
         continue;  // we want only TPC clusters
       }
 
+      const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, 0.0, cluskey);
+      const double rphi_error = std::sqrt(cluster_errors.first);
+      const double z_error = std::sqrt(cluster_errors.second);
+
       if (Verbosity() > 1)
       {
         std::cout << " layer " << layer << " cluster : " << cluskey
-                  << " ADC " << cluster->getAdc() << "       errors: r-phi " << cluster->getRPhiError() << " Z " << cluster->getZError()
+                  << " ADC " << cluster->getAdc() << "       parameterized errors: r-phi " << rphi_error << " Z " << z_error
                   << std::endl;
       }
 
@@ -96,14 +101,14 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 
       // errors too small
       // associated with very large ADC values
-      if (cluster->getRPhiError() < _rphi_error_low_cut)
+      if (rphi_error < _rphi_error_low_cut)
       {
         discard_cluster = true;
       }
 
       // errors too large
       // associated with very small ADC values
-      // if(cluster->getRPhiError() > _rphi_error_high_cut)
+      // if(rphi_error > _rphi_error_high_cut)
       // discard_cluster = true;
 
       if (discard_cluster)
@@ -113,7 +118,7 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
         discard_set.insert(cluskey);
         if (Verbosity() > 0)
         {
-          std::cout << "                       discard cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc()
+          std::cout << "                       discard cluster " << cluskey << " with ephi " << rphi_error << " adc " << cluster->getAdc()
                     << std::endl;
         }
       }

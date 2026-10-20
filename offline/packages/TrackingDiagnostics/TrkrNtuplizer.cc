@@ -2509,18 +2509,20 @@ void TrkrNtuplizer::create_cache_track_from_cluster()
   return;
 }
 
-TMatrixF TrkrNtuplizer::calculateClusterError(TrkrCluster* c, float& clusphi)
+TMatrixF TrkrNtuplizer::calculateClusterError(TrkrCluster* c, float& clusphi, TrkrDefs::cluskey cluster_key)
 {
+  const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(c, 0.0, cluster_key);
+
   TMatrixF localErr(3, 3);
   localErr[0][0] = 0.;
   localErr[0][1] = 0.;
   localErr[0][2] = 0.;
   localErr[1][0] = 0.;
-  localErr[1][1] = c->getActsLocalError(0, 0);
-  localErr[1][2] = c->getActsLocalError(0, 1);
+  localErr[1][1] = cluster_errors.first;
+  localErr[1][2] = 0.;
   localErr[2][0] = 0.;
-  localErr[2][1] = c->getActsLocalError(1, 0);
-  localErr[2][2] = c->getActsLocalError(1, 1);
+  localErr[2][1] = 0.;
+  localErr[2][2] = cluster_errors.second;
 
   TMatrixF ROT(3, 3);
   ROT[0][0] = std::cos(clusphi);

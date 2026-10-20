@@ -243,6 +243,7 @@ void MbdSig::SetY(const Float_t* y, const int invert)
 void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
 {
   //_verbose = 100;
+
   if (hRawPulse == nullptr)
   {
     Init();
@@ -267,8 +268,8 @@ void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
   }
   if ( _verbose && _ch==9 )
   {
-    gRawPulse->Draw("ap");
     gRawPulse->GetHistogram()->SetTitle(gRawPulse->GetName());
+    gRawPulse->Draw("ap");
     gPad->SetGridx(1);
     gPad->SetGridy(1);
     PadUpdate();
@@ -325,14 +326,6 @@ void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
 void MbdSig::Remove_Pileup()
 {
   _verbose = 0;
-
-  /*
-  if ( _ch==46 && (_evt_counter>200910 && _evt_counter<200920))
-  {
-    std::cout << PHWHERE << "\t" << _evt_counter << "\t" << _ch << std::endl;
-    _verbose = 100;
-  }
-  */
 
   if ( _verbose )
   {
@@ -414,8 +407,8 @@ void MbdSig::Remove_Pileup()
       {
         std::cout << "pre-pileup " << _ch << "\t" << x_at_max << "\t" << ymax << std::endl;
         gSubPulse->Fit(template_fcn, "R");
-        gSubPulse->Draw("ap");
         gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
+        gSubPulse->Draw("ap");
         gPad->SetGridy(1);
         PadUpdate();
         //gSubPulse->Print("ALL");
@@ -447,6 +440,7 @@ void MbdSig::Remove_Pileup()
 
       if ( _verbose )
       {
+        gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
         gSubPulse->Fit( fit_pileup, "R" );
         gSubPulse->Draw("ap");
         PadUpdate();
@@ -484,6 +478,7 @@ void MbdSig::Remove_Pileup()
   if ( _verbose )
   {
     std::cout << "pileup sub " << _ch << std::endl;
+    gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
     gSubPulse->Draw("ap");
     PadUpdate();
   }
@@ -688,7 +683,7 @@ int MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
 
   if ( _verbose )
   {
-    std::cout << "CalcEventPed0_Presamp(), ch " << _ch << std::endl;
+    std::cout << "CalcEventPed0_PreSamp(), ch " << _ch << std::endl;
   }
 
   double mean = ped0stats->Mean();
@@ -716,6 +711,7 @@ int MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
 
   if ( _verbose )
   {
+    gRawPulse->GetHistogram()->SetTitle(gRawPulse->GetName());
     gRawPulse->Fit( ped_fcn, "RQ" );
 
     double chi2ndf = ped_fcn->GetChisquare()/ped_fcn->GetNDF();
@@ -744,11 +740,13 @@ int MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
         ped0stats->Push( y );
       }
 
+      /*
       if ( _verbose )
       {
         std::cout << "CalcEventPed0_PreSamp: ped0stats " << _ch << "\t" << _evt_counter << "\t" 
           << "isamp " << isamp << "\t" << x << "\t" << y << std::endl;
       }
+      */
     }
 
     // study pedestal vs event
@@ -789,6 +787,7 @@ int MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
 
       if ( _verbose )
       {
+        gRawPulse->GetHistogram()->SetTitle(gRawPulse->GetName());
         gRawPulse->Draw("ap");
         PadUpdate();
 
@@ -924,19 +923,6 @@ Double_t MbdSig::MBDTDC(const Int_t max_samp)
   }
 
   f_time = y[max_samp];
-
-  if ( y[2]>100. )
-  {
-    f_time = 0.;
-  }
-
-  /*
-  if ( _ch==128 )
-  {
-    std::cout << "msig\t" << _ch << "\t" << f_time << "\t" << f_ampl << std::endl;
-    gSubPulse->Print("ALL");
-  }
-  */
 
   return f_time;
 }
@@ -1094,16 +1080,26 @@ void MbdSig::PadUpdate() const
     gPad->SetGridy(1);
     gPad->Modified();
     gPad->Update();
-    std::cout << _evt_counter << ": " << _ch << " ? ";
+    std::cout << _evt_counter << ": ";
+    if ( (_ch/8)%2 == 0 )   // time ch
+    {
+      std::cout << "t ";
+    }
+    else
+    {
+      std::cout << "q ";
+    }
+    std::cout << _ch << " ? ";
     if ( _verbose>10 )
     {
-      std::string junk;
+      std::string junk = "w";
       std::cin >> junk;
 
       if (junk[0] == 'w' || junk[0] == 's')
       {
-        TString name = "ch";
-        name += _ch;
+        TString name = "ch"; name += _ch;
+        name += "_";
+        name += "evt"; name += _evt_counter;
         name += ".png";
         gPad->SaveAs(name);
       }
@@ -1259,6 +1255,7 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
 int MbdSig::FitTemplate( const Int_t sampmax )
 {
   //_verbose = 100;
+
   //std::cout << PHWHERE << std::endl;
   /*
   if ( _evt_counter==2142 && _ch==92 )
@@ -1428,6 +1425,7 @@ int MbdSig::FitTemplate( const Int_t sampmax )
     {
       std::cout << "BADFIT " << _evt_counter << "\t" << _ch << "\t" << sampmax << "\t" << f_ampl << "\t" <<  f_time
         << "\t" << chi2ndf << std::endl;
+      gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
       gSubPulse->Draw("ap");
       template_fcn->Draw("same");
       PadUpdate();
@@ -1444,8 +1442,8 @@ int MbdSig::FitTemplate( const Int_t sampmax )
     {
       std::cout << "doing 2wave fit " << x_at_max << "\t" << ymax << std::endl;
       gSubPulse->Fit(twotemplate_fcn, "R");
-      gSubPulse->Draw("ap");
       gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
+      gSubPulse->Draw("ap");
       gPad->SetGridy(1);
       PadUpdate();
       //gSubPulse->Print("ALL");

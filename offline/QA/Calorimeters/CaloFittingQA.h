@@ -5,6 +5,7 @@
 
 #include <caloreco/CaloTowerDefs.h>
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -89,12 +90,19 @@ class CaloFittingQA : public SubsysReco
 
  private:
   void createHistos();
+  static int getT0Bin(PHCompositeNode* topNode);
   std::string getHistoPrefix() const;
   TProfile2D* h_cemc_etaphi_ZScrosscalib{nullptr};
   TProfile2D* h_ihcal_etaphi_ZScrosscalib{nullptr};
   TProfile2D* h_ohcal_etaphi_ZScrosscalib{nullptr};
   TProfile2D* h_sepd_north_rphi_ZScrosscalib{nullptr};
   TProfile2D* h_sepd_south_rphi_ZScrosscalib{nullptr};
+  static constexpr int m_nt0bins = 5;
+  std::array<TProfile2D*, m_nt0bins> h_cemc_etaphi_ZScrosscalib_t0{};
+  std::array<TProfile2D*, m_nt0bins> h_ihcal_etaphi_ZScrosscalib_t0{};
+  std::array<TProfile2D*, m_nt0bins> h_ohcal_etaphi_ZScrosscalib_t0{};
+  std::array<TProfile2D*, m_nt0bins> h_sepd_north_rphi_ZScrosscalib_t0{};
+  std::array<TProfile2D*, m_nt0bins> h_sepd_south_rphi_ZScrosscalib_t0{};
   TProfile2D* h_cemc_etaphi_pedestal{nullptr};
   TProfile2D* h_ihcal_etaphi_pedestal{nullptr};
   TProfile2D* h_ohcal_etaphi_pedestal{nullptr};

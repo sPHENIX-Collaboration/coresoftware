@@ -66,8 +66,7 @@ class TrackResiduals : public SubsysReco
   void set_use_clustermover(bool flag) { m_use_clustermover = flag; }
 
  private:
-  void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
-                             TrkrCluster *cluster, ActsGeometry *geometry);
+  void fillStatesWithLineFit(const Surface& surf, ActsGeometry *geometry);
   void clearClusterStateVectors();
   void createBranches();
   static float convertTimeToZ(ActsGeometry *geometry, TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
@@ -80,16 +79,15 @@ class TrackResiduals : public SubsysReco
   void fillResidualTreeSeeds(PHCompositeNode *topNode);
   void fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack *track,
                              const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global,
-			     const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_moved,
-                             PHCompositeNode *topNode);
+			     const std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>>& global_moved,
+			     PHCompositeNode *topNode);
   void fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTrack* track,
                                 const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global,
-				const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_moved,
+				const std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>>& global_moved,			
                                 PHCompositeNode *topNode);
   void lineFitClusters(std::vector<TrkrDefs::cluskey> &keys, TrkrClusterContainer *clusters, const short int &crossing);
   void circleFitClusters(std::vector<TrkrDefs::cluskey> &keys, TrkrClusterContainer *clusters, const short int &crossing);
-  void fillStatesWithCircleFit(const TrkrDefs::cluskey &key, TrkrCluster *cluster,
-                               Acts::Vector3 &glob, ActsGeometry *geometry);
+  void fillStatesWithCircleFit(Acts::Vector3 &glob, const Surface &surf, ActsGeometry *geometry);
   void fillVertexTree(PHCompositeNode *topNode);
   void fillFailedSeedTree(PHCompositeNode *topNode, std::set<unsigned int> &tpc_seed_ids);
 
@@ -243,6 +241,12 @@ class TrackResiduals : public SubsysReco
 
   int m_ntracks = std::numeric_limits<int>::quiet_NaN();
   int m_nvertices = std::numeric_limits<int>::quiet_NaN();
+  std::vector<float> m_pcax_vtx_trk;
+  std::vector<float> m_pcay_vtx_trk;
+  std::vector<float> m_pcaz_vtx_trk;
+  std::vector<float> m_px_vtx_trk;
+  std::vector<float> m_py_vtx_trk;
+  std::vector<float> m_pz_vtx_trk;
 
   //! cluster tree info
   float m_sclusgr = std::numeric_limits<float>::quiet_NaN();

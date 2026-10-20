@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 class CDBTTree;
 class PHCompositeNode;
@@ -73,9 +74,20 @@ class CaloTowerCalib : public SubsysReco
     m_directURL_ZScrosscalib = url;
   }
 
+  void set_directURL_ZScrosscalibT0(const std::string &url)
+  {
+    m_giveDirectURL_ZScrosscalibT0 = true;
+    m_directURL_ZScrosscalibT0 = url;
+  }
+
   void set_doZScrosscalib(bool doZScrosscalib)
   {
     m_doZScrosscalib = doZScrosscalib;
+  }
+
+  void set_doZScrosscalibT0(bool doZScrosscalibT0)
+  {
+    m_doZScrosscalibT0 = doZScrosscalibT0;
   }
 
   void set_dotimecalib(bool dotimecalib)
@@ -85,7 +97,7 @@ class CaloTowerCalib : public SubsysReco
 
   void set_doCalibOnly(bool docalib = true)
   {
-    if (docalib) 
+    if (docalib)
     {
       m_dotimecalib = false;
       m_doZScrosscalib = false;
@@ -120,6 +132,19 @@ class CaloTowerCalib : public SubsysReco
 
   void set_use_TowerInfov2(bool use) { m_use_TowerInfov2 = use; }
 
+  void set_doNegEnergyThreshold(bool do_threshold)
+  {
+    m_doNegEnergyThreshold = do_threshold;
+  }
+
+  void set_negEnergyThreshold(float threshold)
+  {
+    m_negEnergyThreshold = threshold;
+  }
+
+  float get_negEnergyThreshold() const { return m_negEnergyThreshold; }
+  bool get_doNegEnergyThreshold() const { return m_doNegEnergyThreshold; }
+
  private:
   CaloTowerDefs::DetectorSystem m_dettype;
 
@@ -130,7 +155,11 @@ class CaloTowerCalib : public SubsysReco
   std::string m_fieldname_time;
   std::string m_calibName_time;
   std::string m_fieldname_ZScrosscalib;
+  std::string m_fieldname_ZScrosscalib_minus5;
+  std::string m_fieldname_ZScrosscalib_main;
+  std::string m_fieldname_ZScrosscalib_plus5;
   std::string m_calibName_ZScrosscalib;
+  std::string m_calibName_ZScrosscalibT0;
   bool m_overrideCalibName{false};
   bool m_overrideFieldName{false};
   std::string m_inputNodePrefix{"TOWERS_"};
@@ -149,22 +178,42 @@ class CaloTowerCalib : public SubsysReco
 
   bool m_giveDirectURL_ZScrosscalib = false;
   std::string m_directURL_ZScrosscalib = "";
+  bool m_giveDirectURL_ZScrosscalibT0 = false;
+  std::string m_directURL_ZScrosscalibT0;
   bool m_doZScrosscalib = true;
+  bool m_doZScrosscalibT0 = true;
+  bool m_has_ZScrosscalibT0 = false;
 
   bool m_doAbortNoEnergyCalib{false};
   bool m_doAbortNoTimeCalib{false};
   bool m_doAbortNoZSCalib{false};
 
+  bool m_doNegEnergyThreshold{true};
+  float m_negEnergyThreshold{-2.0F}; /*GeV*/
+  bool m_apply_neg_energy_threshold{false};
+
   CDBTTree *cdbttree = nullptr;
   CDBTTree *cdbttree_time = nullptr;
   CDBTTree *cdbttree_ZScrosscalib = nullptr;
 
+  enum class BunchT0
+  {
+    OUT_OF_RANGE = 0,
+    MINUS5,
+    MAIN,
+    PLUS5
+  };
+
+  BunchT0 getBunchT0(PHCompositeNode *topNode) const;
   void LoadCalib(PHCompositeNode *topNode);
 
   struct CDBInfo
   {
     float calibconst{0};
     float crosscalibconst{0};
+    float crosscalibconst_minus5{0};
+    float crosscalibconst_main{0};
+    float crosscalibconst_plus5{0};
     float meantime{0};
   };
 

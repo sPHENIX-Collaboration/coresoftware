@@ -2,6 +2,7 @@
 #include "TrackSeedTrackMapConverter.h"
 
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
@@ -324,7 +325,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       float Y0 = trackSeed->get_Y0();
       float Z0 = trackSeed->get_Z0();
       float slope = trackSeed->get_slope();
-
+      
       std::vector<float> fitpars = {R, X0, Y0, slope, Z0};
 
       svtxtrack->set_crossing(trackSeed->get_crossing());
@@ -411,9 +412,10 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         xy_residuals.push_back(sqrt(dx*dx+dy*dy));
         rz_residuals.push_back(sqrt(dr*dr+dz*dz));
 
-        // ignoring covariance for simplicity
-        xy_error2.push_back(c->getRPhiError()*c->getRPhiError());
-        rz_error2.push_back(c->getZError()*c->getZError());
+        // ignoring off-diagonal covariance for simplicity
+        const auto cluster_errors = ClusterErrorPara::get_clusterv5_modified_error(c, r, key);
+        xy_error2.push_back(cluster_errors.first);
+        rz_error2.push_back(cluster_errors.second);
         double phi = atan2(dy, dx);
         x_circle.push_back(R * cos(phi) + X0);
         y_circle.push_back(R * sin(phi) + Y0);
@@ -447,7 +449,8 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       std::cout << "Inserting svtxtrack into map " << std::endl;
       svtxtrack->identify();
     }
-
+    //if(m_cosmics)
+      
     m_trackMap->insert(svtxtrack.get());
   }
 

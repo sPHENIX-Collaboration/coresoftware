@@ -37,6 +37,17 @@ class Tpc_AssembledTrackReco : public SubsysReco
   void setInputNodeName(const std::string& n) { m_inputNodeName = n; }
   void setOutputNodeName(const std::string& n) { m_outputNodeName = n; }
   void setDebugOutputFileName(const std::string& n) { m_debugOutputFileName = n; }
+  void setDoDebugHistograms(bool v) { m_doDebugHistograms = v; }
+
+  // Minimum number of reconstructed blobs/clusters required for an input
+  // Tpc_ModuleTrack. Zero disables the cut.
+  // Applied only after full track assembly, before writing the final
+  // Tpc_AssembledTrack to the output container.
+  void setMinClustersPerTrack(unsigned int n) { m_minClustersPerTrack = n; }
+
+  // Loose linear-phi preselection applied before the expensive sagitta
+  // prediction. A value <= 0 disables the preselection.
+  void setLinearPhiPrecutScale(double v) { m_linearPhiPrecutScale = v; }
 
   void setConnectMaxLayerGap(unsigned int n) { m_connectMaxLayerGap = n; }
 
@@ -53,8 +64,21 @@ class Tpc_AssembledTrackReco : public SubsysReco
     m_connect_dphi_slope = dphi_slope;
     m_connect_dtbin_slope = dtbin_slope;
   }
+  // Reject a connection whose combined score (sum of squared residuals over
+  // their cuts, plus gap penalty) exceeds this value. Default: off.
+  void setMaxConnectScore(double v) { m_maxConnectScore = v; }
 
   void setUseSagittaPhiFit(bool v) { m_useSagittaPhiFit = v; }
+
+  // Use the sagitta (curvature) phi fit only with at least this many distinct
+  // layers; shorter pieces/candidates use the straight-line fit. Default 3.
+  void setMinSagittaLayers(unsigned int n) { m_minSagittaLayers = std::max(3U, n); }
+  // Compare connection predictions at a lever-arm weighted radius between the
+  // two pieces instead of the gap midpoint. Default: off.
+  void setWeightedMatchPoint(bool v) { m_useWeightedMatchPoint = v; }
+  // Accept a connection only if no other unused piece/candidate connects to
+  // the same piece with a lower score. Default: off.
+  void setMutualBest(bool v) { m_useMutualBest = v; }
 
   void setSeedCovarianceDiagonal(double sigmaX, double sigmaY, double sigmaZ,
                                  double sigmaPx, double sigmaPy, double sigmaPz)
@@ -68,6 +92,23 @@ class Tpc_AssembledTrackReco : public SubsysReco
   }
 
  public:
+  // ---------------------------------------------------------------
+  // Compact per-hit point stored by a Piece.
+  //
+  // This replaces the old six parallel vectors:
+  // radius, phi, tbin, weight, hitsetkey, hitkey.
+  // ---------------------------------------------------------------
+  struct PiecePoint
+  {
+    double radius{0.0};
+    double phi{0.0};
+    double tbin{0.0};
+    double weight{0.0};
+
+    TrkrDefs::hitsetkey hitsetkey{0};
+    TrkrDefs::hitkey hitkey{0};
+  };
+
   // ---------------------------------------------------------------
   // Piece: one Tpc_ModuleTrack refit from stored hit indices for temporary matching.
   // Fits are in ideal (radius, global phi) and (radius, timebin) coordinates.
@@ -90,28 +131,26 @@ class Tpc_AssembledTrackReco : public SubsysReco
 
     double phi_slope;
     double phi_intercept;
-    double phi_S;
-    double phi_x0;
-    double phi_invR;
-    double phi_theta;
-    double phi_bline;
-    bool phi_sagitta_ok;
+    mutable double phi_S;
+    mutable double phi_x0;
+    mutable double phi_invR;
+    mutable double phi_theta;
+    mutable double phi_bline;
+    mutable bool phi_sagitta_ok;
+    mutable bool phi_sagitta_evaluated;
 
     double tbin_slope;
     double tbin_intercept;
 
-    std::vector<double> radius_values;
-    std::vector<double> phi_values;
-    std::vector<double> tbin_values;
-    std::vector<double> weights;
-
-    std::vector<TrkrDefs::hitsetkey> hitsetkeys;
-    std::vector<TrkrDefs::hitkey> hitkeys;
+    std::vector<PiecePoint> points;
   };
 
   // ---------------------------------------------------------------
   // Candidate: a growing assembled track built from one or more Pieces.
   // Fits are temporary and are not copied into the output Tpc_AssembledTrack object.
+  //
+  // Candidate does not duplicate hit keys anymore. Final hit references
+  // are recovered from piece_indices only when writing the output track.
   // ---------------------------------------------------------------
   struct SeedParameters
   {
@@ -158,8 +197,6 @@ class Tpc_AssembledTrackReco : public SubsysReco
     int ndof_tbin;
 
     std::vector<unsigned int> piece_indices;
-    std::vector<TrkrDefs::hitsetkey> hitsetkeys;
-    std::vector<TrkrDefs::hitkey> hitkeys;
   };
 
  private:
@@ -170,6 +207,9 @@ class Tpc_AssembledTrackReco : public SubsysReco
   void write_debug_histograms();
 
   bool make_piece(unsigned int source_index, Piece& p) const;
+  void ensure_piece_sagitta(const Piece& p) const;
+  double weighted_match_radius(unsigned int a_first, unsigned int a_last, unsigned int a_n,
+                               unsigned int b_first, unsigned int b_last, unsigned int b_n) const;
 
   double predict_phi(const Piece& p, double radius) const;
   double predict_phi(const Candidate& c, double radius) const;
@@ -186,6 +226,7 @@ class Tpc_AssembledTrackReco : public SubsysReco
                               const Piece& b,
                               double& score,
                               double& b_phi_intercept_shifted) const;
+
   bool candidates_can_connect(const Candidate& a,
                               const Candidate& b,
                               double& score) const;
@@ -194,10 +235,12 @@ class Tpc_AssembledTrackReco : public SubsysReco
                              int side,
                              unsigned int sector,
                              std::vector<Candidate>& output) const;
+
   void connect_side_candidates(const std::vector<Piece>& pieces,
                                const std::vector<Candidate>& seeds,
                                int side,
                                std::vector<Candidate>& output) const;
+
   SeedParameters make_seed_parameters(const Candidate& c) const;
 
   // ---------------------------------------------------------------
@@ -223,6 +266,14 @@ class Tpc_AssembledTrackReco : public SubsysReco
   double m_connect_dphi_slope;
   double m_connect_dtbin_slope;
   bool m_useSagittaPhiFit;
+  unsigned int m_minSagittaLayers{3};
+  bool m_useWeightedMatchPoint{true};
+  bool m_useMutualBest{true};
+  bool m_doDebugHistograms;
+  unsigned int m_minClustersPerTrack;
+  double m_linearPhiPrecutScale;
+  double m_maxConnectScore{1.5};  // Reject a connection whose combined score exceeds this value. Default: on.
+
   double m_seedSigmaX;
   double m_seedSigmaY;
   double m_seedSigmaZ;
@@ -236,14 +287,18 @@ class Tpc_AssembledTrackReco : public SubsysReco
   TH1D* m_h_dmphi;
   TH1D* m_h_dmtbin;
   TH1D* m_h_score;
+
   TH2D* m_h_dphi_vs_dtbin;
   TH2D* m_h_dmphi_vs_dmtbin;
   TH2D* m_h_dphi_vs_dmphi;
+
   TH2D* m_h_tbin_slope_vs_first_tbin;
   TH2D* m_h_tbin_slope_vs_last_tbin;
+
   TH2D* m_h_track_tbin_slope_vs_tbin_span_3modules;
   TH2D* m_h_track_tbin_slope_vs_first_tbin_3modules;
   TH2D* m_h_track_tbin_slope_vs_last_tbin_3modules;
+
   TH1D* m_h_layer_gap;
   TH1D* m_h_nsegments;
   TH1D* m_h_matched_sector_delta;
@@ -254,15 +309,20 @@ class Tpc_AssembledTrackReco : public SubsysReco
   // TTree branches
   // ---------------------------------------------------------------
   int m_tree_event{};
+
   std::vector<unsigned int> m_tree_track_id;
   std::vector<int> m_tree_side;
+
   std::vector<unsigned int> m_tree_nsegments;
   std::vector<unsigned int> m_tree_nblobs;
   std::vector<unsigned int> m_tree_nrawhits;
+
   std::vector<unsigned int> m_tree_first_layer;
   std::vector<unsigned int> m_tree_last_layer;
+
   std::vector<unsigned int> m_tree_first_sector;
   std::vector<unsigned int> m_tree_last_sector;
+
   std::vector<unsigned int> m_tree_first_region;
   std::vector<unsigned int> m_tree_last_region;
 
@@ -276,4 +336,5 @@ class Tpc_AssembledTrackReco : public SubsysReco
   std::vector<unsigned long long> m_tree_hit_hitsetkey;
   std::vector<unsigned long long> m_tree_hit_hitkey;
 };
+
 #endif

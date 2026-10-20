@@ -30,8 +30,10 @@ int MbdRawContainerV2::isValid() const
 
 void MbdRawContainerV2::Reset()
 {
-  MbdRawHits->Clear();
-  npmt = 0;
+  for (int ipmt=0; ipmt < get_npmt(); ipmt++)
+  {
+    get_pmt(ipmt)->Clear();
+  }
 }
 
 void MbdRawContainerV2::identify(std::ostream &out) const
@@ -60,5 +62,22 @@ UShort_t MbdRawContainerV2::get_clock() const
 UShort_t MbdRawContainerV2::get_femclock() const
 {
   return femclk;
+}
+
+int MbdRawContainerV2::get_badtdc() const
+{
+  int has_badtdc = 0;
+
+  for (int ipmt=0; ipmt < get_npmt(); ipmt++)
+  {
+    MbdRawHit* mbdraw = get_pmt(ipmt);
+    if ( mbdraw->get_badtdc() )
+    {
+      has_badtdc = 1;
+      break;
+    }
+  }
+
+  return has_badtdc;
 }
 

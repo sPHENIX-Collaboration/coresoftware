@@ -29,7 +29,13 @@ void FilterDatasets::readRunInfo(const std::string &line)
     return;
   }
 
-  m_runInfo.emplace_back(tokens[0], tokens[1]);
+  std::string dsttype_group;
+  if (tokens.size() >= 3)
+  {
+    dsttype_group = tokens[2];
+  }
+
+  m_runInfo.emplace_back(tokens[0], tokens[1], dsttype_group);
 }
 
 std::string FilterDatasets::getCalibration(const std::string &pl_type, uint64_t iov)
@@ -55,22 +61,40 @@ void FilterDatasets::analyze(const std::string &input, const std::string &output
   }
 
   // write the header for the CSV
-  file << "runnumber" << std::endl;
+  file << "runnumber,dsttype_group" << std::endl;
 
   // loop over each run to check if any is missing the latest calibration
   // if a run is missing the latest calibration then write it to the CSV for processing
-  for (const auto &run_dataset : m_runInfo)
+  for (const auto &run_dataset_type : m_runInfo)
   {
-    std::string run = run_dataset.first;
-    std::string dataset = run_dataset.second;
+    std::string run = std::get<0>(run_dataset_type);
+    std::string dataset = std::get<1>(run_dataset_type);
+    std::string dsttype_group = std::get<2>(run_dataset_type);
     ++m_ctr["ctr_run"];
-    std::cout << "Run: " << run << ", Dataset: " << dataset << ", Processing: "
+    std::cout << "Run: " << run << ", Dataset: " << dataset << ", Group: " << dsttype_group << ", Processing: "
               << m_ctr["ctr_run"] << ", " << m_ctr["ctr_run"] * 100. / static_cast<Double_t>(m_runInfo.size()) << " %" << std::endl;
 
     Bool_t keep = false;
 
     for (const auto &cdbName : m_cdbName)
     {
+      if (dsttype_group == "HIST_JETQA")
+      {
+        if (cdbName.find("ZSCrossCalib") != std::string::npos)
+        {
+          continue;
+        }
+      }
+      else if (dsttype_group == "HIST_CALOFITTINGQA")
+      {
+        if (cdbName.find("BadTowerMap") != std::string::npos ||
+            cdbName.find("meanTime") != std::string::npos ||
+            cdbName.find("fracBadChi2") != std::string::npos)
+        {
+          continue;
+        }
+      }
+
       if (m_debug)
       {
         std::cout << "Attempt to get Calibration" << std::endl;
@@ -82,9 +106,16 @@ void FilterDatasets::analyze(const std::string &input, const std::string &output
       }
 
       std::stringstream ss;
-      if (cdbName == "CEMC_BadTowerMap")
+      if (cdbName.find("BadTowerMap") != std::string::npos)
       {
-        ss << "EMCalHotMap_" << dataset << "_" << run << "cdb.root";
+        if (cdbName == "CEMC_BadTowerMap")
+        {
+          ss << "EMCalHotMap_" << dataset << "_" << run << "cdb.root";
+        }
+        else
+        {
+          ss << cdbName << "_" << dataset << "_" << run << "cdb.root";
+        }
       }
       else
       {
@@ -109,7 +140,7 @@ void FilterDatasets::analyze(const std::string &input, const std::string &output
 
     if (keep)
     {
-      file << run << std::endl;
+      file << run << "," << dsttype_group << std::endl;
     }
   }
 

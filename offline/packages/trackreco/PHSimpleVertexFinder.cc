@@ -2,13 +2,14 @@
 
 /// Tracking includes
 
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrackVertexCrossingAssoc_v1.h>
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>            // for cluskey, getLayer, TrkrId
-#include <trackbase/TrackFitUtils.h>
 #include <trackbase_historic/SvtxTrack.h>  // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap_v2.h>
+#include <trackbase_historic/TrackSeedContainer.h>
 
 #include <globalvertex/SvtxVertexMap_v1.h>
 #include <globalvertex/SvtxVertex_v3.h>
@@ -76,8 +77,8 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
   _active_dcacut = _base_dcacut;
 
   // in case these objects are in the input file, we clear the nodes and replace them
-    _svtx_vertex_map->Reset();
-    _track_vertex_crossing_map->Reset();
+  _svtx_vertex_map->Reset();
+  _track_vertex_crossing_map->Reset();
 
   // Write to a new map on the node tree that contains (crossing, trackid) pairs for all tracks
   // Later, will add to it a map  containing (crossing, vertexid)
@@ -88,26 +89,26 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
     auto crossing = track->get_crossing();
 
     if (Verbosity() > 0)
-      {
-	std::cout << "track id " << trackkey << " crossing " << crossing 
-		  << " x y z " << track->get_x() << "  " << track->get_y() << "  " << track->get_z() << std::endl;
-      }
+    {
+      std::cout << "track id " << trackkey << " crossing " << crossing
+                << " x y z " << track->get_x() << "  " << track->get_y() << "  " << track->get_z() << std::endl;
+    }
 
     // crossing zero contains unmatched TPC tracks
     // Here we skip those crossing = zero tracks that do not have silicon seeds
     if (_pp_mode)
     {
-      auto *siseed = track->get_silicon_seed();
+      auto *siseed = getSiliconSeed(track);
       if (crossing == 0 && !siseed)
       {
-      continue;
+        continue;
       }
     }
-    
+
     crossings.insert(crossing);
-    _track_vertex_crossing_map->addTrackAssoc(crossing, trackkey);    
+    _track_vertex_crossing_map->addTrackAssoc(crossing, trackkey);
   }
-  
+
   unsigned int vertex_id = 0;
 
   for (auto cross : crossings)
@@ -132,7 +133,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
     {
       unsigned int trackkey = (*iter).second;
       SvtxTrack *track = _track_map->get(trackkey);
-      if(!track)
+      if (!track)
       {
         continue;
       }
@@ -141,29 +142,29 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
 
     // Find all instances where two tracks have a dca of < _dcacut,  and capture the pair details
     // Fills _track_pair_map and _track_pair_pca_map
-    if(_zero_field)
-      {
-	checkDCAsZF(crossing_tracks);
-      }
+    if (_zero_field)
+    {
+      checkDCAsZF(crossing_tracks);
+    }
     else
-      {
-	checkDCAs(crossing_tracks);
-      }
+    {
+      checkDCAs(crossing_tracks);
+    }
 
     /// If we didn't find any matches, try again with a slightly larger DCA cut
     if (_track_pair_map.empty())
     {
       _active_dcacut = 3.0 * _base_dcacut;
-      if(_zero_field)
-	{
-	  checkDCAsZF(crossing_tracks);
-	}
+      if (_zero_field)
+      {
+        checkDCAsZF(crossing_tracks);
+      }
       else
-	{
-	  checkDCAs(crossing_tracks);
-	}
+      {
+        checkDCAs(crossing_tracks);
+      }
     }
-    
+
     if (Verbosity() > 0)
     {
       std::cout << "crossing " << cross << " track pair map size " << _track_pair_map.size() << std::endl;
@@ -174,23 +175,23 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
 
     // we want the biggest vertex first, sort the vector of connected track sets by size
     for (unsigned int ivtx = 0; ivtx < connected_tracks.size(); ++ivtx)
+    {
+      bool isdone = true;
+      for (unsigned int j = 0; j < connected_tracks.size() - ivtx - 1; j++)
       {
-	bool isdone = true;	
-	for (unsigned int j = 0; j < connected_tracks.size() - ivtx - 1; j++) 
-	  {	
-	    if (connected_tracks[j].size() < connected_tracks[j + 1].size())
-	      {	  
-		swap(connected_tracks[j], connected_tracks[j + 1]);
-		isdone = false;
-	      }
+        if (connected_tracks[j].size() < connected_tracks[j + 1].size())
+        {
+          swap(connected_tracks[j], connected_tracks[j + 1]);
+          isdone = false;
+        }
 
-	    if(isdone)
-	    {
-	      break;
-	    }
-	  }
+        if (isdone)
+        {
+          break;
+        }
       }
-    
+    }
+
     // make vertices - each set of connected tracks is a vertex
     for (unsigned int ivtx = 0; ivtx < connected_tracks.size(); ++ivtx)
     {
@@ -276,25 +277,25 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
       {
         unsigned int trid = cit->second;
 
-	if (Verbosity() > 1)
+        if (Verbosity() > 1)
         {
           std::cout << "   vertex " << thisid << " insert track " << trid << std::endl;
-	  SvtxTrack *track = _track_map->get(trid);
-	  if (track)
-	    {
-	      auto *siseed = track->get_silicon_seed();
-	      short int intt_crossing = siseed->get_crossing();
-	      std::cout << " vtxid " << thisid << " vertex crossing " << cross
-			<< " track crossing " << cross
-			<< " intt crossing " << intt_crossing
-			<< " trackID " << trid
-			<< " track Z " << track->get_z()
-			<< " X " << track->get_x()
-			<< " Y " << track->get_y()
-			<< " quality " << track->get_quality()
-			<< " pt " << track->get_pt()
-			<< std::endl;
-	    }
+          SvtxTrack *track = _track_map->get(trid);
+          if (track)
+          {
+            auto *siseed = getSiliconSeed(track);
+            short int intt_crossing = siseed->get_crossing();
+            std::cout << " vtxid " << thisid << " vertex crossing " << cross
+                      << " track crossing " << cross
+                      << " intt crossing " << intt_crossing
+                      << " trackID " << trid
+                      << " track Z " << track->get_z()
+                      << " X " << track->get_x()
+                      << " Y " << track->get_y()
+                      << " quality " << track->get_quality()
+                      << " pt " << track->get_pt()
+                      << std::endl;
+          }
         }
         svtxVertex->insert_track(trid);
         _track_map->get(trid)->set_vertex_id(thisid);
@@ -396,7 +397,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
           continue;
         }
 
-        auto *siseed = track->get_silicon_seed();
+        auto *siseed = getSiliconSeed(track);
         short int intt_crossing = siseed->get_crossing();
 
         // the track crossing may be from the INTT clusters or from geometric matching if there are no INTT clusters
@@ -486,7 +487,6 @@ int PHSimpleVertexFinder::GetNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   if (!_cluster_map)
   {
@@ -498,6 +498,22 @@ int PHSimpleVertexFinder::GetNodes(PHCompositeNode *topNode)
   if (!_tGeometry)
   {
     std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _silicon_seed_map = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  if (!_silicon_seed_map)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _tpc_seed_map = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  // silicon-only vertexing runs before the TPC seeds exist
+  const bool silicon_vertexing = _vertex_map_name.find("Silicon") != std::string::npos;
+  if (!_tpc_seed_map && !silicon_vertexing)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find TpcTrackSeedContainer" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -566,14 +582,14 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
   std::vector<std::vector<TrkrDefs::cluskey>> cumulative_cluskey_vec;
   std::vector<std::vector<float>> cumulative_fitpars_vec;
 
-  for (auto & tr1_it : *track_map)
+  for (auto &tr1_it : *track_map)
   {
     auto id1 = tr1_it.first;
     auto *tr1 = tr1_it.second;
 
     //    tr1->identify();
- 
-    TrackSeed *siliconseed = tr1->get_silicon_seed();
+
+    TrackSeed *siliconseed = getSiliconSeed(tr1);
     const bool needs_mvtx_seed = _require_mvtx && _nmvtx_required > 0;
     const bool needs_intt_seed = _require_intt && _nintt_required > 0;
     if ((needs_mvtx_seed || needs_intt_seed) && !siliconseed)
@@ -588,130 +604,129 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
     {
       continue;
     }
-    TrackSeed *tpcseed = tr1->get_tpc_seed();
+    TrackSeed *tpcseed = getTpcSeed(tr1);
 
     std::vector<Acts::Vector3> global_vec;
     std::vector<TrkrDefs::cluskey> cluskey_vec;
-    
-    // Get a vector of cluster keys from the silicon seed and TPC seed
-    if(siliconseed)
-      {
-	getTrackletClusterList(siliconseed, cluskey_vec);
-	if(Verbosity() > 0) 
-	  { 
-	    std::cout << "  after silicon: silicon cluskey_vec size " << cluskey_vec.size() << std::endl; 
-	    for(unsigned long i : cluskey_vec)
-	      {  
-		std::cout << i << std::endl;
-	      }
-	  }
-      }
-    if(tpcseed)
-      {
 
-	getTrackletClusterList(tpcseed, cluskey_vec);
-	if(Verbosity() > 0) 
-	  { 
-	    std::cout << "  after tpc: cluskey_vec size " << cluskey_vec.size() << std::endl; 
-	    for(unsigned long i : cluskey_vec)
-	      {  
-		std::cout << i << std::endl;
-	      }
-	  }
+    // Get a vector of cluster keys from the silicon seed and TPC seed
+    if (siliconseed)
+    {
+      getTrackletClusterList(siliconseed, cluskey_vec);
+      if (Verbosity() > 0)
+      {
+        std::cout << "  after silicon: silicon cluskey_vec size " << cluskey_vec.size() << std::endl;
+        for (unsigned long i : cluskey_vec)
+        {
+          std::cout << i << std::endl;
+        }
       }
+    }
+    if (tpcseed)
+    {
+      getTrackletClusterList(tpcseed, cluskey_vec);
+      if (Verbosity() > 0)
+      {
+        std::cout << "  after tpc: cluskey_vec size " << cluskey_vec.size() << std::endl;
+        for (unsigned long i : cluskey_vec)
+        {
+          std::cout << i << std::endl;
+        }
+      }
+    }
 
     unsigned int nmvtx = 0;
     unsigned int nintt = 0;
-    for (auto& key : cluskey_vec)
+    for (auto &key : cluskey_vec)
+    {
+      if (TrkrDefs::getTrkrId(key) == TrkrDefs::mvtxId)
       {
-        if (TrkrDefs::getTrkrId(key) == TrkrDefs::mvtxId)
-	  {
-	    nmvtx++;
-	  }
-	if(TrkrDefs::getTrkrId(key) == TrkrDefs::inttId)
-	  {
-	    nintt++;
-	  }
+        nmvtx++;
       }
-    
+      if (TrkrDefs::getTrkrId(key) == TrkrDefs::inttId)
+      {
+        nintt++;
+      }
+    }
+
     // store cluster global positions in a vector
     TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
-    
-    std::vector<float> fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, true);
-    
-    if (Verbosity() > 1)
-      {
-	if(fitpars.size() == 4)
-	  {
-	    std::cout << " Track " << id1 << " dy/dx " << fitpars[0] << " y intercept " << fitpars[1] 
-		      << " dx/dz " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
-	  }
-	else
-	  {
-	    std::cout << " Track " << id1 << " ZF line fits failed, fitpars is empty" << std::endl;
-	  }
-      }
 
-    cumulative_trackid_vec.push_back(id1);   
-    cumulative_nmvtx_vec.push_back(nmvtx);   
-    cumulative_nintt_vec.push_back(nintt);   
+    std::vector<float> fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, true);
+
+    if (Verbosity() > 1)
+    {
+      if (fitpars.size() == 4)
+      {
+        std::cout << " Track " << id1 << " dy/dx " << fitpars[0] << " y intercept " << fitpars[1]
+                  << " dx/dz " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
+      }
+      else
+      {
+        std::cout << " Track " << id1 << " ZF line fits failed, fitpars is empty" << std::endl;
+      }
+    }
+
+    cumulative_trackid_vec.push_back(id1);
+    cumulative_nmvtx_vec.push_back(nmvtx);
+    cumulative_nintt_vec.push_back(nintt);
     cumulative_global_vec.push_back(global_vec);
     cumulative_cluskey_vec.push_back(cluskey_vec);
     cumulative_fitpars_vec.push_back(fitpars);
   }
 
-  for(unsigned int i1 = 0; i1 < cumulative_trackid_vec.size(); ++i1)
+  for (unsigned int i1 = 0; i1 < cumulative_trackid_vec.size(); ++i1)
+  {
+    if (cumulative_fitpars_vec[i1].empty())
     {
-      if(cumulative_fitpars_vec[i1].empty()) { continue; }
-
-      for(unsigned int i2 = i1; i2 < cumulative_trackid_vec.size(); ++i2)
-	{
-	  if(cumulative_fitpars_vec[i2].empty()) { continue; }
-
-	  //  For straight line: fitpars[4] = { xyslope, y0, xzslope, z0 }
-	  Eigen::Vector3d a1(0.0, cumulative_fitpars_vec[i1][1],cumulative_fitpars_vec[i1][3]);      // point on track 1 at x = 0
-	  Eigen::Vector3d a2(0.0, cumulative_fitpars_vec[i2][1],cumulative_fitpars_vec[i2][3]);      // point on track 2 at x = 0
-	  // direction vectors made from dy/dx = xyslope and dz/dx = xzslope
-	  Eigen::Vector3d b1(1.0, cumulative_fitpars_vec[i1][0],cumulative_fitpars_vec[i1][2]);      // direction vector of track 1
-	  Eigen::Vector3d b2(1.0, cumulative_fitpars_vec[i2][0],cumulative_fitpars_vec[i2][2]);      // direction vector of track 2
-	  	  
-	  Eigen::Vector3d PCA1(0, 0, 0);
-	  Eigen::Vector3d PCA2(0, 0, 0);
-	  double dca = dcaTwoLines(a1, b1, a2, b2, PCA1, PCA2);
-
-
-	  // check dca cut is satisfied, and that PCA is close to beam line
-	  if (fabs(dca) < _active_dcacut
-	      && (PCA1.x() > _beamline_x_cut_lo && PCA1.x() < _beamline_x_cut_hi)
-	      && (PCA1.y() > _beamline_y_cut_lo && PCA1.y() < _beamline_y_cut_hi)
-	      && (PCA2.x() > _beamline_x_cut_lo && PCA2.x() < _beamline_x_cut_hi)
-	      && (PCA2.y() > _beamline_y_cut_lo && PCA2.y() < _beamline_y_cut_hi)
-	      )
-	    {
-	      int id1 = cumulative_trackid_vec[i1];
-	      int id2 = cumulative_trackid_vec[i2];
-
-	      if (Verbosity() > 3)
-		{
-		  std::cout << " good match for tracks " << id1 << " and " << id2 << std::endl;
-		  std::cout << "    a1.x " << a1.x() << " a1.y " << a1.y() << " a1.z " << a1.z() << std::endl;
-		  std::cout << "    a2.x  " << a2.x() << " a2.y " << a2.y() << " a2.z " << a2.z() << std::endl;
-		  std::cout << "    PCA1.x() " << PCA1.x() << " PCA1.y " << PCA1.y() << " PCA1.z " << PCA1.z() << std::endl;
-		  std::cout << "    PCA2.x() " << PCA2.x() << " PCA2.y " << PCA2.y() << " PCA2.z " << PCA2.z() << std::endl;
-		  std::cout << "    dca " << dca << std::endl;
-		}
-	      
-	      // capture the results for successful matches
-	      _track_pair_map.insert(std::make_pair(id1, std::make_pair(id2, dca)));
-	      _track_pair_pca_map.insert(std::make_pair(id1, std::make_pair(id2, std::make_pair(PCA1, PCA2))));
-	    }	  	  
-	}
+      continue;
     }
 
-  return; 
+    for (unsigned int i2 = i1; i2 < cumulative_trackid_vec.size(); ++i2)
+    {
+      if (cumulative_fitpars_vec[i2].empty())
+      {
+        continue;
+      }
+
+      //  For straight line: fitpars[4] = { xyslope, y0, xzslope, z0 }
+      Eigen::Vector3d a1(0.0, cumulative_fitpars_vec[i1][1], cumulative_fitpars_vec[i1][3]);  // point on track 1 at x = 0
+      Eigen::Vector3d a2(0.0, cumulative_fitpars_vec[i2][1], cumulative_fitpars_vec[i2][3]);  // point on track 2 at x = 0
+      // direction vectors made from dy/dx = xyslope and dz/dx = xzslope
+      Eigen::Vector3d b1(1.0, cumulative_fitpars_vec[i1][0], cumulative_fitpars_vec[i1][2]);  // direction vector of track 1
+      Eigen::Vector3d b2(1.0, cumulative_fitpars_vec[i2][0], cumulative_fitpars_vec[i2][2]);  // direction vector of track 2
+
+      Eigen::Vector3d PCA1(0, 0, 0);
+      Eigen::Vector3d PCA2(0, 0, 0);
+      double dca = dcaTwoLines(a1, b1, a2, b2, PCA1, PCA2);
+
+      // check dca cut is satisfied, and that PCA is close to beam line
+      if (fabs(dca) < _active_dcacut && (PCA1.x() > _beamline_x_cut_lo && PCA1.x() < _beamline_x_cut_hi) && (PCA1.y() > _beamline_y_cut_lo && PCA1.y() < _beamline_y_cut_hi) && (PCA2.x() > _beamline_x_cut_lo && PCA2.x() < _beamline_x_cut_hi) && (PCA2.y() > _beamline_y_cut_lo && PCA2.y() < _beamline_y_cut_hi))
+      {
+        int id1 = cumulative_trackid_vec[i1];
+        int id2 = cumulative_trackid_vec[i2];
+
+        if (Verbosity() > 3)
+        {
+          std::cout << " good match for tracks " << id1 << " and " << id2 << std::endl;
+          std::cout << "    a1.x " << a1.x() << " a1.y " << a1.y() << " a1.z " << a1.z() << std::endl;
+          std::cout << "    a2.x  " << a2.x() << " a2.y " << a2.y() << " a2.z " << a2.z() << std::endl;
+          std::cout << "    PCA1.x() " << PCA1.x() << " PCA1.y " << PCA1.y() << " PCA1.z " << PCA1.z() << std::endl;
+          std::cout << "    PCA2.x() " << PCA2.x() << " PCA2.y " << PCA2.y() << " PCA2.z " << PCA2.z() << std::endl;
+          std::cout << "    dca " << dca << std::endl;
+        }
+
+        // capture the results for successful matches
+        _track_pair_map.insert(std::make_pair(id1, std::make_pair(id2, dca)));
+        _track_pair_pca_map.insert(std::make_pair(id1, std::make_pair(id2, std::make_pair(PCA1, PCA2))));
+      }
+    }
+  }
+
+  return;
 }
 
-void PHSimpleVertexFinder::getTrackletClusterList(TrackSeed* tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec)
+void PHSimpleVertexFinder::getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey> &cluskey_vec)
 {
   for (auto clusIter = tracklet->begin_cluster_keys();
        clusIter != tracklet->end_cluster_keys();
@@ -744,7 +759,6 @@ void PHSimpleVertexFinder::getTrackletClusterList(TrackSeed* tracklet, std::vect
     {
       continue;
     }
-
 
     cluskey_vec.push_back(key);
 
@@ -825,34 +839,30 @@ void PHSimpleVertexFinder::findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2)
   double dca = dcaTwoLines(a1, b1, a2, b2, PCA1, PCA2);
 
   if (Verbosity() > 3)
-    {
-      std::cout << " pair dca is " << dca << " _active_dcacut is " << _active_dcacut
-		<< " PCA1.x " << PCA1.x() << " PCA1.y " << PCA1.y()
-		<< " PCA2.x " << PCA2.x() << " PCA2.y " << PCA2.y() << std::endl;
-    }
-  
+  {
+    std::cout << " pair dca is " << dca << " _active_dcacut is " << _active_dcacut
+              << " PCA1.x " << PCA1.x() << " PCA1.y " << PCA1.y()
+              << " PCA2.x " << PCA2.x() << " PCA2.y " << PCA2.y() << std::endl;
+  }
+
   // check dca cut is satisfied, and that PCA is close to beam line
-  if (fabs(dca) < _active_dcacut
-      && (PCA1.x() > _beamline_x_cut_lo && PCA1.x() < _beamline_x_cut_hi)
-      && (PCA1.y() > _beamline_y_cut_lo && PCA1.y() < _beamline_y_cut_hi)
-      && (PCA2.x() > _beamline_x_cut_lo && PCA2.x() < _beamline_x_cut_hi)
-      && (PCA2.y() > _beamline_y_cut_lo && PCA2.y() < _beamline_y_cut_hi)   )
+  if (fabs(dca) < _active_dcacut && (PCA1.x() > _beamline_x_cut_lo && PCA1.x() < _beamline_x_cut_hi) && (PCA1.y() > _beamline_y_cut_lo && PCA1.y() < _beamline_y_cut_hi) && (PCA2.x() > _beamline_x_cut_lo && PCA2.x() < _beamline_x_cut_hi) && (PCA2.y() > _beamline_y_cut_lo && PCA2.y() < _beamline_y_cut_hi))
+  {
+    if (Verbosity() > 3)
     {
-      if (Verbosity() > 3)
-	{
-	  std::cout << " good match for tracks " << tr1->get_id() << " and " << tr2->get_id() << " with pT " << tr1->get_pt() << " and " << tr2->get_pt() << std::endl;
-	  std::cout << "    a1.x " << a1.x() << " a1.y " << a1.y() << " a1.z " << a1.z() << std::endl;
-	  std::cout << "    a2.x  " << a2.x() << " a2.y " << a2.y() << " a2.z " << a2.z() << std::endl;
-	  std::cout << "    PCA1.x() " << PCA1.x() << " PCA1.y " << PCA1.y() << " PCA1.z " << PCA1.z() << std::endl;
-	  std::cout << "    PCA2.x() " << PCA2.x() << " PCA2.y " << PCA2.y() << " PCA2.z " << PCA2.z() << std::endl;
-	  std::cout << "    dca " << dca << std::endl;
-	}
-      
-      // capture the results for successful matches
-      _track_pair_map.insert(std::make_pair(id1, std::make_pair(id2, dca)));
-      _track_pair_pca_map.insert(std::make_pair(id1, std::make_pair(id2, std::make_pair(PCA1, PCA2))));
+      std::cout << " good match for tracks " << tr1->get_id() << " and " << tr2->get_id() << " with pT " << tr1->get_pt() << " and " << tr2->get_pt() << std::endl;
+      std::cout << "    a1.x " << a1.x() << " a1.y " << a1.y() << " a1.z " << a1.z() << std::endl;
+      std::cout << "    a2.x  " << a2.x() << " a2.y " << a2.y() << " a2.z " << a2.z() << std::endl;
+      std::cout << "    PCA1.x() " << PCA1.x() << " PCA1.y " << PCA1.y() << " PCA1.z " << PCA1.z() << std::endl;
+      std::cout << "    PCA2.x() " << PCA2.x() << " PCA2.y " << PCA2.y() << " PCA2.z " << PCA2.z() << std::endl;
+      std::cout << "    dca " << dca << std::endl;
     }
-  
+
+    // capture the results for successful matches
+    _track_pair_map.insert(std::make_pair(id1, std::make_pair(id2, dca)));
+    _track_pair_pca_map.insert(std::make_pair(id1, std::make_pair(id2, std::make_pair(PCA1, PCA2))));
+  }
+
   return;
 }
 
@@ -926,122 +936,130 @@ std::vector<std::set<unsigned int>> PHSimpleVertexFinder::findConnectedTracks()
     unsigned int id1 = it.first;
     unsigned int id2 = it.second.first;
     double dca12 = it.second.second;
-    
-    if(Verbosity() > 2)
+
+    if (Verbosity() > 2)
+    {
+      auto rt = _track_pair_pca_map.equal_range(id1);
+      for (auto ct = rt.first; ct != rt.second; ++ct)
       {
-	auto rt = _track_pair_pca_map.equal_range(id1);
-	for (auto ct = rt.first; ct != rt.second; ++ct)
-	  {
-	    unsigned int idb = ct->second.first;
-	    if(idb==id2)
-	      {
-		auto pca1=ct->second.second.first;
-		auto pca2=ct->second.second.second;
-		std::cout << "Begin search on id1 = " << id1 << " and id2 = " << id2 << " dca12 = " << dca12 << std::endl;
-		std::cout << "       id1 " << id1 << " pca1 " << pca1.x() << "  " << pca1.y() << "  " << pca1.z() << std::endl;
-		std::cout << "       id2 " << id2 << " pca1 " << pca2.x() << "  " << pca2.y() << "  " << pca2.z() << std::endl;
-	      }
-	  }
+        unsigned int idb = ct->second.first;
+        if (idb == id2)
+        {
+          auto pca1 = ct->second.second.first;
+          auto pca2 = ct->second.second.second;
+          std::cout << "Begin search on id1 = " << id1 << " and id2 = " << id2 << " dca12 = " << dca12 << std::endl;
+          std::cout << "       id1 " << id1 << " pca1 " << pca1.x() << "  " << pca1.y() << "  " << pca1.z() << std::endl;
+          std::cout << "       id2 " << id2 << " pca1 " << pca2.x() << "  " << pca2.y() << "  " << pca2.z() << std::endl;
+        }
       }
-    
+    }
+
     if ((used.contains(id1)) && (used.contains(id2)))
+    {
+      if (Verbosity() > 2)
       {
-	if (Verbosity() > 2)
-	  {
-	    std::cout << " tracks " << id1 << " and " << id2 << " are both in used , skip them" << std::endl;
-	  }
-	continue;
+        std::cout << " tracks " << id1 << " and " << id2 << " are both in used , skip them" << std::endl;
       }
+      continue;
+    }
     if ((!used.contains(id1)) && (!used.contains(id2)))
+    {
+      if (Verbosity() > 2)
       {
-	if (Verbosity() > 2)
-	  {
-	    auto rt1 = _track_pair_pca_map.equal_range(id1);
-	    for (auto ct = rt1.first; ct != rt1.second; ++ct)
-	      {
-		unsigned int ida = ct->first;
-		unsigned int idb = ct->second.first;
-		
-		if(idb==id2)
-		  {
-		    auto pcaa=ct->second.second.first;
-		    auto pcab=ct->second.second.second;
-		    std::cout << " tracks " << id1 << " and " << id2 << " dca = " << dca12
-			      << " are both not in used, start a new connected set" << std::endl;
-		    std::cout << "       ida " << ida << " pcaa " << pcaa.x() << "  " << pcaa.y() << "  " << pcaa.z() << std::endl;
-		    std::cout << "       idb " << idb << " pcab " << pcab.x() << "  " << pcab.y() << "  " << pcab.z() << std::endl;
-		  }
-	      }
-	  }
-	// close out and start a new connected set
-	if (!connected.empty())
-	  {
-	    if (Verbosity() > 2)
-	      {
-		std::cout << "           closing out set with size " << connected.size() << std::endl;
-	      }
-	    connected_tracks.push_back(connected);
-	    connected.clear();
-	  }
+        auto rt1 = _track_pair_pca_map.equal_range(id1);
+        for (auto ct = rt1.first; ct != rt1.second; ++ct)
+        {
+          unsigned int ida = ct->first;
+          unsigned int idb = ct->second.first;
+
+          if (idb == id2)
+          {
+            auto pcaa = ct->second.second.first;
+            auto pcab = ct->second.second.second;
+            std::cout << " tracks " << id1 << " and " << id2 << " dca = " << dca12
+                      << " are both not in used, start a new connected set" << std::endl;
+            std::cout << "       ida " << ida << " pcaa " << pcaa.x() << "  " << pcaa.y() << "  " << pcaa.z() << std::endl;
+            std::cout << "       idb " << idb << " pcab " << pcab.x() << "  " << pcab.y() << "  " << pcab.z() << std::endl;
+          }
+        }
       }
-    
+      // close out and start a new connected set
+      if (!connected.empty())
+      {
+        if (Verbosity() > 2)
+        {
+          std::cout << "           closing out set with size " << connected.size() << std::endl;
+        }
+        connected_tracks.push_back(connected);
+        connected.clear();
+      }
+    }
+
     // get everything connected to id1 and id2
     connected.insert(id1);
     used.insert(id1);
     connected.insert(id2);
     used.insert(id2);
-    for (auto cit : _track_pair_map)
+
+    //--- Repeat the pair scan until no new connected tracks are found
+    bool added_track = true;
+    while (added_track)
     {
-      unsigned int id3 = cit.first;
-      unsigned int id4 = cit.second.first;
-      double dca34 = cit.second.second;
+      const auto connected_size_before_scan = connected.size();
 
-      if ((connected.contains(id3)) || (connected.contains(id4)))
+      for (auto cit : _track_pair_map)
       {
-        if (Verbosity() > 2)
-	  {
+        unsigned int id3 = cit.first;
+        unsigned int id4 = cit.second.first;
+        double dca34 = cit.second.second;
 
-	    auto rt2 = _track_pair_pca_map.equal_range(id3);
-	    for (auto ct = rt2.first; ct != rt2.second; ++ct)
-	      {
-		unsigned int ida = ct->first;
-		unsigned int idb = ct->second.first;
-		
-		if(idb==id4)
-		  {
-		    auto pcaa=ct->second.second.first;
-		    auto pcab=ct->second.second.second;
-		    std::cout << "         found connection to " << id3 << " and " << id4 << " dca34 = " << dca34
-			      << " pca dz = " << pcaa.z() - pcab.z() << std::endl;
-		    std::cout << "       id3 " << ida << " pca3 " << pcaa.x() << "  " << pcaa.y() << "  " << pcaa.z() << std::endl;
-		    std::cout << "       id4 " << idb << " pca4 " << pcab.x() << "  " << pcab.y() << "  " << pcab.z() << std::endl;
-		}
-	      }
-	  }
-        connected.insert(id3);
-        used.insert(id3);
-        connected.insert(id4);
-        used.insert(id4);
+        if ((connected.contains(id3)) || (connected.contains(id4)))
+        {
+          if (Verbosity() > 2)
+          {
+            auto rt2 = _track_pair_pca_map.equal_range(id3);
+            for (auto ct = rt2.first; ct != rt2.second; ++ct)
+            {
+              unsigned int ida = ct->first;
+              unsigned int idb = ct->second.first;
+
+              if (idb == id4)
+              {
+                auto pcaa = ct->second.second.first;
+                auto pcab = ct->second.second.second;
+                std::cout << "         found connection to " << id3 << " and " << id4 << " dca34 = " << dca34
+                          << " pca dz = " << pcaa.z() - pcab.z() << std::endl;
+                std::cout << "       id3 " << ida << " pca3 " << pcaa.x() << "  " << pcaa.y() << "  " << pcaa.z() << std::endl;
+                std::cout << "       id4 " << idb << " pca4 " << pcab.x() << "  " << pcab.y() << "  " << pcab.z() << std::endl;
+              }
+            }
+          }
+          connected.insert(id3);
+          used.insert(id3);
+          connected.insert(id4);
+          used.insert(id4);
+        }
       }
+      added_track = connected.size() > connected_size_before_scan;
     }
   }
 
   // close out the last set
   if (!connected.empty())
+  {
+    if (Verbosity() > 2)
     {
-      if (Verbosity() > 2)
-	{
-	  std::cout << "           closing out last connected set with size " << connected.size() << std::endl;
-	}
-      connected_tracks.push_back(connected);
-      connected.clear();
+      std::cout << "           closing out last connected set with size " << connected.size() << std::endl;
     }
-  
+    connected_tracks.push_back(connected);
+    connected.clear();
+  }
+
   if (Verbosity() > 2)
-    {
-      std::cout << "connected_tracks size " << connected_tracks.size() << std::endl;
-    }
-  
+  {
+    std::cout << "connected_tracks size " << connected_tracks.size() << std::endl;
+  }
+
   return connected_tracks;
 }
 
@@ -1269,7 +1287,7 @@ bool PHSimpleVertexFinder::passClusterRequirement(SvtxTrack *track, const std::s
     return true;
   }
 
-  TrackSeed *siliconseed = track->get_silicon_seed();
+  TrackSeed *siliconseed = getSiliconSeed(track);
   if (!siliconseed)
   {
     return false;
@@ -1295,4 +1313,33 @@ bool PHSimpleVertexFinder::passClusterRequirement(SvtxTrack *track, const std::s
   }
 
   return pass;
+}
+
+TrackSeed *PHSimpleVertexFinder::findSeed(TrackSeedContainer *container, unsigned short id)
+{
+  // find() does no bounds checking, so guard against unset (USHRT_MAX) or stale ids
+  if (!container || id >= container->size())
+  {
+    return nullptr;
+  }
+  return *container->find(id);
+}
+
+TrackSeed *PHSimpleVertexFinder::getSiliconSeed(SvtxTrack *track) const
+{
+  // SvtxTrack_v4 and earlier carry the seed pointer, SvtxTrack_v5 only the seed id
+  if (TrackSeed *seed = track->get_silicon_seed())
+  {
+    return seed;
+  }
+  return findSeed(_silicon_seed_map, track->get_silicon_seed_id());
+}
+
+TrackSeed *PHSimpleVertexFinder::getTpcSeed(SvtxTrack *track) const
+{
+  if (TrackSeed *seed = track->get_tpc_seed())
+  {
+    return seed;
+  }
+  return findSeed(_tpc_seed_map, track->get_tpc_seed_id());
 }

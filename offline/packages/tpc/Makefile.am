@@ -35,6 +35,7 @@ lib_LTLIBRARIES = \
   libtpc.la
 
 pkginclude_HEADERS = \
+  LaserAggregatedClusterizer.h \
   LaserClusterHelper.h \
   LaserClusterizer.h \
   LaserEventInfo.h \
@@ -42,6 +43,7 @@ pkginclude_HEADERS = \
   LaserEventInfov2.h \
   LaserEventIdentifier.h \
   LaserEventRejecter.h \
+  LaserPadAggregator.h \
   DiffuseLaserEventSelector.h \
   TrainingHitsContainer.h \
   TrainingHits.h \
@@ -77,11 +79,13 @@ dist_mydata_DATA = \
 
 # sources for tpc library
 libtpc_la_SOURCES = \
+  LaserAggregatedClusterizer.cc \
   LaserClusterHelper.cc \
   LaserClusterizer.cc \
   LaserEventInfov1.cc \
   LaserEventInfov2.cc \
   LaserEventIdentifier.cc \
+  LaserPadAggregator.cc \
   DiffuseLaserEventSelector.cc \
   LaserEventRejecter.cc \
   TpcRawDataTree.cc \
@@ -111,7 +115,8 @@ libtpc_la_LIBADD = \
   -lfun4all \
   -lphool \
   -lSpectrum \
-  -lpthread
+  -lpthread \
+  -lPHGarfield
 
 # sources for io library
 libtpc_io_la_SOURCES = \

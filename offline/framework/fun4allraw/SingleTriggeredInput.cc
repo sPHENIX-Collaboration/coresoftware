@@ -44,15 +44,20 @@ SingleTriggeredInput::~SingleTriggeredInput()
       dq.pop_front();
     }
   }
+  // by design multiple packets save the same event pointer, this makes sure
+  // we delete them only once
+  for (auto& [pid, evt] : m_PacketEventBackup)
+  {
+    if (evt)
+    {
+      evtset.insert(evt);
+    }
+  }
   for (auto* evt : evtset)
   {
     delete evt;
   }
   evtset.clear();
-  for (auto& [pid, evt] : m_PacketEventBackup)
-  {
-    delete evt;
-  }
 
   delete m_EventIterator;
 }
@@ -577,6 +582,10 @@ int SingleTriggeredInput::FillEventVector()
         continue;
       }
       FillPacketClock(thisevt, pkt, i);
+      if (m_PacketShiftOffset[pid] == 1 && i == 0)
+      {
+	m_PacketEventBackup.erase(pid); // erase stale pointer which crashes the dtor
+      }
       m_PacketEventDeque[pid].push_back(thisevt);
 
       delete pkt;
@@ -1277,6 +1286,11 @@ int SingleTriggeredInput::ReadEvent()
       [](const std::pair<int, int>& p)
       { return p.second == 0; });
 
+  bool all_packets_minusone = std::all_of(
+      m_PacketShiftOffset.begin(), m_PacketShiftOffset.end(),
+      [](const std::pair<int, int>& p)
+      { return p.second == -1; });
+
   std::set<Event*> events_to_delete;
   for (auto& [pid, dq] : m_PacketEventDeque)
   {
@@ -1367,7 +1381,7 @@ int SingleTriggeredInput::ReadEvent()
       newhit->Reset();
     }
 
-    if (all_packets_unshifted || m_PacketShiftOffset[pid] == 1)
+    if (all_packets_unshifted || all_packets_minusone || m_PacketShiftOffset[pid] == 1)
     {
       events_to_delete.insert(evt);
     }

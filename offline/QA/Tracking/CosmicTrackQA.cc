@@ -1,21 +1,39 @@
 
 #include "CosmicTrackQA.h"
 
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-
 #include <qautils/QAHistManagerDef.h>
 #include <qautils/QAUtil.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrClusterContainer.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackState.h>
+#include <trackbase_historic/TrackSeed.h>
+
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <TH2.h>
-#include <trackbase/ActsGeometry.h>
+
+#include <Acts/Definitions/Units.hpp>
+#include <Acts/Surfaces/Surface.hpp>
+#include <Acts/Utilities/Result.hpp>
+
+#include <cassert>
+#include <cmath>
+#include <iostream>
+#include <limits>
+#include <map>
+
 //____________________________________________________________________________..
 CosmicTrackQA::CosmicTrackQA(const std::string &name)
   : SubsysReco(name)
@@ -128,10 +146,10 @@ int CosmicTrackQA::process_event(PHCompositeNode *topNode)
       i++;
       auto *cluster = clustermap->findCluster(ckey);
 
-      auto intersection = TrackFitUtils::surface_3Dline_intersection(ckey, cluster, geometry,
-                                                                     std::get<0>(lineFitParams), std::get<1>(lineFitParams), std::get<2>(lineFitParams), std::get<3>(lineFitParams));
-
       auto surf = geometry->maps().getSurface(ckey, cluster);
+      
+      auto intersection = TrackFitUtils::surface_3Dline_intersection(surf, geometry,
+                                                                     std::get<0>(lineFitParams), std::get<1>(lineFitParams), std::get<2>(lineFitParams), std::get<3>(lineFitParams));
 
       Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext(), Acts::Vector3(0, 0, 0), Acts::Vector3(0, 0, 0));
       float statelx = std::numeric_limits<float>::quiet_NaN();

@@ -1891,6 +1891,7 @@ int CaloTriggerEmulator::process_trigger()
     // Make the jet primitives
     m_triggerid = TriggerDefs::TriggerId::jetTId;
     std::vector<unsigned int> *trig_bits = m_ll1out_jet->GetTriggerBits();
+    std::fill(bits.begin(), bits.end(), 0);
     std::vector<unsigned int> jet_map[32][9]{};
     for (auto &ie : jet_map)
     {

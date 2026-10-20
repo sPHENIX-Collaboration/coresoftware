@@ -117,5 +117,5 @@ void TpcRawHitv3::Clear(Option_t * /*unused*/)
 
 void TpcRawHitv3::move_adc_waveform(const uint16_t start_time, std::vector<uint16_t> &&adc)
 {
-  m_adcData.emplace_back(start_time, adc);
+  m_adcData.emplace_back(start_time, std::move(adc));
 }

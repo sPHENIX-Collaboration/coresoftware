@@ -1,19 +1,14 @@
 #include "StateClusterResidualsQA.h"
 
-#include <trackbase/InttDefs.h>
-#include <trackbase/MvtxDefs.h>
-#include <trackbase/TpcDefs.h>
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrDefs.h>
 
-#include <trackbase_historic/SvtxAlignmentState.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
 
 #include <qautils/QAHistManagerDef.h>
-#include <qautils/QAUtil.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -21,12 +16,15 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <Rtypes.h>
-#include <TH1F.h>
-#include <TH2F.h>
+#include <TH1.h>
+#include <TH2.h>
 
-#include <format>
+#include <cassert>
+#include <iostream>
+#include <map>
 
 namespace
 {

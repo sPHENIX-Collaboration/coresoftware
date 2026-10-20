@@ -5,6 +5,7 @@
 /// Tracking includes
 
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/InttDefs.h>
 #include <trackbase/TpcDefs.h>  // for side
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
@@ -46,7 +47,7 @@ namespace
 {
   /// square
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -96,9 +97,11 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
     m_file = TFile::Open(m_tfile_name.c_str(), "RECREATE");
     m_ntuple = new TNtuple (
       "ntp", "ntp",
-      "dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:"
+      "layer:stave:chip:residualX:residualY:clusphi:xglob:yglob:zglob:"
+      "errX:errY:"
+      "dXdR:dXdZ0:dXdphi:dXdtheta:dXdqoverp:dXdt:"
       "dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:"
-      "dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:"
+      "dYdR:dYdZ0:dYdphi:dYdtheta:dYdqoverp:dYdt:"
       "dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz"
     );
     m_ntuple->SetDirectory(m_file);
@@ -165,6 +168,14 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 
     //! Make any desired track cuts here
     //! Maybe set a lower pT limit - low pT tracks are not very sensitive to alignment
+    if(track->get_pt() < m_minPt)
+    {
+      if (Verbosity() > 0)
+      {
+        std::cout << "Skipping track with pT " << track->get_pt() << " < " << m_minPt << std::endl;
+      }
+      continue;
+    }
     addTrackToMilleFile(statevec);
 
     //! Only take tracks that have 2 mm within event vertex
@@ -304,7 +315,7 @@ bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
   auto* firststate = (*std::next(track->begin_states(), 1)).second;
 
   const auto ckey = firststate->get_cluskey();
-  const auto cluster = _cluster_map->findCluster(ckey);
+  auto *const cluster = _cluster_map->findCluster(ckey);
   const auto surf = _tGeometry->maps().getSurface(ckey, cluster);
 
   const auto param = propagator.makeTrackParams(firststate, track->get_charge(), surf).value();
@@ -437,7 +448,7 @@ Acts::Vector3 MakeMilleFiles::getEventVertex()
   float zsum = 0;
   int nacceptedtracks = 0;
 
-  for (auto [key, statevec] : *_state_map)
+  for (const auto& [key, statevec] : *_state_map)
   {
     // Check if track was removed from cleaner
     auto iter = _track_map->find(key);
@@ -463,7 +474,7 @@ Acts::Vector3 MakeMilleFiles::getEventVertex()
 
 void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statevec)
 {
-  for (auto state : statevec)
+  for (auto *state : statevec)
   {
     TrkrDefs::cluskey ckey = state->get_cluster_key();
 
@@ -478,16 +489,37 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     TrkrCluster* cluster = _cluster_map->findCluster(ckey);
     const unsigned int layer = TrkrDefs::getLayer(ckey);
     const unsigned int trkrid = TrkrDefs::getTrkrId(ckey);
-    const SvtxAlignmentState::ResidualVector residual = state->get_residual();
+     uint8_t stave = -1;
+      uint8_t chip = -1;
+      if (trkrid == TrkrDefs::mvtxId)
+      {
+        // need stave to get clamshell
+         stave = MvtxDefs::getStaveId(ckey);
+         chip = MvtxDefs::getChipId(ckey);
+      }
+      else if(trkrid == TrkrDefs::inttId)
+      {
+        stave = InttDefs::getLadderZId(ckey);
+        chip = InttDefs::getLadderPhiId(ckey);
+      }
+    if(m_ignore_tpc && trkrid == TrkrDefs::tpcId) {
+      continue;
+}
+    const SvtxAlignmentState::ResidualVector residual = state->get_residual();// / Acts::UnitConstants::cm;
+    //auto acts_pars = state->parameters();
+    //std::cout<<"acts_par(0): "<<acts_pars(0)<<std::endl;
     const Acts::Vector3 global = _tGeometry->getGlobalPosition(ckey, cluster);
 
     // need standard deviation of measurements
     SvtxAlignmentState::ResidualVector clus_sigma = SvtxAlignmentState::ResidualVector::Zero();
 
-    double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
-    auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, ckey);
-    double phierror = sqrt(para_errors.first);
-    double zerror = sqrt(para_errors.second);
+    //double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
+    double clusphi = atan2(global[1] , global[0]);
+    //auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, ckey);
+    //double phierror = sqrt(para_errors.first);
+    //double zerror = sqrt(para_errors.second);
+    double phierror = cluster->getRPhiError();
+    double zerror = cluster->getZError();
     clus_sigma(1) = zerror * Acts::UnitConstants::cm;
     clus_sigma(0) = phierror * Acts::UnitConstants::cm;
 
@@ -502,11 +534,11 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     int glbl_label[SvtxAlignmentState::NGL];
     if (layer < 3)
     {
-      AlignmentDefs::getMvtxGlobalLabels(surf, glbl_label, mvtx_group);
+      AlignmentDefs::getMvtxGlobalLabels(surf, ckey, glbl_label, mvtx_group);
     }
     else if (layer > 2 && layer < 7)
     {
-      AlignmentDefs::getInttGlobalLabels(surf, glbl_label, intt_group);
+      AlignmentDefs::getInttGlobalLabels(surf, ckey, glbl_label, intt_group);
     }
     else if (layer < 55)
     {
@@ -524,15 +556,19 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
 
     float glbl_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NGL]{};
     float lcl_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC]{};
-
+    float lcl_derivative_psuedo[SvtxAlignmentState::NLOC][SvtxAlignmentState::NLOC]{};
+    float lcl_meas_psuedo[SvtxAlignmentState::NLOC]{};
+    float glbl_derivative_dummy_empty[SvtxAlignmentState::NGL]{};
+    int glbl_label_dummy_empty[SvtxAlignmentState::NGL]{};
+    
     /// For N residual local coordinates x, z
     for (int i = 0; i < SvtxAlignmentState::NRES; ++i)
     {
+     
       // Add the measurement separately for each coordinate direction to Mille
       for (int j = 0; j < SvtxAlignmentState::NGL; ++j)
       {
         glbl_derivative[i][j] = state->get_global_derivative_matrix()(i, j);
-
         if (is_layer_fixed(layer) ||
             is_layer_param_fixed(layer, j, fixed_layer_gparams))
         {
@@ -542,8 +578,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
         if (trkrid == TrkrDefs::mvtxId)
         {
           // need stave to get clamshell
-          auto stave = MvtxDefs::getStaveId(ckey);
-          auto clamshell = AlignmentDefs::getMvtxClamshell(layer, stave);
+           auto stave4clam = MvtxDefs::getStaveId(ckey);
+          auto clamshell = AlignmentDefs::getMvtxClamshell(layer, stave4clam);
           if (is_layer_param_fixed(layer, j, fixed_layer_gparams) ||
               is_mvtx_layer_fixed(layer, clamshell))
           {
@@ -552,6 +588,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
         }
         else if (trkrid == TrkrDefs::inttId)
         {
+          
           if (is_layer_param_fixed(layer, j, fixed_layer_gparams) ||
               is_layer_fixed(layer))
           {
@@ -610,7 +647,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
           AlignmentDefs::printBuffers(i, residual, clus_sigma, lcl_derivative[i], glbl_derivative[i], glbl_label);
         }
         float errinf = 1.0;
-        if (m_layerMisalignment.find(layer) != m_layerMisalignment.end())
+        if (m_layerMisalignment.contains(layer))
         {
           errinf = m_layerMisalignment.find(layer)->second;
         }
@@ -619,14 +656,29 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
       }
     }
 
+    // For 6 local track parameters, the associated psuedo mille measurements that complete the local derivative
+    for (int i = 0; i < SvtxAlignmentState::NLOC; ++i)
+    {
+      for (int j = 0; j < SvtxAlignmentState::NLOC; ++j)
+      {
+        lcl_derivative_psuedo[i][j] = state->get_local_derivative_psuedo_matrix()(i, j);
+      }
+      lcl_meas_psuedo[i] = state->get_local_psuedo_measurement_err()(i);
+
+      _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative_psuedo[i], SvtxAlignmentState::NGL, glbl_derivative_dummy_empty, glbl_label_dummy_empty, 0.0, lcl_meas_psuedo[i]);
+    }
+
     float ntp_data[] = {
-      lcl_derivative[0][0], lcl_derivative[0][1], lcl_derivative[0][2], lcl_derivative[0][3], lcl_derivative[0][4],
+      (float) layer, (float) stave, (float) chip, (float) residual(0), (float) residual(1), (float) clusphi, (float) global[0], (float) global[1], (float) global[2],
+      (float) clus_sigma(0), (float) clus_sigma(1), 
+      lcl_derivative[0][0], lcl_derivative[0][1], lcl_derivative[0][2], lcl_derivative[0][3], lcl_derivative[0][4], lcl_derivative[0][5],
       glbl_derivative[0][0], glbl_derivative[0][1], glbl_derivative[0][2], glbl_derivative[0][3], glbl_derivative[0][4], glbl_derivative[0][5],
-      lcl_derivative[1][0], lcl_derivative[1][1], lcl_derivative[1][2], lcl_derivative[1][3], lcl_derivative[1][4],
+      lcl_derivative[1][0], lcl_derivative[1][1], lcl_derivative[1][2], lcl_derivative[1][3], lcl_derivative[1][4], lcl_derivative[1][5],
       glbl_derivative[1][0], glbl_derivative[1][1], glbl_derivative[1][2], glbl_derivative[1][3], glbl_derivative[1][4], glbl_derivative[1][5],
     };
 
-    if (m_ntuple) m_ntuple->Fill(ntp_data);
+    if (m_ntuple) { m_ntuple->Fill(ntp_data);
+}
   }
 
   return;
@@ -707,3 +759,5 @@ bool MakeMilleFiles::is_tpc_sector_fixed(unsigned int layer, unsigned int sector
 
   return ret;
 }
+
+

@@ -16,7 +16,7 @@
 
 ///_________________________________________________________________
 /// create link with given ids
-mvtx::GBTLink::GBTLink(uint16_t _flx, uint16_t _fee)
+mvtx_offline::GBTLink::GBTLink(uint16_t _flx, uint16_t _fee)
   : flxId(_flx)
   , feeId(_fee)
 {
@@ -38,7 +38,7 @@ mvtx::GBTLink::GBTLink(uint16_t _flx, uint16_t _fee)
 
 ///_________________________________________________________________
 /// reset link
-void mvtx::GBTLink::clear(bool resetStat, bool resetTFRaw)
+void mvtx_offline::GBTLink::clear(bool resetStat, bool resetTFRaw)
 {
   if (data.isEmpty())
   {
@@ -73,7 +73,7 @@ void mvtx::GBTLink::clear(bool resetStat, bool resetTFRaw)
 
 ///_________________________________________________________________
 /// this function reads in 32 bytes  =  3 GBT words and 2 bytes
-int mvtx::GBTLink::readFlxWord(GBTWord* gbtwords, uint16_t& w16)
+int mvtx_offline::GBTLink::readFlxWord(GBTWord* gbtwords, uint16_t& w16)
 {
   for (uint8_t k = 0; k < 3; k++)
   {

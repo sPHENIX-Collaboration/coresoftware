@@ -10,8 +10,6 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 
-#include <g4detectors/PHG4TpcGeomContainer.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
@@ -349,11 +347,10 @@ namespace TrackAnalysisUtils
     globalWrapper.loadNodes(topNode);
     globalWrapper.set_suppressCrossing(true);
 
-    
+
     auto* geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-    auto* tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
     TpcClusterMover mover;
-    mover.initialize_geometry(tpccellgeo, geometry, topNode);
+    mover.initialize_geometry(geometry, topNode);
     mover.set_verbosity(0);
 
     std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
@@ -368,8 +365,8 @@ namespace TrackAnalysisUtils
       global_raw.emplace_back(key, global);
     }
 
-    auto global_moved = mover.processTrack(global_raw);
-
+    //  auto global_moved = mover.processTrack(global_raw);
+     std::vector<std::pair<TrkrDefs::cluskey, std::pair<Surface, Acts::Vector3>>> global_surf_moved = mover.processTrack(global_raw);
     for (const auto& ckey : get_cluster_keys(track))
     {
       auto* cluster = clustermap->findCluster(ckey);
@@ -386,15 +383,20 @@ namespace TrackAnalysisUtils
       }
 
       Acts::Vector3 clusglob_moved(0, 0, 0);
-      for (const auto& pair : global_moved)
+      Surface surf = nullptr;
+      for (auto&& [cluskey, surf_global] : global_surf_moved)
       {
-        auto thiskey = pair.first;
-        clusglob_moved = pair.second;
+        auto thiskey = cluskey;
+        clusglob_moved = surf_global.second;
         if (thiskey == ckey)
         {
+	  surf = surf_global.first;
           break;
         }
       }
+
+      if(!surf) { continue; }
+
       SvtxTrackState* state = nullptr;
       for (auto state_iter = track->begin_states();
            state_iter != track->end_states();
@@ -408,27 +410,7 @@ namespace TrackAnalysisUtils
           break;
         }
       }
-      Surface surf = geometry->maps().getSurface(ckey, cluster);
-      Surface surf_ideal = geometry->maps().getSurface(ckey, cluster);  // Unchanged by distortion corrections
-      auto trkrid = TrkrDefs::getTrkrId(ckey);
-      if (trkrid == TrkrDefs::tpcId)
-      {
-	TrkrDefs::subsurfkey sskey = cluster->getSubSurfKey();
-        TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
-        TrkrDefs::subsurfkey new_sskey = 0;
-        surf = geometry->get_tpc_surface_from_coords(hitsetkey, clusglob_moved, new_sskey);
-	if (!surf)
-	  {
-	    std::cout << PHWHERE << " WARNING: failed to find moved-cluster surface for "
-		      << ckey << std::endl;
-	    continue;
-	  }
-	if(new_sskey != sskey)
-	  {
-	    // ClusterMover should have updated the subsurface key, so this should not happen
-	    std::cout << PHWHERE << " WARNING: subsurface key change from " << sskey << " to " << new_sskey << std::endl;
-	  }
-      }
+      Surface surf_ideal = surf;
 
       auto loc = geometry->getLocalCoords(ckey, cluster, track->get_crossing());
       // in this case we get local coords from transform of corrected global coords
@@ -457,6 +439,7 @@ namespace TrackAnalysisUtils
       residuals.local_residuals[ckey] = stateloc - loc;
       residuals.global_residuals[ckey] = stateglob - clusglob_moved;
     }
+
     return residuals;
   }
 

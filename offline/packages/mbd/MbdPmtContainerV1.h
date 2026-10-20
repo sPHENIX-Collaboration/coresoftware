@@ -34,11 +34,12 @@ public:
   void set_npmt(const Short_t ival) override
   {
     npmt = ival;
+    MbdPmtHits->ExpandCreate( ival );
     return;
   }
 
- /// get Number of Mbd Pmt's
-    Short_t get_npmt() const override { return MbdPmtHits->GetEntries(); }
+  /// get Number of Mbd Pmt's
+  Short_t get_npmt() const override { return MbdPmtHits->GetEntries(); }
 
   /** get MbdHitPmt of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray

@@ -114,7 +114,7 @@ class TrkrNtuplizer : public SubsysReco
   float dedxcorr[2][12][3]{};
   float get_n1pix(TrackSeed *tpcseed);
 
-  static TMatrixF calculateClusterError(TrkrCluster *c, float &clusphi);
+  static TMatrixF calculateClusterError(TrkrCluster *c, float &clusphi, TrkrDefs::cluskey cluster_key);
   void get_dca(SvtxTrack *track, SvtxVertexMap *vertexmap,
                float &dca3dxy, float &dca3dz,
                float &dca3dxysigma, float &dca3dzsigma);
