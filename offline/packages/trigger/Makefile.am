@@ -36,6 +36,7 @@ pkginclude_HEADERS = \
   MinimumBiasClassifier.h \
   MinimumBiasInfo.h \
   MinimumBiasInfov1.h \
+  MinimumBiasInfov2.h \
   CaloTriggerSim.h \
   CaloTriggerInfo.h \
   CaloTriggerInfov1.h \
@@ -68,7 +69,8 @@ ROOTDICTS = \
   CaloTriggerInfo_Dict.cc \
   CaloTriggerInfov1_Dict.cc \
   MinimumBiasInfo_Dict.cc \
-  MinimumBiasInfov1_Dict.cc
+  MinimumBiasInfov1_Dict.cc \
+  MinimumBiasInfov2_Dict.cc
 
 pcmdir = $(libdir)
 # more elegant way to create pcm files (without listing them)
@@ -86,7 +88,8 @@ libcalotrigger_io_la_SOURCES = \
   TriggerPrimitiveContainerv1.cc \
   TriggerDefs.cc \
   CaloTriggerInfov1.cc \
-  MinimumBiasInfov1.cc
+  MinimumBiasInfov1.cc \
+  MinimumBiasInfov2.cc
 
 libcalotrigger_la_SOURCES = \
   TriggerRunInfoReco.cc \
