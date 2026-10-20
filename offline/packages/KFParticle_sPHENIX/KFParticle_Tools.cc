@@ -305,8 +305,6 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
     int TPC_states = 0;
     int TPOT_states = 0;
 
-    std::string track_version = m_dst_track->ClassName();
-
     // The per-detector cluster count getters only exist in SvtxTrack_v5 (not in the SvtxTrack base class)
     const auto *v5_track = dynamic_cast<const SvtxTrack_v5 *>(m_dst_track);
 
@@ -1495,6 +1493,11 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
   }
 
   TrackSeed *tpcseed = isTrack_v5 ? findSeed(tpcSeedContainer, daughter_track->get_tpc_seed_id()) : daughter_track->get_tpc_seed();
+  if (!tpcseed)
+  {
+    return -1;
+  }
+
   float layerThicknesses[4] = {0.0, 0.0, 0.0, 0.0};
   // These are randomly chosen layer thicknesses for the TPC, to get the
   // correct region thicknesses in an easy to pass way to the helper fxn
