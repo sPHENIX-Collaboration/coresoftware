@@ -250,6 +250,12 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
   else if (evt->getEvtType() == DATAEVENT)
   {
     p = evt->getPacket(packet_GL1);
+
+    if (!p)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
     int bunchnr = p->lValue(0, "BunchNumber");
 
     for (int i = 0; i < NTRIG; i++)
