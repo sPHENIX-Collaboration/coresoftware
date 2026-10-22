@@ -303,7 +303,6 @@ class KFParticle_Tools : protected KFParticle_MVA
   MbdVertexMap *m_dst_mbdvertexmap{nullptr};
   MbdVertex *m_dst_mbdvertex{nullptr};
   SvtxTrackMap *m_dst_trackmap{nullptr};
-  TrackSeedContainer *m_silicon_seed_container{nullptr};
   SvtxTrack *m_dst_track{nullptr};
   SvtxVertexMap *m_dst_vertexmap{nullptr};
   SvtxVertex *m_dst_vertex{nullptr};
