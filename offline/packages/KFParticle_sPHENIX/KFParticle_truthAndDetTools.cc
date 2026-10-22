@@ -14,7 +14,6 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/InttDefs.h>              // for getLadderPhiId, getLad...
 #include <trackbase/MvtxDefs.h>              // for getChipId, getStaveId
-#include <trackreco/PHTrackCleaner.h>
 #include <trackbase/TpcDefs.h>               // for getSectorId, getSide
 #include <trackbase/TrkrCluster.h>           // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>  // for TrkrClusterContainer
