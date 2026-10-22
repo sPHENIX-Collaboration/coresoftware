@@ -48,7 +48,14 @@ int SpinDBNode::InitRun(PHCompositeNode *topNode)
     int runnumber = runHeader->get_RunNumber();
     spin_cont = new SpinDBContentv1;
     SpinDBOutput spin_out("phnxrc");
-    spin_out.StoreDBContent(runnumber, runnumber);
+    if (m_qa_level != -999)
+    {
+      spin_out.StoreDBContent(runnumber, runnumber, m_qa_level);
+    }
+    else
+    {
+      spin_out.StoreDBContent(runnumber, runnumber);
+    }
     spin_out.GetDBContentStore(spin_cont, runnumber);
     PHIODataNode<PHObject> *spindbcontentNode = new PHIODataNode<PHObject>(spin_cont, "SpinDBContent", "PHObject");
     lowerNode->addNode(spindbcontentNode);
