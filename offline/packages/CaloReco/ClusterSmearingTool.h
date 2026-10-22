@@ -32,9 +32,7 @@ class RawClusterContainer;
 class ClusterSmearingTool : public SubsysReco
 {
  public:
-  ClusterSmearingTool(const std::string &name = "ClusterSmearingTool");
-
-  ~ClusterSmearingTool() override = default;
+  explicit ClusterSmearingTool(const std::string &name = "ClusterSmearingTool");
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;

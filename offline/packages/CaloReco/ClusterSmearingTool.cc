@@ -26,6 +26,7 @@
 
 #include <TSystem.h>
 
+#include <algorithm>  // for max
 #include <cmath>
 #include <exception>  // for exception
 #include <iostream>   // for operator<<, basic_ostream
@@ -69,6 +70,9 @@ int ClusterSmearingTool::InitRun(PHCompositeNode *topNode)
               << ", input node " << m_inputNodeName
               << ", output node " << (m_writeNewNode ? m_outputNodeName : m_inputNodeName + " (in place)")
               << std::endl;
+  }
+  if (Verbosity() > 3)
+  {
     topNode->print();
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -76,6 +80,9 @@ int ClusterSmearingTool::InitRun(PHCompositeNode *topNode)
 
 void ClusterSmearingTool::LoadCalib()
 {
+  // reset per run, a previous run may have had no calibration
+  m_doSmearing = true;
+
   std::string calibdir;
   if (m_giveDirectURL)
   {
@@ -131,6 +138,11 @@ int ClusterSmearingTool::process_event(PHCompositeNode *topNode)
   if (m_writeNewNode)
   {
     _smear_clusters = findNode::getClass<RawClusterContainer>(topNode, m_outputNodeName);
+    if (!_smear_clusters)
+    {
+      std::cout << Name() << "::process_event: " << m_outputNodeName << " node missing, abort run" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
     _smear_clusters->Reset();
     // keep the cluster keys identical to the input node
     for (const auto &[key, cluster] : _input_clusters->getClustersMap())
@@ -186,11 +198,7 @@ void ClusterSmearingTool::SmearCluster(RawCluster *cluster, float vtx_z)
     const float termA = m_parA / E;
     const float termB = m_parB / sqrtE;
     const float sigmaE = std::sqrt(termA * termA + termB * termB + m_parC * m_parC);
-    float Efac = 1.0F + static_cast<float>(gsl_ran_gaussian(m_rng.get(), sigmaE));
-    if (Efac < 0)
-    {
-      Efac = 0;
-    }
+    const float Efac = std::max(0.0F, 1.0F + static_cast<float>(gsl_ran_gaussian(m_rng.get(), sigmaE)));
     cluster->set_energy(E * Efac);
     cluster->set_ecore(cluster->get_ecore() * Efac);
   }
@@ -227,6 +235,14 @@ void ClusterSmearingTool::CreateNodeTree(PHCompositeNode *topNode)
 {
   if (!m_writeNewNode)
   {
+    return;
+  }
+
+  if (m_outputNodeName == m_inputNodeName)
+  {
+    std::cout << Name() << "::CreateNodeTree: output node name " << m_outputNodeName
+              << " is the same as the input node name, smearing in place" << std::endl;
+    m_writeNewNode = false;
     return;
   }
 
