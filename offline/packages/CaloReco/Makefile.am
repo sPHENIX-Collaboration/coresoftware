@@ -57,6 +57,7 @@ pkginclude_HEADERS = \
   CaloTowerStatus.h \
   CaloTowerTimeCalibration.h \
   CaloTowerDefs.h \
+  ClusterSmearingTool.h \
   PhotonClusterBuilder.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
@@ -91,6 +92,7 @@ libcalo_reco_la_SOURCES = \
   CaloTowerCalib.cc \
   CaloTowerStatus.cc \
   CaloTowerTimeCalibration.cc \
+  ClusterSmearingTool.cc \
   PhotonClusterBuilder.cc \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
