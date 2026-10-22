@@ -133,6 +133,8 @@ class KFParticle_Tools : protected KFParticle_MVA
   std::vector<int> getParticleCrossings(const KFParticle &particle);
 
   void set_dont_use_global_vertex(bool set_variable) { m_dont_use_global_vertex = set_variable; }
+  
+  void set_use_mbd_vertex(bool set_variable) { m_use_mbd_vertex = set_variable; }
 
  protected:
   int m_verbosity = 0;
