@@ -29,6 +29,7 @@
 #include "KFParticle_truthAndDetTools.h"
 
 #include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrack_v5.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackAnalysisUtils.h>
 
@@ -303,35 +304,48 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
     int TPC_states = 0;
     int TPOT_states = 0;
 
-    for (auto state_iter = m_dst_track->begin_states();
-         state_iter != m_dst_track->end_states();
-         ++state_iter)
-    {
-      SvtxTrackState *tstate = state_iter->second;
-      if (tstate->get_pathlength() != 0)  // The first track state is an extrapolation so has no cluster
-      {
-        auto stateckey = tstate->get_cluskey();
-        uint8_t id = TrkrDefs::getTrkrId(stateckey);
+    // The per-detector cluster count getters only exist in SvtxTrack_v5 (not in the SvtxTrack base class)
+    const auto *v5_track = dynamic_cast<const SvtxTrack_v5 *>(m_dst_track);
 
-        switch (id)
+    if (!v5_track)  // v1-v4: count the per-cluster track states
+    {
+      for (auto state_iter = m_dst_track->begin_states();
+           state_iter != m_dst_track->end_states();
+           ++state_iter)
+      {
+        SvtxTrackState *tstate = state_iter->second;
+        if (tstate->get_pathlength() != 0)  // The first track state is an extrapolation so has no cluster
         {
-        case TrkrDefs::mvtxId:
-          ++MVTX_states;
-          break;
-        case TrkrDefs::inttId:
-          ++INTT_states;
-          break;
-        case TrkrDefs::tpcId:
-          ++TPC_states;
-          break;
-        case TrkrDefs::micromegasId:
-          ++TPOT_states;
-          break;
-        default:
-          // std::cout << "Cluster key doesnt match a tracking system, could be related with projected track state to calorimeter system" << std::endl;
-          break;
+          auto stateckey = tstate->get_cluskey();
+          uint8_t id = TrkrDefs::getTrkrId(stateckey);
+
+          switch (id)
+          {
+          case TrkrDefs::mvtxId:
+            ++MVTX_states;
+            break;
+          case TrkrDefs::inttId:
+            ++INTT_states;
+            break;
+          case TrkrDefs::tpcId:
+            ++TPC_states;
+            break;
+          case TrkrDefs::micromegasId:
+            ++TPOT_states;
+            break;
+          default:
+            // std::cout << "Cluster key doesnt match a tracking system, could be related with projected track state to calorimeter system" << std::endl;
+            break;
+          }
         }
       }
+    }
+    else
+    {
+      MVTX_states = v5_track->get_nmvtx_clusters();
+      INTT_states = v5_track->get_nintt_clusters();
+      TPC_states = v5_track->get_ntpc_clusters();
+      TPOT_states = v5_track->get_ntpot_clusters();
     }
 
     if (m_verbosity > 100)
@@ -501,7 +515,19 @@ bool KFParticle_Tools::isTPConlyAtZeroCrossing(const KFParticle& track)
 {
   const auto* svtxTrack = KFParticle_truthAndDetTools::getTrack(track.Id(), m_dst_trackmap);
 
-  return svtxTrack && svtxTrack->get_crossing() == 0 && svtxTrack->get_silicon_seed() == nullptr;
+  if (!svtxTrack || svtxTrack->get_crossing() != 0)
+  {
+    return false;
+  }
+
+  // SvtxTrack_v5 keeps no seed pointers: TPC-only means no silicon clusters on the track
+  if (const auto* v5 = dynamic_cast<const SvtxTrack_v5*>(svtxTrack))
+  {
+    return v5->get_nmvtx_clusters() == 0 && v5->get_nintt_clusters() == 0;
+  }
+
+  // SvtxTrack_v4 and earlier carry the seed pointer
+  return svtxTrack->get_silicon_seed() == nullptr;
 }
 
 int KFParticle_Tools::calcMinPV_DCA(const KFParticle &track, const std::vector<KFParticle> &PVs,
@@ -1456,7 +1482,21 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
     // dE/dx PID is only meaningful for a real reconstructed track.
     return -1.0;
   }
-  TrackSeed *tpcseed = daughter_track->get_tpc_seed();
+
+  bool isTrack_v5 = daughter_track->InheritsFrom("SvtxTrack_v5");
+  TrackSeedContainer *tpcSeedContainer = nullptr;
+
+  if (isTrack_v5)
+  {
+    tpcSeedContainer = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  }
+
+  TrackSeed *tpcseed = isTrack_v5 ? findSeed(tpcSeedContainer, daughter_track->get_tpc_seed_id()) : daughter_track->get_tpc_seed();
+  if (!tpcseed)
+  {
+    return -1;
+  }
+
   float layerThicknesses[4] = {0.0, 0.0, 0.0, 0.0};
   // These are randomly chosen layer thicknesses for the TPC, to get the
   // correct region thicknesses in an easy to pass way to the helper fxn
@@ -1692,4 +1732,15 @@ int KFParticle_Tools::getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, co
   }
   
   return ncharged_multiplicity;
+}
+
+//Taken from PHTrackCleaner.cc but this was declared private there
+TrackSeed *KFParticle_Tools::findSeed(TrackSeedContainer *container, unsigned short id)
+{
+  // find() does no bounds checking, so guard against unset (USHRT_MAX) or stale ids
+  if (!container || id >= container->size())
+  {
+    return nullptr;
+  }
+  return *container->find(id);
 }
