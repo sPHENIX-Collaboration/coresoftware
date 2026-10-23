@@ -142,6 +142,8 @@ class MakeMilleFiles : public SubsysReco
                                       const Acts::BoundSquareMatrix& perigeeCov,
                                       float localderpsuedo[SvtxAlignmentState::NLOC][SvtxAlignmentState::NLOC],
                                       float localmeaserrpsuedo[SvtxAlignmentState::NLOC]);
+  std::pair<float,float> getRotatedVtxCovarianceDiagonalPerigee(SvtxTrack* track,
+                                                    const SvtxVertex* vertex);
   Eigen::Matrix<double, SvtxAlignmentState::NLOC, SvtxAlignmentState::NLOC> regulariseCovariance(const Eigen::Matrix<double, SvtxAlignmentState::NLOC, SvtxAlignmentState::NLOC>& inputCov,
                                                  double conditionCutOff,
                                                  double removeHugeLeading,

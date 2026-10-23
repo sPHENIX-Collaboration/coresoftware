@@ -266,7 +266,8 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
         "dYdR:dYdZ0:dYdphi:dYdtheta:dYdqoverp:dYdt:"
         "dXdx:dXdy:dXdz:dYdx:dYdy:dYdz:"
         "track_xvtx:track_yvtx:track_zvtx:"
-        "event_xvtx:event_yvtx:event_zvtx:track_phi:track_eta:track_p:track_pt");
+        "event_xvtx:event_yvtx:event_zvtx:track_phi:track_eta:track_p:track_pt:"
+        "n_tracks_vtx");
     track_ntp->SetDirectory(m_file);
   }
 
@@ -691,7 +692,8 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
                   << (failsPt ? " pT" : "")
                   << (failsNmvtx ? " nMVTX" : "")
                   << (failsNintt ? " nINTT" : "")
-                  << (failsVertexMultiplicity ? " vertex_ntracks" : "")
+                  << (failsVertexMultiplicity ? " vertex_ntracks: " : "")
+                  <<vertex_ntracks<<" "
                   << (hasTooManyTracksAboveMinPt
                           ? " vertex_high_pt_multiplicity"
                           : "")
@@ -778,6 +780,7 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
       bool success2 = false;
       if (track->size_states() < 2)
       {
+        std::cout<<"track->size_states(): "<<track->size_states()<<std::endl;
         ++n_insufficient_track_states;
         if (m_trackNtpDiagnostics)
         {
@@ -793,7 +796,6 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
         success = getLocalVtxDerivativesXY(track, propagator,
                                            eventVertex, lclvtx_derivative,
                                            &perigeeCov);
-
         // Pseudo-measurements need the track covariance on the vertex
         // perigee surface, so only build them after a successful propagation.
         if (success)
@@ -801,6 +803,8 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
           success2 = getLocalVtxDerivativesXYpsuedo(track, svtxVertex, perigeeCov,
                                                     lclvtx_derivative_psuedo,
                                                     localmeaserrpsuedo);
+          std::pair<float,float> rotatedVtxCovDiag = getRotatedVtxCovarianceDiagonalPerigee(track, svtxVertex);
+          set_vtx_sigma(rotatedVtxCovDiag.first, rotatedVtxCovDiag.second);
         }
       }
 
@@ -898,7 +902,8 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
               static_cast<float>(track->get_phi()),
               static_cast<float>(track->get_eta()),
               static_cast<float>(track->get_p()),
-              static_cast<float>(track->get_pt())};
+              static_cast<float>(track->get_pt()),
+              static_cast<float>(vertex_ntracks)};
           track_ntp->Fill(track_ntp_data);
           ++n_track_ntp_fills;
           if (m_trackNtpDiagnostics)
@@ -1205,7 +1210,7 @@ bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
 
   if (result.ok())
   {
-    auto jacobian = *result.value().transportJacobian;
+    //auto jacobian = *result.value().transportJacobian;
 
     // Bound covariance (Acts units: mm, rad, GeV) of the track on the vertex
     // perigee surface, used as the track covariance for the pseudo-measurements.
@@ -1226,7 +1231,7 @@ bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
     Eigen::Matrix<double, 2, 6> projector = Eigen::Matrix<double, 2, 6>::Zero();
     projector(0, 0) = 1;
     projector(1, 1) = 1;
-    Eigen::Matrix<double, 2, 6> deriv = projector * jacobian;
+    Eigen::Matrix<double, 2, 6> deriv = projector;// * jacobian;
     if (Verbosity() > 2)
     {
       std::cout << "local vtxderiv (full, before truncation) " << std::endl
@@ -1288,7 +1293,8 @@ bool MakeMilleFiles::getLocalVtxDerivativesXYpsuedo(SvtxTrack* track,
 {
   using LocalCov = Eigen::Matrix<double, SvtxAlignmentState::NLOC, SvtxAlignmentState::NLOC>;
   using LocalVec = Eigen::Matrix<double, SvtxAlignmentState::NLOC, 1>;
-  using ResCov = Eigen::Matrix<double, SvtxAlignmentState::NRES, SvtxAlignmentState::NRES>;
+  //using ResCov = Eigen::Matrix<double, SvtxAlignmentState::NRES, SvtxAlignmentState::NRES>;
+  //using ResCov2 = Eigen::Matrix<double, 3,3>;
 
   for (int i = 0; i < SvtxAlignmentState::NLOC; ++i)
   {
@@ -1326,42 +1332,60 @@ bool MakeMilleFiles::getLocalVtxDerivativesXYpsuedo(SvtxTrack* track,
   //! These are the projections of getProjectionVtxXY (ATLAS eq. 31), with
   //! row 0 sign-matched to the Acts perigee frame so the d0-z0 correlation
   //! has the same sign convention as the track covariance.
-  const Acts::Vector3 direction =
-      Acts::Vector3(track->get_px(), track->get_py(), track->get_pz()).normalized();
-  const Acts::Vector3 zhat = Acts::Vector3::UnitZ();
-  const Acts::Vector3 transverse = Acts::Vector3(direction.x(), direction.y(), 0).normalized();
-  const double cotTheta = direction.z() / std::hypot(direction.x(), direction.y());
+  //const Acts::Vector3 direction =
+  //    Acts::Vector3(track->get_px(), track->get_py(), track->get_pz()).normalized();
+  //const Acts::Vector3 zhat = Acts::Vector3::UnitZ();
+  //const Acts::Vector3 transverse = Acts::Vector3(direction.x(), direction.y(), 0).normalized();
+  //const double cotTheta = direction.z() / std::hypot(direction.x(), direction.y());
 
-  Eigen::Matrix<double, SvtxAlignmentState::NRES, 3> vertexProjection;
-  vertexProjection.row(0) = zhat.cross(direction).normalized().transpose();
-  vertexProjection.row(1) = (zhat - cotTheta * transverse).transpose();
+  //Eigen::Matrix<double, SvtxAlignmentState::NRES, 3> vertexProjection;
+  //vertexProjection.row(0) = zhat.cross(direction).normalized().transpose();
+  //vertexProjection.row(1) = (zhat - cotTheta * transverse).transpose();
 
-  //! SvtxVertex errors are in cm^2; the Acts track covariance is in mm^2
-  Acts::SquareMatrix3 vertexCov;
-  for (int i = 0; i < 3; ++i)
-  {
-    for (int j = 0; j < 3; ++j)
-    {
-      vertexCov(i, j) = vertex->get_error(i, j) *
-                        Acts::UnitConstants::cm * Acts::UnitConstants::cm;
-    }
-  }
+  ////! SvtxVertex errors are in cm^2; the Acts track covariance is in mm^2
+  //Acts::SquareMatrix3 vertexCov;
+  //for (int i = 0; i < 3; ++i)
+  //{
+  //  for (int j = 0; j < 3; ++j)
+  //  {
+  //    vertexCov(i, j) = vertex->get_error(i, j) *
+  //                      Acts::UnitConstants::cm * Acts::UnitConstants::cm;
+  //  }
+  //}
 
-  const ResCov rotatedVertexCov =
-      vertexProjection * vertexCov * vertexProjection.transpose();
+  //const ResCov rotatedVertexCov =
+  //    vertexProjection * vertexCov * vertexProjection.transpose();
+  //
+  //Eigen::Matrix<double, 3, 3> vertexProjection2;
+  //Acts::Vector3 r = direction.cross(Acts::Vector3(0., 0., 1.));
+  //float phi = atan2(r(1), r(0));
+  //phi *= -1;
+  //vertexProjection2(0, 0) = std::cos(phi);
+  //vertexProjection2(0, 1) = -std::sin(phi);
+  //vertexProjection2(0, 2) = 0;
+  //vertexProjection2(1, 0) = std::sin(phi);
+  //vertexProjection2(1, 1) = std::cos(phi);
+  //vertexProjection2(1, 2) = 0;
+  //vertexProjection2(2, 0) = 0;
+  //vertexProjection2(2, 1) = 0;
+  //vertexProjection2(2, 2) = 1;
+  //const ResCov2 rotatedVertexCov2 = vertexProjection2 * vertexCov * vertexProjection2.transpose();
+   
+  //std::cout << "MakeMilleFiles::getLocalVtxDerivativesXYpsuedo - track "
+  //           << track->get_id() << ", vertex " << vertex->get_id() << std::endl
+  //           << "  global vertex covariance (mm^2, x/y/z):" << std::endl
+  //           << vertexCov << std::endl
+  //           << "  rotated vertex covariance (mm^2, d0/z0 perigee frame):" << std::endl
+  //           << rotatedVertexCov << std::endl
+  //           << "  rotated vertex covariance 2 (mm^2, phi rotation frame):" << std::endl
+  //           << rotatedVertexCov2 << std::endl;
 
-  std::cout << "MakeMilleFiles::getLocalVtxDerivativesXYpsuedo - track "
-            << track->get_id() << ", vertex " << vertex->get_id() << std::endl
-            << "  global vertex covariance (mm^2, x/y/z):" << std::endl
-            << vertexCov << std::endl
-            << "  rotated vertex covariance (mm^2, d0/z0 perigee frame):" << std::endl
-            << rotatedVertexCov << std::endl;
-
-  if (!rotatedVertexCov.allFinite() || rotatedVertexCov.determinant() <= 0)
-  {
-    std::cout << "MakeMilleFiles::getLocalVtxDerivativesXYpsuedo - WARNING: "
-              << "rotated vertex covariance is not positive definite" << std::endl;
-  }
+  
+  //if (!rotatedVertexCov.allFinite() || rotatedVertexCov.determinant() <= 0)
+  //{
+  //  std::cout << "MakeMilleFiles::getLocalVtxDerivativesXYpsuedo - WARNING: "
+  //            << "rotated vertex covariance is not positive definite" << std::endl;
+  //}
 
   //! The track fit does not include the vertex, so the perigee covariance
   //! already excludes it: use C^-1 directly rather than the complement
@@ -1420,6 +1444,47 @@ bool MakeMilleFiles::getLocalVtxDerivativesXYpsuedo(SvtxTrack* track,
   return true;
 }
 
+std::pair<float,float> MakeMilleFiles::getRotatedVtxCovarianceDiagonalPerigee(SvtxTrack* track,
+                                                    const SvtxVertex* vertex)
+{
+  using ResCov = Eigen::Matrix<double, SvtxAlignmentState::NRES, SvtxAlignmentState::NRES>;
+
+
+  //! Vertex covariance expressed in the perigee (d0, z0) frame.
+  //! A vertex shift dv changes the perigee parameters by -P dv, with
+  //!   row 0: Acts loc0 axis, (z x p)/|z x p|
+  //!   row 1: z - cot(theta) n, n = unit transverse momentum
+  //! Row 1 carries the dip correction: moving the vertex along the transverse
+  //! track direction moves the point of closest approach, and hence z0.
+  //! These are the projections of getProjectionVtxXY (ATLAS eq. 31), with
+  //! row 0 sign-matched to the Acts perigee frame so the d0-z0 correlation
+  //! has the same sign convention as the track covariance.
+  const Acts::Vector3 direction =
+      Acts::Vector3(track->get_px(), track->get_py(), track->get_pz()).normalized();
+  const Acts::Vector3 zhat = Acts::Vector3::UnitZ();
+  const Acts::Vector3 transverse = Acts::Vector3(direction.x(), direction.y(), 0).normalized();
+  const double cotTheta = direction.z() / std::hypot(direction.x(), direction.y());
+
+  Eigen::Matrix<double, SvtxAlignmentState::NRES, 3> vertexProjection;
+  vertexProjection.row(0) = zhat.cross(direction).normalized().transpose();
+  vertexProjection.row(1) = (zhat - cotTheta * transverse).transpose();
+
+  //! SvtxVertex errors are in cm^2; the Acts track covariance is in mm^2
+  Acts::SquareMatrix3 vertexCov;
+  for (int i = 0; i < 3; ++i)
+  {
+    for (int j = 0; j < 3; ++j)
+    {
+      vertexCov(i, j) = vertex->get_error(i, j) *
+                        Acts::UnitConstants::cm * Acts::UnitConstants::cm;
+    }
+  }
+
+  ResCov rotatedVertexCov =
+      vertexProjection * vertexCov * vertexProjection.transpose();
+
+  return std::make_pair(pow(rotatedVertexCov(0, 0),.5), pow(rotatedVertexCov(1, 1),.5));
+}
 Eigen::Matrix<double, SvtxAlignmentState::NLOC, SvtxAlignmentState::NLOC> MakeMilleFiles::regulariseCovariance(const Eigen::Matrix<double, SvtxAlignmentState::NLOC, SvtxAlignmentState::NLOC>& inputCov,
                                                  double conditionCutOff,
                                                  double removeHugeLeading,
@@ -1766,21 +1831,21 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
       }
     }
 
-    // DEBUG-PSEUDO-TEST begin: pseudo-measurement sigmas as read by MakeMilleFiles
-    {
-      static int n_debug_pseudo_reads = 0;
-      if (n_debug_pseudo_reads < 20)
-      {
-        ++n_debug_pseudo_reads;
-        std::cout << "DEBUG-PSEUDO MakeMilleFiles ckey " << ckey << " read sigma:";
-        for (const float sigma : lcl_meas_psuedo)
-        {
-          std::cout << " " << sigma;
-        }
-        std::cout << " (Mille::mille drops rows with sigma <= 0)" << std::endl;
-      }
-    }
-    // DEBUG-PSEUDO-TEST end
+//    // DEBUG-PSEUDO-TEST begin: pseudo-measurement sigmas as read by MakeMilleFiles
+//    {
+//      static int n_debug_pseudo_reads = 0;
+//      if (n_debug_pseudo_reads < 20)
+//      {
+//        ++n_debug_pseudo_reads;
+//        std::cout << "DEBUG-PSEUDO MakeMilleFiles ckey " << ckey << " read sigma:";
+//        for (const float sigma : lcl_meas_psuedo)
+//        {
+//          std::cout << " " << sigma;
+//        }
+//        std::cout << " (Mille::mille drops rows with sigma <= 0)" << std::endl;
+//      }
+//    }
+//    // DEBUG-PSEUDO-TEST end
 
     float ntp_data[] = {
       (float) layer, (float) stave, (float) chip, (float) residual(0), (float) residual(1), (float) clusphi, (float) global[0], (float) global[1], (float) global[2],
