@@ -16,8 +16,10 @@ class SpinDBNode : public SubsysReco
 
   ~SpinDBNode() override = default;
   int InitRun(PHCompositeNode *topNode) override;
+  void SetQALevel(int qa_level) { m_qa_level = qa_level; }
 
  private:
+    int m_qa_level{-999};
 };
 
 #endif  // SPINDBNODE_H
