@@ -375,12 +375,6 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 
   float pi0ptcut = 1.22 * (pt1ClusCut + pt2ClusCut);
 
-  // Clusters passing the single-cluster cuts. The cluster container is ordered
-  // in ieta, so the pairs are built unordered and the pT cuts and per-tower
-  // fills are applied symmetrically: the harder cluster must pass pt1 and the
-  // softer pt2, and the pair mass is filled for the lead tower of every member
-  // above pt1 (both when pt1 == pt2). Filling only one member by container
-  // order biases the per-tower statistics strongly in ieta.
   struct PairClus
   {
     TLorentzVector p4;
