@@ -12,6 +12,7 @@ class TTree;
 // Provenance of a TTree, stored in tree->GetUserInfo() as TNamed(key, value):
 //   release        basename of $OFFLINE_MAIN (e.g. ana.579)
 //   offline_main   $OFFLINE_MAIN, symlinks resolved
+//   git_commit_id  contents of $OFFLINE_MAIN/GIT_COMMIT_ID (or "cannot read <file>")
 //   local_install  $MYINSTALL (else the prefix this library was installed to)
 //   cdb_globaltag  recoConsts CDB_GLOBALTAG
 //   cdb_timestamp  recoConsts TIMESTAMP

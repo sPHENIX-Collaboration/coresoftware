@@ -18,8 +18,10 @@
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -42,6 +44,21 @@ namespace
     std::error_code ec;
     std::filesystem::path p = std::filesystem::canonical(path, ec);
     return ec ? path : p.string();
+  }
+
+  // contents of file, trailing whitespace removed; the reason if it cannot be read
+  std::string fileContents(const std::string &file)
+  {
+    std::ifstream in(file);
+    if (!in)
+    {
+      return "cannot read " + file;
+    }
+    std::stringstream ss;
+    ss << in.rdbuf();
+    std::string s = ss.str();
+    s.erase(s.find_last_not_of(" \t\r\n") + 1);
+    return s;
   }
 
   // domain -> payload(s) fetched through CDBInterface, from RUN/CdbUrl (includes entries
@@ -117,6 +134,7 @@ int TreeUserInfo::Add(TTree *tree)
   std::vector<std::pair<std::string, std::string>> info = {
       {"release", std::filesystem::path(offline).filename().string()},
       {"offline_main", offline},
+      {"git_commit_id", fileContents(offline + "/GIT_COMMIT_ID")},
       {"local_install", resolved(install)},
       {"cdb_globaltag", globaltag},
       {"cdb_timestamp", std::to_string(timestamp)}};
