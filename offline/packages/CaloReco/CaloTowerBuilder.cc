@@ -263,44 +263,31 @@ int CaloTowerBuilder::process_sim()
 
 int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::vector<float>> &waveforms)
 {
-  std::variant<CaloPacketContainer *, Event *> event;
-  if (m_UseOfflinePacketFlag)
-  {
-    CaloPacketContainer *calopacketcontainer = findNode::getClass<CaloPacketContainer>(topNode, nodemap.find(m_dettype)->second);
-    if (!calopacketcontainer)
-    {
-      for (int pid = m_packet_low; pid <= m_packet_high; pid++)
-      {
-        if (findNode::getClass<CaloPacket>(topNode, pid))
-        {
-          m_PacketNodesFlag = true;
-          break;
-        }
-      }
-      if (!m_PacketNodesFlag)
-      {
-        return Fun4AllReturnCodes::EVENT_OK;
-      }
-    }
-    else
-    {
-      event = calopacketcontainer;
-    }
-  }
-  else
-  {
-    Event *_event = findNode::getClass<Event>(topNode, "PRDF");
-    if (_event == nullptr)
-    {
-      std::cout << PHWHERE << " Event not found" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-    if (_event->getEvtType() != DATAEVENT)
-    {
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-    event = _event;
-  }
+  // std::variant<CaloPacketContainer *, Event *> event;
+  // if (m_UseOfflinePacketFlag)
+  // {
+  //   CaloPacketContainer *calopacketcontainer = findNode::getClass<CaloPacketContainer>(topNode, nodemap.find(m_dettype)->second);
+  //   if (!calopacketcontainer)
+  //   {
+  //     for (int pid = m_packet_low; pid <= m_packet_high; pid++)
+  //     {
+  //       if (findNode::getClass<CaloPacket>(topNode, pid))
+  //       {
+  //         m_PacketNodesFlag = true;
+  //         break;
+  //       }
+  //     }
+  //     if (!m_PacketNodesFlag)
+  //     {
+  //       return Fun4AllReturnCodes::EVENT_OK;
+  //     }
+  //   }
+  //   else
+  //   {
+  //     event = calopacketcontainer;
+  //   }
+  // }
+  // else
   // since the function call on Packet and CaloPacket is the same, maybe we can use lambda?
   auto process_packet = [&](auto *packet, int pid)
   {
@@ -436,21 +423,31 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
     return Fun4AllReturnCodes::EVENT_OK;
   };
 
+  Event *event {nullptr};
+    Event *_event = findNode::getClass<Event>(topNode, "PRDF");
+    if (_event)
+    {
+    if (_event->getEvtType() != DATAEVENT)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    event = _event;
+    }
   for (int pid = m_packet_low; pid <= m_packet_high; pid++)
   {
-    if (!m_PacketNodesFlag)
-    {
-      if (auto *hcalcont = std::get_if<CaloPacketContainer *>(&event))
+    // if (!m_PacketNodesFlag)
+    // {
+      // if (auto *hcalcont = std::get_if<CaloPacketContainer *>(&event))
+      // {
+      //   CaloPacket *packet = (*hcalcont)->getPacketbyId(pid);
+      //   if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+      //   {
+      //     return Fun4AllReturnCodes::ABORTEVENT;
+      //   }
+//      }
+      if (event)
       {
-        CaloPacket *packet = (*hcalcont)->getPacketbyId(pid);
-        if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
-        {
-          return Fun4AllReturnCodes::ABORTEVENT;
-        }
-      }
-      else if (auto *_event = std::get_if<Event *>(&event))
-      {
-        Packet *packet = (*_event)->getPacket(pid);
+        Packet *packet = event->getPacket(pid);
         if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
         {
           // I think it is safe to delete a nullptr...
@@ -459,7 +456,6 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
         }
         delete packet;
       }
-    }
     else
     {
       CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, pid);
