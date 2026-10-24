@@ -79,6 +79,7 @@ public:
 
   void set_offlineflag(const bool f = true)
   {
+    tmpdummy = f;
     return;
   }
 
@@ -144,6 +145,7 @@ private:
   bool m_isdata{true};
   bool m_bdosoftwarezerosuppression{false};
   bool m_dotbtszs{false};
+  bool tmpdummy{false};
   int m_packet_low{std::numeric_limits<int>::min()};
   int m_packet_high{std::numeric_limits<int>::min()};
   int m_nsamples{16};
