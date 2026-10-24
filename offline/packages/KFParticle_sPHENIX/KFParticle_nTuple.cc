@@ -70,6 +70,13 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
       mother_name.replace(pos, 1, goodString);
     }
   }
+  //setup only the momentum calibration branches
+  
+  if (m_momentum_calibration_output)
+  {
+    initializeMomentumCalibrationBranches(mother_name);
+    return;
+  }
 
   m_tree->Branch(TString(mother_name) + "_mass", &m_calculated_mother_mass, TString(mother_name) + "_mass/F");
   m_tree->Branch(TString(mother_name) + "_massErr", &m_calculated_mother_mass_err, TString(mother_name) + "_massErr/F");
@@ -406,6 +413,13 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       daughterArray[i].SetProductionVertex(motherParticle);
     }
   }
+  //This is the setup for filling only the momentum calibration branches
+  //It is placed here after the daughters are prepared but before the branches are filled
+  if (m_momentum_calibration_output)
+  {
+    fillMomentumCalibrationBranch(topNode, motherParticle, daughterArray);
+    return;
+  }
 
   if (m_constrain_to_vertex_nTuple)
   {
@@ -733,6 +747,61 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   {
     resetTriggerBranches();
   }
+}
+
+
+void KFParticle_nTuple::initializeMomentumCalibrationBranches(const std::string& mother_name)
+{
+  m_tree->Branch(TString(mother_name) + "_mass", &m_calculated_mother_mass, TString(mother_name) + "_mass/F");
+  m_tree->Branch(TString(mother_name) + "_pT", &m_calculated_mother_pt, TString(mother_name) + "_pT/F");
+  m_tree->Branch(TString(mother_name) + "_pseudorapidity", &m_calculated_mother_eta, TString(mother_name) + "_pseudorapidity/F");
+  m_tree->Branch(TString(mother_name) + "_phi", &m_calculated_mother_phi, TString(mother_name) + "_phi/F");
+  m_tree->Branch(TString(mother_name) + "_PDG_ID", &m_calculated_mother_pdgID, TString(mother_name) + "_PDG_ID/I");
+
+  for (int i = 0; i < m_num_tracks_nTuple; ++i)
+  {
+    std::string daughter_number = "track_" + std::to_string(i + 1);
+
+    m_tree->Branch(TString(daughter_number) + "_pT", &m_calculated_daughter_pt[i], TString(daughter_number) + "_pT/F");
+    m_tree->Branch(TString(daughter_number) + "_pTErr", &m_calculated_daughter_pt_err[i], TString(daughter_number) + "_pTErr/F");
+    m_tree->Branch(TString(daughter_number) + "_pseudorapidity", &m_calculated_daughter_eta[i], TString(daughter_number) + "_pseudorapidity/F");
+    m_tree->Branch(TString(daughter_number) + "_phi", &m_calculated_daughter_phi[i], TString(daughter_number) + "_phi/F");
+    m_tree->Branch(TString(daughter_number) + "_charge", &m_calculated_daughter_q[i], TString(daughter_number) + "_charge/B");
+    m_tree->Branch(TString(daughter_number) + "_PDG_ID", &m_calculated_daughter_pdgID[i], TString(daughter_number) + "_PDG_ID/I");
+    m_tree->Branch(TString(daughter_number) + "_Covariance", &m_calculated_daughter_cov[i], TString(daughter_number) + "_Covariance[21]/F", 21);
+  }
+
+  m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
+}
+
+void KFParticle_nTuple::fillMomentumCalibrationBranch(PHCompositeNode* topNode,
+                                                      KFParticle& motherParticle,
+                                                      KFParticle* daughterArray)
+{
+  motherParticle.GetMass(m_calculated_mother_mass, m_calculated_mother_mass_err);
+  m_calculated_mother_pt = motherParticle.GetPt();
+  motherParticle.GetEta(m_calculated_mother_eta, TempError);
+  motherParticle.GetPhi(m_calculated_mother_phi, TempError);
+  m_calculated_mother_pdgID = motherParticle.GetPDG();
+
+  for (int i = 0; i < m_num_tracks_nTuple; ++i)
+  {
+    m_calculated_daughter_pt[i] = daughterArray[i].GetPt();
+    m_calculated_daughter_pt_err[i] = daughterArray[i].GetErrPt();
+    daughterArray[i].GetEta(m_calculated_daughter_eta[i], TempError);
+    daughterArray[i].GetPhi(m_calculated_daughter_phi[i], TempError);
+    m_calculated_daughter_q[i] = daughterArray[i].Q();
+    m_calculated_daughter_pdgID[i] = daughterArray[i].GetPDG();
+    for (int j = 0; j < 21; ++j)
+    {
+      m_calculated_daughter_cov[i][j] = daughterArray[i].GetCovariance(j);
+    }
+  }
+
+  EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+  m_runNumber = evtHeader ? evtHeader->get_RunNumber() : -1;
+
+  m_tree->Fill();
 }
 
 float KFParticle_nTuple::calc_secondary_vertex_mass_noPID(std::vector<KFParticle> kfp_daughters)
