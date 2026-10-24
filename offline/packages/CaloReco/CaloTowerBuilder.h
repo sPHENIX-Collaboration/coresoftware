@@ -79,8 +79,9 @@ public:
 
   void set_offlineflag(const bool f = true)
   {
-    m_UseOfflinePacketFlag = f;
+    return;
   }
+
   void set_timeFitLim(float low, float high)
   {
     m_setTimeLim = true;
@@ -136,15 +137,13 @@ private:
   CaloWaveformProcessing *WaveformProcessing{nullptr};
   TowerInfoContainer *m_CaloInfoContainer{nullptr};      //! Calo info
   TowerInfoContainer *m_CalowaveformContainer{nullptr};  // waveform from simulation
-  CDBTTree *cdbttree = nullptr;
-  CDBTTree *cdbttree_sepd_map = nullptr;
-  CDBTTree *cdbttree_tbt_zs = nullptr;
+  CDBTTree *cdbttree{nullptr};
+  CDBTTree *cdbttree_sepd_map{nullptr};
+  CDBTTree *cdbttree_tbt_zs{nullptr};
 
   bool m_isdata{true};
   bool m_bdosoftwarezerosuppression{false};
-  bool m_UseOfflinePacketFlag{false};
   bool m_dotbtszs{false};
-  bool m_PacketNodesFlag{false};
   int m_packet_low{std::numeric_limits<int>::min()};
   int m_packet_high{std::numeric_limits<int>::min()};
   int m_nsamples{16};
@@ -181,4 +180,4 @@ private:
   double m_doubleexp_ratio{0.3};
 };
 
-#endif  // CALOTOWERBUILDER_H
+#endif  // CALORECO_CALOTOWERBUILDER_H

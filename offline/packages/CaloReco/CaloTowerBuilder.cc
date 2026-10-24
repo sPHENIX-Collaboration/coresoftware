@@ -11,7 +11,6 @@
 #include <calobase/TowerInfoContainerv4.h>
 
 #include <ffarawobjects/CaloPacket.h>
-#include <ffarawobjects/CaloPacketContainer.h>
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
@@ -263,32 +262,8 @@ int CaloTowerBuilder::process_sim()
 
 int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::vector<float>> &waveforms)
 {
-  // std::variant<CaloPacketContainer *, Event *> event;
-  // if (m_UseOfflinePacketFlag)
-  // {
-  //   CaloPacketContainer *calopacketcontainer = findNode::getClass<CaloPacketContainer>(topNode, nodemap.find(m_dettype)->second);
-  //   if (!calopacketcontainer)
-  //   {
-  //     for (int pid = m_packet_low; pid <= m_packet_high; pid++)
-  //     {
-  //       if (findNode::getClass<CaloPacket>(topNode, pid))
-  //       {
-  //         m_PacketNodesFlag = true;
-  //         break;
-  //       }
-  //     }
-  //     if (!m_PacketNodesFlag)
-  //     {
-  //       return Fun4AllReturnCodes::EVENT_OK;
-  //     }
-  //   }
-  //   else
-  //   {
-  //     event = calopacketcontainer;
-  //   }
-  // }
-  // else
-  // since the function call on Packet and CaloPacket is the same, maybe we can use lambda?
+  // this lambda function call is used for Event Packet and CaloPacket.
+  // since we kept the method calls identical we can handle both of them in a single function
   auto process_packet = [&](auto *packet, int pid)
   {
     if (packet)
@@ -423,34 +398,21 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
     return Fun4AllReturnCodes::EVENT_OK;
   };
 
-  Event *event {nullptr};
-    Event *_event = findNode::getClass<Event>(topNode, "PRDF");
-    if (_event)
-    {
-    if (_event->getEvtType() != DATAEVENT)
+  Event *event = findNode::getClass<Event>(topNode, "PRDF");
+  if (event)
+  {
+    if (event->getEvtType() != DATAEVENT)
     {
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-    event = _event;
-    }
+  }
   for (int pid = m_packet_low; pid <= m_packet_high; pid++)
   {
-    // if (!m_PacketNodesFlag)
-    // {
-      // if (auto *hcalcont = std::get_if<CaloPacketContainer *>(&event))
-      // {
-      //   CaloPacket *packet = (*hcalcont)->getPacketbyId(pid);
-      //   if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
-      //   {
-      //     return Fun4AllReturnCodes::ABORTEVENT;
-      //   }
-//      }
       if (event)
       {
         Packet *packet = event->getPacket(pid);
         if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
         {
-          // I think it is safe to delete a nullptr...
           delete packet;
           return Fun4AllReturnCodes::ABORTEVENT;
         }
