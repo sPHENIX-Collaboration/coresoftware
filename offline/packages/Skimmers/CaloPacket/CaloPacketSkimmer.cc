@@ -1,15 +1,16 @@
 #include "CaloPacketSkimmer.h"
 
+#include <caloreco/CaloTowerDefs.h>
+
 #include <qautils/QAHistManagerDef.h>
 
 #include <ffarawobjects/CaloPacket.h>
-#include <ffarawobjects/CaloPacketContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
 #include <phool/getClass.h>
-#include <phool/phool.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -19,9 +20,7 @@
 
 #include <cassert>
 #include <iostream>  // for operator<<, basic_ostream
-#include <map>       // for operator!=, _Rb_tree_iterator
 #include <utility>   // for pair
-#include <variant>
 
 //____________________________________________________________________________..
 CaloPacketSkimmer::CaloPacketSkimmer(const std::string &name)
