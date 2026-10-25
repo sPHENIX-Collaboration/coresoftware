@@ -16,7 +16,6 @@ class MbdOut;
 class MbdGeom;
 class Event;
 class CaloPacket;
-class CaloPacketContainer;
 class Gl1Packet;
 class EventHeader;
 class TF1;
@@ -53,15 +52,14 @@ class MbdReco : public SubsysReco
   int  _fitsonly{0};    // stop reco after waveform fits (for DST_CALOFIT pass)
   int  _fiteval{0};     // overload with segment+1
 
-  float m_tres = 0.05;
-  std::unique_ptr<TF1> m_gaussian = nullptr;
+  float m_tres{0.05};
+  std::unique_ptr<TF1> m_gaussian{nullptr};
 
   int _evtnum{-1};
 
   std::unique_ptr<MbdEvent> m_mbdevent{nullptr};
   Event *m_event{nullptr};
   std::array<CaloPacket *,2>m_mbdpacket{nullptr};
-  CaloPacketContainer *m_mbdpackets{nullptr};
   Gl1Packet *m_gl1packet{nullptr};
   MbdOut *m_mbdout{nullptr};
   MbdPmtContainer *m_mbdpmts{nullptr};
