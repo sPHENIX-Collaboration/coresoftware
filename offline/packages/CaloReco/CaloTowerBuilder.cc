@@ -408,16 +408,16 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
   }
   for (int pid = m_packet_low; pid <= m_packet_high; pid++)
   {
-      if (event)
+    if (event)
+    {
+      Packet *packet = event->getPacket(pid);
+      if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
       {
-        Packet *packet = event->getPacket(pid);
-        if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
-        {
-          delete packet;
-          return Fun4AllReturnCodes::ABORTEVENT;
-        }
         delete packet;
+        return Fun4AllReturnCodes::ABORTEVENT;
       }
+      delete packet;
+    }
     else
     {
       CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, pid);
