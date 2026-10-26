@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fun4all/SubsysReco.h>
+#include <phool/sphenix_constants.h>
 
 #include <string>
 
@@ -38,5 +39,5 @@ class TpcPolyTrackSeedConverter : public SubsysReco
   TpcCrossingDecisionContainer* m_crossingDecisions {nullptr};
   ActsGeometry* m_geometry {nullptr};
   TrackSeedContainer* m_trackSeeds {nullptr};
-  double m_crossingPeriodNs {106.56};
+  double m_crossingPeriodNs {sphenix_constants::time_between_crossings};
 };
