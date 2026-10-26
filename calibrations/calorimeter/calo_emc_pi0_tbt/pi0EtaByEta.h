@@ -145,6 +145,11 @@ class pi0EtaByEta : public SubsysReco
   {
     ptClusMax = val;
   }
+  // cluster energy for the pairs: full cluster energy (default) or ECore
+  void set_useEcore(bool state)
+  {
+    useEcore = state;
+  }
 
  protected:
   int Getpeaktime(TH1* h);
@@ -154,6 +159,7 @@ class pi0EtaByEta : public SubsysReco
   bool reqTrig = true;
   std::vector<int> triggerList;
   bool reqVertex = false;
+  bool useEcore = false;
   std::string m_fieldname = "CEMC_calib_ADC_to_ETower";
 
   bool doVtxCut{true};

@@ -334,7 +334,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     RawCluster* recoCluster = clusterIter->second;
 
     CLHEP::Hep3Vector vertex(0, 0, vtx_z);
-    CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
+    CLHEP::Hep3Vector E_vec_cluster = useEcore ? RawClusterUtility::GetECoreVec(*recoCluster, vertex) : RawClusterUtility::GetEVec(*recoCluster, vertex);
 
     float clus_pt = E_vec_cluster.perp();
     float clus_chisq = recoCluster->get_prob();
@@ -378,8 +378,8 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   struct PairClus
   {
     TLorentzVector p4;
-    unsigned int lt_eta;
-    unsigned int lt_phi;
+    unsigned int lt_eta{0};
+    unsigned int lt_phi{0};
   };
   std::vector<PairClus> selClusters;
   CLHEP::Hep3Vector vertex(0, 0, vtx_z);
@@ -390,7 +390,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   {
     RawCluster* recoCluster = clusterIter->second;
 
-    CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
+    CLHEP::Hep3Vector E_vec_cluster = useEcore ? RawClusterUtility::GetECoreVec(*recoCluster, vertex) : RawClusterUtility::GetEVec(*recoCluster, vertex);
 
     float clusE = E_vec_cluster.mag();
     float clus_eta = E_vec_cluster.pseudoRapidity();
