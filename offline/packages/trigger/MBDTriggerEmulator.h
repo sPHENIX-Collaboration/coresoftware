@@ -14,7 +14,7 @@ class CDBHistos;
 class TriggerPrimitiveContainer;
 class LL1Out;
 class Event;
-class CaloPacketContainer;
+class CaloPacket;
 class PHCompositeNode;
 class TH1;
 
@@ -87,7 +87,7 @@ class MBDTriggerEmulator : public SubsysReco
 
   bool m_default_lut_mbd{false};
 
-  CaloPacketContainer *m_waveforms_mbd{nullptr};
+  CaloPacket *dstp[2]{nullptr};
 
   Event *m_event{nullptr};
   //! LL1 Out
