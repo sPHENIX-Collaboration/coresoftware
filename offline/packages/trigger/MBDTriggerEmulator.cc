@@ -355,7 +355,6 @@ int MBDTriggerEmulator::process_waveforms()
       {
         std::cout << __LINE__ << std::endl;
       }
-      delete dstp[ipkt];
     }
 
     if (Verbosity())
@@ -378,7 +377,7 @@ int MBDTriggerEmulator::process_raw()
     std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing waveforms" << std::endl;
   }
 
-  if (m_useoffline)
+  if (dstp[0] || dstp[1])
   {
     return Fun4AllReturnCodes::ABORTEVENT;
   }
@@ -809,10 +808,6 @@ void MBDTriggerEmulator::GetNodes(PHCompositeNode *topNode)
     int pktid = 1001 + ipkt;  // packet id
 
     dstp[ipkt] = findNode::getClass<CaloPacket>(topNode, pktid);
-  }
-  if (dstp[0] || dstp[1])
-  {
-    m_useoffline = true;
   }
   // if (!m_waveforms_mbd)
   //   {
