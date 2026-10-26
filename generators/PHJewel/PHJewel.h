@@ -67,7 +67,7 @@ class PHJewel : public SubsysReco, public PHHepMCGenHelper
   // Note: with KEEPRECOILS T the jet trigger sees UNSUBTRACTED jets (see
   // PHJewelJetTrigger.h).
   void register_trigger(PHJewelGenTrigger *trigger);
-  void set_trigger_OR() { m_TriggersOR = true; }    // default
+  void set_trigger_OR() { m_TriggersOR = true; }  // default
   void set_trigger_AND() { m_TriggersOR = false; }
   // give up after this many consecutive failed attempts (0 = never)
   void set_max_trigger_attempts(long n) { m_MaxAttempts = n; }

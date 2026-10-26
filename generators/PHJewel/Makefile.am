@@ -51,12 +51,12 @@ pkginclude_HEADERS = \
   PHJewel.h \
   PHJewelGenTrigger.h \
   PHJewelJetTrigger.h \
-  PHJewelPhotonTrigger.h \
-  JewelCore.h \
-  JewelCard.h \
-  JewelRun.h
+  PHJewelPhotonTrigger.h
 
 libPHJewel_la_SOURCES = \
+  JewelCard.cc \
+  JewelCore.cc \
+  JewelRun.cc \
   PHJewel.cc \
   PHJewelJetTrigger.cc \
   PHJewelPhotonTrigger.cc

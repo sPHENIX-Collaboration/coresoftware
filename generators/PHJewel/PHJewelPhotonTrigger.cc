@@ -4,6 +4,7 @@
 #include <HepMC/GenParticle.h>
 #include <HepMC/GenVertex.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
@@ -108,10 +109,7 @@ bool PHJewelPhotonTrigger::Apply(const HepMC::GenEvent *evt)
         continue;
       }
     }
-    if (pt > m_LeadPhotonPt)
-    {
-      m_LeadPhotonPt = pt;
-    }
+    m_LeadPhotonPt = std::max(pt, m_LeadPhotonPt);
   }
 
   const bool pass = m_LeadPhotonPt > 0.0;

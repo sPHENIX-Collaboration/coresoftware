@@ -1,127 +1,66 @@
 # PHJewel — JEWEL 2.6.0 inside Fun4All
 
-`PHJewel` is a SubsysReco that runs JEWEL in-process, the way `PHPythia8` wraps PYTHIA 8 and
-`PHHerwig7` (ProjectHERWIG/Source/phherwig7) wraps Herwig 7. There is one Fun4All process per job,
-with no FIFO and no HepMC on disk. The seed comes from `PHRandomSeed()`. Generated count, weight sum
-and cross section go to `RUN/PHGenIntegral`. Truth triggers run inside the generation loop, so only
-triggered events reach the node tree.
+`PHJewel` is a SubsysReco that runs JEWEL 2.6.0 in-process, the way `PHPythia8` wraps PYTHIA 8 and
+`PHHerwig7` wraps Herwig 7. The seed comes from `PHRandomSeed()`; events go straight to
+`PHHepMCGenEventMap`; the generated count, weight sum and cross section go to `RUN/PHGenIntegral`.
+Truth triggers run inside the generation loop, so only triggered events reach the node tree. JEWEL
+runs in the same job as Geant4 (one pass).
 
 ```
-user card ──JewelCard (strict)──> canonical card ──> libjewel_<medium>.so (dlopen, RTLD_LOCAL)
+user card ──JewelCard (strict)──> canonical card ──> libjewel_<medium>.so (dlopen)
                                                         │ init / initpythia / genevent  (JEWEL's own code)
                                                         │ HepMC2 lines in memory (JEWEL's own writer logic)
                        PHJewel <──HepMC::IO_GenEvent────┘
                           │ b [fm], PdfInfo, process id added
-                          │ HepMCTruthTriggerCore (regenerate until pass)
+                          │ PHJewelGenTrigger(s) (regenerate until pass)
                           └──> PHHepMCGenEventMap, RUN/PHGenIntegral ──> DST
 ```
 
-| PHPythia8 | PHJewel |
-|---|---|
-| `Pythia::init()` | `init()` of JEWEL on the canonical card, seed into `MRPY(1)` |
-| `Pythia::next()` | `genevent()` until JEWEL writes an event; isospin channel by `initpythia()` |
-| `Pythia8ToHepMC` | JEWEL's `CONVERTTOHEPMC`, the same lines it writes to `HEPMCFILE`, read back by `HepMC::IO_GenEvent` |
-| `info.sigmaGen()` | PYTHIA 6 `PARI(1)`, averaged over PYTHIA initialisations |
-| `PHPy8JetTrigger` | `HepMCTruthTriggerCore`, the same code as PHHerwig7 and `hwfilter` |
-
-## Validation status (2026-10-23)
-
-| check | result |
-|---|---|
-| standalone binary rebuilt from the generated library sources vs the production `jewel-2.6.0-simple` (laptop), Au+Au 0-10% with recoils, 100 events | **byte-identical** HepMC |
-| in-process API, Fortran writer on, same card, seed 7000 = NJOB 7 | **byte-identical** to production |
-| in-process API, events from the memory buffer after the HepMC reader, Au+Au with recoils (100 events, 88k particles) and p+p vac (300 events) | **identical** within JEWEL's 9 printed digits (`tools/compare_hepmc.py`) |
-| RCF, Fun4All + PHJewel → DST → read back, 30 Au+Au events | identical to the standalone binary from the same toolchain, and to the laptop production binary |
-| RCF, jet trigger (R=0.4, 15 GeV, \|η\|<0.7) on p+p | 227 generated, 50 written, PHGenIntegral N/Σw/σ consistent |
-| RCF, ISOCHANNEL XX with channel switching | PYTHIA re-initialised only on change; DST and PHGenIntegral fine |
-| card rejection | the production cards `auau_0_10_recoil.dat` and `pp_recoil.dat` are refused with the reasons listed; a card with one of every mistake reports all of them in one pass |
-| core libraries export only `jw_*` (RCF `nm -D`) | yes; PYTHIA 6 symbols and common blocks are private |
-
-Not yet checked: Geant4 transport of the DST (PHG4 reading `PHHepMCGenEventMap`), embedding into a
-background event, and long runs (memory, a JEWEL discard storm). These are the first things for Blair.
-
-The RCF production binary `ProjectJEWEL/Code/jewel-2.6.0/jewel-2.6.0-simple` gives a **different event
-stream** from the laptop binary for the same NJOB. Its PYTHIA, medium and subtraction objects date from
-09-04, built by another compiler. JEWEL's showers are chaotic, so a floating-point difference changes
-every event after the first. The samples are statistically equivalent, but they are not
-event-for-event comparable. PHJewel on RCF matches the laptop build.
-
-## Build
-
-### RCF (sPHENIX)
-
-```bash
-source /opt/sphenix/core/bin/sphenix_setup.sh -n ana
-export MYINSTALL=/sphenix/tg/tg01/jets/nagle/install   # PHJewel and its trigger dependency live here
-source /opt/sphenix/core/bin/setup_local.sh $MYINSTALL
-# HepMCTruthTriggerCore.h comes from ProjectHERWIG/Source/fun4all; it is installed into the same
-# prefix (built in fun4all/build_tg), install it first if the prefix is new
-cd phjewel && mkdir -p build && cd build && ../autogen.sh --prefix=$MYINSTALL && make -j4 install
-```
-
-This installs `libPHJewel.so` (the SubsysReco) and three cores, `libjewel_simple.so`, `libjewel_brick.so`
-and `libjewel_vac.so`, each with its own private JEWEL plus PYTHIA 6.4.25 (`jewel/exports.map`). PHJewel
-`dlopen`s the core named by `set_medium()` from `LD_LIBRARY_PATH`.
-
-### Laptop (no Fun4All)
-
-```bash
-make -f Makefile.local       # lib/libjewel_*.dylib, bin/jewel-std-*, bin/jwgen_test
-```
-
-`bin/jewel-std-<medium>` is the standalone JEWEL rebuilt from the library sources, used as the
-regression reference. `bin/jwgen_test` starts JEWEL exactly as PHJewel does and writes the events
-after the HepMC reader:
-
-```bash
-PHJEWEL_CORE=lib/libjewel_simple.dylib bin/jwgen_test cards/auau200_0010_recoil.dat simple 100 7000 /tmp/x
-```
-
-### Library sources
-
-`jewel/jewel-lib.f`, `jewel-main.f` and `medium-*.f` are **generated** from `../jewel-2.6.0` (the tree
-the production binaries come from, with every patch in `../patches`):
-
-```bash
-make -f Makefile.local sources     # python3 tools/make_api_sources.py ../jewel-2.6.0 jewel
-```
-
-Never edit them by hand. The generator anchors every edit on exact text and stops if JEWEL changes
-under it. The API hooks are inert unless `jw_init` set the API mode, so the standalone program built
-from the same file is unchanged (see the first validation row). The hooks are:
-- the parameter file is read from a common block instead of `getarg`;
-- PHJewel owns the output files, NJOB and the seed;
-- `out.ran` is not written;
-- each `WRITE` in `CONVERTTOHEPMC` goes through a helper that writes the same line and also passes the numbers to the event buffer;
-- file-name buffers are 512 characters instead of 80.
-
-## Running
-
-```bash
-root -l -b -q 'Fun4All_PHJewel.C("cards/auau200_0010_recoil.dat","simple","out.root",1000,"jet",0.4,10.,0.7)'
-```
+## Usage
 
 ```cpp
+#include <phjewel/PHJewel.h>
+#include <phjewel/PHJewelJetTrigger.h>
+R__LOAD_LIBRARY(libPHJewel.so)
+
 PHJewel *jw = new PHJewel();
-jw->set_card("cards/auau200_0010_recoil.dat");   // main card
-jw->set_medium("simple");                         // simple | brick | vac
-jw->set_seed(0);              // 0: PHRandomSeed();  k*1000 reproduces a standalone NJOB k run
+jw->set_card("auau200_0010_recoil.dat");  // main card; it names the medium card
+jw->set_medium("simple");                 // simple | brick | vac
+// optional
+jw->set_seed(0);              // 0 (default): PHRandomSeed();  k*1000 reproduces a standalone NJOB k run
 jw->set_output_stem("jw");    // jw.log, jw.card.dat, jw.medium.dat  (default PHJewel_<seed>)
-jw->require_jet(); jw->set_jet_R(0.4); jw->set_jet_ptmin(10); jw->set_jet_etamax(0.7);
-jw->set_max_trigger_attempts(100000);
-// validation / extras
-jw->set_fortran_hepmc_file("jw_fortran.hepmc");   // JEWEL's own writer, every JEWEL event
-jw->set_evinfo_file("jw.evinfo");                 // EVINFOFILE incl. VIRTLOG columns
-jw->set_isospin_block(1000);                      // ISOCHANNEL XX, see below
+
+PHJewelJetTrigger *trig = new PHJewelJetTrigger();
+trig->SetJetR(0.4);
+trig->SetMinJetPt(10.);
+trig->SetEtaMax(1.0);
+jw->register_trigger(trig);   // several: set_trigger_OR() (default) or set_trigger_AND()
+
+Input::ApplysPHENIXBeamParameter(jw);   // vertex and crossing angle, as for the other generators
+se->registerSubsystem(jw);
 ```
 
-`nevents` in `se->run(n)` counts **events written** (passing the trigger), as for PHPythia8.
+`se->run(n)` counts **events written** (passing the trigger), as for PHPythia8. There is no limit
+on trigger attempts unless `set_max_trigger_attempts(n)` is called.
 
 Only one PHJewel is allowed per process, because JEWEL keeps its state in Fortran common blocks. Do not
 add PHPythia6 to the same process: the PYTHIA 6 symbols are isolated, but the Fortran I/O unit numbers
 are shared by the runtime.
 
----
+Other settings: `set_fortran_hepmc_file()` (JEWEL's own HepMC writer, every JEWEL event, for
+validation), `set_evinfo_file()` (EVINFOFILE), `set_isospin_block()` (see Isospin),
+`allow_table_generation()`, `set_core_library()`, `save_integrated_luminosity(false)`.
+
+### Truth triggers
+
+| class | passes if |
+|---|---|
+| `PHJewelJetTrigger` | the leading anti-k_T jet (status-1 particles, no neutrinos) with \|η\| < `SetEtaMax` has p_T ≥ `SetMinJetPt`, and lies inside `SetLeadJetWindow(lo, hi)` if set (p̂_T-bin stitching) |
+| `PHJewelPhotonTrigger` | a status-1 photon has p_T ≥ `SetMinPt` and \|η\| ≤ `SetEtaMax`; optionally isolated (`SetIsolation(on, R, frac)`) and/or prompt (`SetPrompt()`: no hadron parent) |
+
+With `KEEPRECOILS T` the jet trigger sees **unsubtracted** jets: the status-3 thermal momenta are
+excluded but the recoils are in. Those jets are harder than subtracted ones, so a trigger at X keeps
+every event whose subtracted jet is above X.
 
 ## Input cards
 
@@ -207,7 +146,7 @@ to the working directory, so to run the same card standalone, run from the card'
 
 | setting | why |
 |---|---|
-| `WRITEDUMMIES T` | adds one **status-1** π⁰ placeholder per thermal parton (E = 10⁻⁶ GeV along its direction, a ghost for constituent subtraction). There are hundreds per event; they carry no visible energy, but Geant and every truth-particle count (multiplicities, constituents, fragmentation) treat them as real particles. Recoil subtraction needs only `WRITESCATCEN T`. **The production cards `auau_*_recoil.dat` and `pp_recoil.dat` set it.** |
+| `WRITEDUMMIES T` | adds one **status-1** π⁰ placeholder per thermal parton (E = 10⁻⁶ GeV along its direction, a ghost for constituent subtraction). There are hundreds per event; they carry no visible energy, but Geant and every truth-particle count (multiplicities, constituents, fragmentation) treat them as real particles. Recoil subtraction needs only `WRITESCATCEN T`. |
 | `DOSUBTRACTION T` | rewrites the final state inside JEWEL; a DST needs the unsubtracted event |
 | `KEEPRECOILS T` with `WRITESCATCEN F` | the recoil contribution could never be subtracted |
 | `HADRO F` | partons in the final state |
@@ -256,24 +195,8 @@ slow, and writes it to the path, which is a race when parallel jobs share a dire
 JEWEL checks only that a table exists, not what it was built with. The splitting integrals depend on
 Q0 and the energy reach. The PDF and cross-section tables also depend on the medium's Debye-mass
 range. Lookups outside a table extrapolate, and JEWEL counts them. **PHJewel prints the fractions at
-End.** With the tables the production runs use (`pdfs_ct14nlo.dat`, `xsecs_ct14nlo.dat`), the RHIC
-0-10 % simple medium extrapolates in about **11-12 % of PDF and cross-section lookups**. The brick and
-vac media extrapolate in none. This is a property of the existing production samples too, and worth a
-look independent of PHJewel.
-
-### Cards shipped in `cards/`
-
-| card | medium | |
-|---|---|---|
-| `pp200_vac.dat` | vac | p+p 200 GeV, p̂_T > 10, ISOCHANNEL PP |
-| `auau200_vac.dat` | vac | Au+Au nucleon content (XX), no medium; JEWEL-only R_AA reference |
-| `auau200_0010_recoil.dat` | simple | Au+Au 0-10 %, recoils on (WRITESCATCEN T) |
-| `auau200_0010_norecoil.dat` | simple | the same, recoils off |
-| `medium_auau200_0010.dat` | — | TAUI 0.8, TI 0.35, TC 0.17, SIGMANN 4.2, MDSCALEFAC 0.9 (arXiv:1212.1599 RHIC tune, as in the production studies) |
-| `brick200_T30_L3.dat` + `brick_T30_L3.dat` | brick | T = 0.30 GeV, L = 3 fm |
-
-`cards/tables/` holds symlinks to the production tables (laptop: `../jewel-2.6.0`, RCF:
-`/sphenix/tg/tg01/jets/nagle/ProjectJEWEL/Code/jewel-2.6.0`).
+End.** With `pdfs_ct14nlo.dat` and `xsecs_ct14nlo.dat`, the RHIC 0-10 % simple medium extrapolates in
+about 11-12 % of PDF and cross-section lookups; the brick and vac media extrapolate in none.
 
 ---
 
@@ -307,39 +230,37 @@ JEWEL events (default 1000) with probabilities Z², Z(A−Z), (A−Z)Z, (A−Z)�
 expectation, and PYTHIA is re-initialised only when the channel changes. σ is PARI(1) at the end of
 each PYTHIA initialisation, weighted by the events made under it. For a fixed ISOCHANNEL the call
 sequence is the standalone one, which is why seed 1000k reproduces NJOB k event for event.
+### Recoils and 4MomSub
 
-### Truth trigger
-
-The trigger is `HepMCTruthTriggerCore` from ProjectHERWIG: anti-k_T over status-1 particles without
-neutrinos. With recoils it sees **unsubtracted** jets, because the status-3 thermal momenta are
-excluded but the recoils are in. Those jets are harder than subtracted ones, so a trigger at X keeps
-the events whose subtracted jets are above X.
+With `KEEPRECOILS T` the medium partons a jet scatters off are kept and hadronised with it (status 1).
+Their momentum includes the thermal momentum they had before the scattering, which in data belongs to
+the underlying event. `WRITESCATCEN T` writes those thermal momenta as status-3 entries. 4MomSub
+(arXiv:1707.04142): cluster the status-3 entries as ghosts together with the final state, then subtract
+the full four-momenta of the ghosts in each jet from that jet. Geant never sees the status-3 entries.
 
 ## Files
 
 | file | role |
 |---|---|
 | `PHJewel.{h,cc}` | the SubsysReco |
-| `JewelCard.h` | strict card reader, canonical cards, hash |
-| `JewelCore.h` | dlopen loader, event loop, isospin channels, bookkeeping (no Fun4All, no HepMC) |
-| `JewelRun.h` | validate → canonical card → init → read-back check (shared by PHJewel and jwgen_test) |
-| `jewel/jewel_capi.cc`, `jewel/jewel-api.f` | the core's C API and its Fortran side |
-| `jewel/*.f` (generated), `pythia6425mod-lhapdf6.f`, `meix.f`, `subtraction.C` | JEWEL itself |
-| `tools/make_api_sources.py` | generates the library sources from `../jewel-2.6.0` |
-| `tools/compare_hepmc.py` | event-by-event comparison of two HepMC2 files |
-| `tools/dst_to_hepmc.C` | DST → HepMC2 ASCII, plus PHGenIntegral and the first event's extras |
-| `Fun4All_PHJewel.C` | macro |
-| `jwgen_test.cc`, `Makefile.local` | laptop build and standalone test |
+| `PHJewelGenTrigger.h`, `PHJewelJetTrigger.{h,cc}`, `PHJewelPhotonTrigger.{h,cc}` | truth triggers |
+| `JewelCard.{h,cc}` | strict card reader, canonical cards, hash |
+| `JewelCore.{h,cc}` | dlopen loader, event loop, isospin channels, bookkeeping (no Fun4All, no HepMC) |
+| `JewelRun.{h,cc}` | validate → canonical card → init → read-back check |
+| `jewel/jewel_capi.cc`, `jewel/jewel-api.f`, `jewel/exports.map` | the core's C API, its Fortran side, and the list of exported symbols (`jw_*` only) |
+| `jewel/jewel-lib.f`, `jewel/medium-{simple,brick,vac}.f`, `pythia6425mod-lhapdf6.f`, `meix.f`, `subtraction.C` | JEWEL 2.6.0 and its PYTHIA 6.4.25 |
 
-## For testing (Blair)
+Only `PHJewel.h` and the trigger headers are installed. The build makes `libPHJewel.so` and one core
+per medium, `libjewel_simple.so`, `libjewel_brick.so` and `libjewel_vac.so`. Each core carries its own
+private JEWEL and PYTHIA 6 and exports only `jw_*`; PHJewel `dlopen`s the one named by `set_medium()`
+with `RTLD_DEEPBIND`, so it binds to LHAPDF 6 even when the Geant4 decayer has already loaded
+PYTHIA 6 and LHAPDF 5.
 
-1. Same-seed regression on your machine. Run `bin/jewel-std-simple` on a card that has `NJOB k` and a
-   fixed `ISOCHANNEL`. Run PHJewel with `set_seed(1000*k)` and `set_fortran_hepmc_file`. Then
-   `cmp` the two HepMC files, and run `compare_hepmc.py` on `tools/dst_to_hepmc.C` output.
-2. Geant: check that status-3 thermal partons and status-4 entries are **not** transported (they
-   must not show up as G4 primaries) and that every status-1 particle is.
-3. A recoil sample through the jet trigger, with subtraction at analysis level from the status-3
-   particles in the DST truth record.
-4. Normalisation: compare σ·Σ_sel w/Σw from a PHJewel DST with a standalone JEWEL histogram of the
-   same card.
-5. Try to break the cards. Every mistake JEWEL would swallow should be refused with a reason.
+`jewel/jewel-lib.f` is `jewel-2.6.0.f` without `PROGRAM JEWEL`, plus the API hooks. They are inert
+unless `jw_init` sets the API mode, so the standalone program built from the same file is unchanged:
+- the parameter file is read from a common block instead of `getarg`;
+- PHJewel owns the output files, NJOB and the seed;
+- `out.ran` is not written;
+- each `WRITE` in `CONVERTTOHEPMC` goes through a helper that writes the same line and also passes the
+  numbers to the event buffer;
+- file-name buffers are 512 characters instead of 80.

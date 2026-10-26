@@ -51,13 +51,17 @@ int PHJewel::Init(PHCompositeNode *topNode)
     exit(EXIT_FAILURE);
   }
 
-  create_node_tree(topNode);
+  if (create_node_tree(topNode) != Fun4AllReturnCodes::EVENT_OK)
+  {
+    // Init cannot stop the run: a return code here only drops this module
+    exit(EXIT_FAILURE);
+  }
 
   int seed = m_Seed;
   if (seed <= 0)
   {
     // PYTHIA 6 MRPY(1) range is 0 <= seed < 900000000
-    seed = static_cast<int>(PHRandomSeed() % 900000000u);
+    seed = static_cast<int>(PHRandomSeed() % 900000000U);
     if (seed <= 0)
     {
       seed = 1;
@@ -95,7 +99,8 @@ int PHJewel::Init(PHCompositeNode *topNode)
   {
     // Fun4All drops a module whose Init fails and carries on writing empty
     // events; a generator that cannot start must kill the job.
-    std::cout << PHWHERE << "\n" << e.what() << std::endl;
+    std::cout << PHWHERE << "\n"
+              << e.what() << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -148,7 +153,7 @@ int PHJewel::process_event(PHCompositeNode * /*topNode*/)
     {
       HepMC::HeavyIon hi(*cand->heavy_ion());
       hi.set_impact_parameter(static_cast<float>(info.b));
-      hi.set_event_plane_angle(0.f);
+      hi.set_event_plane_angle(0.F);
       cand->set_heavy_ion(hi);
     }
     cand->set_signal_process_id(info.isub);
@@ -220,7 +225,8 @@ int PHJewel::End(PHCompositeNode * /*topNode*/)
   }
   m_Core->finish();
   const JewelCore::Counts k = m_Core->counts();
-  auto frac = [](double over, double tot) { return tot > 0 ? 100.0 * over / tot : 0.0; };
+  auto frac = [](double over, double tot)
+  { return tot > 0 ? 100.0 * over / tot : 0.0; };
   std::cout << Name() << ": JEWEL wrote " << m_NGenerated << " events (" << m_Core->n_discarded_passes()
             << " discarded inside JEWEL), passed trigger " << m_NPassed << " (eff "
             << (m_NGenerated ? double(m_NPassed) / double(m_NGenerated) : 0.0) << ")" << std::endl
@@ -279,7 +285,11 @@ void PHJewel::Print(const std::string & /*what*/) const
             << "  card hash      : " << m_Hash << std::endl
             << "  embedding id   : " << PHHepMCGenHelper::get_embedding_id() << std::endl
             << "  triggers       : " << m_RegisteredTriggers.size()
-            << (m_RegisteredTriggers.empty() ? " (every event kept)" : (m_TriggersOR ? ", OR" : ", AND")) << std::endl;
+            << (m_RegisteredTriggers.empty() ? " (every event kept)" : "") << std::endl;
+  if (m_RegisteredTriggers.size() > 1)
+  {
+    std::cout << "  combined with  : " << (m_TriggersOR ? "OR" : "AND") << std::endl;
+  }
   for (const PHJewelGenTrigger *trigger : m_RegisteredTriggers)
   {
     std::cout << "    ";
