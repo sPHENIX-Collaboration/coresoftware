@@ -30,9 +30,6 @@ class CaloTriggerEmulator : public SubsysReco
   ~CaloTriggerEmulator() override = default;
 
   //! full initialization
-  int Init(PHCompositeNode *) override;
-
-  //! full initialization
   int InitRun(PHCompositeNode *) override;
 
   //! event processing method
