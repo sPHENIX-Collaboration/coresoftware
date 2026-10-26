@@ -1,15 +1,16 @@
 #include "CaloPacketSkimmer.h"
 
+#include <caloreco/CaloTowerDefs.h>
+
 #include <qautils/QAHistManagerDef.h>
 
 #include <ffarawobjects/CaloPacket.h>
-#include <ffarawobjects/CaloPacketContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
 #include <phool/getClass.h>
-#include <phool/phool.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -19,17 +20,7 @@
 
 #include <cassert>
 #include <iostream>  // for operator<<, basic_ostream
-#include <map>       // for operator!=, _Rb_tree_iterator
 #include <utility>   // for pair
-#include <variant>
-
-static const std::map<CaloTowerDefs::DetectorSystem, std::string> nodemap{
-    {CaloTowerDefs::CEMC, "CEMCPackets"},
-    {CaloTowerDefs::HCALIN, "HCALPackets"},
-    {CaloTowerDefs::HCALOUT, "HCALPackets"},
-    {CaloTowerDefs::ZDC, "ZDCPackets"},
-    {CaloTowerDefs::SEPD, "SEPDPackets"},
-    {CaloTowerDefs::MBD, "MBDPackets"}};
 
 //____________________________________________________________________________..
 CaloPacketSkimmer::CaloPacketSkimmer(const std::string &name)
@@ -106,58 +97,8 @@ int CaloPacketSkimmer::process_event(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::DetectorSystem dettype)
 {
-  // Process the detector data and filter packets based on the accepted IDs
-  auto packetRange = getPacketRange(dettype);
-  int startID = packetRange.first;
-  int endID = packetRange.second;
-
-  if (Verbosity() > 4)
-  {
-    std::cout << "Processing " << getDetectorName(dettype) << " from ID " << startID << " to " << endID << std::endl;
-  }
-  std::variant<CaloPacketContainer *, Event *> event;
-  if (m_UseOfflinePacketFlag)
-  {
-    CaloPacketContainer *cont = findNode::getClass<CaloPacketContainer>(topNode, nodemap.find(dettype)->second);
-    if (!cont)
-    {
-      for (int pid = startID; pid <= endID; pid++)
-      {
-        if (findNode::getClass<CaloPacket>(topNode, pid))
-        {
-          m_PacketNodesFlag = true;
-          break;
-        }
-      }
-      if (!m_PacketNodesFlag)
-      {
-        if (Verbosity() > 0)
-        {
-          std::cout << "CaloPacketSkimmer: unable to find node " << nodemap.find(dettype)->second << "  skiping event" << std::endl;
-        }
-        return Fun4AllReturnCodes::EVENT_OK;
-      }
-    }
-    event = cont;
-  }
-  else
-  {
-    Event *_event = findNode::getClass<Event>(topNode, "PRDF");
-    if (_event == nullptr)
-    {
-      if (Verbosity() > 0)
-      {
-        std::cout << PHWHERE << " Event node not found, skipping event" << std::endl;
-      }
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-    if (_event->getEvtType() != DATAEVENT)
-    {
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-    event = _event;
-  }
-  // since the function call on Packet and CaloPacket is the same, maybe we can use lambda? ... yes, we can!
+  // this lambda function call is used for Event Packet and CaloPacket.
+  // since we kept the method calls identical we can handle both of them in a single function
   auto process_packet = [&](auto *packet, int pid)
   {
     if (packet)
@@ -184,36 +125,37 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
     }
     return Fun4AllReturnCodes::EVENT_OK;
   };
-  // loop over packets
-  bool bad_event = false;
+  // Process the detector data and filter packets based on the accepted IDs
+  auto packetRange = getPacketRange(dettype);
+  int startID = packetRange.first;
+  int endID = packetRange.second;
+
+  if (Verbosity() > 4)
+  {
+    std::cout << "Processing " << getDetectorName(dettype) << " from ID " << startID << " to " << endID << std::endl;
+  }
+  bool bad_event{false};
+  Event *event = findNode::getClass<Event>(topNode, "PRDF");
+  if (event)
+  {
+    if (event->getEvtType() != DATAEVENT)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
   for (int pid = startID; pid <= endID; pid++)
   {
-    if (!m_PacketNodesFlag)
+    if (event)
     {
-      if (auto *cont = std::get_if<CaloPacketContainer *>(&event))
+      Packet *packet = event->getPacket(pid);
+      if (process_packet(packet, pid) == Fun4AllReturnCodes::DISCARDEVENT)
       {
-        if (!*cont)
-        {
-          std::cout << PHWHERE << " CaloPacketContainer not found: " << nodemap.find(dettype)->second << std::endl;
-          return Fun4AllReturnCodes::DISCARDEVENT;
-        }
-        CaloPacket *packet = (*cont)->getPacketbyId(pid);
-        if (process_packet(packet, pid) == Fun4AllReturnCodes::DISCARDEVENT)
-        {
-          bad_event = true;
-        }
+        bad_event = true;
       }
-      else if (auto *_event = std::get_if<Event *>(&event))
-      {
-        Packet *packet = (*_event)->getPacket(pid);
-        if (process_packet(packet, pid) == Fun4AllReturnCodes::DISCARDEVENT)
-        {
-          bad_event = true;
-        }
-        delete packet;
-      }
+      delete packet;
     }
     else
+
     {
       CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, pid);
       if (process_packet(calopacket, pid) == Fun4AllReturnCodes::DISCARDEVENT)
