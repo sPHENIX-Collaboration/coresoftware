@@ -1,6 +1,8 @@
 #include "CaloValid.h"
 
 // Calo includes
+#include <calotrigger/TriggerAnalyzer.h>
+
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
@@ -36,6 +38,7 @@
 #include <TProfile2D.h>
 #include <TSystem.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>  // for log10, pow, sqrt, abs, M_PI
 #include <cstdint>
