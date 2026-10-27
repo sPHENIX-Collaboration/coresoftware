@@ -42,6 +42,8 @@ libcalovalid_la_LIBADD = \
 noinst_PROGRAMS = \
   testexternals
 
+BUILT_SOURCES  = testexternals.cc
+
 testexternals_SOURCES = testexternals.C
 testexternals_LDADD = libcalovalid.la
 
@@ -51,10 +53,6 @@ testexternals.C:
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
-
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f $(BUILT_SOURCES)
