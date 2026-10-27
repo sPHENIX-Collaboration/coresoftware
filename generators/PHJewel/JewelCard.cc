@@ -2,10 +2,10 @@
 
 #include <cctype>
 #include <cstdint>
-#include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <initializer_list>
+#include <iomanip>
 #include <sstream>
 
 #include <sys/stat.h>
@@ -259,7 +259,7 @@ namespace JewelCard
 
     bool fileExists(const std::string &p)
     {
-      struct stat st;
+      struct stat st{};
       return stat(p.c_str(), &st) == 0 && S_ISREG(st.st_mode);
     }
 
@@ -279,9 +279,10 @@ namespace JewelCard
 
     std::string fmtReal(double v)
     {
-      char b[64];
-      std::snprintf(b, sizeof(b), "%.10g", v);
-      std::string s(b);
+      // same text as printf "%.10g"
+      std::ostringstream os;
+      os << std::setprecision(10) << v;
+      std::string s = os.str();
       // keep it a Fortran real literal: "200" -> "200."
       if (s.find_first_of(".eEnN") == std::string::npos)
       {
@@ -389,15 +390,25 @@ namespace JewelCard
           {
             hint = " (keys are case sensitive: " + upper(name) + ")";
           }
-          errors.push_back(where + "unknown key '" + name + "'" + hint +
-                           "; JEWEL would ignore it and keep its default");
+          std::string msg = where;
+          msg += "unknown key '";
+          msg += name;
+          msg += "'";
+          msg += hint;
+          msg += "; JEWEL would ignore it and keep its default";
+          errors.push_back(msg);
           continue;
         }
         const Key &k = *it->second;
         if (out.entries.contains(name))
         {
-          errors.push_back(where + "duplicate key " + name + " (first on line " +
-                           std::to_string(out.entries[name].line) + "); JEWEL would use the last one");
+          std::string msg = where;
+          msg += "duplicate key ";
+          msg += name;
+          msg += " (first on line ";
+          msg += std::to_string(out.entries[name].line);
+          msg += "); JEWEL would use the last one";
+          errors.push_back(msg);
           continue;
         }
         Entry e;
@@ -414,8 +425,12 @@ namespace JewelCard
           const std::vector<std::string> w = words(rest);
           if (w.size() != 1)
           {
-            errors.push_back(where + name + ": path followed by more text ('" + rest +
-                             "'); JEWEL would take all of it as the file name");
+            std::string msg = where;
+            msg += name;
+            msg += ": path followed by more text ('";
+            msg += rest;
+            msg += "'); JEWEL would take all of it as the file name";
+            errors.push_back(msg);
             continue;
           }
           e.raw = w[0];
@@ -433,7 +448,12 @@ namespace JewelCard
           }
           if (w.size() > 1 && w[1][0] != '#')
           {
-            errors.push_back(where + name + ": unexpected text after the value: '" + rest + "'");
+            std::string msg = where;
+            msg += name;
+            msg += ": unexpected text after the value: '";
+            msg += rest;
+            msg += "'";
+            errors.push_back(msg);
             continue;
           }
           e.raw = w[0];
@@ -900,10 +920,11 @@ namespace JewelCard
     }
     r.mainCanon = mc.str();  // MEDIUMPARAMS added by the writer (path of the copy)
 
-    char hx[17];
-    std::snprintf(hx, sizeof(hx), "%016llx",
-                  static_cast<unsigned long long>(fnv1a("medium=" + opt.medium + "\n" + r.mainCanon + "--\n" + r.mediumCanon)));
-    r.hash = hx;
+    // 16 hex digits, as printf "%016llx"
+    std::ostringstream hx;
+    hx << std::hex << std::setw(16) << std::setfill('0')
+       << fnv1a("medium=" + opt.medium + "\n" + r.mainCanon + "--\n" + r.mediumCanon);
+    r.hash = hx.str();
     r.ok = true;
     return r;
   }
@@ -911,7 +932,7 @@ namespace JewelCard
   std::string writeCanonical(const Result &r, const std::string &stem, const std::string &source,
                              const std::string &medium, std::string &err)
   {
-    const std::string mainPath = absPath(stem + ".card.dat", ".");
+    std::string mainPath = absPath(stem + ".card.dat", ".");
     const std::string medPath = absPath(stem + ".medium.dat", ".");
     if (medium != "vac")
     {

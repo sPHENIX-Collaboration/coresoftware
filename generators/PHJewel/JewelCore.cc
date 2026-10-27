@@ -2,6 +2,7 @@
 
 #include <dlfcn.h>
 
+#include <initializer_list>
 #include <stdexcept>
 #include <string>
 
@@ -154,9 +155,10 @@ JewelCore::Config JewelCore::readConfig() const
   c.mass = ic[0];
   c.nproton = ic[1];
   c.iso = ic[2];
-  for (int s = 24; s >= 0; s -= 8)
+  // PROCESS packed as four characters, most significant byte first
+  for (const unsigned int shift : {24U, 16U, 8U, 0U})
   {
-    c.process += static_cast<char>((ic[3] >> s) & 0xff);
+    c.process += static_cast<char>((static_cast<unsigned int>(ic[3]) >> shift) & 0xffU);
   }
   c.weighted = ic[4];
   c.keeprecoils = ic[5];
