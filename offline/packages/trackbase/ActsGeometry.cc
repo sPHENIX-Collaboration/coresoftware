@@ -29,14 +29,16 @@ namespace
 }  // namespace
 
 //________________________________________________________________________________________________
-Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster) const
+Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing) const
 {
+  // note that crossing defaults to zero, if not supplied
+
   Acts::Vector3 glob;
 
   const auto trkrid = TrkrDefs::getTrkrId(key);
   if (trkrid == TrkrDefs::tpcId)
   {
-    return getGlobalPositionTpc(key, cluster);
+    return getGlobalPositionTpc(key, cluster, crossing);
   }
 
   /// If silicon/TPOT, the transform is one-to-one since the surface is planar
@@ -97,7 +99,7 @@ const float& clockPeriod) const
 }
 
 //________________________________________________________________________________________________
-Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrCluster* cluster) const
+Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing) const
 {
   Acts::Vector3 glob;
 
@@ -121,7 +123,8 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
     return glob;
   }
 
-  Acts::Vector2 local = getLocalCoords(key, cluster);  // no crossing correction here
+    // this corrects the local z for the crossing offset before transforming to global 
+  Acts::Vector2 local = getLocalCoords(key, cluster, crossing);  // crossing correction applied to local z
 
   glob = surface->localToGlobal(m_tGeometry.getGeoContext(),
                                 local * Acts::UnitConstants::cm,
@@ -392,7 +395,9 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
     local(1) = zloc;
 
     /*
-    std::cout << " clust " << cluster->getLocalY() << " tpc tzero " << _tpc_tzero << " sampa tbias " << _sampa_tzero_bias
+    std::cout << " clust " << cluster->getLocalY() << " tpc tzero " << _tpc_tzero
+              << " sampa tbias " << _sampa_tzero_bias
+	      << " side " << side
 	      << " crossing tzero correction " << crossing_tzero_correction << " corrected clust " << tcorrected
 	      << " drift vel " << _drift_velocity 
 	      << " crossing " << crossing << " crossing period " << sphenix_constants::time_between_crossings

@@ -96,6 +96,10 @@ int Fun4AllSyncManager::run(const int nevnts)
     int hassync = 0;
     for (auto &iter : m_InManager)
     {
+      if (Verbosity() > 0)
+      {
+	std::cout << "reading event from " << iter->Name() << std::endl;
+      }
       m_iretInManager[iman] = iter->run(1);
       iret += m_iretInManager[iman];
       // one can run DSTs without sync object via the DST input manager
@@ -144,6 +148,7 @@ int Fun4AllSyncManager::run(const int nevnts)
         iretsync = CheckSync(iman);
         if (iretsync)
         {
+	  Fun4AllServer::instance()->ResetNodeTree();
           break;
         }
       }
@@ -215,8 +220,7 @@ int Fun4AllSyncManager::run(const int nevnts)
           }
           ++InIter;
         }
-        // NOLINTNEXTLINE(hicpp-avoid-goto)
-        goto readerror;
+        goto readerror; // NOLINT(hicpp-avoid-goto)
       }
       else
       {

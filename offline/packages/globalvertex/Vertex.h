@@ -9,6 +9,7 @@
 #include <iostream>
 #include <limits>
 #include <set>
+#include "VertexDefs.h"
 
 class Vertex : public PHObject
 {
@@ -73,6 +74,9 @@ class Vertex : public PHObject
 
   virtual float get_bbc_q(int) const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float get_bbc_t(int) const { return std::numeric_limits<float>::quiet_NaN(); }
+
+  virtual void set_calo_algo(VertexDefs::CALOALGO) {}
+  virtual VertexDefs::CALOALGO get_calo_algo() const { return VertexDefs::CALOALGO::UNDEFINED; }
 
   // svtxvertex methods
   virtual void clear_tracks() {}

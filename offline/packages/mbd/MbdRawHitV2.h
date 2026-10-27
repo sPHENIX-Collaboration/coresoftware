@@ -42,9 +42,9 @@ class MbdRawHitV2 : public MbdRawHit
   {
     if ( (fitstat&0x8000) != 0 )
     {
-      return true;
+      return 1;
     }
-    return false;
+    return 0;
   }
 
   //! Raw Info on Fits
@@ -104,7 +104,7 @@ class MbdRawHitV2 : public MbdRawHit
 
  private:
   Short_t  bpmt;
-  UShort_t fitstat; //waveform fit status
+  UShort_t fitstat{0}; //waveform fit and badtdc status
   Float_t  badc;
   Float_t  bttdc;
   Float_t  bqtdc;
