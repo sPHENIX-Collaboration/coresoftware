@@ -389,6 +389,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void getAllPVInfo(bool pvinfo = true) { m_get_all_PVs = pvinfo; }
 
+  void saveMomentumCalibrationOutputOnly(bool minimal = true) { m_momentum_calibration_output = minimal; }
+
   void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_bunch_crossing_zero_only = bcZeroOnly; }
 
   void forceMixedEvent(bool force = true) { m_force_mixed_event = force; }

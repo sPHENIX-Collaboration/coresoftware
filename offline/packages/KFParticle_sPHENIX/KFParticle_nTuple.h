@@ -99,9 +99,18 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   bool m_use_intermediate_name{false};
   bool m_get_charge_conjugate_nTuple{false};
   bool m_use_fake_pv_nTuple{false};
+  bool m_momentum_calibration_output{false};
   std::vector<std::string> m_intermediate_name_ntuple;
 
  private:
+  // This fills a reduced output meant for the ML momentum calibration
+  // It contains mother mass/pT/eta/phi/PID, daughter pT/pTErr/eta/phi/charge/PID/covariance and runNumber only
+  void initializeMomentumCalibrationBranches(const std::string &mother_name);
+  void fillMomentumCalibrationBranch(PHCompositeNode *topNode,
+                                     KFParticle &motherParticle,
+                                     KFParticle *daughterArray);
+
+
   TTree *m_tree{nullptr};
 
   float m_calculated_mother_mass{-1};
