@@ -1,11 +1,13 @@
 #include "CaloWaveformFitting.h"
 
 #include <TF1.h>
+#include <TBackCompFitter.h>
 #include <TFile.h>
 #include <TH1F.h>
 #include <TProfile.h>
 #include <TSpline.h>
 #include <TFitResult.h>
+#include <TVirtualFitter.h>
 
 #include <Fit/BinData.h>
 #include <Fit/Chi2FCN.h>
@@ -24,6 +26,20 @@
 #include <string>
 
 static ROOT::TThreadExecutor *t = new ROOT::TThreadExecutor(1);  // NOLINT(misc-use-anonymous-namespace)
+
+namespace
+{
+void release_histogram_fitter(TH1F *histogram)
+{
+  auto *fitter = dynamic_cast<TBackCompFitter *>(TVirtualFitter::GetFitter());
+  if (fitter && fitter->TestBit(TBackCompFitter::kCanDeleteLast) && fitter->GetObjectFit() == histogram)
+  {
+    TVirtualFitter::SetFitter(nullptr);
+    delete fitter;
+  }
+}
+}  // namespace
+
 double CaloWaveformFitting::template_function(double *x, double *par)
 {
   Double_t v1 = (par[0] * h_template->Interpolate(x[0] - par[1])) + par[2];
@@ -849,6 +865,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
         }
       }
       if (fitres.Get()) { validfit = fitres.Get()->Status(); }
+      release_histogram_fitter(&h);
     }
     else if(m_funcfit_type == POWERLAWDOUBLEEXP)
     {
@@ -900,6 +917,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
         }
       }
       if (fitres.Get()) { validfit = fitres.Get()->Status(); }
+      release_histogram_fitter(&h);
     }
     else if(m_funcfit_type == FERMIEXP)
     {
@@ -939,6 +957,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
         }
       }
       if (fitres.Get()) { validfit = fitres.Get()->Status(); }
+      release_histogram_fitter(&h);
     }
 
     int ndf = ndata - npar;
