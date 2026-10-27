@@ -12,7 +12,6 @@
 #include <vector>
 
 class CaloPacket;
-class CaloPacketContainer;
 class Fun4AllInputManager;
 class PHCompositeNode;
 class TH1;
@@ -30,7 +29,6 @@ class ClockDiffCheck : public SubsysReco, public DumpPacket
   
   int End(PHCompositeNode *topNode) override;
 
-  void FillCaloClockDiff(CaloPacketContainer *pktcont);
   void FillCaloClockDiffSngl(CaloPacket *calopkt);
   void FillPacketDiff(OfflinePacket *pkt);
 
