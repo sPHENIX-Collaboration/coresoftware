@@ -1,61 +1,45 @@
-#ifndef TREEUSERINFO_TREEUSERINFO_H
-#define TREEUSERINFO_TREEUSERINFO_H
+#ifndef USERINFO_TREEUSERINFO_H
+#define USERINFO_TREEUSERINFO_H
 
-#include <cstdint>
-#include <iosfwd>
-#include <map>
 #include <string>
-#include <vector>
 
+class TDirectory;
 class TTree;
 
-// Provenance of a TTree, stored in tree->GetUserInfo() as TNamed(key, value):
-//   release        basename of $OFFLINE_MAIN (e.g. ana.579)
-//   offline_main   $OFFLINE_MAIN, symlinks resolved
-//   git_commit_id  contents of $OFFLINE_MAIN/GIT_COMMIT_ID (or "cannot read <file>")
-//   local_install  $MYINSTALL (else the prefix this library was installed to)
-//   cdb_globaltag  recoConsts CDB_GLOBALTAG
-//   cdb_timestamp  recoConsts TIMESTAMP
-//   cdb.<type>     payload file(s) of <type>
-// The cdb.<type> entries are the payloads this job fetched through CDBInterface
-// (RUN/CdbUrl node, which includes those carried in from input DSTs); several distinct
-// payloads of one type are comma separated. Payloads read without CDBInterface are missing.
+// Provenance of a job as a TTree with one entry; hadd appends the entries of its inputs, so a
+// merged file has one entry per input job. Plain ROOT types only, readable without sPHENIX libraries.
+//   provenance_version  Int_t                     layout of this tree (1)
+//   release             std::string               basename of $OFFLINE_MAIN (e.g. ana.579)
+//   offline_main        std::string               $OFFLINE_MAIN, symlinks resolved
+//   git_commit_id       std::string               contents of $OFFLINE_MAIN/GIT_COMMIT_ID (or "cannot read <file>")
+//   local_install       std::string               $MYINSTALL (else the prefix this library was installed to)
+//   cdb_globaltag       std::string               recoConsts CDB_GLOBALTAG
+//   cdb_timestamp       ULong64_t                 recoConsts TIMESTAMP
+//   cdb_type            std::vector<std::string>  payloads fetched through CDBInterface (RUN/CdbUrl node,
+//   cdb_url             std::vector<std::string>    including those carried in from input DSTs): type,
+//   cdb_url_timestamp   std::vector<ULong64_t>      payload file and the timestamp it was fetched for
+//   input_manager       std::vector<std::string>  every file opened by the input managers of the default
+//   input_file          std::vector<std::string>    sync manager, in the order opened: manager name, file
+//   input_run           std::vector<Int_t>          name as given (lfn or path), and run and segment from
+//   input_segment       std::vector<Int_t>          Fun4AllUtils::GetRunSegment (segment -9999 for names
+//                                                   not following the -<run>-<segment>.<ext> convention)
 //
-// Call it after the CDB tag and timestamp are set (InitRun or later) and before the tree is
-// written, e.g. in End():  TreeUserInfo::Add(m_tree);
-// Read back:  tree->GetUserInfo()->FindObject("cdb.CEMC_meanTime")->GetTitle()
-//
-// Reading (TreeUserInfoRead.cc, ROOT only) also handles UserInfo concatenated by
-// hadd-meta --merge-meta: a block starts wherever a key repeats. Blocks are combined by
-// cdb_timestamp; values with whitespace (CDB error messages) are not payload files and skipped.
-namespace TreeUserInfo
+// Call it after the CDB tag and timestamp are set (InitRun or later), e.g. in End():
+//   m_outfile->cd();
+//   TTree *prov = TreeUserInfo::Make();  // created in the current directory, i.e. m_outfile
+//   prov->Write();
+// Read back:  prov->Scan("release:cdb_timestamp");  TChain c("provenance") over files works too.
+class TreeUserInfo
 {
-  // timestamp -> payload type -> payload file(s), distinct, in the order found
-  using Payloads = std::map<uint64_t, std::map<std::string, std::vector<std::string>>>;
+ public:
+  static constexpr int Version = 1;
 
-  // adds all entries above; returns the number added, -1 on error (nothing added)
-  int Add(TTree *tree);
+  // a new tree with this job's entry, attached to dir (nullptr: kept in memory); owned by dir, else
+  // by the caller. nullptr on error (recoConsts not set, no RUN/CdbUrl node)
+  static TTree *Make(TDirectory *dir, const std::string &name = "provenance");
 
-  // sets one entry, replacing an existing one with the same key
-  void Set(TTree *tree, const std::string &key, const std::string &value);
-
-  // prints key=value for every TNamed in the UserInfo
-  void Print(TTree *tree);
-
-  // adds the cdb.<type> entries of tree to payloads; returns the number of UserInfo blocks read
-  int Read(TTree *tree, Payloads &payloads);
-
-  // same for treename in file (empty: the first tree with a cdb_timestamp); -1 on error.
-  // A .yaml/.yml file is read as the YAML extract-cdb-info writes (treename ignored); returns its number of blocks
-  int Read(const std::string &file, Payloads &payloads, const std::string &treename = "");
-
-  // writes '<type> <url>' lines of run for CDBInterface::ReadCalibrationsFromFile(); a type with
-  // several payloads gets the first. Returns the number of lines, -1 if run is not in file
-  int WriteCalibrations(std::ostream &os, const std::string &file, uint64_t run, const std::string &treename = "");
-  int WriteCalibrations(std::ostream &os, const Payloads &payloads, uint64_t run);
-
-  // the same as a string, empty on error
-  std::string Calibrations(const std::string &file, uint64_t run, const std::string &treename = "");
-}  // namespace TreeUserInfo
+  // the same in the current directory (gDirectory)
+  static TTree *Make(const std::string &name = "provenance");
+};
 
 #endif

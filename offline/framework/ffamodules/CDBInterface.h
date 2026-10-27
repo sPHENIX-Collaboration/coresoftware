@@ -38,15 +38,6 @@ class CDBInterface : public SubsysReco
   void DumpCalibrations(const std::string &filename);
   void ReadCalibrationsFromFile(const std::string &filename);
 
-  //added for in-run transmission of cdb information
-  // returns a copy (not a lot of additional memory and ran right before CDBInterface::End()
-  // rather this than risk having a reference around
-  
-  std::set<std::tuple<std::string, std::string, uint64_t>> getUrls() const { return m_UrlVector; }
-
-  // safety check for other code interacting with CDBInterface
-  static bool exists() { return __instance != nullptr; }
-
 private:
   CDBInterface(const std::string &name = "CDBInterface");
 

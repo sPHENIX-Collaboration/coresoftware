@@ -15,24 +15,17 @@ pkginclude_HEADERS = \
   TreeUserInfo.h
 
 lib_LTLIBRARIES = \
-  libtreeuserinfo.la
+  libuserinfo.la
 
-libtreeuserinfo_la_SOURCES = \
-  TreeUserInfo.cc \
-  TreeUserInfoRead.cc
+libuserinfo_la_SOURCES = \
+  TreeUserInfo.cc
 
-libtreeuserinfo_la_LIBADD = \
+libuserinfo_la_LIBADD = \
   -lffamodules \
   -lffaobjects \
   -lfun4all \
   -lphool \
   $(ROOTLIBS)
-
-bin_PROGRAMS = \
-  extract-cdb-info
-
-extract_cdb_info_SOURCES = extract-cdb-info.cc
-extract_cdb_info_LDADD   = libtreeuserinfo.la
 
 BUILT_SOURCES = testexternals.cc
 
@@ -40,7 +33,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libtreeuserinfo.la
+testexternals_LDADD   = libuserinfo.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
