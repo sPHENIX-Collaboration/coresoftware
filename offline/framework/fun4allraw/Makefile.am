@@ -18,7 +18,6 @@ pkginclude_HEADERS = \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllStreamingInputManager.h \
-  Fun4AllTriggeredInputManager.h \
   intt_pool.h \
   InputManagerType.h \
   MicromegasBcoMatchingInformation.h\
@@ -26,7 +25,6 @@ pkginclude_HEADERS = \
   MicromegasBcoMatchingInformation_v2.h\
   MvtxRawDefs.h \
   SingleGl1PoolInput.h \
-  SingleGl1TriggeredInput.h \
   SingleMicromegasPoolInput.h \
   SingleMicromegasPoolInput_v1.h \
   SingleMicromegasPoolInput_v2.h \
@@ -35,7 +33,6 @@ pkginclude_HEADERS = \
   SingleMvtxPoolInput.h \
   SingleStreamingInput.h \
   SingleTpcPoolInput.h \
-  SingleTriggeredInput.h \
   SingleTpcTimeFrameInput.h \
   TpcTimeFrameBuilder.h \
   TpcTimeFrameBuilderBase.h \
@@ -77,14 +74,12 @@ libfun4allraw_la_SOURCES = \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
-  Fun4AllTriggeredInputManager.cc \
   intt_pool.cc \
   MicromegasBcoMatchingInformation_v1.cc\
   MicromegasBcoMatchingInformation_v2.cc\
   mvtx_pool.cc \
   MvtxRawDefs.cc \
   SingleGl1PoolInput.cc \
-  SingleGl1TriggeredInput.cc \
   SingleInttEventInput.cc \
   SingleInttPoolInput.cc \
   SingleMicromegasPoolInput_v1.cc \
@@ -92,7 +87,6 @@ libfun4allraw_la_SOURCES = \
   SingleMvtxPoolInput.cc \
   SingleStreamingInput.cc \
   SingleTpcPoolInput.cc \
-  SingleTriggeredInput.cc \
   SingleTpcTimeFrameInput.cc \
   TpcTimeFrameBuilder.cc \
   TpcTimeFrameBuilderRun3.cc
