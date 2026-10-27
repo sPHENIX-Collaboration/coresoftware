@@ -10,6 +10,7 @@
 #include "ActsPropagator.h"
 #include "MakeSourceLinks.h"
 
+#include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
 /// Tracking includes
@@ -497,10 +498,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
     }
 
-    // do not skip TPC only tracks, just set crossing to the nominal zero
+    // Use the TPC seed crossing when no silicon seed is available.
     if (!siseed)
     {
-      crossing = 0;
+      crossing = (tpcseed && tpcseed->get_crossing() != SHRT_MAX) ? tpcseed->get_crossing() : 0;
     }
 
     // no path forward in this case, move on
@@ -687,6 +688,24 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       if (!siseed || !is_valid(position) || m_forceTpcOnlyFit)
       {
         position = TrackSeedHelper::get_xyz(tpcseed) * Acts::UnitConstants::cm;
+
+        // Correct the local initial z according to crossing
+        if (this_crossing != 0)
+        {
+          std::set<unsigned int> sides;
+          for (auto key = tpcseed->begin_cluster_keys(); key != tpcseed->end_cluster_keys(); ++key)
+          {
+            if (TrkrDefs::getTrkrId(*key) == TrkrDefs::tpcId)
+            {
+              sides.insert(TpcDefs::getSide(*key));
+            }
+          }
+          if (sides.size() == 1)
+          {
+            const double z = position.z() / Acts::UnitConstants::cm;
+            position.z() = TpcClusterZCrossingCorrection::correctZ(z, *sides.begin(), this_crossing) * Acts::UnitConstants::cm;
+          }
+        }
       }
       if (!is_valid(position))
       {
