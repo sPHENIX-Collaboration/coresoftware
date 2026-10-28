@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fun4all/SubsysReco.h>
+#include <phool/sphenix_constants.h>
 
 #include <trackbase/TrkrDefs.h>
 
@@ -69,7 +70,7 @@ class TpcPolyClusterTrkrClusterConverter : public SubsysReco
   std::map<unsigned int, const Tpc_PolyTrack*> m_tracksBySourceId;
   std::map<TrkrDefs::cluskey, std::array<double, 3>> m_movedGlobals;
   std::map<TrkrDefs::cluskey, unsigned short> m_seedSubSurfKeys;
-  double m_crossingPeriodNs {106.56};
+  double m_crossingPeriodNs {sphenix_constants::time_between_crossings};
   double m_magneticFieldTesla {1.4};
   bool m_fillClusterHitAssoc {true};
 };
