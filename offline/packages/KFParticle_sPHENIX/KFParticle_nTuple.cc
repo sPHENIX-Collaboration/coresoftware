@@ -739,40 +739,39 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   if(m_use_centrality_nTuple)
   {
-    m_CentInfo = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
-     
+    m_CentInfo = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo"); 
     if (!m_CentInfo)
     {
-        std::cout << "KFparticle - [WARNING] - can't find CentralityInfo node " << "CentralityInfo" << std::endl;
-        m_centrality_mbd = -9999.;
+      std::cout << "KFparticle - [WARNING] - can't find CentralityInfo node " << "CentralityInfo" << std::endl;
+      m_centrality_mbd = -9999.;
     }
     else
     {
-        if (m_CentInfo->has_centrality_bin(CentralityInfo::PROP::mbd_NS))
+      if (m_CentInfo->has_centrality_bin(CentralityInfo::PROP::mbd_NS))
+      {
+        if(bunchCrossingisZero)
         {
-          if(bunchCrossingisZero)
-          {
-            const int bin = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
-            m_centrality_mbd = m_first_in_event ? bin : -bin;
-          }
-          else
-          {
-            if (m_verbosity_nTuple > 0)
-            {
-              std::cout << "KFParticle - Invalid bunch crossing" << std::endl;
-            }
-            m_centrality_mbd = std::numeric_limits<float>::quiet_NaN();
-          }
+          const int bin = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
+          m_centrality_mbd = m_first_in_event ? bin : -bin;
         }
         else
         {
           if (m_verbosity_nTuple > 0)
           {
-            std::cout << "KFParticle - No centrality information found in CentralityInfo. Setting centrality_MBD to -999." << std::endl;
-            m_CentInfo->identify();
+            std::cout << "KFParticle - Invalid bunch crossing" << std::endl;
           }
-          m_centrality_mbd = -999.;
+        m_centrality_mbd = std::numeric_limits<float>::quiet_NaN();
         }
+      }
+      else
+      {
+        if (m_verbosity_nTuple > 0)
+        {
+          std::cout << "KFParticle - No centrality information found in CentralityInfo. Setting centrality_MBD to -999." << std::endl;
+          m_CentInfo->identify();
+        }
+        m_centrality_mbd = -999.;
+      }
     }
   }
 
