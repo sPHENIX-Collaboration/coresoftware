@@ -2,7 +2,6 @@
 #define CALOEMCPI0TBT_PI0ETABYETA_H
 
 #include <globalvertex/GlobalVertex.h>
-
 #include <fun4all/SubsysReco.h>
 
 // #include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
