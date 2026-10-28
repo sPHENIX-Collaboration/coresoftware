@@ -42,7 +42,7 @@ libcalovalid_la_LIBADD = \
 noinst_PROGRAMS = \
   testexternals
 
-BUILT_SOURCES  = testexternals.cc
+BUILT_SOURCES  = testexternals.C
 
 testexternals_SOURCES = testexternals.C
 testexternals_LDADD = libcalovalid.la
