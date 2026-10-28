@@ -3,6 +3,7 @@
 
 
 #include <fun4all/SubsysReco.h>
+#include <phool/sphenix_constants.h>
 
 #include "TpcCrossingDecision.h"
 #include <trackbase/TrkrDefs.h>
@@ -225,7 +226,7 @@ class TpcCrossingFinder : public SubsysReco
   bool m_t0Override {false};
   bool m_tpcAdcClockOverride {false};
   double m_tpcAdcClock {56.881262};
-  double m_crossingPeriodNs {106.56};
+  double m_crossingPeriodNs {sphenix_constants::time_between_crossings};
   double m_reverseDriftStepNs {56.881262};
   double m_startZSouth {-102.605};
   double m_startZNorth {102.605};
