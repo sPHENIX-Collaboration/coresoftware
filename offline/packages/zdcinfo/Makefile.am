@@ -20,6 +20,7 @@ libzdcinfo_la_LIBADD = \
   libzdcinfo_io.la \
   -lfun4all \
   -lcalo_io \
+  -lmbd_io \
   -lcdbobjects \
   -lffamodules \
   -lglobalvertex_io
@@ -28,7 +29,8 @@ pkginclude_HEADERS = \
   Zdcinfo.h \
   Zdcinfov1.h \
   Zdcinfov2.h \
-  ZdcReco.h
+  ZdcReco.h \
+  ZdcSatelliteCorr.h
 
 ROOTDICTS = \
   Zdcinfo_Dict.cc \
@@ -47,7 +49,8 @@ libzdcinfo_io_la_SOURCES = \
 
 
 libzdcinfo_la_SOURCES = \
-  ZdcReco.cc
+  ZdcReco.cc \
+  ZdcSatelliteCorr.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
