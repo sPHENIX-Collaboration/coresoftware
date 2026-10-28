@@ -9,7 +9,6 @@
 
 #ifndef ONLINE
 #include <ffarawobjects/CaloPacket.h>
-#include <ffarawobjects/CaloPacketContainer.h>
 #include <ffarawobjects/Gl1Packet.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/phool.h>
@@ -1045,9 +1044,6 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
 
   }
 
-  // bbcpmts->Reset();
-  //std::cout << "q10 " << bbcpmts->get_tower_at_channel(10)->get_q() << std::endl;
-
   // Copy to output
   for (int ipmt = 0; ipmt < MbdDefs::BBC_N_PMT; ipmt++)
   {
@@ -1059,6 +1055,10 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
     if ( std::isnan(m_pmttt[ipmt]) && !std::isnan(m_pmttq[ipmt]) )
     {
       bbcraws->get_pmt(ipmt)->set_badtdc( 1 );
+    }
+    else
+    {
+      bbcraws->get_pmt(ipmt)->set_badtdc( 0 );
     }
     bbcpmts->get_pmt(ipmt)->set_fitstat( bbcraws->get_pmt(ipmt)->get_fitstat() );
   }
