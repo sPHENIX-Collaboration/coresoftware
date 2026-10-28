@@ -4,7 +4,7 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include \
-  -DTREEUSERINFO_PREFIX=\"$(prefix)\"
+  -DPROVENANCETREE_PREFIX=\"$(prefix)\"
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -15,17 +15,32 @@ pkginclude_HEADERS = \
   TreeUserInfo.h
 
 lib_LTLIBRARIES = \
-  libuserinfo.la
+  libprovenancetree.la
 
-libuserinfo_la_SOURCES = \
-  TreeUserInfo.cc
+libprovenancetree_la_SOURCES = \
+  TreeUserInfo.cc \
+  TreeUserInfoRead.cc
 
-libuserinfo_la_LIBADD = \
+libprovenancetree_la_LIBADD = \
   -lffamodules \
   -lffaobjects \
   -lfun4all \
   -lphool \
   $(ROOTLIBS)
+
+# plain ROOT only, so they also run without the sPHENIX libraries
+bin_PROGRAMS = \
+  check_provenance \
+  extract-cdb-info
+
+check_provenance_SOURCES = check_provenance.cc
+check_provenance_LDADD = $(ROOTLIBS)
+
+extract_cdb_info_SOURCES = extract-cdb-info.cc TreeUserInfoRead.cc
+extract_cdb_info_LDADD = $(ROOTLIBS)
+# own flags so automake compiles TreeUserInfoRead.cc separately for the program (it is also in the
+# libtool library, and automake refuses to share one object between the two)
+extract_cdb_info_CPPFLAGS = $(AM_CPPFLAGS)
 
 BUILT_SOURCES = testexternals.cc
 
@@ -33,7 +48,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libuserinfo.la
+testexternals_LDADD   = libprovenancetree.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
