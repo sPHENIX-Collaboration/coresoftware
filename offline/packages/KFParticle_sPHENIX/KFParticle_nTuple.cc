@@ -737,13 +737,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_bco = -1;
   }
 
-
-  bool isFirstInEvent = false;
-
   if(m_use_centrality_nTuple)
   {
-    CentralityInfo *m_CentInfo = nullptr;
-    m_CentInfo =  findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
+    m_CentInfo = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
      
     if (!m_CentInfo)
     {
@@ -757,14 +753,13 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
           if(bunchCrossingisZero)
           {
             const int bin = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
-            isFirstInEvent = (m_evtNumber < 0) ||!(m_runNumber == m_centrality_check_run && m_evtNumber == m_centrality_check_evt);
-            m_centrality_mbd = isFirstInEvent ? bin : -bin;
+            m_centrality_mbd = m_first_in_event ? bin : -bin;
           }
           else
           {
             if (m_verbosity_nTuple > 0)
             {
-              std::cout << "KFparticle - Invalid bunch crossing" << std::endl;
+              std::cout << "KFParticle - Invalid bunch crossing" << std::endl;
             }
             m_centrality_mbd = std::numeric_limits<float>::quiet_NaN();
           }
@@ -773,7 +768,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
         {
           if (m_verbosity_nTuple > 0)
           {
-            std::cout << "[WARNING/ERROR] No centrality information found in CentralityInfo. Setting centrality_MBD to -999. Please check!" << std::endl;
+            std::cout << "KFParticle - No centrality information found in CentralityInfo. Setting centrality_MBD to -999." << std::endl;
             m_CentInfo->identify();
           }
           m_centrality_mbd = -999.;
@@ -789,10 +784,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   if (fillConditionMet())
   {
     m_tree->Fill();
-    if(isFirstInEvent)
+    if(bunchCrossingisZero) //Prevents NaN from being the first value
     {
-      m_centrality_check_run = m_runNumber;
-      m_centrality_check_evt = m_evtNumber;
+      m_first_in_event = false;
     }
   }
 
