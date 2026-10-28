@@ -876,7 +876,7 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
         {
           float track_ntp_data[] = {
               static_cast<float>(track->get_id()),
-              static_cast<float>(track->get_quality()),
+              track->get_quality(),
               static_cast<float>(vtx_residual(0)),
               static_cast<float>(vtx_residual(1)),
               static_cast<float>(m_vtxSigma(0) * m_vtxSigmaInflation),
@@ -899,10 +899,10 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
               static_cast<float>(eventVertex.x() * Acts::UnitConstants::cm),
               static_cast<float>(eventVertex.y() * Acts::UnitConstants::cm),
               static_cast<float>(eventVertex.z() * Acts::UnitConstants::cm),
-              static_cast<float>(track->get_phi()),
-              static_cast<float>(track->get_eta()),
-              static_cast<float>(track->get_p()),
-              static_cast<float>(track->get_pt()),
+              track->get_phi(),
+              track->get_eta(),
+              track->get_p(),
+              track->get_pt(),
               static_cast<float>(vertex_ntracks)};
           track_ntp->Fill(track_ntp_data);
           ++n_track_ntp_fills;
