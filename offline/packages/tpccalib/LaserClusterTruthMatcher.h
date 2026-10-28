@@ -7,6 +7,8 @@
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
+#include <trackbase/ActsGeometry.h>
+
 #include <fun4all/SubsysReco.h>
 
 #include <map>
@@ -111,6 +113,8 @@ class LaserClusterTruthMatcher : public SubsysReco
   double m_garfield_keffside0{1.0};
   double m_garfield_keffside1{1.0};
   double m_garfield_stepns{50.0};
+
+  ActsGeometry *m_tGeometry{nullptr};
 
   std::string m_distortionOutputfile{"CMDistortionCorrections.root"};
 

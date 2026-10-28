@@ -30,8 +30,10 @@ int MbdRawContainerV2::isValid() const
 
 void MbdRawContainerV2::Reset()
 {
-  MbdRawHits->Clear();
-  npmt = 0;
+  for (int ipmt=0; ipmt < get_npmt(); ipmt++)
+  {
+    get_pmt(ipmt)->Clear();
+  }
 }
 
 void MbdRawContainerV2::identify(std::ostream &out) const

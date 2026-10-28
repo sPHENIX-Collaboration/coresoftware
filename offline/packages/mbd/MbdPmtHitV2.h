@@ -52,9 +52,9 @@ class MbdPmtHitV2 : public MbdPmtHit
   {
     if ( (fitstat&0x8000) != 0 )
     {
-      return true;
+      return 1;
     }
-    return false;
+    return 0;
   }
 
   //! Raw Info on Fits
@@ -82,7 +82,7 @@ class MbdPmtHitV2 : public MbdPmtHit
 
  private:
   Short_t  bpmt;
-  UShort_t fitstat;
+  UShort_t fitstat{0};
   Float_t  bq;
   Float_t  btt;
   Float_t  btq;

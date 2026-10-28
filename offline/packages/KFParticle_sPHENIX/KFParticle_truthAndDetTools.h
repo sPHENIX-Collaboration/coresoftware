@@ -37,6 +37,7 @@ class TowerInfoContainer;
 class TrkrClusterContainer;
 class TTree;
 class KFParticle;
+class KFParticle_Tools;
 class GlobalVertex;
 class GlobalVertexMap;
 
@@ -99,6 +100,8 @@ class KFParticle_truthAndDetTools
     return deltaPhi;
   }
 
+  void setToolsInstance(KFParticle_Tools *tools) { m_tools = tools; }
+
   // Functions to set cuts on track-emcal matching 
   void set_emcal_radius_user(float set_variable) { m_emcal_radius_user = set_variable; }
   void set_emcal_e_low_cut(float set_variable) { m_emcal_e_low_cut = set_variable; }
@@ -111,11 +114,11 @@ class KFParticle_truthAndDetTools
   bool m_get_detailed_tracking{true};
   bool m_get_detailed_calorimetry{false};
   bool m_get_calo_5x5_cell_info{false};
-  bool m_use_mbd_vertex_truth{false};
-  bool m_dont_use_global_vertex_truth{false};
 
-  std::string m_trk_map_node_name_nTuple{"SvtxTrackMap"};
-  std::string m_vtx_map_node_name_nTuple{"SvtxVertexMap"};
+  // The single KFParticle_Tools instance that holds the user's settings (vertex/track map names,
+  // MBD vs SVTX vertex, global vertex use, ...). Set once by KFParticle_sPHENIX so that this class
+  // and KFParticle_nTuple never work from a second, default-configured copy.
+  KFParticle_Tools *m_tools{nullptr};
 
   SvtxEvalStack *m_svtx_evalstack{nullptr};
   SvtxClusterEval *clustereval{nullptr};

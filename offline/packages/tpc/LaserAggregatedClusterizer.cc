@@ -42,6 +42,7 @@
 #include <fstream>
 #include <limits>
 #include <map>  // for _Rb_tree_cons...
+#include <numbers>
 #include <numeric>
 #include <queue>
 #include <set>
@@ -52,6 +53,8 @@
 
 namespace
 {
+
+  constexpr double pi_double = std::numbers::pi;
 
   struct thread_data
   {
@@ -586,7 +589,7 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
     for(int s=0; s<2; s++)
     {
       h[s] = new TH2Poly(std::format("hADC_perLaserFlash_{}",s ? "North" : "South").c_str(), std::format("ADC Per Laser Flash (nHits_perLaserFlash>=1) {};#phi [rad];R [cm];ADC per Laser Flash",s ? "North" : "South").c_str(),
-                          100, 0.0, 2.0*TMath::Pi(), 100, 28, 78);
+                          100, 0.0, 2.0*pi_double, 100, 28, 78);
       h[s]->SetFloat(false);
       h[s]->SetDirectory(nullptr);
 
@@ -621,8 +624,8 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
         int side = TpcDefs::getSide(ckey);
         Acts::Vector3 cluster_global = lch.getClusterCentroid(cluster);
         double clusterPhi = atan2(cluster_global[1], cluster_global[0]);
-        while(clusterPhi < 0){ clusterPhi += 2*TMath::Pi(); }
-        while(clusterPhi > 2*TMath::Pi()){ clusterPhi -= 2*TMath::Pi(); }
+        while(clusterPhi < 0){ clusterPhi += 2*pi_double; }
+        while(clusterPhi > 2*pi_double){ clusterPhi -= 2*pi_double; }
         double clusterR = sqrt(cluster_global[0]*cluster_global[0] + cluster_global[1]*cluster_global[1]);   
         gr[side]->AddPoint(clusterPhi, clusterR);
 
@@ -640,8 +643,8 @@ int LaserAggregatedClusterizer::process_event(PHCompositeNode* topNode)
           double layerWidth = layer_geom->get_thickness() / 2.0;
 
           double hitPhi = atan2(global[1], global[0]);
-          while(hitPhi < 0){ hitPhi += 2*TMath::Pi(); }
-          while(hitPhi > 2*TMath::Pi()){ hitPhi -= 2*TMath::Pi(); }
+          while(hitPhi < 0){ hitPhi += 2*pi_double; }
+          while(hitPhi > 2*pi_double){ hitPhi -= 2*pi_double; }
           double hitR = sqrt(global[0]*global[0] + global[1]*global[1]);    
         
           double phis[5] = {hitPhi - phiWidth,hitPhi + phiWidth,hitPhi + phiWidth,hitPhi - phiWidth,hitPhi - phiWidth};
