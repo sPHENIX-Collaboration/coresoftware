@@ -185,9 +185,10 @@ int main(int argc, char **argv)
   // URL "(missing)" afterwards.
   struct TimestampData
   {
-    std::vector<std::string> labels;
-    std::map<std::string, ValueCount> urls;  // type -> url -> labels
+    std::vector<std::string> labels{};
+    std::map<std::string, ValueCount> urls{};  // type -> url -> labels
   };
+  
   std::map<ULong64_t, TimestampData> timestamps;
 
   for (Long64_t i = 0; i < nentries; ++i)
