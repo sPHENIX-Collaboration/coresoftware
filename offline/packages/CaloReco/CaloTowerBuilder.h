@@ -45,7 +45,7 @@ class CaloTowerBuilder : public SubsysReco
 
   void set_nsamples(int _nsamples)
   {
-    m_nsamples = _nsamples;
+    m_nsamples_dummy = _nsamples;
     return;
   }
   void set_dataflag(bool flag)
@@ -148,7 +148,7 @@ class CaloTowerBuilder : public SubsysReco
   bool tmpdummy{false};
   int m_packet_low{std::numeric_limits<int>::min()};
   int m_packet_high{std::numeric_limits<int>::min()};
-  int m_nsamples{16};
+  int m_nsamples_dummy{16};
   int m_nchannels{192};
   int m_nzerosuppsamples{2};
   int m_nsoftwarezerosuppression{40};
