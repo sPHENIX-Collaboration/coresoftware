@@ -28,7 +28,6 @@ class PHNode;
 
 /// Create necessary objects
 float TempError;
-KFParticle_Tools kfpTupleTools;
 
 void KFParticle_nTuple::initializeVariables()
 {
@@ -341,8 +340,6 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   KFParticle* daughterArray = daughters.data();
 
   bool switchTrackPosition;
-  kfpTupleTools.set_dont_use_global_vertex(m_dont_use_global_vertex_truth);
-  kfpTupleTools.set_use_mbd_vertex(m_use_mbd_vertex_truth);
 
   int num_tracks_used_by_intermediates = 0;
   for (int k = 0; k < m_num_intermediate_states_nTuple; ++k)  // Rearrange tracks from intermediate states
