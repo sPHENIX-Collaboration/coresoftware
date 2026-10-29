@@ -1,11 +1,22 @@
 #include "DetermineTowerRho.h"
 
+#include "MbdChargeKnee.h"
 #include "TowerRhov1.h"
 
 #include <jetbase/Jet.h>
 #include <jetbase/JetContainer.h>
 #include <jetbase/JetContainerv1.h>
 #include <jetbase/JetInput.h>
+
+#include <calobase/TowerInfoDefs.h>
+
+#include <cdbobjects/CDBHistos.h>
+
+#include <globalvertex/GlobalVertexMap.h>
+
+#include <mbd/MbdOut.h>
+
+#include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -17,6 +28,10 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/recoConsts.h>
+
+#include <TH1.h>
+#include <TH3.h>
 
 // fastjet includes
 #include <fastjet/AreaDefinition.hh>
@@ -130,10 +145,36 @@ int DetermineTowerRho::InitRun(PHCompositeNode *topNode)
     }
     std::cout << std::endl;
     std::cout << "Omit n hardest: " << m_omit_nhardest << std::endl;
+    std::cout << "Tower shape map: ";
+    if (m_smap_path.empty() && m_smap_tag.empty())
+    {
+      std::cout << "off";
+    }
+    else
+    {
+      std::cout << (m_smap_path.empty() ? "CDB tag " + m_smap_tag : m_smap_path) << " (seed only)";
+    }
+    std::cout << std::endl;
     std::cout << "-----------------------------------" << std::endl;
   }
 
+  if (LoadTowerShape() != Fun4AllReturnCodes::EVENT_OK)
+  {
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
   return CreateNodes(topNode);
+}
+
+int DetermineTowerRho::End(PHCompositeNode * /*topNode*/)
+{
+  if (m_smap_on)
+  {
+    std::cout << "DetermineTowerRho::End(" << Name() << ") - tower shape map: " << m_n_smap_events
+              << " events, s = 1 without a vertex: " << m_n_smap_novtx
+              << ", outside the map's vertex range: " << m_n_smap_out_of_range << std::endl;
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int DetermineTowerRho::process_event(PHCompositeNode *topNode)
@@ -154,6 +195,22 @@ int DetermineTowerRho::process_event(PHCompositeNode *topNode)
     }
   }
 
+  // tower shape map: s of every particle (all 1 without a map)
+  std::vector<float> scales(particles.size(), 1.0F);
+  if (m_smap_on)
+  {
+    const int iclass = TowerShapeClass(topNode);
+    if (iclass < -1)
+    {
+      for (auto &part : particles)
+      {
+        delete part;
+      }
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    scales = TowerShapeScales(particles, iclass);
+  }
+
   std::vector<fastjet::PseudoJet> calo_pseudojets{};
   for (unsigned int ipart = 0; ipart < particles.size(); ++ipart)
   {
@@ -165,6 +222,17 @@ int DetermineTowerRho::process_event(PHCompositeNode *topNode)
     float this_px = particles[ipart]->get_px();
     float this_py = particles[ipart]->get_py();
     float this_pz = particles[ipart]->get_pz();
+
+    // with a tower shape map the towers are clustered divided by their s; ConvertJets
+    // rebuilds the jets from the unscaled towers
+    const float scale = scales[ipart];
+    if (scale != 1.0F)
+    {
+      this_e /= scale;
+      this_px /= scale;
+      this_py /= scale;
+      this_pz /= scale;
+    }
 
     if (this_e < 0)
     {  // make energy = +1 MeV for purposes of clustering
@@ -308,10 +376,12 @@ int DetermineTowerRho::process_event(PHCompositeNode *topNode)
       // kept there, seeds included; the hardest are omitted from rho by index.
       // ConvertJets also fills prop_signedSumeT on every jet.
       const bool with_area = (rho_method == TowerRho::Method::AREA);
-      ConvertJets(jets, fastjets, particles, with_area);
+      std::vector<float> rank_pt{};
+      ConvertJets(jets, fastjets, particles, scales, with_area, rank_pt);
 
       // omit the hardest jets, ranked by the same quantity the median is taken over
-      const std::vector<unsigned int> keep = SelectJets(jets);
+      // (with a tower shape map: by that quantity summed over the towers divided by s)
+      const std::vector<unsigned int> keep = SelectJets(rank_pt);
 
       // estimate rho from the sPHENIX jets that remain
       CalcRho(jets, keep, rho_method, rho, sigma);
@@ -455,8 +525,11 @@ int DetermineTowerRho::CreateNodes(PHCompositeNode *topNode)
 void DetermineTowerRho::ConvertJets(JetContainer *jets,
                                     const std::vector<fastjet::PseudoJet> &fastjets,
                                     const std::vector<Jet *> &particles,
-                                    const bool with_area) const
+                                    const std::vector<float> &scales,
+                                    const bool with_area,
+                                    std::vector<float> &rank_pt) const
 {
+  rank_pt.assign(fastjets.size(), 0.0F);
   jets->Reset();
   jets->set_algo(m_bkgd_jet_algo);
   jets->set_jetpar_R(m_par);
@@ -487,6 +560,8 @@ void DetermineTowerRho::ConvertJets(JetContainer *jets,
     // the signed scalar sum: a negative-energy tower carries a negative pT, so it
     // subtracts here instead of being folded up as in the jet pT magnitude
     float total_signed_pt = 0;
+    // the same sum over the towers divided by their s (identical without a map), used to rank
+    float total_rank_pt = 0;
     for (auto &comp : fj.constituents())
     {
       // is_pure_ghost() requires area information, so only ask when we have it
@@ -501,11 +576,14 @@ void DetermineTowerRho::ConvertJets(JetContainer *jets,
       total_e += particle->get_e();
       // Jet::get_pt() is a magnitude, so take the sign from the energy: the inputs
       // build the momentum as pT = E / cosh(eta), which flips sign with E
-      total_signed_pt += (particle->get_e() < 0) ? -particle->get_pt() : particle->get_pt();
+      const float signed_pt = (particle->get_e() < 0) ? -particle->get_pt() : particle->get_pt();
+      total_signed_pt += signed_pt;
+      total_rank_pt += signed_pt / scales.at(comp.user_index());
       jet->insert_comp(particle->get_comp_vec(), true);
     }
     jet->set_comp_sort_flag();
     jet->set_property(signed_idx, total_signed_pt);
+    rank_pt[ijet] = total_rank_pt;
 
     jet->set_px(total_px);
     jet->set_py(total_py);
@@ -525,22 +603,240 @@ float DetermineTowerRho::SignedSumeT(JetContainer *jets, const unsigned int ijet
   return jets->get_jet(ijet)->get_property(jets->property_index(Jet::PROPERTY::prop_signedSumeT));
 }
 
-std::vector<unsigned int> DetermineTowerRho::SelectJets(JetContainer *jets) const
+int DetermineTowerRho::TowerShapeLayer(const int src)
 {
-  const unsigned int njets = jets->size();
+  switch (src)
+  {
+  case Jet::CEMC_TOWERINFO_RETOWER:
+    return 0;
+  case Jet::HCALIN_TOWERINFO:
+    return 1;
+  case Jet::HCALOUT_TOWERINFO:
+    return 2;
+  default:
+    return -1;
+  }
+}
 
-  // rank the jets by prop_signedSumeT, hardest first; ties keep their original order
-  std::vector<float> pts(njets);
+int DetermineTowerRho::LoadTowerShape()
+{
+  m_smap_on = false;
+  for (auto &layer : m_smap)
+  {
+    layer.clear();
+  }
+  if (m_smap_path.empty() && m_smap_tag.empty())
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
+  // the layers of the inputs; every input needs one
+  std::array<bool, 3> need{};
+  for (auto *input : m_inputs)
+  {
+    const int layer = TowerShapeLayer(input->get_src());
+    if (layer < 0)
+    {
+      std::cout << PHWHERE << " tower shape map: input source " << input->get_src()
+                << " is not a TOWERINFO input of the retowered EMCal, IHCal or OHCal" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    need[layer] = true;
+  }
+
+  const std::string url = m_smap_path.empty() ? CDBInterface::instance()->getUrl(m_smap_tag) : m_smap_path;
+  if (url.empty())
+  {
+    std::cout << PHWHERE << " no tower shape map found for CDB tag " << m_smap_tag << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  // the payload is only needed here: copy the map into flat vectors and release it
+  CDBHistos cdb(url);
+  cdb.LoadCalibrations();
+  TH1 *hzvtx = cdb.getHisto("zvtx_bins");
+  TH1 *hmbdq = cdb.getHisto("mbdq_bins");
+  TH1 *hknee = cdb.getHisto("mbdq_knee", false);
+  if (!hzvtx || !hmbdq)
+  {
+    std::cout << PHWHERE << " tower shape map " << url << ": zvtx_bins or mbdq_bins missing" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  const int n_zvtx = hzvtx->GetNbinsX();
+  const int n_mbdq = hmbdq->GetNbinsX();
+  m_smap_zvtx_edges.assign(n_zvtx + 1, 0);
+  for (int i = 0; i <= n_zvtx; ++i)
+  {
+    m_smap_zvtx_edges[i] = static_cast<float>(hzvtx->GetXaxis()->GetBinLowEdge(i + 1));
+  }
+  m_smap_mbdq_edges.assign(n_mbdq + 1, 0);
+  for (int i = 0; i <= n_mbdq; ++i)
+  {
+    m_smap_mbdq_edges[i] = static_cast<float>(hmbdq->GetXaxis()->GetBinLowEdge(i + 1));
+  }
+  for (const auto *edges : {&m_smap_zvtx_edges, &m_smap_mbdq_edges})
+  {
+    for (size_t i = 1; i < edges->size(); ++i)
+    {
+      if (!((*edges)[i] > (*edges)[i - 1]))
+      {
+        std::cout << PHWHERE << " tower shape map " << url << ": bin edges not increasing" << std::endl;
+        return Fun4AllReturnCodes::ABORTRUN;
+      }
+    }
+  }
+
+  // Q_knee of this run
+  const int run = recoConsts::instance()->get_IntFlag("RUNNUMBER");
+  std::string knee_source;
+  bool knee_default = false;
+  m_smap_knee = MbdChargeKnee::find(m_smap_knee_user, m_knee_tag, m_knee_path, hknee, run, knee_source, knee_default);
+  if (!(m_smap_knee > 0))
+  {
+    std::cout << PHWHERE << " tower shape map: no MBD charge knee for run " << run << ": " << knee_source << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  if (knee_default)
+  {
+    std::cout << "DetermineTowerRho::LoadTowerShape - WARNING run " << run << " Q_knee = " << m_smap_knee << " (" << knee_source << ")" << std::endl;
+  }
+
+  // s per layer: TH3 (ieta, iphi, class = izbin * n_mbdQ_bins + imbd)
+  const std::array<std::string, 3> name = {"s_CEMC", "s_HCALIN", "s_HCALOUT"};
+  const int n_class = n_zvtx * n_mbdq;
+  m_smap_neta = 24;
+  m_smap_nphi = 64;
+  for (int layer = 0; layer < 3; ++layer)
+  {
+    if (!need[layer])
+    {
+      continue;
+    }
+    auto *hs = dynamic_cast<TH3 *>(cdb.getHisto(name[layer]));
+    if (!hs || hs->GetNbinsX() != m_smap_neta || hs->GetNbinsY() != m_smap_nphi || hs->GetNbinsZ() != n_class)
+    {
+      std::cout << PHWHERE << " tower shape map " << url << ": " << name[layer] << " missing or not "
+                << m_smap_neta << " x " << m_smap_nphi << " x " << n_class << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    m_smap[layer].assign(static_cast<size_t>(n_class) * m_smap_neta * m_smap_nphi, 1.0F);
+    for (int iclass = 0; iclass < n_class; ++iclass)
+    {
+      for (int ieta = 0; ieta < m_smap_neta; ++ieta)
+      {
+        for (int iphi = 0; iphi < m_smap_nphi; ++iphi)
+        {
+          const auto s = static_cast<float>(hs->GetBinContent(ieta + 1, iphi + 1, iclass + 1));
+          if (std::isfinite(s) && s > 0)
+          {
+            m_smap[layer][(static_cast<size_t>(iclass) * m_smap_neta + ieta) * m_smap_nphi + iphi] = s;
+          }
+        }
+      }
+    }
+  }
+  m_smap_on = true;
+
+  if (Verbosity() > 0)
+  {
+    std::cout << "DetermineTowerRho::LoadTowerShape - " << url << ": " << n_zvtx << " z x " << n_mbdq
+              << " Q' bins, run " << run << " Q_knee = " << m_smap_knee << " (" << knee_source << ")" << std::endl;
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int DetermineTowerRho::TowerShapeClass(PHCompositeNode *topNode)
+{
+  ++m_n_smap_events;
+
+  // event vertex z
+  auto *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  GlobalVertex *vtx = nullptr;
+  if (vertexmap && !vertexmap->empty())
+  {
+    vtx = vertexmap->begin()->second;
+    if (m_use_vertex_type)
+    {
+      const auto vertices = vertexmap->get_gvtxs_with_type({m_vertex_type});
+      vtx = vertices.empty() ? nullptr : vertices.at(0);
+    }
+  }
+  if (!vtx || !std::isfinite(vtx->get_z()))
+  {
+    ++m_n_smap_novtx;
+    return -1;
+  }
+  const float vtxz = vtx->get_z();
+  const auto zit = std::upper_bound(m_smap_zvtx_edges.begin(), m_smap_zvtx_edges.end(), vtxz);
+  const int izbin = static_cast<int>(zit - m_smap_zvtx_edges.begin()) - 1;
+  if (izbin < 0 || izbin >= static_cast<int>(m_smap_zvtx_edges.size()) - 1)
+  {
+    ++m_n_smap_out_of_range;
+    return -1;
+  }
+
+  // Q' = (q_S + q_N) / Q_knee, outside the map's range in the first / last bin
+  auto *mbdout = findNode::getClass<MbdOut>(topNode, m_mbd_node);
+  if (!mbdout)
+  {
+    std::cout << PHWHERE << " MBD node " << m_mbd_node << " needed for the tower shape map not found" << std::endl;
+    return -2;
+  }
+  const float qprime = (mbdout->get_q(0) + mbdout->get_q(1)) / m_smap_knee;
+  const int n_mbdq = static_cast<int>(m_smap_mbdq_edges.size()) - 1;
+  const auto qit = std::upper_bound(m_smap_mbdq_edges.begin(), m_smap_mbdq_edges.end(), qprime);
+  const int imbd = std::clamp(static_cast<int>(qit - m_smap_mbdq_edges.begin()) - 1, 0, n_mbdq - 1);
+
+  return (izbin * n_mbdq) + imbd;
+}
+
+std::vector<float> DetermineTowerRho::TowerShapeScales(const std::vector<Jet *> &particles, const int iclass) const
+{
+  std::vector<float> scales(particles.size(), 1.0F);
+  if (iclass < 0)
+  {
+    return scales;
+  }
+  const size_t offset = static_cast<size_t>(iclass) * m_smap_neta * m_smap_nphi;
+  for (size_t ipart = 0; ipart < particles.size(); ++ipart)
+  {
+    const auto &comps = particles[ipart]->get_comp_vec();
+    if (comps.empty())
+    {
+      continue;
+    }
+    const int layer = TowerShapeLayer(comps.front().first);
+    if (layer < 0 || m_smap[layer].empty())
+    {
+      continue;
+    }
+    // TOWERINFO channel -> (ieta, iphi); the retowered EMCal is a copy of the HCal container
+    const unsigned int key = TowerInfoDefs::encode_hcal(comps.front().second);
+    const int ieta = static_cast<int>(TowerInfoDefs::getCaloTowerEtaBin(key));
+    const int iphi = static_cast<int>(TowerInfoDefs::getCaloTowerPhiBin(key));
+    if (ieta < 0 || ieta >= m_smap_neta || iphi < 0 || iphi >= m_smap_nphi)
+    {
+      continue;
+    }
+    scales[ipart] = m_smap[layer][offset + (ieta * m_smap_nphi) + iphi];
+  }
+  return scales;
+}
+
+std::vector<unsigned int> DetermineTowerRho::SelectJets(const std::vector<float> &rank_pt) const
+{
+  const auto njets = static_cast<unsigned int>(rank_pt.size());
+
+  // rank the jets by rank_pt (prop_signedSumeT without a tower shape map), hardest first;
+  // ties keep their original order
   std::vector<unsigned int> order(njets);
   for (unsigned int ijet = 0; ijet < njets; ijet++)
   {
-    pts[ijet] = SignedSumeT(jets, ijet);
     order[ijet] = ijet;
   }
   const unsigned int nomit = std::min(m_omit_nhardest, njets);
   std::partial_sort(order.begin(), order.begin() + nomit, order.end(),
-    [&pts](const unsigned int a, const unsigned int b)
-    { return pts[a] > pts[b] || (pts[a] == pts[b] && a < b); });
+    [&rank_pt](const unsigned int a, const unsigned int b)
+    { return rank_pt[a] > rank_pt[b] || (rank_pt[a] == rank_pt[b] && a < b); });
 
   // omit the nomit hardest; the rest keep their original order
   std::vector<bool> omit(njets, false);

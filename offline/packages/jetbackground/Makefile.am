@@ -50,6 +50,7 @@ pkginclude_HEADERS = \
   EventRhov1.h \
   FastJetAlgoSub.h \
   JetBackgroundCut.h \
+  MbdChargeKnee.h \
   NullFilter.h \
   RetowerCEMC.h \
   StreakSidebandFilter.h \
@@ -88,6 +89,7 @@ libjetbackground_la_SOURCES = \
   DetermineTowerRho.cc \
   FastJetAlgoSub.cc \
   JetBackgroundCut.cc \
+  MbdChargeKnee.cc \
   NullFilter.cc \
   RetowerCEMC.cc \
   StreakSidebandFilter.cc \
