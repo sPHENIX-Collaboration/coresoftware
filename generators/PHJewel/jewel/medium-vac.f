@@ -1,7 +1,7 @@
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-C++ Copyright (C) 2017 Korinna C. Zapp [Korinna.Zapp@cern.ch]       ++
+C++ Copyright (C) 2021 Korinna C. Zapp [Korinna.Zapp@thep.lu.se]    ++
 C++                                                                 ++
-C++ This file is part of JEWEL 2.2.0                                ++
+C++ This file is part of JEWEL 2.3.0                                ++
 C++                                                                 ++
 C++ The JEWEL homepage is jewel.hepforge.org                        ++
 C++                                                                 ++
@@ -15,7 +15,7 @@ C++ JHEP 1303 (2013) 080 [arXiv:1212.1599] and                      ++
 C++ optionally EPJC 60 (2009) 617 [arXiv:0804.3568] for the         ++
 C++ physics. The reference for V+jet processes is EPJC 76 (2016)    ++
 C++ no.12 695 [arXiv:1608.03099] and for recoil effects it is       ++
-C++ arXiv:1707.01539.
+C++ JHEP 07 (2017) 141 [arXiv:1707.01539].                          ++
 C++                                                                 ++
 C++ JEWEL relies heavily on PYTHIA 6 for the event generation. The  ++
 C++ modified version of PYTHIA 6.4.25 that is distributed with      ++
@@ -79,6 +79,13 @@ C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       double precision function getcentrality()
       implicit none
       getcentrality=-1.d0
+      end
+
+
+
+      double precision function getb()
+      implicit none
+      getb=-1.d0
       end
 
 

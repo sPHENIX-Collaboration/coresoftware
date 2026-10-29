@@ -184,6 +184,12 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
     m_tpcrot.RotateZ(layergeom->get_rot_z());
   }
 
+  // Maps of corrections switched off by hand (scale 0 on both sides, e.g. non-distorted MC)
+  // are never used, so a missing payload is not an error for them.
+  const bool spaceChargeOff = m_spaceChargeScaleOverride[0] && m_spaceChargeScaleOverride[1] &&
+                              m_spaceChargeScale_side0 == 0.0 && m_spaceChargeScale_side1 == 0.0;
+  const bool frameChargeOff = m_frameChargeScaleOverride[0] && m_frameChargeScaleOverride[1] &&
+                              m_frameChargeScale_side0 == 0.0 && m_frameChargeScale_side1 == 0.0;
   // Space-charge field maps.
   // A manually selected 2D map takes precedence over automatic 3D CDB maps.
   if (m_electricFieldMapOverride)
@@ -192,19 +198,19 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
   }
   else if (m_use2DElectricFieldMap)
   {
-    if (!resolve_file(CdbEField2D, m_electricFieldMap, false))
+    if (!resolve_file(CdbEField2D, m_electricFieldMap, false) && !spaceChargeOff)
     {
       ok = false;
     }
   }
   else
   {
-    if (!resolve_file(CdbEField3DSide0, m_electricFieldMap3D[0], m_electricFieldMap3DOverride[0]))
+    if (!resolve_file(CdbEField3DSide0, m_electricFieldMap3D[0], m_electricFieldMap3DOverride[0]) && !spaceChargeOff)
     {
       ok = false;
     }
 
-    if (!resolve_file(CdbEField3DSide1, m_electricFieldMap3D[1], m_electricFieldMap3DOverride[1]))
+    if (!resolve_file(CdbEField3DSide1, m_electricFieldMap3D[1], m_electricFieldMap3DOverride[1]) && !spaceChargeOff)
     {
       ok = false;
     }
@@ -219,12 +225,12 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
   }
   else
   {
-    if (!resolve_file(CdbModuleFrames3DSide0, m_frameElectricFieldMap3D[0], m_frameElectricFieldMap3DOverride[0]))
+    if (!resolve_file(CdbModuleFrames3DSide0, m_frameElectricFieldMap3D[0], m_frameElectricFieldMap3DOverride[0]) && !frameChargeOff)
     {
       ok = false;
     }
 
-    if (!resolve_file(CdbModuleFrames3DSide1, m_frameElectricFieldMap3D[1], m_frameElectricFieldMap3DOverride[1]))
+    if (!resolve_file(CdbModuleFrames3DSide1, m_frameElectricFieldMap3D[1], m_frameElectricFieldMap3DOverride[1]) && !frameChargeOff)
     {
       ok = false;
     }

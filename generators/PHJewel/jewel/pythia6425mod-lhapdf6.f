@@ -2899,6 +2899,10 @@ C...Interface to PDFLIB.
       DOUBLE PRECISION VALUE(20),TMAS,QCDL4,QCDL5
       CHARACTER*20 PARM(20)
       DATA VALUE/20*0D0/,PARM/20*' '/
+      
+C...Alpha_s(M_Z) to be set by hand if communication with LHAPDF doesn't work      
+      common/pdfas/pdfalphas
+      double precision pdfalphas
  
 C...Data:Lambda and n_f values for parton distributions..
       DATA ALAMIN/0.177D0,0.239D0,0.247D0,0.2322D0,0.248D0,0.248D0,
@@ -2994,6 +2998,12 @@ C...Choose Lambda value to use in alpha-strong.
           ALAM=QCDL4
           NF=4
         ENDIF
+C...Set alpha_s(M_Z) by hand if communication with LHAPDF doesn't work        
+        if (alam.eq.0.) then
+          write(*,*)'Attention: value of alpha_s(M_Z) in pdf set '//
+     &'manually to ',pdfalphas
+          alam = pdfalphas
+        endif  
         PARP(1)=ALAM
         PARP(61)=ALAM
         PARP(72)=ALAM
@@ -10635,7 +10645,8 @@ C...Read out process
 C...Restore information for low-pT processes
       IF(ISUB.EQ.95.AND.MINT(57).GE.1) THEN
         DO 100 J=41,66
-  100   VINT(J)=VINTSV(J)
+        VINT(J)=VINTSV(J)
+  100   CONTINUE
       ENDIF
  
 C...Convert H' or A process into equivalent H one
@@ -38901,12 +38912,6 @@ C...Interface to PDFLIB.
      &VALUE(20),XMIN,XMAX,Q2MIN,Q2MAX
       CHARACTER*20 PARM(20)
       DATA VALUE/20*0D0/,PARM/20*' '/
-C--use nuclear pdf?      
-      COMMON/NPDF/MASS,NSET,EPS09,INITSTR
-      INTEGER NSET
-      DOUBLE PRECISION MASS
-      LOGICAL EPS09
-      CHARACTER*10 INITSTR
 
 C...Data related to Schuler-Sjostrand photon distributions.
       DATA ALAMGA/0.2D0/, PMCGA/1.3D0/, PMBGA/4.6D0/
@@ -39222,13 +39227,7 @@ C...Call PDFLIB parton distributions.
           XX=X
           QQ=SQRT(MAX(0D0,Q2MIN,Q2))
           IF(MSTP(57).EQ.0) QQ=SQRT(Q2MIN)
-          IF(EPS09)THEN
-           call setlhaparm(INITSTR)
-           CALL STRUCTA(XX,QQ,MASS,UPV,DNV,USEA,DSEA,STR,CHM,BOT,TOP,
-     &										GLU)
-          ELSE
            CALL STRUCTM(XX,QQ,UPV,DNV,USEA,DSEA,STR,CHM,BOT,TOP,GLU)
-          ENDIF
           VINT(231)=Q2MIN
           XPQ(0)=GLU
           XPQ(1)=DNV+DSEA
@@ -56650,9 +56649,10 @@ C                VECTORS OF UPPER TRIANGULAR FORM ..........
 C
       DO 440 I = 1, N
 C
-         DO 440 J = I, N
+         DO 441 J = I, N
             TR = DABS(HR(I,J)) + DABS(HI(I,J))
             IF (TR .GT. NORM) NORM = TR
+  441    CONTINUE
   440 CONTINUE
 C
       IF (N .EQ. 1 .OR. NORM .EQ. 0.0D0) GOTO 560
@@ -56718,7 +56718,7 @@ C                FOR J=N STEP -1 UNTIL LOW DO -- ..........
          J = N + LOW - JJ
          M = MIN0(J,IGH)
 C
-         DO 540 I = LOW, IGH
+         DO 541 I = LOW, IGH
             ZZR = 0.0D0
             ZZI = 0.0D0
 C
@@ -56729,6 +56729,7 @@ C
 C
             ZR(I,J) = ZZR
             ZI(I,J) = ZZI
+  541	   CONTINUE          
   540 CONTINUE
 C
       GOTO 560
@@ -56943,7 +56944,8 @@ C
   210 CONTINUE
 C     .......... NOW BALANCE THE SUBMATRIX IN ROWS K TO L ..........
       DO 220 I = K, L
-  220 SCALE(I) = 1.0D0
+      SCALE(I) = 1.0D0
+  220 CONTINUE
 C     .......... ITERATIVE LOOP FOR NORM REDUCTION ..........
   230 NOCONV = .FALSE.
 C
@@ -57149,7 +57151,8 @@ C
          SCALE = 0.0D0
 C     .......... SCALE COLUMN (ALGOL TOL THEN NOT NEEDED) ..........
          DO 100 I = M, IGH
-  100    SCALE = SCALE + DABS(AR(I,M-1)) + DABS(AI(I,M-1))
+         SCALE = SCALE + DABS(AR(I,M-1)) + DABS(AI(I,M-1))
+  100    CONTINUE
 C
          IF (SCALE .EQ. 0.0D0) GOTO 200
          MP = M + IGH
