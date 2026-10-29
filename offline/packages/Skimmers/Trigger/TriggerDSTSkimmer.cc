@@ -3,6 +3,8 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <centrality/CentralityInfo.h>
+
 #include <ffarawobjects/Gl1Packet.h>
 
 #include <phool/getClass.h>
@@ -77,6 +79,23 @@ int TriggerDSTSkimmer::process_event(PHCompositeNode *topNode)
       }
     }
     if (!trigger_fired)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
+
+  // centrality cut
+  if (use_centrality_cut)
+  {
+    CentralityInfo *centinfo = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
+    if (!centinfo)
+    {
+      std::cout << "TriggerDSTSkimmer::process_event - Error - Can't find CentralityInfo node therefore no centrality selection can be made" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    // centile in [0.01, 1], NaN without a centrality (fails both comparisons)
+    float centrality = centinfo->get_centile(CentralityInfo::PROP::mbd_NS) * 100;
+    if (!(centrality > m_centrality_min && centrality <= m_centrality_max))
     {
       return Fun4AllReturnCodes::ABORTEVENT;
     }
