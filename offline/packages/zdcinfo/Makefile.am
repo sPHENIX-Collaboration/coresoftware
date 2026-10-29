@@ -29,8 +29,7 @@ pkginclude_HEADERS = \
   Zdcinfo.h \
   Zdcinfov1.h \
   Zdcinfov2.h \
-  ZdcReco.h \
-  ZdcSatelliteCorr.h
+  ZdcReco.h
 
 ROOTDICTS = \
   Zdcinfo_Dict.cc \
@@ -49,8 +48,7 @@ libzdcinfo_io_la_SOURCES = \
 
 
 libzdcinfo_la_SOURCES = \
-  ZdcReco.cc \
-  ZdcSatelliteCorr.cc
+  ZdcReco.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

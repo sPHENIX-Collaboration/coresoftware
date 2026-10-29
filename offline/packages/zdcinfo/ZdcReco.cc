@@ -7,6 +7,10 @@
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
 
+#include <ffaobjects/EventHeader.h>
+
+#include <mbd/MbdOut.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
@@ -28,6 +32,8 @@
 #include <cfloat>
 #include <cmath>
 #include <cstdlib>  // for exit
+#include <filesystem>
+#include <format>
 #include <iostream>
 #include <set>      // for _Rb_tree_const_iterator
 #include <utility>  // for pair
@@ -41,6 +47,7 @@ ZdcReco::ZdcReco(const std::string &name)
 ZdcReco::~ZdcReco()
 {
   delete cdbttree;
+  delete m_satcdb;
 }
 
 int ZdcReco::InitRun(PHCompositeNode *topNode)
@@ -91,6 +98,15 @@ int ZdcReco::InitRun(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *newNode =
         new PHIODataNode<PHObject>(m_zdcinfo, "Zdcinfo", "PHObject");
     DetNode->addNode(newNode);
+  }
+
+  if (m_doSatCorr)
+  {
+    const int rc = LoadSatelliteCorr(topNode);
+    if (rc != Fun4AllReturnCodes::EVENT_OK)
+    {
+      return rc;
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -321,6 +337,29 @@ int ZdcReco::process_event(PHCompositeNode *topNode)
     double time_diff_ns_weighted = south_time_weighted - north_time_weighted;
     _z_vertex = time_diff_ns_weighted * 0.5 * _c;
 
+    // satellite-bunch / run-period correction: E / (G(run) x f(t0)); no MBD time or |t0| beyond the satellites -> main bunch (t0 = 0)
+    if (m_satHave)
+    {
+      float t0 = 0.;
+      MbdOut *mbdout = findNode::getClass<MbdOut>(topNode, "MbdOut");
+      if (!mbdout && !m_satWarnNoMbd)
+      {
+        std::cout << "ZdcReco: no MbdOut node (run MbdReco before ZdcReco): satellite correction with t0 = 0 (main bunch) for all events" << std::endl;
+        m_satWarnNoMbd = true;
+      }
+      if (mbdout && mbdout->get_npmt(0) > 0 && mbdout->get_npmt(1) > 0 && std::isfinite(mbdout->get_t0()) && std::fabs(mbdout->get_t0()) < m_satEdge2)
+      {
+        t0 = mbdout->get_t0();
+      }
+      else
+      {
+        ++m_satNnoT0;
+      }
+      _sumS /= SatFactor(0, t0);
+      _sumN /= SatFactor(1, t0);
+      ++m_satNcorr;
+    }
+
     m_zdcinfo->set_zdc_energy(0, _sumS);
     m_zdcinfo->set_zdc_energy(1, _sumN);
     m_zdcinfo->set_radius(0, _radius_south);
@@ -329,6 +368,170 @@ int ZdcReco::process_event(PHCompositeNode *topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int ZdcReco::End(PHCompositeNode * /*topNode*/)
+{
+  if (m_satHave || m_satNcorr > 0)
+  {
+    std::cout << "ZdcReco: satellite correction applied to " << m_satNcorr << " events, " << m_satNnoT0
+              << " of them without an MBD time in +-" << m_satEdge2 << " ns (corrected as main bunch, t0 = 0)" << std::endl;
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int ZdcReco::LoadSatelliteCorr(PHCompositeNode *topNode)
+{
+  delete m_satcdb;
+  m_satcdb = nullptr;
+  m_satHave = false;
+  m_satGain = {1., 1.};
+  m_satFm5 = {1., 1.};
+  m_satFp5 = {1., 1.};
+  m_satStatus = {1, 1};
+  m_satNt0bin = 0;
+
+  int run = 0;
+  EventHeader *eh = findNode::getClass<EventHeader>(topNode, "EventHeader");
+  if (eh)
+  {
+    run = eh->get_RunNumber();
+  }
+  if (run <= 0)
+  {
+    run = static_cast<int>(recoConsts::instance()->get_uint64Flag("TIMESTAMP"));
+  }
+
+  std::string url;
+  if (!m_satCalibFile.empty())
+  {
+    if (!std::filesystem::exists(m_satCalibFile))
+    {
+      std::cout << "ZdcReco: local satellite-correction file " << m_satCalibFile << " not found, abort run" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    url = m_satCalibFile;
+    std::cout << "ZdcReco: TEST, satellite-correction constants from the local file " << url << ", not from the CDB" << std::endl;
+  }
+  else
+  {
+    url = CDBInterface::instance()->getUrl(m_satCalibName);
+  }
+  if (url.empty())
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << "ZdcReco: no " << m_satCalibName << " payload for run " << run << ", no satellite correction" << std::endl;
+    }
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+  m_satcdb = new CDBTTree(url);
+  m_satcdb->LoadCalibrations();
+  m_satHave = true;
+
+  if (!m_satCalibFile.empty())
+  {
+    const int rfirst = m_satcdb->GetSingleIntValue("run_first");
+    const int rlast = m_satcdb->GetSingleIntValue("run_last");
+    if (run < rfirst || run > rlast)
+    {
+      std::cout << "ZdcReco: WARNING run " << run << " is outside the satellite-correction file's run range " << rfirst << "-" << rlast
+                << ", its constants are applied anyway" << std::endl;
+    }
+  }
+
+  for (int arm = 0; arm < 2; ++arm)
+  {
+    const float g = m_satcdb->GetFloatValue(arm, "gain");
+    const float fm = m_satcdb->GetFloatValue(arm, "f_m5");
+    const float fp = m_satcdb->GetFloatValue(arm, "f_p5");
+    const float st = m_satcdb->GetFloatValue(arm, "status");
+    m_satGain[arm] = (std::isfinite(g) && g > 0) ? g : 1.;
+    m_satFm5[arm] = (std::isfinite(fm) && fm > 0) ? fm : 1.;
+    m_satFp5[arm] = (std::isfinite(fp) && fp > 0) ? fp : 1.;
+    m_satStatus[arm] = (std::isfinite(st) && st < 0.5) ? 0 : 1;
+  }
+
+  // t0-binned bunch factor
+  if (m_satUseT0Bins)
+  {
+    m_satNt0bin = m_satcdb->GetSingleIntValue("nt0bin");
+    m_satT0lo = m_satcdb->GetSingleFloatValue("t0bin_lo");
+    m_satT0w = m_satcdb->GetSingleFloatValue("t0bin_w");
+    if (m_satNt0bin <= 0 || !(m_satT0w > 0))
+    {
+      m_satNt0bin = 0;
+    }
+    for (int arm = 0; arm < 2 && m_satNt0bin > 0; ++arm)
+    {
+      m_satFb[arm].assign(m_satNt0bin, 1.);
+      for (int k = 0; k < m_satNt0bin; ++k)
+      {
+        const float v = m_satcdb->GetFloatValue(arm, std::format("fb{:02d}", k));
+        if (std::isfinite(v) && v > 0)
+        {
+          m_satFb[arm][k] = v;
+        }
+      }
+    }
+  }
+
+  // per-run scale
+  const int nruns = m_satcdb->GetSingleIntValue("nruns_t0");
+  for (int i = 0; i < nruns; ++i)
+  {
+    if (m_satcdb->GetIntValue(100 + i, "run") != run)
+    {
+      continue;
+    }
+    if (m_satPerRunGain)
+    {
+      const std::array<float, 2> gr{m_satcdb->GetFloatValue(100 + i, "gain_run_s"), m_satcdb->GetFloatValue(100 + i, "gain_run_n")};
+      for (int arm = 0; arm < 2; ++arm)
+      {
+        if (std::isfinite(gr[arm]) && gr[arm] > 0 && m_satStatus[arm] == 1)
+        {
+          m_satGain[arm] = gr[arm];
+        }
+      }
+    }
+    break;
+  }
+
+  if (Verbosity() > 0)
+  {
+    std::cout << "ZdcReco: satellite correction " << url << " run " << run << ", t0 bins " << m_satNt0bin
+              << ", S gain " << m_satGain[0] << " f(-5) " << m_satFm5[0] << " f(+5) " << m_satFp5[0] << " status " << m_satStatus[0]
+              << ", N gain " << m_satGain[1] << " f(-5) " << m_satFm5[1] << " f(+5) " << m_satFp5[1] << " status " << m_satStatus[1] << std::endl;
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+float ZdcReco::SatFactor(const int arm, const float t0) const
+{
+  // G x f for this arm at (centered) MBD t0; 1 (no correction) for a run range flagged unusable (status 0)
+  if (!m_satHave || m_satStatus[arm] == 0)
+  {
+    return 1.;
+  }
+  float f = 1.;
+  if (t0 < -m_satEdge1)
+  {
+    f = m_satFm5[arm];
+  }
+  else if (t0 >= m_satEdge1)
+  {
+    f = m_satFp5[arm];
+  }
+  if (m_satNt0bin > 0)
+  {
+    const int k = static_cast<int>(std::floor((t0 - m_satT0lo) / m_satT0w));
+    if (k >= 0 && k < m_satNt0bin)
+    {
+      f = m_satFb[arm][k];
+    }
+  }
+  return m_satGain[arm] * f;
 }
 
 void ZdcReco::ResetMe()
