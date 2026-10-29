@@ -739,7 +739,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   if(m_use_centrality_nTuple)
   {
-    m_CentInfo = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo"); 
+    m_CentInfo = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
     if (!m_CentInfo)
     {
       std::cout << "KFparticle - [WARNING] - can't find CentralityInfo node " << "CentralityInfo" << std::endl;
@@ -749,7 +749,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     {
       if (m_CentInfo->has_centrality_bin(CentralityInfo::PROP::mbd_NS))
       {
-        if(bunchCrossingisZero)
+        if (bunchCrossingisZero)
         {
           const int bin = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
           m_centrality_mbd = m_first_in_event ? bin : -bin;
@@ -760,7 +760,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
           {
             std::cout << "KFParticle - Invalid bunch crossing" << std::endl;
           }
-        m_centrality_mbd = std::numeric_limits<float>::quiet_NaN();
+          m_centrality_mbd = std::numeric_limits<float>::quiet_NaN();
         }
       }
       else
@@ -783,7 +783,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   if (fillConditionMet())
   {
     m_tree->Fill();
-    if(bunchCrossingisZero) //Prevents NaN from being the first value
+    if (bunchCrossingisZero) // Prevents NaN from being the first value
     {
       m_first_in_event = false;
     }
