@@ -303,7 +303,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
     m_tree->Branch("primary_vertex_Covariance", &m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6);
   }
 
-  if(m_use_centrality_nTuple)
+  if (m_use_centrality_nTuple)
   {
     m_tree->Branch("centrality_MBD", &m_centrality_mbd);
   }
@@ -737,7 +737,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_bco = -1;
   }
 
-  if(m_use_centrality_nTuple)
+  if (m_use_centrality_nTuple)
   {
     m_CentInfo = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
     if (!m_CentInfo)
