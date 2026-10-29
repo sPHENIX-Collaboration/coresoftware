@@ -79,8 +79,8 @@ namespace
 // ---- event buffer, called by the HMC* helpers in jewel-lib.f ---------------
 extern "C"
 {
-  void jwbufe_(int *i1, int *i2, double *e1, double *e2, double *e3, int *i3, int *i4, int *i5,
-               int *i6, int *i7, int *i8, int *i9, double *e4)
+  void jwbufe_(const int *i1, const int *i2, const double *e1, const double *e2, const double *e3, const int *i3, const int *i4, const int *i5,
+               const int *i6, const int *i7, const int *i8, const int *i9, const double *e4)
   {
     g_event.clear();
     g_open = true;
@@ -103,15 +103,15 @@ extern "C"
   }
   void jwbufn_() { g_event += "N 1 \"0\"\n"; }
   void jwbufu_() { g_event += "U GEV MM\n"; }
-  void jwbufc_(double *e1, double *e2)
+  void jwbufc_(const double *e1, const double *e2)
   {
     g_event += "C";
     add_dbl(*e1);
     add_dbl(*e2);
     g_event += "\n";
   }
-  void jwbufh_(int *i1, int *i2, int *i3, int *i4, int *i5, int *i6, int *i7, int *i8, int *i9,
-               double *e1, double *e2, double *e3, double *e4)
+  void jwbufh_(const int *i1, const int *i2, const int *i3, const int *i4, const int *i5, const int *i6, const int *i7, const int *i8, const int *i9,
+               const double *e1, const double *e2, const double *e3, const double *e4)
   {
     g_event += "H";
     add_int(*i1);
@@ -129,8 +129,8 @@ extern "C"
     add_dbl(*e4);
     g_event += "\n";
   }
-  void jwbuff_(int *i1, int *i2, double *e1, double *e2, double *e3, double *e4, double *e5,
-               int *i3, int *i4)
+  void jwbuff_(const int *i1, const int *i2, const double *e1, const double *e2, const double *e3, const double *e4, const double *e5,
+               const int *i3, const int *i4)
   {
     g_event += "F";
     add_int(*i1);
@@ -144,7 +144,7 @@ extern "C"
     add_int(*i4);
     g_event += "\n";
   }
-  void jwbufv_(int *i1, int *i2, int *i3, int *i4, int *i5, int *i6, int *i7, int *i8, int *i9)
+  void jwbufv_(const int *i1, const int *i2, const int *i3, const int *i4, const int *i5, const int *i6, const int *i7, const int *i8, const int *i9)
   {
     g_event += "V";
     add_int(*i1);
@@ -158,8 +158,8 @@ extern "C"
     add_int(*i9);
     g_event += "\n";
   }
-  void jwbufp_(int *i1, int *i2, double *e1, double *e2, double *e3, double *e4, double *e5,
-               int *i3, int *i4, int *i5, int *i6, int *i7)
+  void jwbufp_(const int *i1, const int *i2, const double *e1, const double *e2, const double *e3, const double *e4, const double *e5,
+               const int *i3, const int *i4, const int *i5, const int *i6, const int *i7)
   {
     g_event += "P";
     add_int(*i1);
