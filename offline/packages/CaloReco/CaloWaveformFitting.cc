@@ -197,38 +197,16 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
           {
             for (int i = 0; i < size1; i++)
             {
-              if (rv.at(i) == 16383)  // saturated, not a bit flip
-              {
-                continue;
-              }
               if (((unsigned int) rv.at(i) & bit) && ((unsigned int) rv.at(i) % bit > _bfr_lowpedestalthreshold))
               {
                 rv.at(i) = rv.at(i) - bit;
               }
             }
           }
-          // same saturation handling as the main fit
-          int recover_ndata = 0;
           for (int i = 0; i < size1; i++)
           {
-            if ((rv.at(i) == 16383) && _handleSaturation)
-            {
-              h->SetBinContent(i + 1, 0);
-              h->SetBinError(i + 1, 0);
-              continue;
-            }
             h->SetBinContent(i + 1, rv.at(i));
             h->SetBinError(i + 1, 1);
-            recover_ndata++;
-          }
-          if (recover_ndata < (size1 - 4))
-          {
-            recover_ndata = size1;
-            for (int i = 0; i < size1; i++)
-            {
-              h->SetBinContent(i + 1, rv.at(i));
-              h->SetBinError(i + 1, 1);
-            }
           }
 
           maxheight = 0;
@@ -273,7 +251,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
           ROOT::Fit::FitResult recover_fitres = recoverFitter->Result();
           int recover_validfit = recover_fitres.Status();
           double recover_chi2min = recover_fitres.MinFcnValue();
-          recover_chi2min /= recover_ndata - 3;  // divide by the number of dof
+          recover_chi2min /= size1 - 3;  // divide by the number of dof
           if (recover_chi2min < _chi2lowthreshold && recover_f->GetParameter(2) < _bfr_highpedestalthreshold && recover_f->GetParameter(2) > _bfr_lowpedestalthreshold)
           {
             for (int i = 0; i < size1; i++)
