@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <vector>
 #include <cmath>
-using namespace std;
 
 struct My4Mom {	
 	double pt;
@@ -30,7 +29,7 @@ int MyDistComp (const void * a, const void * b) {
 	MyDist *dist1 = (MyDist *) a;
 	MyDist *dist2 = (MyDist *) b;
 	if ((*dist1).dR < (*dist2).dR) { return -1;
-	} if ((*dist1).dR > (*dist2).dR) return 1; 
+	} if ((*dist1).dR > (*dist2).dR) {return 1; }
 	return 0;
 }
 
@@ -38,13 +37,13 @@ double sqr(double x){
 	return x*x;
 }
 
-vector<MyPart> readEvent(int (*ptrK)[23000], double (*ptrP)[23000], int pyjetsN, int lstart)
+std::vector<MyPart> readEvent(int (*ptrK)[23000], double (*ptrP)[23000], int pyjetsN, int lstart)
 {
-	//cout<<"Will start reading the event record with "<<pyjetsN<<" particles now.\n";
-	vector<MyPart> parts;
+	//std::cout<<"Will start reading the event record with "<<pyjetsN<<" particles now.\n";
+	std::vector<MyPart> parts;
 	for (int i = lstart; i < pyjetsN; ++i) {
 		if (ptrK[0][i] < 6 || ptrK[0][i] == 17) {
-			//cout<<i<<": "<<ptrK[0][i]<<" - "<<ptrK[1][i]<<" -> ("<<ptrP[0][i]<<" , "<<ptrP[1][i]<<" , "<<ptrP[2][i]<<" ; "<<ptrP[3][i]<<") m = "<<ptrP[4][i]<<endl;
+			//std::cout<<i<<": "<<ptrK[0][i]<<" - "<<ptrK[1][i]<<" -> ("<<ptrP[0][i]<<" , "<<ptrP[1][i]<<" , "<<ptrP[2][i]<<" ; "<<ptrP[3][i]<<") m = "<<ptrP[4][i]<<std::endl;
 			if (ptrP[3][i] - fabs(ptrP[2][i]) > 0.) {
 				MyPart part{};
 				double pT;
@@ -59,18 +58,18 @@ vector<MyPart> readEvent(int (*ptrK)[23000], double (*ptrP)[23000], int pyjetsN,
 				parts.push_back(part);
 			}
 			else {
-				cout<<i<<": "<<ptrK[0][i]<<" - "<<ptrK[1][i]<<" -> ("<<ptrP[0][i]<<" , "<<ptrP[1][i]<<" , "<<ptrP[2][i]<<" ; "<<ptrP[3][i]<<") m = "<<ptrP[4][i]<<endl;
+				std::cout<<i<<": "<<ptrK[0][i]<<" - "<<ptrK[1][i]<<" -> ("<<ptrP[0][i]<<" , "<<ptrP[1][i]<<" , "<<ptrP[2][i]<<" ; "<<ptrP[3][i]<<") m = "<<ptrP[4][i]<<std::endl;
 				//_subtrevent.push_back(p);
 			}
 		}
 	}
-	//cout<<"Done with reading the event record, have found "<<parts.size()<<" final state particles.\n";
+	//std::cout<<"Done with reading the event record, have found "<<parts.size()<<" final state particles.\n";
 	return parts;
 }
 
-vector<My4Mom> readThermals(double (*ptrscatcens)[23000], int nscatcen) {
-	//cout<<"Will start reading "<<nscatcen<<" thermal momenta now.\n";
-	vector<My4Mom> thermals;
+std::vector<My4Mom> readThermals(double (*ptrscatcens)[23000], int nscatcen) {
+	//std::cout<<"Will start reading "<<nscatcen<<" thermal momenta now.\n";
+	std::vector<My4Mom> thermals;
 	for (int i = 0; i < nscatcen; ++i) {
 		if (ptrscatcens[3][i] - fabs(ptrscatcens[2][i]) > 0.) {
 			My4Mom mom{};
@@ -85,21 +84,21 @@ vector<My4Mom> readThermals(double (*ptrscatcens)[23000], int nscatcen) {
 			thermals.push_back(mom);
 		}
 		else {
-			cout<<i<<": "<<ptrscatcens[0][i]<<" - "<<ptrscatcens[1][i]<<" -> ("<<ptrscatcens[0][i]<<" , "<<ptrscatcens[1][i]<<" , "<<ptrscatcens[2][i]<<" ; "<<ptrscatcens[3][i]<<") m = "<<ptrscatcens[4][i]<<endl;
+			std::cout<<i<<": "<<ptrscatcens[0][i]<<" - "<<ptrscatcens[1][i]<<" -> ("<<ptrscatcens[0][i]<<" , "<<ptrscatcens[1][i]<<" , "<<ptrscatcens[2][i]<<" ; "<<ptrscatcens[3][i]<<") m = "<<ptrscatcens[4][i]<<std::endl;
 			//_subtrevent.push_back(p);
 		}
 	}
-	//cout<<"Done with reading the thermal momenta.\n";	
+	//std::cout<<"Done with reading the thermal momenta.\n";	
 	return thermals;
 }
 
-vector<MyDist> buildPairs(vector<MyPart> * myparticles, vector<My4Mom> * mythermals) {
+std::vector<MyDist> buildPairs(std::vector<MyPart> * myparticles, std::vector<My4Mom> * mythermals) {
     //create list with all particle-ghosts distances and sort it
-	//cout<<"Will start creating the pairs now.\n";
-	  vector<MyDist> dists;
+	//std::cout<<"Will start creating the pairs now.\n";
+	  std::vector<MyDist> dists;
 	  for (size_t i=0; i < myparticles->size(); ++i) {
 		  for (size_t j=0; j < mythermals->size(); ++j) {
-			  //cout<<"i, j = "<<i<<" "<<j<<endl;
+			  //std::cout<<"i, j = "<<i<<" "<<j<<std::endl;
 			  MyDist dist{};
 			  double Deltaphi(abs((*myparticles)[i].phi-(*mythermals)[j].phi));
 			  if (Deltaphi > M_PI) { Deltaphi = 2.*M_PI - Deltaphi;
@@ -107,28 +106,28 @@ vector<MyDist> buildPairs(vector<MyPart> * myparticles, vector<My4Mom> * mytherm
 			  dist.dR = sqrt(sqr(Deltaphi) + sqr((*myparticles)[i].y-(*mythermals)[j].y));
 			  dist.ipart = i;
 			  dist.itherm = j;
-			  //cout<<"distance: "<<dist.dR<<endl;
+			  //std::cout<<"distance: "<<dist.dR<<std::endl;
 			  dists.push_back(dist);
 		  }
 	  }
 	  //dists.sort(MyDistComp);
 	  qsort(dists.data(), dists.size(), sizeof(MyDist), MyDistComp);
-	  //cout<<"Done with creating the pairs.\n";
+	  //std::cout<<"Done with creating the pairs.\n";
 	  return dists;
 }
     
-void doSubtraction(vector<MyDist> * dists, vector<MyPart> * myparticles, vector<My4Mom> * mythermals, double dRmax) {
-	//cout<<"Will do the subtraction now with max distance "<<dRmax<<endl;
+void doSubtraction(std::vector<MyDist> * dists, std::vector<MyPart> * myparticles, std::vector<My4Mom> * mythermals, double dRmax) {
+	//std::cout<<"Will do the subtraction now with max distance "<<dRmax<<std::endl;
 		  //go through all particle-ghost pairs and re-distribute momentum and mass
 	  for (auto & dist : *dists) {
-		  //cout<<"dealing with dist "<<liter->dR<<endl;
+		  //std::cout<<"dealing with dist "<<liter->dR<<std::endl;
 		  if (dist.dR > dRmax) { break;
 }
 		  size_t pnum = dist.ipart;
 		  size_t tnum = dist.itherm;
 		  double ptp = (*myparticles)[pnum].pt;
 		  double ptt = (*mythermals)[tnum].pt;
-		  //cout<<"pts: "<<ptp<<" vs "<<ptg<<endl;
+		  //std::cout<<"pts: "<<ptp<<" vs "<<ptg<<std::endl;
 		  if (ptp > ptt) {
 			  (*myparticles)[pnum].pt -= ptt;
 			  (*mythermals)[tnum].pt = 0.;
@@ -139,7 +138,7 @@ void doSubtraction(vector<MyDist> * dists, vector<MyPart> * myparticles, vector<
 		  }
 		  double mdp = (*myparticles)[pnum].mdelta;
 		  double mdt = (*mythermals)[tnum].mdelta;
-		  //cout<<"masses: "<<mdp<<" vs "<<mdg<<endl;
+		  //std::cout<<"masses: "<<mdp<<" vs "<<mdg<<std::endl;
 		  if (mdp > mdt) {
 			  (*myparticles)[pnum].mdelta -= mdt;
 			  (*mythermals)[tnum].mdelta = 0.;
@@ -152,7 +151,7 @@ void doSubtraction(vector<MyDist> * dists, vector<MyPart> * myparticles, vector<
 	  return;
 }
     
-void collectResult(vector<MyPart> * myparticles, vector<My4Mom> * mythermals, int (*ptrK)[23000], double (*ptrP)[23000], int * pyjetsN, int lstart) {
+void collectResult(std::vector<MyPart> * myparticles, std::vector<My4Mom> * mythermals, int (*ptrK)[23000], double (*ptrP)[23000], int * pyjetsN, int lstart) {
 		  //collect resulting 4-momenta to get subtracted event
 	int N(lstart);
 	// lstart is an offset into PYJETS, NOT into the compacted myparticles vector,
@@ -223,14 +222,14 @@ void subtract_thmom_(int pyjetsK[5][23000], double pyjetsP[5][23000], int* pyjet
 }
 	if (!strncmp(proc,"PPZJ",4) || !strncmp(proc,"PPWJ",4)) { lstart = 2;
 }
-	//cout<<"Lstart = "<<lstart<<endl;
-	//cout<<"Will do the subtraction now.\n";
-	vector<MyPart> myparticles = readEvent(pyjetsK, pyjetsP, *pyjetsN, lstart);
-	vector<My4Mom> mythermals = readThermals(scatcens, *nscatcen);
-	vector<MyDist> dists = buildPairs(&myparticles, &mythermals);
+	//std::cout<<"Lstart = "<<lstart<<std::endl;
+	//std::cout<<"Will do the subtraction now.\n";
+	std::vector<MyPart> myparticles = readEvent(pyjetsK, pyjetsP, *pyjetsN, lstart);
+	std::vector<My4Mom> mythermals = readThermals(scatcens, *nscatcen);
+	std::vector<MyDist> dists = buildPairs(&myparticles, &mythermals);
 	doSubtraction(&dists, &myparticles, &mythermals, *Rmax);
 	collectResult(&myparticles, &mythermals, pyjetsK, pyjetsP, pyjetsN, lstart);
-	//cout<<"Done with the subtraction, resulted in "<<*pyjetsN<<" particles.\n";
+	//std::cout<<"Done with the subtraction, resulted in "<<*pyjetsN<<" particles.\n";
 	return;
 }
 

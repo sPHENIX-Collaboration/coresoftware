@@ -17,6 +17,7 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <format>
 
 extern "C"
 {
@@ -62,18 +63,15 @@ namespace
     std::memcpy(dst, src, n < 512 ? n : 512);
   }
 
-  void add_int(int v)
-  {
-    char b[32];
-    std::snprintf(b, sizeof(b), " %d", v);
-    g_event += b;
-  }
-  void add_dbl(double v)
-  {
-    char b[40];
-    std::snprintf(b, sizeof(b), " %.17g", v);
-    g_event += b;
-  }
+void add_int(int v)
+{
+  std::format_to(std::back_inserter(g_event), " {}", v);
+}
+
+void add_dbl(double v)
+{
+  std::format_to(std::back_inserter(g_event), " {:.17g}", v);
+}
 }  // namespace
 
 // ---- event buffer, called by the HMC* helpers in jewel-lib.f ---------------
