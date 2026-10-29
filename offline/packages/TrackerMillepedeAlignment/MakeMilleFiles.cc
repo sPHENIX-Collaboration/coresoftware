@@ -325,9 +325,9 @@ bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
 
   const auto result = actspropagator.propagate(param, *perigee, options);
 
-  if (result.ok())
+  if (result.ok() && result.value().transportJacobian.has_value())
   {
-    auto jacobian = *result.value().transportJacobian;
+    const auto& jacobian = result.value().transportJacobian.value();
 
     Eigen::Matrix<double, 2, 6> projector = Eigen::Matrix<double, 2, 6>::Zero();
     projector(0, 0) = 1;
