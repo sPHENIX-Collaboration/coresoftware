@@ -24,19 +24,28 @@
 #include <ActsExamples/EventData/Trajectories.hpp>
 
 #include <fstream>
+#include <limits>
+#include <map>
+#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 class PHCompositeNode;
 class PHG4TpcGeomContainer;
 class SvtxTrack;
 class SvtxTrackMap;
+class SvtxVertexMap;
+class SvtxVertex;
 class TrkrCluster;
 class TrkrClusterContainer;
 class Mille;
 class ActsPropagator;
 
 class TFile;
+class TH1D;
+class TH2D;
+class TProfile;
 class TNtuple;
 
 using Trajectory = ActsExamples::Trajectories;
@@ -70,6 +79,21 @@ class MakeMilleFiles : public SubsysReco
   void set_layer_lparam_fixed(unsigned int layer, unsigned int param);
 
   void set_pt_cut(float pt) { m_minPt = pt; }
+  void set_min_nmvtx(unsigned int nmvtx) { m_minNmvtx = nmvtx; }
+  void set_min_nintt(unsigned int nintt) { m_minNintt = nintt; }
+  void set_track_ntp_diagnostics(bool enable = true)
+  {
+    m_trackNtpDiagnostics = enable;
+  }
+  void set_min_vertex_tracks(unsigned int ntracks) { m_minVertexTracks = ntracks; }
+  void set_vertex_match_cut_cm(float xcut, float ycut, float zcut)
+  {
+    m_vertexMatchCutCm = {xcut, ycut, zcut};
+  }
+  void set_max_tracks_above_min_pt_per_vertex(unsigned int ntracks)
+  {
+    m_maxTracksAboveMinPtPerVertex = ntracks;
+  }
 
   void set_ignore_tpc() {m_ignore_tpc = true;}
 
@@ -90,12 +114,13 @@ class MakeMilleFiles : public SubsysReco
     m_vtxSigma(0) = xysig;
     m_vtxSigma(1) = zsig;
   }
+  void set_vtx_sigma_inflation(float factor) { m_vtxSigmaInflation = factor; }
 
  private:
   Mille* _mille;
 
   int GetNodes(PHCompositeNode* topNode);
-  Acts::Vector3 getEventVertex();
+  Acts::Vector3 getEventVertex(const SvtxTrack* track, const SvtxVertex*& svtxVertexOut) const;
 
   bool is_layer_fixed(unsigned int layer);
 
@@ -110,7 +135,21 @@ class MakeMilleFiles : public SubsysReco
   bool getLocalVtxDerivativesXY(SvtxTrack* track,
                                 ActsPropagator& propagator,
                                 const Acts::Vector3& vertex,
-                                float lclvtx_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC]);
+                                float lclvtx_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC],
+                                Acts::BoundSquareMatrix* perigeeCov = nullptr);
+  bool getLocalVtxDerivativesXYpsuedo(SvtxTrack* track,
+                                      const SvtxVertex* vertex,
+                                      const Acts::BoundSquareMatrix& perigeeCov,
+                                      float localderpsuedo[SvtxAlignmentState::NLOC][SvtxAlignmentState::NLOC],
+                                      float localmeaserrpsuedo[SvtxAlignmentState::NLOC]);
+  std::pair<float,float> getRotatedVtxCovarianceDiagonalPerigee(SvtxTrack* track,
+                                                    const SvtxVertex* vertex);
+  Eigen::Matrix<double, SvtxAlignmentState::NLOC, SvtxAlignmentState::NLOC> regulariseCovariance(const Eigen::Matrix<double, SvtxAlignmentState::NLOC, SvtxAlignmentState::NLOC>& inputCov,
+                                                 double conditionCutOff,
+                                                 double removeHugeLeading,
+                                                 double stabilisationDiag);
+  Eigen::Matrix<double, SvtxAlignmentState::NLOC, SvtxAlignmentState::NLOC> getInverseComplement(Eigen::Matrix<double, SvtxAlignmentState::NLOC, SvtxAlignmentState::NLOC>& target,
+                                           const Eigen::Matrix<double, SvtxAlignmentState::NLOC, SvtxAlignmentState::NLOC>& existing_sol);
   Acts::Vector3 localToGlobalVertex(SvtxTrack* track,
                                     const Acts::Vector3& vertex,
                                     const Acts::Vector3& localx) const;
@@ -120,11 +159,19 @@ class MakeMilleFiles : public SubsysReco
   std::string data_outfilename = ("mille_output_data_file.bin");
   std::string steering_outfilename = ("steer.txt");
 
-  bool m_useEventVertex = false;
+  bool m_useEventVertex = true;
   bool _binary = true;
   float m_minPt = 0.0;
+  unsigned int m_minNmvtx = 0;
+  unsigned int m_minNintt = 0;
+  bool m_trackNtpDiagnostics = false;
+  unsigned int m_minVertexTracks = 0;
+  unsigned int m_maxTracksAboveMinPtPerVertex =
+      std::numeric_limits<unsigned int>::max();
+  Acts::Vector3 m_vertexMatchCutCm = {0.2, 0.2, 0.2};
 
   Acts::Vector2 m_vtxSigma = {0.1, 0.1};
+  float m_vtxSigmaInflation = 1.0;
 
   std::map<unsigned int, float> m_layerMisalignment;
   std::set<unsigned int> fixed_sectors;
@@ -146,6 +193,8 @@ class MakeMilleFiles : public SubsysReco
   std::string m_track_map_name{"SvtxTrackMap"};
   SvtxTrackMap* _track_map{nullptr};
 
+  SvtxVertexMap* m_vertex_map{nullptr};
+
   std::string m_state_map_name{"SvtxAlignmentStateMap"};
   SvtxAlignmentStateMap* _state_map{nullptr};
 
@@ -155,7 +204,28 @@ class MakeMilleFiles : public SubsysReco
 
   std::string m_tfile_name;
   TFile* m_file{nullptr};
+  TH1D* m_trackCutFlow{nullptr};
+  TH1D* h_track_pt_after_pruning{nullptr};
+  TH1D* h_track_pt_after_makemille_pt_cut{nullptr};
+  TH1D* h_vertex_ntracks{nullptr};
+  TH1D* h_vertex_ntracks_raw{nullptr};
+  TH1D* h_absent_vertex_id{nullptr};
+  TH1D* h_track_crossing_with_vertex{nullptr};
+  TH1D* h_track_crossing_without_vertex{nullptr};
+  TH1D* h_track_vertex_crossing_diff{nullptr};
+  TH2D* h_frac_no_vertex_vs_ntracks{nullptr};
+  TProfile* p_frac_no_vertex_vs_ntracks{nullptr};
+  TH1D* h_ntracks_nocrossing{nullptr};
+  TH2D* h_frac_no_vertex_vs_ntracks_nocrossing{nullptr};
+  TProfile* p_frac_no_vertex_vs_ntracks_nocrossing{nullptr};
+  TH2D* h_vertex_ntracks_vs_ntracks_crossing{nullptr};
+  TProfile* p_vertex_ntracks_vs_ntracks_crossing{nullptr};
+  TH2D* h_vertex_ntracks_vs_ntracks_crossing_used{nullptr};
+  TProfile* p_vertex_ntracks_vs_ntracks_crossing_used{nullptr};
+  TH2D* h_vertex_ntracks_vs_ntracks_crossing_attached{nullptr};
+  TProfile* p_vertex_ntracks_vs_ntracks_crossing_attached{nullptr};
   TNtuple* m_ntuple{nullptr};
+  TNtuple* track_ntp{nullptr};
 };
 
 #endif  // MAKEMILLEFILES_H
