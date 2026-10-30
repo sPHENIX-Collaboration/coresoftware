@@ -272,6 +272,11 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
+    // template fit (not ZS) with a negative amplitude: flag it bad chi2
+    if (m_doNegEnergyBadChi2 && !m_raw_towers->get_tower_at_channel(channel)->get_isZS() && adc < 0)
+    {
+      m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(true);
+    }
     if (chi2 > std::min(std::max(badChi2_treshold_const, adc * adc * badChi2_treshold_quadratic), badChi2_treshold_max))
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(true);

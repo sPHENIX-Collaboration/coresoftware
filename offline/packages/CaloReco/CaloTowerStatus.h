@@ -85,6 +85,11 @@ class CaloTowerStatus : public SubsysReco
     m_doAbortNoHotMap = status;
     return;
   }
+  void set_doNegEnergyBadChi2(bool status = true)
+  {
+    m_doNegEnergyBadChi2 = status;
+    return;
+  }
   void set_doAbortNoChi2(bool status = true)
   {
     m_doAbortNoChi2 = status;
@@ -106,6 +111,7 @@ class CaloTowerStatus : public SubsysReco
   TowerInfoContainer *m_raw_towers{nullptr};
 
   bool m_doHotChi2{true};
+  bool m_doNegEnergyBadChi2{true};
   bool m_doHotMap{true};
   bool m_doGlobalHotMap{true};
   bool m_doAbortNoHotMap{false};

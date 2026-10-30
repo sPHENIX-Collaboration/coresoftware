@@ -118,6 +118,8 @@ class CaloWaveformFitting
   float m_timeLim_high{4.0};
   float _chi2threshold{100000};
   float _chi2lowthreshold{10000};
+  // chi2 for a negative template fit amplitude, above the CaloTowerStatus max threshold (1e8) so the tower is flagged isBadChi2
+  float _negfitampchi2{1e9};
   float _bfr_lowpedestalthreshold{1200};
   float _bfr_highpedestalthreshold{4000};
   bool _bdosoftwarezerosuppression{false};
