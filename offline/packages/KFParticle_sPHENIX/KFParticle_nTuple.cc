@@ -4,9 +4,11 @@
 
 #include <ffaobjects/EventHeader.h>
 #include <ffarawobjects/Gl1Packet.h>
+#include <fun4all/Fun4AllHistoManager.h>
 
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
+#include <qautils/QAHistManagerDef.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
@@ -70,9 +72,14 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
   }
   //setup only the momentum calibration branches
   
-  if (m_momentum_calibration_output)
+  if (m_minimal_output)
   {
     initializeMomentumCalibrationBranches(mother_name);
+    // Hand the tree to the QA histogram manager, which then owns it (and detaches it from any TFile)
+    if (m_minimal_output_to_qa && !QAHistManagerDef::getHistoManager()->registerHisto(m_qa_tree_path, m_tree))
+    {
+      std::cout << "KFParticle_nTuple: could not register " << m_qa_tree_path << " with the QA histogram manager" << std::endl;
+    }
     return;
   }
 
@@ -413,7 +420,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   }
   //This is the setup for filling only the momentum calibration branches
   //It is placed here after the daughters are prepared but before the branches are filled
-  if (m_momentum_calibration_output)
+  if (m_minimal_output)
   {
     fillMomentumCalibrationBranch(topNode, motherParticle, daughterArray);
     return;

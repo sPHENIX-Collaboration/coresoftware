@@ -388,7 +388,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void getAllPVInfo(bool pvinfo = true) { m_get_all_PVs = pvinfo; }
 
-  void saveMomentumCalibrationOutputOnly(bool minimal = true) { m_momentum_calibration_output = minimal; }
+  void saveLightweightNTuple(bool minimal = true) { m_minimal_output = minimal; if (!minimal) m_minimal_output_to_qa = false; }  // QA output is a sub-mode of the lightweight nTuple
+  void saveLightweightNTupleToQA(bool minimal = true) { m_minimal_output = m_minimal_output_to_qa = minimal; }  // also turns on the lightweight nTuple
 
   void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_bunch_crossing_zero_only = bcZeroOnly; }
 

@@ -61,7 +61,8 @@ libkfparticle_sphenix_la_LIBADD = \
   -lTMVA \
   -lphhepmc \
   -lcalotrigger \
-  -lffarawobjects
+  -lffarawobjects \
+  -lqautils
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
