@@ -6,7 +6,9 @@
 
 // -- c++
 #include <string>
+#include <memory>
 
+class TriggerAnalyzer;
 class EventPlaneData;
 class PHCompositeNode;
 class TH2;
@@ -28,6 +30,17 @@ class sEPD_TreeGen : public SubsysReco
    * @param name The name assigned to this SubsysReco module.
    */
   explicit sEPD_TreeGen(const std::string &name = "sEPD_TreeGen");
+
+ /**
+   * @brief Destructor, defined out-of-line where TriggerAnalyzer is a complete type.
+   */
+  ~sEPD_TreeGen() override;
+
+  // Module is owned by Fun4AllServer and holds raw histogram/node pointers: non-copyable, non-movable
+  sEPD_TreeGen(const sEPD_TreeGen &) = delete;
+  sEPD_TreeGen &operator=(const sEPD_TreeGen &) = delete;
+  sEPD_TreeGen(sEPD_TreeGen &&) = delete;
+  sEPD_TreeGen &operator=(sEPD_TreeGen &&) = delete;
 
  /**
    * @brief Initializes the module and creates the output TTree and QA histograms.
@@ -117,13 +130,16 @@ class sEPD_TreeGen : public SubsysReco
 
   int m_event{0};
 
-  static constexpr int PROGRESS_PRINT_INTERVAL = 20;
+  const int m_trig_12 = 12; // MBD N&S >= 2, vtx < 10 cm
+  const int m_trig_14 = 14; // MBD N&S >= 2, vtx < 150 cm
+
+  std::unique_ptr<TriggerAnalyzer> m_triggerAnalyzer;
 
   // Cuts
   struct Cuts
   {
     double m_zvtx_max{10}; /*cm*/
-    double m_sepd_charge_min{0.2};
+    double m_sepd_charge_min{0.5};
     double m_cent_max{80};
   };
 

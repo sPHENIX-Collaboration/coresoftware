@@ -12,6 +12,7 @@
 
 // -- MB
 #include <calotrigger/MinimumBiasInfo.h>
+#include <calotrigger/TriggerAnalyzer.h>
 
 #include <centrality/CentralityInfo.h>
 
@@ -45,6 +46,10 @@ sEPD_TreeGen::sEPD_TreeGen(const std::string &name)
 }
 
 //____________________________________________________________________________..
+// Defined here so unique_ptr<TriggerAnalyzer> sees the complete type
+sEPD_TreeGen::~sEPD_TreeGen() = default;
+
+//____________________________________________________________________________..
 int sEPD_TreeGen::Init(PHCompositeNode *topNode)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
@@ -52,6 +57,9 @@ int sEPD_TreeGen::Init(PHCompositeNode *topNode)
   {
     se->Print("NODETREE");
   }
+
+  m_triggerAnalyzer = std::make_unique<TriggerAnalyzer>();
+
   unsigned int bins_sepd_totalcharge{100};
   double sepd_totalcharge_low{0};
   double sepd_totalcharge_high{2e4};
@@ -121,8 +129,22 @@ int sEPD_TreeGen::process_event_check(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  // MBD Trigger
+  // decodeTriggers leaves the previous event's trigger bits in place on failure
+  if (m_triggerAnalyzer->decodeTriggers(topNode))
+  {
+    std::cout << PHWHERE << "Trigger decoding failed (TriggerRunInfo or GL1 packet missing), doing nothing." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  bool didTrig14Fire = m_triggerAnalyzer->didTriggerFire(m_trig_14);
+  bool didTrig12Fire = m_triggerAnalyzer->didTriggerFire(m_trig_12);
+
+  bool mbd_trigger_fire = didTrig12Fire || didTrig14Fire;
+  bool pass_MB = mbd_trigger_fire && m_mb_info->isAuAuMinimumBias();
+
   // skip event if not minimum bias
-  if (!m_mb_info->isAuAuMinimumBias())
+  if (!pass_MB)
   {
     if (Verbosity() > 1)
     {
@@ -294,10 +316,6 @@ int sEPD_TreeGen::process_event(PHCompositeNode *topNode)
 
   m_data.event_id = eventInfo->get_EvtSequence();
 
-  if (Verbosity() && m_event % PROGRESS_PRINT_INTERVAL == 0)
-  {
-    std::cout << "Progress: " << m_event << ", Global: " << m_data.event_id << std::endl;
-  }
   ++m_event;
 
   m_evtdata = findNode::getClass<EventPlaneData>(topNode, "EventPlaneData");
