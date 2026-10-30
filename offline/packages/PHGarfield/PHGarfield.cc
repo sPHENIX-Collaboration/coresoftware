@@ -258,8 +258,26 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
 
     if (kefffile.empty())
     {
-      std::cout << Name() << "::LoadCDBInputs - kEff coefficient file is empty" << std::endl;
-      ok = false;
+      // No kEff file: scale the reference kEff by the run-average R1 GEM current
+      // (TpcConditions, uA). The per-segment correction below still applies.
+      double igemS = m_keffReferenceSR1;
+      double igemN = m_keffReferenceNR1;
+      auto* cond = findNode::getClass<TpcConditions>(topNode, "TpcConditions");
+      if (cond && cond->get_ConditionsAvailable() && cond->get_AverageLoadSR1() > 0.0 && cond->get_AverageLoadNR1() > 0.0)
+      {
+        igemS = cond->get_AverageLoadSR1();
+        igemN = cond->get_AverageLoadNR1();
+      }
+      std::cout << Name() << "::LoadCDBInputs - kEff file is empty; GEM-current fallback, avg SR1=" << igemS
+                << " NR1=" << igemN << std::endl;
+      if (!m_spaceChargeScaleOverride[0])
+      {
+        m_spaceChargeScale_side0 = GemCurrentKeff(igemS, m_keffReferenceSR1);
+      }
+      if (!m_spaceChargeScaleOverride[1])
+      {
+        m_spaceChargeScale_side1 = GemCurrentKeff(igemN, m_keffReferenceNR1);
+      }
     }
     else
     {
