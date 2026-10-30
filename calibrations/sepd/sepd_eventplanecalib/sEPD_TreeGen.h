@@ -32,6 +32,17 @@ class sEPD_TreeGen : public SubsysReco
   explicit sEPD_TreeGen(const std::string &name = "sEPD_TreeGen");
 
  /**
+   * @brief Destructor, defined out-of-line where TriggerAnalyzer is a complete type.
+   */
+  ~sEPD_TreeGen() override;
+
+  // Module is owned by Fun4AllServer and holds raw histogram/node pointers: non-copyable, non-movable
+  sEPD_TreeGen(const sEPD_TreeGen &) = delete;
+  sEPD_TreeGen &operator=(const sEPD_TreeGen &) = delete;
+  sEPD_TreeGen(sEPD_TreeGen &&) = delete;
+  sEPD_TreeGen &operator=(sEPD_TreeGen &&) = delete;
+
+ /**
    * @brief Initializes the module and creates the output TTree and QA histograms.
    * @param topNode Pointer to the node tree.
    * @return Fun4All return code.

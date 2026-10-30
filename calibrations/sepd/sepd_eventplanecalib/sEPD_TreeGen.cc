@@ -46,6 +46,10 @@ sEPD_TreeGen::sEPD_TreeGen(const std::string &name)
 }
 
 //____________________________________________________________________________..
+// Defined here so unique_ptr<TriggerAnalyzer> sees the complete type
+sEPD_TreeGen::~sEPD_TreeGen() = default;
+
+//____________________________________________________________________________..
 int sEPD_TreeGen::Init(PHCompositeNode *topNode)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
@@ -126,7 +130,12 @@ int sEPD_TreeGen::process_event_check(PHCompositeNode *topNode)
   }
 
   // MBD Trigger
-  m_triggerAnalyzer->decodeTriggers(topNode);
+  // decodeTriggers leaves the previous event's trigger bits in place on failure
+  if (m_triggerAnalyzer->decodeTriggers(topNode))
+  {
+    std::cout << PHWHERE << "Trigger decoding failed (TriggerRunInfo or GL1 packet missing), doing nothing." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   bool didTrig14Fire = m_triggerAnalyzer->didTriggerFire(m_trig_14);
   bool didTrig12Fire = m_triggerAnalyzer->didTriggerFire(m_trig_12);
