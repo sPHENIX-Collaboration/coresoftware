@@ -237,6 +237,7 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
   }
 
   // kEff from CDB for any side that was not explicitly set.
+  bool keffFallback = false;
   if (!m_spaceChargeScaleOverride[0] || !m_spaceChargeScaleOverride[1])
   {
     std::string kefffile;
@@ -258,8 +259,34 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
 
     if (kefffile.empty())
     {
-      std::cout << Name() << "::LoadCDBInputs - kEff coefficient file is empty" << std::endl;
-      ok = false;
+      // No kEff file: scale the reference kEff by the run-average R1 GEM current
+      // (TpcConditions, uA). The per-segment correction below still applies.
+      auto* cond = findNode::getClass<TpcConditions>(topNode, "TpcConditions");
+      const bool haveCond = cond && cond->get_ConditionsAvailable();
+      const double igemS = haveCond ? cond->get_AverageLoadSR1() : 0.0;
+      const double igemN = haveCond ? cond->get_AverageLoadNR1() : 0.0;
+      const auto bad = [](double x) { return !std::isfinite(x) || x <= 0.0; };
+      if (bad(igemS) || bad(igemN) || bad(m_keffReferenceSR1) || bad(m_keffReferenceNR1))
+      {
+        std::cout << Name() << "::LoadCDBInputs - kEff file is empty and GEM-current fallback has invalid currents: avg SR1="
+                  << igemS << " NR1=" << igemN << ", ref SR1=" << m_keffReferenceSR1
+                  << " NR1=" << m_keffReferenceNR1 << std::endl;
+        ok = false;
+      }
+      else
+      {
+        std::cout << Name() << "::LoadCDBInputs - kEff file is empty; GEM-current fallback, avg SR1=" << igemS
+                  << " NR1=" << igemN << std::endl;
+        keffFallback = true;
+        if (!m_spaceChargeScaleOverride[0])
+        {
+          m_spaceChargeScale_side0 = GemCurrentKeff(igemS, m_keffReferenceSR1);
+        }
+        if (!m_spaceChargeScaleOverride[1])
+        {
+          m_spaceChargeScale_side1 = GemCurrentKeff(igemN, m_keffReferenceNR1);
+        }
+      }
     }
     else
     {
@@ -279,11 +306,14 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
   }
 
   // Print the base kEff source before the current correction.
+  const char* automaticKeffSource =
+      keffFallback ? " [GEM-current fallback]" : " [CDB]";
+
   std::cout << Name() << "::LoadCDBInputs - base kEff:"
             << " side0=" << m_spaceChargeScale_side0
-            << (m_spaceChargeScaleOverride[0] ? " [manual override]" : " [CDB]")
+            << (m_spaceChargeScaleOverride[0] ? " [manual override]" : automaticKeffSource)
             << ", side1=" << m_spaceChargeScale_side1
-            << (m_spaceChargeScaleOverride[1] ? " [manual override]" : " [CDB]")
+            << (m_spaceChargeScaleOverride[1] ? " [manual override]" : automaticKeffSource)
             << std::endl;
 
   // Apply the same bunch-crossing/current correction used by Tpc_PolyClusterizer,
