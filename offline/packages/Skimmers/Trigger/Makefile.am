@@ -23,6 +23,7 @@ libTriggerDSTSkimmer_la_LIBADD = \
   -lphool \
   -lSubsysReco \
   -lcalo_io \
+  -lcentrality_io \
   -lffarawmodules \
   -lglobalvertex \
   -lglobalvertex_io

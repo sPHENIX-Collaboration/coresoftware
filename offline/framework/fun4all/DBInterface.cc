@@ -33,6 +33,7 @@ DBInterface *DBInterface::instance()
 
 DBInterface::~DBInterface()
 {
+  delete fr;
   delete m_ODBC;
   __instance = nullptr;
   return;

@@ -239,6 +239,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
           ROOT::Fit::Chi2Function *recoverEPChi2 = new ROOT::Fit::Chi2Function(recoverData, *recoverFitFunction);
           ROOT::Fit::Fitter *recoverFitter = new ROOT::Fit::Fitter();
           recoverFitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
+	  recoverFitter->Config().MinimizerOptions().SetPrintLevel(-1);
           double recover_params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
           recoverFitter->Config().SetParamsSettings(3, recover_params);
           recoverFitter->Config().ParSettings(1).SetLimits(-1 * m_peakTimeTemp, size1 - m_peakTimeTemp);  // set lim on time par

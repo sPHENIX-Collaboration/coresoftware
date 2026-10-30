@@ -1,7 +1,7 @@
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-C++ Copyright (C) 2017 Korinna C. Zapp [Korinna.Zapp@cern.ch]       ++
+C++ Copyright (C) 2026 Korinna C. Zapp [Korinna.Zapp@thep.lu.ch]    ++
 C++                                                                 ++
-C++ This file is part of JEWEL 2.2.0                                ++
+C++ This file is part of JEWEL 2.6.0                                ++
 C++                                                                 ++
 C++ The JEWEL homepage is jewel.hepforge.org                        ++
 C++                                                                 ++
@@ -15,7 +15,7 @@ C++ JHEP 1303 (2013) 080 [arXiv:1212.1599] and                      ++
 C++ optionally EPJC 60 (2009) 617 [arXiv:0804.3568] for the         ++
 C++ physics. The reference for V+jet processes is EPJC 76 (2016)    ++
 C++ no.12 695 [arXiv:1608.03099] and for recoil effects it is       ++
-C++ arXiv:1707.01539.
+C++ JHEP 07 (2017) 141 [arXiv:1707.01539].                          ++
 C++                                                                 ++
 C++ JEWEL relies heavily on PYTHIA 6 for the event generation. The  ++
 C++ modified version of PYTHIA 6.4.25 that is distributed with      ++
@@ -95,8 +95,8 @@ C--identifier of log file
 C--local variables
       INTEGER I,LUN,POS,IOS,id,mass
 	double precision etam
-      CHARACTER*100 BUFFER,LABEL,tempbuf
-	CHARACTER*80 FILE
+      CHARACTER*512 BUFFER,LABEL,tempbuf
+	CHARACTER*512 FILE
 	character firstchar
 	logical fileexist
 
@@ -107,8 +107,8 @@ C--local variables
       LUN=77
 
 C--default settings
-      TAUI=0.6d0
-      TI=0.36d0
+      TAUI=0.4d0
+      TI=0.59d0
       TC=0.17d0
       WOODSSAXON=.TRUE.
       CENTRMIN=0.d0
@@ -119,7 +119,7 @@ C--default settings
       D=0.54d0
       SIGMANN=6.2
 	MDFACTOR=0.45d0
-	MDSCALEFAC=0.9d0
+	MDSCALEFAC=1.d0
 	boost = .true.
 
 C--read settings from file
@@ -252,6 +252,16 @@ C--pick an impact parameter
 
 
 
+      double precision function getb()
+      implicit none
+      COMMON/MEDPARAM/CENTRMIN,CENTRMAX,BREAL,CENTR,RAU,NF
+      INTEGER NF
+      DOUBLE PRECISION CENTRMIN,CENTRMAX,BREAL,CENTR,RAU
+      getb=breal
+      end
+
+
+
       SUBROUTINE PICKVTX(X,Y)
       IMPLICIT NONE
       DOUBLE PRECISION X,Y
@@ -319,11 +329,11 @@ C--local variables
       R=PYR(0)
       IF(R.LT.(2.*12.*NF*D3/3.)/(2.*12.*NF*D3/3.+3.*16.*ZETA3/2.))THEN
          TYPE=2
+         MS=GETMS(X,Y,Z,T)
       ELSE
          TYPE=21
+         MS=GETMD(X,Y,Z,T)
       ENDIF
-      MS=GETMS(X,Y,Z,T)
-      MD=GETMD(X,Y,Z,T)
       TEMP=GETTEMP(X,Y,Z,T)
 	tau=sqrt(t**2-z**2)
 	if (boost) then
@@ -378,6 +388,15 @@ C--max rapidity
 	double precision etamax2
 C--local variables
 	double precision x,y,z,t,px,py,pz,e,getms,m,ys
+	
+	if (dabs(z).ge.t) then
+	  px = 0.d0
+	  py = 0.d0
+	  pz = 0.d0
+	  E = 0.d0
+	  m = 0.d0
+	  return
+	endif  
 	if (boost) then
   	  ys = 0.5*log((t+z)/(t-z))
 	  if ((z.eq.0.d0).and.(t.eq.0.d0)) ys =0.d0
@@ -495,8 +514,10 @@ C--check for overlap region
 C--determine initial temperature at transverse position
       IF(WOODSSAXON)THEN
          EPS0=(16.*8.+7.*2.*6.*NF)*PI**2*TI**4/240.
-         EPSIN=EPS0*NPART(X4-BREAL/2.,Y4,X4+BREAL/2.,Y4)
-     &        *PI*RAU**2/(2.*A)
+!         EPSIN=EPS0*NPART(X4-BREAL/2.,Y4,X4+BREAL/2.,Y4)
+!     &        *PI*RAU**2/(2.*A)
+	   EPSIN=EPS0*NPART(X4-BREAL/2.,Y4,X4+BREAL/2.,Y4)/
+     &        NPART(0.d0,0.d0,0.d0,0.d0)
          TEMPIN=(EPSIN*240./(PI**2*(16.*8.+7.*2.*6.*NF)))**0.25
       ELSE
          TEMPIN=TI
@@ -732,7 +753,7 @@ C--local variables
       EPS=1.E-4
       HFIRST=0.1D0
 
-      R=1.12*A**(0.33333)-0.86*A**(-0.33333)
+	R=1.12*A**(0.33333)-0.86*A**(-0.33333)
       RMAX=2.*R
 
       DO 10 I=1,NSTEPS

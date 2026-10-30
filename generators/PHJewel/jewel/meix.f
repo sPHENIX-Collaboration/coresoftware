@@ -30,7 +30,8 @@ C
            R=1.0D0
            DO 25 K=1,20
               R=R*K/X
-25            EI=EI+R
+              EI=EI+R
+25         CONTINUE
            EI=DEXP(X)/X*EI
         ENDIF
         RETURN
