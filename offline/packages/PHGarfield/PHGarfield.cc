@@ -306,11 +306,14 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
   }
 
   // Print the base kEff source before the current correction.
+  const char* automaticKeffSource =
+      keffFallback ? " [GEM-current fallback]" : " [CDB]";
+
   std::cout << Name() << "::LoadCDBInputs - base kEff:"
             << " side0=" << m_spaceChargeScale_side0
-            << (m_spaceChargeScaleOverride[0] ? " [manual override]" : keffFallback ? " [GEM-current fallback]" : " [CDB]")
+            << (m_spaceChargeScaleOverride[0] ? " [manual override]" : automaticKeffSource)
             << ", side1=" << m_spaceChargeScale_side1
-            << (m_spaceChargeScaleOverride[1] ? " [manual override]" : keffFallback ? " [GEM-current fallback]" : " [CDB]")
+            << (m_spaceChargeScaleOverride[1] ? " [manual override]" : automaticKeffSource)
             << std::endl;
 
   // Apply the same bunch-crossing/current correction used by Tpc_PolyClusterizer,
