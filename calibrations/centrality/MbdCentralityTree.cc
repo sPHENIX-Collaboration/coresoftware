@@ -57,7 +57,7 @@ int MbdCentralityTree::process_event(PHCompositeNode *topNode)
   bool triggered = false;
   for (int bit : m_trigger_bits)
   {
-    triggered = triggered || ((m_gl1_scaled >> bit) & 0x1U);
+    triggered = triggered || ((m_gl1_scaled >> static_cast<unsigned int>(bit)) & 0x1U);
   }
   if (!triggered)
   {

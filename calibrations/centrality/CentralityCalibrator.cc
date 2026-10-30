@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -65,6 +66,8 @@ namespace
     ~NoAddDirectory() { TH1::AddDirectory(m_status); }
     NoAddDirectory(const NoAddDirectory &) = delete;
     NoAddDirectory &operator=(const NoAddDirectory &) = delete;
+    NoAddDirectory(NoAddDirectory &&) = delete;
+    NoAddDirectory &operator=(NoAddDirectory &&) = delete;
 
    private:
     bool m_status;
@@ -384,7 +387,7 @@ int CentralityCalibrator::FitT0Offset(int run, const std::string &treefile, cons
   for (Long64_t i = 0; i < tree->GetEntries() && nsel < m_t0fit_max_events; i++)
   {
     tree->GetEntry(i);
-    if (!((gl1_scaled >> m_trigger_bit) & 0x1U))
+    if (!((gl1_scaled >> static_cast<unsigned int>(m_trigger_bit)) & 0x1U))
     {
       continue;
     }
@@ -469,15 +472,15 @@ int CentralityCalibrator::FitT0Offset(int run, const std::string &treefile, cons
 
   std::filesystem::create_directories(outdir);
   const std::string stem = outdir + "/t0offset_" + std::to_string(run);
-  FILE *fout = fopen((stem + ".csv").c_str(), "w");
-  if (!fout)
+  std::ofstream fout(stem + ".csv");
+  if (!fout.is_open())
   {
     std::cout << "CentralityCalibrator::FitT0Offset: cannot write " << stem << ".csv" << std::endl;
     return 1;
   }
-  fprintf(fout, "%d,%ld,%.4f,%.4f,%.4f,%.3f,%.4f,%.4f,%.4f,%.4f,%d\n", run, nsel, offset, offset_err, sigma, chi2ndf,
-          side_rel[0], side_err[0], side_rel[1], side_err[1], status);
-  fclose(fout);
+  fout << std::format("{},{},{:.4f},{:.4f},{:.4f},{:.3f},{:.4f},{:.4f},{:.4f},{:.4f},{}\n", run, nsel, offset, offset_err, sigma, chi2ndf,
+                      side_rel[0], side_err[0], side_rel[1], side_err[1], status);
+  fout.close();
   std::cout << "run " << run << ": " << nsel << " events, t0 offset " << offset << " +- " << offset_err << " ns, sigma "
             << sigma << ", -5/+5 ns peaks at " << side_rel[0] << " / " << side_rel[1] << " ns, status " << status << std::endl;
 
@@ -577,7 +580,7 @@ int CentralityCalibrator::Calibrate(int run, const std::string &treefile, const 
   {
     tree->GetEntry(i);
     t0 -= t0offset;
-    if (!((gl1_scaled >> m_trigger_bit) & 0x1U))
+    if (!((gl1_scaled >> static_cast<unsigned int>(m_trigger_bit)) & 0x1U))
     {
       continue;
     }
@@ -650,7 +653,7 @@ int CentralityCalibrator::Calibrate(int run, const std::string &treefile, const 
     std::array<double, NVERTEXBINS> vertex_scale{};
     for (int ib = 0; ib < NVERTEXBINS; ib++)
     {
-      TH1D *proj = h2.ProjectionY(Form("h_charge_sum_vertexbin_%d", ib), ib + 1, ib + 1);
+      TH1D *proj = h2.ProjectionY(("h_charge_sum_vertexbin_" + std::to_string(ib)).c_str(), ib + 1, ib + 1);
       vertex_scale[ib] = proj->GetMean();
       delete proj;
     }

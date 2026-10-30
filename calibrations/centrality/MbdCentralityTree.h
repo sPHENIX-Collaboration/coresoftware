@@ -20,7 +20,6 @@ class MbdCentralityTree : public SubsysReco
 {
  public:
   explicit MbdCentralityTree(const std::string &name = "MbdCentralityTree", const std::string &filename = "mbd_centrality_tree.root");
-  ~MbdCentralityTree() override = default;
 
   int Init(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
