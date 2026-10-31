@@ -9,7 +9,6 @@
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
 #include <ffarawobjects/CaloPacket.h>
-#include <ffarawobjects/CaloPacketContainer.h>
 
 #include <ffamodules/CDBInterface.h>
 
@@ -40,17 +39,8 @@
 #include <format>
 #include <iostream>  // for operator<<, endl, basic_...
 #include <limits>
-#include <map>  // for operator!=, _Rb_tree_con...
 #include <string>
-#include <utility>  // for pair
-#include <variant>
 
-static const std::map<CaloTowerDefs::DetectorSystem, std::string> nodemap{
-    {CaloTowerDefs::CEMC, "CEMCPackets"},
-    {CaloTowerDefs::HCALIN, "HCALPackets"},
-    {CaloTowerDefs::HCALOUT, "HCALPackets"},
-    {CaloTowerDefs::ZDC, "ZDCPackets"},
-    {CaloTowerDefs::SEPD, "SEPDPackets"}};
 
 // MBD t0 selections: t0 < -7.5, [-7.5,-2.5), [-2.5,2.5), [2.5,7.5), t0 >= 7.5 (ns)
 static const std::array<std::string, 5> m_t0bin_names{"minus10", "minus5", "main", "plus5", "plus10"};
@@ -140,8 +130,7 @@ int CaloFittingQA::process_event(PHCompositeNode* topNode)
 int CaloFittingQA::process_towers(PHCompositeNode* topNode)
 {
   //---------------------------Event header--------------------------------//
-  EventHeader* eventheader =
-      findNode::getClass<EventHeader>(topNode, "EventHeader");
+  EventHeader* eventheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
   int event_number = 0;
   if (eventheader)
   {
@@ -562,43 +551,8 @@ int CaloFittingQA::process_data(PHCompositeNode* topNode, CaloTowerDefs::Detecto
     m_nchannels = 128;
   }
 
-  std::variant<CaloPacketContainer*, Event*> event;
-  if (m_UseOfflinePacketFlag)
-  {
-    CaloPacketContainer* hcalcont = findNode::getClass<CaloPacketContainer>(topNode, nodemap.find(dettype)->second);
-    if (!hcalcont)
-    {
-      for (int pid = packet_low; pid <= packet_high; pid++)
-      {
-        if (findNode::getClass<CaloPacket>(topNode, pid))
-        {
-          m_PacketNodesFlag = true;
-          break;
-        }
-      }
-      if (!m_PacketNodesFlag)
-      {
-        std::cout << "CaloFittingQA: unable to find node " << nodemap.find(dettype)->second << "  skiping event" << std::endl;
-        return Fun4AllReturnCodes::EVENT_OK;
-      }
-    }
-    event = hcalcont;
-  }
-  else
-  {
-    Event* _event = findNode::getClass<Event>(topNode, "PRDF");
-    if (_event == nullptr)
-    {
-      std::cout << PHWHERE << " Event not found" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-    if (_event->getEvtType() != DATAEVENT)
-    {
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-    event = _event;
-  }
-  // since the function call on Packet and CaloPacket is the same, maybe we can use lambda?
+  // This lambda function is executed by Event Packets and Calo Packets which share the same methods
+  // needs to know the number of channels set above
   auto process_packet = [&](auto* packet, int pid)
   {
     if (packet)
@@ -723,30 +677,29 @@ int CaloFittingQA::process_data(PHCompositeNode* topNode, CaloTowerDefs::Detecto
     return Fun4AllReturnCodes::EVENT_OK;
   };
 
+
+  Event* event = findNode::getClass<Event>(topNode, "PRDF");
+  if (event != nullptr)
+  {
+    if (event->getEvtType() != DATAEVENT)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
+
   for (int pid = packet_low; pid <= packet_high; pid++)
   {
-    if (!m_PacketNodesFlag)
+    if (event)
     {
-      if (auto* hcalcont = std::get_if<CaloPacketContainer*>(&event))
+      Packet *packet = event->getPacket(pid);
+      if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
       {
-        CaloPacket* packet = (*hcalcont)->getPacketbyId(pid);
-        if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
-        {
-          return Fun4AllReturnCodes::ABORTEVENT;
-        }
+	// I think it is safe to delete a nullptr...
+	delete packet;
+	return Fun4AllReturnCodes::ABORTEVENT;
       }
-      else if (auto* _event = std::get_if<Event*>(&event))
-      {
-        Packet* packet = (*_event)->getPacket(pid);
-        if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
-        {
-          // I think it is safe to delete a nullptr...
-          delete packet;
-          return Fun4AllReturnCodes::ABORTEVENT;
-        }
 
-        delete packet;
-      }
+      delete packet;
     }
     else
     {
