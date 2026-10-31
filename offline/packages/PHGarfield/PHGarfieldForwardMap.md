@@ -115,6 +115,32 @@ The generator validates and independently reopens its output before publication.
 small ROOT files. It checks refinement, periodic support, classification,
 malformed arrays, complete partitions and ROOT readback without detector inputs.
 
+## Merge execution shards
+
+Regular generation can be partitioned with `--phi-chunk-count N` and
+`--phi-chunk-index I`. After all pieces finish, merge every distinct piece:
+
+```sh
+PHGarfieldForwardMapMerger forward.root part0.root part1.root
+```
+
+The merger checks common physical configuration, histogram axes and complete
+chunk coverage, copies owned planes, and reconstructs periodic phi guards.
+Adaptive root-range shards instead use:
+
+```sh
+PHGarfieldAdaptiveMapMerger adaptive.root part0.root part1.root
+PHGarfieldAdaptiveMapMerger --check-complete adaptive.root
+```
+
+Adaptive merging checks structural validity, shared points, root ownership and
+matching numerical policies. Optional aggregate resource overrides require an
+explicit monotone capacity increase and a separate conversion record; they do
+not change generated values or refinement decisions. `--help` lists the limits.
+Both tools preserve existing outputs and publish only after clean ROOT readback.
+For large adaptive maps, converting pieces before merging can avoid constructing
+an entire training map in memory; see `PHGarfieldCompactMap.md`.
+
 ## Transport implementation
 
 `PHGarfield` owns gas and field resources and performs deterministic forward

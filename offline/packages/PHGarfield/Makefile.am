@@ -62,11 +62,20 @@ libPHGarfield_la_SOURCES = \
 bin_PROGRAMS = \
   GasModel \
   MergeGasFiles \
+  PHGarfieldAdaptiveMapMerger \
   PHGarfieldCompactMapConverter \
-  PHGarfieldForwardMapGenerator
+  PHGarfieldCompactMapMerger \
+  PHGarfieldForwardMapGenerator \
+  PHGarfieldForwardMapMerger
 
+PHGarfieldAdaptiveMapMerger_SOURCES = PHGarfieldAdaptiveMapMerger.cc PHGarfieldMapTools.cc
+PHGarfieldAdaptiveMapMerger_LDADD = libPHGarfield.la
 
+PHGarfieldCompactMapMerger_SOURCES = PHGarfieldCompactMapMerger.cc PHGarfieldMapTools.cc
+PHGarfieldCompactMapMerger_LDADD = libPHGarfield.la
 
+PHGarfieldForwardMapMerger_SOURCES = PHGarfieldForwardMapMerger.cc PHGarfieldMapTools.cc
+PHGarfieldForwardMapMerger_LDADD = libPHGarfield.la
 
 PHGarfieldCompactMapConverter_SOURCES = PHGarfieldCompactMapConverter.cc PHGarfieldMapTools.cc
 PHGarfieldCompactMapConverter_LDADD = libPHGarfield.la

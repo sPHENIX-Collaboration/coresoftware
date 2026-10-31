@@ -1,5 +1,11 @@
 # Compact forward-transport LUTs
 
+Compact shard manifests must list shards in ascending `first_root` order,
+with adjacent, nonoverlapping ranges. The merger preserves the exact manifest
+text as a checksum-bound input identity and rejects out-of-order input.
+The adaptive merger accepts unordered paths and sorts them before merging;
+that convenience does not apply to the compact manifest interface.
+
 `PHGarfieldCompactMap` converts adaptive schema-4 maps into schema-5 runtime
 arrays. It retains cell routing, classifications and the exact double-precision
 corner values needed for interpolation, while omitting generation-only samples
@@ -59,3 +65,26 @@ explicit direct-query requirement; compaction never makes them interpolatable.
 `make check` runs `test_compact_map` with synthetic adaptive maps and small
 ROOT files. It verifies exact routing/corner values, periodic and boundary
 queries, resource limits, corrupted data rejection and independent readback.
+
+## Convert pieces before merging
+
+`PHGarfieldCompactMapMerger` has two modes. `convert` reads adaptive schema-4
+shards and converts them into a compact collection. `merge` combines compact
+collections. Each input list has three tab-separated columns per line:
+absolute ROOT filename, file SHA-256 and content fingerprint. Supply pieces in
+increasing root order, without a header:
+
+```sh
+PHGarfieldCompactMapMerger --mode convert --input-list shards.tsv \
+  --expect-input-sha256 LIST_SHA256 --output pieces.root \
+  --summary pieces.json --complete no
+PHGarfieldCompactMapMerger --mode merge --input-list pieces.tsv \
+  --expect-input-sha256 LIST_SHA256 --output runtime.root \
+  --summary runtime.json --complete yes
+```
+
+Use `--complete yes` only when the result covers all coarse roots. The summary
+contains the runtime hash and source bindings needed by the simulation reader.
+Conversion preserves every retained corner double and checks every remapped
+reference. File structure and exact conversion are checked separately from the
+accuracy of the original generated transport.
