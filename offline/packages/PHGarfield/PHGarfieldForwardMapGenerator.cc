@@ -1,4 +1,5 @@
 #include "PHGarfield.h"
+#include "PHGarfieldAdaptiveMap.h"
 #include "PHGarfieldForwardMap.h"
 
 #include <phool/recoConsts.h>
@@ -17,6 +18,11 @@ namespace
   struct Options
   {
     PHGarfieldForwardMap::Config map;
+    PHGarfieldAdaptiveMap::Policy adaptive_policy;
+    bool adaptive{false};
+    std::uint64_t adaptive_first{0}, adaptive_end{0};
+    bool adaptive_range_set{false};
+
     std::string electric_field_map;
     std::array<std::string, 2> electric_field_map_3d{};
     std::array<std::string, 2> frame_field_map_3d{};
@@ -74,7 +80,17 @@ namespace
         << "  --tpc-rotation-x-rad VALUE      TPC x rotation (default 0)\n"
         << "  --tpc-rotation-y-rad VALUE      TPC y rotation (default 0)\n"
         << "  --tpc-rotation-z-rad VALUE      TPC z rotation (default 0)\n"
-        << "  --interpolation-tolerance-um V Sampled interpolation error tolerance\n"
+        << "\nAdaptive anisotropic schema4 (opt-in):\n"
+        << "  --adaptive                     Build a dyadic binary cell tree\n"
+        << "  --adaptive-root-first N        Inclusive coarse root ID (default0)\n"
+        << "  --adaptive-root-end N          Exclusive root ID (default all roots)\n"
+        << "  --adaptive-max-depth N         Per-root depth cap (default12)\n"
+        << "  --adaptive-max-nodes-per-root N Per-root node cap (default127)\n"
+        << "  --adaptive-max-queries-per-root N Unique stencil-query cap (default2048)\n"
+        << "  --adaptive-max-total-points N  Global per-file point cap (default5000000)\n"
+        << "  --adaptive-max-total-cells N   Global per-file cell cap (default2000000)\n"
+        << "  --adaptive-max-bytes N         Conservative global working-memory cap (default2147483648)\n"
+        << "  --interpolation-tolerance-um V Maximum actual 27-stencil error (adaptive default10)\n"
         << "\nCDB and output:\n"
         << "  --global-tag TAG                CDB global tag (default FieldMapTest)\n"
         << "  --timestamp VALUE               CDB timestamp (default 1)\n"
@@ -231,6 +247,44 @@ namespace
           options.map.integration_step_ns =
               double_after(index, option);
         }
+        else if (option == "--adaptive")
+        {
+          options.adaptive = true;
+        }
+        else if (option == "--adaptive-root-first")
+        {
+          options.adaptive_first = uint64_after(index, option);
+          options.adaptive_range_set = true;
+        }
+        else if (option == "--adaptive-root-end")
+        {
+          options.adaptive_end = uint64_after(index, option);
+          options.adaptive_range_set = true;
+        }
+        else if (option == "--adaptive-max-depth")
+        {
+          options.adaptive_policy.max_depth = unsigned_after(index, option);
+        }
+        else if (option == "--adaptive-max-nodes-per-root")
+        {
+          options.adaptive_policy.max_nodes_per_root = unsigned_after(index, option);
+        }
+        else if (option == "--adaptive-max-queries-per-root")
+        {
+          options.adaptive_policy.max_queries_per_root = unsigned_after(index, option);
+        }
+        else if (option == "--adaptive-max-total-points")
+        {
+          options.adaptive_policy.max_total_points = uint64_after(index, option);
+        }
+        else if (option == "--adaptive-max-total-cells")
+        {
+          options.adaptive_policy.max_total_cells = uint64_after(index, option);
+        }
+        else if (option == "--adaptive-max-bytes")
+        {
+          options.adaptive_policy.max_estimated_bytes = uint64_after(index, option);
+        }
         else if (option == "--interpolation-tolerance-um")
         {
           options.map.interpolation_tolerance_um = double_after(index, option);
@@ -350,6 +404,29 @@ namespace
     if (options.help_requested)
     {
       return true;
+    }
+    if (options.adaptive)
+    {
+      if (options.map.interpolation_tolerance_um == 0.)
+      {
+        options.map.interpolation_tolerance_um = options.adaptive_policy.guard_um;
+      }
+      options.adaptive_policy.guard_um = options.map.interpolation_tolerance_um;
+      if (!options.adaptive_end)
+      {
+        options.adaptive_end = PHGarfieldAdaptiveMap::RootCount(PHGarfieldAdaptiveMap::FromConfig(options.map));
+      }
+      if (options.adaptive_first >= options.adaptive_end || options.adaptive_end > PHGarfieldAdaptiveMap::RootCount(PHGarfieldAdaptiveMap::FromConfig(options.map)) ||
+          options.map.phi_chunk_index != 0 || options.map.phi_chunk_count != 1 || !options.map.probe_cell_centers)
+      {
+        error << "Adaptive mode requires a nonempty valid root range, no phi chunks and the complete stencil\n";
+        return false;
+      }
+    }
+    else if (options.adaptive_range_set)
+    {
+      error << "Adaptive root ranges require --adaptive\n";
+      return false;
     }
     if (options.map.output_filename.empty())
     {
@@ -545,6 +622,14 @@ try
       std::cerr << "A requested 3D field payload was not loaded\n";
       return 1;
     }
+  }
+  if (options.adaptive)
+  {
+    PHGarfieldAdaptiveMap::BuildSummary summary;
+    return PHGarfieldAdaptiveMap::Generate(*garfield, options.map, options.adaptive_policy,
+                                           options.adaptive_first, options.adaptive_end, summary, std::cout, std::cerr)
+               ? 0
+               : 1;
   }
   PHGarfieldForwardMap::Summary summary;
   if (!PHGarfieldForwardMap::Generate(

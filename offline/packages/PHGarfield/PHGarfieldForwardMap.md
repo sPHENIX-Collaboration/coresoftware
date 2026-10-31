@@ -89,6 +89,32 @@ Legacy displacement maps must not be added to the same full transport.
 angle wrapping, configuration validation and canonical metadata. Integration
 validation additionally requires gas/field payloads and direct-drift holdouts.
 
+## Adaptive generation
+
+`--adaptive` selects schema 4. It uses the same pinned physics and direct
+integration as regular generation, with a binary tree that bisects one cell
+axis at a time. The selected axis follows the measured directional transport
+curvature or reaching/lost transitions. Reaching leaves interpolate only when
+all 27 stencil samples reach and the sampled transverse and time-equivalent
+errors pass `--interpolation-tolerance-um` (adaptive default 10 micrometres).
+
+The stored primitive `Points`, `Cells` and `Roots` arrays include classifications,
+root ownership, support values, refinement policy and content fingerprints.
+Depth, per-root query/node budgets and per-file point/cell/byte limits bound
+resource use. Budget exhaustion leaves an explicitly uncertified cell; it does
+not turn the cell into an interpolation region. Physical mixed and sampled
+all-lost leaves also require a direct query when used by an enabled fallback.
+Finite lost samples cannot certify that a whole volume is physically lost.
+
+`--adaptive-root-first` and `--adaptive-root-end` can generate disjoint coarse
+root ranges. Partial maps are marked as shards and cannot be used directly in
+simulation; combine them into a complete map or compact collection first.
+The generator validates and independently reopens its output before publication.
+
+`make check` additionally runs `test_adaptive_map` using synthetic samplers and
+small ROOT files. It checks refinement, periodic support, classification,
+malformed arrays, complete partitions and ROOT readback without detector inputs.
+
 ## Transport implementation
 
 `PHGarfield` owns gas and field resources and performs deterministic forward

@@ -16,12 +16,16 @@ AM_LDFLAGS = \
   `root-config --libs`
 
 noinst_HEADERS = \
+  PHGarfieldPrimitiveTree.h \
   PHGarfieldFingerprint.h \
+  PHGarfieldMapFingerprint.h \
   PHGarfieldFieldMapValidation.h \
-  PHGarfieldForwardSetup.h
+  PHGarfieldForwardSetup.h \
+  PHGarfieldRootOutput.h
 
 pkginclude_HEADERS = \
   PHGarfield.h \
+  PHGarfieldAdaptiveMap.h \
   PHGarfieldForwardMap.h \
   PHGarfieldRossegger.h
 
@@ -41,6 +45,9 @@ libPHGarfield_la_LIBADD = \
 
 libPHGarfield_la_SOURCES = \
   PHGarfield.cc \
+  PHGarfieldAdaptiveBuilder.cc \
+  PHGarfieldAdaptiveGenerator.cc \
+  PHGarfieldAdaptiveMap.cc \
   PHGarfieldFieldMapValidation.cc \
   PHGarfieldForwardMap.cc \
   PHGarfieldForwardSetup.cc \
@@ -77,6 +84,7 @@ noinst_PROGRAMS = \
   testexternals
 
 check_PROGRAMS = \
+  test_adaptive_map \
   test_field_map_validation \
   test_forward_field_coordinates \
   test_forward_map_formula \
@@ -84,6 +92,8 @@ check_PROGRAMS = \
   test_forward_transport_config
 TESTS = $(check_PROGRAMS)
 
+test_adaptive_map_SOURCES = tests/test_adaptive_map.cc
+test_adaptive_map_LDADD = libPHGarfield.la
 
 
 test_forward_map_formula_SOURCES = tests/test_forward_map_formula.cc
