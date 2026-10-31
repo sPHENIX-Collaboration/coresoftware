@@ -3,8 +3,6 @@
 Compact shard manifests must list shards in ascending `first_root` order,
 with adjacent, nonoverlapping ranges. The merger preserves the exact manifest
 text as a checksum-bound input identity and rejects out-of-order input.
-The adaptive merger accepts unordered paths and sorts them before merging;
-that convenience does not apply to the compact manifest interface.
 
 `PHGarfieldCompactMap` converts adaptive schema-4 maps into schema-5 runtime
 arrays. It retains cell routing, classifications and the exact double-precision

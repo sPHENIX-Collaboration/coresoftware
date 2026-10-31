@@ -169,8 +169,8 @@ class PHGarfield : public SubsysReco
   // coordinates in cm; time and step size are in ns. readout_abs_z_cm is the
   // positive magnitude of the physical readout-plane z coordinate. Disabling
   // electric corrections supplies the nominal timing reference. Enable forward
-  // transport mode before InitRun. Radial stopping may be disabled only for
-  // the artificial correction-disabled reference trajectory.
+  // transport mode before InitRun. Forward transport always stops at radial
+  // field cages, including the correction-disabled reference trajectory.
   bool ForwardDrift(double x_cm,
                     double y_cm,
                     double z_cm,

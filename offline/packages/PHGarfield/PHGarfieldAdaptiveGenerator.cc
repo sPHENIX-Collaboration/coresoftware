@@ -30,8 +30,7 @@ bool PHGarfieldAdaptiveMap::Generate(const PHGarfield& garfield,
                                      std::ostream& log, std::ostream& error)
 {
   build_summary = {};
-  if (config.phi_chunk_count != 1 || config.phi_chunk_index != 0 ||
-      !config.probe_cell_centers || config.interpolation_tolerance_um != policy.guard_um ||
+  if (config.interpolation_tolerance_um != policy.guard_um ||
       garfield.GetElectricFieldMap3D(0).empty() || garfield.GetElectricFieldMap3D(1).empty())
   {
     error << "Adaptive generation requires pinned per-side3D, full stencil probes, matching positive guard and explicit root-range partitioning\n";

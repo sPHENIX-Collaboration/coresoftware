@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <limits>
+#include <sstream>
 
 int main()
 {
@@ -57,6 +58,42 @@ int main()
   {
     std::cerr << "Standalone forward initialization must reject unspecified side coefficients\n";
     return 1;
+  }
+
+  // No external gas/CDB payload is needed: allowed field policies reach the
+  // deliberately missing explicit gas file, while an unpinned P/T policy must
+  // stop before looking for conditions on a null node tree.
+  for (int policy : {0, 1, 2})
+  {
+    PHGarfield standalone("standalone_field_policy", "", 0., 0.);
+    standalone.SetForwardTransportMode(true);
+    standalone.SetZeroMagneticField(true);
+    standalone.SetLoadTpcFeeMap(false);
+    standalone.SetUseCDBDriftCorrections(false);
+    standalone.SetPTReference(390., 1000., 293.15);
+    standalone.SetGasFile("missing_forward_field_policy_test.gas");
+    if (policy == 1)
+    {
+      standalone.SetCMVoltageDefault(375.);
+    }
+    else if (policy == 2)
+    {
+      standalone.SetUsePTCorrection(false);
+    }
+    std::ostringstream errors;
+    auto* previous = std::cerr.rdbuf(errors.rdbuf());
+    const int status = standalone.InitRun(nullptr);
+    std::cerr.rdbuf(previous);
+    const char* expected = policy == 0
+                               ? "Standalone forward transport requires a pinned CM field"
+                               : "Explicit Garfield gas path does not exist";
+    if (status != Fun4AllReturnCodes::ABORTRUN || errors.str().find(expected) == std::string::npos ||
+        (policy == 1 && standalone.GetCMVoltageDefault() != 375.) ||
+        (policy == 2 && standalone.GetCMVoltageDefault() != 390.))
+    {
+      std::cerr << "Standalone P/T policy failed: " << policy << ' ' << errors.str();
+      return 1;
+    }
   }
 
   return 0;

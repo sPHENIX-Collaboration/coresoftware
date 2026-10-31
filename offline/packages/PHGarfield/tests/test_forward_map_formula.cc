@@ -106,14 +106,6 @@ int main()
                { config.interpolation_tolerance_um = -1.; }) ||
       !rejects("a nonfinite interpolation tolerance", [](auto& config)
                { config.interpolation_tolerance_um = std::numeric_limits<double>::quiet_NaN(); }) ||
-      !rejects("an unprobed numerical mask", [](auto& config)
-               { config.interpolation_tolerance_um = 3.; config.probe_cell_centers = false; }) ||
-      !rejects("a zero phi chunk count", [](auto& config)
-               { config.phi_chunk_count = 0; }) ||
-      !rejects("too many phi chunks", [](auto& config)
-               { config.phi_chunk_count = config.phi_nodes + 1; }) ||
-      !rejects("a phi chunk index outside the partition", [](auto& config)
-               { config.phi_chunk_index = 1; }) ||
       !rejects(
           "an excessive total source-node count",
           [](auto& config)
@@ -414,24 +406,6 @@ int main()
       std::cerr << "2D coordinate metadata is missing or changed its established fingerprint\n";
       return 1;
     }
-  }
-  TMemFile invalid_map("invalid-regular.root", "RECREATE");
-  auto* metadata = invalid_map.mkdir("GarfieldFullTransport")->mkdir("Metadata");
-  auto invalid_config = valid_config;
-  invalid_config.integration_step_ns = -1.;
-  if (!PHGarfieldForwardMap::WriteMetadata(metadata, invalid_config, {}, {}, PHGarfieldForwardMap::SchemaVersion))
-  {
-    return 1;
-  }
-  std::ostringstream errors, unexpected;
-  auto* previous = std::cerr.rdbuf(unexpected.rdbuf());
-  const bool accepted = PHGarfieldForwardMap::ValidateRegular(invalid_map, errors);
-  std::cerr.rdbuf(previous);
-  if (accepted || !unexpected.str().empty() || errors.str().find("Euler integration step") == std::string::npos ||
-      errors.str().find("invalid merged geometry/numerical configuration") == std::string::npos)
-  {
-    std::cerr << "Regular-map validation did not preserve the caller's diagnostic stream\n";
-    return 1;
   }
   return 0;
 }

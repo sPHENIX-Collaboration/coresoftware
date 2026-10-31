@@ -19,9 +19,7 @@ namespace
   {
     PHGarfieldForwardMap::Config map;
     PHGarfieldAdaptiveMap::Policy adaptive_policy;
-    bool adaptive{false};
     std::uint64_t adaptive_first{0}, adaptive_end{0};
-    bool adaptive_range_set{false};
 
     std::string electric_field_map;
     std::array<std::string, 2> electric_field_map_3d{};
@@ -44,8 +42,8 @@ namespace
   void print_usage(std::ostream& output, const char* program)
   {
     output
-        << "Usage: " << program << " --output FILE --electric-field-map FILE [options]\n"
-        << "\nGenerate a full deterministic PHGarfield forward-transport LUT.\n"
+        << "Usage: " << program << " --output FILE --electric-field-map-3d-side0 FILE --electric-field-map-3d-side1 FILE [options]\n"
+        << "\nGenerate an adaptive deterministic PHGarfield forward-transport LUT.\n"
         << "\nPhysics inputs:\n"
         << "  --electric-field-map FILE       ROOT Er/Ez correction map\n"
         << "  --electric-field-map-3d-side0 FILE  Pinned south 3D space-charge map\n"
@@ -64,8 +62,6 @@ namespace
         << "\nGrid and integration:\n"
         << "  --step-ns VALUE                 Euler step in ns (default 12.5)\n"
         << "  --phi-nodes N                   Physical phi nodes (default 36)\n"
-        << "  --phi-chunk-index I            Execution shard index (default 0)\n"
-        << "  --phi-chunk-count N            Shards; partial maps are NOT runtime-readable\n"
         << "  --radial-nodes N                Physical radial nodes (default 24)\n"
         << "  --longitudinal-nodes N          Physical z nodes per side (default 28)\n"
         << "  --inner-radius-cm VALUE         Gas inner radius (default 21.6)\n"
@@ -80,8 +76,8 @@ namespace
         << "  --tpc-rotation-x-rad VALUE      TPC x rotation (default 0)\n"
         << "  --tpc-rotation-y-rad VALUE      TPC y rotation (default 0)\n"
         << "  --tpc-rotation-z-rad VALUE      TPC z rotation (default 0)\n"
-        << "\nAdaptive anisotropic schema4 (opt-in):\n"
-        << "  --adaptive                     Build a dyadic binary cell tree\n"
+        << "\nAdaptive anisotropic schema4:\n"
+        << "  --adaptive                     Optional compatibility flag; adaptive generation is always used\n"
         << "  --adaptive-root-first N        Inclusive coarse root ID (default0)\n"
         << "  --adaptive-root-end N          Exclusive root ID (default all roots)\n"
         << "  --adaptive-max-depth N         Per-root depth cap (default12)\n"
@@ -249,17 +245,15 @@ namespace
         }
         else if (option == "--adaptive")
         {
-          options.adaptive = true;
+          // Retain the existing explicit spelling for campaign commands.
         }
         else if (option == "--adaptive-root-first")
         {
           options.adaptive_first = uint64_after(index, option);
-          options.adaptive_range_set = true;
         }
         else if (option == "--adaptive-root-end")
         {
           options.adaptive_end = uint64_after(index, option);
-          options.adaptive_range_set = true;
         }
         else if (option == "--adaptive-max-depth")
         {
@@ -288,14 +282,6 @@ namespace
         else if (option == "--interpolation-tolerance-um")
         {
           options.map.interpolation_tolerance_um = double_after(index, option);
-        }
-        else if (option == "--phi-chunk-index")
-        {
-          options.map.phi_chunk_index = unsigned_after(index, option);
-        }
-        else if (option == "--phi-chunk-count")
-        {
-          options.map.phi_chunk_count = unsigned_after(index, option);
         }
         else if (option == "--phi-nodes")
         {
@@ -405,27 +391,19 @@ namespace
     {
       return true;
     }
-    if (options.adaptive)
+    if (options.map.interpolation_tolerance_um == 0.)
     {
-      if (options.map.interpolation_tolerance_um == 0.)
-      {
-        options.map.interpolation_tolerance_um = options.adaptive_policy.guard_um;
-      }
-      options.adaptive_policy.guard_um = options.map.interpolation_tolerance_um;
-      if (!options.adaptive_end)
-      {
-        options.adaptive_end = PHGarfieldAdaptiveMap::RootCount(PHGarfieldAdaptiveMap::FromConfig(options.map));
-      }
-      if (options.adaptive_first >= options.adaptive_end || options.adaptive_end > PHGarfieldAdaptiveMap::RootCount(PHGarfieldAdaptiveMap::FromConfig(options.map)) ||
-          options.map.phi_chunk_index != 0 || options.map.phi_chunk_count != 1 || !options.map.probe_cell_centers)
-      {
-        error << "Adaptive mode requires a nonempty valid root range, no phi chunks and the complete stencil\n";
-        return false;
-      }
+      options.map.interpolation_tolerance_um = options.adaptive_policy.guard_um;
     }
-    else if (options.adaptive_range_set)
+    options.adaptive_policy.guard_um = options.map.interpolation_tolerance_um;
+    if (!options.adaptive_end)
     {
-      error << "Adaptive root ranges require --adaptive\n";
+      options.adaptive_end = PHGarfieldAdaptiveMap::RootCount(PHGarfieldAdaptiveMap::FromConfig(options.map));
+    }
+    if (options.adaptive_first >= options.adaptive_end ||
+        options.adaptive_end > PHGarfieldAdaptiveMap::RootCount(PHGarfieldAdaptiveMap::FromConfig(options.map)))
+    {
+      error << "Adaptive generation requires a nonempty valid root range\n";
       return false;
     }
     if (options.map.output_filename.empty())
@@ -623,25 +601,11 @@ try
       return 1;
     }
   }
-  if (options.adaptive)
-  {
-    PHGarfieldAdaptiveMap::BuildSummary summary;
-    return PHGarfieldAdaptiveMap::Generate(*garfield, options.map, options.adaptive_policy,
-                                           options.adaptive_first, options.adaptive_end, summary, std::cout, std::cerr)
-               ? 0
-               : 1;
-  }
-  PHGarfieldForwardMap::Summary summary;
-  if (!PHGarfieldForwardMap::Generate(
-          *garfield,
-          options.map,
-          summary,
-          std::cout,
-          std::cerr))
-  {
-    return 1;
-  }
-  return 0;
+  PHGarfieldAdaptiveMap::BuildSummary summary;
+  return PHGarfieldAdaptiveMap::Generate(*garfield, options.map, options.adaptive_policy,
+                                         options.adaptive_first, options.adaptive_end, summary, std::cout, std::cerr)
+             ? 0
+             : 1;
 }
 catch (const std::exception& error)
 {

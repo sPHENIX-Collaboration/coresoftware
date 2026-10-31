@@ -764,6 +764,12 @@ int PHGarfield::InitializeForwardTransport(PHCompositeNode* topNode)
               << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  if (!topNode && m_usePTCorrection && !m_CMVoltageOverride)
+  {
+    std::cerr << PHWHERE << " Standalone forward transport requires a pinned CM field"
+              << " (SetCMVoltageDefault) or SetUsePTCorrection(false)" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   // Rebind all run-dependent payloads. The magnetic field borrowed from a node
   // tree is not owned here; the standalone fallback is.

@@ -123,6 +123,14 @@ bool PHGarfieldFieldMapValidation::InspectCartesianMap(
         (static_cast<double>(*values.rbegin()) -
          static_cast<double>(*values.begin())) /
         static_cast<double>(values.size() - 1);
+    const double magnitude = std::max(
+        std::abs(static_cast<double>(*values.begin())),
+        std::abs(static_cast<double>(*values.rbegin())));
+    // Stored coordinates are floats. Subtracting adjacent rounded coordinates
+    // can differ from the ideal spacing by their coordinate-sized roundoff.
+    const double tolerance = std::max(
+        1.0e-6 * std::max(1.0, std::abs(expected_spacing)),
+        4.0 * static_cast<double>(std::numeric_limits<float>::epsilon()) * magnitude);
     auto previous = values.begin();
     for (auto current = std::next(previous);
          current != values.end();
@@ -131,10 +139,8 @@ bool PHGarfieldFieldMapValidation::InspectCartesianMap(
       const double spacing =
           static_cast<double>(*current) -
           static_cast<double>(*previous);
-      const double scale =
-          std::max(1.0, std::abs(expected_spacing));
       if (!std::isfinite(spacing) ||
-          std::abs(spacing - expected_spacing) > 1.0e-6 * scale)
+          std::abs(spacing - expected_spacing) > tolerance)
       {
         return false;
       }

@@ -9,11 +9,12 @@
 #include <string>
 
 class TDirectory;
-class TFile;
 
 class PHGarfieldForwardMap
 {
  public:
+  // Historical identifiers retained for byte-stable configuration metadata.
+  // The generator emits adaptive schema4, not regular schema1-3 tables.
   static constexpr int SchemaVersion = 1;           // historical axisymmetric LUTs
   static constexpr int ExtendedSchemaVersion = 2;   // explicit 3D/frame provenance
   static constexpr int NumericalSchemaVersion = 3;  // explicit interpolation-error cell mask
@@ -28,14 +29,6 @@ class PHGarfieldForwardMap
   static constexpr const char* NominalTimeReferencePolicy =
       "r_mid_phi0_cm_surface_each_side_v1";
 
-  enum class ReachCellClass
-  {
-    AllLost = 0,
-    Mixed = 1,
-    AllReach = 2,
-    NumericallyUnresolved = 3
-  };
-
   struct Config
   {
     std::string output_filename;
@@ -44,9 +37,6 @@ class PHGarfieldForwardMap
     unsigned int phi_nodes{36};
     unsigned int radial_nodes{24};
     unsigned int longitudinal_nodes{28};
-    // Execution partition only; physical axes and canonical configuration are shared.
-    unsigned int phi_chunk_index{0};
-    unsigned int phi_chunk_count{1};
 
     double inner_radius_cm{21.6};
     double outer_radius_cm{76.4};
@@ -55,7 +45,7 @@ class PHGarfieldForwardMap
     double integration_step_ns{12.5};
     double nominal_phg4_drift_velocity_cm_per_ns{0.00755};
     double maximum_nominal_time_mismatch{0.02};
-    double interpolation_tolerance_um{0.0};  // zero preserves historical schemas
+    double interpolation_tolerance_um{0.0};  // CLI resolves zero to the adaptive guard default.
     double tpc_place_x_cm{0.0};
     double tpc_place_y_cm{0.0};
     double tpc_place_z_cm{0.0};
@@ -65,7 +55,6 @@ class PHGarfieldForwardMap
 
     std::string cdb_global_tag;
     std::uint64_t cdb_timestamp{0};
-    bool probe_cell_centers{true};
     bool overwrite{false};
   };
 
@@ -132,8 +121,6 @@ class PHGarfieldForwardMap
                          NodeValue& value);
 
   static bool ValidateConfig(const Config& config, std::ostream& error);
-  // Shared schema1-3 axes, guards, endpoints, reachability and mask checks.
-  static bool ValidateRegular(TFile& file, std::ostream& error);
 
   // Files use their MD5; gas directories hash the ordered MERGED_E###.gas
   // inventory used by PHGarfield. Empty or unreadable payloads return empty.
@@ -146,19 +133,13 @@ class PHGarfieldForwardMap
       const Provenance& provenance,
       int schema_version = SchemaVersion);
 
-  // Shared physical validation, timing reference and actual payload capture.
-  // Schemas1-3 and adaptive generation use this same preflight definition.
+  // Shared physical validation, timing reference and actual payload capture
+  // used by adaptive generation, retaining existing source fingerprints.
   static bool Prepare(const PHGarfield&, const Config&, Provenance&, Summary&,
                       std::ostream& log, std::ostream& error);
   static bool WriteMetadata(TDirectory*, const Config&, const Provenance&,
                             const Summary&, int schema_version,
                             const std::string& schema_name = "");
-
-  static bool Generate(const PHGarfield& garfield,
-                       const Config& config,
-                       Summary& summary,
-                       std::ostream& log,
-                       std::ostream& error);
 };
 
 #endif

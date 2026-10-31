@@ -240,7 +240,7 @@ namespace
       expect_invalid(singleton.string(), "do not form uniform axes");
     }
 
-    // Preserve the existing 1e-6 * max(1, |spacing|) uniformity tolerance.
+    // Preserve the spacing-based tolerance where it exceeds float roundoff.
     for (const float spacing : {0.25F, 2.0F})
     {
       const float scale = std::max(1.0F, spacing);
@@ -254,6 +254,38 @@ namespace
       const auto outside_tolerance = directory.file("outside-tolerance.root");
       write_map(outside_tolerance, grid(tolerant_axes));
       expect_invalid(outside_tolerance.string(), "do not form uniform axes");
+    }
+
+    // Decimal grids far from zero acquire coordinate-sized float rounding.
+    // Accept that rounding on every axis and sign, but reject actual displaced
+    // points beyond the same bound.
+    for (std::size_t axis = 0; axis < axes.size(); ++axis)
+    {
+      for (const double origin : {-260., 260.})
+      {
+        for (const double spacing : {0.05, 0.1, 0.3})
+        {
+          auto rounded_axes = axes;
+          rounded_axes[axis].clear();
+          for (unsigned int point = 0; point < 11; ++point)
+          {
+            rounded_axes[axis].push_back(static_cast<float>(origin + point * spacing));
+          }
+          const auto rounded = directory.file("rounded-spacing.root");
+          write_map(rounded, grid(rounded_axes));
+          expect_valid(rounded, rounded_axes);
+
+          const double magnitude = std::max(
+              std::abs(static_cast<double>(rounded_axes[axis].front())),
+              std::abs(static_cast<double>(rounded_axes[axis].back())));
+          const double roundoff_bound =
+              4.0 * static_cast<double>(std::numeric_limits<float>::epsilon()) * magnitude;
+          rounded_axes[axis][5] += static_cast<float>(8.0 * roundoff_bound);
+          const auto irregular = directory.file("irregular-spacing.root");
+          write_map(irregular, grid(rounded_axes));
+          expect_invalid(irregular.string(), "do not form uniform axes");
+        }
+      }
     }
 
     // Failed probes do not affect subsequent successful inspections.
