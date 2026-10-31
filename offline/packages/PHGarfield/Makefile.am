@@ -16,11 +16,13 @@ AM_LDFLAGS = \
   `root-config --libs`
 
 noinst_HEADERS = \
+  PHGarfieldFingerprint.h \
   PHGarfieldFieldMapValidation.h \
   PHGarfieldForwardSetup.h
 
 pkginclude_HEADERS = \
   PHGarfield.h \
+  PHGarfieldForwardMap.h \
   PHGarfieldRossegger.h
 
 lib_LTLIBRARIES = \
@@ -40,17 +42,22 @@ libPHGarfield_la_LIBADD = \
 libPHGarfield_la_SOURCES = \
   PHGarfield.cc \
   PHGarfieldFieldMapValidation.cc \
+  PHGarfieldForwardMap.cc \
   PHGarfieldForwardSetup.cc \
+  PHGarfieldRegularMap.cc \
   PHGarfieldRossegger.cc
 
 bin_PROGRAMS = \
   GasModel \
-  MergeGasFiles
+  MergeGasFiles \
+  PHGarfieldForwardMapGenerator
 
 
 
 
 
+PHGarfieldForwardMapGenerator_SOURCES = PHGarfieldForwardMapGenerator.cc
+PHGarfieldForwardMapGenerator_LDADD = libPHGarfield.la
 
 MergeGasFiles_SOURCES = MergeGasFiles.cc
 
@@ -72,12 +79,15 @@ noinst_PROGRAMS = \
 check_PROGRAMS = \
   test_field_map_validation \
   test_forward_field_coordinates \
+  test_forward_map_formula \
   test_forward_setup \
   test_forward_transport_config
 TESTS = $(check_PROGRAMS)
 
 
 
+test_forward_map_formula_SOURCES = tests/test_forward_map_formula.cc
+test_forward_map_formula_LDADD = libPHGarfield.la
 
 testexternals_SOURCES = testexternals.cc
 testexternals_LDADD   = libPHGarfield.la
