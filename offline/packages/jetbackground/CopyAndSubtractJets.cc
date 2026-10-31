@@ -2,8 +2,6 @@
 
 #include "TowerBackground.h"
 
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
@@ -52,62 +50,35 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
   }
 
   // pull out needed calo tower info
-  RawTowerContainer *towersEM3 = nullptr;
-  RawTowerContainer *towersIH3 = nullptr;
-  RawTowerContainer *towersOH3 = nullptr;
-  TowerInfoContainer *towerinfosEM3 = nullptr;
-  TowerInfoContainer *towerinfosIH3 = nullptr;
-  TowerInfoContainer *towerinfosOH3 = nullptr;
-  if (m_use_towerinfo)
+  EMTowerName = emcal_input_node();
+  IHTowerName = ihcal_input_node();
+  OHTowerName = ohcal_input_node();
+  TowerInfoContainer *towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
+  TowerInfoContainer *towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
+  TowerInfoContainer *towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
+  if (!towerinfosEM3)
   {
-    EMTowerName = m_towerNodePrefix + "_CEMC_RETOWER";
-    IHTowerName = m_towerNodePrefix + "_HCALIN";
-    OHTowerName = m_towerNodePrefix + "_HCALOUT";
-    towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
-    towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
-    towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
-    if (!towerinfosEM3)
-    {
-      std::cout << "CopyAndSubtractJets::process_event: Cannot find node " << EMTowerName << std::endl;
-      exit(1);
-    }
-    if (!towerinfosIH3)
-    {
-      std::cout << "CopyAndSubtractJets::process_event: Cannot find node " << IHTowerName << std::endl;
-      exit(1);
-    }
-    if (!towerinfosOH3)
-    {
-      std::cout << "CopyAndSubtractJets::process_event: Cannot find node " << OHTowerName << std::endl;
-      exit(1);
-    }
+    std::cout << "CopyAndSubtractJets::process_event: Cannot find node " << EMTowerName << std::endl;
+    exit(1);
   }
-  else
+  if (!towerinfosIH3)
   {
-    towersEM3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
-    towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
-    towersOH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
+    std::cout << "CopyAndSubtractJets::process_event: Cannot find node " << IHTowerName << std::endl;
+    exit(1);
+  }
+  if (!towerinfosOH3)
+  {
+    std::cout << "CopyAndSubtractJets::process_event: Cannot find node " << OHTowerName << std::endl;
+    exit(1);
   }
 
-  RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
-  RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+  RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, m_ihcal_geom_node);
+  RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, m_ohcal_geom_node);
 
   // pull out jets and background
-  JetContainer *unsub_jets;
-  JetContainer *sub_jets;
-  TowerBackground *background;
-  if (m_use_towerinfo)
-  {
-    unsub_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsRaw_r02");
-    sub_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsSub_r02");
-    background = findNode::getClass<TowerBackground>(topNode, "TowerInfoBackground_Sub1");
-  }
-  else
-  {
-    unsub_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_Tower_HIRecoSeedsRaw_r02");
-    sub_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_Tower_HIRecoSeedsSub_r02");
-    background = findNode::getClass<TowerBackground>(topNode, "TowerBackground_Sub1");
-  }
+  JetContainer *unsub_jets = findNode::getClass<JetContainer>(topNode, m_rawseed_node);
+  JetContainer *sub_jets = findNode::getClass<JetContainer>(topNode, m_subseed_node);
+  TowerBackground *background = findNode::getClass<TowerBackground>(topNode, m_background_node);
   std::vector<float> background_UE_0 = background->get_UE(0);
   std::vector<float> background_UE_1 = background->get_UE(1);
   std::vector<float> background_UE_2 = background->get_UE(2);
@@ -143,7 +114,6 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 
     for (const auto &comp : this_jet->get_comp_vec())
     {
-      RawTower *tower = nullptr;
       RawTowerGeom *tower_geom = nullptr;
       TowerInfo *towerinfo = nullptr;
 
@@ -155,75 +125,47 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 
       double comp_background = 0;
 
-      if (m_use_towerinfo)
+      if (comp.first == Jet::SRC::HCALIN_TOWERINFO)
       {
-        if (comp.first == 5 || comp.first == 26)
-        {
-          towerinfo = towerinfosIH3->get_tower_at_channel(comp.second);
-          unsigned int towerkey = towerinfosIH3->encode_key(comp.second);
-          comp_ieta = towerinfosIH3->getTowerEtaBin(towerkey);
-          int comp_iphi = towerinfosIH3->getTowerPhiBin(towerkey);
-          const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
+        towerinfo = towerinfosIH3->get_tower_at_channel(comp.second);
+        unsigned int towerkey = towerinfosIH3->encode_key(comp.second);
+        comp_ieta = towerinfosIH3->getTowerEtaBin(towerkey);
+        int comp_iphi = towerinfosIH3->getTowerPhiBin(towerkey);
+        const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
 
-          tower_geom = geomIH->get_tower_geometry(key);
-          comp_background = background_UE_1.at(comp_ieta);
-        }
-        else if (comp.first == 7 || comp.first == 27)
-        {
-          towerinfo = towerinfosOH3->get_tower_at_channel(comp.second);
-          unsigned int towerkey = towerinfosOH3->encode_key(comp.second);
-          comp_ieta = towerinfosOH3->getTowerEtaBin(towerkey);
-          int comp_iphi = towerinfosOH3->getTowerPhiBin(towerkey);
-          const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, comp_ieta, comp_iphi);
-          tower_geom = geomOH->get_tower_geometry(key);
-          comp_background = background_UE_2.at(comp_ieta);
-        }
-        else if (comp.first == 13 || comp.first == 28)
-        {
-          towerinfo = towerinfosEM3->get_tower_at_channel(comp.second);
-          unsigned int towerkey = towerinfosEM3->encode_key(comp.second);
-          comp_ieta = towerinfosEM3->getTowerEtaBin(towerkey);
-          int comp_iphi = towerinfosEM3->getTowerPhiBin(towerkey);
-          const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
+        tower_geom = geomIH->get_tower_geometry(key);
+        comp_background = background_UE_1.at(comp_ieta);
+      }
+      else if (comp.first == Jet::SRC::HCALOUT_TOWERINFO)
+      {
+        towerinfo = towerinfosOH3->get_tower_at_channel(comp.second);
+        unsigned int towerkey = towerinfosOH3->encode_key(comp.second);
+        comp_ieta = towerinfosOH3->getTowerEtaBin(towerkey);
+        int comp_iphi = towerinfosOH3->getTowerPhiBin(towerkey);
+        const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, comp_ieta, comp_iphi);
+        tower_geom = geomOH->get_tower_geometry(key);
+        comp_background = background_UE_2.at(comp_ieta);
+      }
+      else if (comp.first == Jet::SRC::CEMC_TOWERINFO_RETOWER)
+      {
+        towerinfo = towerinfosEM3->get_tower_at_channel(comp.second);
+        unsigned int towerkey = towerinfosEM3->encode_key(comp.second);
+        comp_ieta = towerinfosEM3->getTowerEtaBin(towerkey);
+        int comp_iphi = towerinfosEM3->getTowerPhiBin(towerkey);
+        const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
 
-          tower_geom = geomIH->get_tower_geometry(key);
-          comp_background = background_UE_0.at(comp_ieta);
-        }
-        if (towerinfo)
-        {
-          comp_e = towerinfo->get_energy();
-        }
+        tower_geom = geomIH->get_tower_geometry(key);
+        comp_background = background_UE_0.at(comp_ieta);
       }
       else
       {
-        if (comp.first == 5)
-        {
-          tower = towersIH3->getTower(comp.second);
-          tower_geom = geomIH->get_tower_geometry(tower->get_key());
-
-          comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
-          comp_background = background_UE_1.at(comp_ieta);
-        }
-        else if (comp.first == 7)
-        {
-          tower = towersOH3->getTower(comp.second);
-          tower_geom = geomOH->get_tower_geometry(tower->get_key());
-
-          comp_ieta = geomOH->get_etabin(tower_geom->get_eta());
-          comp_background = background_UE_2.at(comp_ieta);
-        }
-        else if (comp.first == 13)
-        {
-          tower = towersEM3->getTower(comp.second);
-          tower_geom = geomIH->get_tower_geometry(tower->get_key());
-
-          comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
-          comp_background = background_UE_0.at(comp_ieta);
-        }
-        if (tower)
-        {
-          comp_e = tower->get_energy();
-        }
+        std::cout << PHWHERE << " unsupported constituent source " << comp.first
+                  << " (only TowerInfo inputs are supported), exiting" << std::endl;
+        exit(1);
+      }
+      if (towerinfo)
+      {
+        comp_e = towerinfo->get_energy();
       }
 
       if (tower_geom)
@@ -305,54 +247,34 @@ int CopyAndSubtractJets::CreateNode(PHCompositeNode *topNode)
   }
 
   // Looking for the ANTIKT node
-  PHCompositeNode *antiktNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "ANTIKT"));
+  PHCompositeNode *antiktNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", m_jet_node));
   if (!antiktNode)
   {
-    std::cout << PHWHERE << "ANTIKT node not found, doing nothing." << std::endl;
+    std::cout << PHWHERE << m_jet_node << " node not found, doing nothing." << std::endl;
   }
 
   // Looking for the TOWER node
-  PHCompositeNode *towerNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "TOWER"));
+  PHCompositeNode *towerNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", m_input_node));
   if (!towerNode)
   {
-    std::cout << PHWHERE << "TOWER node not found, doing nothing." << std::endl;
+    std::cout << PHWHERE << m_input_node << " node not found, doing nothing." << std::endl;
   }
 
   // store the new jet collection
-  JetContainer *test_jets;
-  if (m_use_towerinfo)
-  {
-    test_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsSub_r02");
-  }
-  else
-  {
-    test_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_Tower_HIRecoSeedsSub_r02");
-  }
+  JetContainer *test_jets = findNode::getClass<JetContainer>(topNode, m_subseed_node);
   if (!test_jets)
   {
+    if (Verbosity() > 0)
+    {
+      std::cout << "CopyAndSubtractJets::CreateNode : creating " << m_subseed_node << " node " << std::endl;
+    }
     JetContainer *sub_jets = new JetContainerv1();
-    PHIODataNode<PHObject> *subjetNode;
-    if (m_use_towerinfo)
-    {
-      if (Verbosity() > 0)
-      {
-        std::cout << "CopyAndSubtractJets::CreateNode : creating AntiKt_TowerInfo_HIRecoSeedsSub_r02 node " << std::endl;
-      }
-      subjetNode = new PHIODataNode<PHObject>(sub_jets, "AntiKt_TowerInfo_HIRecoSeedsSub_r02", "PHObject");
-    }
-    else
-    {
-      if (Verbosity() > 0)
-      {
-        std::cout << "CopyAndSubtractJets::CreateNode : creating AntiKt_Tower_HIRecoSeedsSub_r02 node " << std::endl;
-      }
-      subjetNode = new PHIODataNode<PHObject>(sub_jets, "AntiKt_Tower_HIRecoSeedsSub_r02", "PHObject");
-    }
+    PHIODataNode<PHObject> *subjetNode = new PHIODataNode<PHObject>(sub_jets, m_subseed_node, "PHObject");
     towerNode->addNode(subjetNode);
   }
   else
   {
-    std::cout << "CopyAndSubtractJets::CreateNode : AntiKt_Tower_HIRecoSeedsSub_r02 already exists! " << std::endl;
+    std::cout << "CopyAndSubtractJets::CreateNode : " << m_subseed_node << " already exists! " << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
