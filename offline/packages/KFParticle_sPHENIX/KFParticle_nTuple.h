@@ -13,6 +13,7 @@
 
 class PHCompositeNode;
 class TTree;
+class CentralityInfo;
 
 class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_triggerInfo
 {
@@ -100,7 +101,10 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   bool m_get_charge_conjugate_nTuple{false};
   bool m_use_fake_pv_nTuple{false};
   bool m_momentum_calibration_output{false};
+  bool m_use_centrality_nTuple{false};
+  bool m_first_in_event{true};
   std::vector<std::string> m_intermediate_name_ntuple;
+  int m_verbosity_nTuple{0};
 
  private:
   // This fills a reduced output meant for the ML momentum calibration
@@ -223,8 +227,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   float m_calculated_daughter_dedx[max_tracks]{0};
   // float m_calculated_daughter_expected_dedx_pion[max_tracks] {0};
   // float m_calculated_daughter_expected_dedx_kaon[max_tracks] {0};
-  // float m_calculated_daughter_expected_dedx_proton[max_tracks] {0};
-
+  // float m_calculated_daughter_expected_dedx_proton[max_tracks] {0}; 
   float m_daughter_dca[99]{0};
   float m_daughter_dca_xy[99]{0};
   float m_daughter_dca_sig[99]{0};
@@ -239,6 +242,8 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   int m_calculated_vertex_ID{-1};
   // float *m_calculated_vertex_cov;
   float m_calculated_vertex_cov[6]{0};
+  float m_centrality_mbd{-1};
+  CentralityInfo *m_CentInfo{nullptr};
 
   float m_sv_mass{-1};
 

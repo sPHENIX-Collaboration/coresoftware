@@ -1,7 +1,6 @@
 #include "SingleTriggeredInput.h"
 #include "SingleGl1TriggeredInput.h"
 
-#include <ffarawobjects/CaloPacketContainerv1.h>
 #include <ffarawobjects/CaloPacketv1.h>
 
 #include <fun4all/DBInterface.h>

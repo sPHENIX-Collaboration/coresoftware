@@ -341,7 +341,27 @@ class PHGarfield : public SubsysReco
     m_field3DCoefficientFileOverride = true;
   }
 
+  // Fallback kEff used when the kEff CDB file is missing or empty:
+  //   kEff = m_keffReferenceKeff * (m_keffPar0 + m_keffPar1 * Igem / Igem_ref)
+  // Igem_ref is the reference-run R1 GEM current for each side (uA).
+  void SetKEffFallbackReferenceCurrents(double nr1_uA, double sr1_uA)
+  {
+    m_keffReferenceNR1 = nr1_uA;
+    m_keffReferenceSR1 = sr1_uA;
+  }
+  void SetKEffFallbackParameters(double referenceKeff, double par0, double par1)
+  {
+    m_keffReferenceKeff = referenceKeff;
+    m_keffPar0 = par0;
+    m_keffPar1 = par1;
+  }
+
  private:
+  double GemCurrentKeff(double igem, double igemReference) const
+  {
+    return m_keffReferenceKeff * (m_keffPar0 + m_keffPar1 * igem / igemReference);
+  }
+
   void GetMagneticFieldTesla(double x_cm, double y_cm, double z_cm, double &bx_t, double &by_t, double &bz_t) const;      // Feeds magnetic field to Garfield
   void GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, double &ex_vcm, double &ey_vcm, double &ez_vcm) const;  // Feeds electric field to Garfield
   void InitializeGas(const std::string &name);                                                                            // Accepts a file or a directory
@@ -459,6 +479,11 @@ class PHGarfield : public SubsysReco
   bool m_frameElectricFieldMapOverride{false};
   std::array<bool, 2> m_frameElectricFieldMap3DOverride{{false, false}};
   std::array<bool, 2> m_spaceChargeScaleOverride{{false, false}};
+  double m_keffReferenceKeff{1.55};    // kEff of the reference run
+  double m_keffPar0{0.185};
+  double m_keffPar1{0.815};
+  double m_keffReferenceNR1{3.20357};  // reference-run R1 GEM current, North (uA)
+  double m_keffReferenceSR1{3.36138};  // reference-run R1 GEM current, South (uA)
   std::array<bool, 2> m_frameChargeScaleOverride{{false, false}};
   bool m_fieldCageConfigurationOverride{false};
   bool use_survey_geometry{true};

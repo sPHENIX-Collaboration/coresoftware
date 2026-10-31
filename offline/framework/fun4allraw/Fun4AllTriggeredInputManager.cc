@@ -11,7 +11,6 @@
 #include <ffaobjects/SyncObjectv1.h>  // for SyncObject
 
 #include <ffarawobjects/CaloPacket.h>
-#include <ffarawobjects/CaloPacketContainer.h>
 #include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/LL1Packet.h>
 #include <ffarawobjects/LL1PacketContainer.h>
