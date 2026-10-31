@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstddef>
+#include <iosfwd>
 #include <limits>
 #include <numbers>
 #include <string>
@@ -28,6 +29,33 @@ namespace Garfield
 class PHGarfield : public SubsysReco
 {
  public:
+  static constexpr unsigned int MaxForwardDriftSteps = 200000;
+
+  enum class ForwardDriftStatus
+  {
+    NotRun,
+    ReachedReadout,
+    NotInitialized,
+    InvalidInput,
+    OutsideDriftVolume,
+    InvalidVelocity,
+    WrongDirection,
+    LeftDriftVolume,
+    LeftMagneticFieldMap,
+    MaxSteps
+  };
+
+  struct ForwardDriftResult
+  {
+    ForwardDriftStatus status{ForwardDriftStatus::NotRun};
+    bool reached_readout{false};
+    double x_cm{0.0};
+    double y_cm{0.0};
+    double z_cm{0.0};
+    double drift_time_ns{0.0};
+    unsigned int steps{0};
+  };
+
   // Backward-compatible constructor used by existing sPHENIX/Devon TPC code.
   PHGarfield(const std::string &name = "PHGarfield",
              const std::string &electricFieldMap = "",
@@ -70,6 +98,25 @@ class PHGarfield : public SubsysReco
   void RotateMagnet(double theta_x, double theta_y, double theta_z);
   void MoveTpc(double x_cm, double y_cm, double z_cm);
   void RotateTpc(double theta_x, double theta_y, double theta_z);
+  // Select the standalone, strictly pinned forward-transport initialization.
+  // Set before InitRun. Ordinary PHGarfield initialization remains unchanged.
+  void SetForwardTransportMode(bool value) { m_forwardTransportMode = value; }
+  bool GetForwardTransportMode() const { return m_forwardTransportMode; }
+  void SetTpcRotation(double theta_x, double theta_y, double theta_z);
+  void SetCentralMembraneHalfWidth(double half_width_cm) { m_centralMembraneHalfWidth = half_width_cm; }
+  void SetDriftVolumeRadii(double inner_radius_cm, double outer_radius_cm)
+  {
+    m_driftInnerRadius = inner_radius_cm;
+    m_driftOuterRadius = outer_radius_cm;
+  }
+  void SetGasFile(const std::string &filename) { m_gasFileOverride = filename; }
+  void SetLoadTpcFeeMap(bool value) { m_loadTpcFeeMap = value; }
+  void SetMagneticFieldMap(const std::string &filename, double scale = 1.0)
+  {
+    m_magneticFieldMapOverride = filename;
+    m_magneticFieldMapScale = scale;
+  }
+  void SetZeroMagneticField(bool value) { SetZeroField(value); }
   // A manual CM field disables the P/T correction.
   void SetCMVoltageDefault(double voltage)
   {
@@ -116,6 +163,46 @@ class PHGarfield : public SubsysReco
   // detector coordinates.  Internally the drift is still computed in local TPC
   // coordinates to keep the Garfield gas tables valid.
   TPolyLine3D *ReverseDriftGlobalCoords(double x_cm, double y_cm, double z_cm, double step_ns = 50.0, ReverseDriftStatus *status = nullptr);
+
+  // Deterministic physical electron drift from an ionization point to the
+  // readout plane. Input and output positions use local physical TPC-envelope
+  // coordinates in cm; time and step size are in ns. readout_abs_z_cm is the
+  // positive magnitude of the physical readout-plane z coordinate. Disabling
+  // electric corrections supplies the nominal timing reference. Enable forward
+  // transport mode before InitRun. Radial stopping may be disabled only for
+  // the artificial correction-disabled reference trajectory.
+  bool ForwardDrift(double x_cm,
+                    double y_cm,
+                    double z_cm,
+                    double readout_abs_z_cm,
+                    double step_ns,
+                    ForwardDriftResult &result,
+                    bool include_electric_field_corrections = true) const;
+
+  bool IsReady() const
+  {
+    return (m_zerofield || m_field) &&
+           m_gas &&
+           m_GasFilesLoaded;
+  }
+  bool HasElectricFieldCorrections() const { return m_erCorrection && m_ezCorrection; }
+  bool ElectricFieldMapCovers(double inner_radius_cm,
+                              double outer_radius_cm,
+                              double max_drift_distance_cm) const;
+  // Check the selected space-charge maps in forward gas-surface coordinates.
+  // Histogram edges define coverage; the edge-to-center clamp is intentional.
+  bool ForwardElectricFieldMapsCover(double inner_radius_cm,
+                                     double outer_radius_cm,
+                                     double max_drift_distance_cm,
+                                     std::ostream &error) const;
+  bool HasKnownMagneticFieldDomain() const
+  {
+    return m_zerofield || m_hasMagneticFieldDomain;
+  }
+  bool MagneticFieldMapCoversTpcDriftVolume(
+      double outer_radius_cm,
+      double readout_abs_z_cm) const;
+  static const char *ForwardDriftStatusName(ForwardDriftStatus status);
 
   double GetRadius(size_t index) const { return radii.at(index); }
 
@@ -213,6 +300,20 @@ class PHGarfield : public SubsysReco
 
   double GetSpaceChargeScaleSide0() const { return m_spaceChargeScale_side0; }
   double GetSpaceChargeScaleSide1() const { return m_spaceChargeScale_side1; }
+  double GetCentralMembraneHalfWidth() const { return m_centralMembraneHalfWidth; }
+  double GetDriftInnerRadius() const { return m_driftInnerRadius; }
+  double GetDriftOuterRadius() const { return m_driftOuterRadius; }
+  double GetMagneticFieldMapScale() const { return m_magneticFieldMapScale; }
+  bool GetZeroMagneticField() const { return m_zerofield; }
+  const std::string &GetElectricFieldMap() const { return m_electricFieldMap; }
+  const std::string &GetElectricFieldMap3D(std::size_t side) const { return m_electricFieldMap3D.at(side); }
+  const std::string &GetFrameElectricFieldMap() const { return m_frameElectricFieldMap; }
+  const std::string &GetFrameElectricFieldMap3D(std::size_t side) const { return m_frameElectricFieldMap3D.at(side); }
+  double GetFrameChargeScale(std::size_t side) const { return side == 0 ? m_frameChargeScale_side0 : m_frameChargeScale_side1; }
+  bool HasLoadedElectricFieldMap3D(std::size_t side) const { return HasElectricFieldCorrections3D(side); }
+  bool HasLoadedFrameElectricFieldMap3D(std::size_t side) const { return HasFrameElectricFieldCorrections3D(side); }
+  const std::string &GetResolvedGasFile() const { return m_resolvedGasFile; }
+  const std::string &GetResolvedMagneticFieldMap() const { return m_resolvedMagneticFieldMap; }
 
   void SetZeroField(bool zerofield) { m_zerofield = zerofield; }
 
@@ -252,6 +353,8 @@ class PHGarfield : public SubsysReco
   // Offsets are endpoint perturbations relative to the nominal resistor-chain
   // boundary voltage, in volts. IFC and OFC are independent, giving four
   // tunable parameters: IFC South/North and OFC South/North.
+  bool GetUseIFCVoltageDistortion() const { return m_useIFCVoltageDistortion; }
+  bool GetUseOFCVoltageDistortion() const { return m_useOFCVoltageDistortion; }
   void SetUseIFCVoltageDistortion(bool value)
   {
     m_useIFCVoltageDistortion = value;
@@ -362,10 +465,18 @@ class PHGarfield : public SubsysReco
     return m_keffReferenceKeff * (m_keffPar0 + m_keffPar1 * igem / igemReference);
   }
 
+  friend struct PHGarfieldForwardFieldTest;
   void GetMagneticFieldTesla(double x_cm, double y_cm, double z_cm, double &bx_t, double &by_t, double &bz_t) const;      // Feeds magnetic field to Garfield
   void GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, double &ex_vcm, double &ey_vcm, double &ez_vcm) const;  // Feeds electric field to Garfield
-  void InitializeGas(const std::string &name);                                                                            // Accepts a file or a directory
+  void InitializeGas(const std::string &name, bool strict = false);                                                       // Accepts a file or a directory
+  int InitializeForwardTransport(PHCompositeNode *topNode);
+  void GetForwardElectricFieldVcm(double x_cm, double y_cm, double z_cm,
+                                  double &ex_vcm, double &ey_vcm, double &ez_vcm,
+                                  double correction_scale = 1.0) const;
   bool LoadElectricFieldCorrections(const std::string &filename);
+  bool LoadMagneticFieldDomain(const std::string &filename);
+  bool MagneticFieldDomainContains(
+      double x_cm, double y_cm, double z_cm) const;
   bool LoadElectricFieldCorrections3D(const std::string &filename, std::size_t side);
   bool HasElectricFieldCorrections3D(std::size_t side) const;
   void ClearElectricFieldCorrections3D(std::size_t side);
@@ -396,11 +507,15 @@ class PHGarfield : public SubsysReco
   void ConfigureRunDriftCorrections();
 
   CDBTTree *m_cdbTPCMAPttree{nullptr};  // Locations of the pads from CDB...
-  // PHField3DCartesian *m_field{nullptr};           // The standard sPHENIX field holding container.
-  PHField *m_field{nullptr};
+  PHField *m_field{nullptr};            // Standard sPHENIX field; normally borrowed from the node tree.
+  bool m_ownsField{false};
+  bool m_forwardTransportMode{false};
   Garfield::ComponentUser *m_component{nullptr};  // This handles the interface of the electric and magnetic fields as handed to Garfield
   Garfield::MediumMagboltz *m_gas{nullptr};       // This is the pre-tabulated gas properties required by Garfield...
   std::string m_defaultGasfile{"/cvmfs/sphenix.sdcc.bnl.gov/files/gasfiles"};
+  std::string m_gasFileOverride;
+  std::string m_resolvedGasFile;
+  bool m_loadTpcFeeMap{true};
   bool m_GasFilesLoaded{false};
 
   // Transform convention:
@@ -496,6 +611,15 @@ class PHGarfield : public SubsysReco
   std::vector<double> m_ifcUnitEsGrid;  // V/cm along +|z| for +1 V IFC endpoint perturbation
   std::vector<double> m_ofcUnitErGrid;  // V/cm for +1 V OFC endpoint perturbation
   std::vector<double> m_ofcUnitEsGrid;  // V/cm along +|z| for +1 V OFC endpoint perturbation
+  double m_centralMembraneHalfWidth{0.0};  // cm; field-map |z| starts at the CM gas surface
+  double m_driftInnerRadius{18.0};         // cm
+  double m_driftOuterRadius{82.0};         // cm
+  std::string m_magneticFieldMapOverride;
+  std::string m_resolvedMagneticFieldMap;
+  double m_magneticFieldMapScale{1.0};
+  bool m_hasMagneticFieldDomain{false};
+  std::array<double, 3> m_magneticFieldMinimumCm{{0.0, 0.0, 0.0}};
+  std::array<double, 3> m_magneticFieldMaximumCm{{0.0, 0.0, 0.0}};
 
   //  These are utilities for a spot check of the overall routine:
   // std::string calibdir;
