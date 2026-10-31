@@ -44,9 +44,7 @@ int StreamingLumiCheck::InitRun(PHCompositeNode *topNode)
   StreamingLumiInfo *streaming_lumi_info = findNode::getClass<StreamingLumiInfo>(topNode, "STREAMINGLUMIINFO");
   if (streaming_lumi_info)
   {
-    std::cout << " raw lumi : " << streaming_lumi_info->get_lumi_raw() << std::endl;
-    std::cout << " live lumi : " << streaming_lumi_info->get_lumi_live() << std::endl;
-    std::cout << " scaled lumi : " << streaming_lumi_info->get_lumi_scaled() << std::endl;
+    std::cout << "lumi : " << streaming_lumi_info->get_lumi() << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
