@@ -1,6 +1,7 @@
 AUTOMAKE_OPTIONS = foreign subdir-objects
 
 EXTRA_DIST = \
+  PHGarfieldCompactMap.md \
   PHGarfieldForwardMap.md \
   tpc_frame_geometry.csv
 
@@ -21,11 +22,13 @@ noinst_HEADERS = \
   PHGarfieldMapFingerprint.h \
   PHGarfieldFieldMapValidation.h \
   PHGarfieldForwardSetup.h \
+  PHGarfieldMapTools.h \
   PHGarfieldRootOutput.h
 
 pkginclude_HEADERS = \
   PHGarfield.h \
   PHGarfieldAdaptiveMap.h \
+  PHGarfieldCompactMap.h \
   PHGarfieldForwardMap.h \
   PHGarfieldRossegger.h
 
@@ -41,13 +44,15 @@ libPHGarfield_la_LIBADD = \
   -lphool \
   -lphfield \
   -lGarfield \
-  -lSubsysReco
+  -lSubsysReco \
+  $(CRYPTO_LIBS)
 
 libPHGarfield_la_SOURCES = \
   PHGarfield.cc \
   PHGarfieldAdaptiveBuilder.cc \
   PHGarfieldAdaptiveGenerator.cc \
   PHGarfieldAdaptiveMap.cc \
+  PHGarfieldCompactMap.cc \
   PHGarfieldFieldMapValidation.cc \
   PHGarfieldForwardMap.cc \
   PHGarfieldForwardSetup.cc \
@@ -57,11 +62,14 @@ libPHGarfield_la_SOURCES = \
 bin_PROGRAMS = \
   GasModel \
   MergeGasFiles \
+  PHGarfieldCompactMapConverter \
   PHGarfieldForwardMapGenerator
 
 
 
 
+PHGarfieldCompactMapConverter_SOURCES = PHGarfieldCompactMapConverter.cc PHGarfieldMapTools.cc
+PHGarfieldCompactMapConverter_LDADD = libPHGarfield.la
 
 PHGarfieldForwardMapGenerator_SOURCES = PHGarfieldForwardMapGenerator.cc
 PHGarfieldForwardMapGenerator_LDADD = libPHGarfield.la
@@ -85,16 +93,20 @@ noinst_PROGRAMS = \
 
 check_PROGRAMS = \
   test_adaptive_map \
+  test_compact_map \
   test_field_map_validation \
   test_forward_field_coordinates \
   test_forward_map_formula \
   test_forward_setup \
-  test_forward_transport_config
+  test_forward_transport_config \
+  test_payload_identity
 TESTS = $(check_PROGRAMS)
 
 test_adaptive_map_SOURCES = tests/test_adaptive_map.cc
 test_adaptive_map_LDADD = libPHGarfield.la
 
+test_compact_map_SOURCES = tests/test_compact_map.cc
+test_compact_map_LDADD = libPHGarfield.la
 
 test_forward_map_formula_SOURCES = tests/test_forward_map_formula.cc
 test_forward_map_formula_LDADD = libPHGarfield.la
@@ -123,6 +135,8 @@ test_field_map_validation_LDADD = libPHGarfield.la
 test_forward_setup_SOURCES = tests/test_forward_setup.cc PHGarfieldForwardSetup.cc
 test_forward_setup_CXXFLAGS = $(AM_CXXFLAGS)
 
+test_payload_identity_SOURCES = tests/test_payload_identity.cc
+test_payload_identity_LDADD = libPHGarfield.la
 
 test_forward_field_coordinates_SOURCES = tests/test_forward_field_coordinates.cc
 test_forward_field_coordinates_LDADD = libPHGarfield.la
