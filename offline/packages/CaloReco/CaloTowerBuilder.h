@@ -72,12 +72,6 @@ class CaloTowerBuilder : public SubsysReco
     return;
   }
 
-  void set_offlineflag(const bool f = true)
-  {
-    tmpdummy = f;
-    return;
-  }
-
   void set_timeFitLim(float low, float high)
   {
     m_setTimeLim = true;
@@ -140,7 +134,6 @@ class CaloTowerBuilder : public SubsysReco
   bool m_isdata{true};
   bool m_bdosoftwarezerosuppression{false};
   bool m_dotbtszs{false};
-  bool tmpdummy{false};
   int m_packet_low{std::numeric_limits<int>::min()};
   int m_packet_high{std::numeric_limits<int>::min()};
   int m_nchannels{192};
