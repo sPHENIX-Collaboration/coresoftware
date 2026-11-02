@@ -12,7 +12,9 @@
 
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -60,6 +62,19 @@ class PHHerwig7Core
       if (file.empty())
       {
         continue;
+      }
+      // (motivated from Coderabbit review) safeguard against "saverun" or "run" in the .in card, which would create a .run file on disk
+      std::ifstream card(file);
+      std::string line;
+      while (std::getline(card, line))
+      {
+        std::istringstream words(line);
+        std::string command;
+        words >> command;
+        if (command == "saverun" || command == "run")
+        {
+          throw std::runtime_error("PHHerwig7Core::init - " + file + " contains " + command + "; PHHerwig7 creates the run in memory, remove it");
+        }
       }
       msg = ThePEG::Repository::read(file, std::cout);
       if (!msg.empty())
