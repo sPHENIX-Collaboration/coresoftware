@@ -399,7 +399,7 @@ int ZdcReco::LoadSatelliteCorr(PHCompositeNode *topNode)
   }
   if (run <= 0)
   {
-    run = static_cast<int>(recoConsts::instance()->get_uint64Flag("TIMESTAMP"));
+    run = static_cast<int>(recoConsts::instance()->get_IntFlag("RUNNUMBER"));
   }
 
   std::string url;
