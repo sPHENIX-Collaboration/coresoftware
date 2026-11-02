@@ -29,6 +29,11 @@ MbdCentralityTree::MbdCentralityTree(const std::string &name, const std::string 
 
 int MbdCentralityTree::Init(PHCompositeNode * /*topNode*/)
 {
+  // cppcheck does not know that this method is only called once and it assumes
+  // that m_file was created in a previous call to this method
+  // just deleting m_file makes it happy, deleting a null pointer is a noop
+  // without overhead
+  delete m_file;
   m_file = new TFile(m_filename.c_str(), "RECREATE");
   m_tree = new TTree("T", "MBD and ZDC per event, for the centrality calibration");
   m_tree->Branch("gl1_scaled", &m_gl1_scaled, "gl1_scaled/l");
