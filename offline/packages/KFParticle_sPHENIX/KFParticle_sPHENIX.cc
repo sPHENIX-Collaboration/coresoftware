@@ -92,6 +92,7 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
 {
   m_verbosity = Verbosity();
   m_qa_tree_path = Name() + "/DecayTree";  // one directory per module so several KFParticle modules do not clash
+  m_verbosity_nTuple = Verbosity();
   
   if (m_save_output && !m_minimal_output_to_qa && Verbosity() >= VERBOSITY_SOME)
   {
@@ -157,7 +158,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   std::vector<std::vector<KFParticle>> intermediates;
   int nPVs;
   int multiplicity;
- 
+
   // Adding BCO Matching  
   auto* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader"); // event header node
   auto* gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");     // gl1 packet node
