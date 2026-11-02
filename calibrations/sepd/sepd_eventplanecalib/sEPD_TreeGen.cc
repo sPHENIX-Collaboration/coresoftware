@@ -13,6 +13,7 @@
 // -- MB
 #include <calotrigger/MinimumBiasInfo.h>
 #include <calotrigger/TriggerAnalyzer.h>
+#include <calotrigger/TriggerRunInfo.h>
 
 #include <centrality/CentralityInfo.h>
 
@@ -100,6 +101,43 @@ int sEPD_TreeGen::Init(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
+int sEPD_TreeGen::InitRun(PHCompositeNode *topNode)
+{
+  TriggerRunInfo *triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
+  if (!triggerruninfo)
+  {
+    std::cout << PHWHERE << "TriggerRunInfo Node missing, doing nothing." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  // getTriggerBitByName returns 0 for an unknown name, so confirm the round trip
+  auto resolve_bit = [triggerruninfo](const std::string &name) -> int
+  {
+    int bit = static_cast<int>(triggerruninfo->getTriggerBitByName(name));
+    return (triggerruninfo->getTriggerName(bit) == name) ? bit : -1;
+  };
+
+  m_bit_mbd_narrow = resolve_bit(m_trig_mbd_narrow);
+  m_bit_mbd_wide = resolve_bit(m_trig_mbd_wide);
+
+  if (m_bit_mbd_narrow < 0 || m_bit_mbd_wide < 0)
+  {
+    std::cout << PHWHERE << "MBD trigger not found in TriggerRunInfo: "
+              << "\"" << m_trig_mbd_narrow << "\" -> " << m_bit_mbd_narrow << ", "
+              << "\"" << m_trig_mbd_wide << "\" -> " << m_bit_mbd_wide << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  if (Verbosity() > 0)
+  {
+    std::cout << "sEPD_TreeGen::InitRun - \"" << m_trig_mbd_narrow << "\" -> bit " << m_bit_mbd_narrow
+              << ", \"" << m_trig_mbd_wide << "\" -> bit " << m_bit_mbd_wide << std::endl;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//____________________________________________________________________________..
 int sEPD_TreeGen::process_event_check(PHCompositeNode *topNode)
 {
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
@@ -137,10 +175,7 @@ int sEPD_TreeGen::process_event_check(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  bool didTrig14Fire = m_triggerAnalyzer->didTriggerFire(m_trig_14);
-  bool didTrig12Fire = m_triggerAnalyzer->didTriggerFire(m_trig_12);
-
-  bool mbd_trigger_fire = didTrig12Fire || didTrig14Fire;
+  bool mbd_trigger_fire = m_triggerAnalyzer->didTriggerFire(m_bit_mbd_narrow) || m_triggerAnalyzer->didTriggerFire(m_bit_mbd_wide);
   bool pass_MB = mbd_trigger_fire && m_mb_info->isAuAuMinimumBias();
 
   // skip event if not minimum bias

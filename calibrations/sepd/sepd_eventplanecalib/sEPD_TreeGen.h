@@ -50,6 +50,13 @@ class sEPD_TreeGen : public SubsysReco
   int Init(PHCompositeNode *topNode) override;
 
  /**
+   * @brief Resolves the MBD trigger names to GL1 bits for the current run.
+   * @param topNode Pointer to the node tree.
+   * @return Fun4All return code.
+   */
+  int InitRun(PHCompositeNode *topNode) override;
+
+ /**
    * @brief Main event-by-event processing method.
    * @details Orchestrates event checks, centrality retrieval, sEPD tower processing,
    * and fills the TTree for valid events.
@@ -130,8 +137,12 @@ class sEPD_TreeGen : public SubsysReco
 
   int m_event{0};
 
-  const int m_trig_12 = 12; // MBD N&S >= 2, vtx < 10 cm
-  const int m_trig_14 = 14; // MBD N&S >= 2, vtx < 150 cm
+  const std::string m_trig_mbd_narrow{"MBD N&S >= 2, vtx < 10 cm"};
+  const std::string m_trig_mbd_wide{"MBD N&S >= 2, vtx < 150 cm"};
+
+  // GL1 bits for the triggers above, resolved by name in InitRun
+  int m_bit_mbd_narrow{-1};
+  int m_bit_mbd_wide{-1};
 
   std::unique_ptr<TriggerAnalyzer> m_triggerAnalyzer;
 
