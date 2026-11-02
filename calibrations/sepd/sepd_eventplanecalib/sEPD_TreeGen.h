@@ -137,8 +137,9 @@ class sEPD_TreeGen : public SubsysReco
 
   int m_event{0};
 
-  const std::string m_trig_mbd_narrow{"MBD N&S >= 2, vtx < 10 cm"};
-  const std::string m_trig_mbd_wide{"MBD N&S >= 2, vtx < 150 cm"};
+  // MBD trigger names for the current run period, set in InitRun
+  std::string m_trig_mbd_narrow;
+  std::string m_trig_mbd_wide;
 
   // GL1 bits for the triggers above, resolved by name in InitRun
   int m_bit_mbd_narrow{-1};

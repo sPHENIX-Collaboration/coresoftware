@@ -31,6 +31,8 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
+#include <phool/RunnumberRange.h>
 
 // -- ROOT
 #include <TProfile.h>
@@ -110,6 +112,31 @@ int sEPD_TreeGen::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  // MBD trigger names for each run period (gl1_triggernames)
+  const int runnumber = recoConsts::instance()->get_IntFlag("RUNNUMBER");
+  if (runnumber >= RunnumberRange::RUN2AUAU_FIRST && runnumber <= RunnumberRange::RUN2AUAU_LAST)
+  {
+    // No 150 cm trigger in early Run 2 Au+Au, so use the 60 cm trigger present for the full run period
+    m_trig_mbd_narrow = "MBD N&S >= 2, vtx < 10 cm";
+    m_trig_mbd_wide = "MBD N&S >= 2, vtx < 60 cm";
+  }
+  else if (runnumber >= RunnumberRange::RUN3AUAU_FIRST && runnumber <= RunnumberRange::RUN3AUAU_LAST)
+  {
+    m_trig_mbd_narrow = "MBD N&S >= 2, vtx < 10 cm";
+    m_trig_mbd_wide = "MBD N&S >= 2, vtx < 150 cm";
+  }
+  else if (runnumber >= RunnumberRange::RUN3PP_FIRST)
+  {
+    // Names changed from N&S >= 2 to N&S >= 1 starting with Run 3 p+p
+    m_trig_mbd_narrow = "MBD N&S >= 1, vtx < 10 cm";
+    m_trig_mbd_wide = "MBD N&S >= 1, vtx < 150 cm";
+  }
+  else
+  {
+    std::cout << PHWHERE << "Run " << runnumber << " is outside the supported run periods, no MBD trigger names defined." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
   // getTriggerBitByName returns 0 for an unknown name, so confirm the round trip
   auto resolve_bit = [triggerruninfo](const std::string &name) -> int
   {
@@ -122,7 +149,7 @@ int sEPD_TreeGen::InitRun(PHCompositeNode *topNode)
 
   if (m_bit_mbd_narrow < 0 || m_bit_mbd_wide < 0)
   {
-    std::cout << PHWHERE << "MBD trigger not found in TriggerRunInfo: "
+    std::cout << PHWHERE << "Run " << runnumber << ": MBD trigger not found in TriggerRunInfo: "
               << "\"" << m_trig_mbd_narrow << "\" -> " << m_bit_mbd_narrow << ", "
               << "\"" << m_trig_mbd_wide << "\" -> " << m_bit_mbd_wide << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
@@ -130,7 +157,7 @@ int sEPD_TreeGen::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    std::cout << "sEPD_TreeGen::InitRun - \"" << m_trig_mbd_narrow << "\" -> bit " << m_bit_mbd_narrow
+    std::cout << "sEPD_TreeGen::InitRun - Run " << runnumber << ": \"" << m_trig_mbd_narrow << "\" -> bit " << m_bit_mbd_narrow
               << ", \"" << m_trig_mbd_wide << "\" -> bit " << m_bit_mbd_wide << std::endl;
   }
 
