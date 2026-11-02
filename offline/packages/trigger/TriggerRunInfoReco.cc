@@ -151,7 +151,10 @@ int TriggerRunInfoReco::fetchTriggerPrescales(int runnumber, TriggerRunInfo *tri
     return 1;
   }
 
-  sql = "SELECT * FROM gl1_triggernames WHERE runnumber_last > " + std::to_string(runnumber) + " AND runnumber < " + std::to_string(runnumber) + ";";
+  // Ranges are inclusive, but some adjacent ranges share a boundary run
+  // (runnumber_last of one == runnumber of the next). Order by runnumber so
+  // the most recently started range overwrites earlier ones in the loop below.
+  sql = "SELECT * FROM gl1_triggernames WHERE runnumber <= " + std::to_string(runnumber) + " AND runnumber_last >= " + std::to_string(runnumber) + " ORDER BY runnumber;";
   stmt = dbConnection->createStatement();
   resultSet = stmt->executeQuery(sql);
 
