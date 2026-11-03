@@ -2,7 +2,7 @@
 #define PHGARFIELDMAPTOOLS_H
 
 // Internal helpers shared by the standalone forward-map conversion tools.
-#include "PHGarfieldAdaptiveMap.h"
+#include "PHGarfieldCompactMap.h"
 
 #include <TDirectory.h>
 #include <TFile.h>
@@ -11,6 +11,8 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
+#include <initializer_list>
 #include <iosfwd>
 #include <map>
 #include <memory>
@@ -20,11 +22,13 @@ namespace PHGarfieldMapTools
 {
   using Map = PHGarfieldAdaptiveMap;
   using Objects = std::map<std::string, std::unique_ptr<TObject>>;
+  using Options = std::map<std::string, std::string>;
   extern const std::string MetadataPath;
   extern const std::string AdaptivePath;
   extern const std::array<const char*, 5> GenerationCounters;
 
   void require(bool value, const std::string& message);
+  Options options(int argc, char** argv, std::initializer_list<std::string> allowed);
   template <class T>
   T parameter(TDirectory& directory, const char* name)
   {
@@ -39,6 +43,15 @@ namespace PHGarfieldMapTools
   std::uint64_t integer(const std::string& text);
   std::string quote(const std::string& value);
   void write_exclusive(const std::string& path, const std::string& text);
+  void publish_exclusive(const std::string& temporary, const std::string& output);
+  void write_compact_output(const std::string& path, const PHGarfieldCompactMap::Data& data,
+                            const PHGarfieldCompactMap::Limits& limits, std::ostream& errors,
+                            const std::function<void(TDirectory&)>& write_source_metadata,
+                            const std::string* collection_manifest = nullptr);
+  // Release the owning arrays before independently reopening and checking them.
+  void readback_compact_output(const std::string& path, PHGarfieldCompactMap::Data& data,
+                               const PHGarfieldCompactMap::Limits& limits, std::ostream& errors,
+                               bool complete);
   Map::Geometry geometry(TDirectory& directory);
   std::unique_ptr<TFile> open(const std::string& path);
   void check_summary(TDirectory& metadata, const Map::Data& data);

@@ -1,5 +1,6 @@
 #include "PHGarfieldMapTools.h"
 #include <cerrno>
+#include "PHGarfieldRootOutput.h"
 
 #include <TFile.h>
 #include <TKey.h>
@@ -11,11 +12,7 @@
 #include <unistd.h>
 #include <algorithm>
 #include <array>
-#include <chrono>
-#include <cstdio>
-#include <filesystem>
 #include <iomanip>
-#include <iostream>
 #include <limits>
 #include <map>
 #include <memory>
@@ -23,7 +20,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 namespace PHGarfieldMapTools
 {
@@ -36,6 +32,17 @@ namespace PHGarfieldMapTools
     {
       throw std::runtime_error(message);
     }
+  }
+
+  Options options(int argc, char** argv, std::initializer_list<std::string> allowed)
+  {
+    Options result;
+    for (int i = 1; i < argc; i += 2)
+    {
+      require(i + 1 < argc && result.emplace(argv[i], argv[i + 1]).second, "options require unique key/value pairs");
+      require(std::find(allowed.begin(), allowed.end(), argv[i]) != allowed.end(), std::string("unsupported option ") + argv[i]);
+    }
+    return result;
   }
 
   std::uint64_t count(TDirectory& directory, const char* name)
@@ -113,6 +120,67 @@ namespace PHGarfieldMapTools
     const bool synced = ::fsync(fd) == 0;
     const bool closed = ::close(fd) == 0;
     require(synced && closed, "proof flush/close failed");
+  }
+
+  void publish_exclusive(const std::string& temporary, const std::string& output)
+  {
+    require(::link(temporary.c_str(), output.c_str()) == 0, "exclusive publication failed; temporary evidence preserved");
+    require(::unlink(temporary.c_str()) == 0, "output published but temporary unlink failed");
+  }
+
+  void write_compact_output(const std::string& path, const PHGarfieldCompactMap::Data& data,
+                            const PHGarfieldCompactMap::Limits& limits, std::ostream& errors,
+                            const std::function<void(TDirectory&)>& write_source_metadata,
+                            const std::string* collection_manifest)
+  {
+    using Compact = PHGarfieldCompactMap;
+    TFile file(path.c_str(), "CREATE");
+    require(!file.IsZombie(), "cannot create unique temporary ROOT output");
+    auto* top = file.mkdir("GarfieldFullTransport");
+    require(top, "cannot create transport directory");
+    auto* identity = top->mkdir("Metadata");
+    require(identity, "cannot create compact identity metadata");
+    {
+      TDirectory::TContext context(identity);
+      const auto& binding = data.source;
+      require(TParameter<int>("schema_version", collection_manifest ? Compact::CollectionSchemaVersion : Compact::SchemaVersion).Write() > 0 &&
+                  TNamed("schema_name", collection_manifest ? Compact::CollectionSchemaName : Compact::SchemaName).Write() > 0 &&
+                  TParameter<int>("source_schema_version", 4).Write() > 0 && TNamed("compact_layout", Compact::Layout).Write() > 0 &&
+                  TNamed("source_file_sha256", binding.file_sha256.c_str()).Write() > 0 &&
+                  TNamed("source_configuration_fingerprint_fnv1a64", binding.configuration_fingerprint_fnv1a64.c_str()).Write() > 0 &&
+                  TNamed("source_content_fingerprint_fnv1a64", binding.content_fingerprint_fnv1a64.c_str()).Write() > 0,
+              "cannot write compact identity metadata");
+      if (collection_manifest)
+      {
+        require(TNamed("source_kind", Compact::CollectionSourceKind).Write() > 0 &&
+                    TNamed("source_manifest_tsv", collection_manifest->c_str()).Write() > 0,
+                "cannot write compact collection metadata");
+      }
+    }
+    auto* source = top->mkdir("SourceMetadata");
+    require(source, "cannot create source metadata directory");
+    {
+      TDirectory::TContext context(source);
+      write_source_metadata(*source);
+    }
+    require(Compact::Write(top->mkdir("Runtime"), data, limits, errors), "compact array write failed");
+    require(PHGarfieldFlushAndCloseRootOutput(file, errors), "ROOT flush/close failed");
+  }
+
+  void readback_compact_output(const std::string& path, PHGarfieldCompactMap::Data& data,
+                               const PHGarfieldCompactMap::Limits& limits, std::ostream& errors,
+                               bool complete)
+  {
+    using Compact = PHGarfieldCompactMap;
+    const auto geometry_value = data.geometry;
+    const Compact::ExpectedSource expected{data.source.file_sha256, data.source.configuration_fingerprint_fnv1a64,
+                                           data.source.content_fingerprint_fnv1a64};
+    const auto content = Compact::ContentFingerprint(data);
+    data = {};
+    auto file = open(path);
+    require(Compact::Read(file->GetDirectory("GarfieldFullTransport/Runtime"), geometry_value, expected, data, limits, errors, complete),
+            "independent ROOT readback failed");
+    require(Compact::ContentFingerprint(data) == content, "ROOT readback changed content");
   }
   Map::Geometry geometry(TDirectory& directory)
   {

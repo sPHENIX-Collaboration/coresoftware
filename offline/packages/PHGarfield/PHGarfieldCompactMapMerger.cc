@@ -2,32 +2,23 @@
 #include "PHGarfieldMapTools.h"
 
 #include <TFile.h>
-#include <TKey.h>
-#include <TList.h>
 #include <TNamed.h>
 #include <TParameter.h>
 
-#include <fcntl.h>
 #include <unistd.h>
 #include <algorithm>
 #include <array>
-#include <chrono>
-#include <cstdio>
 #include <filesystem>
-#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <map>
-#include <memory>
 #include <set>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
 #include <TTree.h>
 #include <fstream>
-#include "PHGarfieldRootOutput.h"
 
 namespace
 {
@@ -46,6 +37,7 @@ namespace
   using PHGarfieldMapTools::parameter;
   using PHGarfieldMapTools::quote;
   using PHGarfieldMapTools::require;
+
   using Compact = PHGarfieldCompactMap;
   struct Input
   {
@@ -129,17 +121,8 @@ int main(int argc, char** argv)
   }
   try
   {
-    std::map<std::string, std::string> options;
-    for (int i = 1; i < argc; i += 2)
-    {
-      require(i + 1 < argc && options.emplace(argv[i], argv[i + 1]).second, "unique option/value pairs required");
-    }
-    const std::set<std::string> allowed{"--mode", "--input-list", "--expect-input-sha256", "--output", "--summary", "--complete"};
-    for (const auto& [key, value] : options)
-    {
-      (void) value;
-      require(allowed.contains(key), "unknown option " + key);
-    }
+    const auto options = PHGarfieldMapTools::options(argc, argv,
+                                                     {"--mode", "--input-list", "--expect-input-sha256", "--output", "--summary", "--complete"});
     const auto get = [&](const char* key) -> const std::string&
     { require(options.contains(key),std::string("missing ")+key);return options.at(key); };
     const bool convert = get("--mode") == "convert";
@@ -288,26 +271,10 @@ int main(int argc, char** argv)
     const auto values = data.values.size();
     const auto first = data.first_root;
     const auto end = data.end_root;
-    const auto geometry_value = data.geometry;
     const auto binding = data.source;
     const auto temp = output + ".partial." + std::to_string(getpid());
-    {
-      TFile file(temp.c_str(), "CREATE");
-      require(!file.IsZombie(), "cannot create collection output");
-      auto* top = file.mkdir("GarfieldFullTransport");
-      auto* identity = top->mkdir("Metadata");
-      identity->cd();
-      TParameter<int>("schema_version", Compact::CollectionSchemaVersion).Write();
-      TNamed("schema_name", Compact::CollectionSchemaName).Write();
-      TParameter<int>("source_schema_version", 4).Write();
-      TNamed("compact_layout", Compact::Layout).Write();
-      TNamed("source_kind", Compact::CollectionSourceKind).Write();
-      TNamed("source_manifest_tsv", manifest.c_str()).Write();
-      TNamed("source_file_sha256", binding.file_sha256.c_str()).Write();
-      TNamed("source_configuration_fingerprint_fnv1a64", binding.configuration_fingerprint_fnv1a64.c_str()).Write();
-      TNamed("source_content_fingerprint_fnv1a64", binding.content_fingerprint_fnv1a64.c_str()).Write();
-      auto* original = top->mkdir("SourceMetadata");
-      original->cd();
+    PHGarfieldMapTools::write_compact_output(temp, data, limits, std::cerr, [&](TDirectory&)
+                                             {
       for (const auto& [key, object] : saved)
       {
         (void) key;
@@ -323,25 +290,15 @@ int main(int argc, char** argv)
       for (unsigned int i = 0; i < counters.size(); ++i)
       {
         TParameter<Long64_t>(GenerationCounters[i], counters[i]).Write();
-      }
-      require(Compact::Write(top->mkdir("Runtime"), data, limits, std::cerr), "compact array write failed");
-      require(PHGarfieldFlushAndCloseRootOutput(file, std::cerr), "ROOT flush/close failed");
-    }
-    data = {};  // Never overlap owning arrays with independent ROOT readback.
-    {
-      auto file = open(temp);
-      Compact::ExpectedSource expected_source{binding.file_sha256, binding.configuration_fingerprint_fnv1a64, binding.content_fingerprint_fnv1a64};
-      require(Compact::Read(file->GetDirectory("GarfieldFullTransport/Runtime"), geometry_value, expected_source, data, limits, std::cerr, complete), "independent ROOT readback failed");
-      require(Compact::ContentFingerprint(data) == content, "ROOT readback changed content");
-    }
+      } }, &manifest);
+    PHGarfieldMapTools::readback_compact_output(temp, data, limits, std::cerr, complete);
     require(Compact::FileSha256(get("--input-list")) == input_sha, "input manifest changed");
     for (const auto& input : inputs)
     {
       unchanged(input);
     }
     const auto output_sha = Compact::FileSha256(temp);
-    require(::link(temp.c_str(), output.c_str()) == 0, "exclusive publication failed; partial preserved");
-    require(::unlink(temp.c_str()) == 0, "partial unlink failed");
+    PHGarfieldMapTools::publish_exclusive(temp, output);
     std::ostringstream json;
     json << "{\"status\":\"PASS_EXACT_COMPACT_COLLECTION\",\"complete\":" << (complete ? "true" : "false")
          << ",\"root\":{\"path\":" << quote(std::filesystem::canonical(output)) << ",\"sha256\":" << quote(output_sha) << "}"
@@ -349,12 +306,8 @@ int main(int argc, char** argv)
          << ",\"source_content\":" << quote(binding.content_fingerprint_fnv1a64) << ",\"content_fingerprint\":" << quote(content)
          << ",\"first_root\":" << first << ",\"end_root\":" << end << ",\"source_points\":" << proof.source_points << ",\"nodes\":" << nodes
          << ",\"corners\":" << corners << ",\"values\":" << values << ",\"source_files\":" << inputs.size() << "}\n";
-    const int fd = ::open(summary.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0644);
-    require(fd >= 0, "cannot publish exclusive summary");
-    const auto text = json.str();
-    require(::write(fd, text.data(), text.size()) == static_cast<ssize_t>(text.size()), "summary write failed");
-    require(::fsync(fd) == 0 && ::close(fd) == 0, "summary close failed");
-    std::cout << text;
+    PHGarfieldMapTools::write_exclusive(summary, json.str());
+    std::cout << json.str();
     return 0;
   }
   catch (const std::exception& error)
