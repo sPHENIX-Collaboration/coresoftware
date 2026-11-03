@@ -75,6 +75,7 @@
 #include <limits>
 #include <map>        // for _Rb_tree_iterator, map
 #include <memory>     // for allocator_traits<>::va...
+#include <numeric>    // for iota
 
 /// KFParticle constructor
 KFParticle_Tools::KFParticle_Tools()
@@ -615,7 +616,7 @@ std::vector<int> KFParticle_Tools::getParticleCrossings(const KFParticle &partic
   return crossings;
 }
 
-std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices)
+std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<KFParticle> &daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices)
 {
   std::vector<std::vector<int>> goodTracksThatMeet;
 
@@ -1379,44 +1380,77 @@ bool KFParticle_Tools::isInRange(float min, float value, float max)
   return min <= value && value <= max;
 }
 
+namespace
+{
+  // Removes duplicates keeping the first occurrence of each element and the original order, exactly like the
+  // previous quadratic implementation, but in O(n log n) for long vectors. Short vectors use the simple loop.
+  template <typename T>
+  void removeDuplicatesKeepOrder(std::vector<T> &v)
+  {
+    const std::size_t n = v.size();
+    if (n < 2)
+    {
+      return;
+    }
+    if (n <= 16)
+    {
+      auto end = v.end();
+      for (auto it = v.begin(); it != end; ++it)
+      {
+        end = std::remove(it + 1, end, *it);
+      }
+      v.erase(end, v.end());
+      return;
+    }
+
+    std::vector<std::size_t> idx(n);
+    std::iota(idx.begin(), idx.end(), 0);
+    std::stable_sort(idx.begin(), idx.end(), [&v](std::size_t a, std::size_t b) { return v[a] < v[b]; });
+
+    // In each run of equal elements the first entry of the stable sort has the smallest original position
+    std::vector<char> keep(n, 0);
+    for (std::size_t i = 0; i < n; ++i)
+    {
+      if (i == 0 || !(v[idx[i]] == v[idx[i - 1]]))
+      {
+        keep[idx[i]] = 1;
+      }
+    }
+
+    std::size_t out = 0;
+    for (std::size_t i = 0; i < n; ++i)
+    {
+      if (keep[i])
+      {
+        if (out != i)
+        {
+          v[out] = std::move(v[i]);
+        }
+        ++out;
+      }
+    }
+    v.erase(v.begin() + out, v.end());
+  }
+}  // namespace
+
 void KFParticle_Tools::removeDuplicates(std::vector<double> &v)
 {
-  auto end = v.end();
-  for (auto it = v.begin(); it != end; ++it)
-  {
-    end = remove(it + 1, end, *it);
-  }
-  v.erase(end, v.end());
+  removeDuplicatesKeepOrder(v);
 }
 
 void KFParticle_Tools::removeDuplicates(std::vector<int> &v)
 {
-  auto end = v.end();
-  for (auto it = v.begin(); it != end; ++it)
-  {
-    end = remove(it + 1, end, *it);
-  }
-  v.erase(end, v.end());
+  removeDuplicatesKeepOrder(v);
 }
 
 void KFParticle_Tools::removeDuplicates(std::vector<std::vector<int>> &v)
 {
-  auto end = v.end();
-  for (auto it = v.begin(); it != end; ++it)
-  {
-    end = remove(it + 1, end, *it);
-  }
-  v.erase(end, v.end());
+  removeDuplicatesKeepOrder(v);
 }
 
 void KFParticle_Tools::removeDuplicates(std::vector<std::vector<std::string>> &v)
 {
-  auto end = v.end();
-  for (auto it = v.begin(); it != end; ++it)
-  {
-    end = remove(it + 1, end, *it);
-  }
-  v.erase(end, v.end());
+  removeDuplicatesKeepOrder(v);
 }
 
 bool KFParticle_Tools::findParticle(const std::string &particle)

@@ -83,7 +83,7 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   std::vector<int> findAllGoodTracks(const std::vector<KFParticle> &daughterParticles);//, const std::vector<KFParticle> &primaryVertices);
 
-  std::vector<std::vector<int>> findTwoProngs(std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices);
+  std::vector<std::vector<int>> findTwoProngs(const std::vector<KFParticle> &daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices);
 
   std::vector<std::vector<int>> findNProngs(const std::vector<KFParticle> &daughterParticles,
                                             const std::vector<int> &goodTrackIndex,
