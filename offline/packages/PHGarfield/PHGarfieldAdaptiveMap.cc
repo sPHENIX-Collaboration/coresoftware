@@ -1,6 +1,5 @@
 #include "PHGarfieldAdaptiveMap.h"
 #include "PHGarfieldFingerprint.h"
-#include "PHGarfieldMapFingerprint.h"
 #include "PHGarfieldPrimitiveTree.h"
 
 #include <TBasket.h>
@@ -470,6 +469,40 @@ std::uint64_t PHGarfieldAdaptiveMap::RootCount(const Geometry& g)
   return value;
 }
 
+std::uint64_t PHGarfieldAdaptiveMap::RootIndex(const Geometry& g, unsigned int side, double phi, double r, double z)
+{
+  // Compare against the same exact node expressions as RootBounds. Division
+  // followed by integer truncation can assign a representable face to its
+  // lower neighbour through roundoff, violating the declared half-open rule.
+  auto interval = [](double value, unsigned int intervals, const auto& coordinate)
+  {
+    unsigned int lo = 0;
+    unsigned int hi = intervals;
+    while (lo + 1 < hi)
+    {
+      const auto mid = lo + (hi - lo) / 2;
+      if (value >= coordinate(mid))
+      {
+        lo = mid;
+      }
+      else
+      {
+        hi = mid;
+      }
+    }
+    return lo;
+  };
+  const auto iphi = interval(phi, g.phi_nodes, [&](unsigned int i)
+                             { return static_cast<double>(i) * TwoPi / g.phi_nodes; });
+  const auto ir = interval(r, g.radial_nodes - 1, [&](unsigned int i)
+                           { return node(i, g.radial_nodes, g.inner_radius_cm, g.outer_radius_cm); });
+  const double zlo = side ? g.central_membrane_half_width_cm : -g.readout_abs_z_cm;
+  const double zhi = side ? g.readout_abs_z_cm : -g.central_membrane_half_width_cm;
+  const auto iz = interval(z, g.longitudinal_nodes - 1, [&](unsigned int i)
+                           { return node(i, g.longitudinal_nodes, zlo, zhi); });
+  return ((static_cast<std::uint64_t>(side) * g.phi_nodes + iphi) * (g.radial_nodes - 1) + ir) * (g.longitudinal_nodes - 1) + iz;
+}
+
 PHGarfieldAdaptiveMap::Bounds PHGarfieldAdaptiveMap::RootBounds(const Geometry& g, std::uint64_t id)
 {
   if (id >= RootCount(g))
@@ -546,36 +579,7 @@ const PHGarfieldAdaptiveMap::Cell* PHGarfieldAdaptiveMap::FindLeaf(const Data& d
     return nullptr;
   }
   phi = CanonicalPhi(phi);
-  // Compare against the same exact node expressions as RootBounds. Division
-  // followed by integer truncation can assign a representable face to its
-  // lower neighbour through roundoff, violating the declared half-open rule.
-  auto interval = [](double value, unsigned int intervals, const auto& coordinate)
-  {
-    unsigned int lo = 0;
-    unsigned int hi = intervals;
-    while (lo + 1 < hi)
-    {
-      const auto mid = lo + (hi - lo) / 2;
-      if (value >= coordinate(mid))
-      {
-        lo = mid;
-      }
-      else
-      {
-        hi = mid;
-      }
-    }
-    return lo;
-  };
-  const auto iphi = interval(phi, g.phi_nodes, [&](unsigned int i)
-                             { return static_cast<double>(i) * TwoPi / g.phi_nodes; });
-  const auto ir = interval(r, g.radial_nodes - 1, [&](unsigned int i)
-                           { return node(i, g.radial_nodes, g.inner_radius_cm, g.outer_radius_cm); });
-  const double zlo = side ? g.central_membrane_half_width_cm : -g.readout_abs_z_cm;
-  const double zhi = side ? g.readout_abs_z_cm : -g.central_membrane_half_width_cm;
-  const auto iz = interval(z, g.longitudinal_nodes - 1, [&](unsigned int i)
-                           { return node(i, g.longitudinal_nodes, zlo, zhi); });
-  const auto root = ((static_cast<std::uint64_t>(side) * g.phi_nodes + iphi) * (g.radial_nodes - 1) + ir) * (g.longitudinal_nodes - 1) + iz;
+  const auto root = RootIndex(g, side, phi, r, z);
   if (root >= d.root_lookup.size() || d.root_lookup[root] < 0)
   {
     return nullptr;
@@ -614,35 +618,10 @@ bool PHGarfieldAdaptiveMap::Interpolate(const Data& data, const Cell& cell, doub
   {
     return false;
   }
-  const std::array<double, 3> coordinate{{CanonicalPhi(phi), r, z}};
-  std::array<double, 3> fraction{};
-  std::array<double, 3> value{};
-  for (unsigned int axis = 0; axis < 3; ++axis)
-  {
-    fraction[axis] = (coordinate[axis] - cell.lo[axis]) / (cell.hi[axis] - cell.lo[axis]);
-    if (!std::isfinite(fraction[axis]) || fraction[axis] < 0. || fraction[axis] > 1.)
-    {
-      return false;
-    }
-  }
-  for (unsigned int corner = 0; corner < 8; ++corner)
-  {
-    const auto id = cell.corner_id[corner];
-    if (id < 0 || static_cast<std::uint64_t>(id) >= data.points.size())
-    {
-      return false;
-    }
-    const double weight = ((corner & 4) ? fraction[0] : 1. - fraction[0]) * ((corner & 2) ? fraction[1] : 1. - fraction[1]) * ((corner & 1) ? fraction[2] : 1. - fraction[2]);
-    for (unsigned int component = 0; component < 3; ++component)
-    {
-      value[component] += weight * data.points[id].value[component];
-    }
-  }
-  result.reaches_readout = true;
-  result.delta_r_cm = value[0];
-  result.delta_rphi_cm = value[1];
-  result.drift_time_ns = value[2];
-  return true;
+  return InterpolateCorners({cell.lo, cell.hi}, {{CanonicalPhi(phi), r, z}}, [&](unsigned int corner) -> const std::array<double, 3>*
+                            {
+                              const auto id = cell.corner_id[corner];
+                              return id >= 0 && static_cast<std::uint64_t>(id) < data.points.size() ? &data.points[id].value : nullptr; }, result);
 }
 
 std::string PHGarfieldAdaptiveMap::BuildCanonicalPolicy(const Data& d)
@@ -662,14 +641,14 @@ std::string PHGarfieldAdaptiveMap::BuildCanonicalPolicy(const Data& d)
   return s.str();
 }
 
-std::string PHGarfieldMapFingerprint::Adaptive(const PHGarfieldAdaptiveMap::Data& data, std::string_view policy_prefix)
+std::string PHGarfieldAdaptiveMap::ContentFingerprint(const Data& data)
 {
   PHGarfieldFingerprint::Fnv1a64 hash;
   const auto integer = [&](std::uint64_t value)
   { hash.Integer(value); };
   const auto real = [&](double value)
   { hash.Real(value); };
-  hash.Bytes(policy_prefix);
+  hash.Bytes(BuildCanonicalPolicy(data));
   integer(data.first_root);
   integer(data.end_root);
   real(data.maximum_drift_time_ns);
@@ -734,11 +713,6 @@ std::string PHGarfieldMapFingerprint::Adaptive(const PHGarfieldAdaptiveMap::Data
     integer(r.cell_id);
   }
   return hash.Hex();
-}
-
-std::string PHGarfieldAdaptiveMap::ContentFingerprint(const Data& data)
-{
-  return PHGarfieldMapFingerprint::Adaptive(data, BuildCanonicalPolicy(data));
 }
 
 bool PHGarfieldAdaptiveMap::Write(TDirectory* directory, const Data& data, std::ostream& error)

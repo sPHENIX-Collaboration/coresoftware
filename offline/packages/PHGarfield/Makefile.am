@@ -19,7 +19,6 @@ AM_LDFLAGS = \
 noinst_HEADERS = \
   PHGarfieldPrimitiveTree.h \
   PHGarfieldFingerprint.h \
-  PHGarfieldMapFingerprint.h \
   PHGarfieldFieldMapValidation.h \
   PHGarfieldForwardSetup.h \
   PHGarfieldMapTools.h \

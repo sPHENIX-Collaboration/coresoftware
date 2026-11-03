@@ -101,14 +101,7 @@ class PHGarfieldForwardMap
 
   struct Summary
   {
-    unsigned long long source_nodes{0};
-    unsigned long long reaching_nodes{0};
-    unsigned long long lost_nodes{0};
     unsigned long long probe_trajectories{0};
-    unsigned long long all_reach_cells{0};
-    unsigned long long all_lost_cells{0};
-    unsigned long long mixed_cells{0};
-    unsigned long long numerically_unresolved_cells{0};
     double maximum_drift_time_ns{0.0};
     double scale_zero_reference_time_side0_ns{0.0};
     double scale_zero_reference_time_side1_ns{0.0};

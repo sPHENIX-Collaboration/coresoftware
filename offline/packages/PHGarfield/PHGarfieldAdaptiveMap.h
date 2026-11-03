@@ -4,6 +4,7 @@
 #include "PHGarfieldForwardMap.h"
 
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <functional>
 #include <iosfwd>
@@ -136,6 +137,8 @@ class PHGarfieldAdaptiveMap
   static Geometry FromConfig(const PHGarfieldForwardMap::Config&);
   static double CanonicalPhi(double phi);
   static std::uint64_t RootCount(const Geometry&);
+  // Caller checks the gas domain and canonicalizes phi before indexing.
+  static std::uint64_t RootIndex(const Geometry&, unsigned int side, double phi, double r, double z);
   static Bounds RootBounds(const Geometry&, std::uint64_t root_id);
   static Bounds ChildBounds(const Bounds&, int axis, unsigned int child);
   static std::array<double, 3> CornerCoordinate(const Bounds&, unsigned int corner);
@@ -147,6 +150,38 @@ class PHGarfieldAdaptiveMap
   static const Cell* FindLeaf(const Data&, unsigned int side, double phi, double r, double z);
   static bool Interpolate(const Data&, const Cell&, double phi, double r, double z,
                           PHGarfieldForwardMap::NodeValue&);
+  // Both runtime layouts use the same arithmetic and corner order. The
+  // accessor returns null for an invalid corner reference.
+  template <class CornerValue>
+  static bool InterpolateCorners(const Bounds& bounds, const std::array<double, 3>& coordinate,
+                                 const CornerValue& corner_value, PHGarfieldForwardMap::NodeValue& result)
+  {
+    std::array<double, 3> fraction{};
+    std::array<double, 3> value{};
+    for (unsigned int axis = 0; axis < 3; ++axis)
+    {
+      fraction[axis] = (coordinate[axis] - bounds.lo[axis]) / (bounds.hi[axis] - bounds.lo[axis]);
+      if (!std::isfinite(fraction[axis]) || fraction[axis] < 0. || fraction[axis] > 1.)
+      {
+        return false;
+      }
+    }
+    for (unsigned int corner = 0; corner < 8; ++corner)
+    {
+      const auto* sample = corner_value(corner);
+      if (!sample)
+      {
+        return false;
+      }
+      const double weight = ((corner & 4) ? fraction[0] : 1. - fraction[0]) * ((corner & 2) ? fraction[1] : 1. - fraction[1]) * ((corner & 1) ? fraction[2] : 1. - fraction[2]);
+      for (unsigned int component = 0; component < 3; ++component)
+      {
+        value[component] += weight * (*sample)[component];
+      }
+    }
+    result = {true, value[0], value[1], value[2]};
+    return true;
+  }
   // directory is GarfieldFullTransport/Adaptive. Read checks primitive branch
   // types, complete rows, content fingerprint, topology and declared policy;
   // it copies data and resets branch addresses before returning.

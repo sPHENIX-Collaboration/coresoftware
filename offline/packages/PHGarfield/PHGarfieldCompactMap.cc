@@ -545,22 +545,7 @@ bool PHGarfieldCompactMap::FindLeaf(const Data& data, unsigned int side, double 
     return false;
   }
   phi = Training::CanonicalPhi(phi);
-  auto node = [](unsigned int i, unsigned int count, double lo, double hi)
-  { return !i ? lo : i + 1 == count ? hi
-                                    : lo + static_cast<double>(i) * (hi - lo) / static_cast<double>(count - 1); };
-  auto interval = [](double value, unsigned int intervals, const auto& coordinate)
-  {unsigned int lo=0;
-  unsigned int hi=intervals;while(lo+1<hi){const auto mid=lo+(hi-lo)/2;if(value>=coordinate(mid)) {lo=mid;} else { hi=mid;
-}}return lo; };
-  const auto iphi = interval(phi, g.phi_nodes, [&](unsigned int i)
-                             { return static_cast<double>(i) * TwoPi / g.phi_nodes; });
-  const auto ir = interval(r, g.radial_nodes - 1, [&](unsigned int i)
-                           { return node(i, g.radial_nodes, g.inner_radius_cm, g.outer_radius_cm); });
-  const double zlo = side ? g.central_membrane_half_width_cm : -g.readout_abs_z_cm;
-  const double zhi = side ? g.readout_abs_z_cm : -g.central_membrane_half_width_cm;
-  const auto iz = interval(z, g.longitudinal_nodes - 1, [&](unsigned int i)
-                           { return node(i, g.longitudinal_nodes, zlo, zhi); });
-  const auto root = ((static_cast<std::uint64_t>(side) * g.phi_nodes + iphi) * (g.radial_nodes - 1) + ir) * (g.longitudinal_nodes - 1) + iz;
+  const auto root = Training::RootIndex(g, side, phi, r, z);
   if (root >= data.root_lookup.size())
   {
     return false;
@@ -594,35 +579,10 @@ bool PHGarfieldCompactMap::Interpolate(const Data& data, const Lookup& cell, dou
   {
     return false;
   }
-  const std::array<double, 3> coordinate{{Training::CanonicalPhi(phi), r, z}};
-  std::array<double, 3> fraction{};
-  std::array<double, 3> value{};
-  for (unsigned int axis = 0; axis < 3; ++axis)
-  {
-    fraction[axis] = (coordinate[axis] - cell.bounds.lo[axis]) / (cell.bounds.hi[axis] - cell.bounds.lo[axis]);
-    if (!std::isfinite(fraction[axis]) || fraction[axis] < 0. || fraction[axis] > 1.)
-    {
-      return false;
-    }
-  }
-  for (unsigned int corner = 0; corner < 8; ++corner)
-  {
-    const auto id = data.corners[cell.corner_record][corner];
-    if (id >= data.values.size())
-    {
-      return false;
-    }
-    const double weight = ((corner & 4) ? fraction[0] : 1. - fraction[0]) * ((corner & 2) ? fraction[1] : 1. - fraction[1]) * ((corner & 1) ? fraction[2] : 1. - fraction[2]);
-    for (unsigned int component = 0; component < 3; ++component)
-    {
-      value[component] += weight * data.values[id][component];
-    }
-  }
-  result.reaches_readout = true;
-  result.delta_r_cm = value[0];
-  result.delta_rphi_cm = value[1];
-  result.drift_time_ns = value[2];
-  return true;
+  return Training::InterpolateCorners(cell.bounds, {{Training::CanonicalPhi(phi), r, z}}, [&](unsigned int corner) -> const Value*
+                                      {
+                                        const auto id = data.corners[cell.corner_record][corner];
+                                        return id < data.values.size() ? &data.values[id] : nullptr; }, result);
 }
 
 std::string PHGarfieldCompactMap::ContentFingerprint(const Data& data)
