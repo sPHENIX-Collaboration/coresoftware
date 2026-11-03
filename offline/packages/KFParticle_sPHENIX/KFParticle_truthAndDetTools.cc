@@ -73,17 +73,14 @@ std::map<std::string, int> Use =
 
 SvtxTrack *KFParticle_truthAndDetTools::getTrack(unsigned int track_id, SvtxTrackMap *trackmap)
 {
-  SvtxTrack *matched_track = nullptr;
-
-  for (auto &iter : *trackmap)
+  // Track ids are the keys of the map, so look the track up directly instead of scanning the whole map
+  auto iter = trackmap->find(track_id);
+  if (iter == trackmap->end())
   {
-    if (iter.first == track_id)
-    {
-      matched_track = iter.second;
-    }
+    return nullptr;
   }
 
-  return matched_track;
+  return iter->second;
 }
 
 GlobalVertex *KFParticle_truthAndDetTools::getVertex(unsigned int vertex_id, GlobalVertexMap *vertexmap)

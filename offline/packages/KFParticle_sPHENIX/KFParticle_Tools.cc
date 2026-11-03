@@ -620,22 +620,31 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<
 {
   std::vector<std::vector<int>> goodTracksThatMeet;
 
+  // The crossings of each particle do not depend on the pair, so get them once instead of for every pair
+  const bool checkCrossings = m_require_bunch_crossing_match || m_force_mixed_event;
+  std::vector<std::vector<int>> particleCrossings;
+  if (checkCrossings)
+  {
+    particleCrossings.resize(daughterParticles.size());
+    for (const auto &idx : goodTrackIndex)
+    {
+      particleCrossings[idx] = getParticleCrossings(daughterParticles[idx]);
+    }
+  }
+  std::vector<int> crossings;  // reused for every pair
+  crossings.reserve(16);
+
   for (std::vector<int>::iterator i_it = goodTrackIndex.begin(); i_it != goodTrackIndex.end(); ++i_it)
   {
     for (std::vector<int>::iterator j_it = goodTrackIndex.begin(); j_it != goodTrackIndex.end(); ++j_it)
     {
       if (i_it < j_it)
       {
-        std::vector<KFParticle> dummy_tracks = {daughterParticles[*i_it], daughterParticles[*j_it]};
-        if (m_require_bunch_crossing_match || m_force_mixed_event)
+        if (checkCrossings)
         {
-          std::vector<int> crossings;
-          crossings.reserve(dummy_tracks.size());
-          for (const auto &track : dummy_tracks)
-          {
-            std::vector<int> trackCrossings = getParticleCrossings(track);
-            crossings.insert(crossings.end(), trackCrossings.begin(), trackCrossings.end());
-          }
+          crossings.clear();
+          crossings.insert(crossings.end(), particleCrossings[*i_it].begin(), particleCrossings[*i_it].end());
+          crossings.insert(crossings.end(), particleCrossings[*j_it].begin(), particleCrossings[*j_it].end());
           
           removeDuplicates(crossings);
           
@@ -648,6 +657,8 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<
             continue;
           }
         }
+
+        std::vector<KFParticle> dummy_tracks = {daughterParticles[*i_it], daughterParticles[*j_it]};
 
         KFParticle dummy_mother;
         dummy_mother.SetConstructMethod(2);
@@ -756,13 +767,11 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
         bool dcaMet = true;
 
         //Need to propagate all tracks first
-        KFVertex particleVertex;
-        particleVertex += daughterParticles[i_it];
         std::vector<int> combination;
+        combination.reserve(nProngs);
         combination.push_back(i_it);
         for (unsigned int i = 0; i < nProngs - 1; ++i)
         {
-          particleVertex += daughterParticles[goodTracksThatMeet[i_prongs][i]];
           combination.push_back(goodTracksThatMeet[i_prongs][i]);
         }
 
@@ -802,11 +811,20 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
           if (dca > m_comb_DCA || dca_xy > m_comb_DCA_xy)
           {
             dcaMet = false;
+            break;  // this combination is rejected, no need to test the remaining tracks
           }
         }
 
         if (dcaMet)
         {
+          // The vertex of the raw tracks is only needed for the quality and radius selection, so build it here
+          KFVertex particleVertex;
+          particleVertex += daughterParticles[i_it];
+          for (unsigned int i = 0; i < nProngs - 1; ++i)
+          {
+            particleVertex += daughterParticles[goodTracksThatMeet[i_prongs][i]];
+          }
+
           float vertexchi2ndof = particleVertex.GetChi2() / particleVertex.GetNDF();
           float sv_radial_position = sqrt(pow(particleVertex.GetX(), 2) + pow(particleVertex.GetY(), 2));
 
