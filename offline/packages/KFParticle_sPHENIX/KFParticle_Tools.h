@@ -290,6 +290,8 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   bool m_require_bunch_crossing_match{true};
 
+  bool m_use_ordered_prongs{true};
+
   bool m_require_track_and_vertex_match{false};
 
   std::map<int, std::vector<int>> m_intermediate_crossings;

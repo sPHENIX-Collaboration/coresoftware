@@ -403,6 +403,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void requireBunchCrossingMatch(bool require = true) { m_require_bunch_crossing_match = require; }
 
+  void useOrderedProngCombinations(bool use = true) { m_use_ordered_prongs = use; }
+
   void requireTrackVertexBunchCrossingMatch(bool require = true) { m_require_track_and_vertex_match = require; }
 
   void selectMotherByMassError(bool select = true) { m_select_by_mass_error = select; }

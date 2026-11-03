@@ -750,10 +750,25 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
 {
   unsigned int nGoodProngs = goodTracksThatMeet.size();
 
+  std::vector<int> maxProngIndex;
+  if (m_use_ordered_prongs)
+  {
+    maxProngIndex.reserve(nGoodProngs);
+    for (const auto &prong : goodTracksThatMeet)
+    {
+      maxProngIndex.push_back(*std::max_element(prong.begin(), prong.begin() + (nProngs - 1)));
+    }
+  }
+
   for (const auto &i_it : goodTrackIndex)
   {
     for (unsigned int i_prongs = 0; i_prongs < nGoodProngs; ++i_prongs)
     {
+      if (m_use_ordered_prongs && i_it <= maxProngIndex[i_prongs])
+      {
+        continue;
+      }
+
       bool trackNotUsedAlready = true;
       for (unsigned int i_trackCheck = 0; i_trackCheck < nProngs - 1; ++i_trackCheck)
       {
