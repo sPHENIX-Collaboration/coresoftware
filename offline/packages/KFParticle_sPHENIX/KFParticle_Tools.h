@@ -90,12 +90,6 @@ class KFParticle_Tools : protected KFParticle_MVA
                                             std::vector<std::vector<int>> goodTracksThatMeet,
                                             int nRequiredTracks, unsigned int nProngs, const std::vector<KFParticle> &primaryVertices);
 
-  // Optional faster version of findNProngs, used when m_use_ordered_prongs is set
-  std::vector<std::vector<int>> findNProngsOnce(const std::vector<KFParticle> &daughterParticles,
-                                                const std::vector<int> &goodTrackIndex,
-                                                const std::vector<std::vector<int>> &previousProngs,
-                                                int nRequiredTracks, unsigned int nProngs, const std::vector<KFParticle> &primaryVertices);
-
   std::vector<std::vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks, const std::vector<KFParticle> &primaryVertices);
 
   /// Calculates the cosine of the angle betweent the flight direction and momentum
