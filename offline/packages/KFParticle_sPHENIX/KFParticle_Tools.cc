@@ -69,6 +69,7 @@
 
 #include <algorithm>  // for max, remove, minmax_el...
 #include <cmath>      // for sqrt, pow, M_PI
+#include <cstdint>    // for uint64_t
 #include <cstdlib>    // for abs, NULL
 #include <iostream>   // for operator<<, basic_ostream
 #include <iterator>   // for end
@@ -748,27 +749,21 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
                                                             std::vector<std::vector<int>> goodTracksThatMeet,
                                                             int nRequiredTracks, unsigned int nProngs, const std::vector<KFParticle> &primaryVertices)
 {
-  unsigned int nGoodProngs = goodTracksThatMeet.size();
-
-  std::vector<int> maxProngIndex;
-  if (m_use_ordered_prongs)
+  // Optional faster version, which builds every combination once. Falls back to the default code below if the
+  // track indices cannot be packed into the lookup keys it uses
+  if (m_use_ordered_prongs && nProngs <= 5 && !goodTrackIndex.empty()
+      && *std::min_element(goodTrackIndex.begin(), goodTrackIndex.end()) >= 0
+      && *std::max_element(goodTrackIndex.begin(), goodTrackIndex.end()) < 65536)
   {
-    maxProngIndex.reserve(nGoodProngs);
-    for (const auto &prong : goodTracksThatMeet)
-    {
-      maxProngIndex.push_back(*std::max_element(prong.begin(), prong.begin() + (nProngs - 1)));
-    }
+    return findNProngsOnce(daughterParticles, goodTrackIndex, goodTracksThatMeet, nRequiredTracks, nProngs, primaryVertices);
   }
+
+  unsigned int nGoodProngs = goodTracksThatMeet.size();
 
   for (const auto &i_it : goodTrackIndex)
   {
     for (unsigned int i_prongs = 0; i_prongs < nGoodProngs; ++i_prongs)
     {
-      if (m_use_ordered_prongs && i_it <= maxProngIndex[i_prongs])
-      {
-        continue;
-      }
-
       bool trackNotUsedAlready = true;
       for (unsigned int i_trackCheck = 0; i_trackCheck < nProngs - 1; ++i_trackCheck)
       {
@@ -896,6 +891,200 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
   removeDuplicates(goodTracksThatMeet);
 
   return goodTracksThatMeet;
+}
+
+/*
+ *  Same selection as findNProngs, but every combination of tracks is built and refitted once, and not once for every
+ *  track that can be added last. findNProngs accepts a combination if ANY of its routes (one track added to an
+ *  existing (N-1)-prong combination) passes the DCA test, so here the DCA of every track against all the others is
+ *  evaluated on the single refit, and the combination is accepted if any track passes while the remaining tracks
+ *  were an existing (N-1)-prong combination. Each combination is generated from the route with the largest added
+ *  track. The refit is done with the tracks in index order and not in each route's order, so combinations that sit
+ *  on a cut can differ at the level of float rounding.
+ */
+std::vector<std::vector<int>> KFParticle_Tools::findNProngsOnce(const std::vector<KFParticle> &daughterParticles,
+                                                                const std::vector<int> &goodTrackIndex,
+                                                                const std::vector<std::vector<int>> &previousProngs,
+                                                                int nRequiredTracks, unsigned int nProngs, const std::vector<KFParticle> &primaryVertices)
+{
+  std::vector<std::vector<int>> newProngs;
+
+  // Sorted combinations are packed into 64 bit keys (16 bits per track index) for fast membership tests
+  auto packKey = [](const std::vector<int> &sortedIds)
+  {
+    std::uint64_t key = 0;
+    for (const int id : sortedIds)
+    {
+      key = (key << 16) | static_cast<std::uint64_t>(id);
+    }
+    return key;
+  };
+
+  std::vector<std::vector<int>> sortedProngs = previousProngs;
+  std::vector<std::uint64_t> previousKeys;
+  previousKeys.reserve(sortedProngs.size());
+  for (auto &prong : sortedProngs)
+  {
+    std::sort(prong.begin(), prong.end());
+    previousKeys.push_back(packKey(prong));
+  }
+  std::sort(previousKeys.begin(), previousKeys.end());
+  previousKeys.erase(std::unique(previousKeys.begin(), previousKeys.end()), previousKeys.end());
+
+  auto isPrevious = [&previousKeys, &packKey](const std::vector<int> &sortedIds)
+  {
+    return std::binary_search(previousKeys.begin(), previousKeys.end(), packKey(sortedIds));
+  };
+
+  const unsigned int n = nProngs;
+  std::vector<int> combination, subCombination;
+  combination.reserve(n);
+  subCombination.reserve(n);
+  std::vector<KFParticle> dummy_tracks;
+  dummy_tracks.reserve(n);
+  std::vector<signed char> pairPass(n * n);
+
+  for (const auto &prong : sortedProngs)
+  {
+    for (const auto &i_it : goodTrackIndex)
+    {
+      if (std::binary_search(prong.begin(), prong.end(), i_it))
+      {
+        continue;  // track already in the combination
+      }
+
+      combination.assign(prong.begin(), prong.end());
+      combination.insert(std::upper_bound(combination.begin(), combination.end(), i_it), i_it);
+
+      // Build each combination only from the route with the largest added track
+      bool buildHere = true;
+      for (unsigned int k = 0; k < n && buildHere; ++k)
+      {
+        if (combination[k] <= i_it)
+        {
+          continue;
+        }
+        subCombination.clear();
+        for (unsigned int l = 0; l < n; ++l)
+        {
+          if (l != k)
+          {
+            subCombination.push_back(combination[l]);
+          }
+        }
+        if (isPrevious(subCombination))
+        {
+          buildHere = false;
+        }
+      }
+      if (!buildHere)
+      {
+        continue;
+      }
+
+      // Propagate the tracks to the vertex they make, as in findNProngs
+      dummy_tracks.clear();
+      for (const auto &id : combination)
+      {
+        dummy_tracks.push_back(daughterParticles[id]);
+      }
+      KFParticle dummy_mother;
+      dummy_mother.SetConstructMethod(2);
+      for (auto &track : dummy_tracks)
+      {
+        dummy_mother.AddDaughter(track);
+      }
+      for (auto &track : dummy_tracks)
+      {
+        track.SetProductionVertex(dummy_mother);
+      }
+
+      std::fill(pairPass.begin(), pairPass.end(), -1);
+      auto pairPasses = [&](unsigned int a, unsigned int b)
+      {
+        signed char &cached = pairPass[a * n + b];
+        if (cached < 0)
+        {
+          float dca = dummy_tracks[a].GetDistanceFromParticle(dummy_tracks[b]);
+          float dca_xy = dummy_tracks[a].GetDistanceFromParticleXY(dummy_tracks[b]);
+          cached = (dca <= m_comb_DCA && dca_xy <= m_comb_DCA_xy) ? 1 : 0;
+          pairPass[b * n + a] = cached;
+        }
+        return cached == 1;
+      };
+
+      // Accept if any track x passes the DCA test against all the others, and the others were a combination
+      bool dcaMet = false;
+      for (unsigned int x = 0; x < n && !dcaMet; ++x)
+      {
+        subCombination.clear();
+        for (unsigned int l = 0; l < n; ++l)
+        {
+          if (l != x)
+          {
+            subCombination.push_back(combination[l]);
+          }
+        }
+        if (!isPrevious(subCombination))
+        {
+          continue;
+        }
+        bool trackPasses = true;
+        for (unsigned int l = 0; l < n && trackPasses; ++l)
+        {
+          if (l != x && !pairPasses(x, l))
+          {
+            trackPasses = false;
+          }
+        }
+        dcaMet = trackPasses;
+      }
+      if (!dcaMet)
+      {
+        continue;
+      }
+
+      if ((unsigned int) nRequiredTracks == nProngs)
+      {
+        KFVertex particleVertex;
+        for (const auto &id : combination)
+        {
+          particleVertex += daughterParticles[id];
+        }
+        float vertexchi2ndof = particleVertex.GetChi2() / particleVertex.GetNDF();
+        float sv_radial_position = sqrt(pow(particleVertex.GetX(), 2) + pow(particleVertex.GetY(), 2));
+
+        if (vertexchi2ndof > m_vertex_chi2ndof)
+        {
+          continue;
+        }
+
+        if (sv_radial_position < m_min_radial_SV)
+        {
+          continue;
+        }
+
+        bool rejectComboDueToTrack = false;
+        for (auto &track : dummy_tracks)
+        {
+          if (!isGoodTrack(track, primaryVertices))
+          {
+            rejectComboDueToTrack = true;
+          }
+        }
+        if (rejectComboDueToTrack)
+        {
+          continue;
+        }
+      }
+
+      newProngs.push_back(combination);
+    }
+  }
+
+  removeDuplicates(newProngs);
+
+  return newProngs;
 }
 
 std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks, const std::vector<KFParticle> &primaryVertices)
