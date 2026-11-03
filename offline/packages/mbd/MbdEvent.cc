@@ -9,7 +9,6 @@
 
 #ifndef ONLINE
 #include <ffarawobjects/CaloPacket.h>
-#include <ffarawobjects/CaloPacketContainer.h>
 #include <ffarawobjects/Gl1Packet.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/phool.h>

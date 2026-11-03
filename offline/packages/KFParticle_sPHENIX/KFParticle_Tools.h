@@ -26,6 +26,8 @@
 
 #include <globalvertex/MbdVertex.h>
 #include <globalvertex/MbdVertexMap.h>
+#include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackSeedContainer.h>
 
 #include <dedxfitter/bethe_bloch.h> // included here so inline functions are defined on user end
 
@@ -46,6 +48,7 @@ class SvtxVertexMap;
 class SvtxTrackMap;
 class SvtxVertex;
 class SvtxTrack;
+class SvtxTrack_v5;
 class GlobalVertexMap;
 class GlobalVertex;
 class TrkrClusterContainer;
@@ -132,7 +135,15 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   std::vector<int> getParticleCrossings(const KFParticle &particle);
 
-  void set_dont_use_global_vertex(bool set_variable) { m_dont_use_global_vertex = set_variable; }
+  static TrackSeed *findSeed(TrackSeedContainer *container, unsigned short id);
+
+  // Read-only access to the settings that the nTuple/truth helper classes need.
+  // The helpers use the one KFParticle_Tools instance that owns the settings (see
+  // KFParticle_truthAndDetTools::setToolsInstance) rather than keeping their own copies.
+  bool get_use_mbd_vertex() const { return m_use_mbd_vertex; }
+  bool get_dont_use_global_vertex() const { return m_dont_use_global_vertex; }
+  const std::string &get_vtx_map_node_name() const { return m_vtx_map_node_name; }
+  const std::string &get_trk_map_node_name() const { return m_trk_map_node_name; }
 
  protected:
   int m_verbosity = 0;

@@ -184,6 +184,12 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
     m_tpcrot.RotateZ(layergeom->get_rot_z());
   }
 
+  // Maps of corrections switched off by hand (scale 0 on both sides, e.g. non-distorted MC)
+  // are never used, so a missing payload is not an error for them.
+  const bool spaceChargeOff = m_spaceChargeScaleOverride[0] && m_spaceChargeScaleOverride[1] &&
+                              m_spaceChargeScale_side0 == 0.0 && m_spaceChargeScale_side1 == 0.0;
+  const bool frameChargeOff = m_frameChargeScaleOverride[0] && m_frameChargeScaleOverride[1] &&
+                              m_frameChargeScale_side0 == 0.0 && m_frameChargeScale_side1 == 0.0;
   // Space-charge field maps.
   // A manually selected 2D map takes precedence over automatic 3D CDB maps.
   if (m_electricFieldMapOverride)
@@ -192,19 +198,19 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
   }
   else if (m_use2DElectricFieldMap)
   {
-    if (!resolve_file(CdbEField2D, m_electricFieldMap, false))
+    if (!resolve_file(CdbEField2D, m_electricFieldMap, false) && !spaceChargeOff)
     {
       ok = false;
     }
   }
   else
   {
-    if (!resolve_file(CdbEField3DSide0, m_electricFieldMap3D[0], m_electricFieldMap3DOverride[0]))
+    if (!resolve_file(CdbEField3DSide0, m_electricFieldMap3D[0], m_electricFieldMap3DOverride[0]) && !spaceChargeOff)
     {
       ok = false;
     }
 
-    if (!resolve_file(CdbEField3DSide1, m_electricFieldMap3D[1], m_electricFieldMap3DOverride[1]))
+    if (!resolve_file(CdbEField3DSide1, m_electricFieldMap3D[1], m_electricFieldMap3DOverride[1]) && !spaceChargeOff)
     {
       ok = false;
     }
@@ -219,18 +225,19 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
   }
   else
   {
-    if (!resolve_file(CdbModuleFrames3DSide0, m_frameElectricFieldMap3D[0], m_frameElectricFieldMap3DOverride[0]))
+    if (!resolve_file(CdbModuleFrames3DSide0, m_frameElectricFieldMap3D[0], m_frameElectricFieldMap3DOverride[0]) && !frameChargeOff)
     {
       ok = false;
     }
 
-    if (!resolve_file(CdbModuleFrames3DSide1, m_frameElectricFieldMap3D[1], m_frameElectricFieldMap3DOverride[1]))
+    if (!resolve_file(CdbModuleFrames3DSide1, m_frameElectricFieldMap3D[1], m_frameElectricFieldMap3DOverride[1]) && !frameChargeOff)
     {
       ok = false;
     }
   }
 
   // kEff from CDB for any side that was not explicitly set.
+  bool keffFallback = false;
   if (!m_spaceChargeScaleOverride[0] || !m_spaceChargeScaleOverride[1])
   {
     std::string kefffile;
@@ -252,8 +259,34 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
 
     if (kefffile.empty())
     {
-      std::cout << Name() << "::LoadCDBInputs - kEff coefficient file is empty" << std::endl;
-      ok = false;
+      // No kEff file: scale the reference kEff by the run-average R1 GEM current
+      // (TpcConditions, uA). The per-segment correction below still applies.
+      auto* cond = findNode::getClass<TpcConditions>(topNode, "TpcConditions");
+      const bool haveCond = cond && cond->get_ConditionsAvailable();
+      const double igemS = haveCond ? cond->get_AverageLoadSR1() : 0.0;
+      const double igemN = haveCond ? cond->get_AverageLoadNR1() : 0.0;
+      const auto bad = [](double x) { return !std::isfinite(x) || x <= 0.0; };
+      if (bad(igemS) || bad(igemN) || bad(m_keffReferenceSR1) || bad(m_keffReferenceNR1))
+      {
+        std::cout << Name() << "::LoadCDBInputs - kEff file is empty and GEM-current fallback has invalid currents: avg SR1="
+                  << igemS << " NR1=" << igemN << ", ref SR1=" << m_keffReferenceSR1
+                  << " NR1=" << m_keffReferenceNR1 << std::endl;
+        ok = false;
+      }
+      else
+      {
+        std::cout << Name() << "::LoadCDBInputs - kEff file is empty; GEM-current fallback, avg SR1=" << igemS
+                  << " NR1=" << igemN << std::endl;
+        keffFallback = true;
+        if (!m_spaceChargeScaleOverride[0])
+        {
+          m_spaceChargeScale_side0 = GemCurrentKeff(igemS, m_keffReferenceSR1);
+        }
+        if (!m_spaceChargeScaleOverride[1])
+        {
+          m_spaceChargeScale_side1 = GemCurrentKeff(igemN, m_keffReferenceNR1);
+        }
+      }
     }
     else
     {
@@ -273,11 +306,14 @@ bool PHGarfield::LoadCDBInputs(PHCompositeNode* topNode)
   }
 
   // Print the base kEff source before the current correction.
+  const char* automaticKeffSource =
+      keffFallback ? " [GEM-current fallback]" : " [CDB]";
+
   std::cout << Name() << "::LoadCDBInputs - base kEff:"
             << " side0=" << m_spaceChargeScale_side0
-            << (m_spaceChargeScaleOverride[0] ? " [manual override]" : " [CDB]")
+            << (m_spaceChargeScaleOverride[0] ? " [manual override]" : automaticKeffSource)
             << ", side1=" << m_spaceChargeScale_side1
-            << (m_spaceChargeScaleOverride[1] ? " [manual override]" : " [CDB]")
+            << (m_spaceChargeScaleOverride[1] ? " [manual override]" : automaticKeffSource)
             << std::endl;
 
   // Apply the same bunch-crossing/current correction used by Tpc_PolyClusterizer,

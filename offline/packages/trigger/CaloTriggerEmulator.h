@@ -16,7 +16,6 @@ class TriggerPrimitiveContainer;
 class LL1Out;
 class Event;
 class TowerInfoContainer;
-class CaloPacketContainer;
 class PHCompositeNode;
 class TH1;
 
@@ -28,9 +27,6 @@ class CaloTriggerEmulator : public SubsysReco
 
   //! destructor
   ~CaloTriggerEmulator() override = default;
-
-  //! full initialization
-  int Init(PHCompositeNode *) override;
 
   //! full initialization
   int InitRun(PHCompositeNode *) override;
@@ -158,8 +154,6 @@ class CaloTriggerEmulator : public SubsysReco
   TowerInfoContainer *m_waveforms_hcalin{nullptr};
   TowerInfoContainer *m_waveforms_hcalout{nullptr};
   TowerInfoContainer *m_waveforms_emcal{nullptr};
-  CaloPacketContainer *m_hcal_packets{nullptr};
-  CaloPacketContainer *m_emcal_packets{nullptr};
 
   //! LL1 Out
   LL1Out *m_ll1out_photon{nullptr};
@@ -225,7 +219,6 @@ class CaloTriggerEmulator : public SubsysReco
   unsigned int m_threshold_photon[4] = {0};
 
   int m_isdata{1};
-  int m_useoffline{false};
   int m_use_individual_packets{false};
   // default nsamples is 16 for mbd, 12 for calos
   int m_nsamples{16};

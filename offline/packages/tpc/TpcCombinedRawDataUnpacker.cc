@@ -115,7 +115,7 @@ int TpcCombinedRawDataUnpacker::Init(PHCompositeNode* /*topNode*/)
   }
   else
   {
-    std::cout << "TpcRawDataDecoder::::InitRun No calibration file found" << std::endl;
+    std::cout << "TpcCombinedRawDataUnpacker::::InitRun No calibration file found" << std::endl;
     exit(1);
   }
 

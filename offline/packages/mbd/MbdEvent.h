@@ -27,7 +27,6 @@ class TF1;
 class TCanvas;
 #ifndef ONLINE
 class CaloPacket;
-class CaloPacketContainer;
 class Gl1Packet;
 class PHG4TruthInfoContainer;
 class PHG4VtxPoint;

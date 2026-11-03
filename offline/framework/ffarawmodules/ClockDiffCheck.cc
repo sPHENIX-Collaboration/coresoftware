@@ -5,7 +5,6 @@
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <ffarawobjects/CaloPacket.h>
-#include <ffarawobjects/CaloPacketContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -98,20 +97,6 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
     FillPacketDiff(pkt);
   }
 
-  std::vector<std::string> nodenames{"CEMCPackets", "HCALPackets", "MBDPackets", "SEPDPackets", "ZDCPackets"};
-  for (const auto &iter : nodenames)
-  {
-    CaloPacketContainer *cemccont = findNode::getClass<CaloPacketContainer>(topNode, iter);
-    if (!cemccont)
-    {
-      //      std::cout << "ClockDiffCheck: " << "could not find " << iter << " node" << std::endl;
-    }
-    else
-    {
-      FillCaloClockDiff(cemccont);
-    }
-  }
-
   for (const auto &iter : m_PacketNodeNames)
   {
     if (iter == "14001")
@@ -195,107 +180,6 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
     }
   }
 
-  for (const auto &nodeiter : nodenames)
-  {
-    CaloPacketContainer *container = findNode::getClass<CaloPacketContainer>(topNode, nodeiter);
-    if (!container)
-    {
-      continue;
-    }
-    if (delBadPkts)
-    {
-      for (unsigned int i = 0; i < container->get_npackets(); i++)
-      {
-        unsigned int packetID = container->getPacket(i)->getIdentifier();
-        for (unsigned int badPacket : badPackets)
-        {
-          if (badPacket == packetID)
-          {
-            if (Verbosity() > 1)
-            {
-              std::cout << "ClockDiffCheck: " << "Dropping packet " << container->getPacket(i)->getIdentifier() << " for XMIT clock mismatch" << std::endl;
-            }
-            container->deletePacket(container->getPacket(i));
-            break;
-          }
-        }
-      }
-    }
-
-    std::vector<std::vector<int>> EvtCounts;
-    std::vector<int> NrAndCount(2);
-    NrAndCount[1] = 1;
-    int counter = 0;
-    int bestEvt = -1;
-    int bestEvtCnt = 0;
-    unsigned int npacket = container->get_npackets();
-    for (unsigned int i = 0; i < npacket; i++)
-    {
-      CaloPacket *packet = container->getPacket(i);
-      if (packet)
-      {
-        int nrModules = packet->iValue(0, "NRMODULES");
-        for (int j = 0; j < nrModules; j++)
-        {
-          int k;
-          for (k = 0; k < counter; k++)
-          {
-            if (EvtCounts[k][0] == packet->iValue(j, "FEMEVTNR"))
-            {
-              EvtCounts[k][1]++;
-              break;
-            }
-          }
-          if (k >= counter)
-          {
-            NrAndCount[0] = packet->iValue(j, "FEMEVTNR");
-            EvtCounts.push_back(NrAndCount);
-            counter++;
-          }
-        }
-      }
-    }
-    if (counter > 1)
-    {
-      for (int i = 0; i < counter; i++)
-      {
-        if (bestEvtCnt < EvtCounts[i][1])
-        {
-          bestEvtCnt = EvtCounts[i][1];
-          bestEvt = EvtCounts[i][0];
-        }
-      }
-      for (unsigned int i = 0; i < npacket; ++i)
-      {
-        CaloPacket *packet = container->getPacket(i);
-        if (packet)
-        {
-          for (int j = 0; j < packet->iValue(0, "NRMODULES"); j++)
-          {
-            if (packet->iValue(j, "FEMEVTNR") != bestEvt && bestEvt != -1)
-            {
-              static int icnt = 0;
-              if (icnt < 1000)
-              {
-                std::cout << "ClockDiffCheck: " << "found different FEM clock for packet " << packet->getIdentifier() << std::endl;
-                icnt++;
-              }
-              if (delBadPkts)
-              {
-                if (Verbosity() > 1)
-                {
-                  std::cout << "ClockDiffCheck: " << "deleting packet " << packet->getIdentifier()
-                            << " with fem clock mismatch" << std::endl;
-                }
-                container->deletePacket(packet);
-              }
-              break;
-            }
-          }
-        }
-      }
-    }
-  }
   for (const auto &iter : m_PacketNodeNames)
   {
     CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, iter);
@@ -336,15 +220,6 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-void ClockDiffCheck::FillCaloClockDiff(CaloPacketContainer *pktcont)
-{
-  for (unsigned int i = 0; i < pktcont->get_npackets(); i++)
-  {
-    FillCaloClockDiffSngl(pktcont->getPacket(i));
-  }
-  return;
 }
 
 void ClockDiffCheck::FillCaloClockDiffSngl(CaloPacket *calopkt)

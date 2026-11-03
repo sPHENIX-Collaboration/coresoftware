@@ -41,19 +41,12 @@ class CaloPacketSkimmer : public SubsysReco
     }
   }
 
-  void set_offlineflag(const bool f = true)
-  {
-    m_UseOfflinePacketFlag = f;
-  }
-
  private:
+  int processDetector(PHCompositeNode* topNode, CaloTowerDefs::DetectorSystem det);
+
   std::vector<CaloTowerDefs::DetectorSystem> m_CaloDetectors{
       CaloTowerDefs::CEMC, CaloTowerDefs::HCALIN, CaloTowerDefs::HCALOUT,
       CaloTowerDefs::SEPD, CaloTowerDefs::ZDC, CaloTowerDefs::MBD};
-  bool m_UseOfflinePacketFlag{true};
-  bool m_PacketNodesFlag{false};
-
-  int processDetector(PHCompositeNode* topNode, CaloTowerDefs::DetectorSystem det);
 
   std::string getDetectorName(CaloTowerDefs::DetectorSystem det)
   {

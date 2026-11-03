@@ -1,9 +1,0 @@
-# This is the parameter file for the medium model.
-# and the centrality
-CENTRMIN 0.
-CENTRMAX 20.
-#params for 200 GeV
-TAUI 0.4d0
-SIGMANN 4.2
-TI 0.260d0
-A 197

@@ -15,7 +15,6 @@ pkginclude_HEADERS = \
 libphnodedump_la_SOURCES = \
   Dumper.cc \
   DumpCaloPacket.cc \
-  DumpCaloPacketContainer.cc \
   DumpCaloTriggerInfo.cc \
   DumpCdbUrlSave.cc \
   DumpCentralityInfo.cc \
@@ -34,6 +33,7 @@ libphnodedump_la_SOURCES = \
   DumpMbdGeom.cc \
   DumpMbdOut.cc \
   DumpMbdPmtContainer.cc \
+  DumpMbdRawContainer.cc \
   DumpMbdVertexMap.cc \
   DumpMicromegasRawHitContainer.cc \
   DumpMvtxRawEvtHeader.cc \
@@ -74,6 +74,7 @@ libphnodedump_la_SOURCES = \
   DumpTpc_PolyTrackVertexContainer.cc \
   DumpTpcRawHitContainer.cc \
   DumpTpcSeedTrackMap.cc \
+  DumpTriggerRunInfo.cc \
   DumpTrackSeedContainer.cc \
   DumpTrkrClusterContainer.cc \
   DumpTrkrClusterHitAssoc.cc \

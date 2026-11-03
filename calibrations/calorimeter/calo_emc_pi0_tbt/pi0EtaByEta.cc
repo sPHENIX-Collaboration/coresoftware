@@ -41,6 +41,7 @@
 
 #include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 
+#include <algorithm>  // for min, max
 #include <cmath>    // for fabs, isnan, M_PI
 #include <cstdint>  // for exit
 #include <cstdlib>  // for exit
@@ -327,14 +328,13 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   // clusters
   RawClusterContainer::ConstRange clusterEnd = clusterContainer->getClusters();
   RawClusterContainer::ConstIterator clusterIter;
-  RawClusterContainer::ConstIterator clusterIter2;
   int nClusCount = 0;
   for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; clusterIter++)
   {
     RawCluster* recoCluster = clusterIter->second;
 
     CLHEP::Hep3Vector vertex(0, 0, vtx_z);
-    CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
+    CLHEP::Hep3Vector E_vec_cluster = useEcore ? RawClusterUtility::GetECoreVec(*recoCluster, vertex) : RawClusterUtility::GetEVec(*recoCluster, vertex);
 
     float clus_pt = E_vec_cluster.perp();
     float clus_chisq = recoCluster->get_prob();
@@ -375,12 +375,22 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 
   float pi0ptcut = 1.22 * (pt1ClusCut + pt2ClusCut);
 
+  struct PairClus
+  {
+    TLorentzVector p4;
+    unsigned int lt_eta{0};
+    unsigned int lt_phi{0};
+  };
+  std::vector<PairClus> selClusters;
+  CLHEP::Hep3Vector vertex(0, 0, vtx_z);
+  const float minPairClusCut = std::min(pt1ClusCut, pt2ClusCut);
+  const float maxPairClusCut = std::max(pt1ClusCut, pt2ClusCut);
+
   for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; clusterIter++)
   {
     RawCluster* recoCluster = clusterIter->second;
 
-    CLHEP::Hep3Vector vertex(0, 0, vtx_z);
-    CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
+    CLHEP::Hep3Vector E_vec_cluster = useEcore ? RawClusterUtility::GetECoreVec(*recoCluster, vertex) : RawClusterUtility::GetEVec(*recoCluster, vertex);
 
     float clusE = E_vec_cluster.mag();
     float clus_eta = E_vec_cluster.pseudoRapidity();
@@ -394,45 +404,37 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     }
     h_clus_pt->Fill(clus_pt);
 
-    unsigned int lt_eta = recoCluster->get_lead_tower().first;
-    unsigned int lt_phi = recoCluster->get_lead_tower().second;
-
     h_etaphi_clus->Fill(clus_eta, clus_phi);
 
-    TLorentzVector photon1;
-    photon1.SetPtEtaPhiE(clus_pt, clus_eta, clus_phi, clusE);
-
-    if (clus_pt < pt1ClusCut || clus_pt > ptClusMax)
+    if (clus_pt < minPairClusCut || clus_pt > ptClusMax)
     {
       continue;
     }
 
-    for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterIter; clusterIter2++)
+    PairClus pc;
+    pc.p4.SetPtEtaPhiE(clus_pt, clus_eta, clus_phi, clusE);
+    pc.lt_eta = recoCluster->get_lead_tower().first;
+    pc.lt_phi = recoCluster->get_lead_tower().second;
+    selClusters.push_back(pc);
+  }
+
+  for (size_t i = 0; i < selClusters.size(); ++i)
+  {
+    for (size_t j = i + 1; j < selClusters.size(); ++j)
     {
-      RawCluster* recoCluster2 = clusterIter2->second;
+      // order the pair by pT: photon1 is the harder cluster
+      const bool iHarder = selClusters[i].p4.Pt() >= selClusters[j].p4.Pt();
+      const PairClus& c1 = iHarder ? selClusters[i] : selClusters[j];
+      const PairClus& c2 = iHarder ? selClusters[j] : selClusters[i];
+      const TLorentzVector& photon1 = c1.p4;
+      const TLorentzVector& photon2 = c2.p4;
 
-      CLHEP::Hep3Vector E_vec_cluster2 = RawClusterUtility::GetECoreVec(*recoCluster2, vertex);
-
-      float clus2E = E_vec_cluster2.mag();
-      float clus2_eta = E_vec_cluster2.pseudoRapidity();
-      float clus2_phi = E_vec_cluster2.phi();
-      float clus2_pt = E_vec_cluster2.perp();
-      float clus2_chisq = recoCluster2->get_prob();
-
-      // Apply pt cuts to second cluster in the pair
-      if (clus2_pt < pt2ClusCut || clus2_pt > ptClusMax)
-      {
-        continue;
-      }
-      if (clus2_chisq < clus_chisq_cut)
+      if (photon1.Pt() < maxPairClusCut)
       {
         continue;
       }
 
-      TLorentzVector photon2;
-      photon2.SetPtEtaPhiE(clus2_pt, clus2_eta, clus2_phi, clus2E);
-
-      if (std::fabs(clusE - clus2E) / (clusE + clus2E) > maxAlpha)
+      if (std::fabs(photon1.E() - photon2.E()) / (photon1.E() + photon2.E()) > maxAlpha)
       {
         continue;
       }
@@ -453,29 +455,36 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       h_m_pt->Fill(pi0.M(),pi0.Pt());
 
       h_InvMass->Fill(pi0.M());
-      if (clus2_pt < pt1ClusCut)
+
+      // per-tower fills for each member above pt1
+      for (const PairClus* probe : {&c1, &c2})
       {
-        h_InvMass->Fill(pi0.M());
+        if (probe->p4.Pt() < pt1ClusCut)
+        {
+          continue;
+        }
+        unsigned int lt_eta = probe->lt_eta;
+        unsigned int lt_phi = probe->lt_phi;
+
+        if (lt_eta > 95)
+        {
+          continue;
+        }
+        h_mass_eta_lt[lt_eta]->Fill(pi0.M());
+
+        int IB_num = ((lt_eta / 8) * 32) + (lt_phi / 8);
+        h_m_IB->Fill(pi0.M(),static_cast<double>(IB_num));
+
+        if (runTBTCompactMode)
+        {
+          h_ieta_iphi_invmass->Fill(lt_eta, lt_phi, pi0.M());
+        }  // fill 3D hist for inv mass
+
+        if (runTowByTow)
+        {
+          h_mass_tbt_lt[lt_eta][lt_phi]->Fill(pi0.M());
+        }  // fill 1D inv mass hist for all towers
       }
-
-      if (lt_eta > 95)
-      {
-        continue;
-      }
-      h_mass_eta_lt[lt_eta]->Fill(pi0.M());
-
-      int IB_num = ((lt_eta / 8) * 32) + (lt_phi / 8);
-      h_m_IB->Fill(pi0.M(),static_cast<double>(IB_num));
-
-      if (runTBTCompactMode)
-      {
-        h_ieta_iphi_invmass->Fill(lt_eta, lt_phi, pi0.M());
-      }  // fill 3D hist for inv mass
-
-      if (runTowByTow)
-      {
-        h_mass_tbt_lt[lt_eta][lt_phi]->Fill(pi0.M());
-      }  // fill 1D inv mass hist for all towers
     }
   }  // clus1 loop
 

@@ -3,6 +3,7 @@
 
 #include <phool/phool.h>
 
+#include <TBackCompFitter.h>
 #include <TF1.h>
 #include <TFile.h>
 #include <TGraphErrors.h>
@@ -142,8 +143,17 @@ MbdSig::~MbdSig()
   {
     _pileupfile->close();
   }
-  // ROOT keeps the current fitter as a process-wide cache after Fit().
-  TVirtualFitter::SetFitter(nullptr, 0);
+  // ROOT retains the last graph fit. Release it only if this MbdSig owns
+  // the fitted graph; another subsystem may have replaced the global fitter.
+  if (auto *fitter = dynamic_cast<TBackCompFitter *>(TVirtualFitter::GetFitter()))
+  {
+    if (fitter->TestBit(TBackCompFitter::kCanDeleteLast) &&
+        (fitter->GetObjectFit() == gRawPulse || fitter->GetObjectFit() == gSubPulse))
+    {
+      TVirtualFitter::SetFitter(nullptr);
+      delete fitter;
+    }
+  }
   delete hRawPulse;
   delete hSubPulse;
   delete gRawPulse;
@@ -1628,4 +1638,3 @@ void MbdSig::PrintResiduals(TGraphErrors *g, TF1 *f)
     std::cout << samp << "\t" << x << "\t" << resid << "\t" << y << "\t" <<  f->Eval(x) << "\t" << yerr << std::endl;
   }
 }
-

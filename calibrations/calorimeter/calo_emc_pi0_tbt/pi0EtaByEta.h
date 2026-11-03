@@ -2,7 +2,6 @@
 #define CALOEMCPI0TBT_PI0ETABYETA_H
 
 #include <globalvertex/GlobalVertex.h>
-
 #include <fun4all/SubsysReco.h>
 
 // #include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
@@ -53,7 +52,7 @@ class pi0EtaByEta : public SubsysReco
 
   void Detector(const std::string& name) { detector = name; }
   void set_timing_cut_width(const int t) { _range = t; }
-  void set_vertex_cut(const float v) { _vz = v; }
+  void set_vertex_cut(const float v) { vtx_z_cut = v; }
   void apply_vertex_cut(bool Vtx_cut) { doVtxCut = Vtx_cut; }
 
   static TF1* fitHistogram(TH1* h);
@@ -145,6 +144,11 @@ class pi0EtaByEta : public SubsysReco
   {
     ptClusMax = val;
   }
+  // cluster energy for the pairs: full cluster energy (default) or ECore
+  void set_useEcore(bool state)
+  {
+    useEcore = state;
+  }
 
  protected:
   int Getpeaktime(TH1* h);
@@ -154,6 +158,7 @@ class pi0EtaByEta : public SubsysReco
   bool reqTrig = true;
   std::vector<int> triggerList;
   bool reqVertex = false;
+  bool useEcore = false;
   std::string m_fieldname = "CEMC_calib_ADC_to_ETower";
 
   bool doVtxCut{true};
@@ -194,7 +199,6 @@ class pi0EtaByEta : public SubsysReco
   int _eventcounter{0};
   int _range{1};
 
-  float _vz{0.};
   float target_pi0_mass{0.146};
   float ptClusMax{4};
 

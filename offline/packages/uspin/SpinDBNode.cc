@@ -48,8 +48,21 @@ int SpinDBNode::InitRun(PHCompositeNode *topNode)
     int runnumber = runHeader->get_RunNumber();
     spin_cont = new SpinDBContentv1;
     SpinDBOutput spin_out("phnxrc");
-    spin_out.StoreDBContent(runnumber, runnumber);
-    spin_out.GetDBContentStore(spin_cont, runnumber);
+    if (m_qa_level != -999)
+    {
+      spin_out.StoreDBContent(runnumber, runnumber, m_qa_level);
+    }
+    else
+    {
+      spin_out.StoreDBContent(runnumber, runnumber);
+    }
+
+    if (spin_out.GetDBContentStore(spin_cont, runnumber) != 1)
+    {
+      delete spin_cont;
+      std::cout << PHWHERE << ":: SpinDBContent at QA level " << m_qa_level << " missing. Skipping run" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
     PHIODataNode<PHObject> *spindbcontentNode = new PHIODataNode<PHObject>(spin_cont, "SpinDBContent", "PHObject");
     lowerNode->addNode(spindbcontentNode);
   }

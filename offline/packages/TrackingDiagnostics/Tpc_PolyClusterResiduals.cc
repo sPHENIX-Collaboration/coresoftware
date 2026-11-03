@@ -10,6 +10,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
 
@@ -501,12 +502,20 @@ namespace
     y_state = yc + radius * std::sin(phi);
     return std::isfinite(x_state) && std::isfinite(y_state);
   }
+  // Poly cluster centroids are in the TPC envelope frame, while Tpc_PolyTrackReco
+  // fits them in the world frame: compare in the world frame.
+  Acts::Vector3 cluster_world_position(const ActsGeometry* geometry, const Tpc_PolyCluster* cluster)
+  {
+    const Acts::Vector3 envelope(cluster->get_centroid_x(), cluster->get_centroid_y(), cluster->get_centroid_z());
+    return geometry ? geometry->transformTpcEnvelopeToWorld(envelope) : envelope;
+  }
 
   double cluster_line_residual2(const Tpc_PolyTrack* poly_track,
                                 const std::vector<const Tpc_PolyCluster*>& clusters,
                                 const double magnetic_field_tesla,
                                 const double arc_direction,
-                                const bool use_straight_line)
+                                const bool use_straight_line,
+                                const ActsGeometry* geometry)
   {
     if (!poly_track || clusters.empty())
     {
@@ -521,9 +530,10 @@ namespace
       {
         continue;
       }
-      const double cx = cluster->get_centroid_x();
-      const double cy = cluster->get_centroid_y();
-      const double cz = cluster->get_centroid_z();
+      const Acts::Vector3 world = cluster_world_position(geometry, cluster);
+      const double cx = world.x();
+      const double cy = world.y();
+      const double cz = world.z();
       if (!std::isfinite(cx) || !std::isfinite(cy) || !std::isfinite(cz))
       {
         continue;
@@ -720,6 +730,11 @@ int Tpc_PolyClusterResiduals::process_event(PHCompositeNode* topNode)
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
+  const auto* geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if (!geometry && m_evt == 1)
+  {
+    std::cout << Name() << "::process_event - WARNING: no ActsGeometry, residuals in TPC envelope frame" << std::endl;
+  }
 
   std::map<unsigned int, std::vector<const Tpc_PolyCluster*> > clusters_by_source_assembled_track_id;
   std::map<unsigned int, const Tpc_PolyTrackVertex*> track_vertices_by_track_id;
@@ -802,8 +817,8 @@ int Tpc_PolyClusterResiduals::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    const double forward_residual2 = cluster_line_residual2(poly_track, track_clusters, m_magneticFieldTesla, 1.0, use_straight_line);
-    const double reverse_residual2 = cluster_line_residual2(poly_track, track_clusters, m_magneticFieldTesla, -1.0, use_straight_line);
+    const double forward_residual2 = cluster_line_residual2(poly_track, track_clusters, m_magneticFieldTesla, 1.0, use_straight_line, geometry);
+    const double reverse_residual2 = cluster_line_residual2(poly_track, track_clusters, m_magneticFieldTesla, -1.0, use_straight_line, geometry);
     const double arc_direction = forward_residual2 <= reverse_residual2 ? 1.0 : -1.0;
 
     double vertex_x = std::numeric_limits<double>::quiet_NaN();
@@ -882,9 +897,10 @@ int Tpc_PolyClusterResiduals::process_event(PHCompositeNode* topNode)
       {
         continue;
       }
-      const double cluster_x = cluster->get_centroid_x();
-      const double cluster_y = cluster->get_centroid_y();
-      const double cluster_z = cluster->get_centroid_z();
+      const Acts::Vector3 world = cluster_world_position(geometry, cluster);
+      const double cluster_x = world.x();
+      const double cluster_y = world.y();
+      const double cluster_z = world.z();
       if (!std::isfinite(cluster_x) || !std::isfinite(cluster_y) || !std::isfinite(cluster_z))
       {
         continue;

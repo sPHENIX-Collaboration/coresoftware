@@ -4,6 +4,7 @@
 #define TPCTRACKRECO_TPCPOLYCLUSTERIZER_H
 
 #include <fun4all/SubsysReco.h>
+#include <phool/sphenix_constants.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <array>
@@ -269,7 +270,7 @@ class Tpc_PolyClusterizer : public SubsysReco
   double m_t0{8};
   std::array<double, 2> m_deltaT0Tbins{{0.0, 0.0}};  // from PHGarfield in InitRun
   double m_tpcAdcClock{56.881262};
-  double m_crossingPeriodNs{106.56};
+  double m_crossingPeriodNs{sphenix_constants::time_between_crossings};
   double m_reverseDriftStepNs{56.881262};
   unsigned int m_reverseDriftSubsteps{10};
 

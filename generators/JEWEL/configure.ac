@@ -1,9 +1,0 @@
-AC_INIT(JEWEL, [2.2.0])
-AC_CONFIG_SRCDIR([configure.ac])
-
-AM_INIT_AUTOMAKE
-
-AC_PROG_F77(gfortran)
-
-AC_CONFIG_FILES([Makefile])
-AC_OUTPUT

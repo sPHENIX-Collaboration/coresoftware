@@ -5,7 +5,6 @@
 #include "TriggerPrimitiveContainerv1.h"
 
 #include <ffarawobjects/CaloPacket.h>
-#include <ffarawobjects/CaloPacketContainer.h>
 
 #include <ffamodules/CDBInterface.h>
 
@@ -292,7 +291,7 @@ int MBDTriggerEmulator::process_waveforms()
     std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing waveforms" << std::endl;
   }
 
-  if (!m_waveforms_mbd)
+  if (!dstp[0] && !dstp[1])
   {
     return process_raw();
   }
@@ -312,20 +311,13 @@ int MBDTriggerEmulator::process_waveforms()
     std::cout << __LINE__ << std::endl;
   }
 
-  // for each waveform, clauclate the peak - pedestal given the sub-delay setting
-  CaloPacket *dstp[2]{nullptr};
-
+  // for each waveform, calculate the peak - pedestal given the sub-delay setting
   for (int ipkt = 0; ipkt < 2; ipkt++)
   {
     if (Verbosity())
     {
       std::cout << __LINE__ << std::endl;
     }
-
-    int pktid = 1001 + ipkt;  // packet id
-
-    dstp[ipkt] = m_waveforms_mbd->getPacketbyId(pktid);
-
     if (dstp[ipkt])
     {
       for (int ich = 0; ich < 128; ich++)
@@ -363,7 +355,6 @@ int MBDTriggerEmulator::process_waveforms()
       {
         std::cout << __LINE__ << std::endl;
       }
-      delete dstp[ipkt];
     }
 
     if (Verbosity())
@@ -386,7 +377,7 @@ int MBDTriggerEmulator::process_raw()
     std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing waveforms" << std::endl;
   }
 
-  if (m_useoffline)
+  if (dstp[0] || dstp[1])
   {
     return Fun4AllReturnCodes::ABORTEVENT;
   }
@@ -411,15 +402,15 @@ int MBDTriggerEmulator::process_raw()
   }
 
   // for each waveform, clauclate the peak - pedestal given the sub-delay setting
-  Packet *dstp[2]{nullptr};
+  Packet *evtdstp[2]{nullptr};
 
   for (int ipkt = 0; ipkt < 2; ipkt++)
   {
     int pktid = 1001 + ipkt;  // packet id
 
-    dstp[ipkt] = m_event->getPacket(pktid);
+    evtdstp[ipkt] = m_event->getPacket(pktid);
 
-    if (dstp[ipkt])
+    if (evtdstp[ipkt])
     {
       for (int ich = 0; ich < 128; ich++)
       {
@@ -434,10 +425,10 @@ int MBDTriggerEmulator::process_raw()
 
         for (int i = sample_start; i < sample_end; i++)
         {
-          int16_t maxim = dstp[ipkt]->iValue(i, ich);  // > dstp[ipkt]->iValue(i+1, ich) ? dstp[ipkt]->iValue(i, ich) : dstp[ipkt]->iValue(i+1, ich));
-          //		  maxim = (maxim > dstp[ipkt]->iValue(i+2, ich) ? maxim : dstp[ipkt]->iValue(i+2, ich));
+          int16_t maxim = evtdstp[ipkt]->iValue(i, ich);  // > evtdstp[ipkt]->iValue(i+1, ich) ? evtdstp[ipkt]->iValue(i, ich) : evtdstp[ipkt]->iValue(i+1, ich));
+          //		  maxim = (maxim > evtdstp[ipkt]->iValue(i+2, ich) ? maxim : evtdstp[ipkt]->iValue(i+2, ich));
 
-          int subtraction = maxim - dstp[ipkt]->iValue(((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0)), ich);
+          int subtraction = maxim - evtdstp[ipkt]->iValue(((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0)), ich);
 
           subtraction = std::max(subtraction, 0);
 
@@ -448,7 +439,7 @@ int MBDTriggerEmulator::process_raw()
         m_peak_sub_ped_mbd[key] = v_peak_sub_ped;
       }
     }
-    delete dstp[ipkt];
+    delete evtdstp[ipkt];
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -812,10 +803,11 @@ void MBDTriggerEmulator::GetNodes(PHCompositeNode *topNode)
     exit(1);
   }
 
-  m_waveforms_mbd = findNode::getClass<CaloPacketContainer>(topNode, "MBDPackets");
-  if (m_waveforms_mbd)
+  for (int ipkt = 0; ipkt < 2; ipkt++)
   {
-    m_useoffline = true;
+    int pktid = 1001 + ipkt;  // packet id
+
+    dstp[ipkt] = findNode::getClass<CaloPacket>(topNode, pktid);
   }
   // if (!m_waveforms_mbd)
   //   {

@@ -11,7 +11,6 @@
 #include <calobase/TowerInfoContainerv4.h>
 
 #include <ffarawobjects/CaloPacket.h>
-#include <ffarawobjects/CaloPacketContainer.h>
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
@@ -40,12 +39,6 @@
 #include <variant>
 #include <vector>  // for vector
 
-static const std::map<CaloTowerDefs::DetectorSystem, std::string> nodemap{
-    {CaloTowerDefs::CEMC, "CEMCPackets"},
-    {CaloTowerDefs::HCALIN, "HCALPackets"},
-    {CaloTowerDefs::HCALOUT, "HCALPackets"},
-    {CaloTowerDefs::ZDC, "ZDCPackets"},
-    {CaloTowerDefs::SEPD, "SEPDPackets"}};
 //____________________________________________________________________________..
 CaloTowerBuilder::CaloTowerBuilder(const std::string &name)
   : SubsysReco(name)
@@ -190,7 +183,8 @@ int CaloTowerBuilder::process_sim()
   {
     TowerInfo *towerinfo = m_CalowaveformContainer->get_tower_at_channel(ich);
     std::vector<float> waveform;
-    waveform.reserve(m_nsamples);
+    int n_sample = towerinfo->get_nsample();
+    waveform.reserve(n_sample);
     bool fillwaveform = true;
     // get key
     if (m_dotbtszs)
@@ -198,7 +192,8 @@ int CaloTowerBuilder::process_sim()
       unsigned int key = m_CalowaveformContainer->encode_key(ich);
       int zs_threshold = cdbttree_tbt_zs->GetIntValue(key, m_zs_fieldname);
       int pre = towerinfo->get_waveform_value(0);
-      // this is always safe since towerinfo v3 has 31 samples
+      // by default we have 12 samples, we never ran 6 - if someone botches this that badly
+      // the code will crash here
       int post = towerinfo->get_waveform_value(6);
       if ((post - pre) <= zs_threshold)
       {
@@ -210,7 +205,7 @@ int CaloTowerBuilder::process_sim()
     }
     if (fillwaveform)
     {
-      for (int samp = 0; samp < m_nsamples; samp++)
+      for (int samp = 0; samp < n_sample; samp++)
       {
         waveform.push_back(towerinfo->get_waveform_value(samp));
       }
@@ -263,45 +258,8 @@ int CaloTowerBuilder::process_sim()
 
 int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::vector<float>> &waveforms)
 {
-  std::variant<CaloPacketContainer *, Event *> event;
-  if (m_UseOfflinePacketFlag)
-  {
-    CaloPacketContainer *calopacketcontainer = findNode::getClass<CaloPacketContainer>(topNode, nodemap.find(m_dettype)->second);
-    if (!calopacketcontainer)
-    {
-      for (int pid = m_packet_low; pid <= m_packet_high; pid++)
-      {
-        if (findNode::getClass<CaloPacket>(topNode, pid))
-        {
-          m_PacketNodesFlag = true;
-          break;
-        }
-      }
-      if (!m_PacketNodesFlag)
-      {
-        return Fun4AllReturnCodes::EVENT_OK;
-      }
-    }
-    else
-    {
-      event = calopacketcontainer;
-    }
-  }
-  else
-  {
-    Event *_event = findNode::getClass<Event>(topNode, "PRDF");
-    if (_event == nullptr)
-    {
-      std::cout << PHWHERE << " Event not found" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-    if (_event->getEvtType() != DATAEVENT)
-    {
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-    event = _event;
-  }
-  // since the function call on Packet and CaloPacket is the same, maybe we can use lambda?
+  // this lambda function call is used for Event Packet and CaloPacket.
+  // since we kept the method calls identical we can handle both of them in a single function
   auto process_packet = [&](auto *packet, int pid)
   {
     if (packet)
@@ -359,7 +317,7 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
               {
                 n_pad_skip_mask++;
                 std::vector<float> waveform;
-                waveform.reserve(m_nsamples);
+                waveform.reserve(m_nzerosuppsamples);
 
                 for (int samp = 0; samp < m_nzerosuppsamples; samp++)
                 {
@@ -373,15 +331,17 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
         }
 
         std::vector<float> waveform;
-        waveform.reserve(m_nsamples);
         if (packet->iValue(channel, "SUPPRESSED"))
         {
+	  waveform.reserve(m_nzerosuppsamples);
           waveform.push_back(packet->iValue(channel, "PRE"));
           waveform.push_back(packet->iValue(channel, "POST"));
         }
         else
         {
-          for (int samp = 0; samp < m_nsamples; samp++)
+	  int nsamples = packet->iValue(channel, "SAMPLES");
+	  waveform.reserve(nsamples);
+          for (int samp = 0; samp < nsamples; samp++)
           {
             waveform.push_back(packet->iValue(samp, channel));
           }
@@ -404,7 +364,7 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
             continue;
           }
           std::vector<float> waveform;
-          waveform.reserve(m_nsamples);
+          waveform.reserve(m_nzerosuppsamples);
 
           for (int samp = 0; samp < m_nzerosuppsamples; samp++)
           {
@@ -436,29 +396,25 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
     return Fun4AllReturnCodes::EVENT_OK;
   };
 
+  Event *event = findNode::getClass<Event>(topNode, "PRDF");
+  if (event)
+  {
+    if (event->getEvtType() != DATAEVENT)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
   for (int pid = m_packet_low; pid <= m_packet_high; pid++)
   {
-    if (!m_PacketNodesFlag)
+    if (event)
     {
-      if (auto *hcalcont = std::get_if<CaloPacketContainer *>(&event))
+      Packet *packet = event->getPacket(pid);
+      if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
       {
-        CaloPacket *packet = (*hcalcont)->getPacketbyId(pid);
-        if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
-        {
-          return Fun4AllReturnCodes::ABORTEVENT;
-        }
-      }
-      else if (auto *_event = std::get_if<Event *>(&event))
-      {
-        Packet *packet = (*_event)->getPacket(pid);
-        if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
-        {
-          // I think it is safe to delete a nullptr...
-          delete packet;
-          return Fun4AllReturnCodes::ABORTEVENT;
-        }
         delete packet;
+        return Fun4AllReturnCodes::ABORTEVENT;
       }
+      delete packet;
     }
     else
     {
