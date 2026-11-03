@@ -3,8 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include \
-  -isystem$(ROOTSYS)/include \
-  -DPROVENANCETREE_PREFIX=\"$(prefix)\"
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -12,14 +11,14 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  TreeUserInfo.h
+  MetaDataTree.h
 
 lib_LTLIBRARIES = \
   libprovenancetree.la
 
 libprovenancetree_la_SOURCES = \
-  TreeUserInfo.cc \
-  TreeUserInfoRead.cc
+  MetaDataTree.cc \
+  MetaDataTreeRead.cc
 
 libprovenancetree_la_LIBADD = \
   -lffamodules \
@@ -36,9 +35,9 @@ bin_PROGRAMS = \
 check_provenance_SOURCES = check_provenance.cc
 check_provenance_LDADD = $(ROOTLIBS)
 
-extract_cdb_info_SOURCES = extract-cdb-info.cc TreeUserInfoRead.cc
+extract_cdb_info_SOURCES = extract-cdb-info.cc MetaDataTreeRead.cc
 extract_cdb_info_LDADD = $(ROOTLIBS)
-# own flags so automake compiles TreeUserInfoRead.cc separately for the program (it is also in the
+# own flags so automake compiles MetaDataTreeRead.cc separately for the program (it is also in the
 # libtool library, and automake refuses to share one object between the two)
 extract_cdb_info_CPPFLAGS = $(AM_CPPFLAGS)
 

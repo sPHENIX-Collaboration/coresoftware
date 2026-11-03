@@ -1,26 +1,24 @@
-// check_provenance: check that all jobs in a provenance tree (see TreeUserInfo.h) ran with the
-// same software and the same CDB payloads, like hadd-meta --check-meta does for UserInfo.
+// check_provenance: check that all jobs in a provenance tree (see MetaDataTree.h) ran with the
+// same CDB payloads, like hadd-meta --check-meta does for UserInfo.
 //
 //   check_provenance [-t TREE] [-v] FILE...
 //     -t TREE  name of the provenance tree (default: provenance)
 //     -v       also list the entries (file:entry) with the less common values (all but the
-//              most common git_commit_id / url of a payload)
+//              most common url of a payload)
 //   exit code: 0 all the same, 1 something differs, 2 error (no file, no tree, missing branch)
 //
 // The tree has one entry per job (hadd appends entries), and several files are read as one
 // chain, so the check runs over every job in all the files given.
 //
-// What is checked:
-//   - git_commit_id must be the same in every entry.
-//   - The CDB payloads, for each payload type: every entry must have the same set of URLs.
-//     A set, because one entry can hold several URLs for a type: the RUN/CdbUrl node also
-//     carries the payloads of the production that made the input DSTs, which may differ from
-//     the ones this job fetched (e.g. CEMC_calib_ADC_to_ETower _v1 from the DST production,
-//     _v2 from the job).
-//   Payloads are only compared between entries with the same cdb_timestamp (= run number for
-//   data): different runs are supposed to get different run-dependent calibrations.
-// release and cdb_globaltag are printed in the summary (with counts if they differ), but they do
-// not fail the check: the git commit pins the code, the payload URLs pin the calibrations.
+// What is checked: the CDB payloads, for each payload type: every entry must have the same set
+// of URLs. A set, because one entry can hold several URLs for a type: the RUN/CdbUrl node also
+// carries the payloads of the production that made the input DSTs, which may differ from the
+// ones this job fetched (e.g. CEMC_calib_ADC_to_ETower _v1 from the DST production, _v2 from
+// the job).
+// Payloads are only compared between entries with the same cdb_timestamp (= run number for
+// data): different runs are supposed to get different run-dependent calibrations.
+// cdb_globaltag is printed in the summary (with counts if it differs), but does not fail the
+// check: the payload URLs are what pin the calibrations.
 //
 // On a failure each differing payload is printed with how many different URLs it had and how
 // many entries had each URL ("(missing)": entries without that payload type), e.g.
@@ -63,8 +61,8 @@ namespace
     return std::string(chain.GetFile()->GetName()) + ":" + std::to_string(entry - first);
   }
 
-  // value -> labels ("file:entry") of the entries that had it; used for release, cdb_globaltag
-  // and git_commit_id, and for the URLs of each payload type
+  // value -> labels ("file:entry") of the entries that had it; used for cdb_globaltag and for
+  // the URLs of each payload type
   using ValueCount = std::map<std::string, std::vector<std::string>>;
 
   // Print "N entries  value" lines, most frequent first. With verbose, also print the entries of
@@ -151,17 +149,13 @@ int main(int argc, char **argv)
   // ---- 3. Connect the branches we need ----------------------------------------------------------
   // Object branches (std::string, std::vector) are read through a pointer that ROOT fills;
   // starting with nullptr lets ROOT allocate the objects. Simple types are read directly.
-  std::string *release = nullptr;
-  std::string *git_commit_id = nullptr;
   std::string *cdb_globaltag = nullptr;
   ULong64_t cdb_timestamp = 0;
   std::vector<std::string> *cdb_type = nullptr;
   std::vector<std::string> *cdb_url = nullptr;
   // SetBranchAddress returns < 0 if the branch is missing or has another type (e.g. not a
   // provenance tree, or a different provenance_version)
-  if (chain.SetBranchAddress("release", &release) < 0 ||
-      chain.SetBranchAddress("git_commit_id", &git_commit_id) < 0 ||
-      chain.SetBranchAddress("cdb_globaltag", &cdb_globaltag) < 0 ||
+  if (chain.SetBranchAddress("cdb_globaltag", &cdb_globaltag) < 0 ||
       chain.SetBranchAddress("cdb_timestamp", &cdb_timestamp) < 0 ||
       chain.SetBranchAddress("cdb_type", &cdb_type) < 0 ||
       chain.SetBranchAddress("cdb_url", &cdb_url) < 0)
@@ -171,14 +165,12 @@ int main(int argc, char **argv)
   }
   // only read these branches, not the input file lists etc.
   chain.SetBranchStatus("*", false);
-  for (const char *b : {"release", "git_commit_id", "cdb_globaltag", "cdb_timestamp", "cdb_type", "cdb_url"})
+  for (const char *b : {"cdb_globaltag", "cdb_timestamp", "cdb_type", "cdb_url"})
   {
     chain.SetBranchStatus(b, true);
   }
 
   // ---- 4. Collect -------------------------------------------------------------------------------
-  ValueCount releases;
-  ValueCount commits;
   ValueCount globaltags;
   // Per timestamp: the labels of its entries, and for each payload type the URLs with the
   // entries that had them. An entry that does not have a type at all is counted under the
@@ -199,8 +191,6 @@ int main(int argc, char **argv)
       return 2;
     }
     std::string label = entryLabel(chain, i);
-    releases[*release].push_back(label);
-    commits[*git_commit_id].push_back(label);
     globaltags[*cdb_globaltag].push_back(label);
 
     TimestampData &ts = timestamps[cdb_timestamp];
@@ -222,14 +212,6 @@ int main(int argc, char **argv)
 
   // ---- 5. Compare -------------------------------------------------------------------------------
   bool ok = true;
-
-  // git_commit_id: one value for all entries
-  if (commits.size() > 1)
-  {
-    ok = false;
-    std::cout << "git_commit_id: " << commits.size() << " different values in " << nentries << " entries\n";
-    printCounts(commits, nentries, verbose);
-  }
 
   // payloads: within each timestamp, every URL of a type must be in every entry
   size_t ntypes = 0;
@@ -275,7 +257,7 @@ int main(int argc, char **argv)
   }
 
   // ---- 6. Summary -------------------------------------------------------------------------------
-  // one line per value, so a mix (e.g. two releases) is visible even though it does not fail
+  // one line per value, so a mix (e.g. two global tags) is visible even though it does not fail
   auto summary = [](const char *name, const ValueCount &vc)
   {
     std::cout << name << ":";
@@ -291,23 +273,12 @@ int main(int argc, char **argv)
   };
   std::cout << "checked " << nentries << " entries, " << timestamps.size() << " timestamp"
             << (timestamps.size() == 1 ? "" : "s") << ", " << ntypes << " payload types\n";
-  summary("  release", releases);
-  summary("  git_commit_id", commits);
   summary("  cdb_globaltag", globaltags);
   if (ok)
   {
-    std::cout << "OK: same git_commit_id and CDB payloads in all entries\n";
+    std::cout << "OK: same CDB payloads in all entries\n";
     return 0;
   }
-  std::cout << "DIFFERENT:";
-  if (commits.size() > 1)
-  {
-    std::cout << " git_commit_id";
-  }
-  if (nbad)
-  {
-    std::cout << " " << nbad << " payload" << (nbad == 1 ? "" : "s");
-  }
-  std::cout << "\n";
+  std::cout << "DIFFERENT: " << nbad << " payload" << (nbad == 1 ? "" : "s") << "\n";
   return 1;
 }

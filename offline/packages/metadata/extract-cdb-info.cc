@@ -1,17 +1,17 @@
-// extract-cdb-info: the CDB payloads in provenance trees (TreeUserInfo::Make, also merged by
+// extract-cdb-info: the CDB payloads in provenance trees (MetaDataTree::Make, also merged by
 // hadd) as YAML, one block per cdb_timestamp, combining all entries (jobs) and files:
 //   53756:
 //     CEMC_meanTime: /cvmfs/.../b38277b6..._CEMC_meanTime_ana509_2024p022_v001_53756.root
 //     MBD_PILEUP:
 //       - /cvmfs/.../8175320e..._mbd_pileup_40000_99999.root
 //       - /cvmfs/.../ed733630..._mbd_pileup-53756.root
-// A type with several payloads for one timestamp gets a list (in the order found; the last is
-// the one the job fetched itself, earlier ones came in with the input DSTs).
+// A type with several payloads for one timestamp gets a list, in the order found; the first is
+// the one that is actually used.
 // With -r RUN it instead writes the '<type> <url>' lines of that run for
-// CDBInterface::ReadCalibrationsFromFile(), taking the last payload of each type.
+// CDBInterface::ReadCalibrationsFromFile(), taking the first payload of each type.
 // A FILE ending in .yaml/.yml is read as this YAML, so YAML files can be combined or turned into -r output.
-// Only needs ROOT (built together with TreeUserInfoRead.cc, not linked to libprovenancetree).
-#include "TreeUserInfo.h"
+// Only needs ROOT (built together with MetaDataTreeRead.cc, not linked to libprovenancetree).
+#include "MetaDataTree.h"
 
 #include <cctype>
 #include <cstdlib>
@@ -114,10 +114,10 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  TreeUserInfo::Payloads payloads;
+  MetaDataTree::Payloads payloads;
   for (const auto &file : files)
   {
-    if (TreeUserInfo::Read(file, payloads, treename) < 0)
+    if (MetaDataTree::Read(file, payloads, treename) < 0)
     {
       return 1;
     }
@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 
   if (calib)
   {
-    return TreeUserInfo::WriteCalibrations(os, payloads, run) < 0 ? 1 : 0;
+    return MetaDataTree::WriteCalibrations(os, payloads, run) < 0 ? 1 : 0;
   }
 
   for (const auto &[timestamp, types] : payloads)

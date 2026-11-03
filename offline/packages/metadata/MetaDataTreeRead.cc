@@ -1,7 +1,7 @@
-// Reading the CDB payloads back out of a provenance tree (see TreeUserInfo.h).
+// Reading the CDB payloads back out of a provenance tree (see MetaDataTree.h).
 // Only ROOT is used here, so extract-cdb-info is built from this file directly and runs
 // without the sPHENIX libraries.
-#include "TreeUserInfo.h"
+#include "MetaDataTree.h"
 
 #include <TFile.h>
 #include <TTree.h>
@@ -71,12 +71,12 @@ namespace
   //     <type>:               several payloads
   //       - <url>
   // Returns the number of blocks, -1 on error.
-  int readYaml(const std::string &file, TreeUserInfo::Payloads &payloads)
+  int readYaml(const std::string &file, MetaDataTree::Payloads &payloads)
   {
     std::ifstream in(file);
     if (!in)
     {
-      std::cerr << "TreeUserInfo::Read: cannot open " << file << std::endl;
+      std::cerr << "MetaDataTree::Read: cannot open " << file << std::endl;
       return -1;
     }
     int nblocks = 0;
@@ -116,7 +116,7 @@ namespace
         addUrl(*urls, scalar(body.substr(colon + 1)));
         continue;
       }
-      std::cerr << "TreeUserInfo::Read: " << file << ":" << lineno << ": not extract-cdb-info YAML: " << line
+      std::cerr << "MetaDataTree::Read: " << file << ":" << lineno << ": not extract-cdb-info YAML: " << line
                 << std::endl;
       return -1;
     }
@@ -124,7 +124,7 @@ namespace
   }
 }  // namespace
 
-int TreeUserInfo::Read(TTree *tree, Payloads &payloads)
+int MetaDataTree::Read(TTree *tree, Payloads &payloads)
 {
   // Only the three branches we need. Object branches (std::vector) are read through a pointer
   // that ROOT fills; starting with nullptr lets ROOT allocate the vectors (deleted below).
@@ -136,7 +136,7 @@ int TreeUserInfo::Read(TTree *tree, Payloads &payloads)
       tree->SetBranchAddress("cdb_type", &cdb_type) < 0 ||
       tree->SetBranchAddress("cdb_url", &cdb_url) < 0)
   {
-    std::cerr << "TreeUserInfo::Read: " << tree->GetName() << " is not a provenance tree" << std::endl;
+    std::cerr << "MetaDataTree::Read: " << tree->GetName() << " is not a provenance tree" << std::endl;
     tree->ResetBranchAddresses();
     return -1;
   }
@@ -171,7 +171,7 @@ int TreeUserInfo::Read(TTree *tree, Payloads &payloads)
   return static_cast<int>(nentries);
 }
 
-int TreeUserInfo::Read(const std::string &file, Payloads &payloads, const std::string &treename)
+int MetaDataTree::Read(const std::string &file, Payloads &payloads, const std::string &treename)
 {
   if (isYaml(file))
   {
@@ -181,19 +181,19 @@ int TreeUserInfo::Read(const std::string &file, Payloads &payloads, const std::s
   std::unique_ptr<TFile> f(TFile::Open(file.c_str()));
   if (!f || f->IsZombie())
   {
-    std::cerr << "TreeUserInfo::Read: cannot open " << file << std::endl;
+    std::cerr << "MetaDataTree::Read: cannot open " << file << std::endl;
     return -1;
   }
   auto *tree = f->Get<TTree>(treename.c_str());
   if (!tree)
   {
-    std::cerr << "TreeUserInfo::Read: no tree " << treename << " in " << file << std::endl;
+    std::cerr << "MetaDataTree::Read: no tree " << treename << " in " << file << std::endl;
     return -1;
   }
   return Read(tree, payloads);
 }
 
-int TreeUserInfo::WriteCalibrations(std::ostream &os, const std::string &file, uint64_t run, const std::string &treename)
+int MetaDataTree::WriteCalibrations(std::ostream &os, const std::string &file, uint64_t run, const std::string &treename)
 {
   Payloads payloads;
   if (Read(file, payloads, treename) < 0)
@@ -203,33 +203,32 @@ int TreeUserInfo::WriteCalibrations(std::ostream &os, const std::string &file, u
   return WriteCalibrations(os, payloads, run);
 }
 
-int TreeUserInfo::WriteCalibrations(std::ostream &os, const Payloads &payloads, uint64_t run)
+int MetaDataTree::WriteCalibrations(std::ostream &os, const Payloads &payloads, uint64_t run)
 {
   auto it = payloads.find(run);
   if (it == payloads.end())
   {
-    std::cerr << "TreeUserInfo::WriteCalibrations: no cdb_timestamp " << run << std::endl;
+    std::cerr << "MetaDataTree::WriteCalibrations: no cdb_timestamp " << run << std::endl;
     return -1;
   }
   int n = 0;
   for (const auto &[type, urls] : it->second)
   {
-    // Several payloads of one type: the RUN/CdbUrl node first holds the payloads carried in from
-    // the input DSTs, and CDBInterface::End() appends the ones this job fetched after them. So
-    // the last one is what this job itself used (e.g. CEMC_calib_ADC_to_ETower _v2 from the
-    // job rather than _v1 from the DST production).
+    // Several payloads of one type (the input DSTs were made with another payload than the one
+    // this job fetched, e.g. CEMC_calib_ADC_to_ETower _v1 and _v2): the first one is the one
+    // that is actually used, so that is the one written.
     if (urls.size() > 1)
     {
-      std::cerr << "TreeUserInfo::WriteCalibrations: " << urls.size() << " payloads of " << type << " for " << run
-                << ", using the last: " << urls.back() << std::endl;
+      std::cerr << "MetaDataTree::WriteCalibrations: " << urls.size() << " payloads of " << type << " for " << run
+                << ", using the first: " << urls.front() << std::endl;
     }
-    os << type << " " << urls.back() << "\n";
+    os << type << " " << urls.front() << "\n";
     ++n;
   }
   return n;
 }
 
-std::string TreeUserInfo::Calibrations(const std::string &file, uint64_t run, const std::string &treename)
+std::string MetaDataTree::Calibrations(const std::string &file, uint64_t run, const std::string &treename)
 {
   std::ostringstream os;
   return WriteCalibrations(os, file, run, treename) < 0 ? "" : os.str();

@@ -1,4 +1,4 @@
-#include "TreeUserInfo.h"
+#include "MetaDataTree.h"
 
 #include <ffamodules/CDBInterface.h>
 
@@ -18,65 +18,21 @@
 #include <TTree.h>
 
 #include <cstdint>
-#include <cstdlib>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
-#include <sstream>
+#include <regex>
 #include <tuple>
 #include <utility>
 #include <vector>
 
-// The install prefix this library was built for, set by Makefile.am (-DPROVENANCETREE_PREFIX=...).
-// Used for local_install when $MYINSTALL is not set. The fallback only matters for builds
-// outside automake.
-#ifndef PROVENANCETREE_PREFIX
-#define PROVENANCETREE_PREFIX ""
-#endif
-
 // Helpers used only in this file (an unnamed namespace makes them invisible to other files).
 namespace
 {
-  // Value of an environment variable, "" if it is not set.
-  // (std::getenv returns a null pointer for unset variables, which std::string cannot take.)
-  std::string env(const char *name)
-  {
-    const char *v = std::getenv(name);
-    return v ? v : "";
-  }
-
-  // The real path behind a path with symlinks, e.g. .../release_new/new -> .../release_new/new.8,
-  // so we record which release was actually used, not the moving "new" link.
-  // If the path does not exist, canonical() fails (ec is set) and we return the path unchanged.
-  std::string resolved(const std::string &path)
-  {
-    std::error_code ec;
-    std::filesystem::path p = std::filesystem::canonical(path, ec);
-    return ec ? path : p.string();
-  }
-
-  // Whole contents of a small text file (here $OFFLINE_MAIN/GIT_COMMIT_ID), with trailing
-  // spaces/newlines removed. If the file cannot be opened we store why instead, so the tree
-  // shows "cannot read <file>" rather than an empty string that looks like a valid value.
-  std::string fileContents(const std::string &file)
-  {
-    std::ifstream in(file);
-    if (!in)
-    {
-      return "cannot read " + file;
-    }
-    std::stringstream ss;
-    ss << in.rdbuf();  // read the whole file at once
-    std::string s = ss.str();
-    // find_last_not_of returns npos for an all-whitespace file; npos + 1 == 0, so everything is erased
-    s.erase(s.find_last_not_of(" \t\r\n") + 1);
-    return s;
-  }
-
   // The list of CDB payloads this job used.
   //
   // Every module gets its calibrations through CDBInterface::instance()->getUrl(type), and
-  // CDBInterface remembers each (type, url, timestamp) it handed out. In its End() it copies
+  // CDBInterface remembers each (type, url, timestamp) it handed out, also when the payloads come
+  // from a file given to CDBInterface::ReadCalibrationsFromFile(). In its End() it copies
   // that list into the RUN/CdbUrl node (a CdbUrlSave object), which is how it ends up in DSTs.
   // If the job reads DSTs, RUN/CdbUrl is also read in from them, so it contains the payloads
   // of the earlier production steps too.
@@ -97,16 +53,36 @@ namespace
     auto *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
     return runNode ? findNode::getClass<CdbUrlSave>(runNode, "CdbUrl") : nullptr;
   }
+
+  // Run and segment of an input file, from the -<run>-<segment>.<ext> ending of sPHENIX file
+  // names, e.g. DST_CALO_run2pp_ana509_2024p022_v001-00051741-00005.root -> run 51741, segment 5.
+  // Fun4AllUtils::GetRunSegment is Fun4All's own parser for that, but it assumes the ending is
+  // there: it splits the name at '-' and '.' and takes tokens off the end without checking how
+  // many there are, so a name like "input.root" (only two tokens) runs it past the end of its
+  // token list and can crash the job. So we check the ending first, and for names without it
+  // return GetRunSegment's own "unknown" values (run 0, segment -9999) ourselves.
+  std::pair<int, int> runSegment(const std::string &file)
+  {
+    // only the file name: a directory may contain '-' and '.' too
+    std::string name = std::filesystem::path(file).filename().string();
+    // anything, then -digits-digits.ext at the very end
+    static const std::regex convention(R"(.*-[0-9]+-[0-9]+\.[^.]+)");
+    if (!std::regex_match(name, convention))
+    {
+      return {0, -9999};
+    }
+    return Fun4AllUtils::GetRunSegment(file);
+  }
 }  // namespace
 
 // Convenience overload: make the tree in whatever directory is current, which is what you get
 // after m_outfile->cd(). gDirectory is ROOT's "current directory" (a file or a folder in one).
-TTree *TreeUserInfo::Make(const std::string &name)
+TTree *MetaDataTree::Make(const std::string &name)
 {
   return Make(gDirectory, name);
 }
 
-TTree *TreeUserInfo::Make(TDirectory *dir, const std::string &name)
+TTree *MetaDataTree::Make(TDirectory *dir, const std::string &name)
 {
   // ---- 1. Check that the job is far enough along -------------------------------------------
   // recoConsts is Fun4All's global key/value store; the macro (or the input) sets the CDB
@@ -114,13 +90,13 @@ TTree *TreeUserInfo::Make(TDirectory *dir, const std::string &name)
   recoConsts *rc = recoConsts::instance();
   if (!rc->FlagExist("CDB_GLOBALTAG") || !rc->FlagExist("TIMESTAMP"))
   {
-    std::cout << "TreeUserInfo::Make: recoConsts CDB_GLOBALTAG and TIMESTAMP must be set first" << std::endl;
+    std::cout << "MetaDataTree::Make: recoConsts CDB_GLOBALTAG and TIMESTAMP must be set first" << std::endl;
     return nullptr;
   }
   CdbUrlSave *urls = usedPayloads();
   if (!urls)
   {
-    std::cout << "TreeUserInfo::Make: no RUN/CdbUrl node with the payloads used" << std::endl;
+    std::cout << "MetaDataTree::Make: no RUN/CdbUrl node with the payloads used" << std::endl;
     return nullptr;
   }
 
@@ -128,26 +104,9 @@ TTree *TreeUserInfo::Make(TDirectory *dir, const std::string &name)
   // These are plain local variables; the branches below point at them while we Fill() once.
   // ROOT types (Int_t, ULong64_t) are used so the branch types are the same on every platform.
 
-  // Layout of this tree. Bump TreeUserInfo::Version when branches are added or changed:
+  // Layout of this tree. Bump MetaDataTree::Version when branches are added or changed:
   // hadd refuses to merge trees with different branches, so readers can check this first.
   Int_t provenance_version = Version;
-
-  // The software release: $OFFLINE_MAIN with symlinks resolved, e.g.
-  //   /cvmfs/sphenix.sdcc.bnl.gov/alma9.2-gcc-14.2.0/release/release_new/new.8
-  // release is its last path component ("new.8", "ana.509", ...).
-  std::string offline_main = resolved(env("OFFLINE_MAIN"));
-  std::string release = std::filesystem::path(offline_main).filename().string();
-  // Each release has a GIT_COMMIT_ID file with the coresoftware commit it was built from.
-  std::string git_commit_id = fileContents(offline_main + "/GIT_COMMIT_ID");
-
-  // Where the analyzer's own libraries are installed: $MYINSTALL, else the prefix this
-  // library was installed to.
-  std::string local_install = env("MYINSTALL");
-  if (local_install.empty())
-  {
-    local_install = PROVENANCETREE_PREFIX;
-  }
-  local_install = resolved(local_install);
 
   // The CDB global tag and timestamp the job ran with.
   std::string cdb_globaltag = rc->get_StringFlag("CDB_GLOBALTAG");
@@ -174,7 +133,6 @@ TTree *TreeUserInfo::Make(TDirectory *dir, const std::string &name)
   // during the job, in order, so several files read one after the other are all there.
   // getSyncManager() without a name returns the default sync manager, which is where the
   // input managers of a normal macro live; it returns nullptr if there is none.
-  std::vector<std::string> input_manager;
   std::vector<std::string> input_file;
   std::vector<Int_t> input_run;
   std::vector<Int_t> input_segment;
@@ -184,12 +142,8 @@ TTree *TreeUserInfo::Make(TDirectory *dir, const std::string &name)
     {
       for (const auto &file : in->GetFileOpenedList())
       {
-        // sPHENIX file names end in -<run>-<segment>.<ext>, e.g.
-        //   DST_CALO_run2pp_ana509_2024p022_v001-00051741-00005.root -> run 51741, segment 5
-        // GetRunSegment is Fun4All's own parser for that; for names that do not follow the
-        // convention it prints a message and returns run 0 / segment -9999.
-        std::pair<int, int> runseg = Fun4AllUtils::GetRunSegment(file);
-        input_manager.push_back(in->Name());
+        // run 0 / segment -9999 for names not ending in -<run>-<segment>.<ext> (see runSegment)
+        std::pair<int, int> runseg = runSegment(file);
         input_file.push_back(file);  // as given to the input manager: the lfn for catalog DSTs, else the path
         input_run.push_back(runseg.first);
         input_segment.push_back(runseg.second);
@@ -214,16 +168,11 @@ TTree *TreeUserInfo::Make(TDirectory *dir, const std::string &name)
   // Int_t and ULong64_t become simple leaves, std::string and std::vector<...> become object
   // branches (their dictionaries come with ROOT, so plain ROOT can read them back).
   tree->Branch("provenance_version", &provenance_version);
-  tree->Branch("release", &release);
-  tree->Branch("offline_main", &offline_main);
-  tree->Branch("git_commit_id", &git_commit_id);
-  tree->Branch("local_install", &local_install);
   tree->Branch("cdb_globaltag", &cdb_globaltag);
   tree->Branch("cdb_timestamp", &cdb_timestamp);
   tree->Branch("cdb_type", &cdb_type);
   tree->Branch("cdb_url", &cdb_url);
   tree->Branch("cdb_url_timestamp", &cdb_url_timestamp);
-  tree->Branch("input_manager", &input_manager);
   tree->Branch("input_file", &input_file);
   tree->Branch("input_run", &input_run);
   tree->Branch("input_segment", &input_segment);
