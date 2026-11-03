@@ -26,12 +26,7 @@
 #include <globalvertex/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllInputManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
-#include <fun4all/Fun4AllSyncManager.h>
-#include <qautils/QAHistManagerDef.h>
 
 #include <phool/getClass.h>
 #include <ffaobjects/EventHeader.h>
@@ -39,7 +34,6 @@
 
 #include <TEntryList.h>
 #include <TFile.h>
-#include <TH1.h>
 #include <TLeaf.h>
 #include <TSystem.h>
 #include <TTree.h>  // for getting the TTree from the file
@@ -56,7 +50,6 @@
 #include <filesystem>
 #include <iostream>  // for operator<<, endl, basi...
 #include <map>       // for map
-#include <regex>
 #include <tuple>     // for tie, tuple
 
 class PHCompositeNode;
@@ -153,41 +146,6 @@ int KFParticle_sPHENIX::InitRun(PHCompositeNode *topNode)
   assert(topNode);
 
   getField();
-
-  // Record software build and CDB tag of the input production DST, taken from its standard filename
-  // <DSTTYPE>_<dataset>_<build>_<dbtag>[_vNNN]-<run>-<segment>.root as https://github.com/sPHENIX-Collaboration/ProdFlow/blob/master/run2pp/TrackingProduction/stageout.sh
-  const std::string input_prod_info_name = "h_KFParticle_sPHENIX_InputProductionInfo";
-  const std::string input_prod_info_path = "ProdInfo/" + input_prod_info_name;
-  const bool input_prod_info_in_qa = m_minimal_output_to_qa && QAHistManagerDef::getHistoManager()->isHistoRegistered(input_prod_info_path);
-  if (m_save_output && m_minimal_output && !m_input_prod_info && !input_prod_info_in_qa)
-  {
-    std::string build = "NA";
-    std::string dbtag = "NA";
-
-    const std::regex prod_dst_filename("_([a-z]+[0-9]*)_((?:20[0-9]{2}p[0-9]{3}|nocdbtag|pcdb[0-9]{3})(?:_v[0-9]+)?)-[0-9]+-[0-9]+\\.root$");
-    for (auto *inputmanager : Fun4AllServer::instance()->getSyncManager()->GetInputManagers())
-    {
-      std::smatch match;
-      if (std::regex_search(inputmanager->FileName(), match, prod_dst_filename))
-      {
-        build = match[1].str();
-        dbtag = match[2].str();
-        break;
-      }
-      if (m_verbosity >= VERBOSITY_A_LOT)
-      {
-        std::cout << "KFParticle: Input production DST filename " << inputmanager->FileName() << " does not match expected pattern" << std::endl;
-      }
-    }
-
-    const std::string info = "Build: " + build + " , dbtag: " + dbtag;
-    m_input_prod_info = new TH1I(input_prod_info_name.c_str(), info.c_str(), 1, 0, 1);
-    m_input_prod_info->SetDirectory(nullptr);  // keep it out of the open input TFile
-    if (m_minimal_output_to_qa)
-    {
-      QAHistManagerDef::getHistoManager()->registerHisto(input_prod_info_path, m_input_prod_info);
-    }
-  }
 
   return 0;
 }
@@ -360,12 +318,6 @@ int KFParticle_sPHENIX::End(PHCompositeNode * /*topNode*/)
 
   if (m_save_output && !m_minimal_output_to_qa && getCandidateCounter() != 0)
   {
-    if (m_input_prod_info)
-    {
-      m_outfile->cd();
-      m_input_prod_info->Write();
-    }
-
     m_outfile->Write();
     m_outfile->Close();
     delete m_outfile;

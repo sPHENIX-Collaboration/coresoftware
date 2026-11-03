@@ -49,7 +49,6 @@
 
 class PHCompositeNode;
 class TFile;
-class TH1;
 
 class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public KFParticle_DST, protected KFParticle_eventReconstruction
 {
@@ -446,7 +445,6 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   int64_t m_prev_eventNumber{-1}; //till here
   std::string m_outfile_name;
   TFile *m_outfile;
-  TH1 *m_input_prod_info{nullptr}; // build and CDB tag of the input production DST
   std::string m_decayDescriptor;
   std::string m_magField = "FIELDMAP_TRACKING";
 };
