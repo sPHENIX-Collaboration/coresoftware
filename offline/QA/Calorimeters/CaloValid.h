@@ -1,8 +1,6 @@
 #ifndef CALOVALID_CALOVALID_H
 #define CALOVALID_CALOVALID_H
 
-#include <calotrigger/TriggerAnalyzer.h>
-
 #include <fun4all/SubsysReco.h>
 
 #include <string>
@@ -15,6 +13,7 @@ class TH2;
 class TH3;
 class TProfile2D;
 class TProfile;
+class TriggerAnalyzer;
 
 class CaloValid : public SubsysReco
 {

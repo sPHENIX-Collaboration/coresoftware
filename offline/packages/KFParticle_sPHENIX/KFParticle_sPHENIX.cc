@@ -158,6 +158,10 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   std::vector<std::vector<KFParticle>> intermediates;
   int nPVs;
   int multiplicity;
+<<<<<<< HEAD
+=======
+  m_first_in_event = true; // Used by centrality but exposed as it should cost very little
+>>>>>>> fe03fbf35d0f2d683f3173fba05f96da3f822157
 
   // Adding BCO Matching  
   auto* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader"); // event header node

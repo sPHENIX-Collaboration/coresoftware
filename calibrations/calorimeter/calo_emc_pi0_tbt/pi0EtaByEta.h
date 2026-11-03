@@ -52,7 +52,7 @@ class pi0EtaByEta : public SubsysReco
 
   void Detector(const std::string& name) { detector = name; }
   void set_timing_cut_width(const int t) { _range = t; }
-  void set_vertex_cut(const float v) { _vz = v; }
+  void set_vertex_cut(const float v) { vtx_z_cut = v; }
   void apply_vertex_cut(bool Vtx_cut) { doVtxCut = Vtx_cut; }
 
   static TF1* fitHistogram(TH1* h);
@@ -199,7 +199,6 @@ class pi0EtaByEta : public SubsysReco
   int _eventcounter{0};
   int _range{1};
 
-  float _vz{0.};
   float target_pi0_mass{0.146};
   float ptClusMax{4};
 

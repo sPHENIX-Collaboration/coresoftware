@@ -790,6 +790,10 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   if (fillConditionMet())
   {
     m_tree->Fill();
+    if (bunchCrossingisZero) // Prevents NaN from being the first value
+    {
+      m_first_in_event = false;
+    }
   }
 
   if (m_truth_matching || m_detector_info || m_get_calo_5x5_cell_info)
