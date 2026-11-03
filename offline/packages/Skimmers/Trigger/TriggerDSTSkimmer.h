@@ -29,6 +29,15 @@ class TriggerDSTSkimmer : public SubsysReco
     return;
   }
 
+  // keep only events with min < centrality <= max [%] (MBD N+S centile of CentralityInfo,
+  // so CentralityReco must run before); events without a centrality are dropped
+  void SetCentralityRange(float min, float max)
+  {
+    use_centrality_cut = true;
+    m_centrality_min = min;
+    m_centrality_max = max;
+  }
+
  private:
 
   std::vector<int> m_trigger_index{10}; 
@@ -38,6 +47,9 @@ class TriggerDSTSkimmer : public SubsysReco
   int max_accept{0};
   bool use_max_accept{false};
 
+  bool use_centrality_cut{false};
+  float m_centrality_min{0};
+  float m_centrality_max{100};
 };
 
 #endif // JETDSTSKIMMER_H

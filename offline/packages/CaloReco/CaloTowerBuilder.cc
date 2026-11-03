@@ -39,12 +39,6 @@
 #include <variant>
 #include <vector>  // for vector
 
-static const std::map<CaloTowerDefs::DetectorSystem, std::string> nodemap{
-    {CaloTowerDefs::CEMC, "CEMCPackets"},
-    {CaloTowerDefs::HCALIN, "HCALPackets"},
-    {CaloTowerDefs::HCALOUT, "HCALPackets"},
-    {CaloTowerDefs::ZDC, "ZDCPackets"},
-    {CaloTowerDefs::SEPD, "SEPDPackets"}};
 //____________________________________________________________________________..
 CaloTowerBuilder::CaloTowerBuilder(const std::string &name)
   : SubsysReco(name)
@@ -189,7 +183,8 @@ int CaloTowerBuilder::process_sim()
   {
     TowerInfo *towerinfo = m_CalowaveformContainer->get_tower_at_channel(ich);
     std::vector<float> waveform;
-    waveform.reserve(m_nsamples);
+    int n_sample = towerinfo->get_nsample();
+    waveform.reserve(n_sample);
     bool fillwaveform = true;
     // get key
     if (m_dotbtszs)
@@ -197,7 +192,8 @@ int CaloTowerBuilder::process_sim()
       unsigned int key = m_CalowaveformContainer->encode_key(ich);
       int zs_threshold = cdbttree_tbt_zs->GetIntValue(key, m_zs_fieldname);
       int pre = towerinfo->get_waveform_value(0);
-      // this is always safe since towerinfo v3 has 31 samples
+      // by default we have 12 samples, we never ran 6 - if someone botches this that badly
+      // the code will crash here
       int post = towerinfo->get_waveform_value(6);
       if ((post - pre) <= zs_threshold)
       {
@@ -209,7 +205,7 @@ int CaloTowerBuilder::process_sim()
     }
     if (fillwaveform)
     {
-      for (int samp = 0; samp < m_nsamples; samp++)
+      for (int samp = 0; samp < n_sample; samp++)
       {
         waveform.push_back(towerinfo->get_waveform_value(samp));
       }
@@ -321,7 +317,7 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
               {
                 n_pad_skip_mask++;
                 std::vector<float> waveform;
-                waveform.reserve(m_nsamples);
+                waveform.reserve(m_nzerosuppsamples);
 
                 for (int samp = 0; samp < m_nzerosuppsamples; samp++)
                 {
@@ -335,15 +331,17 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
         }
 
         std::vector<float> waveform;
-        waveform.reserve(m_nsamples);
         if (packet->iValue(channel, "SUPPRESSED"))
         {
+	  waveform.reserve(m_nzerosuppsamples);
           waveform.push_back(packet->iValue(channel, "PRE"));
           waveform.push_back(packet->iValue(channel, "POST"));
         }
         else
         {
-          for (int samp = 0; samp < m_nsamples; samp++)
+	  int nsamples = packet->iValue(channel, "SAMPLES");
+	  waveform.reserve(nsamples);
+          for (int samp = 0; samp < nsamples; samp++)
           {
             waveform.push_back(packet->iValue(samp, channel));
           }
@@ -366,7 +364,7 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
             continue;
           }
           std::vector<float> waveform;
-          waveform.reserve(m_nsamples);
+          waveform.reserve(m_nzerosuppsamples);
 
           for (int samp = 0; samp < m_nzerosuppsamples; samp++)
           {

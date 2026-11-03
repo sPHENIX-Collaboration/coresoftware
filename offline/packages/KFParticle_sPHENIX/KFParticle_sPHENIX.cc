@@ -91,6 +91,7 @@ KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
 int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
 {
   m_verbosity = Verbosity();
+  m_verbosity_nTuple = Verbosity();
   
   if (m_save_output && Verbosity() >= VERBOSITY_SOME)
   {
@@ -156,7 +157,8 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   std::vector<std::vector<KFParticle>> intermediates;
   int nPVs;
   int multiplicity;
- 
+  m_first_in_event = true; // Used by centrality but exposed as it should cost very little
+
   // Adding BCO Matching  
   auto* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader"); // event header node
   auto* gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");     // gl1 packet node
