@@ -53,6 +53,12 @@ class SubtractTowers : public SubsysReco
   void set_emcal_output_node(const std::string &name) { m_emcal_output_node = name; }
   void set_ihcal_output_node(const std::string &name) { m_ihcal_output_node = name; }
   void set_ohcal_output_node(const std::string &name) { m_ohcal_output_node = name; }
+  // EMCal: subtract the UE of the live area of a retowered tower only,
+  // UE * (1 - dead) * n_good / sum_good (1 - dead) per eta ring, the dead fraction
+  // being what RetowerCEMC stores as chi2; the ring's total UE is unchanged, so a
+  // calibration averaged over all good towers of the ring stays valid
+  void set_ue_live_fraction(bool on) { _ue_live_fraction = on; }
+
   void set_inputTowerBackgroundNode(const std::string &nodeName)
   {
     m_towerBackgroundNode = nodeName;
@@ -62,6 +68,7 @@ class SubtractTowers : public SubsysReco
   int CreateNode(PHCompositeNode *topNode);
 
   bool _use_flow_modulation{false};
+  bool _ue_live_fraction{false};
   std::string m_towerNodePrefix{"TOWERINFO_CALIB"};
   std::string m_towerBackgroundNode{"TowerInfoBackground_Sub2"};
   std::string m_emcal_input_node;

@@ -22,6 +22,7 @@
 #include <phool/phool.h>
 
 // standard includes
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
@@ -37,6 +38,7 @@ SubtractTowers::SubtractTowers(const std::string &name)
 int SubtractTowers::InitRun(PHCompositeNode *topNode)
 {
   CreateNode(topNode);
+  std::cout << Name() << "::InitRun: EMCal UE scaled by the live fraction of the retowered tower: " << (_ue_live_fraction ? "yes" : "no") << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -108,8 +110,27 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
 
   // EMCal
 
-  // replicate existing towers
+  // live-area weights: the dead fraction of a retowered tower is its chi2
+  // (RetowerCEMC); per eta ring, n_good / sum over good towers of (1 - dead),
+  // so the UE of the ring is moved from the dead to the live area, its total kept
   unsigned int nchannels_em = towerinfosEM3->size();
+  std::map<int, std::pair<float, float>> ring_live;  // ieta -> (n good, live area)
+  if (_ue_live_fraction)
+  {
+    for (unsigned int channel = 0; channel < nchannels_em; channel++)
+    {
+      TowerInfo *tower = towerinfosEM3->get_tower_at_channel(channel);
+      if (!tower->get_isGood())
+      {
+        continue;
+      }
+      const int ieta = towerinfosEM3->getTowerEtaBin(towerinfosEM3->encode_key(channel));
+      ring_live[ieta].first += 1;
+      ring_live[ieta].second += 1 - std::clamp(tower->get_chi2(), 0.F, 1.F);
+    }
+  }
+
+  // replicate existing towers
   for (unsigned int channel = 0; channel < nchannels_em; channel++)
   {
     TowerInfo *tower = towerinfosEM3->get_tower_at_channel(channel);
@@ -125,6 +146,12 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
       float modulation_factor = 1 + 2 * background_v2 * std::cos(2 * (tower_phi - background_Psi2));
       modulation_factor = std::max(0.F, modulation_factor);
       UE = UE * modulation_factor;
+    }
+    if (_ue_live_fraction && tower->get_isGood())
+    {
+      const auto &[n_good, live] = ring_live[ieta];
+      const float dead = std::clamp(tower->get_chi2(), 0.F, 1.F);
+      UE = live > 0 ? UE * (1 - dead) * n_good / live : 0.F;
     }
     float new_energy = raw_energy - UE;
     // if a tower is masked, leave it at zero
