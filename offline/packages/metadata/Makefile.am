@@ -27,10 +27,12 @@ libprovenancetree_la_LIBADD = \
   -lphool \
   $(ROOTLIBS)
 
-# plain ROOT only, so they also run without the sPHENIX libraries
 bin_PROGRAMS = \
+  cdb-frozen-tag-check \
   check_provenance \
   extract-cdb-info
+
+# check_provenance and extract-cdb-info: plain ROOT only, so they also run without the sPHENIX libraries
 
 check_provenance_SOURCES = check_provenance.cc
 check_provenance_LDADD = $(ROOTLIBS)
@@ -40,6 +42,10 @@ extract_cdb_info_LDADD = $(ROOTLIBS)
 # own flags so automake compiles MetaDataTreeRead.cc separately for the program (it is also in the
 # libtool library, and automake refuses to share one object between the two)
 extract_cdb_info_CPPFLAGS = $(AM_CPPFLAGS)
+
+# asks the CDB, so needs the sPHENIX CDB client
+cdb_frozen_tag_check_SOURCES = cdb-frozen-tag-check.cc
+cdb_frozen_tag_check_LDADD = -lsphenixnpc -lnopayloadclient $(ROOTLIBS)
 
 BUILT_SOURCES = testexternals.cc
 
