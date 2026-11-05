@@ -100,9 +100,11 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   bool m_use_intermediate_name{false};
   bool m_get_charge_conjugate_nTuple{false};
   bool m_use_fake_pv_nTuple{false};
+  bool m_minimal_output{false};
+  bool m_minimal_output_to_qa{false};
+  std::string m_qa_tree_path{"DecayTree"};  // name (optionally dir/name) of the tree in the QA histogram manager
   bool m_momentum_calibration_output{false};
   bool m_use_centrality_nTuple{false};
-  bool m_first_in_event{true};
   std::vector<std::string> m_intermediate_name_ntuple;
   int m_verbosity_nTuple{0};
 
