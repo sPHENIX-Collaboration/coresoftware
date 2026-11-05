@@ -22,11 +22,14 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/recoConsts.h>
 
 // standard includes
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <map>
 #include <utility>
 #include <vector>
 
@@ -37,7 +40,17 @@ CopyAndSubtractJets::CopyAndSubtractJets(const std::string &name)
 
 int CopyAndSubtractJets::InitRun(PHCompositeNode *topNode)
 {
+  // RetowerCEMC announces whether its towers are rescaled to the full tower area
+  const std::string rescale_flag = "RetowerCEMC_rescaled_" + emcal_input_node();
+  const recoConsts *rc = recoConsts::instance();
+  if (_ue_live_fraction && rc->FlagExist(rescale_flag) && rc->get_IntFlag(rescale_flag) != 0)
+  {
+    std::cout << PHWHERE << " " << Name() << ": set_ue_live_fraction(true) with " << emcal_input_node()
+              << " rescaled to the full tower area (RetowerCEMC::set_do_rescale(true)) would correct the dead area twice; use one of the two" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
   CreateNode(topNode);
+  std::cout << Name() << "::InitRun: EMCal UE scaled by the live fraction of the retowered tower: " << (_ue_live_fraction ? "yes" : "no") << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -85,6 +98,24 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 
   float background_v2 = background->get_v2();
   float background_Psi2 = background->get_Psi2();
+
+  // live-area weights of the EMCal UE, as in SubtractTowers: the dead fraction of a retowered
+  // tower is its chi2 (RetowerCEMC); per eta ring, n_good / sum over good towers of (1 - dead)
+  std::map<int, std::pair<float, float>> ring_live;  // ieta -> (n good, live area)
+  if (_ue_live_fraction)
+  {
+    for (unsigned int channel = 0; channel < towerinfosEM3->size(); channel++)
+    {
+      TowerInfo *tower = towerinfosEM3->get_tower_at_channel(channel);
+      if (!tower->get_isGood())
+      {
+        continue;
+      }
+      const int ieta = towerinfosEM3->getTowerEtaBin(towerinfosEM3->encode_key(channel));
+      ring_live[ieta].first += 1;
+      ring_live[ieta].second += 1 - std::clamp(tower->get_chi2(), 0.F, 1.F);
+    }
+  }
 
   if (Verbosity() > 0)
   {
@@ -156,6 +187,12 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 
         tower_geom = geomIH->get_tower_geometry(key);
         comp_background = background_UE_0.at(comp_ieta);
+        if (_ue_live_fraction && towerinfo->get_isGood())
+        {
+          const auto &[n_good, live] = ring_live[comp_ieta];
+          const float dead = std::clamp(towerinfo->get_chi2(), 0.F, 1.F);
+          comp_background = live > 0 ? comp_background * (1 - dead) * n_good / live : 0.;
+        }
       }
       else
       {

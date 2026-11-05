@@ -93,6 +93,8 @@ class TowerRhoToBackground : public SubsysReco
   uint64_t get_n_events_no_calib() const { return m_n_no_calib; }
   // events without a vertex or outside the calibrated vertex range: UE = x everywhere
   uint64_t get_n_events_out_of_range() const { return m_n_out_of_range; }
+  // events with a non-finite MBD charge sum (left uncalibrated)
+  uint64_t get_n_events_bad_mbd_charge() const { return m_n_bad_mbdq; }
   // events beyond the outermost bin centres in z or Q' (calibration clamped, not a fallback)
   uint64_t get_n_events_zvtx_clamped() const { return m_n_zvtx_clamped; }
   uint64_t get_n_events_mbdq_clamped() const { return m_n_mbdq_clamped; }
@@ -132,6 +134,7 @@ class TowerRhoToBackground : public SubsysReco
   uint64_t m_n_events{0};
   uint64_t m_n_no_calib{0};
   uint64_t m_n_out_of_range{0};
+  uint64_t m_n_bad_mbdq{0};
   uint64_t m_n_zvtx_clamped{0};
   uint64_t m_n_mbdq_clamped{0};
   uint64_t m_n_invalid_w{0};

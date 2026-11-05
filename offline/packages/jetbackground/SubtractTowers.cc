@@ -20,6 +20,7 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/recoConsts.h>
 
 // standard includes
 #include <algorithm>
@@ -37,6 +38,15 @@ SubtractTowers::SubtractTowers(const std::string &name)
 
 int SubtractTowers::InitRun(PHCompositeNode *topNode)
 {
+  // RetowerCEMC announces whether its towers are rescaled to the full tower area
+  const std::string rescale_flag = "RetowerCEMC_rescaled_" + emcal_input_node();
+  const recoConsts *rc = recoConsts::instance();
+  if (_ue_live_fraction && rc->FlagExist(rescale_flag) && rc->get_IntFlag(rescale_flag) != 0)
+  {
+    std::cout << PHWHERE << " " << Name() << ": set_ue_live_fraction(true) with " << emcal_input_node()
+              << " rescaled to the full tower area (RetowerCEMC::set_do_rescale(true)) would correct the dead area twice; use one of the two" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
   CreateNode(topNode);
   std::cout << Name() << "::InitRun: EMCal UE scaled by the live fraction of the retowered tower: " << (_ue_live_fraction ? "yes" : "no") << std::endl;
 

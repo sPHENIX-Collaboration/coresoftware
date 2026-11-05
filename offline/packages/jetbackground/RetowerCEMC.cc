@@ -22,6 +22,7 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/recoConsts.h>
 
 // standard includes
 #include <cstdlib>
@@ -36,6 +37,13 @@ RetowerCEMC::RetowerCEMC(const std::string &name)
 int RetowerCEMC::InitRun(PHCompositeNode *topNode)
 {
   CreateNode(topNode);
+  // tell the UE subtraction whether the retowered towers are rescaled to the full tower area: the
+  // live-area UE weight (SubtractTowers / CopyAndSubtractJets::set_ue_live_fraction) must not be
+  // combined with that
+  if (m_use_towerinfo)
+  {
+    recoConsts::instance()->set_IntFlag("RetowerCEMC_rescaled_" + m_towerNodePrefix + "_CEMC_RETOWER", _do_rescale ? 1 : 0);
+  }
   get_first_phi_index(topNode);
   if (_weighted_energy_distribution == 1)
   {

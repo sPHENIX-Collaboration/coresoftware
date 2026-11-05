@@ -56,7 +56,9 @@ class SubtractTowers : public SubsysReco
   // EMCal: subtract the UE of the live area of a retowered tower only,
   // UE * (1 - dead) * n_good / sum_good (1 - dead) per eta ring, the dead fraction
   // being what RetowerCEMC stores as chi2; the ring's total UE is unchanged, so a
-  // calibration averaged over all good towers of the ring stays valid
+  // calibration averaged over all good towers of the ring stays valid. Use the same setting for
+  // CopyAndSubtractJets of the same chain. Not with RetowerCEMC::set_do_rescale(true), whose towers
+  // already carry the full-area energy: InitRun refuses that combination (ABORTRUN).
   void set_ue_live_fraction(bool on) { _ue_live_fraction = on; }
 
   void set_inputTowerBackgroundNode(const std::string &nodeName)

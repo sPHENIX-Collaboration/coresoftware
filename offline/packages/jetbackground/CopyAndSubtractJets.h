@@ -34,6 +34,10 @@ class CopyAndSubtractJets : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
   void SetFlowModulation(bool use_flow_modulation) { _use_flow_modulation = use_flow_modulation; }
+  // EMCal constituents: subtract the UE of the live area of the retowered tower, exactly as
+  // SubtractTowers::set_ue_live_fraction does (use the same setting for both modules of a chain);
+  // not with RetowerCEMC::set_do_rescale(true) (InitRun refuses that combination)
+  void set_ue_live_fraction(bool on) { _ue_live_fraction = on; }
   // kept so existing macros still compile; only TowerInfo input is supported
   void set_towerinfo(bool /*use_towerinfo*/) {}
   void set_towerNodePrefix(const std::string &prefix)
@@ -59,6 +63,7 @@ class CopyAndSubtractJets : public SubsysReco
   int CreateNode(PHCompositeNode *topNode);
 
   bool _use_flow_modulation{false};
+  bool _ue_live_fraction{false};
   std::string m_towerNodePrefix{"TOWERINFO_CALIB"};
   std::string m_emcal_input_node;
   std::string m_ihcal_input_node;

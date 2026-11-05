@@ -120,8 +120,21 @@ int TowerRhoToBackground::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }
     const float qprime = (mbdout->get_q(0) + mbdout->get_q(1)) / m_knee;
-    m_n_zvtx_clamped += find_nodes(vtxz, m_zvtx_centres, m_zvtx_edges, m_interpolate, znodes) ? 1 : 0;
-    m_n_mbdq_clamped += find_nodes(qprime, m_mbdq_centres, m_mbdq_edges, m_interpolate, qnodes) ? 1 : 0;
+    if (!std::isfinite(qprime))
+    {
+      // no usable MBD charge: uncalibrated, as without a vertex (the table lookup needs a finite Q')
+      calibrate = false;
+      ++m_n_bad_mbdq;
+      if (Verbosity() > 1)
+      {
+        std::cout << "TowerRhoToBackground::process_event - no calibration: MBD charge Q' = " << qprime << std::endl;
+      }
+    }
+    else
+    {
+      m_n_zvtx_clamped += find_nodes(vtxz, m_zvtx_centres, m_zvtx_edges, m_interpolate, znodes) ? 1 : 0;
+      m_n_mbdq_clamped += find_nodes(qprime, m_mbdq_centres, m_mbdq_edges, m_interpolate, qnodes) ? 1 : 0;
+    }
   }
   bool event_has_invalid_w = false;
   const int n_mbdq = static_cast<int>(m_mbdq_centres.size());
@@ -234,6 +247,7 @@ int TowerRhoToBackground::End(PHCompositeNode * /*topNode*/)
   {
     std::cout << "TowerRhoToBackground::End - " << (m_model == CalibModel::AFFINE ? "affine" : "multiplicative")
               << " calibration; no vertex or vertex out of range (uncalibrated): " << m_n_out_of_range
+              << "; non-finite MBD charge (uncalibrated): " << m_n_bad_mbdq
               << "; clamped beyond the outermost bin centres: vertex z " << m_n_zvtx_clamped << ", Q' " << m_n_mbdq_clamped
               << "; " << m_n_invalid_w << " invalid calibrations in " << m_n_events_invalid_w << " events" << std::endl;
   }
@@ -370,6 +384,12 @@ bool TowerRhoToBackground::find_nodes(const float val, const std::vector<float> 
                                       const bool interpolate, Nodes &nodes)
 {
   const int nbins = static_cast<int>(centres.size());
+  if (!std::isfinite(val))
+  {
+    // guard: callers pass finite values; a NaN would otherwise index past the table
+    nodes = {0, 0, 0};
+    return true;
+  }
   if (!interpolate)
   {
     // the bin of val, the first / last bin beyond the edges
