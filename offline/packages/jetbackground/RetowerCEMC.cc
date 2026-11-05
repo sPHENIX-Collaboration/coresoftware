@@ -9,6 +9,7 @@
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfoContainerv2.h>
 #include <calobase/TowerInfoDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -145,6 +146,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
         }
         else
         {
+          towerinfo->set_isHot(false);
           if (_do_rescale)
           {
             towerinfo->set_energy(retower_e_temp / (double) (1 - scalefactor));
@@ -237,21 +239,18 @@ int RetowerCEMC::CreateNode(PHCompositeNode *topNode)
   if (m_use_towerinfo)
   {
     EMRetowerName = m_towerNodePrefix + "_CEMC_RETOWER";
-    IHTowerName = m_towerNodePrefix + "_HCALIN";
     TowerInfoContainer *test_emcal_retower = findNode::getClass<TowerInfoContainer>(topNode, EMRetowerName);
-    TowerInfoContainer *hcal_towers = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
     if (!test_emcal_retower)
     {
       if (Verbosity() > 0)
       {
         std::cout << "RetowerCEMC::CreateNode : creating " << EMRetowerName << " node " << std::endl;
       }
-      if (!hcal_towers)
-      {
-        std::cout << PHWHERE << " Could not find input HCAL tower node: " << IHTowerName << std::endl;
-        exit(1);
-      }
-      TowerInfoContainer *emcal_retower = dynamic_cast<TowerInfoContainer *>(hcal_towers->CloneMe());
+      // a float-chi2 container (TowerInfov2) on the IHCal grid, whatever the input towers' version:
+      // the dead fraction of each retowered tower is stored as its chi2 and must survive exactly
+      // (TowerInfov4, the data towers, packs chi2 into 8 bits: 0 reads back as 0.08, small values
+      // as NaN). Status starts good and is set per event below.
+      TowerInfoContainer *emcal_retower = new TowerInfoContainerv2(TowerInfoContainer::DETECTOR::HCAL);
       PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>(emcal_retower, EMRetowerName, "PHObject");
       emcalNode->addNode(emcalTowerNode);
     }
