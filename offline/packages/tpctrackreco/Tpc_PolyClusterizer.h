@@ -50,6 +50,15 @@ class Tpc_PolyClusterizer : public SubsysReco
     m_tpcAdcClockOverride = true;
   }
 
+  // ADC pedestal subtracted from every hit before it is used as a centroid weight.
+  // Defaults to 0 (raw data is pedestal subtracted); non-distorted MC uses the
+  // simulation pedestal unless set here.
+  void setPedestal(double v)
+  {
+    m_pedestal = v;
+    m_pedestalOverride = true;
+  }
+
   void setCrossingPeriodNs(double v)
   {
     m_crossingPeriodNs = v;
@@ -270,6 +279,9 @@ class Tpc_PolyClusterizer : public SubsysReco
   double m_t0{8};
   std::array<double, 2> m_deltaT0Tbins{{0.0, 0.0}};  // from PHGarfield in InitRun
   double m_tpcAdcClock{56.881262};
+  // PHG4TpcDigitizer adds a 50000 electron pedestal, ~74.4 ADC (same default as TpcClusterizer)
+  static constexpr double kSimPedestalAdc{74.4};
+  double m_pedestal{0.0};
   double m_crossingPeriodNs{sphenix_constants::time_between_crossings};
   double m_reverseDriftStepNs{56.881262};
   unsigned int m_reverseDriftSubsteps{10};
@@ -305,6 +317,7 @@ class Tpc_PolyClusterizer : public SubsysReco
   bool m_isNonDistortedMC{false};
   bool m_t0Override{false};
   bool m_tpcAdcClockOverride{false};
+  bool m_pedestalOverride{false};
 
   std::array<double, 3> m_tpcMove{{0.0, 0.0, 0.0}};                                             //{{-0.16775, -0.0337, -0.71365}};
   std::array<std::array<double, 3>, 2> m_tpcRotations{{{{0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}}}};  //{{{{0.0, 0.01485 / 10.0, 0.0}}, {{0.0298 / 8.0, 0.0, 0.0}}}};

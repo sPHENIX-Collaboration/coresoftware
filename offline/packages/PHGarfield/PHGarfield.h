@@ -434,7 +434,7 @@ class PHGarfield : public SubsysReco
   bool m_isNonDistortedMC{false};
   bool m_publishToNodeTree{true};
   double m_nonDistortedMCFieldVcm{387.5};
-  double m_nonDistortedMCT0Tbins{1.5};
+  double m_nonDistortedMCT0Tbins{0.8};
   bool m_zerofield{false};
   TH2 *m_erCorrection{nullptr};  // radial correction, input bins in V/m
   TH2 *m_ezCorrection{nullptr};  // local longitudinal correction, input bins in V/m
