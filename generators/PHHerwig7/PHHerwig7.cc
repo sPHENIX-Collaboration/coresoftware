@@ -16,8 +16,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-// HepMC2 flavour of ThePEG's converter.  HepMCDefs.h must come first so the
-// traits see HEPMC_HAS_CROSS_SECTION and carry sigma into the record.
 #include <HepMC/GenEvent.h>
 #include <HepMC/HepMCDefs.h>
 #include <HepMC/Units.h>
@@ -37,9 +35,9 @@ PHHerwig7::PHHerwig7(const std::string &name)
 
 int PHHerwig7::Init(PHCompositeNode *topNode)
 {
-  if (m_RunFile.empty())
+  if (m_ConfigFile.empty())
   {
-    std::cout << PHWHERE << " no Herwig .run file set (PHHerwig7::set_run_file)" << std::endl;
+    std::cout << PHWHERE << " no Herwig config file set (PHHerwig7::set_config_file)" << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -61,13 +59,14 @@ int PHHerwig7::Init(PHCompositeNode *topNode)
   }
   std::cout << Name() << " Herwig random seed: " << seed << std::endl;
 
+  // set up the PHHerwig7Core, i.e the driver for Herwig 7 in-process.  
+  // This is where the .run card is created in memory, so no separate file is produced.
   m_Core = std::make_unique<PHHerwig7Core>();
-  m_Core->ui().m_RunFile = m_RunFile;
-  m_Core->ui().m_SetupFile = m_SetupFile;
-  m_Core->ui().m_Prepend = m_ReadDirs;
-  m_Core->ui().m_Seed = seed;
+  m_Core->m_ConfigFile = m_ConfigFile;
+  m_Core->m_SetupFile = m_SetupFile;
+  m_Core->m_ReadDirs = m_ReadDirs;
+  m_Core->m_Seed = seed;
 
-  // Herwig's cout formatting is not restored by ThePEG
   std::ios old_state(nullptr);
   old_state.copyfmt(std::cout);
   try
@@ -77,11 +76,7 @@ int PHHerwig7::Init(PHCompositeNode *topNode)
   catch (const std::exception &e)
   {
     std::cout.copyfmt(old_state);
-    std::cout << PHWHERE << " Herwig initialisation failed: " << e.what() << std::endl;
-    // Fun4All drops a module whose Init fails and carries on writing empty
-    // events; a generator that cannot start must kill the job (as PHPythia8
-    // does on a bad seed).
-    std::cout << PHWHERE << " Check the .run file and LHAPDF_DATA_PATH (hwrun.sh sets it to Source/lhapdf)" << std::endl;
+    std::cout << PHWHERE << " Herwig initialization failed: " << e.what() << std::endl;
     exit(EXIT_FAILURE);
   }
   std::cout.copyfmt(old_state);
@@ -105,7 +100,7 @@ int PHHerwig7::process_event(PHCompositeNode * /*topNode*/)
     ThePEG::EventPtr ev;
     try
     {
-      ev = m_Core->next();
+      ev = m_Core->next(); // generate one event; see ThePEG::EventPtr next() in PHHerwig7Core.h
     }
     catch (const std::exception &e)
     {
@@ -115,19 +110,17 @@ int PHHerwig7::process_event(PHCompositeNode * /*topNode*/)
     }
     if (!ev)
     {
-      // shoot() returns null only when the generator has hit its own event
-      // limit or given up; retrying would loop forever.
+      // shoot() returns null only when the generator has hit its own event limit or given up; retrying would loop forever.
       std::cout.copyfmt(old_state);
-      std::cout << PHWHERE << " Herwig returned no event after " << m_NGenerated
-                << " generated (generator event limit reached?), aborting run" << std::endl;
+      std::cout << PHWHERE << " Herwig returned no event after " << m_NGenerated << " generated, aborting run" << std::endl;
+
       return Fun4AllReturnCodes::ABORTRUN;
     }
     ++m_NGenerated;
     const double w = ev->weight();
     m_SumWAll += w;
 
-    HepMC::GenEvent *cand = ThePEG::HepMCConverter<HepMC::GenEvent>::convert(
-        *ev, false, ThePEG::Units::GeV, ThePEG::Units::millimeter);
+    HepMC::GenEvent *cand = ThePEG::HepMCConverter<HepMC::GenEvent>::convert(*ev, false, ThePEG::Units::GeV, ThePEG::Units::millimeter);
     if (!cand)
     {
       std::cout << PHWHERE << " HepMC conversion failed" << std::endl;
@@ -180,8 +173,7 @@ int PHHerwig7::process_event(PHCompositeNode * /*topNode*/)
       if (m_MaxAttempts > 0 && attempts >= m_MaxAttempts)
       {
         std::cout.copyfmt(old_state);
-        std::cout << PHWHERE << " failed to pass trigger after " << attempts
-                  << " attempts, aborting run" << std::endl;
+        std::cout << PHWHERE << " failed to pass trigger after " << attempts << " attempts, aborting run" << std::endl;
         return Fun4AllReturnCodes::ABORTRUN;
       }
     }
@@ -265,7 +257,7 @@ int PHHerwig7::create_node_tree(PHCompositeNode *topNode)
 void PHHerwig7::Print(const std::string & /*what*/) const
 {
   std::cout << Name() << " configuration:" << std::endl
-            << "  run file       : " << m_RunFile << std::endl
+            << "  config file    : " << m_ConfigFile << std::endl
             << "  setup file     : " << (m_SetupFile.empty() ? "(none)" : m_SetupFile) << std::endl
             << "  embedding id   : " << PHHepMCGenHelper::get_embedding_id() << std::endl
             << "  triggers       : " << m_RegisteredTriggers.size() << std::endl

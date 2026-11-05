@@ -25,7 +25,6 @@ libPHHerwig7_la_LIBADD = \
   -lphhepmc \
   -lphool \
   -lHepMC \
-  -lHerwigAPI \
   -lThePEG
 
 libPHHerwig7_la_SOURCES = \
