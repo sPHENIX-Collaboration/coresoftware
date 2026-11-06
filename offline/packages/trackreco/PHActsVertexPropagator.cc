@@ -218,7 +218,7 @@ int PHActsVertexPropagator::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
   if (!m_vertexMap)
   {
     std::cout << PHWHERE << "No svtx vertex map, exiting." << std::endl;
