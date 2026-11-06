@@ -34,18 +34,18 @@ class StreamingBcoReco : public SubsysReco
 
  private:
   static int CreateNodeTree(PHCompositeNode *topNode);
-  //const int trigbits = 40;
   Fun4AllHistoManager *hm = nullptr; 
   TH1 *h_bco_diff = nullptr;
-  //TH1 *h_bco_diff_trigbits[40] = {nullptr};
   TH1 *h_bco_tag = nullptr;
 
   uint64_t m_bco{0};
   int m_evtno{0};
   bool m_usable_bco_tag = false;
   std::pair<uint64_t, uint64_t> m_bco_streaming_window;
-  unsigned int m_default_positive_window_length{340};
-  unsigned int m_default_negative_window_length{20};
+  // max BCO for streaming window = (983 (min acquisition window) - 254.19 (max drift edge) + 8 (min T0) ) / 30*8 (ADC->BCO) = 392 BCO
+  // Values taken from Yuri Mitrankov
+  unsigned int m_default_positive_window_length{392};
+  unsigned int m_default_negative_window_length{0};
 };
 
 #endif  // BCOLUMICOUNT_STREAMINGBCORECO_H
