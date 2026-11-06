@@ -1216,6 +1216,57 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
         goodCandidate = false;
       }
 
+      // Decay length and time of the intermediate state from the decay vertex of the mother, calculated in the same
+      // way as for the mother in constrainToVertex. The intermediate is refitted to the mother vertex on a temporary
+      // copy (SetProductionVertex changes the particle), so neither the intermediate nor the mother is altered
+      const bool cutOnIntermediateDecay = k < (int) m_intermediate_decayLength_range.size() || k < (int) m_intermediate_decayLength_xy_range.size() || k < (int) m_intermediate_decayTime_range.size() || k < (int) m_intermediate_decayTime_xy_range.size();
+      if (goodCandidate && cutOnIntermediateDecay)
+      {
+        KFParticle intermediateCopy = vDaughters[k];
+        intermediateCopy.SetProductionVertex(mother);
+        intermediateCopy.TransportToDecayVertex();
+
+        float intermediate_decayTime;
+        float intermediate_decayTimeErr;
+        float intermediate_decayLength;
+        float intermediate_decayLengthErr;
+        float intermediate_decayLength_xy;
+        float intermediate_decayLengthErr_xy;
+
+        intermediateCopy.GetLifeTime(intermediate_decayTime, intermediate_decayTimeErr);
+        intermediateCopy.GetDecayLength(intermediate_decayLength, intermediate_decayLengthErr);
+        intermediateCopy.GetDecayLengthXY(intermediate_decayLength_xy, intermediate_decayLengthErr_xy);
+        float intermediate_decayTime_xy = intermediateCopy.GetPseudoProperDecayTime(mother, intermediateCopy.GetMass());
+
+        const float speed = 2.99792458e-2;
+        intermediate_decayTime /= speed;
+        intermediate_decayTime_xy /= speed;  // As for the mother, the pseudo-proper decay time is returned as a length (c*tau)
+
+        const std::pair<float, float> noCut(-std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+        auto rangeOf = [&noCut, k](const std::vector<std::pair<float, float>> &ranges)
+        { return k < (int) ranges.size() ? ranges[k] : noCut; };
+        const auto lengthRange = rangeOf(m_intermediate_decayLength_range);
+        const auto lengthRange_xy = rangeOf(m_intermediate_decayLength_xy_range);
+        const auto timeRange = rangeOf(m_intermediate_decayTime_range);
+        const auto timeRange_xy = rangeOf(m_intermediate_decayTime_xy_range);
+
+        if (!isInRange(lengthRange.first, intermediate_decayLength, lengthRange.second) ||
+            !isInRange(lengthRange_xy.first, intermediate_decayLength_xy, lengthRange_xy.second) ||
+            !isInRange(timeRange.first, intermediate_decayTime, timeRange.second) ||
+            !isInRange(timeRange_xy.first, intermediate_decayTime_xy, timeRange_xy.second))
+        {
+          goodCandidate = false;
+        }
+
+        if (m_verbosity >= 11)
+        {
+          printSelectionCheck("Intermediate Decay Length", lengthRange.first, intermediate_decayLength, lengthRange.second);
+          printSelectionCheck("Intermediate Decay Length xy", lengthRange_xy.first, intermediate_decayLength_xy, lengthRange_xy.second);
+          printSelectionCheck("Intermediate Decay Time", timeRange.first, intermediate_decayTime, timeRange.second);
+          printSelectionCheck("Intermediate Decay Time xy", timeRange_xy.first, intermediate_decayTime_xy, timeRange_xy.second);
+        }
+      }
+
       if (m_verbosity >= 10)
       {
         printSelectionCheck("", "Accepted", "Rejected", "the intermediate selection", goodCandidate);
@@ -1279,6 +1330,7 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
 
   const float speed = 2.99792458e-2;
   calculated_decayTime /= speed;
+  calculated_decayTime_xy /= speed;  // The pseudo-proper decay time is returned as a length (c*tau), convert it to a time like the 3D one
 
   if (calculated_fdchi2 >= m_fdchi2 && calculated_PV_dca <= m_mother_PV_dca && calculated_PV_dca_stddev <= m_mother_PV_dca_stddev && calculated_PV_dca_xy <= m_mother_PV_dca_xy && calculated_PV_dca_stddev_xy <= m_mother_PV_dca_stddev_xy && calculated_decay_time_significance >= m_mother_min_decay_time_significance && calculated_decay_length_significance >= m_mother_min_decay_length_significance && calculated_decay_length_xy_significance >= m_mother_min_decay_length_xy_significance && isInRange(m_dira_min, calculated_dira, m_dira_max) && isInRange(m_dira_xy_min, calculated_dira_xy, m_dira_xy_max) && isInRange(m_min_decayTime, calculated_decayTime, m_max_decayTime) && isInRange(m_min_decayTime_xy, calculated_decayTime_xy, m_max_decayTime_xy) && isInRange(m_min_decayLength, calculated_decayLength, m_max_decayLength) && isInRange(m_min_decayLength_xy, calculated_decayLength_xy, m_max_decayLength_xy))
   {
@@ -1502,6 +1554,58 @@ bool KFParticle_Tools::findParticle(const std::string &particle)
 int KFParticle_Tools::getParticleID(const std::string &particle)
 {
   return TDatabasePDG::Instance()->GetParticle(particle.c_str())->PdgCode();
+}
+
+/*
+ *  Checks the charge and the particle species given to the final-state tracks of a decay with intermediate states
+ *  against the decay descriptor. 'assigned' holds (charge, |PDG ID|) for each final-state track, ordered as the
+ *  daughters of the descriptor: the tracks of each intermediate state in turn, then the tracks coming straight from
+ *  the mother. Within one parent the tracks can be in any order, as the PID permutations are tried per track.
+ *  Either every charge is as in the descriptor or, if the charge conjugate is requested, every charge is flipped.
+ *  Mixing the two (e.g. Lambda0 -> p- pi+ in Xi- -> Lambda0 pi-) is rejected.
+ */
+bool KFParticle_Tools::finalStateMatchesDecay(const std::vector<std::pair<int, int>> &assigned)
+{
+  if (assigned.size() != m_daughter_name.size() || m_daughter_charge.size() != m_daughter_name.size())
+  {
+    return true;  // The descriptor is not available in the form needed, do not reject anything
+  }
+
+  std::vector<unsigned int> groupSizes;
+  unsigned int tracksFromIntermediates = 0;
+  for (int i = 0; i < m_num_intermediate_states && i < (int) m_num_tracks_from_intermediate.size(); ++i)
+  {
+    groupSizes.push_back(m_num_tracks_from_intermediate[i]);
+    tracksFromIntermediates += m_num_tracks_from_intermediate[i];
+  }
+  if (tracksFromIntermediates < assigned.size())
+  {
+    groupSizes.push_back(assigned.size() - tracksFromIntermediates);
+  }
+
+  bool matchesDescriptor = true;
+  bool matchesConjugate = m_get_charge_conjugate;
+  unsigned int first = 0;
+  for (const auto &size : groupSizes)
+  {
+    std::vector<std::pair<int, int>> expected, expectedConjugate, found;
+    for (unsigned int i = first; i < first + size && i < assigned.size(); ++i)
+    {
+      const int absPDG = std::abs(getParticleID(m_daughter_name[i]));
+      expected.emplace_back(m_daughter_charge[i], absPDG);
+      expectedConjugate.emplace_back(-m_daughter_charge[i], absPDG);
+      found.push_back(assigned[i]);
+    }
+    std::sort(expected.begin(), expected.end());
+    std::sort(expectedConjugate.begin(), expectedConjugate.end());
+    std::sort(found.begin(), found.end());
+
+    matchesDescriptor = matchesDescriptor && (found == expected);
+    matchesConjugate = matchesConjugate && (found == expectedConjugate);
+    first += size;
+  }
+
+  return matchesDescriptor || matchesConjugate;
 }
 
 float KFParticle_Tools::getParticleMass(const std::string &particle)
