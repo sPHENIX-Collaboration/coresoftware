@@ -34,25 +34,54 @@ class CopyAndSubtractJets : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
   void SetFlowModulation(bool use_flow_modulation) { _use_flow_modulation = use_flow_modulation; }
-  void set_towerinfo(bool use_towerinfo)
-  {
-    m_use_towerinfo = use_towerinfo;
-  }
+  // EMCal constituents: subtract the UE of the live area of the retowered tower, exactly as
+  // SubtractTowers::set_ue_live_fraction does (use the same setting for both modules of a chain);
+  // not with RetowerCEMC::set_do_rescale(true) (InitRun refuses that combination)
+  void set_ue_live_fraction(bool on) { _ue_live_fraction = on; }
+  // kept so existing macros still compile; only TowerInfo input is supported
+  void set_towerinfo(bool /*use_towerinfo*/) {}
   void set_towerNodePrefix(const std::string &prefix)
   {
     m_towerNodePrefix = prefix;
     return;
   }
+  // input tower / geometry nodes; an empty tower node (default) means
+  // m_towerNodePrefix + "_CEMC_RETOWER" / "_HCALIN" / "_HCALOUT"
+  void set_emcal_input_node(const std::string &name) { m_emcal_input_node = name; }
+  void set_ihcal_input_node(const std::string &name) { m_ihcal_input_node = name; }
+  void set_ohcal_input_node(const std::string &name) { m_ohcal_input_node = name; }
+  void set_ihcal_geom_node(const std::string &name) { m_ihcal_geom_node = name; }
+  void set_ohcal_geom_node(const std::string &name) { m_ohcal_geom_node = name; }
+
+  void set_rawseed_node(const std::string &name) { m_rawseed_node = name; }
+  void set_subseed_node(const std::string &name) { m_subseed_node = name; }
+  void set_background_node(const std::string &name) { m_background_node = name; }
+  void set_jet_node(const std::string &name) { m_jet_node = name; }
+  void set_input_node(const std::string &name) { m_input_node = name; }
 
  private:
   int CreateNode(PHCompositeNode *topNode);
 
   bool _use_flow_modulation{false};
-  bool m_use_towerinfo{false};
+  bool _ue_live_fraction{false};
   std::string m_towerNodePrefix{"TOWERINFO_CALIB"};
+  std::string m_emcal_input_node;
+  std::string m_ihcal_input_node;
+  std::string m_ohcal_input_node;
+  std::string m_ihcal_geom_node{"TOWERGEOM_HCALIN"};
+  std::string m_ohcal_geom_node{"TOWERGEOM_HCALOUT"};
+  std::string emcal_input_node() const { return m_emcal_input_node.empty() ? m_towerNodePrefix + "_CEMC_RETOWER" : m_emcal_input_node; }
+  std::string ihcal_input_node() const { return m_ihcal_input_node.empty() ? m_towerNodePrefix + "_HCALIN" : m_ihcal_input_node; }
+  std::string ohcal_input_node() const { return m_ohcal_input_node.empty() ? m_towerNodePrefix + "_HCALOUT" : m_ohcal_input_node; }
   std::string EMTowerName;
   std::string IHTowerName;
   std::string OHTowerName;
+
+  std::string m_rawseed_node = "AntiKt_TowerInfo_HIRecoSeedsRaw_r02";
+  std::string m_subseed_node = "AntiKt_TowerInfo_HIRecoSeedsSub_r02";
+  std::string m_background_node = "TowerInfoBackground_Sub1";
+  std::string m_jet_node = "ANTIKT";
+  std::string m_input_node = "TOWER";
 };
 
 #endif
