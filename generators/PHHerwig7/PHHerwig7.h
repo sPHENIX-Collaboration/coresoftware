@@ -1,13 +1,3 @@
-// PHHerwig7 -- Herwig 7 as an in-process Fun4All generator, the way PHPythia8
-// wraps PYTHIA 8.  One Fun4All process, no FIFO, no HepMC on disk; seed from
-// PHRandomSeed(); generated-event count and cross section in RUN/PHGenIntegral;
-// truth triggers applied inside the generation loop so only triggered events
-// reach the node tree.
-//
-// Input is a Herwig .run file (the output of `Herwig read card.in`, which
-// hwrun.sh produces from a config).  Reading the card in-process is deliberately
-// not done here: `read` builds the whole repository and is best kept as the
-// separate, cached step Herwig designed it to be.
 #ifndef PHHERWIG7_H
 #define PHHERWIG7_H
 
@@ -34,26 +24,30 @@ class PHHerwig7 : public SubsysReco, public PHHepMCGenHelper
   int End(PHCompositeNode *topNode) override;
   void Print(const std::string &what = "ALL") const override;
 
-  // ---- what to run --------------------------------------------------------
-  void set_run_file(const std::string &f) { m_RunFile = f; }
-  // optional Herwig setup file applied on top of the .run (Herwig --setupfile)
+  // set the Herwig config file (this is the .in file read by `Herwig read`)
+  void set_config_file(const std::string &f) { m_ConfigFile = f; }
+
+  // (optional) corresponds to "Herwig run --setupfile"; example use: one base card plus a per-job setting file
+  // This allows changing settings on top of a .run without regenerating it (.run is not produced within Fun4All)
   void set_setup_file(const std::string &f) { m_SetupFile = f; }
-  // directories searched for files referenced by the setup file
+
+  // "Herwig read -I <dir>", adds a directory to the search path for read commands inside a card
   void add_read_directory(const std::string &d) { m_ReadDirs.push_back(d); }
-  // 0 (default): seed from PHRandomSeed(); >0: use this seed
+
+  // set the seed. default is 0, i.e seed from PHRandomSeed(). For reproducibility, set a positive integer
   void set_seed(int s) { m_Seed = s; }
 
   // give up after this many consecutive failed attempts (0 = never)
   void set_max_trigger_attempts(long n) { m_MaxAttempts = n; }
 
-  // ---- bookkeeping ---------------------------------------------------------
+  // bookkeeping
   void save_integrated_luminosity(bool b) { m_SaveIntegratedLuminosityFlag = b; }
   void save_event_weight(bool b) { m_SaveEventWeightFlag = b; }
 
   unsigned long get_n_generated() const { return m_NGenerated; }
   unsigned long get_n_passed() const { return m_NPassed; }
 
-  // ---- public setters to register trigger and logic as PHPythia8
+  // public setters to register trigger and logic as PHPythia8
   void register_trigger(PHHerwig7GenTrigger *trigger);
   void set_trigger_OR()
   {
@@ -73,7 +67,7 @@ class PHHerwig7 : public SubsysReco, public PHHepMCGenHelper
 
   int create_node_tree(PHCompositeNode *topNode) override;
 
-  std::string m_RunFile;
+  std::string m_ConfigFile;
   std::string m_SetupFile;
   std::vector<std::string> m_ReadDirs;
   int m_Seed = 0;
