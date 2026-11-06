@@ -135,7 +135,12 @@ std::string CDBInterface::getUrl(const std::string &domain, const std::string &f
   {
     if (m_Payload_Url_Cache.contains(domain_noconst))
     {
-      return m_Payload_Url_Cache[domain_noconst];
+      // record it like a payload from the CDB, so it ends up in the RUN/CdbUrl node as well
+      recoConsts *rc = recoConsts::instance();
+      uint64_t timestamp = rc->FlagExist("TIMESTAMP") ? rc->get_uint64Flag("TIMESTAMP") : 0;
+      const std::string &file_url = m_Payload_Url_Cache[domain_noconst];
+      m_UrlVector.insert(make_tuple(domain_noconst, file_url, timestamp));
+      return file_url;
     }
     std::cout << "calibration " << domain << " not found in local cache" << std::endl;
     return "";

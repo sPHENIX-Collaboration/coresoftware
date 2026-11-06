@@ -38,7 +38,7 @@ class CDBInterface : public SubsysReco
   void DumpCalibrations(const std::string &filename);
   void ReadCalibrationsFromFile(const std::string &filename);
 
- private:
+private:
   CDBInterface(const std::string &name = "CDBInterface");
 
   static CDBInterface *__instance;
