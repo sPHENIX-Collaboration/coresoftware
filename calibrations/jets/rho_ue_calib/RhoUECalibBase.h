@@ -149,6 +149,7 @@ class RhoUECalibBase : public SubsysReco
   uint64_t m_n_minbias{0};
   uint64_t m_n_vertex{0};
   uint64_t m_n_selected{0};
+  uint64_t m_n_bad_mbdq{0};  // non-finite MBD charge, not classified
 };
 
 #endif

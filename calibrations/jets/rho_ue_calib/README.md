@@ -32,9 +32,7 @@ of the one before:
    `MakeRhoUEPayload` fits w, alpha and beta.
 
 `RhoUECalibBase` holds the event selection common to the makers (minimum bias, vertex class
-range). `RhoUECalibEventVeto` vetoes events in front of the makers (vertex, bunch crossing, MBD
-off-band pile-up). `MbdTTGainOverride` sets the MBD TTGain of every PMT after `MbdReco::InitRun`,
-for data without an `MBD_TTGAIN` payload (Run 2024 Au+Au).
+range).
 
 The calibration must be made with the same `DetermineTowerRho` settings (seed jet acceptance,
 tower shape map) as the subtraction it is applied to.

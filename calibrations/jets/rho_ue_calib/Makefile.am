@@ -28,18 +28,14 @@ librhouecalib_la_SOURCES = \
   MbdChargeHistMaker.cc \
   TowerShapeMapMaker.cc \
   RhoUECalibMaker.cc \
-  RhoUECalibPayload.cc \
-  RhoUECalibEventVeto.cc \
-  MbdTTGainOverride.cc
+  RhoUECalibPayload.cc
 
 pkginclude_HEADERS = \
   RhoUECalibBase.h \
   MbdChargeHistMaker.h \
   TowerShapeMapMaker.h \
   RhoUECalibMaker.h \
-  RhoUECalibPayload.h \
-  RhoUECalibEventVeto.h \
-  MbdTTGainOverride.h
+  RhoUECalibPayload.h
 
 BUILT_SOURCES = \
   testexternals.cc

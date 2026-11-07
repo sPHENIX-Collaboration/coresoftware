@@ -107,6 +107,12 @@ int RhoUECalibBase::Init(PHCompositeNode * /*topNode*/)
 
   TDirectory *olddir = gDirectory;
   m_file = new TFile(m_outfile.c_str(), "RECREATE");
+  if (!m_file || m_file->IsZombie())
+  {
+    std::cout << PHWHERE << " " << Name() << ": cannot create " << m_outfile << std::endl;
+    olddir->cd();
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
   auto *hsel = new TH1D("h_sel", "event selection;;events", 4, 0, 4);
   hsel->GetXaxis()->SetBinLabel(1, "seen");
   hsel->GetXaxis()->SetBinLabel(2, "minimum bias");
@@ -198,6 +204,11 @@ int RhoUECalibBase::process_event(PHCompositeNode *topNode)
 
   if (needs_class())
   {
+    if (!std::isfinite(m_mbdq))
+    {
+      ++m_n_bad_mbdq;
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
     m_qprime = m_mbdq / m_knee;
     m_izvtx = static_cast<int>(std::upper_bound(m_zvtx_edges.begin(), m_zvtx_edges.end(), m_zvtx) - m_zvtx_edges.begin()) - 1;
     m_imbdq = std::clamp(static_cast<int>(std::upper_bound(m_mbdq_edges.begin(), m_mbdq_edges.end(), m_qprime) - m_mbdq_edges.begin()) - 1,
@@ -273,6 +284,7 @@ int RhoUECalibBase::End(PHCompositeNode * /*topNode*/)
   m_file->Write();
   m_file->Close();
   std::cout << Name() << "::End - " << m_n_seen << " events, " << m_n_minbias << " minimum bias, " << m_n_vertex
-            << " with a vertex in range, " << m_n_selected << " selected -> " << m_outfile << std::endl;
+            << " with a vertex in range, " << m_n_bad_mbdq << " with a non-finite MBD charge, " << m_n_selected
+            << " selected -> " << m_outfile << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }

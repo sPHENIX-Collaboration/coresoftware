@@ -475,6 +475,9 @@ int RhoUECalibPayload::MakeRhoUEPayload(const std::string &sums_file, const std:
           ++nfit;
         }
       }
+      // bins without a fit take the nearest fit of the same z row in Q', else the nearest fit of
+      // the same Q' column in z; sources are the original fits only, never a filled bin
+      const std::vector<std::array<double, 3>> fit = val;
       for (int iz = 0; iz < nz; ++iz)
       {
         for (int iq = 0; iq < nq; ++iq)
@@ -488,9 +491,9 @@ int RhoUECalibPayload::MakeRhoUEPayload(const std::string &sums_file, const std:
           {
             for (const int j : {iq - d, iq + d})
             {
-              if (j >= 0 && j < nq && !std::isnan(val.at((iz * nq) + j)[1]))
+              if (j >= 0 && j < nq && !std::isnan(fit.at((iz * nq) + j)[1]))
               {
-                v = val.at((iz * nq) + j);
+                v = fit.at((iz * nq) + j);
                 break;
               }
             }
@@ -499,9 +502,9 @@ int RhoUECalibPayload::MakeRhoUEPayload(const std::string &sums_file, const std:
           {
             for (const int j : {iz - d, iz + d})
             {
-              if (j >= 0 && j < nz && !std::isnan(val.at((j * nq) + iq)[1]))
+              if (j >= 0 && j < nz && !std::isnan(fit.at((j * nq) + iq)[1]))
               {
-                v = val.at((j * nq) + iq);
+                v = fit.at((j * nq) + iq);
                 break;
               }
             }

@@ -47,6 +47,11 @@ int SubtractTowers::InitRun(PHCompositeNode *topNode)
               << " rescaled to the full tower area (RetowerCEMC::set_do_rescale(true)) would correct the dead area twice; use one of the two" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  if (_ue_live_fraction && !rc->FlagExist(rescale_flag))
+  {
+    std::cout << Name() << "::InitRun: WARNING: no RetowerCEMC in this job announced whether " << emcal_input_node()
+              << " is rescaled to the full tower area; the live-fraction UE assumes it is not (RetowerCEMC::set_do_rescale(false))" << std::endl;
+  }
   CreateNode(topNode);
   std::cout << Name() << "::InitRun: EMCal UE scaled by the live fraction of the retowered tower: " << (_ue_live_fraction ? "yes" : "no") << std::endl;
 
