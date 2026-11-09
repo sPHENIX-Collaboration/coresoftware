@@ -75,35 +75,22 @@ int CDBInterface::UpdateRunNode(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cdburls, "CdbUrl", "PHObject");
     runNode->addNode(newNode);
   }
-  else
-  {
-    std::set<std::tuple<std::string, std::string, uint64_t>> tmp_set;
-    for (const auto &cdburl : *cdburls)
-    {
-      tmp_set.insert(cdburl);
-    }
-    // remove duplicates in our set
-    // not possible using for range loops, iterator gets invalidated
-    for (auto itr = m_UrlVector.cbegin(); itr != m_UrlVector.cend();)
-    {
-      if (tmp_set.contains(*itr))
-      {
-        if (Verbosity() > 2)
-        {
-          std::cout << PHWHERE << " cleaning duplicately saved: domain " << std::get<0>(*itr)
-                    << ", url: " << std::get<1>(*itr)
-                    << ", timestamp: " << std::get<2>(*itr) << std::endl;
-        }
-        itr = m_UrlVector.erase(itr);
-      }
-      else
-      {
-        ++itr;
-      }
-    }
-  }
+  // payloads already in the node (carried in from the input DSTs, or added by an earlier call)
+  // are not added again. m_UrlVector itself is left alone, so getUrls() and Print() keep the
+  // full list of what this job used, also the payloads it shares with its input DSTs.
+  std::set<std::tuple<std::string, std::string, uint64_t>> tmp_set(cdburls->begin(), cdburls->end());
   for (const auto &tuple : m_UrlVector)
   {
+    if (tmp_set.contains(tuple))
+    {
+      if (Verbosity() > 2)
+      {
+        std::cout << PHWHERE << " already saved: domain " << std::get<0>(tuple)
+                  << ", url: " << std::get<1>(tuple)
+                  << ", timestamp: " << std::get<2>(tuple) << std::endl;
+      }
+      continue;
+    }
     cdburls->AddUrl(tuple);
   }
   if (Verbosity() > 1)

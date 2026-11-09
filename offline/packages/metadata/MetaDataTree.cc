@@ -28,28 +28,17 @@
 // Helpers used only in this file (an unnamed namespace makes them invisible to other files).
 namespace
 {
-  // The list of CDB payloads this job used.
+  // The RUN/CdbUrl node (a CdbUrlSave object), nullptr if there is none.
   //
-  // Every module gets its calibrations through CDBInterface::instance()->getUrl(type), and
-  // CDBInterface remembers each (type, url, timestamp) it handed out, also when the payloads come
-  // from a file given to CDBInterface::ReadCalibrationsFromFile(). In its End() it copies
-  // that list into the RUN/CdbUrl node (a CdbUrlSave object), which is how it ends up in DSTs.
-  // If the job reads DSTs, RUN/CdbUrl is also read in from them, so it contains the payloads
-  // of the earlier production steps too.
-  //
-  // Problem: CDBInterface registers itself with Fun4AllServer the first time a module asks it
-  // for a payload (usually in InitRun), i.e. after the modules of the macro. Fun4AllServer calls
-  // End() in registration order, so when *our* module's End() runs, CDBInterface::End() has
-  // usually not run yet and RUN/CdbUrl is still missing this job's payloads.
-  // Fix: call CDBInterface::End() ourselves first. Calling it again later (when Fun4AllServer
-  // does) is harmless: it skips entries that are already in the node.
-  // (Once CDBInterface gets a public getter for its list, this call can go away.)
-  CdbUrlSave *usedPayloads()
+  // When the job reads DSTs, RUN/CdbUrl is read in from them: the payloads used by the earlier
+  // production steps that made those DSTs. In its End(), CDBInterface appends this job's own
+  // payloads to it (that is how they get into DSTs this job writes). Whether that already
+  // happened when Make() runs depends on the order of End() calls, so the node is only used
+  // for the payloads carried in from the inputs; this job's own come from
+  // CDBInterface::getUrls().
+  CdbUrlSave *runNodePayloads()
   {
-    PHCompositeNode *topNode = Fun4AllServer::instance()->topNode();
-    CDBInterface::instance()->End(topNode);
-    // find the RUN node under TOP, then the CdbUrl object in it
-    PHNodeIterator iter(topNode);
+    PHNodeIterator iter(Fun4AllServer::instance()->topNode());
     auto *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
     return runNode ? findNode::getClass<CdbUrlSave>(runNode, "CdbUrl") : nullptr;
   }
@@ -93,13 +82,6 @@ TTree *MetaDataTree::Make(TDirectory *dir, const std::string &name)
     std::cout << "MetaDataTree::Make: recoConsts CDB_GLOBALTAG and TIMESTAMP must be set first" << std::endl;
     return nullptr;
   }
-  CdbUrlSave *urls = usedPayloads();
-  if (!urls)
-  {
-    std::cout << "MetaDataTree::Make: no RUN/CdbUrl node with the payloads used" << std::endl;
-    return nullptr;
-  }
-
   // ---- 2. Collect the values -----------------------------------------------------------------
   // These are plain local variables; the branches below point at them while we Fill() once.
   // ROOT types (Int_t, ULong64_t) are used so the branch types are the same on every platform.
@@ -112,18 +94,41 @@ TTree *MetaDataTree::Make(TDirectory *dir, const std::string &name)
   std::string cdb_globaltag = rc->get_StringFlag("CDB_GLOBALTAG");
   ULong64_t cdb_timestamp = rc->get_uint64Flag("TIMESTAMP");
 
-  // The payloads, as three parallel vectors: element i of each describes the same payload.
-  // CdbUrlSave holds std::tuple<type, url, timestamp>; std::get<N> picks element N of a tuple.
-  // The timestamp is the one the payload was fetched for, which can differ from cdb_timestamp
-  // for payloads carried in from input DSTs.
+  // The payloads, as four parallel vectors: element i of each describes the same payload.
+  // (type, url, timestamp) tuples; std::get<N> picks element N of a tuple. The timestamp is the
+  // one the payload was fetched for, which can differ from cdb_timestamp for payloads carried
+  // in from input DSTs.
+  //   cdb_from_input 0: this job got it from CDBInterface (from the CDB, or from a file given to
+  //                     ReadCalibrationsFromFile), i.e. the job used it. These come first.
+  //                  1: only in the RUN/CdbUrl node read in from the input DSTs: used by the
+  //                     production steps that made them, not fetched by this job.
+  // A payload that is both (the job fetched what its inputs already had) is listed once, as 0.
   std::vector<std::string> cdb_type;
   std::vector<std::string> cdb_url;
   std::vector<ULong64_t> cdb_url_timestamp;
-  for (const auto &entry : *urls)
+  std::vector<Int_t> cdb_from_input;
+  auto addPayload = [&](const std::tuple<std::string, std::string, uint64_t> &payload, bool fromInput)
   {
-    cdb_type.push_back(std::get<0>(entry));
-    cdb_url.push_back(std::get<1>(entry));
-    cdb_url_timestamp.push_back(std::get<2>(entry));
+    cdb_type.push_back(std::get<0>(payload));
+    cdb_url.push_back(std::get<1>(payload));
+    cdb_url_timestamp.push_back(std::get<2>(payload));
+    cdb_from_input.push_back(fromInput ? 1 : 0);
+  };
+  const auto &ownPayloads = CDBInterface::instance()->getUrls();
+  for (const auto &payload : ownPayloads)
+  {
+    addPayload(payload, false);
+  }
+  if (CdbUrlSave *node = runNodePayloads())
+  {
+    for (const auto &payload : *node)
+    {
+      // the job's own are already listed (they are in the node too once CDBInterface::End() ran)
+      if (!ownPayloads.contains(payload))
+      {
+        addPayload(payload, true);
+      }
+    }
   }
 
   // The input files, again as parallel vectors (element i = one opened file).
@@ -173,6 +178,7 @@ TTree *MetaDataTree::Make(TDirectory *dir, const std::string &name)
   tree->Branch("cdb_type", &cdb_type);
   tree->Branch("cdb_url", &cdb_url);
   tree->Branch("cdb_url_timestamp", &cdb_url_timestamp);
+  tree->Branch("cdb_from_input", &cdb_from_input);
   tree->Branch("input_file", &input_file);
   tree->Branch("input_run", &input_run);
   tree->Branch("input_segment", &input_segment);

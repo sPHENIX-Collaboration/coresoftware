@@ -124,9 +124,9 @@ namespace
   }
 }  // namespace
 
-int MetaDataTree::Read(TTree *tree, Payloads &payloads)
+int MetaDataTree::Read(TTree *tree, Payloads &payloads, bool withInput)
 {
-  // Only the three branches we need. Object branches (std::vector) are read through a pointer
+  // Only the branches we need. Object branches (std::vector) are read through a pointer
   // that ROOT fills; starting with nullptr lets ROOT allocate the vectors (deleted below).
   ULong64_t cdb_timestamp = 0;
   std::vector<std::string> *cdb_type = nullptr;
@@ -140,6 +140,15 @@ int MetaDataTree::Read(TTree *tree, Payloads &payloads)
     tree->ResetBranchAddresses();
     return -1;
   }
+  // cdb_from_input (version 4 on): 1 for payloads only carried in from the input DSTs. Older
+  // trees do not say which payloads the job itself used, so then all of them are taken.
+  std::vector<Int_t> *cdb_from_input = nullptr;
+  bool haveFromInput = tree->GetBranch("cdb_from_input") && tree->SetBranchAddress("cdb_from_input", &cdb_from_input) >= 0;
+  if (!haveFromInput && !withInput)
+  {
+    std::cerr << "MetaDataTree::Read: " << tree->GetName() << " has no cdb_from_input (written before version 4),"
+              << " so the payloads carried in from the input DSTs cannot be left out" << std::endl;
+  }
 
   // One entry per job. The payloads are grouped by the job's cdb_timestamp (the run number
   // for data), i.e. "what was used for a job of this run", which is what a re-run needs.
@@ -151,6 +160,10 @@ int MetaDataTree::Read(TTree *tree, Payloads &payloads)
     // cdb_type[j] and cdb_url[j] describe the same payload
     for (size_t j = 0; j < cdb_type->size() && j < cdb_url->size(); ++j)
     {
+      if (!withInput && haveFromInput && j < cdb_from_input->size() && (*cdb_from_input)[j])
+      {
+        continue;  // not this job's: only in the input DSTs
+      }
       addUrl(types[(*cdb_type)[j]], (*cdb_url)[j]);
     }
   }
@@ -159,6 +172,7 @@ int MetaDataTree::Read(TTree *tree, Payloads &payloads)
   tree->ResetBranchAddresses();
   delete cdb_type;
   delete cdb_url;
+  delete cdb_from_input;
 
   // drop types that only had empty urls (addUrl skipped them all)
   for (auto &[timestamp, types] : payloads)
@@ -171,7 +185,7 @@ int MetaDataTree::Read(TTree *tree, Payloads &payloads)
   return static_cast<int>(nentries);
 }
 
-int MetaDataTree::Read(const std::string &file, Payloads &payloads, const std::string &treename)
+int MetaDataTree::Read(const std::string &file, Payloads &payloads, const std::string &treename, bool withInput)
 {
   if (isYaml(file))
   {
@@ -190,7 +204,7 @@ int MetaDataTree::Read(const std::string &file, Payloads &payloads, const std::s
     std::cerr << "MetaDataTree::Read: no tree " << treename << " in " << file << std::endl;
     return -1;
   }
-  return Read(tree, payloads);
+  return Read(tree, payloads, withInput);
 }
 
 int MetaDataTree::WriteCalibrations(std::ostream &os, const std::string &file, uint64_t run, const std::string &treename)
@@ -214,13 +228,13 @@ int MetaDataTree::WriteCalibrations(std::ostream &os, const Payloads &payloads, 
   int n = 0;
   for (const auto &[type, urls] : it->second)
   {
-    // Several payloads of one type (the input DSTs were made with another payload than the one
-    // this job fetched, e.g. CEMC_calib_ADC_to_ETower _v1 and _v2): the first one is the one
-    // that is actually used, so that is the one written.
+    // Several payloads of one type for one run: the jobs did not all use the same one (or payloads
+    // were read with withInput, or from a tree older than version 4). A calibration file can only
+    // hold one, so say so and take the first found.
     if (urls.size() > 1)
     {
       std::cerr << "MetaDataTree::WriteCalibrations: " << urls.size() << " payloads of " << type << " for " << run
-                << ", using the first: " << urls.front() << std::endl;
+                << ", using the first found: " << urls.front() << std::endl;
     }
     os << type << " " << urls.front() << "\n";
     ++n;

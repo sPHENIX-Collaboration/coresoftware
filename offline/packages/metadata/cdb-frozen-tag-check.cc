@@ -1,9 +1,10 @@
 // cdb-frozen-tag-check: check the CDB payloads recorded in a provenance tree (see MetaDataTree.h)
 // against what a (frozen) global tag holds, i.e. "would a job run with TAG get the same payloads?"
 //
-//   cdb-frozen-tag-check [-t TREE] [-f] [-v] TAG FILE...
+//   cdb-frozen-tag-check [-t TREE] [-i] [-v] TAG FILE...
 //     -t TREE  name of the provenance tree (default: provenance)
-//     -f       only check the first payload of each type in an entry (the one actually used)
+//     -i       also check the payloads only carried in from the input DSTs (cdb_from_input 1),
+//              which the production steps that made the inputs used, not the jobs themselves
 //     -v       also list the entries (file:entry) of each differing payload
 //   exit code: 0 all match, 1 something differs, 2 error (no file/tree/branch, unknown tag, CDB error)
 //
@@ -14,13 +15,15 @@
 //                     must not have X either (else a job would now use X), and must give
 //                     X_default the same url
 // Recorded payloads with an empty url (types that had nothing in the CDB) are skipped.
+// Trees older than version 4 have no cdb_from_input: all their payloads are checked, since it
+// is not known which ones the jobs used.
 //
 // The CDB is asked once per distinct timestamp (SphenixClient::getUrlDict gives all types at
 // once), so this stays fast for merged files with many entries.
 //
 // Output, for each differing payload: type, timestamp, the recorded url, what TAG has, in how
 // many entries, e.g.
-//   MBD_PILEUP @53756 (27 entries, not first of its type)
+//   MBD_PILEUP @53756 (27 entries, from input DSTs)
 //       recorded: /cvmfs/.../mbd_pileup_40000_99999.root
 //       in tag:   /cvmfs/.../mbd_pileup-53756.root
 
@@ -47,9 +50,9 @@ namespace
 {
   void usage()
   {
-    std::cerr << "usage: cdb-frozen-tag-check [-t TREE] [-f] [-v] TAG FILE...\n"
+    std::cerr << "usage: cdb-frozen-tag-check [-t TREE] [-i] [-v] TAG FILE...\n"
               << "  -t TREE  name of the provenance tree (default: provenance)\n"
-              << "  -f       only check the first payload of each type in an entry (the one actually used)\n"
+              << "  -i       also check the payloads only carried in from the input DSTs\n"
               << "  -v       also list the entries (file:entry) of each differing payload\n"
               << "exit code: 0 all match, 1 something differs, 2 error\n";
   }
@@ -74,7 +77,7 @@ namespace
   struct Recorded
   {
     std::vector<std::string> labels{};  // entries with this payload
-    bool everFirst{false};              // the first payload of its type in at least one entry
+    bool used{false};                   // used by the job itself (cdb_from_input 0) in at least one entry
   };
 }  // namespace
 
@@ -82,18 +85,18 @@ int main(int argc, char **argv)
 {
   // ---- 1. Arguments -----------------------------------------------------------------------------
   std::string treename = "provenance";
-  bool firstOnly = false;
+  bool withInput = false;
   bool verbose = false;
   int opt;
-  while ((opt = getopt(argc, argv, "t:fvh")) != -1)
+  while ((opt = getopt(argc, argv, "t:ivh")) != -1)
   {
     switch (opt)
     {
     case 't':
       treename = optarg;
       break;
-    case 'f':
-      firstOnly = true;
+    case 'i':
+      withInput = true;
       break;
     case 'v':
       verbose = true;
@@ -139,8 +142,16 @@ int main(int argc, char **argv)
     std::cerr << "cdb-frozen-tag-check: '" << treename << "' is missing cdb_type/cdb_url/cdb_url_timestamp" << std::endl;
     return 2;
   }
+  // cdb_from_input (version 4 on): 1 for payloads only carried in from the input DSTs
+  std::vector<Int_t> *cdb_from_input = nullptr;
+  bool haveFromInput = chain.GetBranch("cdb_from_input") && chain.SetBranchAddress("cdb_from_input", &cdb_from_input) >= 0;
+  if (!haveFromInput)
+  {
+    std::cerr << "cdb-frozen-tag-check: no cdb_from_input branch (tree older than version 4): checking all"
+              << " payloads, also those only carried in from the input DSTs" << std::endl;
+  }
   chain.SetBranchStatus("*", false);
-  for (const char *b : {"cdb_type", "cdb_url", "cdb_url_timestamp"})
+  for (const char *b : {"cdb_type", "cdb_url", "cdb_url_timestamp", "cdb_from_input"})
   {
     chain.SetBranchStatus(b, true);
   }
@@ -155,15 +166,15 @@ int main(int argc, char **argv)
       return 2;
     }
     std::string label = entryLabel(chain, i);
-    std::set<std::string> seenType;  // types already seen in this entry: later ones are not first
     std::set<std::tuple<std::string, uint64_t, std::string>> seenPayload;  // count each once per entry
     size_t n = std::min({cdb_type->size(), cdb_url->size(), cdb_url_timestamp->size()});
     for (size_t j = 0; j < n; ++j)
     {
       const std::string &type = (*cdb_type)[j];
       const std::string &url = (*cdb_url)[j];
-      bool first = seenType.insert(type).second;
-      if (url.empty() || (firstOnly && !first))
+      // without the branch (old tree) every payload counts as used: we cannot tell
+      bool used = !haveFromInput || j >= cdb_from_input->size() || (*cdb_from_input)[j] == 0;
+      if (url.empty() || (!withInput && !used))
       {
         continue;
       }
@@ -174,7 +185,7 @@ int main(int argc, char **argv)
       }
       Recorded &r = recorded[key];
       r.labels.push_back(label);
-      r.everFirst = r.everFirst || first;
+      r.used = r.used || used;
     }
   }
   if (recorded.empty())
@@ -250,9 +261,9 @@ int main(int argc, char **argv)
     }
     ++nbad;
     std::cout << type << " @" << timestamp << " (" << r.labels.size() << (r.labels.size() == 1 ? " entry" : " entries");
-    if (!r.everFirst)
+    if (!r.used)
     {
-      std::cout << ", not first of its type";
+      std::cout << ", from input DSTs";
     }
     std::cout << ")\n"
               << "    recorded: " << url << "\n"

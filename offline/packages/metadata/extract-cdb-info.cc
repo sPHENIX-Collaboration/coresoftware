@@ -1,14 +1,15 @@
-// extract-cdb-info: the CDB payloads in provenance trees (MetaDataTree::Make, also merged by
-// hadd) as YAML, one block per cdb_timestamp, combining all entries (jobs) and files:
+// extract-cdb-info: the CDB payloads the jobs used, from provenance trees (MetaDataTree::Make,
+// also merged by hadd), as YAML, one block per cdb_timestamp, combining all entries (jobs) and files:
 //   53756:
 //     CEMC_meanTime: /cvmfs/.../b38277b6..._CEMC_meanTime_ana509_2024p022_v001_53756.root
 //     MBD_PILEUP:
 //       - /cvmfs/.../8175320e..._mbd_pileup_40000_99999.root
 //       - /cvmfs/.../ed733630..._mbd_pileup-53756.root
-// A type with several payloads for one timestamp gets a list, in the order found; the first is
-// the one that is actually used.
+// A type with several payloads for one timestamp (jobs used different ones) gets a list, in the
+// order found. With -i the payloads only carried in from the input DSTs (cdb_from_input 1) are
+// included too.
 // With -r RUN it instead writes the '<type> <url>' lines of that run for
-// CDBInterface::ReadCalibrationsFromFile(), taking the first payload of each type.
+// CDBInterface::ReadCalibrationsFromFile(), taking the first payload found of each type.
 // A FILE ending in .yaml/.yml is read as this YAML, so YAML files can be combined or turned into -r output.
 // Only needs ROOT (built together with MetaDataTreeRead.cc, not linked to libprovenancetree).
 #include "MetaDataTree.h"
@@ -24,8 +25,9 @@ namespace
 {
   void usage()
   {
-    std::cerr << "usage: extract-cdb-info [-t TREE] [-r RUN] [-o OUT] FILE...\n"
+    std::cerr << "usage: extract-cdb-info [-t TREE] [-i] [-r RUN] [-o OUT] FILE...\n"
               << "  -t TREE  provenance tree to read (default: provenance)\n"
+              << "  -i       also the payloads only carried in from the input DSTs (not used by the jobs)\n"
               << "  FILE     ROOT file, or .yaml/.yml written by extract-cdb-info\n"
               << "  -r RUN   write '<type> <url>' lines of RUN (for CDBInterface::ReadCalibrationsFromFile)\n"
               << "           instead of the YAML\n"
@@ -65,6 +67,7 @@ int main(int argc, char **argv)
   std::string treename = "provenance";
   std::string out;
   bool calib = false;
+  bool withInput = false;
   uint64_t run = 0;
   std::vector<std::string> files;
   for (int i = 1; i < argc; ++i)
@@ -93,6 +96,10 @@ int main(int argc, char **argv)
         calib = true;
       }
     }
+    else if (arg == "-i")
+    {
+      withInput = true;
+    }
     else if (arg == "-h" || arg == "--help")
     {
       usage();
@@ -117,7 +124,7 @@ int main(int argc, char **argv)
   MetaDataTree::Payloads payloads;
   for (const auto &file : files)
   {
-    if (MetaDataTree::Read(file, payloads, treename) < 0)
+    if (MetaDataTree::Read(file, payloads, treename, withInput) < 0)
     {
       return 1;
     }
