@@ -304,6 +304,26 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
               {
                 std::tie(candidate, isGood) = getCombination(motherDecayProducts, &uniqueCombination[0], i_pv,
                                                              m_constrain_to_vertex, false, 0, num_mother_decay_products, m_constrain_int_mass, required_unique_vertexID, topNode);
+
+                if (isGood)
+                {
+                  // The charge and species of every final-state track must match the decay descriptor. The mother
+                  // check only sees the intermediate states (e.g. a neutral Lambda0), so on its own it cannot tell
+                  // Xi- -> Lambda0 (p+ pi-) pi- from Xi- -> Lambda0 (p- pi+) pi-
+                  std::vector<std::pair<int, int>> assigned;  // (charge, |PDG ID|) of each final-state track
+                  assigned.reserve(m_num_tracks);
+                  for (int k = 0; k < num_tracks_used_by_intermediates; ++k)
+                  {
+                    assigned.emplace_back((int) finalTracks[k].GetQ(), std::abs(finalTracks[k].GetPDG()));
+                  }
+                  for (int k = 0; k < num_remaining_tracks; ++k)
+                  {
+                    const int slot = m_num_intermediate_states + k;
+                    assigned.emplace_back((int) motherDecayProducts[slot].GetQ(), std::abs(uniqueCombination[slot]));
+                  }
+                  isGood = finalStateMatchesDecay(assigned);
+                }
+
                 if (isGood)
                 {
                   goodCandidates.push_back(candidate);
