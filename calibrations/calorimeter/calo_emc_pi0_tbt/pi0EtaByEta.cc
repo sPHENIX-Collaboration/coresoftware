@@ -7,6 +7,8 @@
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/Vertex.h>
 
+#include <mbd/MbdOut.h>
+
 // Tower includes
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -47,6 +49,7 @@
 #include <cstdlib>  // for exit
 #include <filesystem>
 #include <iostream>
+#include <limits>
 #include <map>        // for operator!=, _Rb_tree_con...
 #include <stdexcept>  // for runtime_error
 #include <string>
@@ -132,6 +135,9 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
 
   h_tower_e = new TH1F("h_tower_e","",1000,-1,5);
 
+  // MBD t0 of the triggered events, before the t0 cut
+  h_mbd_t0 = new TH1F("h_mbd_t0", ";MBD t_{0} [ns];events", 400, -20, 20);
+
   std::vector<std::vector<CLHEP::Hep3Vector>> temp2 = std::vector<std::vector<CLHEP::Hep3Vector>>();
   std::vector<CLHEP::Hep3Vector> temp = std::vector<CLHEP::Hep3Vector>();
   for (int i = 0; i < NBinsVtx; i++)
@@ -192,6 +198,24 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     {
       return Fun4AllReturnCodes::EVENT_OK;
     }
+  }
+
+  //----------------------------------MBD t0------------------------------------------------------//
+  // out-of-time collisions: |t0| < mbd_t0_cut; with the cut on, an event without
+  // MbdOut or with an undefined t0 is rejected
+  MbdOut* mbdout = findNode::getClass<MbdOut>(topNode, "MbdOut");
+  float mbd_t0 = mbdout ? mbdout->get_t0() : std::numeric_limits<float>::quiet_NaN();
+  if (std::isfinite(mbd_t0))
+  {
+    h_mbd_t0->Fill(mbd_t0);
+  }
+  if (doMbdT0Cut && !(std::fabs(mbd_t0) < mbd_t0_cut))
+  {
+    if (!mbdout && _eventcounter == 1)
+    {
+      std::cout << "pi0EtaByEta: MbdOut node is missing, the MBD t0 cut rejects every event" << std::endl;
+    }
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   //----------------------------------get vertex------------------------------------------------------//
@@ -445,7 +469,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       }
 
       TLorentzVector pi0 = photon1 + photon2;
-      if (pi0.Pt() < pi0ptcut)
+      if (applyPairPtCut && pi0.Pt() < pi0ptcut)
       {
         continue;
       }

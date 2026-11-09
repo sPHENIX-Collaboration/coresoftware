@@ -15,13 +15,13 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
-#include <trackbase_historic/SvtxTrack_v4.h>
 
 #include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <sstream>
 
 namespace
@@ -170,8 +170,18 @@ int NNScaleMap::process_event(PHCompositeNode* topNode)
     const float pz = track->get_pz();
     const float pt = std::sqrt(px * px + py * py);
 
-    SvtxTrack_v4 corrected(*track);
+    // Clone in the input track's own class (SvtxTrack_v4, _v5, ...) so no
+    // version-specific content is dropped. Forcing a fixed class here is what
+    // broke KFParticle's state building on the v5 production.
+    std::unique_ptr<SvtxTrack> corrected(dynamic_cast<SvtxTrack*>(track->CloneMe()));
+    if (!corrected)
+    {
+      std::cout << PHWHERE << " CloneMe failed for track " << track->get_id()
+                << " (" << track->ClassName() << "), skipping it" << std::endl;
+      continue;
+    }
 
+    float kappa = 1.0F;
     if (pt <= 0.0F)
     {
       ++m_nTracksSkippedZeroPt;
@@ -180,11 +190,18 @@ int NNScaleMap::process_event(PHCompositeNode* topNode)
     {
       const float eta = std::asinh(pz / pt);
       const float phi = std::atan2(py, px);
-      const float kappa = GetKappa(track->get_charge(), pt, eta, phi);
+      kappa = GetKappa(track->get_charge(), pt, eta, phi);
 
-      corrected.set_px(kappa * px);
-      corrected.set_py(kappa * py);
-      corrected.set_pz(kappa * pz);
+      if (!std::isfinite(kappa) || kappa < 0.5F || kappa > 1.5F)
+      {
+        std::cout << PHWHERE << " suspicious kappa " << kappa << " for track " << track->get_id()
+                  << " q=" << track->get_charge() << " pt=" << pt << " eta=" << eta << " phi=" << phi
+                  << std::endl;
+      }
+
+      corrected->set_px(kappa * px);
+      corrected->set_py(kappa * py);
+      corrected->set_pz(kappa * pz);
 
       if (m_scaleCovariance)
       {
@@ -202,7 +219,7 @@ int NNScaleMap::process_event(PHCompositeNode* topNode)
               continue;
             }
             const float scale = (iMom && jMom) ? kappa * kappa : kappa;
-            corrected.set_error(i, j, scale * track->get_error(i, j));
+            corrected->set_error(i, j, scale * track->get_error(i, j));
           }
         }
       }
@@ -210,7 +227,20 @@ int NNScaleMap::process_event(PHCompositeNode* topNode)
       ++m_nTracksCorrected;
     }
 
-    m_outputTrackMap->insertWithKey(&corrected, track->get_id());
+    // Check the setters actually took effect for this class (the SvtxTrack base-class
+    // setters are no-ops, so a version that doesn't override one would silently skip it).
+    if (Verbosity() > 1 && m_nTracksSeen <= 5)
+    {
+      std::cout << "NNScaleMap: " << track->ClassName() << " -> " << corrected->ClassName()
+                << " id " << track->get_id() << " kappa " << kappa
+                << " pt " << pt << " -> " << corrected->get_pt()
+                << " err(3,3) " << track->get_error(3, 3) << " -> " << corrected->get_error(3, 3)
+                << " xing " << track->get_crossing() << " -> " << corrected->get_crossing()
+                << std::endl;
+    }
+
+    // SvtxTrackMap_v2::insertWithKey stores its own clone; the unique_ptr frees this one
+    m_outputTrackMap->insertWithKey(corrected.get(), track->get_id());
   }
 
   ++m_nEvents;

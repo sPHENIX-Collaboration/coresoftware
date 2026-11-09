@@ -21,7 +21,7 @@ class Tpc_PolyTrack;
 class Tpc_PolyTrackContainer;
 class TrkrClusterHitAssoc;
 class TrkrClusterContainer;
-
+class PHGarfield;
 class TpcPolyClusterTrkrClusterConverter : public SubsysReco
 {
  public:
@@ -59,7 +59,8 @@ class TpcPolyClusterTrkrClusterConverter : public SubsysReco
   std::string m_outputNodeName {"TRKR_CLUSTER"};
   std::string m_crossingDecisionNodeName {"TPC_CROSSING_DECISIONS"};
 
-  Tpc_PolyClusterContainer* m_polyClusters {nullptr};
+  PHGarfield* m_garfield{nullptr};
+  Tpc_PolyClusterContainer* m_polyClusters{nullptr};
   Tpc_PolyTrackContainer* m_polyTracks {nullptr};
   TrkrClusterContainer* m_outputClusters {nullptr};
   TrkrClusterHitAssoc* m_clusterHitAssoc {nullptr};
