@@ -135,10 +135,29 @@ int main(int argc, char **argv)
   }
   std::ostream &os = out.empty() ? std::cout : fout;
 
+  auto finish = [&]() {
+    os.flush();
+    if (!out.empty())
+      {
+	fout.close();
+      }
+    if (!os)
+      {
+	std::cerr << "extract-cdb-info: output write failed" << std::endl;
+	return 1;
+      }
+    return 0;
+  };
+ 
   if (calib)
-  {
-    return MetaDataTree::WriteCalibrations(os, payloads, run) < 0 ? 1 : 0;
-  }
+    {
+      if (MetaDataTree::WriteCalibrations(os, payloads, run) < 0)
+	{
+	  return 1;
+	}
+      return finish();
+    }
+  
 
   for (const auto &[timestamp, types] : payloads)
   {
@@ -158,5 +177,5 @@ int main(int argc, char **argv)
       }
     }
   }
-  return 0;
+  return finish();
 }
