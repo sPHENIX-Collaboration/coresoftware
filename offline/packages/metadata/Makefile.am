@@ -14,13 +14,13 @@ pkginclude_HEADERS = \
   MetaDataTree.h
 
 lib_LTLIBRARIES = \
-  libprovenancetree.la
+  libmetadata.la
 
-libprovenancetree_la_SOURCES = \
+libmetadata_la_SOURCES = \
   MetaDataTree.cc \
   MetaDataTreeRead.cc
 
-libprovenancetree_la_LIBADD = \
+libmetadata_la_LIBADD = \
   -lffamodules \
   -lffaobjects \
   -lfun4all \
@@ -53,7 +53,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libprovenancetree.la
+testexternals_LDADD   = libmetadata.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
