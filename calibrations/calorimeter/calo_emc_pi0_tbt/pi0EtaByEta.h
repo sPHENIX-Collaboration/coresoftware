@@ -147,6 +147,11 @@ class pi0EtaByEta : public SubsysReco
   // cluster energy for the pairs: full cluster energy (default) or ECore
   void set_useEcore(bool state)
   {
+  // pair pT > 1.22 * (pt1BaseClusCut + pt2BaseClusCut) (default on)
+  void set_applyPairPtCut(bool state)
+  {
+    applyPairPtCut = state;
+  }
     useEcore = state;
   }
 
@@ -206,6 +211,7 @@ class pi0EtaByEta : public SubsysReco
   bool doMix{false};
   bool use_pdc{false};
   bool runTowByTow{true};        // default set not to run tbt
+  bool applyPairPtCut{true};
   bool runTBTCompactMode{true};  // default set to run in compact mode
 
   std::vector<std::vector<std::vector<CLHEP::Hep3Vector>>>* clusMix;

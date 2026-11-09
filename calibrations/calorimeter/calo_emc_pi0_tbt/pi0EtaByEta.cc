@@ -445,7 +445,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       }
 
       TLorentzVector pi0 = photon1 + photon2;
-      if (pi0.Pt() < pi0ptcut)
+      if (applyPairPtCut && pi0.Pt() < pi0ptcut)
       {
         continue;
       }
