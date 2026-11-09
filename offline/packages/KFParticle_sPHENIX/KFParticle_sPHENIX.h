@@ -393,13 +393,19 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void getAllPVInfo(bool pvinfo = true) { m_get_all_PVs = pvinfo; }
 
-  void saveMomentumCalibrationOutputOnly(bool minimal = true) { m_momentum_calibration_output = minimal; }
+  void saveLightweightNTuple(bool minimal = true) { m_minimal_output = minimal; if (!minimal) m_minimal_output_to_qa = false; }  // QA output is a sub-mode of the lightweight nTuple
+  void saveLightweightNTupleToQA(bool minimal = true) { m_minimal_output = m_minimal_output_to_qa = minimal; }  // also turns on the lightweight nTuple
 
   void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_bunch_crossing_zero_only = bcZeroOnly; }
 
   void forceMixedEvent(bool force = true) { m_force_mixed_event = force; }
 
   void requireBunchCrossingMatch(bool require = true) { m_require_bunch_crossing_match = require; }
+
+  /// On by default. Builds each N-prong combination (3+ body decays) once, from its (N-1)-prong subset plus a track with a
+  /// larger index, instead of once for every track that can be added last. About 2.7x faster, but the DCA test is made
+  /// after the vertex refit, so it can reject combinations that the exhaustive search (use = false) would keep.
+  void useOrderedProngCombinations(bool use = true) { m_use_ordered_prongs = use; }
 
   void requireTrackVertexBunchCrossingMatch(bool require = true) { m_require_track_and_vertex_match = require; }
 

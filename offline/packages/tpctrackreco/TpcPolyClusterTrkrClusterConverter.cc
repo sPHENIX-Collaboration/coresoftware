@@ -25,6 +25,7 @@
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrDefs.h>
+#include <phgarfield/PHGarfield.h>
 
 #include <tpc/TpcClusterMover.h>
 
@@ -82,6 +83,12 @@ int TpcPolyClusterTrkrClusterConverter::InitRun(PHCompositeNode* topNode)
 
 int TpcPolyClusterTrkrClusterConverter::getNodes(PHCompositeNode* topNode)
 {
+  m_garfield = findNode::getClass<PHGarfield>(topNode, "PHGarfield");
+  if (!m_garfield)
+  {
+    std::cerr << Name() << "::getNodes - missing GARFIELD" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
   m_polyClusters = findNode::getClass<Tpc_PolyClusterContainer>(topNode, m_polyClusterNodeName);
   if (!m_polyClusters)
   {
@@ -270,9 +277,14 @@ bool TpcPolyClusterTrkrClusterConverter::localFromMovedGlobal(const Tpc_PolyClus
     local.y() - static_cast<double>(crossing) * z_bunch_separation;
   const double tuncorrected = (side == 0) ? (zloc_uncorrected + half_drift) / drift_velocity : (half_drift - zloc_uncorrected) / drift_velocity;
   //const double stored_t_uncorrected = tuncorrected - m_geometry->get_tpc_tzero() - m_geometry->get_sampa_tzero_bias();
-  const double stored_t_uncorrected = (side == 0) ?
+  double stored_t_uncorrected = (side == 0) ?
       tuncorrected - m_geometry->get_tpc_tzero() + 2 * m_geometry->get_sampa_tzero_bias() :
       tuncorrected - m_geometry->get_tpc_tzero() - m_geometry->get_sampa_tzero_bias();
+
+  // exact inverse of ActsGeometry::getLocalCoords, which adds tpc_tzero + sampa_tzero_bias on both sides
+  if(m_garfield->GetIsNonDistortedMC()){
+    stored_t_uncorrected = tuncorrected - m_geometry->get_tpc_tzero() - m_geometry->get_sampa_tzero_bias();
+  }
   if (!std::isfinite(stored_t_uncorrected)) { return false;
   }
 

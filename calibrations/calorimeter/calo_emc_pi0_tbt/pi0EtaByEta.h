@@ -54,6 +54,9 @@ class pi0EtaByEta : public SubsysReco
   void set_timing_cut_width(const int t) { _range = t; }
   void set_vertex_cut(const float v) { vtx_z_cut = v; }
   void apply_vertex_cut(bool Vtx_cut) { doVtxCut = Vtx_cut; }
+  // |MBD t0| < cut (ns), against out-of-time collisions (default off; for AuAu)
+  void set_mbd_t0_cut(const float t) { mbd_t0_cut = t; }
+  void apply_mbd_t0_cut(bool state) { doMbdT0Cut = state; }
 
   static TF1* fitHistogram(TH1* h);
   void fitEtaSlices(const std::string& infile, const std::string& outfile, const std::string& cdbFile);
@@ -144,6 +147,11 @@ class pi0EtaByEta : public SubsysReco
   {
     ptClusMax = val;
   }
+  // pair pT > 1.22 * (pt1BaseClusCut + pt2BaseClusCut) (default on)
+  void set_applyPairPtCut(bool state)
+  {
+    applyPairPtCut = state;
+  }
   // cluster energy for the pairs: full cluster energy (default) or ECore
   void set_useEcore(bool state)
   {
@@ -163,6 +171,8 @@ class pi0EtaByEta : public SubsysReco
 
   bool doVtxCut{true};
   float vtx_z_cut{20};
+  bool doMbdT0Cut{false};
+  float mbd_t0_cut{2.5};
   bool m_use_vertextype{false};
   GlobalVertex::VTXTYPE m_vertex_type{GlobalVertex::UNDEFINED};
 
@@ -201,6 +211,7 @@ class pi0EtaByEta : public SubsysReco
 
   float target_pi0_mass{0.146};
   float ptClusMax{4};
+  bool applyPairPtCut{true};
 
   bool dynMaskClus{false};
   bool doMix{false};
@@ -284,6 +295,7 @@ class pi0EtaByEta : public SubsysReco
   TH1* h_emcal_e_eta{nullptr};
   TH2* h_m_pt{nullptr};
   TH1* h_tower_e{nullptr};
+  TH1* h_mbd_t0{nullptr};
 
   TriggerAnalyzer* trigAna{nullptr};
 
