@@ -15,23 +15,29 @@ AM_CPPFLAGS = \
 
 pkginclude_HEADERS = \
   CaloValid.h \
-  CaloFittingQA.h
+  CaloFittingQA.h \
+  CDBCaloQA.h
 
 libcalovalid_la_SOURCES = \
   CaloValid.cc \
-  CaloFittingQA.cc
+  CaloFittingQA.cc \
+  CDBCaloQA.cc
 
 libcalovalid_la_LIBADD = \
   -lcalo_io \
   -lcalotrigger \
+  -lcalotrigger_io \
+  -lcentrality_io \
   -lCLHEP \
   -lfun4all \
   -lglobalvertex_io \
+  -ljetbase_io \
   -lmbd_io \
   -lzdcinfo_io \
   -lphool \
   -lSubsysReco \
   -lffarawobjects \
+  -lffaobjects \
   -lffamodules \
   -lcdbobjects \
   -lqautils
