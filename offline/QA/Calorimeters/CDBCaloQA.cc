@@ -438,7 +438,8 @@ int CDBCaloQA::process_event(PHCompositeNode *topNode)
     m_ntrig[kPhoton] += fired[kPhoton];
     m_ntrig[kJet] += fired[kJet];
   }
-  const bool done = (m_minmb <= 0 || m_nmb >= m_minmb) && (m_zdcbits.empty() || m_nzdc >= m_minzdc) &&
+  const bool done = (m_minmb > 0 || m_minzdc > 0 || m_mintrig > 0) &&
+                    (m_minmb <= 0 || m_nmb >= m_minmb) && (m_zdcbits.empty() || m_nzdc >= m_minzdc) &&
                     (m_mc || m_trigname[kPhoton].empty() || m_ntrig[kPhoton] >= m_mintrig) &&
                     (m_mc || m_trigname[kJet].empty() || m_ntrig[kJet] >= m_mintrig);
   if (!keep)
