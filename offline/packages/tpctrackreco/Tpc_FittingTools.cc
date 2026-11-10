@@ -620,11 +620,18 @@ bool Tpc_FittingTools::fit(const std::vector<Point>& points, FitResult& fit)
     return false;
   }
 
-  const Point& first = points.front();
-  const Point& mid = points[points.size() / 2];
-  const Point& last = points.back();
-  const double cross = (mid.x - first.x) * (last.y - mid.y) - (mid.y - first.y) * (last.x - mid.x);
-  const double sign = (cross >= 0.0) ? 1.0 : -1.0;
+  // Rotation direction from the total turning angle of all (radially ordered)
+  // points around the fitted centre, rather than from three single points,
+  // so one outlier cannot flip the charge of a stiff track.
+  double turning = 0.0;
+  double prev_turn_angle = std::atan2(points.front().y - yc, points.front().x - xc);
+  for (const Point& p : points)
+  {
+    const double angle = unwrap_near(std::atan2(p.y - yc, p.x - xc), prev_turn_angle);
+    turning += angle - prev_turn_angle;
+    prev_turn_angle = angle;
+  }
+  const double sign = (turning >= 0.0) ? 1.0 : -1.0;
 
   fit.curvature = sign / R;
   fit.d0 = sign * (dc - R);

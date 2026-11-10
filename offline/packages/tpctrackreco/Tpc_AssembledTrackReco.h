@@ -51,6 +51,13 @@ class Tpc_AssembledTrackReco : public SubsysReco
 
   void setConnectMaxLayerGap(unsigned int n) { m_connectMaxLayerGap = n; }
 
+  // Let side candidates in different sectors connect when their layer ranges
+  // overlap by up to n layers: a track running along a sector edge leaves
+  // hits on both sides of the boundary in the same layers. In shared layers
+  // only the sector with more hits is written out. Zero keeps the
+  // no-overlap rule. Default: 0.
+  void setConnectMaxLayerOverlap(unsigned int n) { m_connectMaxLayerOverlap = n; }
+
   // Connection window in global phi radians and tbin units at the match radius.
   void setConnectWindow(double dphi, double dtbin)
   {
@@ -261,6 +268,7 @@ class Tpc_AssembledTrackReco : public SubsysReco
   IdealPadMap* m_idealPadMap;
 
   unsigned int m_connectMaxLayerGap;
+  unsigned int m_connectMaxLayerOverlap{0};
   double m_connect_dphi;
   double m_connect_dtbin;
   double m_connect_dphi_slope;
