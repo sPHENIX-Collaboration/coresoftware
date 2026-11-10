@@ -75,35 +75,22 @@ int CDBInterface::UpdateRunNode(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cdburls, "CdbUrl", "PHObject");
     runNode->addNode(newNode);
   }
-  else
-  {
-    std::set<std::tuple<std::string, std::string, uint64_t>> tmp_set;
-    for (const auto &cdburl : *cdburls)
-    {
-      tmp_set.insert(cdburl);
-    }
-    // remove duplicates in our set
-    // not possible using for range loops, iterator gets invalidated
-    for (auto itr = m_UrlVector.cbegin(); itr != m_UrlVector.cend();)
-    {
-      if (tmp_set.contains(*itr))
-      {
-        if (Verbosity() > 2)
-        {
-          std::cout << PHWHERE << " cleaning duplicately saved: domain " << std::get<0>(*itr)
-                    << ", url: " << std::get<1>(*itr)
-                    << ", timestamp: " << std::get<2>(*itr) << std::endl;
-        }
-        itr = m_UrlVector.erase(itr);
-      }
-      else
-      {
-        ++itr;
-      }
-    }
-  }
+  // payloads already in the node (carried in from the input DSTs, or added by an earlier call)
+  // are not added again. m_UrlVector itself is left alone, so getUrls() and Print() keep the
+  // full list of what this job used, also the payloads it shares with its input DSTs.
+  std::set<std::tuple<std::string, std::string, uint64_t>> tmp_set(cdburls->begin(), cdburls->end());
   for (const auto &tuple : m_UrlVector)
   {
+    if (tmp_set.contains(tuple))
+    {
+      if (Verbosity() > 2)
+      {
+        std::cout << PHWHERE << " already saved: domain " << std::get<0>(tuple)
+                  << ", url: " << std::get<1>(tuple)
+                  << ", timestamp: " << std::get<2>(tuple) << std::endl;
+      }
+      continue;
+    }
     cdburls->AddUrl(tuple);
   }
   if (Verbosity() > 1)
@@ -135,7 +122,12 @@ std::string CDBInterface::getUrl(const std::string &domain, const std::string &f
   {
     if (m_Payload_Url_Cache.contains(domain_noconst))
     {
-      return m_Payload_Url_Cache[domain_noconst];
+      // record it like a payload from the CDB, so it ends up in the RUN/CdbUrl node as well
+      recoConsts *rc = recoConsts::instance();
+      uint64_t timestamp = rc->FlagExist("TIMESTAMP") ? rc->get_uint64Flag("TIMESTAMP") : 0;
+      const std::string &file_url = m_Payload_Url_Cache[domain_noconst];
+      m_UrlVector.insert(make_tuple(domain_noconst, file_url, timestamp));
+      return file_url;
     }
     std::cout << "calibration " << domain << " not found in local cache" << std::endl;
     return "";

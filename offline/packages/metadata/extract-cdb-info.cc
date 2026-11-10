@@ -1,0 +1,188 @@
+// extract-cdb-info: the CDB payloads the jobs used, from provenance trees (MetaDataTree::Make,
+// also merged by hadd), as YAML, one block per cdb_timestamp, combining all entries (jobs) and files:
+//   53756:
+//     CEMC_meanTime: /cvmfs/.../b38277b6..._CEMC_meanTime_ana509_2024p022_v001_53756.root
+//     MBD_PILEUP:
+//       - /cvmfs/.../8175320e..._mbd_pileup_40000_99999.root
+//       - /cvmfs/.../ed733630..._mbd_pileup-53756.root
+// A type with several payloads for one timestamp (jobs used different ones) gets a list, in the
+// order found. With -i the payloads only carried in from the input DSTs (cdb_from_input 1) are
+// included too.
+// With -r RUN it instead writes the '<type> <url>' lines of that run for
+// CDBInterface::ReadCalibrationsFromFile(), taking the first payload found of each type.
+// A FILE ending in .yaml/.yml is read as this YAML, so YAML files can be combined or turned into -r output.
+// Only needs ROOT (built together with MetaDataTreeRead.cc, not linked to libprovenancetree).
+#include "MetaDataTree.h"
+
+#include <cctype>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
+
+namespace
+{
+  void usage()
+  {
+    std::cerr << "usage: extract-cdb-info [-t TREE] [-i] [-r RUN] [-o OUT] FILE...\n"
+              << "  -t TREE  provenance tree to read (default: provenance)\n"
+              << "  -i       also the payloads only carried in from the input DSTs (not used by the jobs)\n"
+              << "  FILE     ROOT file, or .yaml/.yml written by extract-cdb-info\n"
+              << "  -r RUN   write '<type> <url>' lines of RUN (for CDBInterface::ReadCalibrationsFromFile)\n"
+              << "           instead of the YAML\n"
+              << "  -o OUT   write to OUT instead of stdout" << std::endl;
+  }
+
+  // plain YAML scalar if safe, else double quoted
+  std::string yaml(const std::string &s)
+  {
+    bool plain = !s.empty() && s[0] != '-';
+    for (char c : s)
+    {
+      if (!isalnum(static_cast<unsigned char>(c)) && std::string("/._+-").find(c) == std::string::npos)
+      {
+        plain = false;
+      }
+    }
+    if (plain)
+    {
+      return s;
+    }
+    std::string q = "\"";
+    for (char c : s)
+    {
+      if (c == '"' || c == '\\')
+      {
+        q += '\\';
+      }
+      q += c;
+    }
+    return q + "\"";
+  }
+}  // namespace
+
+int main(int argc, char **argv)
+{
+  std::string treename = "provenance";
+  std::string out;
+  bool calib = false;
+  bool withInput = false;
+  uint64_t run = 0;
+  std::vector<std::string> files;
+  for (int i = 1; i < argc; ++i)
+  {
+    std::string arg = argv[i];
+    if ((arg == "-t" || arg == "-r" || arg == "-o") && i + 1 < argc)
+    {
+      std::string val = argv[++i];
+      if (arg == "-t")
+      {
+        treename = val;
+      }
+      else if (arg == "-o")
+      {
+        out = val;
+      }
+      else
+      {
+        char *end = nullptr;
+        run = std::strtoull(val.c_str(), &end, 10);
+        if (val.empty() || *end)
+        {
+          std::cerr << "extract-cdb-info: bad run number " << val << std::endl;
+          return 1;
+        }
+        calib = true;
+      }
+    }
+    else if (arg == "-i")
+    {
+      withInput = true;
+    }
+    else if (arg == "-h" || arg == "--help")
+    {
+      usage();
+      return 0;
+    }
+    else if (!arg.empty() && arg[0] == '-')
+    {
+      usage();
+      return 1;
+    }
+    else
+    {
+      files.push_back(arg);
+    }
+  }
+  if (files.empty())
+  {
+    usage();
+    return 1;
+  }
+
+  MetaDataTree::Payloads payloads;
+  for (const auto &file : files)
+  {
+    if (MetaDataTree::Read(file, payloads, treename, withInput) < 0)
+    {
+      return 1;
+    }
+  }
+
+  std::ofstream fout;
+  if (!out.empty())
+  {
+    fout.open(out);
+    if (!fout)
+    {
+      std::cerr << "extract-cdb-info: cannot write " << out << std::endl;
+      return 1;
+    }
+  }
+  std::ostream &os = out.empty() ? std::cout : fout;
+
+  auto finish = [&]() {
+    os.flush();
+    if (!out.empty())
+      {
+	fout.close();
+      }
+    if (!os)
+      {
+	std::cerr << "extract-cdb-info: output write failed" << std::endl;
+	return 1;
+      }
+    return 0;
+  };
+ 
+  if (calib)
+    {
+      if (MetaDataTree::WriteCalibrations(os, payloads, run) < 0)
+	{
+	  return 1;
+	}
+      return finish();
+    }
+  
+
+  for (const auto &[timestamp, types] : payloads)
+  {
+    os << timestamp << ":" << (types.empty() ? " {}" : "") << "\n";
+    for (const auto &[type, urls] : types)
+    {
+      os << "  " << yaml(type) << ":";
+      if (urls.size() == 1)
+      {
+        os << " " << yaml(urls.front()) << "\n";
+        continue;
+      }
+      os << "\n";
+      for (const auto &url : urls)
+      {
+        os << "    - " << yaml(url) << "\n";
+      }
+    }
+  }
+  return finish();
+}
