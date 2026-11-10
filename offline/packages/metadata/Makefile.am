@@ -11,14 +11,16 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  MetaDataTree.h
+  MetaDataTree.h \
+  MetaDataTreeWriter.h
 
 lib_LTLIBRARIES = \
   libmetadata.la
 
 libmetadata_la_SOURCES = \
   MetaDataTree.cc \
-  MetaDataTreeRead.cc
+  MetaDataTreeRead.cc \
+  MetaDataTreeWriter.cc
 
 libmetadata_la_LIBADD = \
   -lffamodules \
