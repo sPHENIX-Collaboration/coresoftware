@@ -1,7 +1,7 @@
 #include "../PHGarfieldAdaptiveMap.h"
 #include "../PHGarfieldRootOutput.h"
+#include "PHGarfieldTestUtils.h"
 
-#include <TBranch.h>
 #include <TDirectory.h>
 #include <TFile.h>
 #include <TParameter.h>
@@ -14,16 +14,13 @@
 #include <limits>
 #include <map>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 
 namespace
 {
   using Map = PHGarfieldAdaptiveMap;
-  void check(bool condition, const std::string& message)
-  {
-    if (!condition) throw std::runtime_error(message);
-  }
+  using PHGarfieldTest::check;
+  using PHGarfieldTest::check_persisted_multibasket_tree;
 
   Map::Geometry geometry()
   {
@@ -90,42 +87,6 @@ namespace
     check(Map::Build(g, policy, 0, Map::RootCount(g), sampler(axis, mixed), d, s, log, error), error.str());
     check(Map::Validate(d, error, true), error.str());
     return d;
-  }
-
-  void check_persisted_multibasket_tree(TFile& file, TDirectory* directory, const char* name)
-  {
-    auto* tree = dynamic_cast<TTree*>(directory->Get(name));
-    check(tree && tree->GetEntries() > 0, "missing nonempty streamed primitive tree");
-    auto* branches = tree->GetListOfBranches();
-    for (int branch_index = 0; branch_index < branches->GetEntriesFast(); ++branch_index)
-    {
-      auto* branch = dynamic_cast<TBranch*>(branches->At(branch_index));
-      check(branch && branch->GetEntries() == tree->GetEntries(), "streamed primitive branch count mismatch");
-      const auto* starts = branch->GetBasketEntry();
-      const auto* sizes = branch->GetBasketBytes();
-      const int last = branch->GetWriteBasket();
-      check(starts && sizes && last >= 0 && last < branch->GetMaxBaskets(), "missing streamed basket metadata");
-      Long64_t covered = 0;
-      unsigned int persisted = 0;
-      // Check persisted coverage before GetEntry can materialize any basket.
-      // Inline-only baskets would let the old detached writer falsely pass a
-      // value-only roundtrip at small size but cannot scale to a full map.
-      for (int basket_index = 0; basket_index <= last; ++basket_index)
-      {
-        const auto begin = starts[basket_index];
-        const auto end = basket_index < last ? starts[basket_index + 1] : tree->GetEntries();
-        if (end == begin) continue;
-        const auto seek = branch->GetBasketSeek(basket_index);
-        check(begin == covered && end > begin && end <= tree->GetEntries(), "persisted baskets do not tile every primitive row");
-        check(seek > 0 && sizes[basket_index] > 0 && seek <= file.GetSize() && sizes[basket_index] <= file.GetSize() - seek,
-              "primitive payload was retained inline instead of streamed into the declared output");
-        covered = end;
-        ++persisted;
-      }
-      check(covered == tree->GetEntries() && persisted >= 2, "fixture did not exercise multiple persisted baskets per branch");
-      for (Long64_t entry = 0; entry < tree->GetEntries(); ++entry)
-        check(branch->GetEntry(entry) > 0, "streamed primitive branch row is unreadable");
-    }
   }
 
   void test_streamed_multibasket_roundtrip(const std::string& filename)
@@ -340,42 +301,33 @@ int main()
     check(!Map::Build(g, allocation, 0, Map::RootCount(g), sampler(1), failed, summary, log, errors), "global allocation limit was ignored");
     std::uint64_t bytes = 0;
     check(!Map::EstimatedBytes(std::numeric_limits<std::uint64_t>::max(), 1, 1, bytes), "allocation arithmetic overflow was not caught");
+    constexpr std::uint64_t gib = 1024ULL * 1024 * 1024;
+    check(Map::Policy{}.max_estimated_bytes == 2 * gib && Map::Policy{}.max_total_points == 5000000 && Map::Policy{}.max_total_cells == 2000000,
+          "raising the engineering ceiling changed nominal default budgets");
+    // Historical capacities and the engineering ceiling must all admit a tiny
+    // shard without reserving their declared maximum allocation in advance.
+    const std::array<std::uint64_t, 4> capacities[] = {
+        {{600000000, 100000000, 320 * gib, 128 * gib}},
+        {{1500000000, 250000000, 768 * gib, 512 * gib}},
+        {{200000000, 40000000, 128 * gib, 0}},
+        {{100000000, 20000000, 64 * gib, 0}},
+        {{600000000, 100000000, Map::HardMaximumEstimatedBytes, 0}},
+    };
     Map::Policy capacity;
-    capacity.max_total_points = 600000000;
-    capacity.max_total_cells = 100000000;
-    capacity.max_estimated_bytes = 320ULL * 1024 * 1024 * 1024;
-    check(Map::Policy{}.max_estimated_bytes == 2ULL * 1024 * 1024 * 1024 && Map::Policy{}.max_total_points == 5000000 && Map::Policy{}.max_total_cells == 2000000, "raising the engineering ceiling changed nominal default budgets");
-    check(Map::EstimatedBytes(capacity.max_total_points, capacity.max_total_cells, Map::RootCount(Map::Geometry{}), bytes) &&
-              bytes > 128ULL * 1024 * 1024 * 1024 && bytes < capacity.max_estimated_bytes,
-          "declared large-capacity footprint does not fit its explicit ceiling");
-    Map::Data tiny_capacity;
-    Map::BuildSummary capacity_summary;
-    check(Map::Build(g, capacity, 0, 1, sampler(1), tiny_capacity, capacity_summary, log, errors), errors.str());
-    check(tiny_capacity.points.size() < 1000 && tiny_capacity.cells.size() < 1000 &&
-              tiny_capacity.points.capacity() < 1000 && tiny_capacity.cells.capacity() < 1000,
-          "declared global capacity caused eager allocation/growth");
-    auto aggregate_capacity = capacity;
-    aggregate_capacity.max_total_points = 1500000000ULL;
-    aggregate_capacity.max_total_cells = 250000000ULL;
-    aggregate_capacity.max_estimated_bytes = 768ULL * 1024 * 1024 * 1024;
-    check(Map::EstimatedBytes(aggregate_capacity.max_total_points, aggregate_capacity.max_total_cells, Map::RootCount(Map::Geometry{}), bytes) &&
-              bytes > 512ULL * 1024 * 1024 * 1024 && bytes < aggregate_capacity.max_estimated_bytes,
-          "explicit aggregate footprint does not fit768GiB");
-    check(Map::Build(g, aggregate_capacity, 0, 1, sampler(1), tiny_capacity, capacity_summary, log, errors), "explicit1.5B/250M/768GiB policy rejected");
-    check(tiny_capacity.points.capacity() < 1000 && tiny_capacity.cells.capacity() < 1000, "aggregate policy caused eager allocation");
-    auto previous_capacity = capacity;
-    previous_capacity.max_total_points = 200000000;
-    previous_capacity.max_total_cells = 40000000;
-    previous_capacity.max_estimated_bytes = 128ULL * 1024 * 1024 * 1024;
-    check(Map::Build(g, previous_capacity, 0, 1, sampler(1), tiny_capacity, capacity_summary, log, errors), "previous128GiB policy stopped working");
-    previous_capacity.max_total_points = 100000000;
-    previous_capacity.max_total_cells = 20000000;
-    previous_capacity.max_estimated_bytes = 64ULL * 1024 * 1024 * 1024;
-    check(Map::Build(g, previous_capacity, 0, 1, sampler(1), tiny_capacity, capacity_summary, log, errors), "previous64GiB policy stopped working");
-    auto hard_capacity = capacity;
-    hard_capacity.max_estimated_bytes = Map::HardMaximumEstimatedBytes;
-    check(Map::Build(g, hard_capacity, 0, 1, sampler(1), tiny_capacity, capacity_summary, log, errors), "engineering ceiling boundary was rejected");
-    check(tiny_capacity.points.capacity() < 1000 && tiny_capacity.cells.capacity() < 1000, "engineering ceiling boundary eagerly reserved capacity");
+    for (const auto& limits : capacities)
+    {
+      capacity.max_total_points = limits[0];
+      capacity.max_total_cells = limits[1];
+      capacity.max_estimated_bytes = limits[2];
+      check(Map::EstimatedBytes(limits[0], limits[1], Map::RootCount(Map::Geometry{}), bytes) && bytes > limits[3] && bytes < limits[2],
+            "declared footprint does not fit its explicit capacity");
+      Map::Data tiny_capacity;
+      Map::BuildSummary capacity_summary;
+      check(Map::Build(g, capacity, 0, 1, sampler(1), tiny_capacity, capacity_summary, log, errors), errors.str());
+      check(tiny_capacity.points.size() < 1000 && tiny_capacity.cells.size() < 1000 &&
+                tiny_capacity.points.capacity() < 1000 && tiny_capacity.cells.capacity() < 1000,
+            "declared global capacity caused eager allocation/growth");
+    }
     auto excess = capacity;
     excess.max_estimated_bytes = Map::HardMaximumEstimatedBytes + 1;
     std::uint64_t sampler_calls = 0;

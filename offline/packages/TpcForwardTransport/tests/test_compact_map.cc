@@ -21,15 +21,14 @@
 #include "../PHGarfieldCompactMap.h"
 #include "../PHGarfieldFingerprint.h"
 #include "../PHGarfieldRootOutput.h"
+#include "PHGarfieldTestUtils.h"
 
 namespace
 {
   using Map = PHGarfieldCompactMap;
   using Source = PHGarfieldAdaptiveMap;
-  void check(bool value, const std::string& text)
-  {
-    if (!value) throw std::runtime_error(text);
-  }
+  using PHGarfieldTest::check;
+  using PHGarfieldTest::check_persisted_multibasket_tree;
   bool bits(double a, double b) { return std::bit_cast<std::uint64_t>(a) == std::bit_cast<std::uint64_t>(b); }
   Source::Geometry geometry()
   {
@@ -258,30 +257,6 @@ namespace
     ++false_proof.proof.uncertified_leaves_checked;
     reseal(false_proof);
     check(!Map::VerifyConversion(source, false_proof, error), "false retained proof count accepted");
-  }
-  void persisted(TDirectory* directory, const char* name)
-  {
-    auto* tree = dynamic_cast<TTree*>(directory->Get(name));
-    check(tree && tree->GetEntries() > 0, "missing nonempty streamed tree");
-    for (auto* object : *tree->GetListOfBranches())
-    {
-      auto* branch = dynamic_cast<TBranch*>(object);
-      const auto last = branch->GetWriteBasket();
-      Long64_t covered = 0;
-      unsigned int count = 0;
-      for (int i = 0; i <= last; ++i)
-      {
-        const auto begin = branch->GetBasketEntry()[i], end = i < last ? branch->GetBasketEntry()[i + 1] : tree->GetEntries();
-        if (begin == end) continue;
-        check(begin == covered && end > begin && end <= tree->GetEntries(), "streamed ranges incomplete");
-        const auto seek = branch->GetBasketSeek(i);
-        const auto bytes = branch->GetBasketBytes()[i];
-        check(seek > 0 && bytes > 0 && seek <= directory->GetFile()->GetSize() && bytes <= directory->GetFile()->GetSize() - seek, "basket not persisted in destination");
-        covered = end;
-        ++count;
-      }
-      check(covered == tree->GetEntries() && count >= 2, "fixture did not span multiple persisted baskets");
-    }
   }
   void write_training(const std::filesystem::path& path, const Source::Data& source)
   {
@@ -665,7 +640,10 @@ int main(int argc, char** argv)
     write(streamed, large);
     {
       TFile file(streamed.c_str(), "READ");
-      for (const char* name : {"Nodes", "Corners", "Values", "Roots"}) persisted(file.GetDirectory("Runtime"), name);
+      for (const char* name : {"Nodes", "Corners", "Values", "Roots"})
+      {
+        check_persisted_multibasket_tree(file, file.GetDirectory("Runtime"), name);
+      }
     }
     auto large_copy = read(streamed, large);
     check(Map::ContentFingerprint(large) == Map::ContentFingerprint(large_copy), "multibasket data changed");

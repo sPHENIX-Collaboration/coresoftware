@@ -7,22 +7,30 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <initializer_list>
 #include <ostream>
 #include <string>
+#include <utility>
 
 namespace
 {
   template <class T>
-  void write_parameter(const char* name, const T value)
+  void write_parameters(std::initializer_list<std::pair<const char*, T>> parameters)
   {
-    TParameter<T> parameter(name, value);
-    parameter.Write();
+    for (const auto& [name, value] : parameters)
+    {
+      TParameter<T> parameter(name, value);
+      parameter.Write();
+    }
   }
 
-  void write_named(const char* name, const std::string& value)
+  void write_named(std::initializer_list<std::pair<const char*, std::string>> values)
   {
-    TNamed named(name, value.c_str());
-    named.Write();
+    for (const auto& [name, value] : values)
+    {
+      TNamed named(name, value.c_str());
+      named.Write();
+    }
   }
 
 }  // namespace
@@ -247,140 +255,92 @@ bool PHGarfieldForwardMap::WriteMetadata(TDirectory* directory,
   }
   TDirectory::TContext context(directory);
   const std::string canonical_text = BuildCanonicalConfiguration(config, provenance, schema_version);
-  write_named("schema_name", schema_name.empty() ? SchemaName : schema_name);
-  write_parameter("generation_phi_chunk_index", 0);
-  write_parameter("generation_phi_chunk_count", 1);
-  write_parameter("schema_version", schema_version);
+  write_named({{"schema_name", schema_name.empty() ? SchemaName : schema_name}});
+  write_parameters<int>({{"generation_phi_chunk_index", 0},
+                         {"generation_phi_chunk_count", 1},
+                         {"schema_version", schema_version}});
   if (schema_version >= NumericalSchemaVersion)
   {
-    write_parameter("interpolation_tolerance_um", config.interpolation_tolerance_um);
-    write_named("interpolation_error_probe_scheme", schema_version >= 4 ? provenance.reach_probe_scheme : "center_and_face_centers_transverse_time_equivalent_v1");
+    write_parameters<double>({{"interpolation_tolerance_um", config.interpolation_tolerance_um}});
+    write_named({{"interpolation_error_probe_scheme", schema_version >= 4 ? provenance.reach_probe_scheme : "center_and_face_centers_transverse_time_equivalent_v1"}});
   }
-  write_named("transport_contract", TransportContract);
-  write_named("coordinate_frame", "TPC_ENVELOPE_LOCAL");
-  write_named("axis_order_units", "phi_rad,r_cm,z_cm");
-  write_named(
-      "transverse_quantity",
-      "delta_r_cm,r0_delta_phi_cm");
-  write_named("time_quantity", "absolute_drift_duration_ns");
-  write_named("integrator", "explicit_euler");
-  write_named(
-      "magnetic_field_domain_policy",
-      MagneticFieldDomainPolicy);
-  write_named(
-      "nominal_time_reference_policy",
-      NominalTimeReferencePolicy);
-  write_named(
-      "reach_encoding",
-      schema_version >= NumericalSchemaVersion ? "0=AllLost,1=Mixed,2=AllReach,3=NumericallyUnresolved" : "0=AllLost,1=Mixed,2=AllReach");
-  write_named("reach_probe_scheme", provenance.reach_probe_scheme);
-  write_named("configuration_label", config.configuration_label);
+  write_named({{"transport_contract", TransportContract},
+               {"coordinate_frame", "TPC_ENVELOPE_LOCAL"},
+               {"axis_order_units", "phi_rad,r_cm,z_cm"},
+               {"transverse_quantity", "delta_r_cm,r0_delta_phi_cm"},
+               {"time_quantity", "absolute_drift_duration_ns"},
+               {"integrator", "explicit_euler"},
+               {"magnetic_field_domain_policy", MagneticFieldDomainPolicy},
+               {"nominal_time_reference_policy", NominalTimeReferencePolicy},
+               {"reach_encoding", schema_version >= NumericalSchemaVersion ? "0=AllLost,1=Mixed,2=AllReach,3=NumericallyUnresolved" : "0=AllLost,1=Mixed,2=AllReach"},
+               {"reach_probe_scheme", provenance.reach_probe_scheme},
+               {"configuration_label", config.configuration_label}});
   // Descriptive for 2D as well, without changing its established fingerprint.
   if (provenance.field_model == "per_side_3d" || provenance.field_model == "axisymmetric_2d")
   {
-    write_named("space_charge_z_coordinate_policy", SpaceChargeZCoordinatePolicy);
+    write_named({{"space_charge_z_coordinate_policy", SpaceChargeZCoordinatePolicy}});
   }
   if (schema_version >= ExtendedSchemaVersion)
   {
-    write_named("field_model", provenance.field_model);
-    write_named("frame_field_map", provenance.frame_field_map);
-    write_named("frame_field_map_md5", provenance.frame_field_map_md5);
+    write_named({{"field_model", provenance.field_model},
+                 {"frame_field_map", provenance.frame_field_map},
+                 {"frame_field_map_md5", provenance.frame_field_map_md5}});
     for (std::size_t side = 0; side < 2; ++side)
     {
       const std::string side_tag = "_side" + std::to_string(side);
-      write_named(("electric_field_map_3d" + side_tag).c_str(), provenance.electric_field_map_3d[side]);
-      write_named(("electric_field_map_3d_md5" + side_tag).c_str(), provenance.electric_field_map_3d_md5[side]);
-      write_named(("frame_field_map_3d" + side_tag).c_str(), provenance.frame_field_map_3d[side]);
-      write_named(("frame_field_map_3d_md5" + side_tag).c_str(), provenance.frame_field_map_3d_md5[side]);
-      write_parameter(("frame_charge_scale" + side_tag).c_str(), provenance.frame_charge_scale[side]);
-      write_parameter(("cm_field_factor" + side_tag).c_str(), provenance.cm_field_factor[side]);
+      write_named({{("electric_field_map_3d" + side_tag).c_str(), provenance.electric_field_map_3d[side]},
+                   {("electric_field_map_3d_md5" + side_tag).c_str(), provenance.electric_field_map_3d_md5[side]},
+                   {("frame_field_map_3d" + side_tag).c_str(), provenance.frame_field_map_3d[side]},
+                   {("frame_field_map_3d_md5" + side_tag).c_str(), provenance.frame_field_map_3d_md5[side]}});
+      write_parameters<double>({{("frame_charge_scale" + side_tag).c_str(), provenance.frame_charge_scale[side]},
+                                {("cm_field_factor" + side_tag).c_str(), provenance.cm_field_factor[side]}});
     }
-    write_parameter("use_ifc_voltage_distortion", static_cast<int>(provenance.use_ifc_voltage_distortion));
-    write_parameter("use_ofc_voltage_distortion", static_cast<int>(provenance.use_ofc_voltage_distortion));
+    write_parameters<int>({{"use_ifc_voltage_distortion", static_cast<int>(provenance.use_ifc_voltage_distortion)},
+                           {"use_ofc_voltage_distortion", static_cast<int>(provenance.use_ofc_voltage_distortion)}});
     for (std::size_t index = 0; index < 4; ++index)
     {
-      write_parameter(("field_cage_offset_v_" + std::to_string(index)).c_str(), provenance.field_cage_offsets_v[index]);
+      write_parameters<double>({{("field_cage_offset_v_" + std::to_string(index)).c_str(), provenance.field_cage_offsets_v[index]}});
     }
   }
-  write_named("electric_field_map", provenance.electric_field_map);
-  write_named(
-      "magnetic_field_map",
-      provenance.magnetic_field_map);
-  write_named("gas_file", provenance.gas_file);
-  write_named("electric_field_map_md5", provenance.electric_field_map_md5);
-  write_named("magnetic_field_map_md5", provenance.magnetic_field_map_md5);
-  write_named("gas_file_md5", provenance.gas_file_md5);
-  write_named("cdb_global_tag", config.cdb_global_tag);
-  write_named("canonical_configuration", canonical_text);
-  write_named(
-      "configuration_fingerprint_fnv1a64",
-      Fingerprint(canonical_text));
+  write_named({{"electric_field_map", provenance.electric_field_map},
+               {"magnetic_field_map", provenance.magnetic_field_map},
+               {"gas_file", provenance.gas_file},
+               {"electric_field_map_md5", provenance.electric_field_map_md5},
+               {"magnetic_field_map_md5", provenance.magnetic_field_map_md5},
+               {"gas_file_md5", provenance.gas_file_md5},
+               {"cdb_global_tag", config.cdb_global_tag},
+               {"canonical_configuration", canonical_text},
+               {"configuration_fingerprint_fnv1a64", Fingerprint(canonical_text)}});
 
-  write_parameter("phi_nodes", static_cast<int>(config.phi_nodes));
-  write_parameter(
-      "radial_nodes",
-      static_cast<int>(config.radial_nodes));
-  write_parameter(
-      "longitudinal_nodes",
-      static_cast<int>(config.longitudinal_nodes));
-  write_parameter("gas_inner_radius_cm", config.inner_radius_cm);
-  write_parameter("gas_outer_radius_cm", config.outer_radius_cm);
-  write_parameter(
-      "central_membrane_half_width_cm",
-      config.central_membrane_half_width_cm);
-  write_parameter("readout_abs_z_cm", config.readout_abs_z_cm);
-  write_parameter("integration_step_ns", config.integration_step_ns);
-  write_parameter(
-      "nominal_phg4_drift_velocity_cm_per_ns",
-      config.nominal_phg4_drift_velocity_cm_per_ns);
-  write_parameter(
-      "maximum_nominal_time_mismatch",
-      config.maximum_nominal_time_mismatch);
-  write_parameter(
-      "scale_zero_reference_time_side0_ns",
-      summary.scale_zero_reference_time_side0_ns);
-  write_parameter(
-      "scale_zero_reference_time_side1_ns",
-      summary.scale_zero_reference_time_side1_ns);
-  write_parameter(
-      "scale_zero_maximum_time_mismatch",
-      summary.scale_zero_maximum_time_mismatch);
-  write_parameter("tpc_place_x_cm", config.tpc_place_x_cm);
-  write_parameter("tpc_place_y_cm", config.tpc_place_y_cm);
-  write_parameter("tpc_place_z_cm", config.tpc_place_z_cm);
-  write_parameter("tpc_rotation_x_rad", config.tpc_rotation_x_rad);
-  write_parameter("tpc_rotation_y_rad", config.tpc_rotation_y_rad);
-  write_parameter("tpc_rotation_z_rad", config.tpc_rotation_z_rad);
-  write_parameter(
-      "nominal_electric_field_vcm",
-      provenance.nominal_electric_field_vcm);
-  write_parameter(
-      "space_charge_scale_side0",
-      provenance.space_charge_scale_side0);
-  write_parameter(
-      "space_charge_scale_side1",
-      provenance.space_charge_scale_side1);
-  write_parameter(
-      "magnetic_field_scale",
-      provenance.magnetic_field_scale);
-  write_parameter(
-      "zero_magnetic_field",
-      provenance.zero_magnetic_field ? 1 : 0);
-  write_parameter(
-      "maximum_integration_steps",
-      static_cast<int>(PHGarfieldForwardTransport::MaxForwardDriftSteps));
-  write_parameter(
-      "maximum_drift_time_ns",
-      summary.maximum_drift_time_ns);
-  write_parameter(
-      "cell_center_probes",
-      1);
-  write_named(
-      "reach_probe_trajectories",
-      std::to_string(summary.probe_trajectories));
-  write_named(
-      "cdb_timestamp",
-      std::to_string(config.cdb_timestamp));
+  write_parameters<int>({{"phi_nodes", static_cast<int>(config.phi_nodes)},
+                         {"radial_nodes", static_cast<int>(config.radial_nodes)},
+                         {"longitudinal_nodes", static_cast<int>(config.longitudinal_nodes)}});
+  write_parameters<double>({{"gas_inner_radius_cm", config.inner_radius_cm},
+                            {"gas_outer_radius_cm", config.outer_radius_cm},
+                            {"central_membrane_half_width_cm", config.central_membrane_half_width_cm},
+                            {"readout_abs_z_cm", config.readout_abs_z_cm},
+                            {"integration_step_ns", config.integration_step_ns},
+                            {"nominal_phg4_drift_velocity_cm_per_ns", config.nominal_phg4_drift_velocity_cm_per_ns},
+                            {"maximum_nominal_time_mismatch", config.maximum_nominal_time_mismatch},
+                            {"scale_zero_reference_time_side0_ns", summary.scale_zero_reference_time_side0_ns},
+                            {"scale_zero_reference_time_side1_ns", summary.scale_zero_reference_time_side1_ns},
+                            {"scale_zero_maximum_time_mismatch", summary.scale_zero_maximum_time_mismatch},
+                            {"tpc_place_x_cm", config.tpc_place_x_cm},
+                            {"tpc_place_y_cm", config.tpc_place_y_cm},
+                            {"tpc_place_z_cm", config.tpc_place_z_cm},
+                            {"tpc_rotation_x_rad", config.tpc_rotation_x_rad},
+                            {"tpc_rotation_y_rad", config.tpc_rotation_y_rad},
+                            {"tpc_rotation_z_rad", config.tpc_rotation_z_rad},
+                            {"nominal_electric_field_vcm", provenance.nominal_electric_field_vcm},
+                            {"space_charge_scale_side0", provenance.space_charge_scale_side0},
+                            {"space_charge_scale_side1", provenance.space_charge_scale_side1},
+                            {"magnetic_field_scale", provenance.magnetic_field_scale}});
+  write_parameters<int>({{"zero_magnetic_field", provenance.zero_magnetic_field ? 1 : 0},
+                         {"maximum_integration_steps", static_cast<int>(PHGarfieldForwardTransport::MaxForwardDriftSteps)}});
+  write_parameters<double>({{"maximum_drift_time_ns", summary.maximum_drift_time_ns}});
+  write_parameters<int>({{"cell_center_probes", 1}});
+  write_named({{"reach_probe_trajectories", std::to_string(summary.probe_trajectories)},
+               {"cdb_timestamp", std::to_string(config.cdb_timestamp)}});
 
   return true;
 }

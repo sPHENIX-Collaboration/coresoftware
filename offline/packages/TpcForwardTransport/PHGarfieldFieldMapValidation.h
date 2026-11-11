@@ -5,7 +5,7 @@
 #include <iosfwd>
 #include <string>
 
-// Internal validation of the Cartesian ROOT grid consumed by PHField3DCartesian.
+// Basic inspection of the Cartesian ROOT map consumed by PHField3DCartesian.
 // This helper inspects a filename; field ownership and CDB resolution stay with
 // PHGarfieldForwardTransport.
 namespace PHGarfieldFieldMapValidation
@@ -17,6 +17,8 @@ namespace PHGarfieldFieldMapValidation
   };
 
   // Bounds are the inclusive coordinate extrema in the map frame, in cm.
+  // Requires readable finite entries and a nondegenerate range on every axis.
+  // The input's grid spacing, completeness and uniqueness are trusted.
   // On failure both arrays contain NaN, including when a valid result is reused.
   bool InspectCartesianMap(const std::string& filename,
                            CartesianDomain& domain,

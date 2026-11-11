@@ -27,7 +27,8 @@ noinst_HEADERS = \
   PHGarfieldForwardSetup.h \
   PHGarfieldMapTools.h \
   PHGarfieldPrimitiveTree.h \
-  PHGarfieldRootOutput.h
+  PHGarfieldRootOutput.h \
+  tests/PHGarfieldTestUtils.h
 
 lib_LTLIBRARIES = libTpcForwardTransport.la libTpcForwardTransportTools.la
 

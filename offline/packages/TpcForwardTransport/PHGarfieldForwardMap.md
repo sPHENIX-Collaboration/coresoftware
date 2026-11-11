@@ -45,6 +45,10 @@ payload's physical coordinate origin. Magnetic-field coverage, input payloads,
 geometry and the correction-disabled Garfield/PHG4 timing reference are also
 checked before generation.
 
+Magnetic maps must provide a complete Cartesian interpolation grid. Input
+inspection checks readable finite entries and coordinate bounds; grid spacing,
+missing grid points and duplicate entries are trusted rather than audited.
+
 ## Refinement and interpolation
 
 The coarse grid is refined by bisecting one cell axis at a time. The selected

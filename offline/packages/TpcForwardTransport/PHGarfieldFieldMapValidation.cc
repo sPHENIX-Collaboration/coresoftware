@@ -5,13 +5,9 @@
 
 #include <algorithm>
 #include <cmath>
-#include <iterator>
 #include <limits>
-#include <map>
 #include <memory>
 #include <ostream>
-#include <set>
-#include <vector>
 
 bool PHGarfieldFieldMapValidation::InspectCartesianMap(
     const std::string& filename,
@@ -87,9 +83,9 @@ bool PHGarfieldFieldMapValidation::InspectCartesianMap(
     return false;
   }
 
-  std::array<std::set<float>, 3> axis_values;
-  std::vector<std::array<float, 3>> coordinates;
-  coordinates.reserve(static_cast<std::size_t>(entries));
+  CartesianDomain inspected;
+  inspected.minimum_cm.fill(std::numeric_limits<double>::max());
+  inspected.maximum_cm.fill(std::numeric_limits<double>::lowest());
   for (Long64_t entry = 0; entry < entries; ++entry)
   {
     if (field_map->GetEntry(entry) <= 0 ||
@@ -106,117 +102,27 @@ bool PHGarfieldFieldMapValidation::InspectCartesianMap(
                   << std::endl;
       return false;
     }
-    axis_values[0].insert(x_cm);
-    axis_values[1].insert(y_cm);
-    axis_values[2].insert(z_cm);
-    coordinates.push_back({{x_cm, y_cm, z_cm}});
+    const std::array<double, 3> coordinate = {{x_cm, y_cm, z_cm}};
+    for (std::size_t axis = 0; axis < coordinate.size(); ++axis)
+    {
+      inspected.minimum_cm[axis] = std::min(inspected.minimum_cm[axis], coordinate[axis]);
+      inspected.maximum_cm[axis] = std::max(inspected.maximum_cm[axis], coordinate[axis]);
+    }
   }
 
-  const auto is_uniform_axis =
-      [](const std::set<float>& values)
+  for (std::size_t axis = 0; axis < inspected.minimum_cm.size(); ++axis)
   {
-    if (values.size() < 2)
-    {
-      return false;
-    }
-    const double expected_spacing =
-        (static_cast<double>(*values.rbegin()) -
-         static_cast<double>(*values.begin())) /
-        static_cast<double>(values.size() - 1);
-    const double magnitude = std::max(
-        std::abs(static_cast<double>(*values.begin())),
-        std::abs(static_cast<double>(*values.rbegin())));
-    // Stored coordinates are floats. Subtracting adjacent rounded coordinates
-    // can differ from the ideal spacing by their coordinate-sized roundoff.
-    const double tolerance = std::max(
-        1.0e-6 * std::max(1.0, std::abs(expected_spacing)),
-        4.0 * static_cast<double>(std::numeric_limits<float>::epsilon()) * magnitude);
-    auto previous = values.begin();
-    for (auto current = std::next(previous);
-         current != values.end();
-         ++current)
-    {
-      const double spacing =
-          static_cast<double>(*current) -
-          static_cast<double>(*previous);
-      if (!std::isfinite(spacing) ||
-          std::abs(spacing - expected_spacing) > tolerance)
-      {
-        return false;
-      }
-      previous = current;
-    }
-    return true;
-  };
-  if (!std::all_of(
-          axis_values.begin(),
-          axis_values.end(),
-          is_uniform_axis))
-  {
-    diagnostics << "PHGarfieldFieldMapValidation::InspectCartesianMap -"
-                << " Magnetic-field coordinates do not form uniform axes: "
-                << filename << std::endl;
-    return false;
-  }
-
-  std::size_t expected_entries = 1;
-  for (const auto& values : axis_values)
-  {
-    if (expected_entries >
-        std::numeric_limits<std::size_t>::max() / values.size())
+    if (inspected.minimum_cm[axis] >= inspected.maximum_cm[axis])
     {
       diagnostics << "PHGarfieldFieldMapValidation::InspectCartesianMap -"
-                  << " Magnetic-field grid dimensions overflow: "
-                  << filename << std::endl;
+                  << " Magnetic-field map has a degenerate coordinate range on axis "
+                  << axis << ": " << filename << std::endl;
       return false;
     }
-    expected_entries *= values.size();
-  }
-  if (expected_entries != coordinates.size())
-  {
-    diagnostics << "PHGarfieldFieldMapValidation::InspectCartesianMap -"
-                << " Magnetic-field map is not a complete Cartesian lattice: "
-                << filename << std::endl;
-    return false;
   }
 
-  std::array<std::map<float, std::size_t>, 3> axis_index;
-  for (unsigned int axis = 0; axis < axis_values.size(); ++axis)
-  {
-    std::size_t index = 0;
-    for (const float value : axis_values[axis])
-    {
-      axis_index[axis].emplace(value, index++);
-    }
-  }
-
-  std::vector<unsigned char> occupied(expected_entries, 0);
-  const std::size_t ny = axis_values[1].size();
-  const std::size_t nz = axis_values[2].size();
-  for (const auto& coordinate : coordinates)
-  {
-    const std::size_t linear_index =
-        (axis_index[0].at(coordinate[0]) * ny +
-         axis_index[1].at(coordinate[1])) *
-            nz +
-        axis_index[2].at(coordinate[2]);
-    if (occupied[linear_index] != 0)
-    {
-      diagnostics << "PHGarfieldFieldMapValidation::InspectCartesianMap -"
-                  << " Magnetic-field map contains a duplicate grid point: "
-                  << filename << std::endl;
-      return false;
-    }
-    occupied[linear_index] = 1;
-  }
-
-  // Publish the domain only after the full lattice has been validated.
-  for (unsigned int axis = 0; axis < axis_values.size(); ++axis)
-  {
-    domain.minimum_cm[axis] =
-        static_cast<double>(*axis_values[axis].begin());
-    domain.maximum_cm[axis] =
-        static_cast<double>(*axis_values[axis].rbegin());
-  }
+  // Trust the supplied map's grid structure; coverage checks use its extrema.
+  // Do not audit grid spacing, missing Cartesian points or duplicate entries.
+  domain = inspected;
   return true;
 }

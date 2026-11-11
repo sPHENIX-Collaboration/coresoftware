@@ -9,6 +9,7 @@
 #include <numbers>
 #include <sstream>
 #include <string>
+#include <utility>
 
 namespace
 {
@@ -17,33 +18,18 @@ namespace
     return std::abs(first - second) < 1.0e-12;
   }
 
-  bool expect_valid(
+  bool expect_config(
       const PHGarfieldForwardMap::Config& config,
-      const std::string& description)
+      const std::string& description, bool valid)
   {
     std::ostringstream error;
-    if (PHGarfieldForwardMap::ValidateConfig(config, error))
+    if (PHGarfieldForwardMap::ValidateConfig(config, error) == valid &&
+        (valid || !error.str().empty()))
     {
       return true;
     }
 
-    std::cerr << "ValidateConfig rejected " << description << ": "
-              << error.str();
-    return false;
-  }
-
-  bool expect_invalid(
-      const PHGarfieldForwardMap::Config& config,
-      const std::string& description)
-  {
-    std::ostringstream error;
-    if (!PHGarfieldForwardMap::ValidateConfig(config, error) &&
-        !error.str().empty())
-    {
-      return true;
-    }
-
-    std::cerr << "ValidateConfig accepted " << description << "\n";
+    std::cerr << "Unexpected ValidateConfig result for " << description << ": " << error.str() << '\n';
     return false;
   }
 }  // namespace
@@ -52,177 +38,79 @@ int main()
 {
   PHGarfieldForwardMap::Config valid_config;
   valid_config.output_filename = "unused-forward-map.root";
-  if (!expect_valid(valid_config, "the default configuration"))
+  if (!expect_config(valid_config, "the default configuration", true))
   {
     return 1;
   }
 
-  const auto rejects =
-      [&valid_config](const std::string& description, const auto& mutate)
+  using Config = PHGarfieldForwardMap::Config;
+  const double infinity = std::numeric_limits<double>::infinity();
+  const std::pair<const char*, void (*)(Config&)> rejected_configs[] = {
+      {"an empty output filename", [](auto& config)
+       { config.output_filename.clear(); }},
+      {"too few phi nodes", [](auto& config)
+       { config.phi_nodes = 2; }},
+      {"too few radial nodes", [](auto& config)
+       { config.radial_nodes = 1; }},
+      {"too few longitudinal nodes", [](auto& config)
+       { config.longitudinal_nodes = 1; }},
+      {"a wrapped-like phi node count", [](auto& config)
+       { config.phi_nodes = std::numeric_limits<unsigned int>::max(); }},
+      {"a wrapped-like radial node count", [](auto& config)
+       { config.radial_nodes = std::numeric_limits<unsigned int>::max(); }},
+      {"a wrapped-like longitudinal node count", [](auto& config)
+       { config.longitudinal_nodes = std::numeric_limits<unsigned int>::max(); }},
+      {"a negative interpolation tolerance", [](auto& config)
+       { config.interpolation_tolerance_um = -1.; }},
+      {"a nonfinite interpolation tolerance", [](auto& config)
+       { config.interpolation_tolerance_um = std::numeric_limits<double>::quiet_NaN(); }},
+      {"an excessive total source-node count", [](auto& config)
+       { config.phi_nodes = 1000; config.radial_nodes = 1000; config.longitudinal_nodes = 6; }},
+      {"a zero inner radius", [](auto& config)
+       { config.inner_radius_cm = 0.0; }},
+      {"a nonfinite inner radius", [](auto& config)
+       { config.inner_radius_cm = std::numeric_limits<double>::quiet_NaN(); }},
+      {"an outer radius equal to the inner radius", [](auto& config)
+       { config.outer_radius_cm = config.inner_radius_cm; }},
+      {"a nonfinite outer radius", [](auto& config)
+       { config.outer_radius_cm = std::numeric_limits<double>::infinity(); }},
+      {"a zero central-membrane half-width", [](auto& config)
+       { config.central_membrane_half_width_cm = 0.0; }},
+      {"a nonfinite central-membrane half-width", [](auto& config)
+       { config.central_membrane_half_width_cm = std::numeric_limits<double>::quiet_NaN(); }},
+      {"a readout plane at the central membrane", [](auto& config)
+       { config.readout_abs_z_cm = config.central_membrane_half_width_cm; }},
+      {"a nonfinite readout plane", [](auto& config)
+       { config.readout_abs_z_cm = std::numeric_limits<double>::infinity(); }},
+      {"a nonfinite TPC placement", [](auto& config)
+       { config.tpc_place_y_cm = std::numeric_limits<double>::quiet_NaN(); }},
+      {"a nonfinite TPC rotation", [](auto& config)
+       { config.tpc_rotation_z_rad = std::numeric_limits<double>::infinity(); }},
+      {"a zero integration step", [](auto& config)
+       { config.integration_step_ns = 0.0; }},
+      {"a negative integration step", [](auto& config)
+       { config.integration_step_ns = -1.0; }},
+      {"a nonfinite integration step", [](auto& config)
+       { config.integration_step_ns = std::numeric_limits<double>::quiet_NaN(); }},
+      {"a zero nominal PHG4 drift velocity", [](auto& config)
+       { config.nominal_phg4_drift_velocity_cm_per_ns = 0.0; }},
+      {"a negative nominal PHG4 drift velocity", [](auto& config)
+       { config.nominal_phg4_drift_velocity_cm_per_ns = -0.001; }},
+      {"a nonfinite nominal PHG4 drift velocity", [](auto& config)
+       { config.nominal_phg4_drift_velocity_cm_per_ns = std::numeric_limits<double>::infinity(); }},
+      {"a negative nominal-time mismatch", [](auto& config)
+       { config.maximum_nominal_time_mismatch = -0.001; }},
+      {"a nonfinite nominal-time mismatch", [](auto& config)
+       { config.maximum_nominal_time_mismatch = std::numeric_limits<double>::quiet_NaN(); }},
+  };
+  for (const auto& [description, mutate] : rejected_configs)
   {
     auto config = valid_config;
     mutate(config);
-    return expect_invalid(config, description);
-  };
-
-  if (!rejects(
-          "an empty output filename",
-          [](auto& config)
-          { config.output_filename.clear(); }) ||
-      !rejects(
-          "too few phi nodes",
-          [](auto& config)
-          { config.phi_nodes = 2; }) ||
-      !rejects(
-          "too few radial nodes",
-          [](auto& config)
-          { config.radial_nodes = 1; }) ||
-      !rejects(
-          "too few longitudinal nodes",
-          [](auto& config)
-          { config.longitudinal_nodes = 1; }) ||
-      !rejects(
-          "a wrapped-like phi node count",
-          [](auto& config)
-          {
-            config.phi_nodes =
-                std::numeric_limits<unsigned int>::max();
-          }) ||
-      !rejects(
-          "a wrapped-like radial node count",
-          [](auto& config)
-          {
-            config.radial_nodes =
-                std::numeric_limits<unsigned int>::max();
-          }) ||
-      !rejects(
-          "a wrapped-like longitudinal node count",
-          [](auto& config)
-          {
-            config.longitudinal_nodes =
-                std::numeric_limits<unsigned int>::max();
-          }) ||
-      !rejects("a negative interpolation tolerance", [](auto& config)
-               { config.interpolation_tolerance_um = -1.; }) ||
-      !rejects("a nonfinite interpolation tolerance", [](auto& config)
-               { config.interpolation_tolerance_um = std::numeric_limits<double>::quiet_NaN(); }) ||
-      !rejects(
-          "an excessive total source-node count",
-          [](auto& config)
-          {
-            config.phi_nodes = 1000;
-            config.radial_nodes = 1000;
-            config.longitudinal_nodes = 6;
-          }))
-  {
-    return 1;
-  }
-
-  const double nan = std::numeric_limits<double>::quiet_NaN();
-  const double infinity = std::numeric_limits<double>::infinity();
-  if (!rejects(
-          "a zero inner radius",
-          [](auto& config)
-          { config.inner_radius_cm = 0.0; }) ||
-      !rejects(
-          "a nonfinite inner radius",
-          [nan](auto& config)
-          { config.inner_radius_cm = nan; }) ||
-      !rejects(
-          "an outer radius equal to the inner radius",
-          [](auto& config)
-          {
-            config.outer_radius_cm = config.inner_radius_cm;
-          }) ||
-      !rejects(
-          "a nonfinite outer radius",
-          [infinity](auto& config)
-          {
-            config.outer_radius_cm = infinity;
-          }) ||
-      !rejects(
-          "a zero central-membrane half-width",
-          [](auto& config)
-          {
-            config.central_membrane_half_width_cm = 0.0;
-          }) ||
-      !rejects(
-          "a nonfinite central-membrane half-width",
-          [nan](auto& config)
-          {
-            config.central_membrane_half_width_cm = nan;
-          }) ||
-      !rejects(
-          "a readout plane at the central membrane",
-          [](auto& config)
-          {
-            config.readout_abs_z_cm =
-                config.central_membrane_half_width_cm;
-          }) ||
-      !rejects(
-          "a nonfinite readout plane",
-          [infinity](auto& config)
-          {
-            config.readout_abs_z_cm = infinity;
-          }) ||
-      !rejects(
-          "a nonfinite TPC placement",
-          [nan](auto& config)
-          { config.tpc_place_y_cm = nan; }) ||
-      !rejects(
-          "a nonfinite TPC rotation",
-          [infinity](auto& config)
-          {
-            config.tpc_rotation_z_rad = infinity;
-          }))
-  {
-    return 1;
-  }
-
-  if (!rejects(
-          "a zero integration step",
-          [](auto& config)
-          { config.integration_step_ns = 0.0; }) ||
-      !rejects(
-          "a negative integration step",
-          [](auto& config)
-          { config.integration_step_ns = -1.0; }) ||
-      !rejects(
-          "a nonfinite integration step",
-          [nan](auto& config)
-          { config.integration_step_ns = nan; }) ||
-      !rejects(
-          "a zero nominal PHG4 drift velocity",
-          [](auto& config)
-          {
-            config.nominal_phg4_drift_velocity_cm_per_ns = 0.0;
-          }) ||
-      !rejects(
-          "a negative nominal PHG4 drift velocity",
-          [](auto& config)
-          {
-            config.nominal_phg4_drift_velocity_cm_per_ns = -0.001;
-          }) ||
-      !rejects(
-          "a nonfinite nominal PHG4 drift velocity",
-          [infinity](auto& config)
-          {
-            config.nominal_phg4_drift_velocity_cm_per_ns = infinity;
-          }) ||
-      !rejects(
-          "a negative nominal-time mismatch",
-          [](auto& config)
-          {
-            config.maximum_nominal_time_mismatch = -0.001;
-          }) ||
-      !rejects(
-          "a nonfinite nominal-time mismatch",
-          [nan](auto& config)
-          {
-            config.maximum_nominal_time_mismatch = nan;
-          }))
-  {
-    return 1;
+    if (!expect_config(config, description, false))
+    {
+      return 1;
+    }
   }
 
   constexpr double r0 = 40.0;
@@ -284,32 +172,24 @@ int main()
     return 1;
   }
 
-  auto invalid_result = readout_result;
-  invalid_result.status =
-      PHGarfieldForwardTransport::ForwardDriftStatus::LeftDriftVolume;
-  if (PHGarfieldForwardMap::EncodeNode(
-          r0, phi0, invalid_result, encoded))
+  using Result = PHGarfieldForwardTransport::ForwardDriftResult;
+  const std::pair<const char*, void (*)(Result&)> rejected_endpoints[] = {
+      {"an inconsistent reaching status", [](auto& value)
+       { value.status = PHGarfieldForwardTransport::ForwardDriftStatus::LeftDriftVolume; }},
+      {"a nonfinite endpoint", [](auto& value)
+       { value.x_cm = std::numeric_limits<double>::quiet_NaN(); }},
+      {"a negative drift time", [](auto& value)
+       { value.drift_time_ns = -1.0; }},
+  };
+  for (const auto& [description, mutate] : rejected_endpoints)
   {
-    std::cerr << "EncodeNode accepted an inconsistent reaching status\n";
-    return 1;
-  }
-
-  invalid_result = readout_result;
-  invalid_result.x_cm = nan;
-  if (PHGarfieldForwardMap::EncodeNode(
-          r0, phi0, invalid_result, encoded))
-  {
-    std::cerr << "EncodeNode accepted a nonfinite endpoint\n";
-    return 1;
-  }
-
-  invalid_result = readout_result;
-  invalid_result.drift_time_ns = -1.0;
-  if (PHGarfieldForwardMap::EncodeNode(
-          r0, phi0, invalid_result, encoded))
-  {
-    std::cerr << "EncodeNode accepted a negative drift time\n";
-    return 1;
+    auto invalid_result = readout_result;
+    mutate(invalid_result);
+    if (PHGarfieldForwardMap::EncodeNode(r0, phi0, invalid_result, encoded))
+    {
+      std::cerr << "EncodeNode accepted " << description << '\n';
+      return 1;
+    }
   }
 
   if (PHGarfieldForwardMap::EncodeNode(
