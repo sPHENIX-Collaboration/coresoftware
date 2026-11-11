@@ -157,6 +157,22 @@ class pi0EtaByEta : public SubsysReco
   {
     useEcore = state;
   }
+  // guards of the tower-by-tower update in fitEtaPhiTowers (all on by default):
+  // largest step of a tower per iteration, |correction - 1| <= val (<= 0: no limit)
+  void set_tbt_max_step(float val)
+  {
+    tbtMaxStep = val;
+  }
+  // no update of a tower with fewer pairs than frac x the median over towers (0: off)
+  void set_tbt_min_pair_frac(float frac)
+  {
+    tbtMinPairFrac = frac;
+  }
+  // no update of a tower whose fitted peak is at a limit of the fit (no real peak)
+  void set_tbt_freeze_at_fit_limit(bool state)
+  {
+    tbtFreezeAtFitLimit = state;
+  }
 
  protected:
   int Getpeaktime(TH1* h);
@@ -300,6 +316,10 @@ class pi0EtaByEta : public SubsysReco
   TriggerAnalyzer* trigAna{nullptr};
 
   float convLev = {0.005};
+
+  float tbtMaxStep{0.10};
+  float tbtMinPairFrac{0.05};
+  bool tbtFreezeAtFitLimit{true};
 };
 
 #endif
