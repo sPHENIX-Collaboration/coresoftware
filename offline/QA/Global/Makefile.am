@@ -21,7 +21,11 @@ libglobalQA_la_SOURCES = \
 
 libglobalQA_la_LIBADD = \
   -lcalo_io \
+  -lcalotrigger \
+  -lcalotrigger_io \
   -lcdbobjects \
+  -lcentrality_io \
+  -lffaobjects \
   -lffamodules \
   -lffarawobjects \
   -lfun4all \

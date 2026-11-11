@@ -3,6 +3,7 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -48,9 +49,32 @@ class CaloValid : public SubsysReco
 
  private:
   void createHistos();
+  void createMBHistos();
+  void process_mb(PHCompositeNode* topNode, float vtx_z);
   static void MirrorHistogram(TH1* histogram);
   std::string getHistoPrefix() const;
   std::string m_species = "pp";
+  int m_runnumber{0};
+
+  // MB trigger (bit 14, bit 10 in Run-2 p+p, OR bit 12 if the MB bit is prescaled by more than 1000), good towers:
+  // energy, energy sum, fraction above threshold, non-ZS fraction, time and time - MBD t0 per layer;
+  // HCal per tower (ieta*64+iphi): mean energy in the tower slope correction fit window, fraction of events above its lower edge;
+  // EMCal clusters per trigger (MB, photon, jet)
+  bool m_mbbooked{false};
+  bool m_trigdecided{false};
+  int m_mbbit{14};
+  int m_mbbit_or{-1};
+  std::array<std::string, 2> m_trigname{};
+  std::array<TH1*, 3> h_mb_tower_e{};
+  std::array<TH1*, 3> h_mb_tower_esum{};
+  std::array<TH1*, 3> h_mb_tower_occ{};
+  std::array<TProfile*, 3> pr_mb_tower_occ_mean{};
+  std::array<TH1*, 3> h_mb_tower_nonzs_frac{};
+  std::array<TH1*, 3> h_mb_tower_time{};
+  std::array<TH1*, 3> h_mb_tower_time_mbdt0{};
+  std::array<TProfile*, 3> pr_mb_tsc_e{};
+  std::array<TProfile*, 3> pr_mb_tsc_occ{};
+  std::array<TH2*, 3> h_clus_e_eta{};
 
   TriggerAnalyzer* trigAna{nullptr};
   TH3* h_pi0_trigIB_mass{nullptr};

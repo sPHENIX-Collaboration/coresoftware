@@ -3,6 +3,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <array>
+#include <cstdint>
 #include <limits>  // for numeric_limits
 #include <string>
 #include <vector>
@@ -13,6 +15,7 @@ class PHCompositeNode;
 class TH1;
 class TH2;
 class TProfile2D;
+class TriggerAnalyzer;
 
 class GlobalQA : public SubsysReco
 {
@@ -23,10 +26,12 @@ class GlobalQA : public SubsysReco
   // //int nevents = 100);
 
   //! destructor
-  ~GlobalQA() override = default;
+  ~GlobalQA() override;
 
   //! full initialization
   int Init(PHCompositeNode *) override;
+
+  int InitRun(PHCompositeNode *) override;
 
   //! event processing method
   int process_event(PHCompositeNode *) override;
@@ -48,6 +53,10 @@ class GlobalQA : public SubsysReco
   //int evtcount{0};
   int Getpeaktime(TH1 *h);
   void createHistos();
+  void createMBHistos();
+  void decideTriggers();
+  void process_mb(PHCompositeNode *topNode);
+  void process_zdctrig(PHCompositeNode *topNode);
 
   // MBD histos
   TH1 *h_GlobalQA_mbd_zvtx{nullptr};
@@ -80,6 +89,48 @@ class GlobalQA : public SubsysReco
   TH1 *h_GlobalQA_zdc_energy_n{nullptr};
   TH1 *h_GlobalQA_triggerVec{nullptr};
   float zdc_zvtx{std::numeric_limits<float>::quiet_NaN()};
+
+  // MB trigger (bit 14, bit 10 in Run-2 p+p, OR bit 12 if the MB bit is prescaled by more than 1000)
+  TH2 *h2_GlobalQA_mb_mbd_q_pmt{nullptr};
+  TH2 *h2_GlobalQA_mb_mbd_t_pmt{nullptr};
+  TH1 *h_GlobalQA_mb_mbd_qavg_s{nullptr};
+  TH1 *h_GlobalQA_mb_mbd_qavg_n{nullptr};
+  TH1 *h_GlobalQA_mb_mbd_npmt_s{nullptr};
+  TH1 *h_GlobalQA_mb_mbd_npmt_n{nullptr};
+  TH1 *h_GlobalQA_mb_mbd_zvtx{nullptr};
+  TH1 *h_GlobalQA_mb_mbd_t0{nullptr};
+  TH1 *h_GlobalQA_mb_cent{nullptr};
+  TH1 *h_GlobalQA_mb_cent_mbd_qsum{nullptr};
+  TH1 *h_GlobalQA_mb_zdc_energy_s{nullptr};
+  TH1 *h_GlobalQA_mb_zdc_energy_n{nullptr};
+  TH2 *h2_GlobalQA_mb_zdc_energy_ns{nullptr};
+  std::array<TH2 *, 2> h2_GlobalQA_mb_zdc_energy_ohcal{};
+  std::array<TH2 *, 2> h2_GlobalQA_mb_zdc_energy_t0{};
+  std::array<TProfile2D *, 2> h2Profile_GlobalQA_mb_zdc_t0_ohcal{};
+  TH2 *h2_GlobalQA_mb_sEPD_q_channel{nullptr};
+  TH1 *h_GlobalQA_mb_sEPD_qsum_s{nullptr};
+  TH1 *h_GlobalQA_mb_sEPD_qsum_n{nullptr};
+  TH2 *h2_GlobalQA_mb_sEPD_qsum_ns{nullptr};
+  TH1 *h_GlobalQA_mb_sEPD_nhit_s{nullptr};
+  TH1 *h_GlobalQA_mb_sEPD_nhit_n{nullptr};
+
+  // ZDC trigger (heavy ions: without MBD N&S)
+  TH1 *h_GlobalQA_zdctrig_zdc_energy_s{nullptr};
+  TH1 *h_GlobalQA_zdctrig_zdc_energy_n{nullptr};
+  TH2 *h2_GlobalQA_zdctrig_zdc_energy_ns{nullptr};
+  std::array<TH1 *, 6> h_GlobalQA_zdctrig_zdc_module_energy{};
+
+  TriggerAnalyzer *m_trigana{nullptr};
+  CDBTTree *m_zdccalib{nullptr};
+  std::string m_species{"pp"};
+  int m_runnumber{0};
+  bool m_mbbooked{false};
+  bool m_trigdecided{false};
+  int m_mbbit{14};
+  int m_mbbit_or{-1};
+  std::vector<int> m_zdcbits;
+  std::vector<int> m_mbdbits;
+  float m_mbdt0{std::numeric_limits<float>::quiet_NaN()};
 
   int _eventcounter{0};
   int _range{1};

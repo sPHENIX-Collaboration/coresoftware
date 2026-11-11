@@ -10,6 +10,7 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
+#include <mbd/MbdOut.h>
 #include <mbd/MbdPmtContainer.h>
 #include <mbd/MbdPmtHit.h>
 
@@ -156,6 +157,17 @@ int CaloValid::InitRun(PHCompositeNode* topNode)
   {
     std::cout << "No RunHeader node found. Using pp as default species.\n";
   }
+
+  if (runhdr)
+  {
+    m_runnumber = runhdr->get_RunNumber();
+  }
+  if (!m_mbbooked)
+  {
+    createMBHistos();
+    m_mbbooked = true;
+  }
+  m_trigdecided = false;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -361,6 +373,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       triggervec = (triggervec >> 1U) & 0xffffffffU;
     }
     // triggervec = gl1PacketInfo->getScaledVector(); commented out to get rid of never used warning using clang -tidy
+  }
+
+  if (gl1PacketInfo && trigAna)
+  {
+    process_mb(topNode, vtx_z);
   }
 
   //---------------------------calibrated towers-------------------------------//
@@ -960,6 +977,188 @@ int CaloValid::End(PHCompositeNode* topNode)
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void CaloValid::process_mb(PHCompositeNode* topNode, float vtx_z)
+{
+  if (!m_trigdecided)
+  {
+    m_mbbit = (m_runnumber >= RunnumberRange::RUN2PP_FIRST && m_runnumber <= RunnumberRange::RUN2PP_LAST) ? 10 : 14;
+    if (m_species == "AuAu" && trigAna->getTriggerPrescale(14) < 0)
+    {
+      m_mbbit = 10;
+    }
+    m_mbbit_or = (trigAna->getTriggerPrescale(m_mbbit) > 1000 && trigAna->getTriggerPrescale(12) >= 0) ? 12 : -1;
+    if (m_species == "pp")
+    {
+      m_trigname = {"Photon 4 GeV + MBD NS >= 1", "Jet 10 GeV + MBD NS >= 1"};
+    }
+    else
+    {
+      m_trigname = {"", ""};
+    }
+    m_trigdecided = true;
+  }
+  const bool isMB = trigAna->didTriggerFire(m_mbbit) || (m_mbbit_or >= 0 && trigAna->didTriggerFire(m_mbbit_or));
+  const std::array<bool, 3> fired{isMB, !m_trigname[0].empty() && trigAna->didTriggerFire(m_trigname[0]),
+                                  !m_trigname[1].empty() && trigAna->didTriggerFire(m_trigname[1])};
+
+  RawClusterContainer* clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_CEMC");
+  if (clusters && (fired[0] || fired[1] || fired[2]))
+  {
+    const CLHEP::Hep3Vector vertex(0, 0, std::isfinite(vtx_z) ? vtx_z : 0);
+    RawClusterContainer::ConstRange range = clusters->getClusters();
+    for (auto it = range.first; it != range.second; ++it)
+    {
+      const CLHEP::Hep3Vector ev = RawClusterUtility::GetECoreVec(*it->second, vertex);
+      for (int t = 0; t < 3; t++)
+      {
+        if (fired[t])
+        {
+          h_clus_e_eta[t]->Fill(ev.mag(), ev.pseudoRapidity());
+        }
+      }
+    }
+  }
+  if (!isMB)
+  {
+    return;
+  }
+
+  MbdOut* mbdout = findNode::getClass<MbdOut>(topNode, "MbdOut");
+  const float mbdt0 = mbdout ? mbdout->get_t0() : std::numeric_limits<float>::quiet_NaN();
+  const std::array<std::string, 3> det{"CEMC", "HCALIN", "HCALOUT"};
+  const std::array<float, 3> tsclo{0, 0.3, 1.0};
+  const std::array<float, 3> tschi{0, 1.0, 2.5};
+  const float threshold = 0.1;
+  const float ns_per_sample = 17.6;
+  for (int l = 0; l < 3; l++)
+  {
+    TowerInfoContainer* calib = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_" + det[l]);
+    if (!calib)
+    {
+      continue;
+    }
+    int ngood = 0;
+    int nabove = 0;
+    float esum = 0;
+    const int size = calib->size();
+    for (int ch = 0; ch < size; ch++)
+    {
+      TowerInfo* tower = calib->get_tower_at_channel(ch);
+      if (!tower->get_isGood())
+      {
+        continue;
+      }
+      ngood++;
+      const float e = tower->get_energy();
+      esum += e;
+      h_mb_tower_e[l]->Fill(e);
+      if (pr_mb_tsc_e[l])
+      {
+        const unsigned int key = calib->encode_key(ch);
+        const int itow = (calib->getTowerEtaBin(key) * 64) + calib->getTowerPhiBin(key);
+        pr_mb_tsc_occ[l]->Fill(itow, e > tsclo[l] ? 1. : 0.);
+        if (e > tsclo[l] && e < tschi[l])
+        {
+          pr_mb_tsc_e[l]->Fill(itow, e);
+        }
+      }
+      if (e > threshold)
+      {
+        nabove++;
+        h_mb_tower_time[l]->Fill(tower->get_time());
+        if (std::isfinite(mbdt0))
+        {
+          h_mb_tower_time_mbdt0[l]->Fill((tower->get_time() * ns_per_sample) - mbdt0);
+        }
+      }
+    }
+    if (ngood > 0)
+    {
+      h_mb_tower_occ[l]->Fill(static_cast<float>(nabove) / ngood);
+      pr_mb_tower_occ_mean[l]->Fill(0.5, static_cast<float>(nabove) / ngood);
+    }
+    h_mb_tower_esum[l]->Fill(esum);
+
+    TowerInfoContainer* raw = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_" + det[l]);
+    if (raw && raw->size() > 0)
+    {
+      int nnonzs = 0;
+      const int rsize = raw->size();
+      for (int ch = 0; ch < rsize; ch++)
+      {
+        if (!raw->get_tower_at_channel(ch)->get_isZS())
+        {
+          nnonzs++;
+        }
+      }
+      h_mb_tower_nonzs_frac[l]->Fill(static_cast<float>(nnonzs) / rsize);
+    }
+  }
+}
+
+void CaloValid::createMBHistos()
+{
+  auto* hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  const std::array<std::string, 3> tag{"cemc", "ihcal", "ohcal"};
+  const std::array<std::string, 3> label{"EMCal", "IHCal", "OHCal"};
+  const std::array<double, 3> ebinw{0.005, 0.002, 0.010};
+  const std::array<double, 3> elo{-0.2, -0.15, -0.3};
+  const std::array<double, 3> ehi{0.3, 0.2, 0.5};
+  double esummax = 2000.;
+  double fracmax = 1.0;
+  if (m_species == "pp")
+  {
+    esummax = 100.;
+    fracmax = 0.05;
+  }
+  else if (m_species == "OO")
+  {
+    esummax = 400.;
+    fracmax = 0.3;
+  }
+  for (int l = 0; l < 3; l++)
+  {
+    const std::string pre = getHistoPrefix() + tag[l] + "_mb_";
+    const int ne = std::lround((ehi[l] - elo[l]) / ebinw[l]) + 1;
+    const double elo_c = elo[l] - (0.5 * ebinw[l]);
+    const double fbinw = (l == 0) ? 1e-4 : 1. / 1536.;
+    const int nfrac = std::lround(fracmax / fbinw) + 1;
+    h_mb_tower_e[l] = new TH1D((pre + "tower_e").c_str(), (label[l] + " good tower energy, MB;E (GeV);towers").c_str(), ne, elo_c, elo_c + (ne * ebinw[l]));
+    h_mb_tower_esum[l] = new TH1D((pre + "tower_esum").c_str(), (label[l] + " good tower energy sum per event, MB;#SigmaE (GeV);events").c_str(), 1100, -0.1 * esummax, esummax);
+    h_mb_tower_occ[l] = new TH1D((pre + "tower_occ").c_str(), (label[l] + " fraction of good towers with E > 0.1 GeV, MB;fraction;events").c_str(), nfrac, -0.5 * fbinw, (nfrac - 0.5) * fbinw);
+    pr_mb_tower_occ_mean[l] = new TProfile((pre + "tower_occ_mean").c_str(), (label[l] + " mean fraction of good towers with E > 0.1 GeV, MB").c_str(), 1, 0, 1);
+    h_mb_tower_nonzs_frac[l] = new TH1D((pre + "tower_nonzs_frac").c_str(), (label[l] + " fraction of non-ZS towers, MB;fraction;events").c_str(), nfrac, -0.5 * fbinw, (nfrac - 0.5) * fbinw);
+    h_mb_tower_time[l] = new TH1D((pre + "tower_time").c_str(), (label[l] + " good tower time, E > 0.1 GeV, MB;t (samples);towers").c_str(), 200, -10, 10);
+    h_mb_tower_time_mbdt0[l] = new TH1D((pre + "tower_time_mbdt0").c_str(), (label[l] + " good tower time - MBD t0, E > 0.1 GeV, MB;t - t0 (ns);towers").c_str(), 200, -100, 100);
+    for (TH1* h : {h_mb_tower_e[l], h_mb_tower_esum[l], h_mb_tower_occ[l], static_cast<TH1*>(pr_mb_tower_occ_mean[l]), h_mb_tower_nonzs_frac[l], h_mb_tower_time[l], h_mb_tower_time_mbdt0[l]})
+    {
+      h->SetDirectory(nullptr);
+      hm->registerHisto(h);
+    }
+    if (l > 0)
+    {
+      const double lo = (l == 1) ? 0.3 : 1.0;
+      const double hi = (l == 1) ? 1.0 : 2.5;
+      pr_mb_tsc_e[l] = new TProfile((pre + "tsc_e").c_str(), std::format("{} good tower mean energy in {:.1f}-{:.1f} GeV, MB;tower (i#eta*64+i#phi);<E> (GeV)", label[l], lo, hi).c_str(), 1536, -0.5, 1535.5);
+      pr_mb_tsc_occ[l] = new TProfile((pre + "tsc_occ").c_str(), std::format("{} good tower fraction of events with E > {:.1f} GeV, MB;tower (i#eta*64+i#phi);fraction", label[l], lo).c_str(), 1536, -0.5, 1535.5);
+      for (TH1* h : {static_cast<TH1*>(pr_mb_tsc_e[l]), static_cast<TH1*>(pr_mb_tsc_occ[l])})
+      {
+        h->SetDirectory(nullptr);
+        hm->registerHisto(h);
+      }
+    }
+  }
+  const std::array<std::string, 3> trig{"MB", "Photon", "Jet"};
+  for (int t = 0; t < 3; t++)
+  {
+    h_clus_e_eta[t] = new TH2F((getHistoPrefix() + "clus_e_eta_" + trig[t]).c_str(), ("EMCal cluster, " + trig[t] + " trigger;E_{core} (GeV);#eta").c_str(), 300, 0, 30, 48, -1.2, 1.2);
+    h_clus_e_eta[t]->SetDirectory(nullptr);
+    hm->registerHisto(h_clus_e_eta[t]);
+  }
 }
 
 void CaloValid::MirrorHistogram(TH1* h)
