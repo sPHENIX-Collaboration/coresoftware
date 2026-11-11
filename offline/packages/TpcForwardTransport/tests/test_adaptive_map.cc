@@ -1,5 +1,6 @@
 #include "../PHGarfieldAdaptiveMap.h"
 #include "../PHGarfieldCompactMap.h"
+#include "../PHGarfieldMapTools.h"
 #include "PHGarfieldTestUtils.h"
 
 #include <cmath>
@@ -313,6 +314,14 @@ int main()
       check(tiny_capacity.points.size() < 1000 && tiny_capacity.cells.size() < 1000 &&
                 tiny_capacity.points.capacity() < 1000 && tiny_capacity.cells.capacity() < 1000,
             "declared global capacity caused eager allocation/growth");
+      const auto compact_limits = PHGarfieldMapTools::generation_limits(capacity);
+      check(compact_limits.max_nodes == std::min(capacity.max_total_cells, Stored::HardMaximumNodes) &&
+                compact_limits.max_values == std::min(capacity.max_total_points, Stored::HardMaximumValues) &&
+                compact_limits.max_corners == std::min(capacity.max_total_cells, Stored::HardMaximumCorners) &&
+                compact_limits.max_bytes == std::min(capacity.max_estimated_bytes, Stored::HardMaximumBytes),
+            "compact generation limits do not follow the declared policy and hard ceilings");
+      Stored::Data stored;
+      check(Stored::Pack(tiny_capacity, "0123456789abcdef", stored, compact_limits, errors, false), errors.str());
     }
     auto excess = capacity;
     excess.max_estimated_bytes = Map::HardMaximumEstimatedBytes + 1;

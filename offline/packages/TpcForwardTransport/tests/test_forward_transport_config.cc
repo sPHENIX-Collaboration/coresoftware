@@ -96,5 +96,30 @@ int main()
     }
   }
 
+  for (bool inner_cage : {true, false})
+  {
+    PHGarfieldForwardTransport requested("requested_cage_grid", "", 0., 0.);
+    requested.SetForwardTransportMode(true);
+    requested.SetZeroMagneticField(true);
+    requested.SetLoadTpcFeeMap(false);
+    requested.SetCMVoltageDefault(375.);
+    requested.SetUseIFCVoltageDistortion(inner_cage);
+    requested.SetUseOFCVoltageDistortion(!inner_cage);
+    requested.SetFieldCageVoltageOffsets(inner_cage ? 1. : 0., 0., inner_cage ? 0. : 1., 0.);
+    requested.SetIFCVoltageModes(0);  // Force grid failure before any gas load.
+    requested.SetGasFile("missing_requested_cage_grid.gas");
+    std::ostringstream errors;
+    auto* previous = std::cerr.rdbuf(errors.rdbuf());
+    const int status = requested.InitRun(nullptr);
+    std::cerr.rdbuf(previous);
+    if (status != Fun4AllReturnCodes::ABORTRUN ||
+        errors.str().find("Failed to build requested IFC/OFC boundary-voltage field grids") == std::string::npos ||
+        requested.GetUseIFCVoltageDistortion() != inner_cage ||
+        requested.GetUseOFCVoltageDistortion() != !inner_cage)
+    {
+      std::cerr << "Requested cage-grid failure changed or silently omitted the configured field: " << errors.str();
+      return 1;
+    }
+  }
   return 0;
 }

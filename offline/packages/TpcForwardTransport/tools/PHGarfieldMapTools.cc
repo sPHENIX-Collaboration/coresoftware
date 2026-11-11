@@ -22,6 +22,8 @@
 namespace PHGarfieldMapTools
 {
   const std::string MetadataPath = "GarfieldFullTransport/Metadata";
+  const std::array<const char*, 2> ElectricFieldMapPayloads = {{"Tpc_PolySeeding_EField3D_Side0", "Tpc_PolySeeding_EField3D_Side1"}};
+  const std::array<const char*, 2> FrameFieldMapPayloads = {{"Tpc_PolySeeding_ModuleFrames3D_Side0", "Tpc_PolySeeding_ModuleFrames3D_Side1"}};
 
   void require(bool value, const std::string& message)
   {
@@ -29,6 +31,33 @@ namespace PHGarfieldMapTools
     {
       throw std::runtime_error(message);
     }
+  }
+
+  PHGarfieldCompactMap::Limits generation_limits(const Map::Policy& policy)
+  {
+    using Compact = PHGarfieldCompactMap;
+    Compact::Limits limits;
+    limits.max_nodes = std::min(policy.max_total_cells, Compact::HardMaximumNodes);
+    limits.max_corners = std::min(policy.max_total_cells, Compact::HardMaximumCorners);
+    limits.max_values = std::min(policy.max_total_points, Compact::HardMaximumValues);
+    limits.max_bytes = std::min(policy.max_estimated_bytes, Compact::HardMaximumBytes);
+    return limits;
+  }
+
+  std::array<std::string, 2> resolve_field_maps(
+      const std::array<std::string, 2>& overrides, const std::array<const char*, 2>& payloads,
+      const std::function<std::string(const std::string&)>& lookup)
+  {
+    auto resolved = overrides;
+    for (std::size_t side = 0; side < resolved.size(); ++side)
+    {
+      if (resolved[side].empty())
+      {
+        resolved[side] = lookup(payloads[side]);
+        require(!resolved[side].empty(), std::string("missing CDB payload ") + payloads[side]);
+      }
+    }
+    return resolved;
   }
 
   Options options(int argc, char** argv, std::initializer_list<std::string> allowed)

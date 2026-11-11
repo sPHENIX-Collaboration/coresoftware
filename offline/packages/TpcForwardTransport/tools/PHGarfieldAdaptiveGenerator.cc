@@ -103,8 +103,7 @@ bool PHGarfieldAdaptiveMap::Generate(const PHGarfieldForwardTransport& garfield,
   const auto cell_count = data.cells.size();
   const bool complete = first == 0 && end == RootCount(data.geometry);
   PHGarfieldCompactMap::Data runtime;
-  PHGarfieldCompactMap::Limits limits;
-  limits.max_bytes = policy.max_estimated_bytes;
+  const auto limits = PHGarfieldMapTools::generation_limits(policy);
   const auto configuration = PHGarfieldForwardMap::Fingerprint(
       PHGarfieldForwardMap::BuildCanonicalConfiguration(config, provenance));
   if (!PHGarfieldCompactMap::Pack(data, configuration, runtime, limits, error, complete))
@@ -121,6 +120,7 @@ bool PHGarfieldAdaptiveMap::Generate(const PHGarfieldForwardTransport& garfield,
     std::error_code cleanup;
     std::filesystem::remove(temporary, cleanup);
   };
+  bool verified = false;
   try
   {
     PHGarfieldMapTools::write_compact_output(temporary.string(), runtime, limits, error, [&](TDirectory& metadata)
@@ -139,6 +139,7 @@ bool PHGarfieldAdaptiveMap::Generate(const PHGarfieldForwardTransport& garfield,
         write_parameter<Long64_t>(PHGarfieldMapTools::GenerationCounters[index], counters[index]);
       } });
     PHGarfieldMapTools::readback_compact_output(temporary.string(), runtime, limits, error, complete);
+    verified = true;
     if (config.overwrite)
     {
       std::filesystem::rename(temporary, target);
@@ -151,7 +152,14 @@ bool PHGarfieldAdaptiveMap::Generate(const PHGarfieldForwardTransport& garfield,
   catch (const std::exception& exception)
   {
     error << "Adaptive LUT publication failed: " << exception.what() << '\n';
-    discard();
+    if (verified)
+    {
+      error << "Verified LUT preserved at " << temporary << '\n';
+    }
+    else
+    {
+      discard();
+    }
     return false;
   }
   log << "Wrote adaptive LUT root range [" << first << ',' << end << ") sampled_points=" << point_count << " cells=" << cell_count

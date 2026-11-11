@@ -1,4 +1,5 @@
 #include "PHGarfieldAdaptiveMap.h"
+#include "PHGarfieldCompactMap.h"
 
 #include <algorithm>
 #include <cmath>
@@ -68,7 +69,8 @@ bool PHGarfieldAdaptiveMap::Build(const Geometry& geometry, const Policy& policy
   auto memory_available = [&](std::uint64_t points, std::uint64_t cells)
   {
     std::uint64_t bytes = 0;
-    const bool ok = points <= policy.max_total_points && cells <= policy.max_total_cells &&
+    const bool ok = points <= policy.max_total_points &&
+                    cells <= std::min(policy.max_total_cells, PHGarfieldCompactMap::HardMaximumNodes) &&
                     EstimatedBytes(points, cells, RootCount(geometry), bytes) && bytes <= policy.max_estimated_bytes;
     if (!ok)
     {

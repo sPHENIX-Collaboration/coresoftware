@@ -251,10 +251,9 @@ int PHGarfieldForwardTransport::InitializeForwardTransport(PHCompositeNode* topN
                            (m_ofcVoltageOffset_side0 != 0.0 || m_ofcVoltageOffset_side1 != 0.0);
   if ((needIFCGrid || needOFCGrid) && !BuildFieldCageVoltageFieldGrids())
   {
-    std::cout << PHWHERE << " Failed to build IFC/OFC boundary-voltage field grids; "
-              << "field-cage voltage corrections will be disabled." << std::endl;
-    m_useIFCVoltageDistortion = false;
-    m_useOFCVoltageDistortion = false;
+    std::cerr << PHWHERE << " Failed to build requested IFC/OFC boundary-voltage field grids"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
   }
 
   //  Make the Garfield Component and register the methods that will interface to our fields...

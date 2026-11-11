@@ -25,8 +25,17 @@ namespace PHGarfieldMapTools
   using Options = std::map<std::string, std::string>;
   extern const std::string MetadataPath;
   extern const std::array<const char*, 5> GenerationCounters;
+  extern const std::array<const char*, 2> ElectricFieldMapPayloads;
+  extern const std::array<const char*, 2> FrameFieldMapPayloads;
+
+  // Explicit paths take precedence independently on each side. Call only for
+  // requested map families; every missing side then requires a CDB payload.
+  std::array<std::string, 2> resolve_field_maps(
+      const std::array<std::string, 2>& overrides, const std::array<const char*, 2>& payloads,
+      const std::function<std::string(const std::string&)>& lookup);
 
   void require(bool value, const std::string& message);
+  PHGarfieldCompactMap::Limits generation_limits(const Map::Policy& policy);
   Options options(int argc, char** argv, std::initializer_list<std::string> allowed);
   template <class T>
   T parameter(TDirectory& directory, const char* name)

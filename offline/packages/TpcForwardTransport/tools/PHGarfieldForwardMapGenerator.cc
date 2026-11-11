@@ -1,7 +1,9 @@
 #include "PHGarfieldAdaptiveMap.h"
 #include "PHGarfieldForwardMap.h"
 #include "PHGarfieldForwardTransport.h"
+#include "PHGarfieldMapTools.h"
 
+#include <ffamodules/CDBInterface.h>
 #include <phool/recoConsts.h>
 
 #include <algorithm>
@@ -57,10 +59,10 @@ namespace
   std::vector<Option> option_table(Options& o)
   {
     return {
-        {"--electric-field-map-3d-side0", o.electric_field_map_3d.data(), "FILE", "Pinned south 3D space-charge map", "Physics inputs"},
-        {"--electric-field-map-3d-side1", &o.electric_field_map_3d[1], "FILE", "Pinned north 3D space-charge map"},
-        {"--frame-field-map-3d-side0", o.frame_field_map_3d.data(), "FILE", "Pinned south 3D frame map"},
-        {"--frame-field-map-3d-side1", &o.frame_field_map_3d[1], "FILE", "Pinned north 3D frame map"},
+        {"--electric-field-map-3d-side0", o.electric_field_map_3d.data(), "FILE", "Override the south 3D space-charge CDB map", "Physics inputs"},
+        {"--electric-field-map-3d-side1", &o.electric_field_map_3d[1], "FILE", "Override the north 3D space-charge CDB map"},
+        {"--frame-field-map-3d-side0", o.frame_field_map_3d.data(), "FILE", "Override the south 3D frame CDB map"},
+        {"--frame-field-map-3d-side1", &o.frame_field_map_3d[1], "FILE", "Override the north 3D frame CDB map"},
         {"--frame-charge-scale", &o.frame_charge_scale, "VALUE", "Frame coefficient (default 0)"},
         {"--gas-file", &o.gas_file, "FILE", "Override the PHGARFIELD_GAS CDB payload"},
         {"--magnetic-field-map", &o.magnetic_field_map, "FILE", "Override the FIELDMAP_TRACKING CDB payload"},
@@ -105,8 +107,9 @@ namespace
 
   void print_usage(std::ostream& output, const char* program)
   {
-    output << "Usage: " << program << " --output FILE --electric-field-map-3d-side0 FILE --electric-field-map-3d-side1 FILE [options]\n"
-           << "\nGenerate a ready-to-use adaptive PHGarfield LUT directly; no conversion step.\n";
+    output << "Usage: " << program << " --output FILE [--global-tag TAG --timestamp VALUE] [options]\n"
+           << "\nGenerate a ready-to-use adaptive PHGarfield LUT directly; no conversion step.\n"
+           << "Missing map paths use CDB. Frame maps are requested by a nonzero frame coefficient or an explicit frame path.\n";
     Options defaults;
     const auto flags = output.flags();
     for (const auto& option : option_table(defaults))
@@ -251,11 +254,6 @@ namespace
       error << "--output is required\n";
       return false;
     }
-    if (options.electric_field_map_3d[0].empty() || options.electric_field_map_3d[1].empty())
-    {
-      error << "Both --electric-field-map-3d-side0 and --electric-field-map-3d-side1 are required\n";
-      return false;
-    }
     return true;
   }
 
@@ -300,11 +298,6 @@ try
   }
   for (const auto& paths : {options.electric_field_map_3d, options.frame_field_map_3d})
   {
-    if (paths[0].empty() != paths[1].empty())
-    {
-      std::cerr << "Side-specific 3D payloads must be pinned for both sides\n";
-      return 2;
-    }
     for (const auto& path : paths)
     {
       if (!require_regular_file(path, "3D field payload"))
@@ -352,6 +345,21 @@ try
   constants->set_uint64Flag("TIMESTAMP", options.timestamp);
   options.map.cdb_global_tag = options.global_tag;
   options.map.cdb_timestamp = options.timestamp;
+
+  std::cout << "CDB tag=" << options.global_tag << " timestamp=" << options.timestamp << '\n';
+  const auto lookup = [](const std::string& payload)
+  {
+    const auto path = CDBInterface::instance()->getUrl(payload);
+    std::cout << "CDB " << payload << ": " << path << '\n';
+    return path;
+  };
+  options.electric_field_map_3d = PHGarfieldMapTools::resolve_field_maps(
+      options.electric_field_map_3d, PHGarfieldMapTools::ElectricFieldMapPayloads, lookup);
+  if (options.frame_charge_scale != 0. || !options.frame_field_map_3d[0].empty() || !options.frame_field_map_3d[1].empty())
+  {
+    options.frame_field_map_3d = PHGarfieldMapTools::resolve_field_maps(
+        options.frame_field_map_3d, PHGarfieldMapTools::FrameFieldMapPayloads, lookup);
+  }
 
   auto garfield = std::make_unique<PHGarfieldForwardTransport>(
       "PHGarfieldForwardMapGenerator",

@@ -1,7 +1,17 @@
 # Generate an adaptive forward-drift LUT
 
 The standalone executable needs no Fun4All event loop. After setting up sPHENIX
-and the installed package, run:
+and the installed package, select a CDB tag and timestamp containing the payloads:
+
+```sh
+PHGarfieldForwardMapGenerator \
+  --global-tag YOUR_TAG --timestamp YOUR_TIMESTAMP \
+  --nominal-e-vcm 375 --scale-side0 0.579394 --scale-side1 0.610215 \
+  --frame-charge-scale -180 --step-ns 1.5625 \
+  --output runtime.root
+```
+
+Explicit paths override CDB independently for each side. For example:
 
 ```sh
 PHGarfieldForwardMapGenerator \
@@ -14,17 +24,26 @@ PHGarfieldForwardMapGenerator \
   --output runtime.root
 ```
 
-The scales/step above are examples, not prescribed detector calibrations. Select
+The fields, scales and step above are examples, not prescribed calibrations. Select
 compatible physical inputs and establish numerical convergence for your study.
 `--help` lists all options. Optional per-side frame maps use
 `--frame-field-map-3d-side0/side1` and `--frame-charge-scale`.
 
 Omitting `--gas-file` or `--magnetic-field-map` resolves `PHGARFIELD_GAS` or
 `FIELDMAP_TRACKING` through CDB using `--global-tag` and `--timestamp` (defaults:
-`FieldMapTest`, `1`). An explicit gas path may be a single file or a directory of
+`FieldMapTest`, `1`). Missing electric-map paths resolve
+`Tpc_PolySeeding_EField3D_Side0/Side1`. A nonzero frame coefficient or any explicit
+frame path requests the frame family; missing sides then resolve
+`Tpc_PolySeeding_ModuleFrames3D_Side0/Side1`. With coefficient zero and no frame
+paths, frame CDB lookup is skipped. Both sides of each requested family are
+required; an absent CDB entry fails with its payload name. The selected tag and
+timestamp must contain those entries; the defaults do not guarantee this.
+
+An explicit gas path may be a single file or a directory of
 ordered `MERGED_E###.gas` files. Resolved paths and payload MD5 values are stored.
-Both space-charge maps must be supplied explicitly. `--zero-b-field` selects
-zero magnetic field explicitly. Inputs must cover the configured gas volume.
+The tag does not choose scale coefficients, nominal electric field, geometry or
+numerical settings. `--zero-b-field` selects zero magnetic field explicitly.
+Inputs must cover the configured gas volume.
 
 ## Physical and numerical definitions
 
