@@ -1,7 +1,46 @@
 #include "TpcDriftQA.h"
 
+#include <TDirectory.h>
+#include <TF1.h>
+#include <TFile.h>
+#include <TFitResult.h>
+#include <TFitResultPtr.h>
+#include <TH1D.h>
+#include <TH2.h>
+#include <TNamed.h>
+#include <algorithm>
+#include <cmath>
+#include <fstream>
+#include <limits>
+#include <memory>
+#include <set>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
 namespace TpcCalibrationQADetail
 {
+  namespace
+  {
+    struct EdgeWindow
+    {
+      double leftLow, leftHigh, rightLow, rightHigh, searchLow, searchHigh;
+    };
+    constexpr EdgeWindow t0Window{2.5, 5.5, 12., 16., 5., 14.};
+    constexpr EdgeWindow cmTimeWindow{180., 225., 300., 360., 210., 290.};
+    constexpr EdgeWindow cmZWindow{-15., -5., 5., 15., -8., 8.};
+    constexpr EdgeWindow padZWindow{97., 100.5, 103., 105., 100., 104.9};
+
+    Edge windowEdge(const std::vector<double> &x, const std::vector<double> &y,
+                    const EdgeWindow &window, double expected, int direction, bool clean = true)
+    {
+      return edge(x, y, window.leftLow, window.leftHigh, window.rightLow, window.rightHigh,
+                  window.searchLow, window.searchHigh, expected, direction, clean);
+    }
+  }  // namespace
+
   void TpcDriftQA::apply_reference(DriftInput &d, const Sample &sample, const char *path)
   {
     if (!path || !*path)
@@ -137,7 +176,7 @@ namespace TpcCalibrationQADetail
           found.push_back(x[i] + (target - y[i]) * (x[i + 1] - x[i]) / (y[i + 1] - y[i]));
         }
       }
-      // Unlike the old notebook, never turn a nearest-bin fallback into an edge.
+      // A nearest-bin fallback is not an accepted edge measurement.
       if (found.empty())
       {
         return e;
@@ -464,7 +503,7 @@ namespace TpcCalibrationQADetail
     std::vector<double> xx;
     std::vector<double> yy;
     std::vector<size_t> regions;
-    // Match notebook upper-branch selection in ~1 cm windows. Never bridge CM
+    // Select the upper branch in approximately 1 cm windows. Never bridge CM
     // or the pad plane, and do not average the downward binning aliases.
     const std::vector<double> limits = {x.front() - 1., 0., pad, x.back() + 1.};
     for (size_t region = 0; region + 1 < limits.size(); ++region)
@@ -523,7 +562,7 @@ namespace TpcCalibrationQADetail
     return {cleanX, cleanY};
   }
 
-  Curves TpcDriftQA::analyze(DriftInput &d, const Sample &sample, TDirectory *dir, std::ostream &csv)
+  Curves TpcDriftQA::analyze(DriftInput &d, const Sample &sample, TDirectory *dir, std::ostream &csv, ObjectIndex &outputIndex)
   {
     Curves curves;
     folder(dir, "metadata")->cd();
@@ -642,8 +681,8 @@ namespace TpcCalibrationQADetail
       shiftValue.SetBinContent(1, d.appliedShift[side]);
       shiftValue.Write();
       const auto data = xy(d.time[side].get(), side, false);
-      const Edge t0 = edge(data.first, data.second, 2.5, 5.5, 12., 16., 5., 14., 8., 1);
-      const Edge cm = edge(data.first, data.second, 180., 225., 300., 360., 210., 290., 250., -1);
+      const Edge t0 = windowEdge(data.first, data.second, t0Window, 8., 1);
+      const Edge cm = windowEdge(data.first, data.second, cmTimeWindow, 250., -1);
       auto cleaned = data.second;
       for (size_t i = 1; i + 1 < cleaned.size(); ++i)
       {
@@ -677,9 +716,9 @@ namespace TpcCalibrationQADetail
             (plain(sideName) + ": summed PHGarfield z;PHGarfield z [cm];sum cleaned ADC").c_str());
         d.z[side]->Write(("phgarfield_z_" + sideName).c_str());
         const auto upper = physicalZ(d.z[side].get(), side, d.pad);
-        const Edge cz = edge(upper.first, upper.second, -15., -5., 5., 15., -8., 8., 0., 1, false);
+        const Edge cz = windowEdge(upper.first, upper.second, cmZWindow, 0., 1, false);
         auto sub = upper.second;
-        // Notebook pad background: slope from u<0, level anchored at 103..105 cm.
+        // Pad-edge background: slope from u<0, level anchored at 103..105 cm.
         TGraphErrors negative;
         for (size_t i = 0; i < upper.first.size(); ++i)
         {
@@ -700,7 +739,7 @@ namespace TpcCalibrationQADetail
             std::vector<double> anchors;
             for (size_t i = 0; i < upper.first.size(); ++i)
             {
-              if (upper.first[i] >= 103. && upper.first[i] <= 105.)
+              if (upper.first[i] >= padZWindow.rightLow && upper.first[i] <= padZWindow.rightHigh)
               {
                 anchors.push_back(upper.second[i] - slope * upper.first[i]);
               }
@@ -717,7 +756,7 @@ namespace TpcCalibrationQADetail
           }
         }
         const Edge pz =
-            bgValid ? edge(upper.first, sub, 97., 100.5, 103., 105., 100., 104.9, d.pad, -1, false) : Edge{};
+            bgValid ? windowEdge(upper.first, sub, padZWindow, d.pad, -1, false) : Edge{};
         profile("cm_z", side, upper.first, upper.second, cz, -15., 15., "u=sign(side)*z [cm]");
         profile("pad_z", side, upper.first, sub, pz, 97., 108., "u=sign(side)*z [cm]");
         Curve rawZ = makeCurve(sample.label + ": folded PHGarfield z upper branch", "u=sign(side)*z [cm]",
@@ -783,7 +822,7 @@ namespace TpcCalibrationQADetail
     }
     for (const auto &entry : curves)
     {
-      writeCurve(entry.second, entry.first, dir);
+      writeCurve(entry.second, entry.first, dir, outputIndex);
     }
     return curves;
   }

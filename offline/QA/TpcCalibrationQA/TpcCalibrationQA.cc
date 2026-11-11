@@ -2,6 +2,28 @@
 #include "TpcDistortionQA.h"
 #include "TpcDriftQA.h"
 
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TLegend.h>
+#include <TNamed.h>
+#include <TROOT.h>
+#include <TStyle.h>
+#include <TSystem.h>
+#include <algorithm>
+#include <cmath>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <iterator>
+#include <limits>
+#include <memory>
+#include <set>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
 using TpcCalibrationQADetail::combine;
 using TpcCalibrationQADetail::Config;
 using TpcCalibrationQADetail::Curves;
@@ -11,7 +33,7 @@ using TpcCalibrationQADetail::folder;
 using TpcCalibrationQADetail::graph;
 using TpcCalibrationQADetail::Hists;
 using TpcCalibrationQADetail::load;
-using TpcCalibrationQADetail::outputIndex;
+using TpcCalibrationQADetail::ObjectIndex;
 using TpcCalibrationQADetail::plot;
 using TpcCalibrationQADetail::plotDcaDistributions;
 using TpcCalibrationQADetail::point;
@@ -104,7 +126,7 @@ int TpcCalibrationQA::run(const std::string &manifestName, const std::string &ou
   {
     throw std::runtime_error("Reference label not in manifest");
   }
-  std::iter_swap(samples.begin(), ri);
+  std::rotate(samples.begin(), ri, std::next(ri));
   if (gSystem->mkdir(output, true) != 0 && gSystem->AccessPathName(output))
   {
     throw std::runtime_error("Cannot create output directory");
@@ -174,12 +196,12 @@ int TpcCalibrationQA::run(const std::string &manifestName, const std::string &ou
       throw std::runtime_error("No complete supported QA histograms for " + sample.label);
     }
     auto *dir = result->mkdir(sample.label.c_str());
-    outputIndex.clear();
+    ObjectIndex outputIndex;
     for (const std::string name : {"rdca", "charge", "drift", "diagnostics", "metadata"})
     {
       folder(dir, name);
     }
-    Curves curves = TpcDistortionQA::analyze(hs, sample, cfg, dir, csv, trends);
+    Curves curves = TpcDistortionQA::analyze(hs, sample, cfg, dir, csv, trends, outputIndex);
     bool hasDca = false;
     bool hasFit = false;
     for (const auto &entry : hs)
@@ -212,7 +234,7 @@ int TpcCalibrationQA::run(const std::string &manifestName, const std::string &ou
     folder(dir, "metadata")->cd();
     TNamed dcaAvailability("rdca_availability", dcaState.c_str());
     dcaAvailability.Write();
-    Curves driftCurves = TpcDriftQA::analyze(drift, sample, dir, driftCSV);
+    Curves driftCurves = TpcDriftQA::analyze(drift, sample, dir, driftCSV, outputIndex);
     for (const auto &entry : driftCurves)
     {
       if (entry.second.xTitle != "side (0 South, 1 North)")
@@ -235,12 +257,7 @@ int TpcCalibrationQA::run(const std::string &manifestName, const std::string &ou
     {
       ref = curves;
     }
-    if (makePlots)
-    {
-      plot(curves, ref, sample, refLabel, out + "/" + sample.label + ".pdf", dir, cfg);
-      plotDcaDistributions(dir, out + "/" + sample.label + "_rdca_distributions.pdf");
-    }
-    else if (sample.label != refLabel)
+    if (sample.label != refLabel)
     {
       for (const auto &entry : curves)
       {
@@ -250,15 +267,20 @@ int TpcCalibrationQA::run(const std::string &manifestName, const std::string &ou
           continue;
         }
         writeCurve(combine(entry.second, found->second, entry.second.comparison),
-                   entry.first + "_vs_reference", dir);
+                   entry.first + "_vs_reference", dir, outputIndex);
         if (entry.first.find("_mean") != std::string::npos ||
             entry.first.find("_charge_even") != std::string::npos ||
             entry.first.find("_charge_odd") != std::string::npos)
         {
           writeCurve(combine(entry.second, found->second, "signed_ratio", cfg.ratioFloor),
-                     entry.first + "_ratio_to_reference", dir);
+                     entry.first + "_ratio_to_reference", dir, outputIndex);
         }
       }
+    }
+    if (makePlots)
+    {
+      plot(curves, ref, sample, refLabel, out + "/" + sample.label + ".pdf", cfg);
+      plotDcaDistributions(dir, out + "/" + sample.label + "_rdca_distributions.pdf");
     }
     std::ostringstream index;
     index << "internal_key\tROOT_path_relative_to_run\n";
@@ -279,6 +301,7 @@ int TpcCalibrationQA::run(const std::string &manifestName, const std::string &ou
     {
       overview.Print((pdf + "[").c_str());
     }
+    ObjectIndex trendIndex;
     for (auto &entry : runTrends)
     {
       auto &curve = entry.second;
@@ -286,8 +309,13 @@ int TpcCalibrationQA::run(const std::string &manifestName, const std::string &ou
       {
         curve.edges.push_back(i);
       }
-      const auto saved = writeCurve(curve, entry.first, dir, true);
-      auto *h = dynamic_cast<TH1 *>(dir->Get(saved.c_str()));
+      const auto saved = writeCurve(curve, entry.first, dir, trendIndex, true);
+      std::unique_ptr<TH1> h(dynamic_cast<TH1 *>(dir->Get(saved.c_str())));
+      if (!h)
+      {
+        throw std::runtime_error("Missing run-trend histogram: " + saved);
+      }
+      h->SetDirectory(nullptr);
       for (size_t i = 0; i < runLabels.size(); ++i)
       {
         h->GetXaxis()->SetBinLabel(i + 1, runLabels[i].c_str());

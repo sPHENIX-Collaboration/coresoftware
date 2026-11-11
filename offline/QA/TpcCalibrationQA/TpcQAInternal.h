@@ -1,38 +1,20 @@
 #ifndef QA_TPCCALIBRATIONQA_INTERNAL_H
 #define QA_TPCCALIBRATIONQA_INTERNAL_H
 
-#include <TCanvas.h>
-#include <TDirectory.h>
-#include <TF1.h>
-#include <TFile.h>
-#include <TFitResult.h>
-#include <TFitResultPtr.h>
 #include <TGraphErrors.h>
-#include <TH1D.h>
-#include <TH2.h>
-#include <TH2D.h>
-#include <TH3.h>
-#include <TKey.h>
-#include <TLegend.h>
-#include <TLine.h>
-#include <TNamed.h>
-#include <TPad.h>
-#include <TROOT.h>
-#include <TStyle.h>
-#include <TSystem.h>
+#include <TH1.h>
 
-#include <algorithm>
+class TAxis;
+class TDirectory;
+class TFile;
+class TH2;
+class TH3;
+
 #include <cmath>
-#include <fstream>
-#include <functional>
-#include <iomanip>
-#include <iostream>
+#include <iosfwd>
 #include <limits>
 #include <map>
 #include <memory>
-#include <set>
-#include <sstream>
-#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -97,7 +79,7 @@ namespace TpcCalibrationQADetail
   {
     std::string folder, name;
   };
-  extern std::map<std::string, std::string> outputIndex;
+  using ObjectIndex = std::map<std::string, std::string>;
   struct DriftInput
   {
     Hist time[2], rawTime[2], z[2];
@@ -127,9 +109,9 @@ namespace TpcCalibrationQADetail
   std::string plain(std::string s);
   Location location(std::string key, const std::string &comparison = "difference");
   Location sliceLocation(const std::string &key);
-  std::string writeCurve(const Curve &c, const std::string &name, TDirectory *dir, bool flat = false);
+  std::string writeCurve(const Curve &c, const std::string &name, TDirectory *dir, ObjectIndex &outputIndex, bool flat = false);
   void slices(TH2 *h, const std::string &key, const std::string &title, Curves &curves,
-              const Sample &sample, const Config &cfg, TDirectory *dir, std::ostream &csv);
+              const Sample &sample, const Config &cfg, TDirectory *dir, std::ostream &csv, ObjectIndex &outputIndex);
   bool samePoint(const Curve &a, size_t i, const Curve &b, size_t j);
   Curve combine(const Curve &a, const Curve &b, const std::string &op, double ratioFloor = .02);
   void chargeCurves(TH1 *pos, TH1 *neg, const std::string &key, const std::string &title,
@@ -138,9 +120,9 @@ namespace TpcCalibrationQADetail
   void rebin(TH2 *h, int group);
   void rebin1(TH1 *h, int group);
   void phiQoverPt(TH3 *pos, TH3 *neg, const std::string &side, const Sample &sample,
-                  const Config &cfg, TDirectory *dir, Curves &curves, std::ostream &csv);
+                  const Config &cfg, TDirectory *dir, Curves &curves, std::ostream &csv, ObjectIndex &outputIndex);
   void plot(const Curves &curves, const Curves &reference, const Sample &sample,
-            const std::string &refLabel, const std::string &pdf, TDirectory *dir, const Config &cfg);
+            const std::string &refLabel, const std::string &pdf, const Config &cfg);
   void plotDcaDistributions(TDirectory *dir, const std::string &pdf);
   double median(std::vector<double> x);
   double windowMedian(const std::vector<double> &x, const std::vector<double> &y, double lo, double hi);

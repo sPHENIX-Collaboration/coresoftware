@@ -1,5 +1,23 @@
 #include "TpcDistortionQA.h"
 
+#include <TDirectory.h>
+#include <TF1.h>
+#include <TFitResult.h>
+#include <TFitResultPtr.h>
+#include <TH1D.h>
+#include <TH2.h>
+#include <TH2D.h>
+#include <TH3.h>
+#include <TNamed.h>
+#include <algorithm>
+#include <cmath>
+#include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
 namespace TpcCalibrationQADetail
 {
   Fit TpcDistortionQA::fit(TH1 *h, int minEntries, bool background)
@@ -130,7 +148,7 @@ namespace TpcCalibrationQADetail
   }
 
   void slices(TH2 *h, const std::string &key, const std::string &title, Curves &curves,
-              const Sample &sample, const Config &cfg, TDirectory *dir, std::ostream &csv)
+              const Sample &sample, const Config &cfg, TDirectory *dir, std::ostream &csv, ObjectIndex &outputIndex)
   {
     Curve mean = makeCurve(title, h->GetXaxis()->GetTitle(), "Gaussian core mean DCA_{xy} [cm]");
     Curve sigma = makeCurve(title, mean.xTitle, "Gaussian core #sigma DCA_{xy} [cm]", "ratio");
@@ -330,7 +348,7 @@ namespace TpcCalibrationQADetail
   }
 
   void phiQoverPt(TH3 *pos, TH3 *neg, const std::string &side, const Sample &sample,
-                  const Config &cfg, TDirectory *dir, Curves &curves, std::ostream &csv)
+                  const Config &cfg, TDirectory *dir, Curves &curves, std::ostream &csv, ObjectIndex &outputIndex)
   {
     if (!sameBins(pos, neg) || pos->GetNbinsX() % cfg.phiGroup)
     {
@@ -386,12 +404,12 @@ namespace TpcCalibrationQADetail
       title << sample.label << ": TPC-only hardware " << side << ", "
             << pos->GetXaxis()->GetBinLowEdge(lo) << "<=phi<" << pos->GetXaxis()->GetBinUpEdge(hi)
             << ", all stored pT>0.2";
-      slices(&counts, key, title.str(), curves, sample, cfg, dir, csv);
+      slices(&counts, key, title.str(), curves, sample, cfg, dir, csv, outputIndex);
     }
   }
 
   Curves TpcDistortionQA::analyze(Hists &hs, const Sample &sample, const Config &cfg, TDirectory *dir,
-                                  std::ostream &csv, std::ostream &trends)
+                                  std::ostream &csv, std::ostream &trends, ObjectIndex &outputIndex)
   {
     Curves curves;
     const auto get = [&](const std::string &name) -> TH1 *
@@ -430,7 +448,7 @@ namespace TpcCalibrationQADetail
         auto *h2 = static_cast<TH2 *>(copy.get());
         rebin(h2, cfg.phiGroup);
         slices(h2, std::string("legacy_pcaz_").append(side).append("_phi_").append(charge),
-               legacyTitle, curves, sample, cfg, dir, csv);
+               legacyTitle, curves, sample, cfg, dir, csv, outputIndex);
       }
       const std::string newTitle =
           sample.label + ": TPC-only hardware " + side + ", N_{TPC}>=31, all assigned crossings";
@@ -458,14 +476,14 @@ namespace TpcCalibrationQADetail
           slices(projected.get(),
                  std::string("new_").append(side).append("_").append(axis).append("_").append(charge),
                  newTitle + ", " + std::to_string(cfg.ptMin) + "<=pT<" + std::to_string(cfg.ptMax),
-                 curves, sample, cfg, dir, csv);
+                 curves, sample, cfg, dir, csv, outputIndex);
         }
       }
       if (auto *h = dynamic_cast<TH2 *>(get("tpc_only_" + side + "_rdca_qoverpt")))
       {
         // No extra pT cut is possible here: the source already integrates pT>0.2.
         slices(h, "new_" + side + "_qoverpt", newTitle + ", pT>0.2 (not the selected pT window)",
-               curves, sample, cfg, dir, csv);
+               curves, sample, cfg, dir, csv, outputIndex);
       }
       if (cfg.phiQpt)
       {
@@ -473,7 +491,7 @@ namespace TpcCalibrationQADetail
         auto *n = dynamic_cast<TH3 *>(get("tpc_only_" + side + "_neg_rdca_phi_pt"));
         if (p && n)
         {
-          phiQoverPt(p, n, side, sample, cfg, dir, curves, csv);
+          phiQoverPt(p, n, side, sample, cfg, dir, curves, csv, outputIndex);
         }
       }
       auto *p3 = dynamic_cast<TH3 *>(get("tpc_only_" + side + "_pos_pt_phi_eta"));
@@ -558,7 +576,7 @@ namespace TpcCalibrationQADetail
     for (const auto &entry : curves)
     {
       auto g = graph(entry.second, entry.first);
-      writeCurve(entry.second, entry.first, dir);
+      writeCurve(entry.second, entry.first, dir, outputIndex);
       // Harmonics are diagnostics, not a conversion to a space-charge constant.
       if (entry.first.find("phi_charge_") != std::string::npos &&
           (entry.first.find("_even") != std::string::npos ||

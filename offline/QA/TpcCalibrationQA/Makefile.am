@@ -10,8 +10,7 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64 \
-  `root-config --libs`
+  -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
   TpcCalibrationQA.h \
@@ -47,7 +46,14 @@ libtpccalibrationqa_la_LIBADD = \
   -lg4detectors_io \
   -lPHGarfield \
   -lTpcConditions \
-  -lGraf3d
+  -lCore \
+  -lRIO \
+  -lHist \
+  -lGraf \
+  -lGraf3d \
+  -lGpad \
+  -lTree \
+  -lMathCore
 
 BUILT_SOURCES = testexternals.cc
 noinst_PROGRAMS = testexternals

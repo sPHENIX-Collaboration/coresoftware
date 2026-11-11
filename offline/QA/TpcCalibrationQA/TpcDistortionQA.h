@@ -11,7 +11,7 @@ namespace TpcCalibrationQADetail
    public:
     static Fit fit(TH1 *histogram, int minEntries, bool background = false);
     static Curves analyze(Hists &hs, const Sample &sample, const Config &cfg,
-                          TDirectory *dir, std::ostream &csv, std::ostream &trends);
+                          TDirectory *dir, std::ostream &csv, std::ostream &trends, ObjectIndex &outputIndex);
   };
 }  // namespace TpcCalibrationQADetail
 #endif

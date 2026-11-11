@@ -1,7 +1,31 @@
-// Batch helpers: one pass through source segments, then portable summary
-// collection.
 #include "TpcCalibrationQA.h"
 #include "TpcQAInternal.h"
+
+#include <TDirectory.h>
+#include <TFile.h>
+#include <TFitResult.h>
+#include <TH1D.h>
+#include <TH2.h>
+#include <TKey.h>
+#include <TList.h>
+#include <TNamed.h>
+#include <TROOT.h>
+#include <algorithm>
+#include <cmath>
+#include <fstream>
+#include <functional>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <set>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
+// Batch helpers: one pass through source segments, then portable summary
+// collection.
 
 namespace TpcCalibrationQABatch
 {
@@ -15,7 +39,7 @@ namespace TpcCalibrationQABatch
   using TpcCalibrationQADetail::hasKey;
   using TpcCalibrationQADetail::Hists;
   using TpcCalibrationQADetail::location;
-  using TpcCalibrationQADetail::outputIndex;
+  using TpcCalibrationQADetail::ObjectIndex;
   using TpcCalibrationQADetail::plain;
   using TpcCalibrationQADetail::plot;
   using TpcCalibrationQADetail::point;
@@ -387,7 +411,7 @@ namespace TpcCalibrationQABatch
       {
         copy(global, worker, true);
       }
-      outputIndex.clear();
+      ObjectIndex outputIndex;
       for (const auto &entry : curves)
       {
         const auto &c = entry.second;
@@ -405,13 +429,13 @@ namespace TpcCalibrationQABatch
           continue;
         }
         writeCurve(combine(c, found->second, c.comparison), entry.first + "_vs_reference",
-                   destination);
+                   destination, outputIndex);
         if (entry.first.find("_mean") != std::string::npos ||
             entry.first.find("_charge_even") != std::string::npos ||
             entry.first.find("_charge_odd") != std::string::npos)
         {
           writeCurve(combine(c, found->second, "signed_ratio", ratioFloor),
-                     entry.first + "_ratio_to_reference", destination);
+                     entry.first + "_ratio_to_reference", destination, outputIndex);
         }
       }
       // Keep an explicit index of comparisons; original index describes source
@@ -433,7 +457,7 @@ namespace TpcCalibrationQABatch
         std::string pdf =
             std::string(output) + "_" + i.group + "_" + i.window + "_" + i.label + ".pdf";
         std::replace(pdf.begin() + std::string(output).size(), pdf.end(), '/', '_');
-        plot(curves, refCurves[base], sample, reference[i.group], pdf, destination, cfg);
+        plot(curves, refCurves[base], sample, reference[i.group], pdf, cfg);
       }
     }
     for (const auto &entry : trends)

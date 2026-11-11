@@ -1,8 +1,29 @@
 #include "TpcQAInternal.h"
 
+#include <TCanvas.h>
+#include <TDirectory.h>
+#include <TH1D.h>
+#include <TKey.h>
+#include <TLegend.h>
+#include <TLine.h>
+#include <TList.h>
+#include <TNamed.h>
+#include <TPad.h>
+#include <algorithm>
+#include <cmath>
+#include <functional>
+#include <iomanip>
+#include <limits>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
 namespace TpcCalibrationQADetail
 {
-  std::map<std::string, std::string> outputIndex;
 
   Curve makeCurve(std::string title, std::string xTitle, std::string yTitle,
                   std::string comparison)
@@ -201,7 +222,7 @@ namespace TpcCalibrationQADetail
     return out;
   }
 
-  std::string writeCurve(const Curve &c, const std::string &name, TDirectory *dir, bool flat)
+  std::string writeCurve(const Curve &c, const std::string &name, TDirectory *dir, ObjectIndex &outputIndex, bool flat)
   {
     auto out = location(name, c.comparison);
     if (flat)
@@ -317,7 +338,7 @@ namespace TpcCalibrationQADetail
   }
 
   void plot(const Curves &curves, const Curves &reference, const Sample &sample,
-            const std::string &refLabel, const std::string &pdf, TDirectory *dir, const Config &cfg)
+            const std::string &refLabel, const std::string &pdf, const Config &cfg)
   {
     TCanvas canvas("tpcdqa_canvas", "TPC distortion QA", 1100, 1100);
     const auto readable = [](std::string s)
@@ -336,12 +357,6 @@ namespace TpcCalibrationQADetail
       const auto category = address.folder.substr(0, address.folder.find('/'));
       if (category == "diagnostics")
       {
-        auto referenceCurve = reference.find(entry.first);
-        if (sample.label != refLabel && referenceCurve != reference.end())
-        {
-          auto change = combine(entry.second, referenceCurve->second, entry.second.comparison);
-          writeCurve(change, entry.first + "_vs_reference", dir);
-        }
         continue;
       }
       if (!hasKey(pdfs, category))
@@ -453,12 +468,10 @@ namespace TpcCalibrationQADetail
                                          diff.x.back() + diff.ex.back(), baseline);
           line->SetLineStyle(2);
           line->Draw();
-          writeCurve(diff, entry.first + "_vs_reference", dir);
         }
         // Retain an empty graph/full zero mask too, when all denominators fail.
         if (diff.x.empty())
         {
-          writeCurve(diff, entry.first + "_vs_reference", dir);
         }
         if (signedDCA)
         {
@@ -466,7 +479,7 @@ namespace TpcCalibrationQADetail
           ratio.title =
               readable(address.name) + ": signed ratio, reference |mean| > max(floor, 3*error)";
           ratio.yTitle = "sample / reference (masked near zero)";
-          writeCurve(ratio, entry.first + "_ratio_to_reference", dir);
+
           canvas.cd(3);
           gPad->SetGrid();
           if (!ratio.x.empty())

@@ -9,6 +9,12 @@
 #include <vector>
 namespace TpcConditionsDetail
 {
+  inline constexpr double referenceKeff = 1.55;
+  inline constexpr double par0 = .185;
+  inline constexpr double par1 = .815;
+  inline constexpr double referenceSouth = 3.36138;
+  inline constexpr double referenceNorth = 3.20357;
+
   inline double missing() { return std::numeric_limits<double>::quiet_NaN(); }
   inline const std::vector<std::string> &r1Channels(int side)
   {
@@ -63,16 +69,16 @@ namespace TpcConditionsDetail
     out.high = *std::max_element(valid.begin(), valid.end());
     return out;
   }
-  inline double fallbackKeff(double current, int side, double referenceKeff = 1.55,
-                             double par0 = .185, double par1 = .815, double referenceSouth = 3.36138,
-                             double referenceNorth = 3.20357)
+  inline double fallbackKeff(double current, int side, double scale = referenceKeff,
+                             double offset = par0, double slope = par1, double south = referenceSouth,
+                             double north = referenceNorth)
   {
-    const double reference = side == 0 ? referenceSouth : referenceNorth;
+    const double reference = side == 0 ? south : north;
     if (!std::isfinite(current) || current <= 0 || !std::isfinite(reference) || reference <= 0)
     {
       return missing();
     }
-    return referenceKeff * (par0 + par1 * current / reference);
+    return scale * (offset + slope * current / reference);
   }
 }  // namespace TpcConditionsDetail
 #endif

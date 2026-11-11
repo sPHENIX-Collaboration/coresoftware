@@ -12,7 +12,7 @@ namespace TpcCalibrationQADetail
                            double defaultRawShift = 40.);
     static void apply_reference(DriftInput &d, const Sample &sample, const char *path);
     static Curves analyze(DriftInput &d, const Sample &sample, TDirectory *dir,
-                          std::ostream &csv);
+                          std::ostream &csv, ObjectIndex &outputIndex);
   };
 }  // namespace TpcCalibrationQADetail
 #endif

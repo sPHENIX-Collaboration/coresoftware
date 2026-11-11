@@ -1,5 +1,16 @@
 #include "TpcQAInternal.h"
 
+#include <TFile.h>
+#include <cmath>
+#include <fstream>
+#include <map>
+#include <memory>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
 namespace TpcCalibrationQADetail
 {
   bool sameAxis(const TAxis *a, const TAxis *b)
