@@ -226,15 +226,15 @@ int main()
   extended.frame_field_map_3d = {{"frames_south.root", "frames_north.root"}};
   extended.frame_field_map_3d_md5 = {{std::string(32, 'c'), std::string(32, 'd')}};
   extended.frame_charge_scale = {{-180.0, -180.0}};
-  const auto canonical = [&](const auto& provenance, int schema)
+  const auto canonical = [&](const auto& provenance)
   {
-    return PHGarfieldForwardMap::BuildCanonicalConfiguration(valid_config, provenance, schema);
+    return PHGarfieldForwardMap::BuildCanonicalConfiguration(valid_config, provenance);
   };
-  const auto reference = canonical(extended, PHGarfieldForwardMap::ExtendedSchemaVersion);
+  const auto reference = canonical(extended);
   if (reference.find(PHGarfieldForwardMap::SpaceChargeZCoordinatePolicy) == std::string::npos ||
-      canonical(first_provenance, PHGarfieldForwardMap::SchemaVersion).find("space_charge_z_coordinate_policy") != std::string::npos)
+      canonical(first_provenance).find("space_charge_z_coordinate_policy") != std::string::npos)
   {
-    std::cerr << "3D coordinate policy is unbound or legacy 2D identity changed\n";
+    std::cerr << "3D coordinate policy is unbound\n";
     return 1;
   }
 
@@ -242,8 +242,7 @@ int main()
   {
     auto changed = extended;
     mutate(changed);
-    return canonical(changed, PHGarfieldForwardMap::ExtendedSchemaVersion) != reference &&
-           canonical(changed, PHGarfieldForwardMap::SchemaVersion) == canonical(extended, PHGarfieldForwardMap::SchemaVersion);
+    return canonical(changed) != reference;
   };
   if (!check_bound([](auto& p)
                    { p.electric_field_map_3d_md5[0][0] = 'e'; }) ||
@@ -264,28 +263,24 @@ int main()
       !check_bound([](auto& p)
                    { p.use_ifc_voltage_distortion = true; }))
   {
-    std::cerr << "Extended field provenance is not bound, or legacy canonical text changed\n";
+    std::cerr << "Physical field provenance is not bound\n";
     return 1;
   }
 
   PHGarfieldForwardMap::Provenance axisymmetric;
   axisymmetric.field_model = "axisymmetric_2d";
   axisymmetric.electric_field_map = "axisymmetric.root";
-  for (const int schema : {PHGarfieldForwardMap::SchemaVersion, PHGarfieldForwardMap::ExtendedSchemaVersion})
+  TMemFile output("forward-policy.root", "RECREATE");
+  auto* metadata = output.mkdir("Metadata");
+  if (!PHGarfieldForwardMap::WriteMetadata(metadata, valid_config, axisymmetric, {}))
   {
-    TMemFile output("forward-policy.root", "RECREATE");
-    auto* metadata = output.mkdir("Metadata");
-    if (!PHGarfieldForwardMap::WriteMetadata(metadata, valid_config, axisymmetric, {}, schema))
-    {
-      return 1;
-    }
-    const auto* policy = dynamic_cast<const TNamed*>(metadata->Get("space_charge_z_coordinate_policy"));
-    if (!policy || std::string(policy->GetTitle()) != PHGarfieldForwardMap::SpaceChargeZCoordinatePolicy ||
-        canonical(axisymmetric, schema).find("space_charge_z_coordinate_policy") != std::string::npos)
-    {
-      std::cerr << "2D coordinate metadata is missing or changed its established fingerprint\n";
-      return 1;
-    }
+    return 1;
+  }
+  const auto* policy = dynamic_cast<const TNamed*>(metadata->Get("space_charge_z_coordinate_policy"));
+  if (!policy || std::string(policy->GetTitle()) != PHGarfieldForwardMap::SpaceChargeZCoordinatePolicy)
+  {
+    std::cerr << "2D coordinate metadata is missing\n";
+    return 1;
   }
   return 0;
 }

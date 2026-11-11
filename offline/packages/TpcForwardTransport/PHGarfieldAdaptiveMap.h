@@ -13,14 +13,11 @@
 #include <string>
 #include <vector>
 
-class TDirectory;
-
-// Schema4 deliberately owns primitive arrays, not live ROOT objects. Coordinates
-// are(phi,r,signed z); corner order is(phi_bit<<2)|(r_bit<<1)|z_bit.
+// Temporary adaptive-builder state. Final LUTs are written directly in compact
+// form. Coordinates are(phi,r,signed z); corner order is(phi_bit<<2)|(r_bit<<1)|z_bit.
 class PHGarfieldAdaptiveMap
 {
  public:
-  static constexpr int SchemaVersion = 4;
   static constexpr const char* ProbeScheme = "tensor_3x3x3_19_noncorner_actual_axis_curvature_v1";
   static constexpr const char* SplitPolicy = "largest_actual_midpoint_error_binary_axis_v1";
   static constexpr const char* AllLostPolicy = "direct_query_no_finite_probe_loss_certificate_v1";
@@ -123,8 +120,6 @@ class PHGarfieldAdaptiveMap
     std::uint64_t first_root{0};
     std::uint64_t end_root{0};
     double maximum_drift_time_ns{0.0};
-    // Filled once after validation. It is derived, never persisted/trusted.
-    std::vector<std::int64_t> root_lookup;
   };
   struct BuildSummary
   {
@@ -144,17 +139,12 @@ class PHGarfieldAdaptiveMap
   static Bounds RootBounds(const Geometry& g, std::uint64_t id);
   static Bounds ChildBounds(const Bounds& parent, int axis, unsigned int child);
   static std::array<double, 3> CornerCoordinate(const Bounds& b, unsigned int corner);
-  static bool Validate(Data& data, std::ostream& error, bool complete = true);
-  // Shared by sampling and closed-file validation. Invalid samples fail before
+  static bool Validate(const Data& data, std::ostream& error, bool complete = true);
+  // Shared by sampling and builder validation. Invalid samples fail before
   // further refinement; diagnostics preserve full-precision coordinates/values.
   static bool ValidatePoint(const Point& p, const Geometry& g, double maximum_drift_time_ns,
                             std::ostream& error);
-  static const Cell* FindLeaf(const Data& d, unsigned int side, double phi, double r, double z);
-  static bool Interpolate(const Data& data, const Cell& cell, double phi, double r, double z,
-                          PHGarfieldForwardMap::NodeValue& result);
   static bool HasUsableCorners(const Data& data, const Cell& cell);
-  static bool InterpolateRelaxed(const Data& data, const Cell& cell, double phi, double r, double z,
-                                 PHGarfieldForwardMap::NodeValue& result, bool& certified);
   // Physical/finite/branch integrity is independent of interpolation accuracy.
   template <class CornerValue>
   static bool UsableCornerValues(const Geometry& geometry, const Bounds& bounds,
@@ -220,21 +210,14 @@ class PHGarfieldAdaptiveMap
     result = {true, value[0], value[1], value[2]};
     return true;
   }
-  // directory is GarfieldFullTransport/Adaptive. Read checks primitive branch
-  // types, complete rows, content fingerprint, topology and declared policy;
-  // it copies data and resets branch addresses before returning.
-  static bool Read(TDirectory* directory, const Geometry& geometry, Data& result, std::ostream& error,
-                   bool complete = true);
-  static bool Write(TDirectory* directory, const Data& data, std::ostream& error);
-  static std::string ContentFingerprint(const Data& data);
   static std::string BuildCanonicalPolicy(const Data& d);
   static bool EstimatedBytes(std::uint64_t points, std::uint64_t cells,
                              std::uint64_t roots, std::uint64_t& bytes);
   // All budgets are charged per root independently of cross-root cache hits.
   // Samplerfalse is fatal; ordinary physical loss is a successful Point with
   // reaches0. Incomplete/budget/Mixed/AllLost leaves remain explicit direct.
-  // Physical generator uses the identical preflight/canonical metadata helper
-  // as legacy maps, then reopens all arrays before atomic publication.
+  // Physical generation packs the completed state and writes the final compact
+  // table, then independently reopens it before publication.
   static bool Generate(const PHGarfieldForwardTransport& garfield, const PHGarfieldForwardMap::Config& config,
                        const Policy& policy, std::uint64_t first,
                        std::uint64_t end, BuildSummary& build_summary,

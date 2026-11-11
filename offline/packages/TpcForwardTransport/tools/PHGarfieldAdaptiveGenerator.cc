@@ -1,5 +1,6 @@
 #include "PHGarfieldAdaptiveMap.h"
-#include "PHGarfieldRootOutput.h"
+#include "PHGarfieldCompactMap.h"
+#include "PHGarfieldMapTools.h"
 
 #include <TDirectory.h>
 #include <TFile.h>
@@ -8,6 +9,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <exception>
 #include <filesystem>
 #include <memory>
 #include <ostream>
@@ -15,7 +17,6 @@
 
 namespace
 {
-  using Map = PHGarfieldAdaptiveMap;
   template <class T>
   void write_parameter(const char* name, T value)
   {
@@ -98,86 +99,63 @@ bool PHGarfieldAdaptiveMap::Generate(const PHGarfieldForwardTransport& garfield,
   }
   summary.maximum_drift_time_ns = data.maximum_drift_time_ns;
   summary.probe_trajectories = build_summary.actual_sampler_queries;
+  const auto point_count = data.points.size();
+  const auto cell_count = data.cells.size();
+  const bool complete = first == 0 && end == RootCount(data.geometry);
+  PHGarfieldCompactMap::Data runtime;
+  PHGarfieldCompactMap::Limits limits;
+  limits.max_bytes = policy.max_estimated_bytes;
+  const auto configuration = PHGarfieldForwardMap::Fingerprint(
+      PHGarfieldForwardMap::BuildCanonicalConfiguration(config, provenance));
+  if (!PHGarfieldCompactMap::Pack(data, configuration, runtime, limits, error, complete))
+  {
+    return false;
+  }
+  // Construction samples and refinement diagnostics are not part of the file.
+  // Release them before the independent ROOT readback allocates runtime arrays.
+  data = {};
   const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
   const std::filesystem::path temporary = target.string() + ".partial." + std::to_string(stamp);
-  auto discard = [&]()
-  {std::error_code cleanup;std::filesystem::remove(temporary,cleanup); };
+  const auto discard = [&]()
   {
-    std::unique_ptr<TFile> file(TFile::Open(temporary.c_str(), "CREATE"));
-    if (!file || file->IsZombie())
-    {
-      error << "Cannot create adaptive temporary file " << temporary << '\n';
-      discard();
-      return false;
-    }
-    auto* directory = file->mkdir("GarfieldFullTransport");
-    auto* metadata = directory ? directory->mkdir("Metadata") : nullptr;
-    auto* adaptive = directory ? directory->mkdir("Adaptive") : nullptr;
-    const bool complete = first == 0 && end == RootCount(data.geometry);
-    if (!PHGarfieldForwardMap::WriteMetadata(metadata, config, provenance, summary, SchemaVersion,
-                                             complete ? PHGarfieldForwardMap::SchemaName : "PHG4TpcGarfieldFullTransportLUTShard") ||
-        !Write(adaptive, data, error))
-    {
-      file->Close();
-      discard();
-      return false;
-    }
-    metadata->cd();
-    TNamed("generation_refinement_order", "largest_cylindrical_unresolved_leaf_volume_first_stable_cell_id_v1").Write();
-    write_parameter<Long64_t>("generation_root_first", first);
-    write_parameter<Long64_t>("generation_root_end", end);
-    write_parameter<Long64_t>("adaptive_sampler_queries", build_summary.actual_sampler_queries);
-    write_parameter<Long64_t>("adaptive_reused_points", build_summary.reused_points);
-    write_parameter<Long64_t>("adaptive_certified_leaves", build_summary.certified_leaves);
-    write_parameter<Long64_t>("adaptive_direct_leaves", build_summary.direct_leaves);
-    write_parameter<Long64_t>("adaptive_budget_leaves", build_summary.budget_leaves);
-    if (!PHGarfieldFlushAndCloseRootOutput(*file, error))
-    {
-      discard();
-      return false;
-    }
-  }
-  // Read into independent owning data after closing every writer. An incomplete
-  // shard is allowed only as an explicitly declared execution range.
+    std::error_code cleanup;
+    std::filesystem::remove(temporary, cleanup);
+  };
+  try
   {
-    std::unique_ptr<TFile> file(TFile::Open(temporary.c_str(), "READ"));
-    Data independent;
-    if (!file || file->IsZombie() || file->TestBit(TFile::kRecovered) ||
-        !Read(file->GetDirectory("GarfieldFullTransport/Adaptive"), data.geometry, independent, error, false) ||
-        ContentFingerprint(independent) != ContentFingerprint(data))
-    {
-      error << "Independent adaptive ROOT readback failed\n";
-      if (file)
+    PHGarfieldMapTools::write_compact_output(temporary.string(), runtime, limits, error, [&](TDirectory& metadata)
+                                             {
+      PHGarfieldMapTools::require(PHGarfieldForwardMap::WriteMetadata(&metadata, config, provenance, summary),
+                                   "cannot write physical metadata");
+      TNamed("generation_method", "adaptive_direct_compact_v1").Write();
+      TNamed("generation_refinement_order", "largest_cylindrical_unresolved_leaf_volume_first_stable_cell_id_v1").Write();
+      write_parameter<Long64_t>("generation_root_first", first);
+      write_parameter<Long64_t>("generation_root_end", end);
+      write_parameter<Long64_t>("generation_shards", 1);
+      const std::array<std::uint64_t, 5> counters{{build_summary.actual_sampler_queries, build_summary.reused_points,
+          build_summary.certified_leaves, build_summary.direct_leaves, build_summary.budget_leaves}};
+      for (std::size_t index = 0; index < counters.size(); ++index)
       {
-        file->Close();
-      }
-      discard();
-      return false;
-    }
-  }
-  // hard-link provides atomic no-clobber publication on the same filesystem.
-  if (config.overwrite)
-  {
-    std::filesystem::rename(temporary, target, io_error);
-  }
-  else
-  {
-    std::filesystem::create_hard_link(temporary, target, io_error);
-    if (!io_error)
+        write_parameter<Long64_t>(PHGarfieldMapTools::GenerationCounters[index], counters[index]);
+      } });
+    PHGarfieldMapTools::readback_compact_output(temporary.string(), runtime, limits, error, complete);
+    if (config.overwrite)
     {
-      discard();
+      std::filesystem::rename(temporary, target);
+    }
+    else
+    {
+      PHGarfieldMapTools::publish_exclusive(temporary.string(), target.string());
     }
   }
-  if (io_error)
+  catch (const std::exception& exception)
   {
-    error << "Adaptive publication failed: " << io_error.message() << '\n';
+    error << "Adaptive LUT publication failed: " << exception.what() << '\n';
     discard();
     return false;
   }
-  std::uint64_t estimated_bytes = 0;
-  EstimatedBytes(data.points.size(), data.cells.size(), RootCount(data.geometry), estimated_bytes);
-  log << "Wrote adaptive root range [" << first << ',' << end << ") points=" << data.points.size() << " cells=" << data.cells.size()
+  log << "Wrote adaptive LUT root range [" << first << ',' << end << ") sampled_points=" << point_count << " cells=" << cell_count
       << " certified_leaves=" << build_summary.certified_leaves << " direct_leaves=" << build_summary.direct_leaves
-      << " sampler_queries=" << build_summary.actual_sampler_queries << " estimated_peak_bytes=" << estimated_bytes << '\n';
+      << " sampler_queries=" << build_summary.actual_sampler_queries << " stored_values=" << runtime.values.size() << '\n';
   return true;
 }

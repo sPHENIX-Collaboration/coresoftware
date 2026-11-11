@@ -1,116 +1,87 @@
-# TPC forward-transport LUTs
+# Generate an adaptive forward-drift LUT
 
-`PHGarfieldForwardMapGenerator` tabulates deterministic mean electron transport
-from an ionization position to a TPC readout plane. It uses the explicit-Euler
-`PHGarfieldForwardTransport::ForwardDrift` integrator and generates adaptive schema-4 tables.
-The command can generate one complete table or a coarse-root-range shard.
-`--adaptive` remains accepted for existing campaign commands; adaptive
-refinement is always used. Regular-grid generation and full adaptive-map merging
-are outside this workflow.
-
-## Generate an adaptive map
-
-After building and installing PHGarfield and TpcForwardTransport, run:
+The standalone executable needs no Fun4All event loop. After setting up sPHENIX
+and the installed package, run:
 
 ```sh
-PHGarfieldForwardMapGenerator --output adaptive.root \
-  --electric-field-map-3d-side0 south.root \
-  --electric-field-map-3d-side1 north.root \
-  --gas-file detector.gas --magnetic-field-map field.root \
-  --global-tag YOUR_CDB_TAG --timestamp YOUR_TIMESTAMP \
-  --step-ns 12.5 --phi-nodes 36 --radial-nodes 24 --longitudinal-nodes 28 \
-  --interpolation-tolerance-um 10
+PHGarfieldForwardMapGenerator \
+  --electric-field-map-3d-side0 /path/spacecharge_side0.root \
+  --electric-field-map-3d-side1 /path/spacecharge_side1.root \
+  --gas-file /path/gas.gas \
+  --magnetic-field-map /path/fieldmap.root \
+  --nominal-e-vcm 375 --scale-side0 0.579394 --scale-side1 0.610215 \
+  --step-ns 1.5625 --interpolation-tolerance-um 10 \
+  --output runtime.root
 ```
 
-The payload paths, side coefficients and numerical/geometry settings must match
-the intended simulation. Gas and magnetic-field inputs may be resolved from
-CDB. Side 0 is south (negative z); side 1 is north (positive z). Both 3D
-space-charge maps must be specified. Optional 3D frame maps also require both
-sides and an explicit `--frame-charge-scale` (default zero). Use `--zero-b-field`
-to declare B=0. `--help` lists all physical inputs and resource limits.
+The scales/step above are examples, not prescribed detector calibrations. Select
+compatible physical inputs and establish numerical convergence for your study.
+`--help` lists all options. Optional per-side frame maps use
+`--frame-field-map-3d-side0/side1` and `--frame-charge-scale`.
 
-Forward 2D/3D space-charge lookup uses
-`max(0, abs(z) - central_membrane_half_width_cm)`, measured from the membrane's
-gas-facing surface. Frame-field maps and reverse reconstruction retain their
-existing `abs(z)` convention. LUT source coordinates and stored displacements
-remain in the physical local TPC frame. The 3D coordinate policy is recorded
-in metadata and bound into the canonical configuration fingerprint.
+Omitting `--gas-file` or `--magnetic-field-map` resolves `PHGARFIELD_GAS` or
+`FIELDMAP_TRACKING` through CDB using `--global-tag` and `--timestamp` (defaults:
+`FieldMapTest`, `1`). An explicit gas path may be a single file or a directory of
+ordered `MERGED_E###.gas` files. Resolved paths and payload MD5 values are stored.
+Both space-charge maps must be supplied explicitly. `--zero-b-field` selects
+zero magnetic field explicitly. Inputs must cover the configured gas volume.
 
-Selected space-charge maps must cover the configured radial range and gas
-longitudinal range from zero to
-`readout_abs_z_cm - central_membrane_half_width_cm` on both sides. Coverage uses
-histogram edges; between an edge and its nearest bin center, interpolation
-retains the boundary value. Axis coverage alone does not establish the
-payload's physical coordinate origin. Magnetic-field coverage, input payloads,
-geometry and the correction-disabled Garfield/PHG4 timing reference are also
-checked before generation.
+## Physical and numerical definitions
 
-Magnetic maps must provide a complete Cartesian interpolation grid. Input
-inspection checks readable finite entries and coordinate bounds; grid spacing,
-missing grid points and duplicate entries are trusted rather than audited.
+Coordinates are in the placed TPC's local frame. The stored displacement is
+`delta_r_cm`, `r0 * delta_phi_rad`, plus absolute drift duration in ns. Endpoint
+azimuth is `phi0 + stored_angular_value/r0`; it is not divided by endpoint radius.
+The gas extends from `central_membrane_half_width_cm` to `readout_abs_z_cm` on
+each side. Forward space-charge maps use
+`max(0, abs(z)-central_membrane_half_width_cm)` longitudinally. Frame maps retain
+their own coordinate convention. This does not change reverse reconstruction.
 
-## Refinement and interpolation
+Direct samples use explicit Euler integration with `--step-ns`. The generator
+checks gas/geometry/field consistency and a scale-zero timing reference against
+the declared PHG4 calibration velocity. These checks do not establish numerical
+convergence; independent finer-step comparisons remain necessary.
 
-The coarse grid is refined by bisecting one cell axis at a time. The selected
-axis follows sampled directional transport curvature or reaching/lost
-transitions. A reaching leaf permits trilinear interpolation only when all 27
-stencil samples reach and the sampled transverse and time-equivalent errors
-pass `--interpolation-tolerance-um` (default 10 micrometres). Finite probes do
-not prove an error bound throughout a cell; validate independent points and
-boundaries for a new table.
+A coarse cylindrical grid is refined anisotropically. Each candidate cell uses
+27 corner/midpoint stencil positions. Certification requires all samples to
+reach the readout, a consistent angular branch, and sampled transverse endpoint
+and nominal-velocity-scaled timing errors within the guard. This is a sampled
+maximum check, not a mathematical bound between samples. Error discrepancies or
+reach-status transitions choose the split axis. Largest unresolved cylindrical
+volume is refined first within each root; stable IDs break ties.
 
-The schema-4 `Points`, `Cells` and `Roots` arrays preserve the support values,
-classifications, refinement policy and content fingerprints. Each reaching
-support value contains delta-r in cm, source-radius-weighted delta-phi in cm,
-and absolute drift duration in ns. Lookup wraps phi periodically. Metadata
-retains established configuration identifiers and fixed probe/chunk fields
-for compatibility with existing adaptive/compact source bindings.
+`--adaptive-max-depth`, `--adaptive-max-nodes-per-root`, and
+`--adaptive-max-queries-per-root` limit refinement. Global point, cell and estimated
+allocation caps are also explicit; these do not measure aggregate peak RSS.
+Budget-limited cells keep their classification;
+they are not silently certified. Physical reach loss is distinct from lack of
+interpolation certification.
 
-Depth, per-root query/node budgets and per-file point/cell/byte limits bound
-resource use. Exhausted budgets leave explicitly uncertified cells. Physical
-mixed and sampled all-lost leaves are also noncertified; finite lost samples do
-not certify an entire volume as lost. Strict use requires direct drift or
-rejection for noncertified leaves. An explicitly approximate consumer may
-discard selected leaves or use relaxed interpolation with usable support.
-Conversion preserves source classifications and does not upgrade them.
+## Parallel generation
 
-The generator writes a temporary ROOT file, independently reopens and validates
-it, then publishes the output. Existing outputs are preserved unless `--force`
-is supplied.
+Each job can generate a nonempty coarse-root interval:
 
-## Complete maps and parallel shards
+```sh
+PHGarfieldForwardMapGenerator [identical physical/grid/refinement options] \
+  --adaptive-root-first 0 --adaptive-root-end 100 --output shard0.root
+```
 
-For a small complete adaptive map, use `PHGarfieldCompactMapConverter` to create
-a compact schema-7 file. For large campaigns, use `--adaptive-root-first N` and
-`--adaptive-root-end N` to generate disjoint coarse-root ranges, convert those
-pieces first, and merge compact collections with `PHGarfieldCompactMapMerger`.
-This avoids constructing a complete detailed adaptive map in memory. Partial
-shards are explicitly marked and cannot be consumed as complete simulation
-LUTs. New schema-7/8 compact files retain usable noncertified corner values for
-explicit relaxed interpolation, while legacy schema-5/6 output remains
-available. See `PHGarfieldCompactMap.md` for commands, version compatibility
-and manifest requirements.
+Repeat for contiguous intervals covering every root. Root count is
+`2 * phi_nodes * (radial_nodes-1) * (longitudinal_nodes-1)`. Each output already
+contains the runtime format; no conversion is needed. A partial file must not be
+used as a complete simulation LUT.
 
-## Simulation integration
+List shard paths in ascending contiguous root-range order, one per line, then:
 
-Simulation consumption requires explicit full-forward enablement in the
-separate consumer. The LUT supplies the deterministic endpoint and absolute
-drift duration. Simulation retains stochastic diffusion and electronics;
-arrival time is ionization time plus LUT duration plus stochastic time
-diffusion. Existing reverse reconstruction retains its configuration.
+```sh
+PHGarfieldCompactMapMerger --input-list shards.txt --output runtime.root
+```
 
-## Tests and implementation
+Relative paths are resolved against the input-list directory. Missing,
+overlapping, duplicate, out-of-order or incompatible shards are rejected. The
+default requires full coverage. For hierarchical merges of smaller groups use
+`--complete no`, then merge the partial collections into the complete LUT.
+Resource checks reject arrays exceeding supported allocation/index limits.
 
-`make check` runs eight self-contained tests covering input policy, field
-coordinates/coverage, node encoding, metadata, adaptive refinement, compact
-conversion, payload identities and malformed ROOT data. Real gas/field
-validation additionally requires independent direct-drift holdouts.
-
-`PHGarfield` supplies the existing gas/field resources. The explicitly enabled
-`PHGarfieldForwardTransport` subclass performs forward initialization and direct
-transport in this package; ordinary PHGarfield retains upstream behavior.
-`PHGarfieldForwardSetup` selects input sources without loading resources or
-evaluating fields. `PHGarfieldFieldMapValidation` inspects Cartesian magnetic
-map structure. These helpers are internal. `PHGarfieldForwardMap` supplies
-shared configuration, physics checks, metadata and encoding to the adaptive
-and compact implementation; it does not generate regular-grid tables.
+Outputs are written to temporary files, closed, independently reopened and
+checked before publication. Existing outputs are preserved; the generator's
+`--force` explicitly permits replacement. The merger never overwrites.

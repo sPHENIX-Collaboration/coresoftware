@@ -1,23 +1,12 @@
 #include "PHGarfieldCompactMap.h"
-#include <TBasket.h>
-#include <TBranch.h>
 #include <TDirectory.h>
 #include <TFile.h>
-#include <TLeaf.h>
 #include <TNamed.h>
 #include <TParameter.h>
 #include <TTree.h>
-#include <openssl/evp.h>
 #include <algorithm>
 #include <cmath>
-#include <fstream>
 #include <functional>
-#include <iomanip>
-#include <locale>
-#include <memory>
-#include <numbers>
-#include <sstream>
-#include <stdexcept>
 #include "PHGarfieldCompactMapInternal.h"
 #include "PHGarfieldFingerprint.h"
 #include "PHGarfieldPrimitiveTree.h"
@@ -26,92 +15,14 @@ namespace
 {
   using Map = PHGarfieldCompactMap;
   using Training = PHGarfieldAdaptiveMap;
-  constexpr double TwoPi = 2. * std::numbers::pi;
-  using PHGarfieldCompactMapInternal::binding_valid;
   using PHGarfieldCompactMapInternal::class_reason;
   using PHGarfieldCompactMapInternal::hex;
   using PHGarfieldCompactMapInternal::kind;
   using PHGarfieldCompactMapInternal::leaf_class;
   using PHGarfieldCompactMapInternal::reason;
   using PHGarfieldCompactMapInternal::require;
-  class Digest
-  {
-   public:
-    Digest()
-    {
-      if (!ctx || EVP_DigestInit_ex(ctx.get(), EVP_sha256(), nullptr) != 1)
-      {
-        throw std::runtime_error("SHA256 initialization failed");
-      }
-    }
-    void add(const char* p, std::size_t n) const
-    {
-      if (EVP_DigestUpdate(ctx.get(), p, n) != 1)
-      {
-        throw std::runtime_error("SHA256 update failed");
-      }
-    }
-    std::string finish() const
-    {
-      std::array<unsigned char, EVP_MAX_MD_SIZE> bytes{};
-      unsigned int n = 0;
-      if (EVP_DigestFinal_ex(ctx.get(), bytes.data(), &n) != 1 || n != 32)
-      {
-        throw std::runtime_error("SHA256 finalize failed");
-      }
-      std::ostringstream out;
-      out << std::hex << std::setfill('0');
-      for (unsigned int i = 0; i < n; ++i)
-      {
-        out << std::setw(2) << static_cast<unsigned int>(bytes[i]);
-      }
-      return out.str();
-    }
-
-   private:
-    std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx{EVP_MD_CTX_new(), EVP_MD_CTX_free};
-  };
 }  // namespace
 
-const char* PHGarfieldCompactMap::LayoutForSchema(int version)
-{
-  if (version == LegacySchemaVersion || version == LegacyCollectionSchemaVersion)
-  {
-    return LegacyLayout;
-  }
-  return version == SchemaVersion || version == CollectionSchemaVersion ? Layout : nullptr;
-}
-
-std::string PHGarfieldCompactMap::Sha256(const std::string& text)
-{
-  Digest digest;
-  digest.add(text.data(), text.size());
-  return digest.finish();
-}
-std::string PHGarfieldCompactMap::FileSha256(const std::string& path)
-{
-  std::ifstream input(path, std::ios::binary);
-  if (!input)
-  {
-    throw std::runtime_error("cannot hash " + path);
-  }
-  Digest digest;
-  std::array<char, 1024 * 1024> block{};
-  while (input)
-  {
-    input.read(block.data(), block.size());
-    const auto n = input.gcount();
-    if (n > 0)
-    {
-      digest.add(block.data(), n);
-    }
-  }
-  if (!input.eof())
-  {
-    throw std::runtime_error("SHA256 file read failed " + path);
-  }
-  return digest.finish();
-}
 bool PHGarfieldCompactMap::EstimatedBytes(std::uint64_t nodes, std::uint64_t corners, std::uint64_t values, std::uint64_t roots, std::uint64_t& bytes)
 {
   bytes = 1024;
@@ -129,8 +40,7 @@ bool PHGarfieldCompactMap::EstimatedBytes(std::uint64_t nodes, std::uint64_t cor
 
 bool PHGarfieldCompactMap::ValidateLimits(const Limits& limits, std::ostream& error)
 {
-  return require(limits.max_source_points && limits.max_source_points <= HardMaximumSourcePoints &&
-                     limits.max_nodes && limits.max_nodes <= HardMaximumNodes &&
+  return require(limits.max_nodes && limits.max_nodes <= HardMaximumNodes &&
                      limits.max_values && limits.max_values <= HardMaximumValues &&
                      limits.max_corners && limits.max_corners <= HardMaximumCorners &&
                      limits.max_roots && limits.max_roots <= HardMaximumRoots &&
@@ -159,45 +69,22 @@ bool PHGarfieldCompactMap::Validate(const Data& data, const Limits& limits, std:
   }
   const auto roots = Training::RootCount(data.geometry);
   std::uint64_t bytes = 0;
-  if (!require((data.schema_version == LegacySchemaVersion || data.schema_version == SchemaVersion) &&
-                   roots && roots <= limits.max_roots && binding_valid(data.source) &&
+  if (!require(roots && roots <= limits.max_roots && hex(data.configuration_fingerprint_fnv1a64, 16) &&
+                   !data.canonical_policy.empty() && data.canonical_policy.size() <= 65536 &&
                    data.first_root <= data.end_root && data.end_root <= roots && (!complete || (!data.first_root && data.end_root == roots)) &&
                    data.root_lookup.size() == roots && data.nodes.size() <= limits.max_nodes && data.corners.size() <= limits.max_corners && data.values.size() <= limits.max_values &&
                    data.nodes.capacity() <= limits.max_nodes && data.corners.capacity() <= limits.max_corners && data.values.capacity() <= limits.max_values && data.root_lookup.capacity() <= limits.max_roots &&
                    EstimatedBytes(data.nodes.capacity(), data.corners.capacity(), data.values.capacity(), data.root_lookup.capacity(), bytes) && bytes <= limits.max_bytes &&
                    data.max_depth <= 63 && data.max_nodes_per_root && data.max_queries_per_root && std::isfinite(data.guard_um) && data.guard_um > 0. &&
                    std::isfinite(data.maximum_drift_time_ns) && data.maximum_drift_time_ns >= 0.,
-               error, "invalid geometry/binding/count/capacity/budget"))
+               error, "invalid geometry/configuration/count/capacity/budget"))
   {
     return false;
-  }
-  const auto& proof = data.proof;
-  if (!require(proof.source_points >= data.values.size() && proof.source_points <= limits.max_source_points && proof.source_cells == data.nodes.size() &&
-                   proof.roots_checked == data.end_root - data.first_root && proof.bounds_checked == data.nodes.size() && proof.routes_checked == data.nodes.size() &&
-                   proof.certified_leaves_checked + proof.uncertified_leaves_checked == data.corners.size() &&
-                   (data.schema_version != LegacySchemaVersion || proof.uncertified_leaves_checked == 0) &&
-                   proof.corner_values_checked == 8ULL * data.corners.size() &&
-                   hex(proof.sha256, 64) && proof.sha256 == Sha256(ProofCanonical(data)),
-               error, "missing/inconsistent conversion proof"))
-  {
-    return false;
-  }
-  for (const auto& value : data.values)
-  {
-    if (!require(std::all_of(value.begin(), value.end(), [](double v)
-                             { return std::isfinite(v); }) &&
-                     value[2] >= 0. && value[2] <= data.maximum_drift_time_ns,
-                 error, "invalid compact endpoint value"))
-    {
-      return false;
-    }
   }
   std::vector<unsigned char> visited(data.nodes.size(), 0);
   std::vector<unsigned char> used_corners(data.corners.size(), 0);
   std::vector<unsigned char> used_values(data.values.size(), 0);
   std::uint64_t visited_count = 0;
-  std::uint64_t certified_count = 0;
-  std::uint64_t uncertified_count = 0;
   std::function<bool(std::uint32_t, unsigned int, const Bounds&)> visit;
   visit = [&](std::uint32_t id, unsigned int depth, const Bounds& bounds)
   {
@@ -236,10 +123,9 @@ bool PHGarfieldCompactMap::Validate(const Data& data, const Limits& limits, std:
       return true;
     }
     if (c != static_cast<int>(LeafClass::Certified) &&
-        !require(data.schema_version == SchemaVersion &&
-                     (c == static_cast<int>(LeafClass::Uncertified) || c == static_cast<int>(LeafClass::NumericallyUnresolved)) &&
+        !require((c == static_cast<int>(LeafClass::Uncertified) || c == static_cast<int>(LeafClass::NumericallyUnresolved)) &&
                      r != static_cast<int>(FallbackReason::AngularBranch),
-                 error, "ineligible or legacy noncertified leaf has interpolation payload"))
+                 error, "ineligible noncertified leaf has interpolation payload"))
     {
       return false;
     }
@@ -248,14 +134,6 @@ bool PHGarfieldCompactMap::Validate(const Data& data, const Limits& limits, std:
       return false;
     }
     used_corners[n.first] = 1;
-    if (c == static_cast<int>(LeafClass::Certified))
-    {
-      ++certified_count;
-    }
-    else
-    {
-      ++uncertified_count;
-    }
     for (unsigned int corner = 0; corner < 8; ++corner)
     {
       const auto index = data.corners[n.first][corner];
@@ -264,16 +142,6 @@ bool PHGarfieldCompactMap::Validate(const Data& data, const Limits& limits, std:
         return false;
       }
       used_values[index] = 1;
-      const auto& v = data.values[index];
-      const auto coordinate = Training::CornerCoordinate(bounds, corner);
-      const double radius = coordinate[1];
-      if (!require(radius + v[0] >= data.geometry.inner_radius_cm - Training::EndpointRadialToleranceCm &&
-                       radius + v[0] <= data.geometry.outer_radius_cm + Training::EndpointRadialToleranceCm && std::abs(v[1] / radius) <= .5 * TwoPi &&
-                       (std::abs(coordinate[2]) != data.geometry.readout_abs_z_cm || v == Value{{0., 0., 0.}}),
-                   error, "invalid certified endpoint/readout/angular value"))
-      {
-        return false;
-      }
     }
     return require(Training::UsableCornerValues(data.geometry, bounds, data.maximum_drift_time_ns,
                                                 [&](unsigned int corner) -> const Value*
@@ -300,9 +168,8 @@ bool PHGarfieldCompactMap::Validate(const Data& data, const Limits& limits, std:
       return false;
     }
   }
-  return require(certified_count == proof.certified_leaves_checked && uncertified_count == proof.uncertified_leaves_checked &&
-                     std::all_of(visited.begin(), visited.end(), [](unsigned char v)
-                                 { return v == 1; }) &&
+  return require(std::all_of(visited.begin(), visited.end(), [](unsigned char v)
+                             { return v == 1; }) &&
                      std::all_of(used_corners.begin(), used_corners.end(), [](unsigned char v)
                                  { return v == 1; }) &&
                      std::all_of(used_values.begin(), used_values.end(), [](unsigned char v)
@@ -365,8 +232,7 @@ bool PHGarfieldCompactMap::HasUsableCorners(const Data& data, const Lookup& cell
   const bool certified = cell.leaf_class == static_cast<int>(LeafClass::Certified);
   if (cell.cell_id >= data.nodes.size() || cell.corner_record >= data.corners.size() ||
       data.nodes[cell.cell_id].first != cell.corner_record ||
-      (!certified && (data.schema_version != SchemaVersion ||
-                      (cell.leaf_class != static_cast<int>(LeafClass::Uncertified) &&
+      (!certified && ((cell.leaf_class != static_cast<int>(LeafClass::Uncertified) &&
                        cell.leaf_class != static_cast<int>(LeafClass::NumericallyUnresolved)) ||
                       cell.fallback_reason == static_cast<int>(FallbackReason::AngularBranch))))
   {
@@ -407,8 +273,8 @@ std::string PHGarfieldCompactMap::ContentFingerprint(const Data& data)
     hash.Integer(value.size());
     hash.Bytes(value);
   };
-  const auto* layout = LayoutForSchema(data.schema_version);
-  text(layout ? layout : "unsupported_compact_layout");
+  integer(SchemaVersion);
+  text(Layout);
   integer(data.geometry.phi_nodes);
   integer(data.geometry.radial_nodes);
   integer(data.geometry.longitudinal_nodes);
@@ -417,11 +283,8 @@ std::string PHGarfieldCompactMap::ContentFingerprint(const Data& data)
   real(data.geometry.central_membrane_half_width_cm);
   real(data.geometry.readout_abs_z_cm);
   real(data.geometry.nominal_velocity_cm_ns);
-  text(data.source.file_sha256);
-  text(data.source.configuration_fingerprint_fnv1a64);
-  text(data.source.content_fingerprint_fnv1a64);
-  text(data.source.canonical_policy);
-  text(data.source.converter_sha256);
+  text(data.configuration_fingerprint_fnv1a64);
+  text(data.canonical_policy);
   integer(data.first_root);
   integer(data.end_root);
   integer(data.max_depth);
@@ -458,23 +321,6 @@ std::string PHGarfieldCompactMap::ContentFingerprint(const Data& data)
     integer(root);
   }
   return hash.Hex();
-}
-std::string PHGarfieldCompactMap::ProofCanonical(const Data& data)
-{
-  const auto& p = data.proof;
-  std::ostringstream out;
-  out.imbue(std::locale::classic());
-  out << (data.schema_version == LegacySchemaVersion ? LegacyConversionContract : ConversionContract)
-      << ";source_sha256=" << data.source.file_sha256 << ";source_config=" << data.source.configuration_fingerprint_fnv1a64
-      << ";source_content=" << data.source.content_fingerprint_fnv1a64 << ";converter_sha256=" << data.source.converter_sha256
-      << ";compact_content=" << ContentFingerprint(data) << ";source_points=" << p.source_points << ";source_cells=" << p.source_cells
-      << ";roots=" << p.roots_checked << ";bounds=" << p.bounds_checked << ";routes=" << p.routes_checked << ";certified=" << p.certified_leaves_checked
-      << ";corner_values=" << p.corner_values_checked;
-  if (data.schema_version == SchemaVersion)
-  {
-    out << ";uncertified=" << p.uncertified_leaves_checked;
-  }
-  return out.str();
 }
 
 namespace
@@ -553,30 +399,16 @@ bool PHGarfieldCompactMap::Write(TDirectory* directory, const Data& data, const 
     return false;
   }
   TDirectory::TContext context(directory);
-  const auto& b = data.source;
-  const auto& p = data.proof;
-  const bool ok = TNamed("layout", LayoutForSchema(data.schema_version)).Write() > 0 &&
-                  TNamed("conversion_contract", data.schema_version == LegacySchemaVersion ? LegacyConversionContract : ConversionContract).Write() > 0 &&
-                  TNamed("source_file_sha256", b.file_sha256.c_str()).Write() > 0 && TNamed("source_configuration_fingerprint_fnv1a64", b.configuration_fingerprint_fnv1a64.c_str()).Write() > 0 &&
-                  TNamed("source_content_fingerprint_fnv1a64", b.content_fingerprint_fnv1a64.c_str()).Write() > 0 && TNamed("source_canonical_policy", b.canonical_policy.c_str()).Write() > 0 &&
-                  TNamed("converter_sha256", b.converter_sha256.c_str()).Write() > 0 && TNamed("conversion_proof_sha256", p.sha256.c_str()).Write() > 0 &&
-                  TNamed("conversion_proof_canonical", ProofCanonical(data).c_str()).Write() > 0 && TNamed("content_fingerprint_fnv1a64", ContentFingerprint(data).c_str()).Write() > 0 &&
-                  write_parameter("schema_version", data.schema_version) && write_parameter<Long64_t>("first_root", data.first_root) && write_parameter<Long64_t>("end_root", data.end_root) &&
+  const bool ok = TNamed("layout", Layout).Write() > 0 &&
+                  TNamed("configuration_fingerprint_fnv1a64", data.configuration_fingerprint_fnv1a64.c_str()).Write() > 0 &&
+                  TNamed("canonical_policy", data.canonical_policy.c_str()).Write() > 0 &&
+                  TNamed("content_fingerprint_fnv1a64", ContentFingerprint(data).c_str()).Write() > 0 &&
+                  write_parameter("schema_version", SchemaVersion) && write_parameter<Long64_t>("first_root", data.first_root) && write_parameter<Long64_t>("end_root", data.end_root) &&
                   write_parameter<Long64_t>("node_count", data.nodes.size()) && write_parameter<Long64_t>("corner_record_count", data.corners.size()) && write_parameter<Long64_t>("value_count", data.values.size()) &&
                   write_parameter<Long64_t>("root_lookup_count", data.root_lookup.size()) && write_parameter<Long64_t>("max_depth", data.max_depth) &&
                   write_parameter<Long64_t>("max_nodes_per_root", data.max_nodes_per_root) && write_parameter<Long64_t>("max_queries_per_root", data.max_queries_per_root) &&
-                  write_parameter("guard_um", data.guard_um) && write_parameter("maximum_drift_time_ns", data.maximum_drift_time_ns) &&
-                  write_parameter<Long64_t>("source_point_count", p.source_points) && write_parameter<Long64_t>("source_cell_count", p.source_cells) &&
-                  write_parameter<Long64_t>("proof_roots_checked", p.roots_checked) && write_parameter<Long64_t>("proof_bounds_checked", p.bounds_checked) &&
-                  write_parameter<Long64_t>("proof_routes_checked", p.routes_checked) && write_parameter<Long64_t>("proof_certified_leaves_checked", p.certified_leaves_checked) &&
-                  write_parameter<Long64_t>("proof_corner_values_checked", p.corner_values_checked);
+                  write_parameter("guard_um", data.guard_um) && write_parameter("maximum_drift_time_ns", data.maximum_drift_time_ns);
   if (!require(ok && !file->TestBit(TFile::kWriteError), error, "compact metadata write failed"))
-  {
-    return false;
-  }
-  if (data.schema_version == SchemaVersion &&
-      !require(write_parameter<Long64_t>("proof_uncertified_leaves_checked", p.uncertified_leaves_checked),
-               error, "uncertified corner proof write failed"))
   {
     return false;
   }
@@ -584,40 +416,29 @@ bool PHGarfieldCompactMap::Write(TDirectory* directory, const Data& data, const 
          write_tree(directory, "Values", data.values, error) && write_tree(directory, "Roots", data.root_lookup, error);
 }
 
-bool PHGarfieldCompactMap::Read(TDirectory* directory, const Geometry& geometry, const ExpectedSource& expected, Data& result, const Limits& limits, std::ostream& error, bool complete)
+bool PHGarfieldCompactMap::Read(TDirectory* directory, const Geometry& geometry, Data& result, const Limits& limits, std::ostream& error, bool complete)
 {
   result = {};
   Data data;
   data.geometry = geometry;
-  if (!ValidateLimits(limits, error))
-  {
-    return false;
-  }
-  if (!require(directory && Training::RootCount(geometry) && hex(expected.file_sha256, 64) &&
-                   hex(expected.configuration_fingerprint_fnv1a64, 16) && hex(expected.content_fingerprint_fnv1a64, 16),
-               error, "invalid directory/geometry/external source expectations"))
+  const auto total = Training::RootCount(geometry);
+  if (!ValidateLimits(limits, error) || !require(directory && total && total <= limits.max_roots, error, "invalid directory/geometry/root budget"))
   {
     return false;
   }
   int version = 0;
   std::string layout;
-  std::string contract;
   std::string stored_content;
-  std::string stored_proof;
-  auto& b = data.source;
-  auto& p = data.proof;
-  if (!require(parameter(directory, "schema_version", version) && (version == LegacySchemaVersion || version == SchemaVersion) &&
-                   text(directory, "layout", layout) && layout == LayoutForSchema(version) &&
-                   text(directory, "conversion_contract", contract) && contract == (version == LegacySchemaVersion ? LegacyConversionContract : ConversionContract) && text(directory, "source_file_sha256", b.file_sha256) &&
-                   text(directory, "source_configuration_fingerprint_fnv1a64", b.configuration_fingerprint_fnv1a64) && text(directory, "source_content_fingerprint_fnv1a64", b.content_fingerprint_fnv1a64) &&
-                   text(directory, "source_canonical_policy", b.canonical_policy) && text(directory, "converter_sha256", b.converter_sha256) &&
-                   text(directory, "conversion_proof_sha256", p.sha256) && text(directory, "conversion_proof_canonical", stored_proof) && text(directory, "content_fingerprint_fnv1a64", stored_content) &&
-                   binding_valid(b) && b.file_sha256 == expected.file_sha256 && b.configuration_fingerprint_fnv1a64 == expected.configuration_fingerprint_fnv1a64 && b.content_fingerprint_fnv1a64 == expected.content_fingerprint_fnv1a64,
-               error, "compact format or external source binding differs"))
+  if (!require(parameter(directory, "schema_version", version) && version == SchemaVersion &&
+                   text(directory, "layout", layout) && layout == Layout &&
+                   text(directory, "configuration_fingerprint_fnv1a64", data.configuration_fingerprint_fnv1a64) &&
+                   text(directory, "canonical_policy", data.canonical_policy) && text(directory, "content_fingerprint_fnv1a64", stored_content) &&
+                   hex(data.configuration_fingerprint_fnv1a64, 16) && hex(stored_content, 16) &&
+                   !data.canonical_policy.empty() && data.canonical_policy.size() <= 65536,
+               error, "unsupported format or missing configuration/content fingerprint"))
   {
     return false;
   }
-  data.schema_version = version;
   Long64_t first = 0;
   Long64_t end = 0;
   Long64_t nodes = 0;
@@ -627,40 +448,21 @@ bool PHGarfieldCompactMap::Read(TDirectory* directory, const Geometry& geometry,
   Long64_t depth = 0;
   Long64_t per_root = 0;
   Long64_t queries = 0;
-  Long64_t source_points = 0;
-  Long64_t source_cells = 0;
-  Long64_t proof_roots = 0;
-  Long64_t proof_bounds = 0;
-  Long64_t proof_routes = 0;
-  Long64_t proof_certified = 0;
-  Long64_t proof_uncertified = 0;
-  Long64_t proof_corners = 0;
   if (!require(parameter(directory, "first_root", first) && parameter(directory, "end_root", end) && parameter(directory, "node_count", nodes) &&
                    parameter(directory, "corner_record_count", corners) && parameter(directory, "value_count", values) && parameter(directory, "root_lookup_count", roots) &&
                    parameter(directory, "max_depth", depth) && parameter(directory, "max_nodes_per_root", per_root) && parameter(directory, "max_queries_per_root", queries) &&
-                   parameter(directory, "guard_um", data.guard_um) && parameter(directory, "maximum_drift_time_ns", data.maximum_drift_time_ns) &&
-                   parameter(directory, "source_point_count", source_points) && parameter(directory, "source_cell_count", source_cells) &&
-                   parameter(directory, "proof_roots_checked", proof_roots) && parameter(directory, "proof_bounds_checked", proof_bounds) && parameter(directory, "proof_routes_checked", proof_routes) &&
-                   parameter(directory, "proof_certified_leaves_checked", proof_certified) && parameter(directory, "proof_corner_values_checked", proof_corners),
+                   parameter(directory, "guard_um", data.guard_um) && parameter(directory, "maximum_drift_time_ns", data.maximum_drift_time_ns),
                error, "missing/incorrectly typed compact metadata"))
   {
     return false;
   }
-  if (version == SchemaVersion &&
-      !require(parameter(directory, "proof_uncertified_leaves_checked", proof_uncertified),
-               error, "missing uncertified corner proof"))
-  {
-    return false;
-  }
   std::uint64_t bytes = 0;
-  const auto total = Training::RootCount(geometry);
   if (!require(first >= 0 && end >= first && static_cast<std::uint64_t>(end) <= total && (!complete || (!first && static_cast<std::uint64_t>(end) == total)) &&
                    nodes >= 0 && static_cast<std::uint64_t>(nodes) <= limits.max_nodes && corners >= 0 && static_cast<std::uint64_t>(corners) <= limits.max_corners &&
-                   values >= 0 && static_cast<std::uint64_t>(values) <= limits.max_values && roots >= 0 && static_cast<std::uint64_t>(roots) == total && total <= limits.max_roots &&
+                   values >= 0 && static_cast<std::uint64_t>(values) <= limits.max_values && roots >= 0 && static_cast<std::uint64_t>(roots) == total &&
                    depth >= 0 && depth <= 63 && per_root > 0 && per_root <= std::numeric_limits<unsigned int>::max() && queries > 0 && queries <= std::numeric_limits<unsigned int>::max() &&
-                   source_points >= values && static_cast<std::uint64_t>(source_points) <= limits.max_source_points && source_cells == nodes && proof_roots == end - first && proof_bounds == nodes && proof_routes == nodes &&
-                   proof_certified >= 0 && proof_uncertified >= 0 && proof_certified <= corners && proof_uncertified <= corners - proof_certified &&
-                   proof_certified + proof_uncertified == corners && proof_corners == 8 * corners && EstimatedBytes(nodes, corners, values, roots, bytes) && bytes <= limits.max_bytes,
+                   std::isfinite(data.guard_um) && data.guard_um > 0. && std::isfinite(data.maximum_drift_time_ns) && data.maximum_drift_time_ns >= 0. &&
+                   EstimatedBytes(nodes, corners, values, roots, bytes) && bytes <= limits.max_bytes,
                error, "negative/overflowing/unbounded compact declarations"))
   {
     return false;
@@ -678,21 +480,12 @@ bool PHGarfieldCompactMap::Read(TDirectory* directory, const Geometry& geometry,
   data.max_depth = depth;
   data.max_nodes_per_root = per_root;
   data.max_queries_per_root = queries;
-  p.source_points = source_points;
-  p.source_cells = source_cells;
-  p.roots_checked = proof_roots;
-  p.bounds_checked = proof_bounds;
-  p.routes_checked = proof_routes;
-  p.certified_leaves_checked = proof_certified;
-  p.uncertified_leaves_checked = proof_uncertified;
-  p.corner_values_checked = proof_corners;
   data.nodes.resize(nodes);
   data.corners.resize(corners);
   data.values.resize(values);
   data.root_lookup.resize(roots);
   if (!read_tree(nt, data.nodes, error) || !read_tree(ct, data.corners, error) || !read_tree(vt, data.values, error) || !read_tree(rt, data.root_lookup, error) ||
-      !require(ContentFingerprint(data) == stored_content && ProofCanonical(data) == stored_proof, error, "compact content/conversion proof changed") ||
-      !Validate(data, limits, error, complete))
+      !require(ContentFingerprint(data) == stored_content, error, "compact content changed") || !Validate(data, limits, error, complete))
   {
     return false;
   }

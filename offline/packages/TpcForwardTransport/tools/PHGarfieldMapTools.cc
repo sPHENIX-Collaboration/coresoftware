@@ -1,5 +1,4 @@
 #include "PHGarfieldMapTools.h"
-#include <cerrno>
 #include "PHGarfieldRootOutput.h"
 
 #include <TFile.h>
@@ -8,7 +7,6 @@
 #include <TNamed.h>
 #include <TParameter.h>
 
-#include <fcntl.h>
 #include <unistd.h>
 #include <algorithm>
 #include <array>
@@ -24,7 +22,6 @@
 namespace PHGarfieldMapTools
 {
   const std::string MetadataPath = "GarfieldFullTransport/Metadata";
-  const std::string AdaptivePath = "GarfieldFullTransport/Adaptive";
 
   void require(bool value, const std::string& message)
   {
@@ -60,68 +57,6 @@ namespace PHGarfieldMapTools
     return object->GetTitle();
   }
 
-  std::string fingerprint(const std::string& text)
-  {
-    return PHGarfieldForwardMap::Fingerprint(text);
-  }
-
-  // Explicit output resources do not change any generation/refinement policy.
-  std::uint64_t integer(const std::string& text)
-  {
-    require(!text.empty() && std::all_of(text.begin(), text.end(), [](char c)
-                                         { return c >= '0' && c <= '9'; }),
-            "nonnegative decimal count required");
-    std::size_t consumed = 0;
-    const auto value = std::stoull(text, &consumed);
-    require(consumed == text.size() && value <= static_cast<std::uint64_t>(std::numeric_limits<Long64_t>::max()), "count exceeds signed ROOT metadata bound");
-    return value;
-  }
-  std::string quote(const std::string& value)
-  {
-    std::ostringstream out;
-    out << '"';
-    for (unsigned char c : value)
-    {
-      if (c == '"' || c == '\\')
-      {
-        out << '\\' << static_cast<char>(c);
-      }
-      else if (c < 32)
-      {
-        out << "\\u" << std::hex << std::setfill('0') << std::setw(4) << static_cast<unsigned int>(c) << std::dec;
-      }
-      else
-      {
-        out << static_cast<char>(c);
-      }
-    }
-    out << '"';
-    return out.str();
-  }
-  void write_exclusive(const std::string& path, const std::string& text)
-  {
-    const int fd = ::open(path.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0644);
-    require(fd >= 0, "cannot create exclusive proof temporary");
-    std::size_t done = 0;
-    while (done < text.size())
-    {
-      const auto count = ::write(fd, text.data() + done, text.size() - done);
-      if (count < 0 && errno == EINTR)
-      {
-        continue;
-      }
-      if (count <= 0)
-      {
-        ::close(fd);
-        throw std::runtime_error("proof write failed; partial evidence preserved");
-      }
-      done += static_cast<std::size_t>(count);
-    }
-    const bool synced = ::fsync(fd) == 0;
-    const bool closed = ::close(fd) == 0;
-    require(synced && closed, "proof flush/close failed");
-  }
-
   void publish_exclusive(const std::string& temporary, const std::string& output)
   {
     require(::link(temporary.c_str(), output.c_str()) == 0, "exclusive publication failed; temporary evidence preserved");
@@ -130,38 +65,18 @@ namespace PHGarfieldMapTools
 
   void write_compact_output(const std::string& path, const PHGarfieldCompactMap::Data& data,
                             const PHGarfieldCompactMap::Limits& limits, std::ostream& errors,
-                            const std::function<void(TDirectory&)>& write_source_metadata,
-                            const std::string* collection_manifest)
+                            const std::function<void(TDirectory&)>& write_metadata)
   {
     using Compact = PHGarfieldCompactMap;
     TFile file(path.c_str(), "CREATE");
     require(!file.IsZombie(), "cannot create unique temporary ROOT output");
     auto* top = file.mkdir("GarfieldFullTransport");
     require(top, "cannot create transport directory");
-    auto* identity = top->mkdir("Metadata");
-    require(identity, "cannot create compact identity metadata");
+    auto* metadata = top->mkdir("Metadata");
+    require(metadata, "cannot create transport metadata");
     {
-      TDirectory::TContext context(identity);
-      const auto& binding = data.source;
-      require(TParameter<int>("schema_version", data.schema_version + (collection_manifest ? 1 : 0)).Write() > 0 &&
-                  TNamed("schema_name", collection_manifest ? Compact::CollectionSchemaName : Compact::SchemaName).Write() > 0 &&
-                  TParameter<int>("source_schema_version", 4).Write() > 0 && TNamed("compact_layout", Compact::LayoutForSchema(data.schema_version)).Write() > 0 &&
-                  TNamed("source_file_sha256", binding.file_sha256.c_str()).Write() > 0 &&
-                  TNamed("source_configuration_fingerprint_fnv1a64", binding.configuration_fingerprint_fnv1a64.c_str()).Write() > 0 &&
-                  TNamed("source_content_fingerprint_fnv1a64", binding.content_fingerprint_fnv1a64.c_str()).Write() > 0,
-              "cannot write compact identity metadata");
-      if (collection_manifest)
-      {
-        require(TNamed("source_kind", Compact::CollectionSourceKind).Write() > 0 &&
-                    TNamed("source_manifest_tsv", collection_manifest->c_str()).Write() > 0,
-                "cannot write compact collection metadata");
-      }
-    }
-    auto* source = top->mkdir("SourceMetadata");
-    require(source, "cannot create source metadata directory");
-    {
-      TDirectory::TContext context(source);
-      write_source_metadata(*source);
+      TDirectory::TContext context(metadata);
+      write_metadata(*metadata);
     }
     require(Compact::Write(top->mkdir("Runtime"), data, limits, errors), "compact array write failed");
     require(PHGarfieldFlushAndCloseRootOutput(file, errors), "ROOT flush/close failed");
@@ -173,12 +88,10 @@ namespace PHGarfieldMapTools
   {
     using Compact = PHGarfieldCompactMap;
     const auto geometry_value = data.geometry;
-    const Compact::ExpectedSource expected{data.source.file_sha256, data.source.configuration_fingerprint_fnv1a64,
-                                           data.source.content_fingerprint_fnv1a64};
     const auto content = Compact::ContentFingerprint(data);
     data = {};
     auto file = open(path);
-    require(Compact::Read(file->GetDirectory("GarfieldFullTransport/Runtime"), geometry_value, expected, data, limits, errors, complete),
+    require(Compact::Read(file->GetDirectory("GarfieldFullTransport/Runtime"), geometry_value, data, limits, errors, complete),
             "independent ROOT readback failed");
     require(Compact::ContentFingerprint(data) == content, "ROOT readback changed content");
   }
@@ -207,16 +120,6 @@ namespace PHGarfieldMapTools
     std::unique_ptr<TFile> file(TFile::Open(path.c_str(), "READ"));
     require(file && !file->IsZombie() && !file->TestBit(TFile::kRecovered), "unreadable/recovered shard " + path);
     return file;
-  }
-
-  void check_summary(TDirectory& metadata, const Map::Data& data)
-  {
-    require(count(metadata, "generation_root_first") == data.first_root &&
-                count(metadata, "generation_root_end") == data.end_root,
-            "top metadata/adaptive root range mismatch");
-    require(parameter<double>(metadata, "interpolation_tolerance_um") == data.policy.guard_um &&
-                parameter<double>(metadata, "maximum_drift_time_ns") == data.maximum_drift_time_ns,
-            "top metadata/adaptive guard or duration mismatch");
   }
 
   const std::array<const char*, 5> GenerationCounters = {{"adaptive_sampler_queries", "adaptive_reused_points", "adaptive_certified_leaves",
@@ -250,8 +153,7 @@ namespace PHGarfieldMapTools
 
   // These fields describe execution/aggregation, not the common physical model.
   const std::set<std::string> VariableMetadata = {
-      "schema_name", "generation_phi_chunk_index", "generation_phi_chunk_count",
-      "generation_root_first", "generation_root_end", "adaptive_root_first", "adaptive_root_end",
+      "generation_root_first", "generation_root_end", "generation_shards",
       "maximum_drift_time_ns", "reach_probe_trajectories", "adaptive_sampler_queries",
       "adaptive_reused_points", "adaptive_certified_leaves", "adaptive_direct_leaves", "adaptive_budget_leaves"};
 

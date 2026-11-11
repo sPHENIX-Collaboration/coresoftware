@@ -206,8 +206,7 @@ bool PHGarfieldForwardMap::ValidateConfig(
 
 std::string PHGarfieldForwardMap::BuildCanonicalConfiguration(
     const Config& config,
-    const Provenance& provenance,
-    const int schema_version)
+    const Provenance& provenance)
 {
   std::ostringstream canonical;
   const auto append_string =
@@ -217,7 +216,7 @@ std::string PHGarfieldForwardMap::BuildCanonicalConfiguration(
   };
   canonical << std::setprecision(17)
             << "schema=" << SchemaName
-            << ";version=" << schema_version
+            << ";version=" << SchemaVersion
             << ";contract=" << TransportContract
             << ";phi_nodes=" << config.phi_nodes
             << ";radial_nodes=" << config.radial_nodes
@@ -255,7 +254,7 @@ std::string PHGarfieldForwardMap::BuildCanonicalConfiguration(
             << ";maximum_integration_steps="
             << provenance.maximum_integration_steps
             << ";cell_center_probes="
-            << 1  // Frozen full-stencil identity, shared with existing adaptive tables.
+            << 1  // Full 27-point stencil is mandatory.
             << ";nominal_time_reference_policy="
             << NominalTimeReferencePolicy
             << ";scale_zero_reference_time_side0_ns="
@@ -278,36 +277,30 @@ std::string PHGarfieldForwardMap::BuildCanonicalConfiguration(
   append_string("reach_probe_scheme", provenance.reach_probe_scheme);
   append_string("cdb_global_tag", config.cdb_global_tag);
   append_string("configuration_label", config.configuration_label);
-  if (schema_version >= ExtendedSchemaVersion)
+  append_string("field_model", provenance.field_model);
+  if (provenance.field_model == "per_side_3d")
   {
-    append_string("field_model", provenance.field_model);
-    if (provenance.field_model == "per_side_3d")
-    {
-      append_string("space_charge_z_coordinate_policy", SpaceChargeZCoordinatePolicy);
-    }
-    append_string("frame_field_map", provenance.frame_field_map);
-    append_string("frame_field_map_md5", provenance.frame_field_map_md5);
-    for (std::size_t side = 0; side < 2; ++side)
-    {
-      const std::string side_tag = "_side" + std::to_string(side);
-      append_string(("electric_field_map_3d" + side_tag).c_str(), provenance.electric_field_map_3d[side]);
-      append_string(("electric_field_map_3d_md5" + side_tag).c_str(), provenance.electric_field_map_3d_md5[side]);
-      append_string(("frame_field_map_3d" + side_tag).c_str(), provenance.frame_field_map_3d[side]);
-      append_string(("frame_field_map_3d_md5" + side_tag).c_str(), provenance.frame_field_map_3d_md5[side]);
-      canonical << ";frame_charge_scale" << side_tag << "=" << provenance.frame_charge_scale[side]
-                << ";cm_field_factor" << side_tag << "=" << provenance.cm_field_factor[side];
-    }
-    canonical << ";use_ifc_voltage_distortion=" << provenance.use_ifc_voltage_distortion
-              << ";use_ofc_voltage_distortion=" << provenance.use_ofc_voltage_distortion;
-    for (std::size_t index = 0; index < 4; ++index)
-    {
-      canonical << ";field_cage_offset_v_" << index << "=" << provenance.field_cage_offsets_v[index];
-    }
+    append_string("space_charge_z_coordinate_policy", SpaceChargeZCoordinatePolicy);
   }
-  if (schema_version >= NumericalSchemaVersion)
+  append_string("frame_field_map", provenance.frame_field_map);
+  append_string("frame_field_map_md5", provenance.frame_field_map_md5);
+  for (std::size_t side = 0; side < 2; ++side)
   {
-    canonical << ";interpolation_tolerance_um=" << config.interpolation_tolerance_um;
-    append_string("interpolation_error_probe_scheme", schema_version >= 4 ? provenance.reach_probe_scheme : "center_and_face_centers_transverse_time_equivalent_v1");
+    const std::string side_tag = "_side" + std::to_string(side);
+    append_string(("electric_field_map_3d" + side_tag).c_str(), provenance.electric_field_map_3d[side]);
+    append_string(("electric_field_map_3d_md5" + side_tag).c_str(), provenance.electric_field_map_3d_md5[side]);
+    append_string(("frame_field_map_3d" + side_tag).c_str(), provenance.frame_field_map_3d[side]);
+    append_string(("frame_field_map_3d_md5" + side_tag).c_str(), provenance.frame_field_map_3d_md5[side]);
+    canonical << ";frame_charge_scale" << side_tag << "=" << provenance.frame_charge_scale[side]
+              << ";cm_field_factor" << side_tag << "=" << provenance.cm_field_factor[side];
   }
+  canonical << ";use_ifc_voltage_distortion=" << provenance.use_ifc_voltage_distortion
+            << ";use_ofc_voltage_distortion=" << provenance.use_ofc_voltage_distortion;
+  for (std::size_t index = 0; index < 4; ++index)
+  {
+    canonical << ";field_cage_offset_v_" << index << "=" << provenance.field_cage_offsets_v[index];
+  }
+  canonical << ";interpolation_tolerance_um=" << config.interpolation_tolerance_um;
+  append_string("interpolation_error_probe_scheme", provenance.reach_probe_scheme);
   return canonical.str();
 }

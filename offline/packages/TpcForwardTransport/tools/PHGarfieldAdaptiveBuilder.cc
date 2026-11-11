@@ -63,7 +63,6 @@ bool PHGarfieldAdaptiveMap::Build(const Geometry& geometry, const Policy& policy
     error << "Adaptive builder: invalid configuration/root range\n";
     return false;
   }
-  data.root_lookup.clear();
   data.end_root = end;
   std::map<std::array<double, 3>, std::uint64_t> cache;
   auto memory_available = [&](std::uint64_t points, std::uint64_t cells)

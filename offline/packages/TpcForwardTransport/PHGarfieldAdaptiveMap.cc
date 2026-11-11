@@ -1,15 +1,4 @@
 #include "PHGarfieldAdaptiveMap.h"
-#include "PHGarfieldFingerprint.h"
-#include "PHGarfieldPrimitiveTree.h"
-
-#include <TBasket.h>
-#include <TBranch.h>
-#include <TDirectory.h>
-#include <TFile.h>
-#include <TLeaf.h>
-#include <TNamed.h>
-#include <TParameter.h>
-#include <TTree.h>
 
 #include <algorithm>
 #include <cmath>
@@ -76,13 +65,12 @@ namespace
   {
     return std::isfinite(p.guard_um) && p.guard_um > 0. && p.max_depth <= 63 &&
            p.max_nodes_per_root >= 1 && p.max_queries_per_root >= 1 &&
-           p.max_total_points >= 1 && p.max_total_points <= static_cast<std::uint64_t>(std::numeric_limits<Long64_t>::max()) &&
-           p.max_total_cells >= 1 && p.max_total_cells <= static_cast<std::uint64_t>(std::numeric_limits<Long64_t>::max()) &&
+           p.max_total_points >= 1 && p.max_total_points <= static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()) &&
+           p.max_total_cells >= 1 && p.max_total_cells <= static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()) &&
            p.max_estimated_bytes >= 1024 && p.max_estimated_bytes <= Map::HardMaximumEstimatedBytes;
   }
 
-  bool validate_impl(const Map::Data& data, std::vector<std::int64_t>& lookup,
-                     std::ostream& error, bool complete)
+  bool validate_impl(const Map::Data& data, std::ostream& error, bool complete)
   {
     if (!require(geometry_valid(data.geometry) && policy_valid(data.policy), error, "invalid geometry/policy"))
     {
@@ -102,7 +90,6 @@ namespace
     {
       return false;
     }
-    lookup.assign(static_cast<std::size_t>(count), -1);
     std::unordered_map<std::array<double, 3>, std::uint64_t, CoordinateHash> coordinates;
     coordinates.reserve(data.points.size());
     for (std::size_t i = 0; i < data.points.size(); ++i)
@@ -342,61 +329,12 @@ namespace
       {
         return false;
       }
-      lookup[root.root_id] = root.cell_id;
     }
     return require(std::all_of(visited.begin(), visited.end(), [](unsigned char v)
                                { return v == 1; }),
                    error, "orphan/disconnected cells");
   }
 
-  template <class T>
-  bool parameter(TDirectory* directory, const char* name, T& value)
-  {
-    auto* object = dynamic_cast<TParameter<T>*>(directory->Get(name));
-    if (!object)
-    {
-      return false;
-    }
-    value = object->GetVal();
-    return true;
-  }
-
-  template <class T>
-  bool write_parameter(const char* name, T value)
-  {
-    TParameter<T> object(name, value);
-    return object.Write() > 0;
-  }
-
-  using Field = PHGarfieldPrimitiveTree::Field;
-  template <class T>
-  std::vector<Field> fields(T&);
-  template <>
-  std::vector<Field> fields(Map::Point& p)
-  {
-    return {{"id", &p.id, "ULong64_t", 1, "id/l"}, {"coordinate", p.coordinate.data(), "Double_t", 3, "coordinate[3]/D"}, {"reaches", &p.reaches, "Int_t", 1, "reaches/I"}, {"forward_status", &p.forward_status, "Int_t", 1, "forward_status/I"}, {"value", p.value.data(), "Double_t", 3, "value[3]/D"}};
-  }
-  template <>
-  std::vector<Field> fields(Map::Root& p)
-  {
-    return {{"root_id", &p.root_id, "ULong64_t", 1, "root_id/l"}, {"cell_id", &p.cell_id, "ULong64_t", 1, "cell_id/l"}};
-  }
-  template <>
-  std::vector<Field> fields(Map::Cell& c)
-  {
-    return {{"id", &c.id, "ULong64_t", 1, "id/l"}, {"root_id", &c.root_id, "ULong64_t", 1, "root_id/l"}, {"lo", c.lo.data(), "Double_t", 3, "lo[3]/D"}, {"hi", c.hi.data(), "Double_t", 3, "hi[3]/D"}, {"corner_id", c.corner_id.data(), "Long64_t", 8, "corner_id[8]/L"}, {"child_id", c.child_id.data(), "Long64_t", 2, "child_id[2]/L"}, {"split_axis", &c.split_axis, "Int_t", 1, "split_axis/I"}, {"depth", &c.depth, "UInt_t", 1, "depth/i"}, {"leaf_class", &c.leaf_class, "Int_t", 1, "leaf_class/I"}, {"fallback_reason", &c.fallback_reason, "Int_t", 1, "fallback_reason/I"}, {"probe_count", &c.probe_count, "UInt_t", 1, "probe_count/i"}, {"probe_reaching", &c.probe_reaching, "UInt_t", 1, "probe_reaching/i"}, {"angular_valid", &c.angular_valid, "Int_t", 1, "angular_valid/I"}, {"max_transverse_error_um", &c.max_transverse_error_um, "Double_t", 1, "max_transverse_error_um/D"}, {"max_time_error_um", &c.max_time_error_um, "Double_t", 1, "max_time_error_um/D"}, {"directional_error_um", c.directional_error_um.data(), "Double_t", 3, "directional_error_um[3]/D"}, {"directional_reach_changes", c.directional_reach_changes.data(), "UInt_t", 3, "directional_reach_changes[3]/i"}};
-  }
-
-  template <class T>
-  bool write_tree(TDirectory* directory, const char* name, const std::vector<T>& records, std::ostream& error)
-  {
-    return PHGarfieldPrimitiveTree::Write(directory, name, records, error, fields<T>, "Adaptive");
-  }
-  template <class T>
-  bool read_tree(TTree* tree, std::vector<T>& records, std::ostream& error)
-  {
-    return PHGarfieldPrimitiveTree::Read(tree, records, error, fields<T>, "Adaptive");
-  }
 }  // namespace
 
 bool PHGarfieldAdaptiveMap::ValidatePoint(const Point& p, const Geometry& g,
@@ -576,63 +514,9 @@ bool PHGarfieldAdaptiveMap::EstimatedBytes(std::uint64_t points, std::uint64_t c
   return true;
 }
 
-bool PHGarfieldAdaptiveMap::Validate(Data& data, std::ostream& error, bool complete)
+bool PHGarfieldAdaptiveMap::Validate(const Data& data, std::ostream& error, bool complete)
 {
-  return validate_impl(data, data.root_lookup, error, complete);
-}
-
-const PHGarfieldAdaptiveMap::Cell* PHGarfieldAdaptiveMap::FindLeaf(const Data& d, unsigned int side, double phi, double r, double z)
-{
-  const auto& g = d.geometry;
-  if (side > 1 || !std::isfinite(phi) || !std::isfinite(r) || !std::isfinite(z) ||
-      r < g.inner_radius_cm || r > g.outer_radius_cm || (side ? z < g.central_membrane_half_width_cm || z > g.readout_abs_z_cm : z < -g.readout_abs_z_cm || z > -g.central_membrane_half_width_cm))
-  {
-    return nullptr;
-  }
-  phi = CanonicalPhi(phi);
-  const auto root = RootIndex(g, side, phi, r, z);
-  if (root >= d.root_lookup.size() || d.root_lookup[root] < 0)
-  {
-    return nullptr;
-  }
-  auto id = static_cast<std::uint64_t>(d.root_lookup[root]);
-  const std::array<double, 3> coordinate{{phi, r, z}};
-  for (unsigned int depth = 0; depth <= d.policy.max_depth; ++depth)
-  {
-    if (id >= d.cells.size())
-    {
-      return nullptr;
-    }
-    const auto& c = d.cells[id];
-    if (c.split_axis == -1)
-    {
-      return &c;
-    }
-    if (c.split_axis < 0 || c.split_axis > 2)
-    {
-      return nullptr;
-    }
-    const auto child = coordinate[c.split_axis] >= .5 * (c.lo[c.split_axis] + c.hi[c.split_axis]);
-    if (c.child_id[child] < 0)
-    {
-      return nullptr;
-    }
-    id = c.child_id[child];
-  }
-  return nullptr;
-}
-
-bool PHGarfieldAdaptiveMap::Interpolate(const Data& data, const Cell& cell, double phi, double r, double z, PHGarfieldForwardMap::NodeValue& result)
-{
-  result = {};
-  if (cell.leaf_class != static_cast<int>(LeafClass::Certified))
-  {
-    return false;
-  }
-  return InterpolateCorners({cell.lo, cell.hi}, {{CanonicalPhi(phi), r, z}}, [&](unsigned int corner) -> const std::array<double, 3>*
-                            {
-                              const auto id = cell.corner_id[corner];
-                              return id >= 0 && static_cast<std::uint64_t>(id) < data.points.size() ? &data.points[id].value : nullptr; }, result);
+  return validate_impl(data, error, complete);
 }
 
 bool PHGarfieldAdaptiveMap::HasUsableCorners(const Data& data, const Cell& cell)
@@ -663,27 +547,12 @@ bool PHGarfieldAdaptiveMap::HasUsableCorners(const Data& data, const Cell& cell)
                             });
 }
 
-bool PHGarfieldAdaptiveMap::InterpolateRelaxed(const Data& data, const Cell& cell, double phi, double r, double z,
-                                               PHGarfieldForwardMap::NodeValue& result, bool& certified)
-{
-  result = {};
-  certified = false;
-  if (cell.leaf_class == static_cast<int>(LeafClass::Certified))
-  {
-    certified = Interpolate(data, cell, phi, r, z, result);
-    return certified;
-  }
-  return HasUsableCorners(data, cell) &&
-         InterpolateCorners({cell.lo, cell.hi}, {{CanonicalPhi(phi), r, z}}, [&](unsigned int corner) -> const std::array<double, 3>*
-                            { return &data.points[cell.corner_id[corner]].value; }, result);
-}
-
 std::string PHGarfieldAdaptiveMap::BuildCanonicalPolicy(const Data& d)
 {
   std::ostringstream s;
   s.imbue(std::locale::classic());
   s << std::setprecision(17);
-  s << "adaptive_schema=4;probe=" << ProbeScheme << ";split=" << SplitPolicy << ";all_lost=" << AllLostPolicy
+  s << "adaptive_policy=1;probe=" << ProbeScheme << ";split=" << SplitPolicy << ";all_lost=" << AllLostPolicy
     << ";leaf_encoding=" << LeafEncoding << ";fallback_encoding=" << FallbackEncoding
     << ";phi=" << d.geometry.phi_nodes << ";r=" << d.geometry.radial_nodes << ";z=" << d.geometry.longitudinal_nodes
     << ";rmin=" << d.geometry.inner_radius_cm << ";rmax=" << d.geometry.outer_radius_cm
@@ -693,192 +562,4 @@ std::string PHGarfieldAdaptiveMap::BuildCanonicalPolicy(const Data& d)
     << ";queries_per_root=" << d.policy.max_queries_per_root << ";max_points=" << d.policy.max_total_points
     << ";max_cells=" << d.policy.max_total_cells << ";max_bytes=" << d.policy.max_estimated_bytes;
   return s.str();
-}
-
-std::string PHGarfieldAdaptiveMap::ContentFingerprint(const Data& data)
-{
-  PHGarfieldFingerprint::Fnv1a64 hash;
-  const auto integer = [&](std::uint64_t value)
-  { hash.Integer(value); };
-  const auto real = [&](double value)
-  { hash.Real(value); };
-  hash.Bytes(BuildCanonicalPolicy(data));
-  integer(data.first_root);
-  integer(data.end_root);
-  real(data.maximum_drift_time_ns);
-  integer(data.points.size());
-  integer(data.cells.size());
-  integer(data.roots.size());
-  for (const auto& p : data.points)
-  {
-    integer(p.id);
-    for (double x : p.coordinate)
-    {
-      real(x);
-    }
-    integer(p.reaches);
-    integer(p.forward_status);
-    for (double x : p.value)
-    {
-      real(x);
-    }
-  }
-  for (const auto& c : data.cells)
-  {
-    integer(c.id);
-    integer(c.root_id);
-    for (double x : c.lo)
-    {
-      real(x);
-    }
-    for (double x : c.hi)
-    {
-      real(x);
-    }
-    for (auto x : c.corner_id)
-    {
-      integer(x);
-    }
-    for (auto x : c.child_id)
-    {
-      integer(x);
-    }
-    integer(c.split_axis);
-    integer(c.depth);
-    integer(c.leaf_class);
-    integer(c.fallback_reason);
-    integer(c.probe_count);
-    integer(c.probe_reaching);
-    integer(c.angular_valid);
-    real(c.max_transverse_error_um);
-    real(c.max_time_error_um);
-    for (double x : c.directional_error_um)
-    {
-      real(x);
-    }
-    for (auto x : c.directional_reach_changes)
-    {
-      integer(x);
-    }
-  }
-  for (const auto& r : data.roots)
-  {
-    integer(r.root_id);
-    integer(r.cell_id);
-  }
-  return hash.Hex();
-}
-
-bool PHGarfieldAdaptiveMap::Write(TDirectory* directory, const Data& data, std::ostream& error)
-{
-  std::vector<std::int64_t> lookup;
-  if (!directory || !validate_impl(data, lookup, error, false))
-  {
-    return false;
-  }
-  auto* file = directory->GetFile();
-  if (!require(file && file->IsOpen() && file->IsWritable() && !file->TestBit(TFile::kWriteError),
-               error, "adaptive output is not a writable ROOT file"))
-  {
-    return false;
-  }
-  TDirectory::TContext context(directory);
-  const bool metadata_written =
-      TNamed("probe_scheme", ProbeScheme).Write() > 0 && TNamed("split_policy", SplitPolicy).Write() > 0 &&
-      TNamed("all_lost_policy", AllLostPolicy).Write() > 0 && TNamed("leaf_encoding", LeafEncoding).Write() > 0 &&
-      TNamed("fallback_encoding", FallbackEncoding).Write() > 0 && TNamed("canonical_policy", BuildCanonicalPolicy(data).c_str()).Write() > 0 &&
-      TNamed("content_fingerprint_fnv1a64", ContentFingerprint(data).c_str()).Write() > 0 &&
-      write_parameter("guard_um", data.policy.guard_um) && write_parameter<Long64_t>("max_depth", data.policy.max_depth) &&
-      write_parameter<Long64_t>("max_nodes_per_root", data.policy.max_nodes_per_root) &&
-      write_parameter<Long64_t>("max_queries_per_root", data.policy.max_queries_per_root) &&
-      write_parameter<Long64_t>("max_total_points", data.policy.max_total_points) &&
-      write_parameter<Long64_t>("max_total_cells", data.policy.max_total_cells) &&
-      write_parameter<Long64_t>("max_estimated_bytes", data.policy.max_estimated_bytes) &&
-      write_parameter<Long64_t>("first_root", data.first_root) && write_parameter<Long64_t>("end_root", data.end_root) &&
-      write_parameter<Long64_t>("point_count", data.points.size()) && write_parameter<Long64_t>("cell_count", data.cells.size()) &&
-      write_parameter<Long64_t>("root_count", data.roots.size()) &&
-      write_parameter("maximum_drift_time_ns", data.maximum_drift_time_ns);
-  if (!require(metadata_written && !file->TestBit(TFile::kWriteError), error, "adaptive metadata write failed"))
-  {
-    return false;
-  }
-  return write_tree(directory, "Points", data.points, error) && write_tree(directory, "Cells", data.cells, error) &&
-         write_tree(directory, "Roots", data.roots, error);
-}
-
-bool PHGarfieldAdaptiveMap::Read(TDirectory* directory, const Geometry& geometry, Data& result, std::ostream& error, bool complete)
-{
-  result = {};
-  Data data;
-  data.geometry = geometry;
-  if (!require(directory && geometry_valid(geometry), error, "missing adaptive directory/invalid geometry"))
-  {
-    return false;
-  }
-  auto named = [&](const char* name, const std::string& expected)
-  {auto* n=dynamic_cast<TNamed*>(directory->Get(name));return n&&n->GetTitle()==expected; };
-  Long64_t points = 0;
-  Long64_t cells = 0;
-  Long64_t roots = 0;
-  Long64_t first = 0;
-  Long64_t end = 0;
-  Long64_t max_points = 0;
-  Long64_t max_cells = 0;
-  Long64_t max_bytes = 0;
-  Long64_t depth = 0;
-  Long64_t nodes_per_root = 0;
-  Long64_t queries_per_root = 0;
-  if (!require(named("probe_scheme", ProbeScheme) && named("split_policy", SplitPolicy) && named("all_lost_policy", AllLostPolicy) &&
-                   named("leaf_encoding", LeafEncoding) && named("fallback_encoding", FallbackEncoding) &&
-                   parameter(directory, "guard_um", data.policy.guard_um) && parameter(directory, "max_depth", depth) &&
-                   parameter(directory, "max_nodes_per_root", nodes_per_root) && parameter(directory, "max_queries_per_root", queries_per_root) &&
-                   parameter(directory, "max_total_points", max_points) && parameter(directory, "max_total_cells", max_cells) && parameter(directory, "max_estimated_bytes", max_bytes) &&
-                   parameter(directory, "point_count", points) && parameter(directory, "cell_count", cells) && parameter(directory, "root_count", roots) &&
-                   parameter(directory, "first_root", first) && parameter(directory, "end_root", end) && parameter(directory, "maximum_drift_time_ns", data.maximum_drift_time_ns),
-               error, "missing/invalid adaptive metadata"))
-  {
-    return false;
-  }
-  if (!require(points >= 0 && cells >= 0 && roots >= 0 && first >= 0 && end >= 0 && max_points > 0 && max_cells > 0 && max_bytes > 0 &&
-                   depth >= 0 && depth <= std::numeric_limits<unsigned int>::max() && nodes_per_root > 0 && nodes_per_root <= std::numeric_limits<unsigned int>::max() &&
-                   queries_per_root > 0 && queries_per_root <= std::numeric_limits<unsigned int>::max(),
-               error, "negative/overflowing adaptive integer metadata"))
-  {
-    return false;
-  }
-  data.policy.max_depth = depth;
-  data.policy.max_nodes_per_root = nodes_per_root;
-  data.policy.max_queries_per_root = queries_per_root;
-  data.policy.max_total_points = max_points;
-  data.policy.max_total_cells = max_cells;
-  data.policy.max_estimated_bytes = max_bytes;
-  data.first_root = first;
-  data.end_root = end;
-  std::uint64_t bytes = 0;
-  const auto count = RootCount(geometry);
-  if (!require(policy_valid(data.policy) && first <= end && static_cast<std::uint64_t>(end) <= count && roots == end - first &&
-                   (!complete || (!first && static_cast<std::uint64_t>(end) == count)) && points <= max_points && cells <= max_cells &&
-                   EstimatedBytes(points, cells, count, bytes) && bytes <= static_cast<std::uint64_t>(max_bytes),
-               error, "declared adaptive counts exceed safe allocation or coverage limits"))
-  {
-    return false;
-  }
-  auto* pt = dynamic_cast<TTree*>(directory->Get("Points"));
-  auto* ct = dynamic_cast<TTree*>(directory->Get("Cells"));
-  auto* rt = dynamic_cast<TTree*>(directory->Get("Roots"));
-  if (!require(pt && ct && rt && pt->GetEntries() == points && ct->GetEntries() == cells && rt->GetEntries() == roots, error, "declared/tree row counts differ"))
-  {
-    return false;
-  }
-  data.points.resize(points);
-  data.cells.resize(cells);
-  data.roots.resize(roots);
-  if (!read_tree(pt, data.points, error) || !read_tree(ct, data.cells, error) || !read_tree(rt, data.roots, error) ||
-      !require(named("canonical_policy", BuildCanonicalPolicy(data)) && named("content_fingerprint_fnv1a64", ContentFingerprint(data)), error, "adaptive policy/content fingerprint mismatch") ||
-      !Validate(data, error, complete))
-  {
-    return false;
-  }
-  result = std::move(data);
-  return true;
 }

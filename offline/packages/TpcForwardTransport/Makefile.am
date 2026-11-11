@@ -41,7 +41,7 @@ libTpcForwardTransport_la_SOURCES = \
   PHGarfieldForwardMap.cc \
   PHGarfieldAdaptiveMap.cc \
   PHGarfieldCompactMap.cc
-libTpcForwardTransport_la_LIBADD = -lPHGarfield $(CRYPTO_LIBS)
+libTpcForwardTransport_la_LIBADD = -lPHGarfield
 
 # Kept separate from runtime consumers. Installed for generation tools and
 # downstream make-check fixtures that need synthetic adaptive construction.
@@ -49,18 +49,15 @@ libTpcForwardTransportTools_la_SOURCES = \
   tools/PHGarfieldAdaptiveBuilder.cc \
   tools/PHGarfieldAdaptiveGenerator.cc \
   tools/PHGarfieldForwardMapGeneration.cc \
-  tools/PHGarfieldCompactMapConversion.cc \
+  tools/PHGarfieldCompactMapPacking.cc \
   tools/PHGarfieldMapTools.cc
 libTpcForwardTransportTools_la_LIBADD = libTpcForwardTransport.la
 
 bin_PROGRAMS = \
   PHGarfieldForwardMapGenerator \
-  PHGarfieldCompactMapConverter \
   PHGarfieldCompactMapMerger
 PHGarfieldForwardMapGenerator_SOURCES = tools/PHGarfieldForwardMapGenerator.cc
 PHGarfieldForwardMapGenerator_LDADD = libTpcForwardTransportTools.la libTpcForwardTransport.la
-PHGarfieldCompactMapConverter_SOURCES = tools/PHGarfieldCompactMapConverter.cc
-PHGarfieldCompactMapConverter_LDADD = libTpcForwardTransportTools.la libTpcForwardTransport.la
 PHGarfieldCompactMapMerger_SOURCES = tools/PHGarfieldCompactMapMerger.cc
 PHGarfieldCompactMapMerger_LDADD = libTpcForwardTransportTools.la libTpcForwardTransport.la
 

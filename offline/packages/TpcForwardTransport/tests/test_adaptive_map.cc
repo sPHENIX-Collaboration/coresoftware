@@ -1,15 +1,8 @@
 #include "../PHGarfieldAdaptiveMap.h"
-#include "../PHGarfieldRootOutput.h"
+#include "../PHGarfieldCompactMap.h"
 #include "PHGarfieldTestUtils.h"
 
-#include <TDirectory.h>
-#include <TFile.h>
-#include <TParameter.h>
-#include <TTree.h>
-
-#include <unistd.h>
 #include <cmath>
-#include <cstdio>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -20,7 +13,31 @@ namespace
 {
   using Map = PHGarfieldAdaptiveMap;
   using PHGarfieldTest::check;
-  using PHGarfieldTest::check_persisted_multibasket_tree;
+  using Stored = PHGarfieldCompactMap;
+  Stored::Data pack(const Map::Data& data)
+  {
+    Stored::Data result;
+    std::ostringstream errors;
+    const bool valid = Stored::Pack(data, "0123456789abcdef", result, Stored::Limits{}, errors, false);
+    check(valid, errors.str());
+    return result;
+  }
+
+  const Map::Cell* find_leaf(const Map::Data& source, unsigned int side, double phi, double r, double z)
+  {
+    const auto stored = pack(source);
+    Stored::Lookup lookup;
+    return Stored::FindLeaf(stored, side, phi, r, z, lookup) ? &source.cells.at(lookup.cell_id) : nullptr;
+  }
+
+  bool interpolate(const Map::Data& source, const Map::Cell& cell, double phi, double r, double z,
+                   PHGarfieldForwardMap::NodeValue& prediction)
+  {
+    const auto stored = pack(source);
+    Stored::Lookup lookup;
+    return Stored::FindLeaf(stored, z > 0., phi, r, z, lookup) && lookup.cell_id == cell.id &&
+           Stored::Interpolate(stored, lookup, phi, r, z, prediction);
+  }
 
   Map::Geometry geometry()
   {
@@ -49,9 +66,18 @@ namespace
         if (!mixed)
         {
           const double fraction = (3. - std::abs(x[2])) / 2.;
-          if (axis == 0) p.value[1] = .01 * x[1] * std::cos(x[0]) * fraction;
-          if (axis == 1) p.value[0] = .02 * (x[1] - 10.) * (12. - x[1]) * fraction;
-          if (axis == 2) p.value[2] += .1 * (3. - std::abs(x[2])) * (3. - std::abs(x[2]));
+          if (axis == 0)
+          {
+            p.value[1] = .01 * x[1] * std::cos(x[0]) * fraction;
+          }
+          if (axis == 1)
+          {
+            p.value[0] = .02 * (x[1] - 10.) * (12. - x[1]) * fraction;
+          }
+          if (axis == 2)
+          {
+            p.value[2] += .1 * (3. - std::abs(x[2])) * (3. - std::abs(x[2]));
+          }
         }
       }
       return true;
@@ -69,7 +95,8 @@ namespace
     {
       p.reaches = 1;
       p.forward_status = static_cast<int>(PHGarfieldForwardTransport::ForwardDriftStatus::ReachedReadout);
-      const double remaining = 3. - std::abs(x[2]), r = x[1] - 10.;
+      const double remaining = 3. - std::abs(x[2]);
+      const double r = x[1] - 10.;
       // A narrow difficult inner-radius corner and smooth bulk that needs only
       // two radial subdivisions. DFS used the last split in the inner corner,
       // leaving the larger outer half unrefined under the five-node budget.
@@ -82,80 +109,14 @@ namespace
   {
     Map::Data d;
     Map::BuildSummary s;
-    std::ostringstream log, error;
+    std::ostringstream log;
+    std::ostringstream error;
     const auto g = geometry();
     check(Map::Build(g, policy, 0, Map::RootCount(g), sampler(axis, mixed), d, s, log, error), error.str());
     check(Map::Validate(d, error, true), error.str());
     return d;
   }
 
-  void test_streamed_multibasket_roundtrip(const std::string& filename)
-  {
-    auto g = geometry();
-    g.phi_nodes = 36;
-    g.radial_nodes = 13;
-    g.longitudinal_nodes = 13;
-    Map::Policy policy;
-    policy.max_nodes_per_root = 1;
-    Map::Data original;
-    Map::BuildSummary summary;
-    std::ostringstream errors, log;
-    check(Map::Build(g, policy, 0, Map::RootCount(g), sampler(3, true), original, summary, log, errors), errors.str());
-    check(original.points.size() > 50000 && original.cells.size() > 8192, "streamed fixture did not exceed basket thresholds");
-    std::array<std::uint64_t, 5> classes{};
-    for (const auto& cell : original.cells) ++classes.at(cell.leaf_class);
-    check(classes[static_cast<int>(Map::LeafClass::Certified)] && classes[static_cast<int>(Map::LeafClass::Mixed)] &&
-              classes[static_cast<int>(Map::LeafClass::AllLost)],
-          "streamed fixture lacks distinct interpolation/direct source classes");
-    const std::string foreign_name = filename + ".foreign";
-    {
-      TFile output(filename.c_str(), "CREATE");
-      check(!output.IsZombie(), "cannot create streamed ROOT fixture");
-      auto* directory = output.mkdir("Adaptive");
-      TFile foreign(foreign_name.c_str(), "CREATE");
-      check(!foreign.IsZombie(), "cannot create foreign current-directory fixture");
-      auto* previous = static_cast<TDirectory*>(gDirectory);
-      check(Map::Write(directory, original, errors), errors.str());
-      check(static_cast<TDirectory*>(gDirectory) == previous, "adaptive writer did not restore caller's current directory");
-      check(foreign.Get("Adaptive/Points") == nullptr, "streamed baskets were written into a foreign current file");
-      check(PHGarfieldFlushAndCloseRootOutput(output, errors), errors.str());
-      check(PHGarfieldFlushAndCloseRootOutput(foreign, errors), errors.str());
-    }
-    Map::Data readback;
-    {
-      TFile file(filename.c_str(), "READ");
-      check(!file.IsZombie() && !file.TestBit(TFile::kRecovered), "streamed fixture reopened recovered/unreadable");
-      auto* directory = file.GetDirectory("Adaptive");
-      check(directory != nullptr, "missing streamed output directory");
-      for (const char* name : {"Points", "Cells", "Roots"}) check_persisted_multibasket_tree(file, directory, name);
-      check(Map::Read(directory, g, readback, errors, true), errors.str());
-      check(!Map::Write(directory, original, errors), "read-only adaptive output accepted writes");
-      file.Close();
-    }
-    std::remove(filename.c_str());
-    std::remove(foreign_name.c_str());
-    check(Map::ContentFingerprint(original) == Map::ContentFingerprint(readback), "streamed primitive/metadata bytes changed after full readback");
-    for (const auto& root : original.roots)
-    {
-      const auto bounds = Map::RootBounds(g, root.root_id);
-      const double phi = .5 * (bounds.lo[0] + bounds.hi[0]), radius = .5 * (bounds.lo[1] + bounds.hi[1]), z = .5 * (bounds.lo[2] + bounds.hi[2]);
-      const unsigned int side = z > 0.;
-      const auto* before = Map::FindLeaf(original, side, phi, radius, z);
-      const auto* after = Map::FindLeaf(readback, side, phi, radius, z);
-      check(before && after && before->id == after->id && before->leaf_class == after->leaf_class &&
-                before->fallback_reason == after->fallback_reason,
-            "streaming changed query routing/source classification");
-      PHGarfieldForwardMap::NodeValue a, b;
-      const bool accepted_before = Map::Interpolate(original, *before, phi, radius, z, a);
-      const bool accepted_after = Map::Interpolate(readback, *after, phi, radius, z, b);
-      check(accepted_before == accepted_after, "streaming changed interpolation/direct decision");
-      if (accepted_before)
-        check(a.delta_r_cm == b.delta_r_cm && a.delta_rphi_cm == b.delta_rphi_cm && a.drift_time_ns == b.drift_time_ns,
-              "streaming changed exact primitive interpolation values");
-    }
-    std::cout << "PASS persisted multibasket roundtrip points=" << readback.points.size() << " cells=" << readback.cells.size()
-              << " roots=" << readback.roots.size() << " exact primitives and Certified/Mixed/AllLost routing\n";
-  }
 }  // namespace
 
 int main()
@@ -183,7 +144,8 @@ int main()
       unsigned int calls = 0;
       Map::Data invalid;
       Map::BuildSummary summary;
-      std::ostringstream log, error;
+      std::ostringstream log;
+      std::ostringstream error;
       const auto bad = [&](const std::array<double, 3>&, Map::Point& p, std::ostream&)
       {++calls;p.reaches=1;p.forward_status=static_cast<int>(PHGarfieldForwardTransport::ForwardDriftStatus::ReachedReadout);p.value={{-0.001,0.,0.}};return true; };
       check(!Map::Build(g, Map::Policy{}, 0, 1, bad, invalid, summary, log, error), "invalid endpoint accepted during sampling");
@@ -197,19 +159,24 @@ int main()
     {
       const auto data = build(axis);
       for (const auto& root : data.roots)
+      {
         check(data.cells[root.cell_id].split_axis == static_cast<int>(axis), "split did not follow actual directional curvature");
+      }
       for (const auto& cell : data.cells)
+      {
         check(cell.split_axis < 0 || cell.split_axis == static_cast<int>(axis), "unnecessary isotropic/other-axis split");
+      }
       for (unsigned int side = 0; side < 2; ++side)
+      {
         for (unsigned int i = 0; i < 50; ++i)
         {
           const double phi = (i + .37) * 6.283185307179586 / 50.;
           const double r = 10. + 2. * (i + .13) / 50.;
           const double z = (side ? 1. : -1.) * (1. + 2. * (i + .71) / 50.);
-          const auto* cell = Map::FindLeaf(data, side, phi, r, z);
+          const auto* cell = find_leaf(data, side, phi, r, z);
           check(cell && cell->leaf_class == static_cast<int>(Map::LeafClass::Certified), "analytic smooth sample not certified");
           PHGarfieldForwardMap::NodeValue prediction;
-          check(Map::Interpolate(data, *cell, phi, r, z, prediction), "analytic interpolation failed");
+          check(interpolate(data, *cell, phi, r, z, prediction), "analytic interpolation failed");
           Map::Point actual;
           std::ostringstream error;
           sampler(axis)({{phi, r, z}}, actual, error);
@@ -217,18 +184,19 @@ int main()
           check(1.e4 * r * std::abs(prediction.delta_rphi_cm / r - actual.value[1] / r) <= 10.01, "off-stencil angular error exceeds guard");
           check(1.e4 * .1 * std::abs(prediction.drift_time_ns - actual.value[2]) <= 10.01, "off-stencil time error exceeds guard");
         }
-      check(Map::ContentFingerprint(data) == Map::ContentFingerprint(build(axis)), "nondeterministic generation");
+      }
+      check(Stored::ContentFingerprint(pack(data)) == Stored::ContentFingerprint(pack(build(axis))), "nondeterministic generation");
     }
     auto radial = build(1);
     const auto& root = radial.cells[radial.roots[0].cell_id];
     const double face = .5 * (root.lo[1] + root.hi[1]);
-    const auto* chosen = Map::FindLeaf(radial, 0, .3, face, -2.);
+    const auto* chosen = find_leaf(radial, 0, .3, face, -2.);
     check(chosen && chosen->lo[1] == face, "split face equality did not select upper child");
-    const auto* first = Map::FindLeaf(radial, 0, 0., 10.5, -2.);
-    const auto* periodic = Map::FindLeaf(radial, 0, 6.283185307179586, 10.5, -2.);
+    const auto* first = find_leaf(radial, 0, 0., 10.5, -2.);
+    const auto* periodic = find_leaf(radial, 0, 6.283185307179586, 10.5, -2.);
     check(first && periodic && first->id == periodic->id, "phi2pi was not canonicalphi0");
     check(Map::CanonicalPhi(-1.e-30) < 6.283185307179586, "negative tinyphi rounded outside canonical domain");
-    const auto* seam = Map::FindLeaf(radial, 0, std::nextafter(6.283185307179586, 0.), 10.5, -2.);
+    const auto* seam = find_leaf(radial, 0, std::nextafter(6.283185307179586, 0.), 10.5, -2.);
     check(seam && seam->root_id != first->root_id, "near2pi did not select last phi cell");
 
     Map::Policy boundary_policy;
@@ -237,9 +205,11 @@ int main()
     boundary_policy.max_queries_per_root = 8192;
     auto boundary = build(0, boundary_policy, true);
     for (const auto& r : boundary.roots)
+    {
       check(boundary.cells[r.cell_id].split_axis == 1, "reach transitions did not select radial refinement");
-    const auto* interior = Map::FindLeaf(boundary, 0, .3, 10.5, -2.);
-    const auto* edge = Map::FindLeaf(boundary, 0, .3, 11.1, -2.);
+    }
+    const auto* interior = find_leaf(boundary, 0, .3, 10.5, -2.);
+    const auto* edge = find_leaf(boundary, 0, .3, 11.1, -2.);
     check(interior && interior->leaf_class == static_cast<int>(Map::LeafClass::Certified), "mixed root failed to recover reachable interior");
     check(edge && edge->leaf_class == static_cast<int>(Map::LeafClass::Mixed) && edge->hi[1] - edge->lo[1] <= 2. / 64., "physical boundary did not shrink with anisotropic refinement");
 
@@ -247,7 +217,8 @@ int main()
     corner_policy.max_nodes_per_root = 5;
     Map::Data corner;
     Map::BuildSummary corner_summary;
-    std::ostringstream corner_log, corner_errors;
+    std::ostringstream corner_log;
+    std::ostringstream corner_errors;
     check(Map::Build(g, corner_policy, 0, Map::RootCount(g), localized_corner_sampler(), corner, corner_summary, corner_log, corner_errors), corner_errors.str());
     for (const auto& r : corner.roots)
     {
@@ -259,41 +230,56 @@ int main()
       check(upper.split_axis == 1, "larger unresolved cylinder volume was not refined first");
       double certified_volume = 0.;
       for (const auto& c : corner.cells)
-        if (c.root_id == r.root_id && c.split_axis == -1 && c.leaf_class == static_cast<int>(Map::LeafClass::Certified)) certified_volume += volume(c);
+      {
+        if (c.root_id == r.root_id && c.split_axis == -1 && c.leaf_class == static_cast<int>(Map::LeafClass::Certified))
+        {
+          certified_volume += volume(c);
+        }
+      }
       check(certified_volume / volume(parent) > .52, "volume-first refinement did not recover the smooth outer half under a five-node budget");
       Map::Data shard;
       Map::BuildSummary shard_summary;
       check(Map::Build(g, corner_policy, r.root_id, r.root_id + 1, localized_corner_sampler(), shard, shard_summary, corner_log, corner_errors), corner_errors.str());
       std::map<std::array<double, 3>, std::array<double, 3>> full_samples;
-      for (const auto& p : corner.points) full_samples.emplace(p.coordinate, p.value);
+      for (const auto& p : corner.points)
+      {
+        full_samples.emplace(p.coordinate, p.value);
+      }
       for (const auto& p : shard.points)
-        check(full_samples.count(p.coordinate) && full_samples.at(p.coordinate) == p.value, "sharding changed the sampled physical response");
+      {
+        check(full_samples.contains(p.coordinate) && full_samples.at(p.coordinate) == p.value, "sharding changed the sampled physical response");
+      }
       for (unsigned int i = 0; i < 20; ++i)
       {
         const double phi = parent.lo[0] + (parent.hi[0] - parent.lo[0]) * (i + .31) / 20.;
         const double radius = parent.lo[1] + (parent.hi[1] - parent.lo[1]) * (i + .47) / 20.;
         const double z = parent.lo[2] + (parent.hi[2] - parent.lo[2]) * (i + .59) / 20.;
         const unsigned int side = z > 0.;
-        const auto* a = Map::FindLeaf(corner, side, phi, radius, z);
-        const auto* b = Map::FindLeaf(shard, side, phi, radius, z);
+        const auto* a = find_leaf(corner, side, phi, radius, z);
+        const auto* b = find_leaf(shard, side, phi, radius, z);
         check(a && b && a->lo == b->lo && a->hi == b->hi && a->leaf_class == b->leaf_class && a->fallback_reason == b->fallback_reason, "volume-priority routing depends on shard boundaries");
       }
     }
-    check(Map::ContentFingerprint(corner) == [&]()
-              {Map::Data repeated;Map::BuildSummary repeated_summary;check(Map::Build(g,corner_policy,0,Map::RootCount(g),localized_corner_sampler(),repeated,repeated_summary,corner_log,corner_errors),corner_errors.str());return Map::ContentFingerprint(repeated); }(),
+    check(Stored::ContentFingerprint(pack(corner)) == [&]()
+              {Map::Data repeated;Map::BuildSummary repeated_summary;check(Map::Build(g,corner_policy,0,Map::RootCount(g),localized_corner_sampler(),repeated,repeated_summary,corner_log,corner_errors),corner_errors.str());return Stored::ContentFingerprint(pack(repeated)); }(),
           "equal-volume tie ordering is not deterministic");
 
     Map::Policy query_budget;
     query_budget.max_queries_per_root = 4;
     const auto limited = build(1, query_budget);
     for (const auto& c : limited.cells)
+    {
       check(c.leaf_class == static_cast<int>(Map::LeafClass::Uncertified) && c.fallback_reason == static_cast<int>(Map::FallbackReason::QueryBudget), "query-budget leaf was falsely certified");
+    }
     Map::Policy node_budget;
     node_budget.max_nodes_per_root = 1;
     const auto unsplit = build(1, node_budget);
     for (const auto& c : unsplit.cells)
+    {
       check(c.fallback_reason == static_cast<int>(Map::FallbackReason::NodeBudget), "node budget not preserved explicitly");
-    std::ostringstream errors, log;
+    }
+    std::ostringstream errors;
+    std::ostringstream log;
     Map::Data failed;
     Map::BuildSummary summary;
     Map::Policy allocation;
@@ -366,80 +352,7 @@ int main()
     --corrupt.end_root;
     check(!Map::Validate(corrupt, errors, true), "incomplete runtime tree accepted");
 
-    const std::string filename = "adaptive-map-test-" + std::to_string(getpid()) + ".root";
-    {
-      TFile file(filename.c_str(), "CREATE");
-      check(!file.IsZombie(), "cannot create analytic ROOT fixture");
-      check(Map::Write(file.mkdir("Adaptive"), radial, errors), errors.str());
-      // Map::Write streams and destroys its scoped trees before returning.
-      // A zero final file-level Write is valid and must not discard the file.
-      check(file.Write() == 0, "scoped-tree fixture did not exercise zero final Write");
-      check(PHGarfieldFlushAndCloseRootOutput(file, errors), "zero final Write was treated as an I/O failure");
-    }
-    Map::Data readback;
-    {
-      TFile file(filename.c_str(), "READ");
-      check(Map::Read(file.GetDirectory("Adaptive"), g, readback, errors, true), errors.str());
-      file.Close();
-    }
-    std::remove(filename.c_str());
-    check(Map::ContentFingerprint(readback) == Map::ContentFingerprint(radial), "primitive ROOT roundtrip changed data");
-    check(Map::FindLeaf(readback, 0, .3, 10.6, -2.) != nullptr, "owning data depends on closed/unlinked ROOT input");
-    test_streamed_multibasket_roundtrip(filename + ".streamed");
-    {
-      TFile file(filename.c_str(), "CREATE");
-      auto* directory = file.mkdir("Adaptive");
-      check(Map::Write(directory, radial, errors), errors.str());
-      directory->cd();
-      TParameter<Long64_t>("point_count", std::numeric_limits<Long64_t>::max()).Write("point_count", TObject::kOverwrite);
-      file.Close();
-    }
-    {
-      TFile file(filename.c_str(), "READ");
-      Map::Data rejected;
-      check(!Map::Read(file.GetDirectory("Adaptive"), g, rejected, errors, true), "absurd declared allocation accepted");
-      file.Close();
-    }
-    std::remove(filename.c_str());
-    // Reproduce the historical QA ownership failure: large branches flushed
-    // while attached to one file, then only the TTree header written elsewhere.
-    // The reader must reject missing persisted baskets before stale/default
-    // values or a positive aggregate GetEntry can be mistaken for full rows.
-    const std::string owner_name = filename + ".owner";
-    {
-      TFile owner(owner_name.c_str(), "CREATE");
-      TTree points("Points", "foreign-owned primitive payload");
-      ULong64_t id = 0;
-      double coordinate[3] = {0., 10.5, -2.}, value[3] = {0., 0., 10.};
-      int reaches = 1, status = 1;
-      points.Branch("id", &id, "id/l");
-      points.Branch("coordinate", coordinate, "coordinate[3]/D");
-      points.Branch("reaches", &reaches, "reaches/I");
-      points.Branch("forward_status", &status, "forward_status/I");
-      points.Branch("value", value, "value[3]/D");
-      points.SetBasketSize("*", 256);
-      for (id = 0; id < 10000; ++id) points.Fill();
-      TFile broken(filename.c_str(), "CREATE");
-      auto* directory = broken.mkdir("Adaptive");
-      check(Map::Write(directory, radial, errors), errors.str());
-      directory->cd();
-      points.Write("Points", TObject::kOverwrite);
-      TParameter<Long64_t>("point_count", 10000).Write("point_count", TObject::kOverwrite);
-      broken.Close();
-      points.SetDirectory(nullptr);
-      owner.Close();
-    }
-    {
-      TFile file(filename.c_str(), "READ");
-      Map::Data rejected;
-      std::ostringstream structural;
-      check(!Map::Read(file.GetDirectory("Adaptive"), g, rejected, structural, true), "foreign-owned basket omission accepted");
-      check(structural.str().find("basket") != std::string::npos, "missing-basket fixture was not rejected structurally");
-      file.Close();
-    }
-    std::remove(filename.c_str());
-    std::remove(owner_name.c_str());
-    std::cout << "PASS adaptive analytic axes, off-stencil errors, periodicity, exact ties, Mixed refinement, volume-priority budgets, shard invariance, checked capacity limits, malformed trees and primitive ROOT ownership\n";
+    std::cout << "PASS adaptive axes, off-stencil errors, boundary ties, reach refinement, volume-priority budgets, shard invariance and capacity limits\n";
     return 0;
   }
   catch (const std::exception& e)

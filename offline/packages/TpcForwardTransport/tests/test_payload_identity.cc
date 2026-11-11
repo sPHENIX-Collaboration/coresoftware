@@ -1,5 +1,3 @@
-#include "../PHGarfieldAdaptiveMap.h"
-#include "../PHGarfieldCompactMap.h"
 #include "../PHGarfieldForwardMap.h"
 
 #include <cstdlib>
@@ -19,41 +17,6 @@ namespace
     }
   }
 
-  void check_map_fingerprints()
-  {
-    // Fixed primitive identities captured before sharing the hash code.
-    // These raw records exercise signed indices and signed zero, not a fit.
-    PHGarfieldAdaptiveMap::Data data;
-    data.geometry = {72, 32, 28, 21.6, 76.4, .28, 102.605, .00755};
-    data.policy = {10., 12, 127, 2048, 5000000, 2000000, 2ULL * 1024 * 1024 * 1024};
-    data.first_root = 1;
-    data.end_root = 2;
-    data.maximum_drift_time_ns = 123.5;
-    data.points.push_back({7, {.25, 44., -5.}, 1, 1, {-0., .003, 12.}});
-    PHGarfieldAdaptiveMap::Cell cell;
-    cell.id = 3;
-    cell.root_id = 1;
-    cell.lo = {.1, 42., -8.};
-    cell.hi = {.5, 47., -2.};
-    cell.corner_id = {-1, 7, 8, 9, 10, 11, 12, 13};
-    cell.child_id = {-1, 4};
-    cell.depth = 2;
-    cell.directional_error_um = {.2, .3, .4};
-    cell.directional_reach_changes = {1, 2, 3};
-    data.cells.push_back(cell);
-    data.roots.push_back({1, 3});
-    check(PHGarfieldAdaptiveMap::ContentFingerprint(data) == "16c2b1f7bb9efb53", "Adaptive primitive identity changed");
-
-    PHGarfieldCompactMap::Data compact;
-    compact.schema_version = PHGarfieldCompactMap::LegacySchemaVersion;
-    compact.geometry = data.geometry;
-    compact.source = {"source", "config", "content", "policy", "converter"};
-    compact.nodes = {{3, 0, 7}, {1, 2, 0}};
-    compact.corners.push_back({0, 1, 2, 3, 4, 5, 6, 7});
-    compact.values.push_back({-0., .003, 12.});
-    compact.root_lookup = {3, 4};
-    check(PHGarfieldCompactMap::ContentFingerprint(compact) == "8b53c8b73c2f6a08", "Compact primitive identity changed");
-  }
 }  // namespace
 
 int main()
@@ -68,7 +31,6 @@ int main()
   int status = 0;
   try
   {
-    check_map_fingerprints();
     const auto digest = [](const std::filesystem::path& path)
     { return PHGarfieldForwardMap::PayloadMd5(path.string()); };
     check(digest(root).empty(), "Empty gas directory accepted");

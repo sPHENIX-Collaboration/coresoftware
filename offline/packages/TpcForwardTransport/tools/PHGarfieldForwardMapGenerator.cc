@@ -43,7 +43,7 @@ namespace
     int verbosity{0};
   };
 
-  using Destination = std::variant<std::monostate, bool*, std::string*, double*, unsigned int*, std::uint64_t*, int*>;
+  using Destination = std::variant<bool*, std::string*, double*, unsigned int*, std::uint64_t*, int*>;
   struct Option
   {
     const char* name;
@@ -57,9 +57,9 @@ namespace
   std::vector<Option> option_table(Options& o)
   {
     return {
-        {"--electric-field-map-3d-side0", &o.electric_field_map_3d[0], "FILE", "Pinned south 3D space-charge map", "Physics inputs"},
+        {"--electric-field-map-3d-side0", o.electric_field_map_3d.data(), "FILE", "Pinned south 3D space-charge map", "Physics inputs"},
         {"--electric-field-map-3d-side1", &o.electric_field_map_3d[1], "FILE", "Pinned north 3D space-charge map"},
-        {"--frame-field-map-3d-side0", &o.frame_field_map_3d[0], "FILE", "Pinned south 3D frame map"},
+        {"--frame-field-map-3d-side0", o.frame_field_map_3d.data(), "FILE", "Pinned south 3D frame map"},
         {"--frame-field-map-3d-side1", &o.frame_field_map_3d[1], "FILE", "Pinned north 3D frame map"},
         {"--frame-charge-scale", &o.frame_charge_scale, "VALUE", "Frame coefficient (default 0)"},
         {"--gas-file", &o.gas_file, "FILE", "Override the PHGARFIELD_GAS CDB payload"},
@@ -69,8 +69,6 @@ namespace
         {"--scale-side0", &o.space_charge_scale_side0, "VALUE", "Negative-z correction scale (default 1)"},
         {"--scale-side1", &o.space_charge_scale_side1, "VALUE", "Positive-z correction scale (default 1)"},
         {"--nominal-e-vcm", &o.nominal_electric_field_vcm, "VALUE", "Nominal longitudinal E magnitude (default 400)"},
-        // Accepted by earlier campaigns alongside the required 3D maps.
-        {"--allow-no-electric-corrections", std::monostate{}, "", ""},
         {"--step-ns", &o.map.integration_step_ns, "VALUE", "Euler step in ns (default 12.5)", "Grid and integration"},
         {"--phi-nodes", &o.map.phi_nodes, "N", "Physical phi nodes (default 36)"},
         {"--radial-nodes", &o.map.radial_nodes, "N", "Physical radial nodes (default 24)"},
@@ -87,15 +85,14 @@ namespace
         {"--tpc-rotation-x-rad", &o.map.tpc_rotation_x_rad, "VALUE", "TPC x rotation (default 0)"},
         {"--tpc-rotation-y-rad", &o.map.tpc_rotation_y_rad, "VALUE", "TPC y rotation (default 0)"},
         {"--tpc-rotation-z-rad", &o.map.tpc_rotation_z_rad, "VALUE", "TPC z rotation (default 0)"},
-        {"--adaptive", std::monostate{}, "", "Optional compatibility flag; adaptive generation is always used", "Adaptive anisotropic schema4"},
-        {"--adaptive-root-first", &o.adaptive_first, "N", "Inclusive coarse root ID (default 0)"},
+        {"--adaptive-root-first", &o.adaptive_first, "N", "Inclusive coarse root ID (default 0)", "Advanced refinement and resource controls"},
         {"--adaptive-root-end", &o.adaptive_end, "N", "Exclusive root ID (default all roots)"},
         {"--adaptive-max-depth", &o.adaptive_policy.max_depth, "N", "Per-root depth cap (default 12)"},
         {"--adaptive-max-nodes-per-root", &o.adaptive_policy.max_nodes_per_root, "N", "Per-root node cap (default 127)"},
         {"--adaptive-max-queries-per-root", &o.adaptive_policy.max_queries_per_root, "N", "Unique stencil-query cap (default 2048)"},
         {"--adaptive-max-total-points", &o.adaptive_policy.max_total_points, "N", "Global per-file point cap (default 5000000)"},
         {"--adaptive-max-total-cells", &o.adaptive_policy.max_total_cells, "N", "Global per-file cell cap (default 2000000)"},
-        {"--adaptive-max-bytes", &o.adaptive_policy.max_estimated_bytes, "N", "Conservative global working-memory cap (default 2147483648)"},
+        {"--adaptive-max-bytes", &o.adaptive_policy.max_estimated_bytes, "N", "Estimated construction-allocation cap (default 2147483648)"},
         {"--interpolation-tolerance-um", &o.map.interpolation_tolerance_um, "V", "Maximum actual 27-stencil error (adaptive default 10)"},
         {"--output", &o.map.output_filename, "FILE", "Output ROOT file (also -o)", "CDB and output"},
         {"--global-tag", &o.global_tag, "TAG", "CDB global tag (default FieldMapTest)"},
@@ -109,7 +106,7 @@ namespace
   void print_usage(std::ostream& output, const char* program)
   {
     output << "Usage: " << program << " --output FILE --electric-field-map-3d-side0 FILE --electric-field-map-3d-side1 FILE [options]\n"
-           << "\nGenerate an adaptive deterministic PHGarfield forward-transport LUT.\n";
+           << "\nGenerate a ready-to-use adaptive PHGarfield LUT directly; no conversion step.\n";
     Options defaults;
     const auto flags = output.flags();
     for (const auto& option : option_table(defaults))
@@ -139,11 +136,7 @@ namespace
                {
       using Pointer = decltype(destination);
       using Value = std::remove_pointer_t<Pointer>;
-      if constexpr (std::is_same_v<Pointer, std::monostate>)
-      {
-        // Compatibility flags do not alter the adaptive generation policy.
-      }
-      else if constexpr (std::is_same_v<Value, bool>)
+      if constexpr (std::is_same_v<Value, bool>)
       {
         *destination = true;
       }
@@ -160,21 +153,33 @@ namespace
         };
         if constexpr (std::is_unsigned_v<Value>)
         {
-          if (text.empty() || text.front() == '-') invalid("unsigned");
+          if (text.empty() || text.front() == '-')
+          {
+            invalid("unsigned");
+          }
           const auto value = std::stoull(text, &parsed);
-          if (parsed != text.size() || value > std::numeric_limits<Value>::max()) invalid("unsigned");
+          if (parsed != text.size() || value > std::numeric_limits<Value>::max())
+          {
+            invalid("unsigned");
+          }
           *destination = static_cast<Value>(value);
         }
         else if constexpr (std::is_same_v<Value, int>)
         {
           const auto value = std::stoll(text, &parsed);
-          if (parsed != text.size() || value < std::numeric_limits<int>::min() || value > std::numeric_limits<int>::max()) invalid("integer");
+          if (parsed != text.size() || value < std::numeric_limits<int>::min() || value > std::numeric_limits<int>::max())
+          {
+            invalid("integer");
+          }
           *destination = static_cast<int>(value);
         }
         else
         {
           const auto value = std::stod(text, &parsed);
-          if (parsed != text.size()) invalid("floating-point");
+          if (parsed != text.size())
+          {
+            invalid("floating-point");
+          }
           *destination = value;
         }
       } }, option.destination);
@@ -188,8 +193,15 @@ namespace
       for (int index = 1; index < argc; ++index)
       {
         const std::string argument = argv[index];
-        const std::string name = argument == "-o" ? "--output" : argument == "-h" ? "--help"
-                                                                                  : argument;
+        std::string name = argument;
+        if (argument == "-o")
+        {
+          name = "--output";
+        }
+        else if (argument == "-h")
+        {
+          name = "--help";
+        }
         const auto option = std::find_if(table.begin(), table.end(), [&](const Option& entry)
                                          { return name == entry.name; });
         if (option == table.end())
@@ -199,7 +211,10 @@ namespace
         std::string text;
         if (option->argument[0])
         {
-          if (index + 1 >= argc) throw std::runtime_error("Missing value after " + argument);
+          if (index + 1 >= argc)
+          {
+            throw std::runtime_error("Missing value after " + argument);
+          }
           text = argv[++index];
         }
         assign_option(*option, text);

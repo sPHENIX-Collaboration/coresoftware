@@ -6,20 +6,17 @@
 #include <TNamed.h>
 #include <TParameter.h>
 #include <TTree.h>
-#include <sys/wait.h>
 #include <unistd.h>
 #include <algorithm>
 #include <bit>
 #include <cmath>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <numbers>
 #include <random>
 #include <sstream>
 #include <stdexcept>
 #include "../PHGarfieldCompactMap.h"
-#include "../PHGarfieldFingerprint.h"
 #include "../PHGarfieldRootOutput.h"
 #include "PHGarfieldTestUtils.h"
 
@@ -54,97 +51,181 @@ namespace
       {
         const double remaining = 3. - std::abs(x[2]);
         p.value[2] = remaining / .1;
-        if (curved) p.value[0] = .02 * (x[1] - 10.) * (12. - x[1]) * remaining / 2.;
+        p.value[1] = .003 * x[1] * remaining;
+        if (curved)
+        {
+          p.value[0] = .02 * (x[1] - 10.) * (12. - x[1]) * remaining / 2.;
+        }
       }
       return true;
     };
   }
-  Source::Data training(const Source::Policy& policy = Source::Policy{}, bool curved = false, bool lost = false, Source::Geometry g = geometry())
+  Source::Data training(const Source::Policy& policy = Source::Policy{}, bool curved = false, bool lost = false, const Source::Geometry& g = geometry())
   {
     Source::Data source;
     Source::BuildSummary summary;
-    std::ostringstream log, error;
+    std::ostringstream log;
+    std::ostringstream error;
     check(Source::Build(g, policy, 0, Source::RootCount(g), sampler(curved, lost), source, summary, log, error), error.str());
     return source;
   }
-  Map::SourceBinding binding(const Source::Data& s)
-  {
-    return {Map::Sha256("software-fixture-not-physical-training"), "0123456789abcdef", Source::ContentFingerprint(s), Source::BuildCanonicalPolicy(s), Map::Sha256("software-fixture-converter")};
-  }
-  Map::ExpectedSource expected(const Map::Data& d)
-  {
-    return {d.source.file_sha256, d.source.configuration_fingerprint_fnv1a64, d.source.content_fingerprint_fnv1a64};
-  }
-  Map::Data convert(Source::Data& source)
+  constexpr const char* Configuration = "0123456789abcdef";
+  Map::Data pack(const Source::Data& source, bool complete = true)
   {
     Map::Data data;
-    std::ostringstream errors;
-    check(Map::Convert(source, binding(source), data, Map::Limits{}, errors, true), errors.str());
+    std::ostringstream error;
+    check(Map::Pack(source, Configuration, data, Map::Limits{}, error, complete), error.str());
     return data;
   }
-  void reseal(Map::Data& data) { data.proof.sha256 = Map::Sha256(Map::ProofCanonical(data)); }
-  void invalid(Map::Data data, const std::string& label)
+  void invalid(const Map::Data& data, const std::string& label)
   {
-    reseal(data);
     std::ostringstream error;
-    check(!Map::Validate(data, Map::Limits{}, error, true), "corruption accepted: " + label);
+    check(!Map::Validate(data, Map::Limits{}, error), "corruption accepted: " + label);
+  }
+  // An independent linear scan of leaf bounds checks runtime tree routing,
+  // including the half-open split-plane convention and closed gas boundary.
+  const Source::Cell* oracle(const Source::Data& source, unsigned int side, double phi, double r, double z)
+  {
+    const auto& g = source.geometry;
+    if (side > 1 || !std::isfinite(phi) || !std::isfinite(r) || !std::isfinite(z) || r < g.inner_radius_cm || r > g.outer_radius_cm ||
+        (side ? z < g.central_membrane_half_width_cm || z > g.readout_abs_z_cm : z < -g.readout_abs_z_cm || z > -g.central_membrane_half_width_cm))
+    {
+      return nullptr;
+    }
+    const std::array<double, 3> x{{Source::CanonicalPhi(phi), r, z}};
+    const std::array<double, 3> upper{{2. * std::numbers::pi, g.outer_radius_cm, side ? g.readout_abs_z_cm : -g.central_membrane_half_width_cm}};
+    const Source::Cell* found = nullptr;
+    for (const auto& c : source.cells)
+    {
+      if (c.split_axis != -1)
+      {
+        continue;
+      }
+      bool inside = true;
+      for (unsigned int axis = 0; axis < 3; ++axis)
+      {
+        inside &= x[axis] >= c.lo[axis] && (x[axis] < c.hi[axis] || (x[axis] == upper[axis] && c.hi[axis] == upper[axis]));
+      }
+      if (inside)
+      {
+        check(!found, "overlapping oracle leaf bounds");
+        found = &c;
+      }
+    }
+    return found;
   }
   void match(const Source::Data& source, const Map::Data& data, unsigned int side, double phi, double r, double z)
   {
-    const auto* a = Source::FindLeaf(source, side, phi, r, z);
+    const auto* a = oracle(source, side, phi, r, z);
     Map::Lookup b;
     check(Map::FindLeaf(data, side, phi, r, z, b) == (a != nullptr), "lookup validity changed");
-    if (!a) return;
-    check(a->id == b.cell_id && a->depth == b.depth && a->leaf_class == b.leaf_class && a->fallback_reason == b.fallback_reason, "routing/source/depth changed");
-    for (unsigned int axis = 0; axis < 3; ++axis) check(bits(a->lo[axis], b.bounds.lo[axis]) && bits(a->hi[axis], b.bounds.hi[axis]), "lookup bounds changed bits");
-    PHGarfieldForwardMap::NodeValue x, y;
-    const bool before = Source::Interpolate(source, *a, phi, r, z, x), after = Map::Interpolate(data, b, phi, r, z, y);
-    check(before == after, "interpolation/direct routing changed");
-    if (before) check(x.reaches_readout == y.reaches_readout && bits(x.delta_r_cm, y.delta_r_cm) && bits(x.delta_rphi_cm, y.delta_rphi_cm) && bits(x.drift_time_ns, y.drift_time_ns), "interpolation double bits changed");
+    if (!a)
+    {
+      return;
+    }
+    check(a->id == b.cell_id && a->depth == b.depth && a->leaf_class == b.leaf_class && a->fallback_reason == b.fallback_reason, "routing/class/depth changed");
+    for (unsigned int axis = 0; axis < 3; ++axis)
+    {
+      check(bits(a->lo[axis], b.bounds.lo[axis]) && bits(a->hi[axis], b.bounds.hi[axis]), "bounds changed bits");
+    }
+    PHGarfieldForwardMap::NodeValue expected;
+    PHGarfieldForwardMap::NodeValue strict;
+    PHGarfieldForwardMap::NodeValue relaxed;
+    const bool certified = a->leaf_class == static_cast<int>(Source::LeafClass::Certified);
+    const bool usable = Source::HasUsableCorners(source, *a);
+    bool flag = false;
+    check(Map::Interpolate(data, b, phi, r, z, strict) == certified, "strict policy changed");
+    check(Map::HasUsableCorners(data, b) == usable && Map::InterpolateRelaxed(data, b, phi, r, z, relaxed, flag) == usable && flag == certified,
+          "relaxed policy promoted certification or invented corners");
+    if (usable)
+    {
+      check(Source::InterpolateCorners({a->lo, a->hi}, {{Source::CanonicalPhi(phi), r, z}}, [&](unsigned int i)
+                                       { return &source.points[a->corner_id[i]].value; }, expected),
+            "source corners rejected");
+      check(bits(expected.delta_r_cm, relaxed.delta_r_cm) && bits(expected.delta_rphi_cm, relaxed.delta_rphi_cm) && bits(expected.drift_time_ns, relaxed.drift_time_ns), "interpolation bits changed");
+    }
   }
   void population(const Source::Data& source, const Map::Data& data)
   {
-    std::uint64_t expected_direct = 0;
-    for (const auto& cell : source.cells)
+    std::uint64_t direct = 0;
+    std::vector<std::uint32_t> mapping(source.points.size(), Map::Invalid);
+    std::vector<std::uint32_t> reverse(data.values.size(), Map::Invalid);
+    for (const auto& c : source.cells)
     {
-      if (cell.split_axis == -1 && cell.leaf_class != static_cast<int>(Source::LeafClass::Certified))
+      const auto& n = data.nodes.at(c.id);
+      if (c.split_axis >= 0)
       {
-        ++expected_direct;
+        check(n.tag == static_cast<unsigned int>(c.split_axis) && n.first == c.child_id[0] && n.second == c.child_id[1], "split routing changed");
       }
-    }
-    check(Map::CountNonCertifiedLeaves(data) == expected_direct,
-          "compact fallback-leaf count disagrees with the adaptive source");
-    const double pi = std::numbers::pi;
-    std::mt19937_64 rng(2026101809);
-    std::uniform_real_distribution<double> u(0., 1.);
-    for (unsigned int i = 0; i < 2000; ++i)
-    {
-      const auto side = i % 2;
-      match(source, data, side, (8. * u(rng) - 4.) * pi, 10. + 2. * u(rng), (side ? 1. : -1.) * (1. + 2. * u(rng)));
-    }
-    for (const auto& cell : source.cells)
-    {
-      const double phi = .5 * (cell.lo[0] + cell.hi[0]), r = .5 * (cell.lo[1] + cell.hi[1]), z = .5 * (cell.lo[2] + cell.hi[2]);
-      const unsigned int side = z > 0.;
-      match(source, data, side, phi, r, z);
-      if (cell.split_axis >= 0)
+      else
+      {
+        const bool certified = c.leaf_class == static_cast<int>(Source::LeafClass::Certified);
+        const bool retain = Source::HasUsableCorners(source, c);
+        direct += !certified;
+        check(n.tag == (3U | (static_cast<unsigned int>(c.leaf_class) << 2U) | (static_cast<unsigned int>(c.fallback_reason) << 5U)) && n.second == 0,
+              "leaf class/reason changed");
+        check((n.first != Map::Invalid) == retain, "wrong leaf corner retention");
+        if (retain)
+        {
+          for (unsigned int i = 0; i < 8; ++i)
+          {
+            const auto old_id = c.corner_id[i];
+            const auto new_id = data.corners.at(n.first)[i];
+            if (mapping.at(old_id) == Map::Invalid)
+            {
+              mapping[old_id] = new_id;
+            }
+            if (reverse.at(new_id) == Map::Invalid)
+            {
+              reverse[new_id] = old_id;
+            }
+            check(mapping[old_id] == new_id && reverse[new_id] == old_id, "point identity deduplication changed");
+            for (unsigned int component = 0; component < 3; ++component)
+            {
+              check(bits(source.points[old_id].value[component], data.values[new_id][component]), "retained corner changed double bits");
+            }
+          }
+        }
+      }
+      const double phi = .5 * (c.lo[0] + c.hi[0]);
+      const double r = .5 * (c.lo[1] + c.hi[1]);
+      const double z = .5 * (c.lo[2] + c.hi[2]);
+      match(source, data, z > 0., phi, r, z);
+      if (c.split_axis >= 0)
       {
         std::array<double, 3> x{{phi, r, z}};
-        const unsigned int axis = cell.split_axis;
-        const double mid = .5 * (cell.lo[axis] + cell.hi[axis]);
-        for (const double value : {std::nextafter(mid, -INFINITY), mid, std::nextafter(mid, INFINITY)})
+        const double mid = x[c.split_axis];
+        for (double v : {std::nextafter(mid, -INFINITY), mid, std::nextafter(mid, INFINITY)})
         {
-          x[axis] = value;
-          match(source, data, side, x[0], x[1], x[2]);
+          x[c.split_axis] = v;
+          match(source, data, z > 0., x[0], x[1], x[2]);
         }
       }
     }
+    check(Map::CountNonCertifiedLeaves(data) == direct && std::all_of(reverse.begin(), reverse.end(), [](auto v)
+                                                                      { return v != Map::Invalid; }),
+          "population/deduplication count differs");
+    std::mt19937_64 rng(2026101809);
+    std::uniform_real_distribution<double> u(0., 1.);
+    const auto& g = source.geometry;
+    for (unsigned int i = 0; i < 300; ++i)
+    {
+      match(source, data, i % 2, (8. * u(rng) - 4.) * std::numbers::pi, g.inner_radius_cm + (g.outer_radius_cm - g.inner_radius_cm) * u(rng),
+            (i % 2 ? 1. : -1.) * (g.central_membrane_half_width_cm + (g.readout_abs_z_cm - g.central_membrane_half_width_cm) * u(rng)));
+    }
     for (unsigned int side = 0; side < 2; ++side)
     {
-      for (const double phi : {-2. * pi, -0., 0., std::nextafter(2. * pi, 0.), 2. * pi, 4. * pi})
-        for (const double r : {10., 11., 12.})
-          for (const double z : {1., 2., 3.}) match(source, data, side, phi, r, (side ? 1. : -1.) * z);
-      match(source, data, side, 0., 9.99, (side ? 1. : -1.) * 2.);
+      for (double phi : {-2. * std::numbers::pi, -0., 0., std::nextafter(2. * std::numbers::pi, 0.), 2. * std::numbers::pi, 4. * std::numbers::pi})
+      {
+        for (double r : {g.inner_radius_cm, g.outer_radius_cm})
+        {
+          for (double z : {g.central_membrane_half_width_cm, g.readout_abs_z_cm})
+          {
+            match(source, data, side, phi, r, (side ? 1. : -1.) * z);
+          }
+        }
+      }
+      match(source, data, side, 0., g.inner_radius_cm - .01, (side ? 1. : -1.) * 2.);
       match(source, data, side, 0., 11., 0.);
       match(source, data, side, NAN, 11., (side ? 1. : -1.) * 2.);
     }
@@ -153,524 +234,297 @@ namespace
   {
     std::ostringstream error;
     TFile file(path.c_str(), "CREATE");
-    check(!file.IsZombie(), "cannot create fixture");
-    check(Map::Write(file.mkdir("Runtime"), data, Map::Limits{}, error), error.str());
+    check(!file.IsZombie() && Map::Write(file.mkdir("Runtime"), data, Map::Limits{}, error), error.str());
+    // Every primitive tree is scoped and explicitly written: final Write may
+    // validly write no objects. Reopening below verifies the actual payload.
+    check(file.Write() == 0, "fixture no longer exercises zero final Write");
     check(PHGarfieldFlushAndCloseRootOutput(file, error), error.str());
   }
-  Map::Data read(const std::filesystem::path& path, const Map::Data& original)
+  Map::Data read(const std::filesystem::path& path, const Map::Data& original, bool complete = true)
   {
     TFile file(path.c_str(), "READ");
     check(!file.IsZombie() && !file.TestBit(TFile::kRecovered), "fixture unreadable/recovered");
     Map::Data d;
-    std::ostringstream errors;
-    check(Map::Read(file.GetDirectory("Runtime"), original.geometry, expected(original), d, Map::Limits{}, errors, true), errors.str());
+    std::ostringstream error;
+    check(Map::Read(file.GetDirectory("Runtime"), original.geometry, d, Map::Limits{}, error, complete), error.str());
     return d;
   }
-  void relaxed_retention(const std::filesystem::path& directory)
+  void retention()
   {
     Source::Policy policy;
     policy.max_depth = 0;
     policy.max_nodes_per_root = 1;
     policy.guard_um = .001;
-    auto source = training(policy, true, false);
-    auto current = convert(source);
-    Map::Data legacy;
-    std::ostringstream error;
-    check(Map::Convert(source, binding(source), legacy, Map::Limits{}, error, true, false), error.str());
-    check(current.schema_version == 7 && legacy.schema_version == 5, "compact retention version not explicit");
-    check(current.proof.uncertified_leaves_checked > 0 && legacy.proof.uncertified_leaves_checked == 0,
-          "eligible uncertified corners not versioned/retained");
-    check(Map::ProofCanonical(legacy).starts_with(Map::LegacyConversionContract) &&
-              Map::ProofCanonical(legacy).find(";uncertified=") == std::string::npos,
-          "legacy proof canonical bytes gained a new field");
-    std::uint64_t relaxed = 0;
-    for (const auto& cell : source.cells)
-    {
-      if (cell.split_axis != -1)
-      {
-        continue;
-      }
-      const double phi = .5 * (cell.lo[0] + cell.hi[0]);
-      const double r = .5 * (cell.lo[1] + cell.hi[1]);
-      const double z = .5 * (cell.lo[2] + cell.hi[2]);
-      Map::Lookup a;
-      Map::Lookup b;
-      check(Map::FindLeaf(current, z > 0., phi, r, z, a) && Map::FindLeaf(legacy, z > 0., phi, r, z, b), "retained lookup missing");
-      PHGarfieldForwardMap::NodeValue x;
-      PHGarfieldForwardMap::NodeValue y;
-      PHGarfieldForwardMap::NodeValue strict;
-      bool source_certified = true;
-      bool compact_certified = true;
-      check(Source::InterpolateRelaxed(source, cell, phi, r, z, x, source_certified) &&
-                Map::InterpolateRelaxed(current, a, phi, r, z, y, compact_certified),
-            "eligible relaxed interpolation rejected");
-      const bool certified = cell.leaf_class == static_cast<int>(Source::LeafClass::Certified);
-      check(source_certified == certified && compact_certified == certified, "uncertified result upgraded to certified");
-      check(bits(x.delta_r_cm, y.delta_r_cm) && bits(x.delta_rphi_cm, y.delta_rphi_cm) && bits(x.drift_time_ns, y.drift_time_ns),
-            "relaxed adaptive/compact arithmetic differs");
-      check(Map::Interpolate(current, a, phi, r, z, strict) == certified, "strict interpolation policy changed");
-      if (!certified)
-      {
-        ++relaxed;
-        bool flag = true;
-        check(!Map::HasUsableCorners(legacy, b) && !Map::InterpolateRelaxed(legacy, b, phi, r, z, strict, flag) && !flag,
-              "legacy compact invented missing corners");
-      }
-      match(source, legacy, z > 0., phi, r, z);
-    }
-    check(relaxed == current.proof.uncertified_leaves_checked, "relaxed proof count differs");
-    for (const auto* data : {&legacy, &current})
-    {
-      const auto path = directory / ("retention-" + std::to_string(data->schema_version) + ".root");
-      write(path, *data);
-      auto loaded = read(path, *data);
-      check(loaded.schema_version == data->schema_version && Map::ContentFingerprint(loaded) == Map::ContentFingerprint(*data),
-            "old/new retained format roundtrip changed");
-    }
-    const auto target = std::find_if(source.cells.begin(), source.cells.end(), [](const auto& cell)
-                                     { return cell.leaf_class == static_cast<int>(Source::LeafClass::NumericallyUnresolved); });
+    auto source = training(policy, true);
+    population(source, pack(source));
+    const auto target = std::find_if(source.cells.begin(), source.cells.end(), [](const auto& c)
+                                     { return c.leaf_class == static_cast<int>(Source::LeafClass::NumericallyUnresolved); });
     check(target != source.cells.end(), "no numerical retention fixture");
     const auto id = target->id;
     auto unknown = source;
     unknown.cells[id].leaf_class = static_cast<int>(Source::LeafClass::Uncertified);
     unknown.cells[id].fallback_reason = static_cast<int>(Source::FallbackReason::QueryBudget);
     unknown.cells[id].angular_valid = 0;
-    check(Source::HasUsableCorners(unknown, unknown.cells[id]), "complete unverified corners unavailable");
-    auto unknown_data = convert(unknown);
-    check(unknown_data.nodes[id].first != Map::Invalid, "complete unverified corners were dropped");
-    auto partial = unknown;
-    partial.cells[id].corner_id[7] = -1;
-    check(!Source::HasUsableCorners(partial, partial.cells[id]), "missing corner accepted");
-    auto partial_data = convert(partial);
-    check(partial_data.nodes[id].first == Map::Invalid, "partial unverified cell gained corners");
+    check(pack(unknown).nodes[id].first != Map::Invalid, "complete unverified corners dropped");
+    unknown.cells[id].corner_id[7] = -1;
+    check(pack(unknown).nodes[id].first == Map::Invalid, "partial corners retained");
     auto angular = source;
     angular.cells[id].angular_valid = 0;
-    angular.cells[id].fallback_reason = static_cast<int>(Source::FallbackReason::Numerical);
-    // Known noncorner ambiguity must win even when all eight corners look safe.
-    check(!Source::HasUsableCorners(angular, angular.cells[id]), "known angular-invalid numerical cell accepted");
-    auto angular_data = convert(angular);
-    check(angular_data.nodes[id].first == Map::Invalid, "known angular-invalid cell gained payload");
+    check(pack(angular).nodes[id].first == Map::Invalid, "known angular-invalid cell retained");
     angular.cells[id].fallback_reason = static_cast<int>(Source::FallbackReason::AngularBranch);
-    angular_data = convert(angular);
-    check(angular_data.nodes[id].first == Map::Invalid, "AngularBranch cell gained payload");
-    auto false_proof = current;
-    ++false_proof.proof.uncertified_leaves_checked;
-    reseal(false_proof);
-    check(!Map::VerifyConversion(source, false_proof, error), "false retained proof count accepted");
+    check(pack(angular).nodes[id].first == Map::Invalid, "angular-branch cell retained");
   }
-  void write_training(const std::filesystem::path& path, const Source::Data& source)
+  void capacity(const Source::Data& source, const Map::Data& data)
   {
-    std::ostringstream errors;
-    TFile file(path.c_str(), "CREATE");
-    auto* top = file.mkdir("GarfieldFullTransport");
-    auto* m = top->mkdir("Metadata");
+    std::ostringstream error;
+    std::uint64_t bytes = 0;
+    check(!Map::EstimatedBytes(UINT64_MAX, 0, 0, 0, bytes), "size overflow accepted");
+    using Bound = std::pair<std::uint64_t Map::Limits::*, std::uint64_t>;
+    for (const auto& [member, maximum] : std::array<Bound, 5>{{{&Map::Limits::max_nodes, Map::HardMaximumNodes}, {&Map::Limits::max_values, Map::HardMaximumValues}, {&Map::Limits::max_corners, Map::HardMaximumCorners}, {&Map::Limits::max_roots, Map::HardMaximumRoots}, {&Map::Limits::max_bytes, Map::HardMaximumBytes}}})
     {
-      TDirectory::TContext context(m);
-      TNamed("schema_name", PHGarfieldForwardMap::SchemaName).Write();
-      TParameter<int>("schema_version", 4).Write();
-      TNamed("configuration_fingerprint_fnv1a64", "0123456789abcdef").Write();
-      TParameter<int>("phi_nodes", source.geometry.phi_nodes).Write();
-      TParameter<int>("radial_nodes", source.geometry.radial_nodes).Write();
-      TParameter<int>("longitudinal_nodes", source.geometry.longitudinal_nodes).Write();
-      TParameter<double>("gas_inner_radius_cm", source.geometry.inner_radius_cm).Write();
-      TParameter<double>("gas_outer_radius_cm", source.geometry.outer_radius_cm).Write();
-      TParameter<double>("central_membrane_half_width_cm", source.geometry.central_membrane_half_width_cm).Write();
-      TParameter<double>("readout_abs_z_cm", source.geometry.readout_abs_z_cm).Write();
-      TParameter<double>("nominal_phg4_drift_velocity_cm_per_ns", source.geometry.nominal_velocity_cm_ns).Write();
+      for (auto v : std::array<std::uint64_t, 2>{{0, maximum + 1}})
+      {
+        Map::Limits limits;
+        limits.*member = v;
+        Map::Data rejected;
+        check(!Map::ValidateLimits(limits, error) && !Map::Pack(source, Configuration, rejected, limits, error) && rejected.nodes.capacity() == 0 &&
+                  !Map::Read(nullptr, source.geometry, rejected, limits, error) && rejected.nodes.capacity() == 0,
+              "invalid limits accepted or allocated");
+      }
     }
-    check(Source::Write(top->mkdir("Adaptive"), source, errors), errors.str());
-    check(PHGarfieldFlushAndCloseRootOutput(file, errors), errors.str());
+    Map::Limits tiny;
+    tiny.max_nodes = 1;
+    Map::Data rejected;
+    check(!Map::Pack(source, Configuration, rejected, tiny, error) && !Map::Validate(data, tiny, error), "node budget ignored");
+    Map::Limits wide{Map::HardMaximumNodes, Map::HardMaximumValues, Map::HardMaximumCorners, Map::HardMaximumRoots, Map::HardMaximumBytes};
+    Map::Data compact;
+    check(Map::Pack(source, Configuration, compact, wide, error) && Map::ContentFingerprint(compact) == Map::ContentFingerprint(data), "explicit wide limits change output");
+    check(compact.nodes.capacity() < 10000 && compact.values.capacity() < 10000, "limits eagerly reserved arrays");
   }
-  int execute(const std::filesystem::path& converter, const std::vector<std::string>& arguments)
+  void shards()
   {
-    const auto pid = fork();
-    check(pid >= 0, "fork failed");
-    if (!pid)
-    {
-      std::vector<char*> args;
-      std::string binary = converter;
-      args.push_back(binary.data());
-      for (const auto& value : arguments) args.push_back(const_cast<char*>(value.c_str()));
-      args.push_back(nullptr);
-      execv(binary.c_str(), args.data());
-      _exit(127);
-    }
-    int status = 0;
-    check(waitpid(pid, &status, 0) == pid, "waitpid failed");
-    return WIFEXITED(status) ? WEXITSTATUS(status) : 128;
-  }
-  std::string fingerprint(const std::string& text)
-  {
-    PHGarfieldFingerprint::Fnv1a64 hash;
-    hash.Bytes(text);
-    return hash.Hex();
-  }
-  void retained_collection(const std::filesystem::path& directory, const std::filesystem::path& merger)
-  {
-    Source::Policy policy;
-    policy.max_depth = 0;
-    policy.max_nodes_per_root = 1;
-    policy.guard_um = .001;
+    std::array<Map::Data, 2> pieces;
     const auto g = geometry();
     const auto middle = Source::RootCount(g) / 2;
-    const std::string canonical = "compact-retention-software-fixture";
-    const auto configuration = fingerprint(canonical);
-    std::array<Source::Data, 2> sources;
-    std::array<std::filesystem::path, 2> paths;
-    for (unsigned int part = 0; part < 2; ++part)
+    std::ostringstream log;
+    std::ostringstream error;
+    for (unsigned int i = 0; i < 2; ++i)
     {
+      Source::Data source;
       Source::BuildSummary summary;
-      std::ostringstream log;
-      std::ostringstream error;
-      check(Source::Build(g, policy, part ? middle : 0, part ? Source::RootCount(g) : middle,
-                          sampler(part != 0, false), sources[part], summary, log, error),
-            error.str());
-      paths[part] = directory / ("retained-shard-" + std::to_string(part) + ".root");
-      write_training(paths[part], sources[part]);
-      TFile file(paths[part].c_str(), "UPDATE");
-      file.cd("GarfieldFullTransport/Metadata");
-      TNamed("schema_name", "PHG4TpcGarfieldFullTransportLUTShard").Write("schema_name", TObject::kOverwrite);
-      TNamed("configuration_fingerprint_fnv1a64", configuration.c_str()).Write("configuration_fingerprint_fnv1a64", TObject::kOverwrite);
-      TNamed("canonical_configuration", canonical.c_str()).Write();
-      TParameter<Long64_t>("generation_root_first", sources[part].first_root).Write();
-      TParameter<Long64_t>("generation_root_end", sources[part].end_root).Write();
-      TParameter<double>("interpolation_tolerance_um", policy.guard_um).Write();
-      TParameter<double>("maximum_drift_time_ns", sources[part].maximum_drift_time_ns).Write();
-      TParameter<Long64_t>("adaptive_sampler_queries", summary.actual_sampler_queries).Write();
-      TParameter<Long64_t>("adaptive_reused_points", summary.reused_points).Write();
-      TParameter<Long64_t>("adaptive_certified_leaves", summary.certified_leaves).Write();
-      TParameter<Long64_t>("adaptive_direct_leaves", summary.direct_leaves).Write();
-      TParameter<Long64_t>("adaptive_budget_leaves", summary.budget_leaves).Write();
-      check(PHGarfieldFlushAndCloseRootOutput(file, error), error.str());
+      check(Source::Build(g, Source::Policy{}, i ? middle : 0, i ? Source::RootCount(g) : middle, sampler(true), source, summary, log, error), error.str());
+      pieces[i] = pack(source, false);
     }
-    const auto manifest = [&](const std::string& name, const std::vector<std::pair<std::filesystem::path, std::string>>& files)
+    Map::Data merged;
+    for (const auto& piece : pieces)
     {
-      const auto path = directory / name;
-      std::ofstream output(path);
-      for (const auto& [file, content] : files)
+      check(Map::Append(merged, piece, Map::Limits{}, error), error.str());
+    }
+    check(Map::Validate(merged, Map::Limits{}, error), error.str());
+    const auto node_offset = pieces[0].nodes.size();
+    const auto corner_offset = pieces[0].corners.size();
+    const auto value_offset = pieces[0].values.size();
+    for (unsigned int side = 0; side < 2; ++side)
+    {
+      const auto& original = pieces[side];
+      for (double phi : {.01, 2., 6.1})
       {
-        output << file.string() << '\t' << Map::FileSha256(file) << '\t' << content << '\n';
+        Map::Lookup before;
+        Map::Lookup after;
+        PHGarfieldForwardMap::NodeValue a;
+        PHGarfieldForwardMap::NodeValue b;
+        bool ca;
+        bool cb;
+        check(Map::FindLeaf(original, side, phi, 11., side ? 2. : -2., before) && Map::FindLeaf(merged, side, phi, 11., side ? 2. : -2., after), "merged route missing");
+        check(after.cell_id == before.cell_id + (side ? node_offset : 0) && after.corner_record == before.corner_record + (side ? corner_offset : 0), "merged route offsets differ");
+        check(Map::InterpolateRelaxed(original, before, phi, 11., side ? 2. : -2., a, ca) && Map::InterpolateRelaxed(merged, after, phi, 11., side ? 2. : -2., b, cb) && ca == cb && bits(a.delta_r_cm, b.delta_r_cm) && bits(a.drift_time_ns, b.drift_time_ns), "merged query changed");
       }
-      output.close();
-      return path;
-    };
-    const auto invoke = [&](const std::filesystem::path& list, const std::filesystem::path& output,
-                            const std::string& mode, const std::string& complete, bool legacy = false)
-    {
-      std::vector<std::string> arguments{"--mode", mode, "--input-list", list, "--expect-input-sha256", Map::FileSha256(list),
-                                         "--output", output, "--summary", output.string() + ".json", "--complete", complete};
-      if (legacy)
-      {
-        arguments.insert(arguments.end(), {"--legacy-certified-only", "yes"});
-      }
-      return execute(merger, arguments);
-    };
-    const auto read_collection = [&](const std::filesystem::path& path, bool complete)
-    {
-      TFile file(path.c_str(), "READ");
-      auto* metadata = file.GetDirectory("GarfieldFullTransport/Metadata");
-      const auto named = [&](const char* key)
-      {
-        auto* value = dynamic_cast<TNamed*>(metadata->Get(key));
-        check(value != nullptr, "missing collection binding");
-        return std::string(value->GetTitle());
-      };
-      Map::ExpectedSource expected_source{named("source_file_sha256"), named("source_configuration_fingerprint_fnv1a64"), named("source_content_fingerprint_fnv1a64")};
-      Map::Data parsed;
-      std::ostringstream error;
-      check(Map::Read(file.GetDirectory("GarfieldFullTransport/Runtime"), g, expected_source, parsed, Map::Limits{}, error, complete), error.str());
-      return parsed;
-    };
-    std::array<std::filesystem::path, 2> converted;
-    for (unsigned int part = 0; part < 2; ++part)
-    {
-      const auto list = manifest("retained-input-" + std::to_string(part) + ".tsv", {{paths[part], Source::ContentFingerprint(sources[part])}});
-      converted[part] = directory / ("retained-part-" + std::to_string(part) + ".root");
-      check(invoke(list, converted[part], "convert", "no") == 0, "retained shard conversion failed");
     }
-    const auto first = read_collection(converted[0], false);
-    const auto second = read_collection(converted[1], false);
-    check(first.proof.uncertified_leaves_checked == 0 && second.proof.uncertified_leaves_checked > 0,
-          "collection fixture lacks non-first retained numeric corners");
-    const auto list = manifest("retained-parts.tsv", {{converted[0], Map::ContentFingerprint(first)}, {converted[1], Map::ContentFingerprint(second)}});
-    const auto merged_path = directory / "retained-merged.root";
-    check(invoke(list, merged_path, "merge", "yes") == 0, "retained collection merge failed");
-    const auto merged = read_collection(merged_path, true);
-    for (const auto& cell : sources[1].cells)
+    check(std::equal(pieces[1].values.begin(), pieces[1].values.end(), merged.values.begin() + value_offset), "merged corner values differ");
+    for (auto member : {&Map::Data::canonical_policy, &Map::Data::configuration_fingerprint_fnv1a64})
     {
-      if (cell.leaf_class != static_cast<int>(Source::LeafClass::NumericallyUnresolved))
-      {
-        continue;
-      }
-      const double phi = .5 * (cell.lo[0] + cell.hi[0]);
-      const double r = .5 * (cell.lo[1] + cell.hi[1]);
-      const double z = .5 * (cell.lo[2] + cell.hi[2]);
-      Map::Lookup lookup;
-      PHGarfieldForwardMap::NodeValue before;
-      PHGarfieldForwardMap::NodeValue after;
-      bool source_certified = true;
-      bool compact_certified = true;
-      check(Map::FindLeaf(merged, z > 0., phi, r, z, lookup) && Map::HasUsableCorners(merged, lookup) &&
-                Source::InterpolateRelaxed(sources[1], cell, phi, r, z, before, source_certified) &&
-                Map::InterpolateRelaxed(merged, lookup, phi, r, z, after, compact_certified),
-            "non-first retained corner offset broken");
-      check(!source_certified && !compact_certified && bits(before.delta_r_cm, after.delta_r_cm) && bits(before.drift_time_ns, after.drift_time_ns),
-            "non-first relaxed collection values/classification changed");
+      auto changed = pieces[1];
+      changed.*member += "0";
+      auto rejected = pieces[0];
+      check(!Map::Append(rejected, changed, Map::Limits{}, error), "incompatible shard accepted");
     }
-    const auto first_list = manifest("retained-first-legacy.tsv", {{paths[0], Source::ContentFingerprint(sources[0])}});
-    const auto legacy_path = directory / "retained-first-legacy.root";
-    check(invoke(first_list, legacy_path, "convert", "no", true) == 0, "legacy shard collection conversion failed");
-    const auto old = read_collection(legacy_path, false);
-    check(old.schema_version == 5, "explicit legacy collection is not runtime5");
-    const auto mixed_list = manifest("retained-mixed-versions.tsv", {{legacy_path, Map::ContentFingerprint(old)}, {converted[1], Map::ContentFingerprint(second)}});
-    check(invoke(mixed_list, directory / "retained-mixed-rejected.root", "merge", "yes") != 0,
-          "mixed legacy/new collection versions accepted");
-  }
-  Map::Limits wide_limits()
-  {
-    Map::Limits limits;
-    limits.max_source_points = 1500000000;
-    limits.max_nodes = 250000000;
-    limits.max_values = 1500000000;
-    limits.max_corners = 150000000;
-    limits.max_bytes = 128ULL * 1024 * 1024 * 1024;
-    return limits;
-  }
-  void capacity(const std::filesystem::path& directory)
-  {
-    const Map::Limits defaults;
-    check(defaults.max_source_points == 600000000 && defaults.max_nodes == 100000000 && defaults.max_values == 600000000 &&
-              defaults.max_corners == 50000000 && defaults.max_roots == 1000000 && defaults.max_bytes == 32ULL * 1024 * 1024 * 1024,
-          "compact defaults changed");
-    const auto limits = wide_limits();
-    std::ostringstream errors;
-    check(Map::ValidateLimits(defaults, errors) && Map::ValidateLimits(limits, errors), "bounded compact limits rejected");
-    std::uint64_t estimated = 0;
-    check(Map::EstimatedBytes(limits.max_nodes, limits.max_corners, limits.max_values, defaults.max_roots, estimated) && estimated <= limits.max_bytes,
-          "explicit compact ceilings do not fit128GiB conservative byte allowance");
-    auto g = geometry();
-    g.radial_nodes = 2;
-    g.longitudinal_nodes = 2;
-    Source::Policy policy;
-    policy.max_total_points = 1500000000;
-    policy.max_total_cells = 250000000;
-    policy.max_estimated_bytes = 768ULL * 1024 * 1024 * 1024;
-    auto source = training(policy, false, false, g);
-    Map::Data compact;
-    check(Map::Convert(source, binding(source), compact, limits, errors, true), "explicit large limits failed tiny conversion");
-    check(source.points.size() < 1000 && source.cells.size() < 1000 && source.points.capacity() < 1000 && source.cells.capacity() < 1000,
-          "declared source global caps eagerly reserved vectors");
-    check(compact.nodes.size() < 1000 && compact.corners.size() < 1000 && compact.values.size() < 1000 && compact.root_lookup.size() < 1000 &&
-              compact.nodes.capacity() < 1000 && compact.corners.capacity() < 1000 && compact.values.capacity() < 1000 && compact.root_lookup.capacity() < 1000,
-          "declared compact caps eagerly reserved vectors");
-    using Bound = std::pair<std::uint64_t Map::Limits::*, std::uint64_t>;
-    for (const auto& [member, maximum] : std::array<Bound, 6>{{{&Map::Limits::max_source_points, Map::HardMaximumSourcePoints}, {&Map::Limits::max_nodes, Map::HardMaximumNodes}, {&Map::Limits::max_values, Map::HardMaximumValues}, {&Map::Limits::max_corners, Map::HardMaximumCorners}, {&Map::Limits::max_roots, Map::HardMaximumRoots}, {&Map::Limits::max_bytes, Map::HardMaximumBytes}}})
-      for (const auto value : std::array<std::uint64_t, 2>{{0, maximum + 1}})
-      {
-        auto invalid_limits = limits;
-        invalid_limits.*member = value;
-        std::ostringstream diagnostic;
-        check(!Map::ValidateLimits(invalid_limits, diagnostic), "zero/excess compact limit accepted");
-        Map::Data rejected;
-        check(!Map::Convert(source, binding(source), rejected, invalid_limits, diagnostic, true) && rejected.nodes.capacity() == 0,
-              "invalid compact limits allocated conversion output");
-        check(!Map::Read(nullptr, g, expected(compact), rejected, invalid_limits, diagnostic, true) && rejected.nodes.capacity() == 0,
-              "invalid compact limits reached ROOT allocation");
-      }
-    auto source_limit = limits;
-    source_limit.max_source_points = source.points.size() - 1;
-    Map::Data rejected;
-    check(!Map::Convert(source, binding(source), rejected, source_limit, errors, true) && rejected.nodes.empty(), "source point admission limit ignored");
-    // Synthetic declaration fixture only: extra source probes need not survive
-    // compact conversion. This checks admission/serialization without allocating
-    // hundreds of millions of rows. It is explicitly not a conversion proof for
-    // this tiny source; VerifyConversion must reject that false claim below.
-    auto declared = compact;
-    declared.proof.source_points = 700000001;
-    reseal(declared);
-    check(!Map::Validate(declared, defaults, errors, true) && Map::Validate(declared, limits, errors, true), "source proof cap did not follow explicit limits");
-    check(!Map::VerifyConversion(source, declared, errors), "synthetic source-count declaration mistaken for exhaustive conversion proof");
-    for (const auto member : std::array<std::uint64_t Map::ConversionProof::*, 4>{{&Map::ConversionProof::source_cells, &Map::ConversionProof::roots_checked, &Map::ConversionProof::bounds_checked, &Map::ConversionProof::routes_checked}})
-    {
-      auto false_count = compact;
-      ++(false_count.proof.*member);
-      reseal(false_count);
-      check(!Map::VerifyConversion(source, false_count, errors), "re-sealed false source/proof count accepted");
-    }
-    const auto path = directory / "capacity-declaration.root";
-    {
-      TFile output(path.c_str(), "CREATE");
-      check(Map::Write(output.mkdir("Runtime"), declared, limits, errors), "cannot write source-count admission fixture");
-      check(PHGarfieldFlushAndCloseRootOutput(output, errors), errors.str());
-    }
-    {
-      TFile input(path.c_str(), "READ");
-      Map::Data parsed;
-      check(!Map::Read(input.GetDirectory("Runtime"), g, expected(compact), parsed, defaults, errors, true) && parsed.nodes.empty(), "default reader accepted source proof over600M");
-      check(Map::Read(input.GetDirectory("Runtime"), g, expected(compact), parsed, limits, errors, true) && parsed.nodes.capacity() < 1000, "explicit reader cap failed or eagerly allocated declaration");
-    }
+    check(!Map::Append(merged, pieces[1], Map::Limits{}, error) && !Map::Append(merged, merged, Map::Limits{}, error), "overlap/self append accepted");
+    Map::Limits tiny;
+    tiny.max_nodes = merged.nodes.size() - 1;
+    auto rejected = pieces[0];
+    check(!Map::Append(rejected, pieces[1], tiny, error) && rejected.nodes.size() == pieces[0].nodes.size(), "merge allocation budget ignored");
   }
 }  // namespace
 
-int main(int argc, char** argv)
+int main()
 {
-  (void) argc;
   char pattern[] = "/tmp/phgarfield-compact-test-XXXXXX";
   const auto* tmp = mkdtemp(pattern);
-  if (!tmp) return 1;
+  if (!tmp)
+  {
+    return 1;
+  }
   const std::filesystem::path directory = tmp;
   try
   {
-    relaxed_retention(directory);
+    retention();
+    shards();
+    auto source = training(Source::Policy{}, true);
+    auto data = pack(source);
+    population(source, data);
+    capacity(source, data);
+    check(data.values.size() < source.points.size(), "construction-only samples retained");
+    std::array<bool, 5> classes{};
+    for (auto settings : std::array<std::array<unsigned int, 3>, 5>{{{{127, 12, 2048}}, {{1, 0, 2048}}, {{127, 0, 2048}}, {{127, 12, 1}}, {{3, 12, 2048}}}})
+    {
+      Source::Policy policy;
+      policy.max_nodes_per_root = settings[0];
+      policy.max_depth = settings[1];
+      policy.max_queries_per_root = settings[2];
+      auto fixture = training(policy, settings[2] != 1, true);
+      population(fixture, pack(fixture));
+      for (const auto& c : fixture.cells)
+      {
+        if (c.split_axis == -1)
+        {
+          classes[c.leaf_class] = true;
+        }
+      }
+    }
+    Source::Policy budget;
+    budget.max_nodes_per_root = 1;
+    budget.max_depth = 0;
+    auto numeric = training(budget, true);
+    population(numeric, pack(numeric));
+    for (const auto& c : numeric.cells)
+    {
+      if (c.split_axis == -1)
+      {
+        classes[c.leaf_class] = true;
+      }
+    }
+    check(std::all_of(classes.begin(), classes.end(), [](bool x)
+                      { return x; }),
+          "not every leaf class exercised");
     for (bool outer : {false, true})
     {
       const auto g = geometry();
-      Source::Data s;
+      Source::Data boundary_source;
       Source::BuildSummary summary;
-      std::ostringstream log, error;
-      const auto boundary = [&](const std::array<double, 3>& x, Source::Point& p, std::ostream&)
-      {
+      std::ostringstream log;
+      std::ostringstream error;
+      check(Source::Build(g, Source::Policy{}, 0, Source::RootCount(g), [&](const auto& x, Source::Point& point, std::ostream&)
+                          {
         const double remaining = g.readout_abs_z_cm - std::abs(x[2]);
-        const double fraction = remaining / (g.readout_abs_z_cm - g.central_membrane_half_width_cm);
         const double endpoint = outer ? g.outer_radius_cm + .5 * Source::EndpointRadialToleranceCm : g.inner_radius_cm - .5 * Source::EndpointRadialToleranceCm;
-        p.reaches = 1;
-        p.forward_status = static_cast<int>(PHGarfieldForwardTransport::ForwardDriftStatus::ReachedReadout);
-        p.value = {{(endpoint - x[1]) * fraction, 0., remaining / g.nominal_velocity_cm_ns}};
-        return true;
-      };
-      check(Source::Build(g, Source::Policy{}, 0, Source::RootCount(g), boundary, s, summary, log, error), error.str());
-      auto compact = convert(s);
-      population(s, compact);
-      check(Map::VerifyConversion(s, compact, error), error.str());
+        point.reaches = 1; point.forward_status = static_cast<int>(PHGarfieldForwardTransport::ForwardDriftStatus::ReachedReadout);
+        point.value = {{(endpoint - x[1]) * remaining / (g.readout_abs_z_cm - g.central_membrane_half_width_cm), 0., remaining / g.nominal_velocity_cm_ns}};
+        return true; }, boundary_source, summary, log, error),
+            error.str());
+      population(boundary_source, pack(boundary_source));
     }
-    check(Map::Sha256("") == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "SHA256 empty vector differs");
-    check(Map::Sha256("abc") == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", "SHA256 abc vector differs");
-    auto source = training(Source::Policy{}, true, false);
-    auto data = convert(source);
-    population(source, data);
-    capacity(directory);
-    check(data.values.size() < source.points.size(), "training-only probe points were retained");
-    std::array<bool, 5> classes{};
-    for (const auto settings : std::array<std::array<int, 3>, 5>{{{{127, 12, 2048}}, {{1, 0, 2048}}, {{127, 0, 2048}}, {{127, 12, 1}}, {{3, 12, 2048}}}})
-    {
-      Source::Policy p;
-      p.max_nodes_per_root = settings[0];
-      p.max_depth = settings[1];
-      p.max_queries_per_root = settings[2];
-      auto fixture = training(p, settings[2] != 1, true);
-      auto compact = convert(fixture);
-      population(fixture, compact);
-      for (const auto& c : fixture.cells)
-        if (c.split_axis == -1) classes[c.leaf_class] = true;
-    }
-    Source::Policy p;
-    p.max_nodes_per_root = 1;
-    p.max_depth = 0;
-    auto numeric = training(p, true, false);
-    auto numeric_data = convert(numeric);
-    population(numeric, numeric_data);
-    for (const auto& c : numeric.cells)
-      if (c.split_axis == -1) classes[c.leaf_class] = true;
-    check(std::all_of(classes.begin(), classes.end(), [](bool x)
-                      { return x; }),
-          "fixtures did not exercise every leaf class");
-    auto bad = data;
-    bad.root_lookup[0] = Map::Invalid;
-    invalid(bad, "missing root");
     const auto internal = std::find_if(data.nodes.begin(), data.nodes.end(), [](const auto& n)
                                        { return (n.tag & 3U) < 3; });
-    check(internal != data.nodes.end(), "no anisotropic split fixture");
+    check(internal != data.nodes.end(), "no internal node fixture");
     const auto index = internal - data.nodes.begin();
-    bad = data;
-    bad.nodes[index].first = index;
-    invalid(bad, "cycle");
-    bad = data;
-    bad.nodes[index].second = bad.nodes[index].first;
-    invalid(bad, "overlap");
-    bad = data;
-    bad.nodes[index].tag |= 256;
-    invalid(bad, "reserved bits");
-    bad = data;
-    bad.corners[0][0] = Map::Invalid;
-    invalid(bad, "dangling corner");
-    bad = data;
-    bad.values[0][2] = NAN;
-    invalid(bad, "nonfinite value");
-    bad = data;
-    bad.nodes.push_back(data.nodes.back());
-    invalid(bad, "orphan node/proof counts");
-    bad = data;
-    bad.values[0][2] = std::nextafter(bad.values[0][2], INFINITY);
-    reseal(bad);
+    using Mutator = std::function<void(Map::Data&)>;
+    const std::vector<std::pair<std::string, Mutator>> mutations{
+        {"missing root", [](auto& d)
+         { d.root_lookup[0] = Map::Invalid; }},
+        {"cycle", [index](auto& d)
+         { d.nodes[index].first = index; }},
+        {"overlap", [index](auto& d)
+         { d.nodes[index].second = d.nodes[index].first; }},
+        {"reserved bits", [index](auto& d)
+         { d.nodes[index].tag |= 256U; }},
+        {"dangling corner", [](auto& d)
+         { d.corners[0][0] = Map::Invalid; }},
+        {"nonfinite", [](auto& d)
+         { d.values[0][2] = NAN; }},
+        {"orphan node", [](auto& d)
+         { d.nodes.push_back(d.nodes.back()); }},
+        {"orphan value", [](auto& d)
+         { d.values.push_back(d.values.back()); }},
+        {"wrong physical endpoint", [](auto& d)
+         { d.values[0][0] = 100.; }}};
+    for (const auto& [label, mutate] : mutations)
+    {
+      auto bad = data;
+      mutate(bad);
+      invalid(bad, label);
+    }
     std::ostringstream errors;
-    check(!Map::VerifyConversion(source, bad, errors), "changed corner bits accepted by exhaustive proof");
-    auto incomplete_source = source;
-    incomplete_source.roots.pop_back();
-    auto incomplete_compact = data;
-    incomplete_compact.source.content_fingerprint_fnv1a64 = Source::ContentFingerprint(incomplete_source);
-    reseal(incomplete_compact);
-    check(!Map::VerifyConversion(incomplete_source, incomplete_compact, errors), "incomplete source roots accepted by exhaustive proof");
-    std::uint64_t bytes = 0;
-    check(!Map::EstimatedBytes(UINT64_MAX, 0, 0, 0, bytes), "size overflow accepted");
-    auto limit = Map::Limits{};
-    limit.max_nodes = 1;
-    check(!Map::Validate(data, limit, errors, true), "node allocation limit ignored");
     const auto root = directory / "runtime.root";
     write(root, data);
     auto owned = read(root, data);
-    check(Map::ContentFingerprint(data) == Map::ContentFingerprint(owned), "ROOT roundtrip differs");
-    {
-      TFile file(root.c_str(), "READ");
-      auto expected_bad = expected(data);
-      expected_bad.file_sha256 = Map::Sha256("wrong");
-      Map::Data rejected;
-      check(!Map::Read(file.GetDirectory("Runtime"), data.geometry, expected_bad, rejected, Map::Limits{}, errors, true), "wrong external source accepted");
-    }
-    const auto authentic_sha = Map::FileSha256(root);
+    check(Map::ContentFingerprint(owned) == Map::ContentFingerprint(data), "ROOT roundtrip differs");
     std::filesystem::remove(root);
-    population(source, owned);
-    check(!authentic_sha.empty(), "file hash missing");
+    population(source, owned);  // No ROOT object lifetime dependency.
+    for (const auto& [key, value] : std::array<std::pair<const char*, Long64_t>, 2>{{{"node_count", INT64_MAX}, {"schema_version", 8}}})
+    {
+      const auto path = directory / (std::string(key) + ".root");
+      write(path, data);
+      {
+        TFile output(path.c_str(), "UPDATE");
+        output.cd("Runtime");
+        if (std::string(key) == "schema_version")
+        {
+          TParameter<int>(key, value).Write(key, TObject::kOverwrite);
+        }
+        else
+        {
+          TParameter<Long64_t>(key, value).Write(key, TObject::kOverwrite);
+        }
+      }
+      TFile input(path.c_str(), "READ");
+      Map::Data rejected;
+      check(!Map::Read(input.GetDirectory("Runtime"), data.geometry, rejected, Map::Limits{}, errors) && rejected.nodes.empty(), "invalid schema/count allocated or accepted");
+    }
+    const auto changed_path = directory / "changed.root";
+    write(changed_path, data);
+    {
+      TFile output(changed_path.c_str(), "UPDATE");
+      output.cd("Runtime");
+      TNamed("content_fingerprint_fnv1a64", "0000000000000000").Write("content_fingerprint_fnv1a64", TObject::kOverwrite);
+    }
+    {
+      TFile input(changed_path.c_str(), "READ");
+      Map::Data rejected;
+      check(!Map::Read(input.GetDirectory("Runtime"), data.geometry, rejected, Map::Limits{}, errors), "changed fingerprint accepted");
+    }
     auto large_geometry = geometry();
     large_geometry.phi_nodes = 24;
     large_geometry.radial_nodes = 20;
     large_geometry.longitudinal_nodes = 20;
     auto large_source = training(Source::Policy{}, false, false, large_geometry);
-    auto large = convert(large_source);
+    auto large = pack(large_source);
     const auto streamed = directory / "streamed.root";
     write(streamed, large);
     {
-      TFile file(streamed.c_str(), "READ");
+      TFile input(streamed.c_str(), "READ");
       for (const char* name : {"Nodes", "Corners", "Values", "Roots"})
       {
-        check_persisted_multibasket_tree(file, file.GetDirectory("Runtime"), name);
+        check_persisted_multibasket_tree(input, input.GetDirectory("Runtime"), name);
       }
     }
-    auto large_copy = read(streamed, large);
-    check(Map::ContentFingerprint(large) == Map::ContentFingerprint(large_copy), "multibasket data changed");
-    const auto source_payload = 64ULL * large_source.points.size() + 232ULL * large_source.cells.size();
-    const auto compact_payload = 12ULL * large.nodes.size() + 32ULL * large.corners.size() + 24ULL * large.values.size() + 4ULL * large.root_lookup.size();
-    check(compact_payload * 4 < source_payload, "compact fixture did not remove witness memory");
-    const auto declared = directory / "absurd.root";
-    write(declared, data);
-    {
-      TFile file(declared.c_str(), "UPDATE");
-      file.cd("Runtime");
-      TParameter<Long64_t>("node_count", INT64_MAX).Write("node_count", TObject::kOverwrite);
-    }
-    {
-      TFile file(declared.c_str(), "READ");
-      Map::Data rejected;
-      check(!Map::Read(file.GetDirectory("Runtime"), data.geometry, expected(data), rejected, Map::Limits{}, errors, true) && rejected.nodes.empty(), "absurd row declaration allocated/accepted");
-    }
-    // Reproduce missing baskets from a foreign readonly current directory;
-    // positive aggregate GetEntry is deliberately not used as proof.
+    check(Map::ContentFingerprint(read(streamed, large)) == Map::ContentFingerprint(large), "multibasket roundtrip changed");
     const auto damaged = directory / "missing-baskets.root";
-    write(damaged, large);
     const auto foreign_path = directory / "foreign.root";
+    write(damaged, large);
     {
       TFile foreign(foreign_path.c_str(), "CREATE");
-      TNamed("marker", "foreign readonly fixture").Write();
+      TNamed("marker", "foreign fixture").Write();
     }
+    const auto destination_path = directory / "foreign-current-writer.root";
+    {
+      TFile output(destination_path.c_str(), "CREATE");
+      auto* destination = output.mkdir("Runtime");
+      TFile foreign(foreign_path.c_str(), "READ");
+      foreign.cd();
+      check(Map::Write(destination, data, Map::Limits{}, errors) && gDirectory == &foreign, "writer used or changed foreign current directory");
+      check(PHGarfieldFlushAndCloseRootOutput(output, errors), errors.str());
+    }
+    check(Map::ContentFingerprint(read(destination_path, data)) == Map::ContentFingerprint(data), "foreign-current destination payload differs");
     {
       TFile foreign(foreign_path.c_str(), "READ");
       foreign.cd();
@@ -686,62 +540,21 @@ int main(int argc, char** argv)
         node = n;
         tree.Fill();
       }
-      gErrorIgnoreLevel = saved;
-      TFile file(damaged.c_str(), "UPDATE");
-      file.cd("Runtime");
+      TFile output(damaged.c_str(), "UPDATE");
+      output.cd("Runtime");
       check(tree.Write("Nodes", TObject::kOverwrite) > 0, "cannot write damaged fixture");
       tree.SetDirectory(nullptr);
+      gErrorIgnoreLevel = saved;
     }
     {
-      TFile file(damaged.c_str(), "READ");
-      auto* t = dynamic_cast<TTree*>(file.Get("Runtime/Nodes"));
-      auto* branch = t->GetBranch("first");
-      check(branch->GetWriteBasket() > 1, "damaged fixture lacked lost baskets");
+      TFile input(damaged.c_str(), "READ");
+      auto* tree = dynamic_cast<TTree*>(input.Get("Runtime/Nodes"));
+      check(tree && tree->GetBranch("first")->GetWriteBasket() > 1, "damaged fixture lacked lost baskets");
       Map::Data rejected;
-      std::ostringstream err;
-      check(!Map::Read(file.GetDirectory("Runtime"), large.geometry, expected(large), rejected, Map::Limits{}, err, true), "missing persisted baskets accepted");
-      check(err.str().find("basket") != std::string::npos, "damaged fixture was not rejected by structural basket check");
+      std::ostringstream error;
+      check(!Map::Read(input.GetDirectory("Runtime"), large.geometry, rejected, Map::Limits{}, error) && error.str().find("basket") != std::string::npos, "missing persisted baskets accepted");
     }
-    const auto source_path = directory / "training.root";
-    write_training(source_path, source);
-    const auto source_sha = Map::FileSha256(source_path);
-    const auto runtime_path = directory / "converted.root", proof_path = directory / "conversion.json";
-    const auto converter = std::filesystem::absolute(std::filesystem::path(argv[0]).parent_path() / "PHGarfieldCompactMapConverter");
-    retained_collection(directory, converter.parent_path() / "PHGarfieldCompactMapMerger");
-    check(execute(converter, {"--input", source_path, "--output", runtime_path, "--proof-output", proof_path, "--expect-source-sha256", source_sha, "--expect-source-configuration", "0123456789abcdef", "--expect-source-content", Source::ContentFingerprint(source)}) == 0, "standalone converter failed");
-    check(Map::FileSha256(source_path) == source_sha, "converter modified training input");
-    std::ifstream proof_file(proof_path);
-    const std::string proof_text((std::istreambuf_iterator<char>(proof_file)), {});
-    check(proof_text.find(Map::FileSha256(runtime_path)) != std::string::npos && proof_text.find("PASS_CONVERSION_ONLY") != std::string::npos, "external conversion manifest does not pin actual runtime SHA");
-    check(execute(converter, {"--input", source_path, "--output", runtime_path, "--proof-output", proof_path, "--expect-source-sha256", source_sha, "--expect-source-configuration", "0123456789abcdef", "--expect-source-content", Source::ContentFingerprint(source)}) != 0, "converter overwrote published output");
-    const auto wide_runtime_path = directory / "converted-wide.root", wide_proof_path = directory / "conversion-wide.json";
-    check(execute(converter, {"--input", source_path, "--output", wide_runtime_path, "--proof-output", wide_proof_path, "--expect-source-sha256", source_sha,
-                              "--expect-source-configuration", "0123456789abcdef", "--expect-source-content", Source::ContentFingerprint(source),
-                              "--max-source-points", "1500000000", "--max-runtime-nodes", "250000000", "--max-runtime-values", "1500000000", "--max-runtime-corners", "150000000", "--max-runtime-bytes", "137438953472"}) == 0,
-          "explicit converter resource caps failed");
-    std::ifstream wide_proof_file(wide_proof_path);
-    const std::string wide_proof((std::istreambuf_iterator<char>(wide_proof_file)), {});
-    check(wide_proof.find("\"runtime_limits\":") != std::string::npos && wide_proof.find("\"max_source_points\":1500000000") != std::string::npos && wide_proof.find("\"max_bytes\":137438953472") != std::string::npos, "conversion proof omitted resolved explicit limits");
-    {
-      TFile normal(runtime_path.c_str(), "READ"), wide(wide_runtime_path.c_str(), "READ");
-      Map::Data normal_data, wide_data;
-      const Map::ExpectedSource expected_source{source_sha, "0123456789abcdef", Source::ContentFingerprint(source)};
-      check(Map::Read(normal.GetDirectory("GarfieldFullTransport/Runtime"), source.geometry, expected_source, normal_data, Map::Limits{}, errors, true) &&
-                Map::Read(wide.GetDirectory("GarfieldFullTransport/Runtime"), source.geometry, expected_source, wide_data, wide_limits(), errors, true),
-            "converter outputs failed independent admission readback");
-      check(Map::ContentFingerprint(normal_data) == Map::ContentFingerprint(wide_data) && wide_data.source.canonical_policy == Source::BuildCanonicalPolicy(source), "explicit resource limits changed compact arrays/source policy");
-    }
-    unsigned int invalid_index = 0;
-    for (const auto& [flag, value] : std::array<std::pair<std::string, std::string>, 8>{{{"--max-source-points", "1500000001"}, {"--max-runtime-nodes", "250000001"}, {"--max-runtime-values", "1500000001"}, {"--max-runtime-corners", "150000001"}, {"--max-runtime-bytes", "137438953473"}, {"--max-runtime-nodes", "-1"}, {"--max-source-points", "18446744073709551616"}, {"--max-runtime-bytes", "4096junk"}}})
-    {
-      const auto label = "invalid-cap-" + std::to_string(invalid_index++);
-      const auto out = directory / (label + ".root"), proof = directory / (label + ".json");
-      check(execute(converter, {"--input", source_path, "--output", out, "--proof-output", proof, "--expect-source-sha256", source_sha,
-                                "--expect-source-configuration", "0123456789abcdef", "--expect-source-content", Source::ContentFingerprint(source), flag, value}) != 0,
-            "invalid converter resource cap accepted");
-      check(!std::filesystem::exists(out) && !std::filesystem::exists(proof), "invalid converter resource cap published outputs");
-    }
-    std::cout << "PASS compact conversion/routing/allclasses/corruption/streaming/ownership/standalone fixture; source_points=" << large_source.points.size() << " retained_values=" << large.values.size() << " runtime_payload_bytes=" << compact_payload << '\n';
+    std::cout << "PASS direct compact packing/routing/allclasses/retention/shards/limits/corruption/streaming/ownership\n";
     std::filesystem::remove_all(directory);
     return 0;
   }

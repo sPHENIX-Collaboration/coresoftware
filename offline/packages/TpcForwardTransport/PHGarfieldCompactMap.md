@@ -1,114 +1,61 @@
-# Compact forward-transport LUTs
+# Adaptive LUT runtime storage
 
-Compact shard manifests must list shards in ascending `first_root` order,
-with adjacent, nonoverlapping ranges. The merger preserves the exact manifest
-text as a checksum-bound input identity and rejects out-of-order input.
+Adaptive refers to variable cell sizes. Compact refers to storing only the
+routing tree, leaf classifications, usable corner references and unique corner
+values needed for lookup. The generator builds samples/refinement diagnostics in
+memory and writes this runtime representation directly.
 
-`PHGarfieldCompactMap` converts adaptive schema-4 maps into schema-7 runtime
-arrays. It retains cell routing, classifications and the exact double-precision
-corner values needed for interpolation, while omitting generation-only samples
-and diagnostics. Conversion changes storage, not the transport model or
-interpolation order. It requires OpenSSL development headers and `libcrypto`
-for SHA-256 file checks.
+## One output format
 
-## Convert a complete adaptive map
+Schema 9 is named `PHG4TpcGarfieldAdaptiveTransportLUT`:
 
-```sh
-PHGarfieldCompactMapConverter \
-  --input adaptive.root --output compact.root --proof-output conversion.json \
-  --expect-source-sha256 SOURCE_SHA256 \
-  --expect-source-configuration CONFIGURATION_FNV1A64 \
-  --expect-source-content CONTENT_FNV1A64
+```text
+GarfieldFullTransport/
+  Metadata/   physical configuration, payload identities, generation totals
+  Runtime/    Nodes, Corners, Values, Roots and refinement/geometry metadata
 ```
 
-Pin the source file SHA-256 and the configuration/content fingerprints from the
-validated adaptive input. The converter refuses changed inputs and existing
-outputs. `--help` lists optional point/node/corner/value/byte ceilings.
+There is no separate adaptive training file, `SourceMetadata` directory,
+conversion executable, external source binding or conversion-proof JSON. Earlier
+experimental schema versions are not supported by this package. Existing private
+files can still be used with their matching historical software.
 
-Conversion validates the source, checks every cell bound, branch route and
-retained corner value, writes a temporary ROOT file, then independently
-reopens it and verifies the conversion. The JSON record identifies source and
-output hashes, conversion software, resource limits and validation counts.
-This verifies conversion and file structure; source drift accuracy and physical
-coverage require independent validation.
+`Metadata` records units, coordinate conventions, integration step, gas/fields,
+geometry, a canonical physical configuration and its FNV-1a fingerprint. Each
+shard also records its root interval and execution counters. Merging sums query,
+reuse and leaf counters, takes the maximum drift duration and preserves common
+physical/refinement metadata. It does not claim to have generated a new set of
+direct samples.
 
-## Runtime format
+`Runtime/Nodes` stores binary split children or a leaf's class/reason and corner
+record. `Corners` contains eight indices into `Values`; each value holds radial
+and source-radius-weighted angular displacements plus drift duration. Shared
+sample values are stored once per generated shard. `Roots` locates the coarse
+cells. The exact packing is internal to `PHGarfieldCompactMap`.
 
-The file contains:
+A deterministic content fingerprint covers geometry, configuration/refinement
+identity and primitive arrays. The reader verifies it together with array types,
+counts, references, topology and allocation limits. These are consistency checks,
+not proof of physical accuracy. ROOT UUID/timestamps are not physical identities.
 
-- `GarfieldFullTransport/Metadata`: compact identity and source bindings.
-- `GarfieldFullTransport/SourceMetadata`: original physical configuration.
-- `GarfieldFullTransport/Runtime`: primitive node, corner and value arrays.
+## Interpolation and noncertified cells
 
-Node and corner references use checked unsigned 32-bit indices. Corner values
-remain three doubles: delta-r in cm, source-radius-weighted delta-phi in cm,
-and absolute drift time in ns. Explicit count and byte limits are checked
-before allocation; loaded arrays remain usable after closing the ROOT file.
+Strict lookup interpolates certified leaves. The original 27-point
+classification is preserved for every leaf; packing never promotes a cell.
 
-Schema 8 packages compact arrays assembled from multiple adaptive shards.
-It uses the same runtime array layout and interpolation as schema 7, with a
-source manifest binding all converted pieces. Pieces must have matching
-physical/refinement configuration and disjoint, contiguous root coverage; a
-partial collection cannot be used as a complete simulation LUT. Generic
-conversion/merging tools can combine pieces without building a complete
-training map in memory.
+For the explicit fast approximation policy, numerical/budget-limited leaves may
+also be interpolated when all required corner values reach the readout and have
+a usable angular branch. Those values are retained in the file. This deliberately
+relaxes the sampled guard; classification/reason remains available to the caller.
 
-A simulation consumer must explicitly select full-forward transport and supply
-its expected source bindings and runtime-file hash from the conversion record.
-Unsupported or malformed files are errors. Certified interpolation remains
-unchanged. Schema 7 additionally retains corner records for eligible
-`Uncertified` and `NumericallyUnresolved` leaves when all eight values are
-finite, reaching and angularly consistent. Mixed and sampled-all-lost leaves
-do not retain interpolation records. Missing or unsafe support stays absent.
+Mixed and sampled-all-lost leaves do not provide an interpolated arrival.
+Sampled-all-lost is not a proof that every point is physically lost. The consumer
+must explicitly select direct fallback, rejection, or counted policy discard;
+policy discard must not be reported as a calculated physical loss. Malformed
+files and invalid calculations remain errors.
 
-Retaining corners does not certify a leaf or promise the interpolation guard.
-The strict `Interpolate` API still rejects every noncertified leaf. An explicit
-`InterpolateRelaxed` call can use eligible retained records and reports whether
-the source was certified. Consumers must choose and report their treatment of
-noncertified leaves: direct drift, rejection or an explicitly approximate
-discard/interpolation policy. A sampled-all-lost leaf is not a proof of loss
-throughout its volume.
-
-Readers also support legacy schemas 5/6, which store corners only for certified
-leaves. `--legacy-certified-only yes` on the converter writes schema 5; the
-same option in merger `convert` mode writes schema 6. Merger `merge` mode
-preserves a homogeneous input version and rejects mixed legacy/new versions.
-Legacy layouts and canonical fingerprint/proof bytes remain unchanged.
-
-The new versions keep the 12-byte node, 32-byte corner-record and 24-byte value
-sizes. They allow eligible noncertified leaf nodes to reference a corner record
-and add a noncertified-leaf conversion-proof count. Layout identifiers and
-versioned fingerprints distinguish this extension. Converting an existing
-schema-5/6 file cannot recover values it omitted; reconvert its adaptive source
-or regenerate a physically matching map.
-
-## Tests
-
-`make check` runs `test_compact_map` with synthetic adaptive maps and small
-ROOT files. It verifies exact routing/corner values, periodic and boundary
-queries, resource limits, corrupted data rejection and independent readback.
-It also covers retained noncertified corners, strict versus relaxed lookup,
-legacy output, shard offset handling and mixed-version rejection.
-
-## Convert pieces before merging
-
-`PHGarfieldCompactMapMerger` has two modes. `convert` reads adaptive schema-4
-shards and converts them into a compact collection. `merge` combines compact
-collections. Each input list has three tab-separated columns per line:
-absolute ROOT filename, file SHA-256 and content fingerprint. Supply pieces in
-increasing root order, without a header:
-
-```sh
-PHGarfieldCompactMapMerger --mode convert --input-list shards.tsv \
-  --expect-input-sha256 LIST_SHA256 --output pieces.root \
-  --summary pieces.json --complete no
-PHGarfieldCompactMapMerger --mode merge --input-list pieces.tsv \
-  --expect-input-sha256 LIST_SHA256 --output runtime.root \
-  --summary runtime.json --complete yes
-```
-
-Use `--complete yes` only when the result covers all coarse roots. The summary
-contains the runtime hash and source bindings needed by the simulation reader.
-Conversion preserves every retained corner double and checks every remapped
-reference. File structure and exact conversion are checked separately from the
-accuracy of the original generated transport.
+The merger accepts the same runtime format for individual shards and partial
+collections. A complete result requires contiguous coverage of the entire grid.
+See [generation](PHGarfieldForwardMap.md) for commands. Production simulation
+should load only complete tables and verify their physical configuration against
+its own detector, drift and magnetic-field settings.

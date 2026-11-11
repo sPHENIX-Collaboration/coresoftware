@@ -13,19 +13,15 @@ class TDirectory;
 class PHGarfieldForwardMap
 {
  public:
-  // Historical identifiers retained for byte-stable configuration metadata.
-  // The generator emits adaptive schema4, not regular schema1-3 tables.
-  static constexpr int SchemaVersion = 1;           // historical axisymmetric LUTs
-  static constexpr int ExtendedSchemaVersion = 2;   // explicit 3D/frame provenance
-  static constexpr int NumericalSchemaVersion = 3;  // explicit interpolation-error cell mask
+  static constexpr int SchemaVersion = 9;
   static constexpr const char* SchemaName =
-      "PHG4TpcGarfieldFullTransportLUT";
+      "PHG4TpcGarfieldAdaptiveTransportLUT";
   static constexpr const char* TransportContract =
       "garfield_full_forward_mean_transport_v1";
   static constexpr const char* SpaceChargeZCoordinatePolicy =
       "max_zero_abs_z_minus_cm_half_width_v1";
   static constexpr const char* MagneticFieldDomainPolicy =
-      "complete_cartesian_lattice_full_tpc_box_and_step_checked_v1";
+      "cartesian_domain_full_tpc_box_and_step_checked_v1";
   static constexpr const char* NominalTimeReferencePolicy =
       "r_mid_phi0_cm_surface_each_side_v1";
 
@@ -123,18 +119,15 @@ class PHGarfieldForwardMap
 
   static std::string BuildCanonicalConfiguration(
       const Config& config,
-      const Provenance& provenance,
-      int schema_version = SchemaVersion);
+      const Provenance& provenance);
 
   // Shared physical validation, timing reference and actual payload capture
-  // used by adaptive generation, retaining existing source fingerprints.
+  // used by direct adaptive LUT generation.
   static bool Prepare(const PHGarfieldForwardTransport& garfield, const Config& config,
                       Provenance& provenance, Summary& summary,
                       std::ostream& log, std::ostream& error);
   static bool WriteMetadata(TDirectory* directory, const Config& config,
-                            const Provenance& provenance, const Summary& summary,
-                            int schema_version,
-                            const std::string& schema_name = "");
+                            const Provenance& provenance, const Summary& summary);
 };
 
 #endif

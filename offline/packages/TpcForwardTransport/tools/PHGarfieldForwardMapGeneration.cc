@@ -1,3 +1,4 @@
+#include "PHGarfieldAdaptiveMap.h"
 #include "PHGarfieldForwardMap.h"
 
 #include <TDirectory.h>
@@ -52,7 +53,7 @@ bool PHGarfieldForwardMap::Prepare(const PHGarfieldForwardTransport& garfield,
   const bool has_3d = !garfield.GetElectricFieldMap3D(0).empty() || !garfield.GetElectricFieldMap3D(1).empty();
   if (config.interpolation_tolerance_um > 0. && !has_3d)
   {
-    error << "Numerical-mask schema requires the explicit per-side3D model\n";
+    error << "Adaptive generation requires the explicit per-side 3D model\n";
     return false;
   }
   if (garfield.GetFrameElectricFieldMap3D(0).empty() != garfield.GetFrameElectricFieldMap3D(1).empty())
@@ -246,24 +247,18 @@ bool PHGarfieldForwardMap::Prepare(const PHGarfieldForwardTransport& garfield,
 }
 
 bool PHGarfieldForwardMap::WriteMetadata(TDirectory* directory,
-                                         const Config& config, const Provenance& provenance, const Summary& summary,
-                                         int schema_version, const std::string& schema_name)
+                                         const Config& config, const Provenance& provenance, const Summary& summary)
 {
   if (!directory)
   {
     return false;
   }
   TDirectory::TContext context(directory);
-  const std::string canonical_text = BuildCanonicalConfiguration(config, provenance, schema_version);
-  write_named({{"schema_name", schema_name.empty() ? SchemaName : schema_name}});
-  write_parameters<int>({{"generation_phi_chunk_index", 0},
-                         {"generation_phi_chunk_count", 1},
-                         {"schema_version", schema_version}});
-  if (schema_version >= NumericalSchemaVersion)
-  {
-    write_parameters<double>({{"interpolation_tolerance_um", config.interpolation_tolerance_um}});
-    write_named({{"interpolation_error_probe_scheme", schema_version >= 4 ? provenance.reach_probe_scheme : "center_and_face_centers_transverse_time_equivalent_v1"}});
-  }
+  const std::string canonical_text = BuildCanonicalConfiguration(config, provenance);
+  write_named({{"schema_name", SchemaName}});
+  write_parameters<int>({{"schema_version", SchemaVersion}});
+  write_parameters<double>({{"interpolation_tolerance_um", config.interpolation_tolerance_um}});
+  write_named({{"interpolation_error_probe_scheme", provenance.reach_probe_scheme}});
   write_named({{"transport_contract", TransportContract},
                {"coordinate_frame", "TPC_ENVELOPE_LOCAL"},
                {"axis_order_units", "phi_rad,r_cm,z_cm"},
@@ -272,35 +267,32 @@ bool PHGarfieldForwardMap::WriteMetadata(TDirectory* directory,
                {"integrator", "explicit_euler"},
                {"magnetic_field_domain_policy", MagneticFieldDomainPolicy},
                {"nominal_time_reference_policy", NominalTimeReferencePolicy},
-               {"reach_encoding", schema_version >= NumericalSchemaVersion ? "0=AllLost,1=Mixed,2=AllReach,3=NumericallyUnresolved" : "0=AllLost,1=Mixed,2=AllReach"},
+               {"reach_encoding", PHGarfieldAdaptiveMap::LeafEncoding},
                {"reach_probe_scheme", provenance.reach_probe_scheme},
                {"configuration_label", config.configuration_label}});
-  // Descriptive for 2D as well, without changing its established fingerprint.
+  // The same longitudinal coordinate convention applies to 2D and 3D maps.
   if (provenance.field_model == "per_side_3d" || provenance.field_model == "axisymmetric_2d")
   {
     write_named({{"space_charge_z_coordinate_policy", SpaceChargeZCoordinatePolicy}});
   }
-  if (schema_version >= ExtendedSchemaVersion)
+  write_named({{"field_model", provenance.field_model},
+               {"frame_field_map", provenance.frame_field_map},
+               {"frame_field_map_md5", provenance.frame_field_map_md5}});
+  for (std::size_t side = 0; side < 2; ++side)
   {
-    write_named({{"field_model", provenance.field_model},
-                 {"frame_field_map", provenance.frame_field_map},
-                 {"frame_field_map_md5", provenance.frame_field_map_md5}});
-    for (std::size_t side = 0; side < 2; ++side)
-    {
-      const std::string side_tag = "_side" + std::to_string(side);
-      write_named({{("electric_field_map_3d" + side_tag).c_str(), provenance.electric_field_map_3d[side]},
-                   {("electric_field_map_3d_md5" + side_tag).c_str(), provenance.electric_field_map_3d_md5[side]},
-                   {("frame_field_map_3d" + side_tag).c_str(), provenance.frame_field_map_3d[side]},
-                   {("frame_field_map_3d_md5" + side_tag).c_str(), provenance.frame_field_map_3d_md5[side]}});
-      write_parameters<double>({{("frame_charge_scale" + side_tag).c_str(), provenance.frame_charge_scale[side]},
-                                {("cm_field_factor" + side_tag).c_str(), provenance.cm_field_factor[side]}});
-    }
-    write_parameters<int>({{"use_ifc_voltage_distortion", static_cast<int>(provenance.use_ifc_voltage_distortion)},
-                           {"use_ofc_voltage_distortion", static_cast<int>(provenance.use_ofc_voltage_distortion)}});
-    for (std::size_t index = 0; index < 4; ++index)
-    {
-      write_parameters<double>({{("field_cage_offset_v_" + std::to_string(index)).c_str(), provenance.field_cage_offsets_v[index]}});
-    }
+    const std::string side_tag = "_side" + std::to_string(side);
+    write_named({{("electric_field_map_3d" + side_tag).c_str(), provenance.electric_field_map_3d[side]},
+                 {("electric_field_map_3d_md5" + side_tag).c_str(), provenance.electric_field_map_3d_md5[side]},
+                 {("frame_field_map_3d" + side_tag).c_str(), provenance.frame_field_map_3d[side]},
+                 {("frame_field_map_3d_md5" + side_tag).c_str(), provenance.frame_field_map_3d_md5[side]}});
+    write_parameters<double>({{("frame_charge_scale" + side_tag).c_str(), provenance.frame_charge_scale[side]},
+                              {("cm_field_factor" + side_tag).c_str(), provenance.cm_field_factor[side]}});
+  }
+  write_parameters<int>({{"use_ifc_voltage_distortion", static_cast<int>(provenance.use_ifc_voltage_distortion)},
+                         {"use_ofc_voltage_distortion", static_cast<int>(provenance.use_ofc_voltage_distortion)}});
+  for (std::size_t index = 0; index < 4; ++index)
+  {
+    write_parameters<double>({{("field_cage_offset_v_" + std::to_string(index)).c_str(), provenance.field_cage_offsets_v[index]}});
   }
   write_named({{"electric_field_map", provenance.electric_field_map},
                {"magnetic_field_map", provenance.magnetic_field_map},

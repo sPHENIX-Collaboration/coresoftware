@@ -6,108 +6,54 @@
 #include <TParameter.h>
 
 #include <unistd.h>
+
 #include <algorithm>
 #include <array>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <limits>
 #include <map>
 #include <set>
-#include <sstream>
 #include <string>
 #include <vector>
 
-#include <TTree.h>
-#include <fstream>
-
 namespace
 {
-  using PHGarfieldMapTools::AdaptivePath;
-  using PHGarfieldMapTools::check_summary;
   using PHGarfieldMapTools::common_metadata;
   using PHGarfieldMapTools::count;
-  using PHGarfieldMapTools::fingerprint;
   using PHGarfieldMapTools::GenerationCounters;
   using PHGarfieldMapTools::geometry;
-  using PHGarfieldMapTools::Map;
   using PHGarfieldMapTools::MetadataPath;
   using PHGarfieldMapTools::named;
   using PHGarfieldMapTools::Objects;
   using PHGarfieldMapTools::open;
+  using PHGarfieldMapTools::options;
   using PHGarfieldMapTools::parameter;
-  using PHGarfieldMapTools::quote;
+  using PHGarfieldMapTools::publish_exclusive;
+  using PHGarfieldMapTools::readback_compact_output;
   using PHGarfieldMapTools::require;
-
+  using PHGarfieldMapTools::write_compact_output;
   using Compact = PHGarfieldCompactMap;
+
   struct Input
   {
-    std::string path, sha, content;
+    std::string path;
     std::uintmax_t bytes;
     std::filesystem::file_time_type modified;
   };
+
   void unchanged(const Input& input)
   {
     require(std::filesystem::file_size(input.path) == input.bytes &&
                 std::filesystem::last_write_time(input.path) == input.modified,
-            "source changed during conversion");
+            "input changed during merge: " + input.path);
   }
-  void append_compact(Compact::Data& out, const Compact::Data& part)
+
+  void add(std::uint64_t& total, std::uint64_t amount, std::uint64_t maximum)
   {
-    require(part.first_root == out.end_root && part.end_root > part.first_root,
-            "manifest shards must be in ascending contiguous first_root order (missing, duplicate, overlapping or out-of-order range)");
-    require(part.schema_version == out.schema_version &&
-                part.source.configuration_fingerprint_fnv1a64 == out.source.configuration_fingerprint_fnv1a64 &&
-                part.source.canonical_policy == out.source.canonical_policy && part.max_depth == out.max_depth &&
-                part.max_nodes_per_root == out.max_nodes_per_root && part.max_queries_per_root == out.max_queries_per_root &&
-                part.guard_um == out.guard_um,
-            "incompatible shard physical/refinement policy");
-    const auto no = out.nodes.size();
-    const auto co = out.corners.size();
-    const auto vo = out.values.size();
-    const Compact::Limits limits;
-    require(part.proof.source_points <= limits.max_source_points - out.proof.source_points, "source point count exceeds collection limit");
-    require(no + part.nodes.size() < Compact::Invalid && co + part.corners.size() < Compact::Invalid &&
-                vo + part.values.size() < Compact::Invalid,
-            "compact offset overflow");
-    for (auto n : part.nodes)
-    {
-      if ((n.tag & 3U) < 3U)
-      {
-        n.first += no;
-        n.second += no;
-      }
-      else if (n.first != Compact::Invalid)
-      {
-        n.first += co;
-      }
-      out.nodes.push_back(n);
-    }
-    for (auto c : part.corners)
-    {
-      for (auto& v : c)
-      {
-        v += vo;
-      }
-      out.corners.push_back(c);
-    }
-    out.values.insert(out.values.end(), part.values.begin(), part.values.end());
-    for (auto r = part.first_root; r < part.end_root; ++r)
-    {
-      require(out.root_lookup.at(r) == Compact::Invalid && part.root_lookup.at(r) != Compact::Invalid, "duplicate/missing compact root");
-      out.root_lookup[r] = part.root_lookup[r] + no;
-    }
-    out.end_root = part.end_root;
-    out.maximum_drift_time_ns = std::max(out.maximum_drift_time_ns, part.maximum_drift_time_ns);
-    auto& p = out.proof;
-    const auto& q = part.proof;
-    p.source_points += q.source_points;
-    p.source_cells += q.source_cells;
-    p.roots_checked += q.roots_checked;
-    p.bounds_checked += q.bounds_checked;
-    p.routes_checked += q.routes_checked;
-    p.certified_leaves_checked += q.certified_leaves_checked;
-    p.uncertified_leaves_checked += q.uncertified_leaves_checked;
-    p.corner_values_checked += q.corner_values_checked;
+    require(total <= maximum && amount <= maximum - total, "collection count exceeds limit");
+    total += amount;
   }
 }  // namespace
 
@@ -115,120 +61,64 @@ int main(int argc, char** argv)
 {
   if (argc == 2 && std::string(argv[1]) == "--help")
   {
-    std::cout << "Usage: PHGarfieldCompactMapMerger --mode convert|merge --input-list INPUTS.tsv\n"
-                 "  --expect-input-sha256 SHA256 --output OUTPUT.root --summary OUTPUT.json\n"
-                 "  --complete yes|no\n"
-                 "  --legacy-certified-only yes|no (convert mode only; default no)\n"
-                 "INPUTS.tsv columns: absolute file path, SHA256, content fingerprint (tab-separated).\n";
+    std::cout << "Usage: PHGarfieldCompactMapMerger --input-list files.txt --output runtime.root [--complete yes|no]\n"
+                 "List one LUT path per line, in ascending contiguous root-range order.\n"
+                 "The default requires complete coverage; --complete no writes a partial collection for a later merge.\n";
     return 0;
   }
   try
   {
-    const auto options = PHGarfieldMapTools::options(argc, argv,
-                                                     {"--mode", "--input-list", "--expect-input-sha256", "--output", "--summary", "--complete", "--legacy-certified-only"});
+    const auto arguments = options(argc, argv, {"--input-list", "--output", "--complete"});
     const auto get = [&](const char* key) -> const std::string&
-    { require(options.contains(key),std::string("missing ")+key);return options.at(key); };
-    const bool convert = get("--mode") == "convert";
-    require(convert || get("--mode") == "merge", "mode must be convert or merge");
-    const auto legacy = options.find("--legacy-certified-only");
-    require(legacy == options.end() || (convert && (legacy->second == "yes" || legacy->second == "no")),
-            "legacy-certified-only requires convert mode and yes or no");
-    const bool retain_uncertified = legacy == options.end() || legacy->second == "no";
-    require(get("--complete") == "yes" || get("--complete") == "no", "complete must be yes or no");
-    const bool complete = get("--complete") == "yes";
-    const std::string output = get("--output");
-    const std::string summary = get("--summary");
-    require(!std::filesystem::exists(output) && !std::filesystem::exists(summary) &&
-                std::filesystem::absolute(output) != std::filesystem::absolute(summary),
-            "preserve existing/distinct outputs");
-    const auto executable_sha = Compact::FileSha256("/proc/self/exe");
-    const auto input_sha = Compact::FileSha256(get("--input-list"));
-    require(input_sha == get("--expect-input-sha256"), "input manifest checksum mismatch");
-    std::ifstream list(get("--input-list"));
-    std::ostringstream list_text;
-    list_text << list.rdbuf();
-    require(list.good(), "input manifest unreadable");
-    const auto manifest = list_text.str();
-    std::istringstream lines(manifest);
-    std::string line;
-    std::vector<Input> inputs;
-    std::set<std::string> unique;
+    {
+      require(arguments.contains(key), std::string("missing ") + key);
+      return arguments.at(key);
+    };
+    const auto mode = arguments.find("--complete");
+    require(mode == arguments.end() || mode->second == "yes" || mode->second == "no", "complete must be yes or no");
+    const bool complete = mode == arguments.end() || mode->second == "yes";
+    const auto& output = get("--output");
+    require(!std::filesystem::exists(output), "output already exists");
+    const auto list_path = std::filesystem::absolute(get("--input-list"));
+    std::ifstream list(list_path);
+    require(list.is_open(), "input list unreadable");
     Compact::Limits limits;
     std::uint64_t total_nodes = 0;
     std::uint64_t total_corners = 0;
     std::uint64_t total_values = 0;
-    const auto add = [](std::uint64_t& total, std::uint64_t amount, std::uint64_t maximum)
-    { require(total<=maximum && amount<=maximum-total,"declared collection count exceeds limit");total+=amount; };
-    while (std::getline(lines, line))
+    std::uint64_t total_roots = 0;
+    std::vector<Input> inputs;
+    std::set<std::string> unique;
+    std::string line;
+    while (std::getline(list, line))
     {
-      std::istringstream fields(line);
-      std::string path;
-      std::string sha;
-      std::string content;
-      std::string extra;
-      require(static_cast<bool>(std::getline(fields, path, '\t')) && static_cast<bool>(std::getline(fields, sha, '\t')) &&
-                  static_cast<bool>(std::getline(fields, content, '\t')) && !std::getline(fields, extra, '\t'),
-              "three TSV columns required");
-      path = std::filesystem::canonical(path).string();
-      require(unique.insert(path).second && inputs.size() < 1000000, "duplicate source or excessive input count");
-      Input input{path, sha, content, std::filesystem::file_size(path), std::filesystem::last_write_time(path)};
-      require(Compact::FileSha256(path) == sha, "source checksum mismatch: " + path);
+      if (!line.empty() && line.back() == '\r')
+      {
+        line.pop_back();
+      }
+      if (line.empty())
+      {
+        continue;
+      }
+      const std::filesystem::path entry(line);
+      const auto path = std::filesystem::canonical(entry.is_absolute() ? entry : list_path.parent_path() / entry).string();
+      require(unique.insert(path).second && inputs.size() < 1000000, "duplicate input or excessive input count");
+      Input input{path, std::filesystem::file_size(path), std::filesystem::last_write_time(path)};
       auto file = open(path);
-      if (convert)
-      {
-        auto* metadata = file->GetDirectory(MetadataPath.c_str());
-        require(metadata, "source metadata missing");
-        auto* cells = dynamic_cast<TTree*>(file->Get((AdaptivePath + "/Cells").c_str()));
-        auto* points = dynamic_cast<TTree*>(file->Get((AdaptivePath + "/Points").c_str()));
-        require(cells && points && cells->GetEntries() >= 0 && points->GetEntries() >= 0, "missing source arrays");
-        require(static_cast<std::uint64_t>(cells->GetEntries()) <= limits.max_nodes &&
-                    static_cast<std::uint64_t>(points->GetEntries()) <= limits.max_source_points,
-                "training shard exceeds compact source limits");
-        Map::Data source;
-        require(Map::Read(file->GetDirectory(AdaptivePath.c_str()), geometry(*metadata), source, std::cerr, false),
-                "invalid training shard during retention preflight");
-        std::uint64_t retained = 0;
-        std::uint64_t retained_values = 0;
-        std::vector<unsigned char> used(source.points.size(), 0);
-        for (const auto& cell : source.cells)
-        {
-          if (cell.split_axis != -1 ||
-              (cell.leaf_class != static_cast<int>(Compact::LeafClass::Certified) &&
-               !(retain_uncertified && Map::HasUsableCorners(source, cell))))
-          {
-            continue;
-          }
-          ++retained;
-          for (const auto id : cell.corner_id)
-          {
-            if (!used[id])
-            {
-              used[id] = 1;
-              ++retained_values;
-            }
-          }
-        }
-        require(retained <= limits.max_corners, "excessive retained corner count");
-        add(total_nodes, cells->GetEntries(), limits.max_nodes);
-        add(total_corners, retained, limits.max_corners);
-        add(total_values, retained_values, limits.max_values);
-      }
-      else
-      {
-        auto* runtime = file->GetDirectory("GarfieldFullTransport/Runtime");
-        require(runtime, "missing compact arrays");
-        add(total_nodes, count(*runtime, "node_count"), limits.max_nodes);
-        add(total_corners, count(*runtime, "corner_record_count"), limits.max_corners);
-        add(total_values, count(*runtime, "value_count"), limits.max_values);
-      }
+      auto* runtime = file->GetDirectory("GarfieldFullTransport/Runtime");
+      require(runtime, "missing runtime arrays");
+      add(total_nodes, count(*runtime, "node_count"), limits.max_nodes);
+      add(total_corners, count(*runtime, "corner_record_count"), limits.max_corners);
+      add(total_values, count(*runtime, "value_count"), limits.max_values);
+      total_roots = std::max(total_roots, count(*runtime, "root_lookup_count"));
       unchanged(input);
       inputs.push_back(input);
     }
-    require(!inputs.empty(), "empty input manifest");
-    std::uint64_t estimate = 0;
-    require(total_nodes <= limits.max_nodes && total_corners <= limits.max_corners && total_values <= limits.max_values &&
-                Compact::EstimatedBytes(total_nodes, total_corners, total_values, limits.max_roots, estimate) && estimate <= limits.max_bytes,
-            "collection allocation budget exceeded");
+    require(list.eof() && !inputs.empty(), "empty or unreadable input list");
+    std::uint64_t bytes = 0;
+    require(total_roots <= limits.max_roots &&
+                Compact::EstimatedBytes(total_nodes, total_corners, total_values, total_roots, bytes) && bytes <= limits.max_bytes,
+            "collection allocation budget exceeded; merge smaller groups first");
     Compact::Data data;
     data.nodes.reserve(total_nodes);
     data.corners.reserve(total_corners);
@@ -236,119 +126,74 @@ int main(int argc, char** argv)
     Objects saved;
     std::map<std::string, std::string> expected;
     std::array<std::uint64_t, 5> counters{};
+    std::uint64_t shard_count = 0;
     for (const auto& input : inputs)
     {
       unchanged(input);
       auto file = open(input.path);
-      auto* metadata = file->GetDirectory(convert ? MetadataPath.c_str() : "GarfieldFullTransport/SourceMetadata");
-      require(metadata && parameter<int>(*metadata, "schema_version") == 4, "source metadata/version missing");
+      auto* metadata = file->GetDirectory(MetadataPath.c_str());
+      require(metadata && parameter<int>(*metadata, "schema_version") == Compact::SchemaVersion &&
+                  named(*metadata, "schema_name") == Compact::SchemaName,
+              "missing or unsupported LUT metadata");
       const auto common = common_metadata(*metadata, expected.empty() ? &saved : nullptr);
-      require(expected.empty() || expected == common, "physical/numerical metadata mismatch");
+      require(expected.empty() || expected == common, "physical/refinement metadata mismatch");
       Compact::Data part;
-      if (convert)
-      {
-        require(named(*metadata, "schema_name") == "PHG4TpcGarfieldFullTransportLUTShard", "not a training shard");
-        Map::Data source;
-        require(Map::Read(file->GetDirectory(AdaptivePath.c_str()), geometry(*metadata), source, std::cerr, false), "invalid training shard");
-        check_summary(*metadata, source);
-        require(Map::ContentFingerprint(source) == input.content, "source content differs from audited manifest");
-        Compact::SourceBinding binding{input.sha, named(*metadata, "configuration_fingerprint_fnv1a64"), input.content,
-                                       Map::BuildCanonicalPolicy(source), executable_sha};
-        require(Compact::Convert(source, binding, part, limits, std::cerr, false, retain_uncertified), "shard conversion failed");
-      }
-      else
-      {
-        auto* identity = file->GetDirectory(MetadataPath.c_str());
-        require(identity, "compact identity missing");
-        const auto outer_version = parameter<int>(*identity, "schema_version");
-        require((outer_version == Compact::CollectionSchemaVersion || outer_version == Compact::LegacyCollectionSchemaVersion) &&
-                    named(*identity, "schema_name") == Compact::CollectionSchemaName &&
-                    named(*identity, "source_kind") == Compact::CollectionSourceKind,
-                "not a converted shard collection");
-        Compact::ExpectedSource binding{named(*identity, "source_file_sha256"), named(*identity, "source_configuration_fingerprint_fnv1a64"),
-                                        named(*identity, "source_content_fingerprint_fnv1a64")};
-        const auto source_manifest = named(*identity, "source_manifest_tsv");
-        require(Compact::Sha256(source_manifest) == binding.file_sha256 && fingerprint(source_manifest) == binding.content_fingerprint_fnv1a64, "invalid source manifest binding");
-        require(Compact::Read(file->GetDirectory("GarfieldFullTransport/Runtime"), geometry(*metadata), binding, part, limits, std::cerr, false), "invalid compact shard");
-        require(part.schema_version + 1 == outer_version, "outer/runtime compact versions differ");
-        require(Compact::ContentFingerprint(part) == input.content, "compact content differs from manifest");
-      }
-      require(fingerprint(named(*metadata, "canonical_configuration")) == part.source.configuration_fingerprint_fnv1a64, "physical fingerprint mismatch");
+      require(Compact::Read(file->GetDirectory("GarfieldFullTransport/Runtime"), geometry(*metadata), part, limits, std::cerr, false),
+              "invalid LUT shard");
+      require(PHGarfieldForwardMap::Fingerprint(named(*metadata, "canonical_configuration")) == part.configuration_fingerprint_fnv1a64 &&
+                  named(*metadata, "configuration_fingerprint_fnv1a64") == part.configuration_fingerprint_fnv1a64,
+              "physical configuration fingerprint mismatch");
+      require(count(*metadata, "generation_root_first") == part.first_root && count(*metadata, "generation_root_end") == part.end_root &&
+                  parameter<double>(*metadata, "maximum_drift_time_ns") == part.maximum_drift_time_ns &&
+                  parameter<double>(*metadata, "interpolation_tolerance_um") == part.guard_um,
+              "metadata/runtime range, duration or guard mismatch");
       if (expected.empty())
       {
         expected = common;
-        data.geometry = part.geometry;
-        data.schema_version = part.schema_version;
-        data.source = part.source;
-        data.source.file_sha256 = input_sha;
-        data.source.content_fingerprint_fnv1a64 = fingerprint(manifest);
-        data.source.converter_sha256 = executable_sha;
-        data.first_root = data.end_root = part.first_root;
-        data.max_depth = part.max_depth;
-        data.max_nodes_per_root = part.max_nodes_per_root;
-        data.max_queries_per_root = part.max_queries_per_root;
-        data.guard_um = part.guard_um;
-        data.root_lookup.assign(Map::RootCount(data.geometry), Compact::Invalid);
       }
-      append_compact(data, part);
-      for (unsigned int i = 0; i < counters.size(); ++i)
+      require(Compact::Append(data, part, limits, std::cerr), "incompatible, overlapping, missing or out-of-order root range");
+      for (std::size_t index = 0; index < counters.size(); ++index)
       {
-        counters[i] += count(*metadata, GenerationCounters[i]);
+        add(counters[index], count(*metadata, GenerationCounters[index]), std::numeric_limits<Long64_t>::max());
       }
+      add(shard_count, count(*metadata, "generation_shards"), std::numeric_limits<Long64_t>::max());
       unchanged(input);
     }
-    require(data.nodes.size() == total_nodes && data.corners.size() == total_corners && data.values.size() <= total_values, "preflight/actual array counts differ");
-    data.proof.sha256 = Compact::Sha256(Compact::ProofCanonical(data));
-    require(Compact::Validate(data, limits, std::cerr, complete), "invalid collection or incomplete requested root coverage");
-    const auto content = Compact::ContentFingerprint(data);
-    const auto proof = data.proof;
-    const auto nodes = data.nodes.size();
-    const auto corners = data.corners.size();
-    const auto values = data.values.size();
+    require(data.nodes.size() == total_nodes && data.corners.size() == total_corners && data.values.size() == total_values,
+            "preflight/actual array counts differ");
+    require(Compact::Validate(data, limits, std::cerr, complete), "invalid collection or incomplete requested coverage");
     const auto first = data.first_root;
     const auto end = data.end_root;
-    const auto binding = data.source;
-    const auto temp = output + ".partial." + std::to_string(getpid());
-    PHGarfieldMapTools::write_compact_output(temp, data, limits, std::cerr, [&](TDirectory&)
-                                             {
-      for (const auto& [key, object] : saved)
+    const auto temporary = output + ".partial." + std::to_string(getpid());
+    write_compact_output(temporary, data, limits, std::cerr, [&](TDirectory&)
+                         {
+      for (const auto& [name, object] : saved)
       {
-        (void) key;
+        (void) name;
         require(object->Write() > 0, "common metadata write failed");
       }
-      TNamed("schema_name", Compact::CollectionSourceName).Write();
-      TParameter<int>("generation_phi_chunk_index", 0).Write();
-      TParameter<int>("generation_phi_chunk_count", 1).Write();
       TParameter<Long64_t>("generation_root_first", first).Write();
       TParameter<Long64_t>("generation_root_end", end).Write();
+      TParameter<Long64_t>("generation_shards", shard_count).Write();
       TParameter<double>("maximum_drift_time_ns", data.maximum_drift_time_ns).Write();
       TNamed("reach_probe_trajectories", std::to_string(counters[0]).c_str()).Write();
-      for (unsigned int i = 0; i < counters.size(); ++i)
+      for (std::size_t index = 0; index < counters.size(); ++index)
       {
-        TParameter<Long64_t>(GenerationCounters[i], counters[i]).Write();
-      } }, &manifest);
-    PHGarfieldMapTools::readback_compact_output(temp, data, limits, std::cerr, complete);
-    require(Compact::FileSha256(get("--input-list")) == input_sha, "input manifest changed");
+        TParameter<Long64_t>(GenerationCounters[index], counters[index]).Write();
+      } });
+    readback_compact_output(temporary, data, limits, std::cerr, complete);
     for (const auto& input : inputs)
     {
       unchanged(input);
     }
-    const auto output_sha = Compact::FileSha256(temp);
-    PHGarfieldMapTools::publish_exclusive(temp, output);
-    std::ostringstream json;
-    json << "{\"status\":\"PASS_EXACT_COMPACT_COLLECTION\",\"complete\":" << (complete ? "true" : "false")
-         << ",\"root\":{\"path\":" << quote(std::filesystem::canonical(output)) << ",\"sha256\":" << quote(output_sha) << "}"
-         << ",\"source_sha256\":" << quote(binding.file_sha256) << ",\"source_configuration\":" << quote(binding.configuration_fingerprint_fnv1a64)
-         << ",\"source_content\":" << quote(binding.content_fingerprint_fnv1a64) << ",\"content_fingerprint\":" << quote(content)
-         << ",\"first_root\":" << first << ",\"end_root\":" << end << ",\"source_points\":" << proof.source_points << ",\"nodes\":" << nodes
-         << ",\"corners\":" << corners << ",\"values\":" << values << ",\"source_files\":" << inputs.size() << "}\n";
-    PHGarfieldMapTools::write_exclusive(summary, json.str());
-    std::cout << json.str();
+    publish_exclusive(temporary, output);
+    std::cout << "Wrote adaptive LUT " << output << " roots=[" << first << ',' << end << ") from " << inputs.size()
+              << " inputs; nodes=" << data.nodes.size() << " corners=" << data.corners.size() << " values=" << data.values.size() << '\n';
     return 0;
   }
   catch (const std::exception& error)
   {
-    std::cerr << "FAIL: " << error.what() << '\n';
+    std::cerr << "LUT merge failed: " << error.what() << '\n';
     return 1;
   }
 }
