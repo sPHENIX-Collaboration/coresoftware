@@ -335,7 +335,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
 
   for (int bit : triggerIndices)
   {
-    if (trigAna->didTriggerFire(bit))
+    if (trigdecoded && trigAna->didTriggerFire(bit))
     {
       scaledActiveBits.push_back(bit);
     }
