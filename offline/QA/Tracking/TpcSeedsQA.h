@@ -23,6 +23,7 @@ class SvtxTrack;
 class SvtxTrackMap;
 class TH1;
 class TH2;
+class TH3;
 class TrkrClusterContainer;
 class TProfile;
 class TProfile2D;
@@ -61,6 +62,8 @@ class TpcSeedsQA : public SubsysReco
  private:
   static std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
   void createHistos();
+  void createTpcOnlyHistos();
+  void fillTpcOnlyHistos(SvtxTrack* track, int ntpc, unsigned int sideMask, double rdca);
   std::string getHistoPrefix() const;
   std::set<int> m_layers;
   std::multimap<int, int> m_layerRegionMap;
@@ -80,6 +83,14 @@ class TpcSeedsQA : public SubsysReco
   PHG4TpcGeomContainer* g4geom{nullptr};
   SvtxTrackMap* trackmap{nullptr};
   SvtxVertexMap* vertexmap{nullptr};
+
+  // Additional QA uses only TPC seeds. Categories: S+, S-, N+, N-.
+  TH3* h_rdca_phi_pt[4]{nullptr};
+  TH3* h_rdca_eta_pt[4]{nullptr};
+  TH3* h_pt_phi_eta[4]{nullptr};
+  TH2* h_rdca_qoverpt[2]{nullptr};
+  TH1* h_tpc_crossing{nullptr};
+  TH1* h_tpc_only_status{nullptr};
 
   TH1* h_ntrack1d{nullptr};
   TH1* h_ntrack1d_pos{nullptr};

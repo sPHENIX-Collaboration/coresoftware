@@ -34,6 +34,7 @@
 
 #include <TH1.h>
 #include <TH2.h>
+#include <TH3.h>
 #include <TNtuple.h>
 #include <TProfile.h>
 #include <TProfile2D.h>
@@ -55,6 +56,7 @@ TpcSeedsQA::TpcSeedsQA(const std::string &name)
 int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
 {
   createHistos();
+  createTpcOnlyHistos();
 
   clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   actsgeom = findNode::getClass<ActsGeometry>(topNode, m_actsGeomName);
@@ -475,6 +477,7 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
 
     //    int nmaps = 0;
     //    int nintt = 0;
+    unsigned int tpcSideMask = 0;
     int ntpc = 0;
     int ntpc_phisize1 = 0;
     int nmms = 0;
@@ -483,6 +486,7 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
     {
       if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
       {
+        tpcSideMask |= 1U << TpcDefs::getSide(ckey);
         TrkrCluster *cluster = clustermap->findCluster(ckey);
         if (cluster->getPhiSize() == 1)
         {
@@ -510,6 +514,7 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
 
     Acts::Vector3 zero = Acts::Vector3::Zero();
     auto dcapair_origin = TrackAnalysisUtils::get_dca(track, zero);
+    fillTpcOnlyHistos(track, ntpc, tpcSideMask, dcapair_origin.first.first);
 
     auto *trackvtx = vertexmap->get(track->get_vertex_id());
     if (!trackvtx)
@@ -1309,4 +1314,117 @@ std::pair<float, float> TpcSeedsQA::cal_tpc_eta_min_max(float vtxz)
 float TpcSeedsQA::eta_to_theta(float eta)
 {
   return 2 * std::atan(std::exp(-eta));
+}
+
+//____________________________________________________________________________..
+void TpcSeedsQA::createTpcOnlyHistos()
+{
+  auto *hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+  const std::string prefix = getHistoPrefix() + "tpc_only_";
+  const double pi = std::acos(-1.);
+  const double ptBins[] = {0., .2, .3, .4, .5, .7, 1., 1.5, 2., 3., 4., 6., 8., 12., 20.};
+  const int nPt = sizeof(ptBins) / sizeof(ptBins[0]) - 1;
+  std::array<double, 73> phiBins{};
+  std::array<double, 49> etaBins{};
+  std::array<double, 101> dcaBins{};
+  for (unsigned int i = 0; i < phiBins.size(); ++i)
+  {
+    phiBins[i] = -pi + 2. * pi * i / 72.;
+  }
+  for (unsigned int i = 0; i < etaBins.size(); ++i)
+  {
+    etaBins[i] = -1.2 + 2.4 * i / 48.;
+  }
+  for (unsigned int i = 0; i < dcaBins.size(); ++i)
+  {
+    dcaBins[i] = -10. + 20. * i / 100.;
+  }
+
+  const char *categories[] = {"south_pos", "south_neg", "north_pos", "north_neg"};
+  for (unsigned int i = 0; i < 4; ++i)
+  {
+    const std::string p = prefix + categories[i] + "_";
+    h_rdca_phi_pt[i] = new TH3F((p + "rdca_phi_pt").c_str(),
+                                "TPC-only, N_{TPC}>=31, p_{T}>0.2, all assigned crossings;#phi [rad];p_{T} [GeV/c];DCA_{xy} to origin [cm]",
+                                72, phiBins.data(), nPt, ptBins, 100, dcaBins.data());
+    h_rdca_eta_pt[i] = new TH3F((p + "rdca_eta_pt").c_str(),
+                                "TPC-only, N_{TPC}>=31, p_{T}>0.2, all assigned crossings;#eta;p_{T} [GeV/c];DCA_{xy} to origin [cm]",
+                                48, etaBins.data(), nPt, ptBins, 100, dcaBins.data());
+    h_pt_phi_eta[i] = new TH3F((p + "pt_phi_eta").c_str(),
+                               "TPC-only, N_{TPC}>=31, p_{T}>0.2, all assigned crossings;#phi [rad];#eta;p_{T} [GeV/c]",
+                               72, phiBins.data(), 48, etaBins.data(), nPt, ptBins);
+    for (auto *h : {h_rdca_phi_pt[i], h_rdca_eta_pt[i], h_pt_phi_eta[i]})
+    {
+      h->SetDirectory(nullptr);
+      hm->registerHisto(h);
+    }
+  }
+  for (unsigned int side = 0; side < 2; ++side)
+  {
+    const std::string name = prefix + (side == 0 ? "south" : "north") + "_rdca_qoverpt";
+    h_rdca_qoverpt[side] = new TH2F(name.c_str(),
+                                    "TPC-only, N_{TPC}>=31, p_{T}>0.2, all assigned crossings;q/p_{T} [c/GeV];DCA_{xy} to origin [cm]",
+                                    100, -5., 5., 100, -10., 10.);
+    h_rdca_qoverpt[side]->SetDirectory(nullptr);
+    hm->registerHisto(h_rdca_qoverpt[side]);
+  }
+  h_tpc_crossing = new TH1D((prefix + "crossing").c_str(),
+                            "All TPC-only tracks before kinematic/side cuts;assigned crossing;tracks", 801, -400.5, 400.5);
+  h_tpc_only_status = new TH1D((prefix + "status").c_str(), "Additional TPC-only QA;selection;tracks", 6, -.5, 5.5);
+  const char *labels[] = {"TPC-only input", "selected", "mixed-side", "no TPC side", "undefined crossing", "invalid kinematics"};
+  for (int i = 0; i < 6; ++i)
+  {
+    h_tpc_only_status->GetXaxis()->SetBinLabel(i + 1, labels[i]);
+  }
+  for (auto *h : {h_tpc_crossing, h_tpc_only_status})
+  {
+    h->SetDirectory(nullptr);
+    hm->registerHisto(h);
+  }
+}
+
+//____________________________________________________________________________..
+void TpcSeedsQA::fillTpcOnlyHistos(SvtxTrack *track, int ntpc, unsigned int sideMask, double rdca)
+{
+  // This class is also used with combined track maps. New plots must remain TPC-only.
+  if (!track || !track->get_tpc_seed() || track->get_silicon_seed())
+  {
+    return;
+  }
+  h_tpc_only_status->Fill(0);
+  const short crossing = track->get_crossing();
+  if (crossing == std::numeric_limits<short>::max())
+  {
+    h_tpc_only_status->Fill(4);
+    return;
+  }
+  h_tpc_crossing->Fill(crossing);
+  if (sideMask != 1 && sideMask != 2)
+  {
+    h_tpc_only_status->Fill(sideMask == 3 ? 2 : 3);
+    return;
+  }
+  const double pt = track->get_pt();
+  const double phi = track->get_phi();
+  const double eta = track->get_eta();
+  const int charge = track->get_charge();
+  if (!std::isfinite(pt) || !std::isfinite(phi) || !std::isfinite(eta) || !std::isfinite(rdca) ||
+      (charge != 1 && charge != -1))
+  {
+    h_tpc_only_status->Fill(5);
+    return;
+  }
+  // No PCA-z or DCA cut: converted TPC seeds retain crossing-dependent z offsets.
+  if (ntpc < 31 || pt <= .2)
+  {
+    return;
+  }
+  const unsigned int side = sideMask == 1 ? 0 : 1;
+  const unsigned int category = 2 * side + (charge < 0 ? 1 : 0);
+  h_tpc_only_status->Fill(1);
+  h_rdca_phi_pt[category]->Fill(phi, pt, rdca);
+  h_rdca_eta_pt[category]->Fill(eta, pt, rdca);
+  h_pt_phi_eta[category]->Fill(phi, eta, pt);
+  h_rdca_qoverpt[side]->Fill(charge / pt, rdca);
 }
