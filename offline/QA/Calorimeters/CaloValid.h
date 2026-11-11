@@ -64,7 +64,7 @@ class CaloValid : public SubsysReco
   bool m_trigdecided{false};
   int m_mbbit{14};
   int m_mbbit_or{-1};
-  std::array<std::string, 2> m_trigname{};
+  std::array<int, 2> m_trigbit{-1, -1};
   std::array<TH1*, 3> h_mb_tower_e{};
   std::array<TH1*, 3> h_mb_tower_esum{};
   std::array<TH1*, 3> h_mb_tower_occ{};

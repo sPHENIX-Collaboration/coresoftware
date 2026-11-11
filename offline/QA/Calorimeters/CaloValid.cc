@@ -147,6 +147,7 @@ int CaloValid::InitRun(PHCompositeNode* topNode)
     }
     else
     {
+      m_species = "pp";
       if (Verbosity() > 0)
       {
         std::cout << "Run number is out of range. Check RunnumberRange.h .Using pp as default. \n";
@@ -316,9 +317,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   }
 
   //--------------------------- trigger and GL1-------------------------------//
+  bool trigdecoded = false;
   if (trigAna)
   {
-    trigAna->decodeTriggers(topNode);
+    trigdecoded = (trigAna->decodeTriggers(topNode) == 0);
   }
   else
   {
@@ -375,7 +377,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     // triggervec = gl1PacketInfo->getScaledVector(); commented out to get rid of never used warning using clang -tidy
   }
 
-  if (gl1PacketInfo && trigAna)
+  if (gl1PacketInfo && trigdecoded)
   {
     process_mb(topNode, vtx_z);
   }
@@ -989,19 +991,25 @@ void CaloValid::process_mb(PHCompositeNode* topNode, float vtx_z)
       m_mbbit = 10;
     }
     m_mbbit_or = (trigAna->getTriggerPrescale(m_mbbit) > 1000 && trigAna->getTriggerPrescale(12) >= 0) ? 12 : -1;
-    if (m_species == "pp")
+    // photon and jet triggers (p+p only): used only if the run has a trigger of that name
+    const std::array<std::string, 2> trigname{"Photon 4 GeV + MBD NS >= 1", "Jet 10 GeV + MBD NS >= 1"};
+    m_trigbit = {-1, -1};
+    for (int t = 0; m_species == "pp" && t < 2; t++)
     {
-      m_trigname = {"Photon 4 GeV + MBD NS >= 1", "Jet 10 GeV + MBD NS >= 1"};
-    }
-    else
-    {
-      m_trigname = {"", ""};
+      for (int b = 0; b < 64; b++)
+      {
+        if (trigAna->getTriggerName(b) == trigname[t])
+        {
+          m_trigbit[t] = b;
+          break;
+        }
+      }
     }
     m_trigdecided = true;
   }
   const bool isMB = trigAna->didTriggerFire(m_mbbit) || (m_mbbit_or >= 0 && trigAna->didTriggerFire(m_mbbit_or));
-  const std::array<bool, 3> fired{isMB, !m_trigname[0].empty() && trigAna->didTriggerFire(m_trigname[0]),
-                                  !m_trigname[1].empty() && trigAna->didTriggerFire(m_trigname[1])};
+  const std::array<bool, 3> fired{isMB, m_trigbit[0] >= 0 && trigAna->didTriggerFire(m_trigbit[0]),
+                                  m_trigbit[1] >= 0 && trigAna->didTriggerFire(m_trigbit[1])};
 
   RawClusterContainer* clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_CEMC");
   if (clusters && (fired[0] || fired[1] || fired[2]))

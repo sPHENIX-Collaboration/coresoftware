@@ -37,6 +37,7 @@
 #include <phool/RunnumberRange.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+#include <phool/recoConsts.h>
 
 #include <TH1.h>
 #include <TH2.h>
@@ -112,13 +113,21 @@ int GlobalQA::InitRun(PHCompositeNode *topNode)
     m_mbbooked = true;
   }
   m_trigdecided = false;
-  if (!m_zdccalib)
+  // ZDC compartment calibration of this run, only when the CDB is set up
+  recoConsts *rc = recoConsts::instance();
+  if (rc->FlagExist("CDB_GLOBALTAG") && rc->FlagExist("TIMESTAMP"))
   {
     const std::string url = CDBInterface::instance()->getUrl("data_driven_zdc_calib");
-    if (!url.empty())
+    if (url != m_zdccalib_url)
     {
-      m_zdccalib = new CDBTTree(url);
-      m_zdccalib->LoadCalibrations();
+      delete m_zdccalib;
+      m_zdccalib = nullptr;
+      m_zdccalib_url = url;
+      if (!url.empty())
+      {
+        m_zdccalib = new CDBTTree(url);
+        m_zdccalib->LoadCalibrations();
+      }
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -192,9 +201,8 @@ int GlobalQA::process_event(PHCompositeNode *topNode)
     process_mbd(topNode);
   }
 
-  if (gl1PacketInfo && m_trigana)
+  if (gl1PacketInfo && m_trigana && m_trigana->decodeTriggers(topNode) == 0)
   {
-    m_trigana->decodeTriggers(topNode);
     if (!m_trigdecided)
     {
       decideTriggers();

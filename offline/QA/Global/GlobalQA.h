@@ -122,6 +122,7 @@ class GlobalQA : public SubsysReco
 
   TriggerAnalyzer *m_trigana{nullptr};
   CDBTTree *m_zdccalib{nullptr};
+  std::string m_zdccalib_url;
   std::string m_species{"pp"};
   int m_runnumber{0};
   bool m_mbbooked{false};
