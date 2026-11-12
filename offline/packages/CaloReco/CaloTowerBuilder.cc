@@ -141,6 +141,9 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);  // default the EPD to fast processing
     }
 
+    // the empty channel in packet 9001 depends on the run period (see skipChannel)
+    m_runnumber = recoConsts::instance()->get_IntFlag("RUNNUMBER");
+
     m_calibName = "SEPD_CHANNELMAP2";
     m_fieldname = "epd_channel_map2";
 
@@ -505,7 +508,8 @@ bool CaloTowerBuilder::skipChannel(int ich, int pid)
   {
     int sector = ((ich + 1) / 32);
     int emptych = -999;
-    if ((sector == 0) && (pid == 9001))
+    // Run 24 cabling: ch 1 of packet 9001 is the empty one; Run 25 on: ch 14 as everywhere else
+    if ((sector == 0) && (pid == 9001) && (m_runnumber < m_sepd_first_run25))
     {
       emptych = 1;
     }
