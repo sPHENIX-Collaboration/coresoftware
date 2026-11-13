@@ -13,9 +13,11 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <utility>
 
-FilterDatasets::FilterDatasets(Bool_t debug)
+FilterDatasets::FilterDatasets(Bool_t debug, std::string calofittingPrefix)
   : m_debug(debug)
+  , m_calofittingPrefix(std::move(calofittingPrefix))
 {
 }
 
@@ -74,6 +76,13 @@ void FilterDatasets::analyze(const std::string &input, const std::string &output
     std::cout << "Run: " << run << ", Dataset: " << dataset << ", Group: " << dsttype_group << ", Processing: "
               << m_ctr["ctr_run"] << ", " << m_ctr["ctr_run"] * 100. / static_cast<Double_t>(m_runInfo.size()) << " %" << std::endl;
 
+    if (dsttype_group != "HIST_JETQA" && dsttype_group != m_calofittingPrefix)
+    {
+      std::cout << "WARNING: Group '" << dsttype_group << "' matches neither HIST_JETQA nor " << m_calofittingPrefix << ", skipping run: " << run << std::endl;
+      ++m_ctr["skipped_unknown_group"];
+      continue;
+    }
+
     Bool_t keep = false;
 
     for (const auto &cdbName : m_cdbName)
@@ -85,7 +94,7 @@ void FilterDatasets::analyze(const std::string &input, const std::string &output
           continue;
         }
       }
-      else if (dsttype_group == "HIST_CALOFITTINGQA")
+      else if (dsttype_group == m_calofittingPrefix)
       {
         if (cdbName.find("BadTowerMap") != std::string::npos ||
             cdbName.find("meanTime") != std::string::npos ||
@@ -147,6 +156,10 @@ void FilterDatasets::analyze(const std::string &input, const std::string &output
   std::cout << "===============================" << std::endl;
   std::cout << "Stats" << std::endl;
   std::cout << "Total Runs: " << m_runInfo.size() << std::endl;
+  if (m_ctr["skipped_unknown_group"])
+  {
+    std::cout << "Skipped Runs (unknown group): " << m_ctr["skipped_unknown_group"] << std::endl;
+  }
   for (const auto &[name, value] : m_ctr)
   {
     if (name.starts_with("cdb"))
@@ -166,6 +179,7 @@ void FilterDatasets::process(const std::string &input, const std::string &output
   std::cout << "input: " << input << std::endl;
   std::cout << "output: " << output << std::endl;
   std::cout << "Debug: " << ((m_debug) ? "True" : "False") << std::endl;
+  std::cout << "Calofitting prefix: " << m_calofittingPrefix << std::endl;
   std::cout << "#############################" << std::endl;
 
   std::filesystem::path input_filepath_obj(input);
