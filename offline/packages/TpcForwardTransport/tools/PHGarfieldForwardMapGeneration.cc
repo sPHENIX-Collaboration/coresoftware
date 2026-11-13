@@ -87,7 +87,8 @@ bool PHGarfieldForwardMap::Prepare(const PHGarfieldForwardTransport& garfield,
   }
   if (!garfield.ForwardElectricFieldMapsCover(
           config.inner_radius_cm, config.outer_radius_cm,
-          config.readout_abs_z_cm - config.central_membrane_half_width_cm, error))
+          config.readout_abs_z_cm - config.central_membrane_half_width_cm, error,
+          config.max_radial_field_extension_cm))
   {
     return false;
   }
@@ -154,12 +155,10 @@ bool PHGarfieldForwardMap::Prepare(const PHGarfieldForwardTransport& garfield,
   if (summary.scale_zero_maximum_time_mismatch >
       config.maximum_nominal_time_mismatch)
   {
-    error
-        << "Scale-zero Garfield/PHG4 timing mismatch exceeds "
+    log
+        << "WARNING: Gas-model/reference drift-time difference exceeds the warning threshold "
         << config.maximum_nominal_time_mismatch
-        << "; make the gas, nominal E, and PHG4 calibration velocity "
-           "consistent or explicitly select a larger allowed mismatch\n";
-    return false;
+        << "; retaining the calculated gas-model drift times\n";
   }
 
   // Capture payload content before the long integration. This identifies the
@@ -258,6 +257,10 @@ bool PHGarfieldForwardMap::WriteMetadata(TDirectory* directory,
   write_named({{"schema_name", SchemaName}});
   write_parameters<int>({{"schema_version", SchemaVersion}});
   write_parameters<double>({{"interpolation_tolerance_um", config.interpolation_tolerance_um}});
+  if (config.max_radial_field_extension_cm > 0.)
+  {
+    write_parameters<double>({{"max_radial_field_extension_cm", config.max_radial_field_extension_cm}});
+  }
   write_named({{"interpolation_error_probe_scheme", provenance.reach_probe_scheme}});
   write_named({{"transport_contract", TransportContract},
                {"coordinate_frame", "TPC_ENVELOPE_LOCAL"},

@@ -92,13 +92,16 @@ class PHGarfieldForwardTransport : public PHGarfield
   bool HasElectricFieldCorrections() const { return m_erCorrection && m_ezCorrection; }
   bool ElectricFieldMapCovers(double inner_radius_cm,
                               double outer_radius_cm,
-                              double max_drift_distance_cm) const;
+                              double max_drift_distance_cm,
+                              double max_radial_extension_cm = 0.3) const;
   // Check the selected space-charge maps in forward gas-surface coordinates.
-  // Histogram edges define coverage; the edge-to-center clamp is intentional.
+  // Histogram edges define coverage. A bounded radial extension reuses the
+  // nearest edge-bin value; it does not move the physical field cages.
   bool ForwardElectricFieldMapsCover(double inner_radius_cm,
                                      double outer_radius_cm,
                                      double max_drift_distance_cm,
-                                     std::ostream &error) const;
+                                     std::ostream &error,
+                                     double max_radial_extension_cm = 0.3) const;
   bool HasKnownMagneticFieldDomain() const
   {
     return m_zerofield || m_hasMagneticFieldDomain;

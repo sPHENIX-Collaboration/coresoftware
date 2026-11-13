@@ -42,6 +42,7 @@ namespace
     double nominal_electric_field_vcm{400.0};
     bool zero_magnetic_field{false};
     bool help_requested{false};
+    bool check_inputs{false};
     int verbosity{0};
   };
 
@@ -77,10 +78,11 @@ namespace
         {"--longitudinal-nodes", &o.map.longitudinal_nodes, "N", "Physical z nodes per side (default 28)"},
         {"--inner-radius-cm", &o.map.inner_radius_cm, "VALUE", "Gas inner radius (default 21.6)"},
         {"--outer-radius-cm", &o.map.outer_radius_cm, "VALUE", "Gas outer radius (default 76.4)"},
+        {"--radial-field-extension-cm", &o.map.max_radial_field_extension_cm, "VALUE", "Maximum nearest-edge radial field extension (default 0.3; 0 is strict)"},
         {"--cm-half-width-cm", &o.map.central_membrane_half_width_cm, "VALUE", "Central-membrane half-width (default 0.28)"},
         {"--readout-abs-z-cm", &o.map.readout_abs_z_cm, "VALUE", "Readout plane |z| (default 102.605)"},
         {"--phg4-drift-velocity", &o.map.nominal_phg4_drift_velocity_cm_per_ns, "VALUE", "PHG4 calibration velocity in cm/ns (default 0.00755)"},
-        {"--max-nominal-time-mismatch", &o.map.maximum_nominal_time_mismatch, "F", "Allowed scale-zero Garfield/PHG4 fractional timing mismatch (default 0.02)"},
+        {"--max-nominal-time-mismatch", &o.map.maximum_nominal_time_mismatch, "F", "Reference drift-time warning threshold (fraction; default 0.02)"},
         {"--tpc-place-x-cm", &o.map.tpc_place_x_cm, "VALUE", "TPC global x placement (default 0)"},
         {"--tpc-place-y-cm", &o.map.tpc_place_y_cm, "VALUE", "TPC global y placement (default 0)"},
         {"--tpc-place-z-cm", &o.map.tpc_place_z_cm, "VALUE", "TPC global z placement (default 0)"},
@@ -102,6 +104,7 @@ namespace
         {"--label", &o.map.configuration_label, "TEXT", "Human-readable configuration label"},
         {"--force", &o.map.overwrite, "", "Overwrite an existing output file"},
         {"--verbosity", &o.verbosity, "N", "PHGarfield verbosity"},
+        {"--check-inputs", &o.check_inputs, "", "Validate inputs and timing without generating a LUT"},
         {"--help", &o.help_requested, "", "Show this message (also -h)"}};
   }
 
@@ -421,6 +424,12 @@ try
     }
   }
   PHGarfieldAdaptiveMap::BuildSummary summary;
+  if (options.check_inputs)
+  {
+    PHGarfieldForwardMap::Provenance provenance;
+    PHGarfieldForwardMap::Summary preparation;
+    return PHGarfieldForwardMap::Prepare(*garfield, options.map, provenance, preparation, std::cout, std::cerr) ? 0 : 1;
+  }
   return PHGarfieldAdaptiveMap::Generate(*garfield, options.map, options.adaptive_policy,
                                          options.adaptive_first, options.adaptive_end, summary, std::cout, std::cerr)
              ? 0

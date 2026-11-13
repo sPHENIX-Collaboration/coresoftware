@@ -22,6 +22,8 @@ files can still be used with their matching historical software.
 
 `Metadata` records units, coordinate conventions, integration step, gas/fields,
 geometry, a canonical physical configuration and its FNV-1a fingerprint. Each
+nonzero `max_radial_field_extension_cm` is recorded and fingerprinted; its absence
+in earlier schema-9 files means strict radial coverage. Each
 shard also records its root interval and execution counters. Merging sums query,
 reuse and leaf counters, takes the maximum drift duration and preserves common
 physical/refinement metadata. It does not claim to have generated a new set of

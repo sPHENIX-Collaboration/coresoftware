@@ -24,15 +24,24 @@ struct PHGarfieldForwardFieldTest
       return false;
     }
     std::ostringstream error;
-    const auto accepts = [&](double inner, double outer, double distance)
+    const auto accepts = [&](double inner, double outer, double distance, double extension = 0.)
     {
       error.str("");
-      return field.ForwardElectricFieldMapsCover(inner, outer, distance, error);
+      return field.ForwardElectricFieldMapsCover(inner, outer, distance, error, extension);
     };
     // The map ends at gas-surface z=30, matching readout 30.28 and CM hw=.28.
     if (!accepts(40., 60., 30.28 - .28) || !error.str().empty() ||
         accepts(40., 60., 30.28) || error.str().empty() ||
         accepts(39.9, 60., 30.) || accepts(40., 60.1, 30.))
+    {
+      return false;
+    }
+    // The allowance changes field coverage only, never the gas boundaries.
+    // Both radial gaps must fit, and longitudinal gaps remain forbidden.
+    if (!accepts(39.7, 60.3, 30., .3) ||
+        error.str().find("nearest radial edge-bin") == std::string::npos ||
+        accepts(39.69, 60., 30., .3) || accepts(40., 60.31, 30., .3) ||
+        accepts(39.8, 60.2, 30.1, .3) || accepts(40., 60., 30., -1.))
     {
       return false;
     }

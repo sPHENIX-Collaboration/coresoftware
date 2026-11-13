@@ -2,6 +2,7 @@
 
 #include <TMemFile.h>
 #include <TNamed.h>
+#include <TParameter.h>
 
 #include <cmath>
 #include <iostream>
@@ -74,6 +75,10 @@ int main()
        { config.outer_radius_cm = config.inner_radius_cm; }},
       {"a nonfinite outer radius", [](auto& config)
        { config.outer_radius_cm = std::numeric_limits<double>::infinity(); }},
+      {"a negative radial field extension", [](auto& config)
+       { config.max_radial_field_extension_cm = -1.; }},
+      {"a nonfinite radial field extension", [](auto& config)
+       { config.max_radial_field_extension_cm = std::numeric_limits<double>::quiet_NaN(); }},
       {"a zero central-membrane half-width", [](auto& config)
        { config.central_membrane_half_width_cm = 0.0; }},
       {"a nonfinite central-membrane half-width", [](auto& config)
@@ -231,6 +236,17 @@ int main()
     return PHGarfieldForwardMap::BuildCanonicalConfiguration(valid_config, provenance);
   };
   const auto reference = canonical(extended);
+  auto strict_config = valid_config;
+  strict_config.max_radial_field_extension_cm = 0.;
+  const auto strict_canonical = PHGarfieldForwardMap::BuildCanonicalConfiguration(strict_config, extended);
+  if (valid_config.max_radial_field_extension_cm != .3 ||
+      reference == strict_canonical ||
+      reference.find("max_radial_field_extension_cm=") == std::string::npos ||
+      strict_canonical.find("max_radial_field_extension_cm=") != std::string::npos)
+  {
+    std::cerr << "Radial field extension is not bound to configuration identity\n";
+    return 1;
+  }
   if (reference.find(PHGarfieldForwardMap::SpaceChargeZCoordinatePolicy) == std::string::npos ||
       canonical(first_provenance).find("space_charge_z_coordinate_policy") != std::string::npos)
   {
@@ -277,7 +293,9 @@ int main()
     return 1;
   }
   const auto* policy = dynamic_cast<const TNamed*>(metadata->Get("space_charge_z_coordinate_policy"));
-  if (!policy || std::string(policy->GetTitle()) != PHGarfieldForwardMap::SpaceChargeZCoordinatePolicy)
+  const auto* extension = dynamic_cast<const TParameter<double>*>(metadata->Get("max_radial_field_extension_cm"));
+  if (!policy || std::string(policy->GetTitle()) != PHGarfieldForwardMap::SpaceChargeZCoordinatePolicy ||
+      !extension || extension->GetVal() != .3)
   {
     std::cerr << "2D coordinate metadata is missing\n";
     return 1;

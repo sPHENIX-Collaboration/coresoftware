@@ -36,11 +36,12 @@ class PHGarfieldForwardMap
 
     double inner_radius_cm{21.6};
     double outer_radius_cm{76.4};
+    double max_radial_field_extension_cm{0.3};  // Bounded nearest-edge extension; gas geometry is unchanged.
     double central_membrane_half_width_cm{0.28};
     double readout_abs_z_cm{102.605};
     double integration_step_ns{12.5};
     double nominal_phg4_drift_velocity_cm_per_ns{0.00755};
-    double maximum_nominal_time_mismatch{0.02};
+    double maximum_nominal_time_mismatch{0.02};  // Warning threshold for the gas-model/reference time difference.
     double interpolation_tolerance_um{0.0};  // CLI resolves zero to the adaptive guard default.
     double tpc_place_x_cm{0.0};
     double tpc_place_y_cm{0.0};

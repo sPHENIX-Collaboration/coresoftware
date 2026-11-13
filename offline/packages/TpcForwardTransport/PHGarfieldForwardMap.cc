@@ -176,6 +176,9 @@ bool PHGarfieldForwardMap::ValidateConfig(
   require(std::isfinite(config.outer_radius_cm) &&
               config.outer_radius_cm > config.inner_radius_cm,
           "Outer radius must exceed the inner radius");
+  require(std::isfinite(config.max_radial_field_extension_cm) &&
+              config.max_radial_field_extension_cm >= 0.,
+          "Maximum radial field extension must be finite and nonnegative");
   require(std::isfinite(config.central_membrane_half_width_cm) &&
               config.central_membrane_half_width_cm > 0.0,
           "Central-membrane half-width must be finite and positive");
@@ -193,7 +196,7 @@ bool PHGarfieldForwardMap::ValidateConfig(
   require(
       std::isfinite(config.maximum_nominal_time_mismatch) &&
           config.maximum_nominal_time_mismatch >= 0.0,
-      "Maximum nominal-time mismatch must be finite and nonnegative");
+      "Reference drift-time warning threshold must be finite and nonnegative");
   require(std::isfinite(config.tpc_place_x_cm) &&
               std::isfinite(config.tpc_place_y_cm) &&
               std::isfinite(config.tpc_place_z_cm) &&
@@ -301,6 +304,10 @@ std::string PHGarfieldForwardMap::BuildCanonicalConfiguration(
     canonical << ";field_cage_offset_v_" << index << "=" << provenance.field_cage_offsets_v[index];
   }
   canonical << ";interpolation_tolerance_um=" << config.interpolation_tolerance_um;
+  if (config.max_radial_field_extension_cm > 0.)
+  {
+    canonical << ";max_radial_field_extension_cm=" << config.max_radial_field_extension_cm;
+  }
   append_string("interpolation_error_probe_scheme", provenance.reach_probe_scheme);
   return canonical.str();
 }

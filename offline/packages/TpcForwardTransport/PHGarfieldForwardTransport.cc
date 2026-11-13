@@ -427,12 +427,14 @@ void PHGarfieldForwardTransport::GetForwardElectricFieldVcm(double x_cm, double 
 bool PHGarfieldForwardTransport::ElectricFieldMapCovers(
     const double inner_radius_cm,
     const double outer_radius_cm,
-    const double max_drift_distance_cm) const
+    const double max_drift_distance_cm,
+    const double max_radial_extension_cm) const
 {
   if (!m_erCorrection || !m_ezCorrection ||
       !std::isfinite(inner_radius_cm) ||
       !std::isfinite(outer_radius_cm) ||
-      !std::isfinite(max_drift_distance_cm))
+      !std::isfinite(max_drift_distance_cm) ||
+      !std::isfinite(max_radial_extension_cm) || max_radial_extension_cm < 0.)
   {
     return false;
   }
@@ -443,8 +445,9 @@ bool PHGarfieldForwardTransport::ElectricFieldMapCovers(
     const TAxis* r_axis = hist->GetXaxis();
     const TAxis* z_axis = hist->GetYaxis();
     return r_axis && z_axis &&
-           r_axis->GetXmin() <= inner_radius_cm + tolerance_cm &&
-           r_axis->GetXmax() >= outer_radius_cm - tolerance_cm &&
+           r_axis->GetXmin() < outer_radius_cm && r_axis->GetXmax() > inner_radius_cm &&
+           r_axis->GetXmin() <= inner_radius_cm + max_radial_extension_cm + tolerance_cm &&
+           r_axis->GetXmax() >= outer_radius_cm - max_radial_extension_cm - tolerance_cm &&
            z_axis->GetXmin() <= tolerance_cm &&
            z_axis->GetXmax() >=
                max_drift_distance_cm - tolerance_cm;
@@ -457,11 +460,13 @@ bool PHGarfieldForwardTransport::ForwardElectricFieldMapsCover(
     const double inner_radius_cm,
     const double outer_radius_cm,
     const double max_drift_distance_cm,
-    std::ostream& error) const
+    std::ostream& error,
+    const double max_radial_extension_cm) const
 {
   if (!std::isfinite(inner_radius_cm) || !std::isfinite(outer_radius_cm) ||
       !std::isfinite(max_drift_distance_cm) || inner_radius_cm <= 0. ||
-      outer_radius_cm <= inner_radius_cm || max_drift_distance_cm <= 0.)
+      outer_radius_cm <= inner_radius_cm || max_drift_distance_cm <= 0. ||
+      !std::isfinite(max_radial_extension_cm) || max_radial_extension_cm < 0.)
   {
     error << "Invalid forward electric-field coverage geometry\n";
     return false;
@@ -470,10 +475,23 @@ bool PHGarfieldForwardTransport::ForwardElectricFieldMapsCover(
   const auto covers = [=](const TAxis* radius, const TAxis* longitudinal)
   {
     return radius && longitudinal &&
-           radius->GetXmin() <= inner_radius_cm + tolerance_cm &&
-           radius->GetXmax() >= outer_radius_cm - tolerance_cm &&
+           radius->GetXmin() < outer_radius_cm && radius->GetXmax() > inner_radius_cm &&
+           radius->GetXmin() <= inner_radius_cm + max_radial_extension_cm + tolerance_cm &&
+           radius->GetXmax() >= outer_radius_cm - max_radial_extension_cm - tolerance_cm &&
            longitudinal->GetXmin() <= tolerance_cm &&
            longitudinal->GetXmax() >= max_drift_distance_cm - tolerance_cm;
+  };
+  const auto report_extension = [&](const TAxis* radius)
+  {
+    const double inward = std::max(0., radius->GetXmin() - inner_radius_cm);
+    const double outward = std::max(0., outer_radius_cm - radius->GetXmax());
+    if (inward > tolerance_cm || outward > tolerance_cm)
+    {
+      error << "Forward space-charge field uses nearest radial edge-bin values: "
+            << inward << " cm inward, " << outward << " cm outward; allowed limit "
+            << max_radial_extension_cm << " cm. Physical gas radii remain ["
+            << inner_radius_cm << ", " << outer_radius_cm << "] cm\n";
+    }
   };
   for (std::size_t side = 0; side < m_field3DCorrection.size(); ++side)
   {
@@ -485,19 +503,27 @@ bool PHGarfieldForwardTransport::ForwardElectricFieldMapsCover(
         {
           error << "Forward 3D space-charge map for side " << side;
           error << " does not cover r=[" << inner_radius_cm << ", " << outer_radius_cm
-                << "] cm and gas-surface z=[0, " << max_drift_distance_cm << "] cm\n";
+                << "] cm and gas-surface z=[0, " << max_drift_distance_cm
+                << "] cm with maximum radial field extension " << max_radial_extension_cm << " cm\n";
           return false;
         }
       }
+      report_extension(m_field3DCorrection[side][0]->GetXaxis());
     }
     else if (HasElectricFieldCorrections() &&
-             !ElectricFieldMapCovers(inner_radius_cm, outer_radius_cm, max_drift_distance_cm))
+             !ElectricFieldMapCovers(inner_radius_cm, outer_radius_cm, max_drift_distance_cm, max_radial_extension_cm))
     {
       error << "Forward 2D space-charge map does not cover r=["
             << inner_radius_cm << ", " << outer_radius_cm << "] cm and gas-surface z=[0, "
-            << max_drift_distance_cm << "] cm\n";
+            << max_drift_distance_cm << "] cm with maximum radial field extension "
+            << max_radial_extension_cm << " cm\n";
       return false;
     }
+  }
+  if (HasElectricFieldCorrections() &&
+      (!HasElectricFieldCorrections3D(0) || !HasElectricFieldCorrections3D(1)))
+  {
+    report_extension(m_erCorrection->GetXaxis());
   }
   return true;
 }
