@@ -184,11 +184,11 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
           swap(connected_tracks[j], connected_tracks[j + 1]);
           isdone = false;
         }
-
-        if (isdone)
-        {
-          break;
-        }
+      }
+      
+      if (isdone)
+      {
+        break;
       }
     }
 
@@ -224,7 +224,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
     // this finds average vertex positions after removal of outlying track pairs
     removeOutlierTrackPairs();
 
-    // average covariance for accepted tracks
+    // covariance of the mean vertex position for accepted tracks
     for (auto it : _vertex_set)
     {
       matrix_t avgCov = matrix_t::Zero();
@@ -248,7 +248,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
         cov_wt++;
       }
 
-      avgCov /= sqrt(cov_wt);
+      avgCov /= (cov_wt * cov_wt);
       if (Verbosity() > 2)
       {
         std::cout << "Average covariance for vertex " << it << " is:" << std::endl;
@@ -357,8 +357,8 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
         }
 
         auto *thisvertex = _svtx_vertex_map->get(thisid);
-        float dz = thistrack->get_z() - thisvertex->get_z();
-        if (std::abs(dz) < maxdz)
+        float dz = std::abs(thistrack->get_z() - thisvertex->get_z());
+        if (dz < maxdz)
         {
           maxdz = dz;
           newvtxid = thisid;
