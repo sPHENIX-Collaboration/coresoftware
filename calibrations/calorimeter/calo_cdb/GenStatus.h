@@ -49,8 +49,8 @@ class GenStatus
   std::unique_ptr<TProfile2D> h_CaloFittingQA_ohcal_etaphi_ZScrosscalib;
 
   // ZSCrossCalibT0: per-detector (cemc, ihcal, ohcal) x per-variant (minus5, main, plus5)
-  static constexpr std::array<const char *, 3> m_zsT0_detectors{"cemc", "ihcal", "ohcal"};
-  static constexpr std::array<const char *, 3> m_zsT0_variants{"minus5", "main", "plus5"};
+  static inline const std::array<std::string, 3> m_zsT0_detectors{"cemc", "ihcal", "ohcal"};
+  static inline const std::array<std::string, 3> m_zsT0_variants{"minus5", "main", "plus5"};
   std::array<std::array<std::unique_ptr<TProfile2D>, 3>, 3> h_CaloFittingQA_etaphi_ZScrosscalibT0;
 
   // dsttype prefix of the calofitting QA histogram files (e.g. HIST_DST_CALOFITTING or HIST_CALOFITTINGQA)

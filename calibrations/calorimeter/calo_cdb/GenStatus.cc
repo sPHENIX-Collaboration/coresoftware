@@ -90,7 +90,7 @@ int GenStatus::readHists(const std::string &input)
     const int bins_phi = isCEMC ? cemc_bins_phi : hcal_bins_phi;
     for (size_t ivar = 0; ivar < m_zsT0_variants.size(); ++ivar)
     {
-      std::string name = std::string(m_zsT0_detectors[idet]) + "_etaphi_ZScrosscalib_" + m_zsT0_variants[ivar];
+      std::string name = std::format("{}_etaphi_ZScrosscalib_{}", m_zsT0_detectors[idet], m_zsT0_variants[ivar]);
       h_CaloFittingQA_etaphi_ZScrosscalibT0[idet][ivar] = std::make_unique<TProfile2D>(name.c_str(), "", bins_eta, 0, bins_eta, bins_phi, 0, bins_phi);
     }
   }
@@ -220,7 +220,7 @@ int GenStatus::readHists(const std::string &input)
     {
       for (size_t ivar = 0; ivar < m_zsT0_variants.size(); ++ivar)
       {
-        std::string name = std::string("h_CaloFittingQA_") + m_zsT0_detectors[idet] + "_etaphi_ZScrosscalib_" + m_zsT0_variants[ivar];
+        std::string name = std::format("h_CaloFittingQA_{}_etaphi_ZScrosscalib_{}", m_zsT0_detectors[idet], m_zsT0_variants[ivar]);
         h = dynamic_cast<TProfile2D *>(tf->Get(name.c_str()));
 
         if (h)
@@ -416,7 +416,7 @@ void GenStatus::analyze(const std::string &outputDir)
         std::cout << "WARNING: " << hist->GetName() << " has no entries, skipping " << payloadName << std::endl;
         break;
       }
-      fields.emplace_back(std::string("ratio_") + m_zsT0_variants[ivar], hist);
+      fields.emplace_back(std::format("ratio_{}", m_zsT0_variants[ivar]), hist);
     }
 
     if (allFilled)
