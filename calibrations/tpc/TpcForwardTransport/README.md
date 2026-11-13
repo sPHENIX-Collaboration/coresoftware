@@ -3,8 +3,10 @@
 Generate and read adaptive TPC forward-drift LUTs. Forward transport is opt-in;
 ordinary PHGarfield initialization and reverse reconstruction are unchanged.
 
-Build/install `offline/packages/PHGarfield`, then this package, into the same
-prefix, using an out-of-source `autogen.sh --prefix=...`, `make`, `make install`.
+Build/install `offline/packages/PHGarfield`, then
+`calibrations/tpc/TpcForwardTransport`, into the same prefix, using an out-of-source
+`autogen.sh --prefix=...`, `make`, `make install`. The simulation consumer `g4tpc`
+must be built afterward; `PHGarfield` itself requires `g4detectors`.
 Headers are installed under `<tpcforwardtransport/...>`.
 
 - [Generate a LUT](PHGarfieldForwardMap.md): commands, inputs and parallel jobs.
