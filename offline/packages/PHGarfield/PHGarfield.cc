@@ -1913,7 +1913,7 @@ double PHGarfield::InterpolateCorrectionVcm(
   return 0.01 * value_vpm;
 }
 
-void PHGarfield::InitializeGas(const std::string& name)
+void PHGarfield::InitializeGas(const std::string& name, const bool strict)
 {
   //  Create and fill the gas object so that we can trace particles through the gas...
   m_gas = new Garfield::MediumMagboltz();
@@ -1964,13 +1964,25 @@ void PHGarfield::InitializeGas(const std::string& name)
     {
       if (firstE)
       {
-        m_gas->LoadGasFile(filepath);
+        const bool loaded = m_gas->LoadGasFile(filepath);
+        if (strict && !loaded)
+        {
+          std::cerr << "Failed to load " << filepath << std::endl;
+          m_GasFilesLoaded = false;
+          return;
+        }
         firstE = false;
         m_GasFilesLoaded = true;
       }
       else
       {
-        m_gas->MergeGasFile(filepath, true);
+        const bool loaded = m_gas->MergeGasFile(filepath, true);
+        if (strict && !loaded)
+        {
+          std::cerr << "Failed to merge " << filepath << std::endl;
+          m_GasFilesLoaded = false;
+          return;
+        }
         m_GasFilesLoaded = true;
       }
     }
