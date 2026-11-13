@@ -14,10 +14,17 @@
 
 // c++ includes --
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <utility>
 #include <vector>
+
+GenStatus::GenStatus(std::string calofittingPrefix)
+  : m_calofittingPrefix(std::move(calofittingPrefix))
+{
+}
 
 void GenStatus::setRunDataset(const std::string &input)
 {
@@ -76,6 +83,20 @@ int GenStatus::readHists(const std::string &input)
   h_CaloFittingQA_ihcal_etaphi_ZScrosscalib = std::make_unique<TProfile2D>("ihcal_etaphi_ZScrosscalib", "", hcal_bins_eta, 0, hcal_bins_eta, hcal_bins_phi, 0, hcal_bins_phi);
   h_CaloFittingQA_ohcal_etaphi_ZScrosscalib = std::make_unique<TProfile2D>("ohcal_etaphi_ZScrosscalib", "", hcal_bins_eta, 0, hcal_bins_eta, hcal_bins_phi, 0, hcal_bins_phi);
 
+  for (size_t idet = 0; idet < m_zsT0_detectors.size(); ++idet)
+  {
+    const bool isCEMC = (idet == 0);
+    const int bins_eta = isCEMC ? cemc_bins_eta : hcal_bins_eta;
+    const int bins_phi = isCEMC ? cemc_bins_phi : hcal_bins_phi;
+    for (size_t ivar = 0; ivar < m_zsT0_variants.size(); ++ivar)
+    {
+      std::string name = std::string(m_zsT0_detectors[idet]) + "_etaphi_ZScrosscalib_" + m_zsT0_variants[ivar];
+      h_CaloFittingQA_etaphi_ZScrosscalibT0[idet][ivar] = std::make_unique<TProfile2D>(name.c_str(), "", bins_eta, 0, bins_eta, bins_phi, 0, bins_phi);
+    }
+  }
+
+  std::cout << "Calofitting prefix: " << m_calofittingPrefix << std::endl;
+
   std::ofstream outfile(m_CaloValid_list);
 
   if (!outfile.is_open())
@@ -108,12 +129,19 @@ int GenStatus::readHists(const std::string &input)
         m_dataset_jetqa = extractTag(line, "HIST_JETQA_");
       }
     }
-    else if (line.find("HIST_CALOFITTINGQA") != std::string::npos)
+    else if (line.find(m_calofittingPrefix + "_") != std::string::npos)
     {
       if (m_dataset_calofittingqa.empty())
       {
-        m_dataset_calofittingqa = extractTag(line, "HIST_CALOFITTINGQA_");
+        m_dataset_calofittingqa = extractTag(line, m_calofittingPrefix + "_");
       }
+    }
+    else
+    {
+      std::cout << "WARNING: File matches neither HIST_JETQA nor " << m_calofittingPrefix << ", skipping: " << line << std::endl;
+      ++ctr["skipped_unknown_prefix"];
+      tf->Close();
+      continue;
     }
 
     auto *h = dynamic_cast<TProfile2D *>(tf->Get("h_CaloValid_cemc_etaphi_badChi2"));
@@ -188,12 +216,31 @@ int GenStatus::readHists(const std::string &input)
       ++ctr["h_CaloFittingQA_ohcal_etaphi_ZScrosscalib"];
     }
 
+    for (size_t idet = 0; idet < m_zsT0_detectors.size(); ++idet)
+    {
+      for (size_t ivar = 0; ivar < m_zsT0_variants.size(); ++ivar)
+      {
+        std::string name = std::string("h_CaloFittingQA_") + m_zsT0_detectors[idet] + "_etaphi_ZScrosscalib_" + m_zsT0_variants[ivar];
+        h = dynamic_cast<TProfile2D *>(tf->Get(name.c_str()));
+
+        if (h)
+        {
+          h_CaloFittingQA_etaphi_ZScrosscalibT0[idet][ivar]->Add(h);
+          ++ctr[name];
+        }
+      }
+    }
+
     tf->Close();
   }
 
   std::cout << "===============================" << std::endl;
   std::cout << "Stats" << std::endl;
   std::cout << "Successfully opened files: " << ctr["successfully_opened_files"] << ", " << ctr["successfully_opened_files"] * 100. / ctr["total_files"] << " %" << std::endl;
+  if (ctr["skipped_unknown_prefix"])
+  {
+    std::cout << "Skipped files (unknown prefix): " << ctr["skipped_unknown_prefix"] << std::endl;
+  }
   for (const auto &[name, value] : ctr)
   {
     if (name.starts_with("h_Calo"))
@@ -219,10 +266,20 @@ int GenStatus::readHists(const std::string &input)
 
 void GenStatus::histToCaloCDBTree(const std::string &outputfile, const std::string &fieldName, int icalo, TProfile2D *hist)
 {
+  histToCaloCDBTree(outputfile, {{fieldName, hist}}, icalo);
+}
+
+void GenStatus::histToCaloCDBTree(const std::string &outputfile, const std::vector<std::pair<std::string, TProfile2D *>> &fields, int icalo)
+{
   unsigned int neta;
   unsigned int nphi;
 
   if (icalo != 0 && icalo != 1)
+  {
+    return;
+  }
+
+  if (fields.empty())
   {
     return;
   }
@@ -240,7 +297,7 @@ void GenStatus::histToCaloCDBTree(const std::string &outputfile, const std::stri
 
   std::unique_ptr<CDBTTree> cdbttree = std::make_unique<CDBTTree>(outputfile);
 
-  double mean = 0;
+  std::vector<double> mean(fields.size(), 0);
   int count = 0;
 
   for (unsigned int ie = 0; ie < neta; ie++)
@@ -256,14 +313,23 @@ void GenStatus::histToCaloCDBTree(const std::string &outputfile, const std::stri
       {
         key = TowerInfoDefs::encode_hcal(ie, ip);
       }
-      float val = hist->GetBinContent(ie + 1, ip + 1);
-      cdbttree->SetFloatValue(key, fieldName, val);
-      mean += val;
+      for (size_t i = 0; i < fields.size(); ++i)
+      {
+        const auto &[fieldName, hist] = fields[i];
+        float val = hist->GetBinContent(ie + 1, ip + 1);
+        cdbttree->SetFloatValue(key, fieldName, val);
+        mean[i] += val;
+      }
       count++;
     }
   }
 
-  std::cout << "Writing " << outputfile << "   with mean=" << mean / count << std::endl;
+  std::cout << "Writing " << outputfile << "   with";
+  for (size_t i = 0; i < fields.size(); ++i)
+  {
+    std::cout << ((fields.size() > 1) ? " " + fields[i].first + " " : " ") << "mean=" << mean[i] / count;
+  }
+  std::cout << std::endl;
   cdbttree->Commit();
   cdbttree->WriteCDBTTree();
 }
@@ -331,6 +397,32 @@ void GenStatus::analyze(const std::string &outputDir)
   if (h_CaloFittingQA_ohcal_etaphi_ZScrosscalib->GetEntries())
   {
     histToCaloCDBTree(payloadName, "ratio", 1, h_CaloFittingQA_ohcal_etaphi_ZScrosscalib.get());
+  }
+
+  // ZSCrossCalibT0: one payload per detector with fields ratio_minus5, ratio_main, ratio_plus5
+  const std::array<std::string, 3> detectorNames{"CEMC", "HCALIN", "HCALOUT"};
+  for (size_t idet = 0; idet < detectorNames.size(); ++idet)
+  {
+    payloadName = std::format("{}/{}_ZSCrossCalibT0_{}_{}.root", outputDir, detectorNames[idet], tag_calofittingqa, m_run);
+
+    std::vector<std::pair<std::string, TProfile2D *>> fields;
+    bool allFilled = true;
+    for (size_t ivar = 0; ivar < m_zsT0_variants.size(); ++ivar)
+    {
+      TProfile2D *hist = h_CaloFittingQA_etaphi_ZScrosscalibT0[idet][ivar].get();
+      if (!hist->GetEntries())
+      {
+        allFilled = false;
+        std::cout << "WARNING: " << hist->GetName() << " has no entries, skipping " << payloadName << std::endl;
+        break;
+      }
+      fields.emplace_back(std::string("ratio_") + m_zsT0_variants[ivar], hist);
+    }
+
+    if (allFilled)
+    {
+      histToCaloCDBTree(payloadName, fields, (idet == 0) ? 0 : 1);
+    }
   }
 }
 
