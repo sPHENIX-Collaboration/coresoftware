@@ -8,6 +8,9 @@
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxPHG4ParticleMap.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
+#include <trackbase_historic/TrackAnalysisUtils.h>
+#include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackSeedContainer.h>
 
 #include <trackreco/ActsPropagator.h>
 
@@ -75,11 +78,9 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
 
   }
 
-
   // Loop over tracks and check for close DCA match with all other tracks
   for (auto tr1_it = m_svtxTrackMap->begin(); tr1_it != m_svtxTrackMap->end(); ++tr1_it)
   {
-
     auto id1 = tr1_it->first;
     auto *tr1 = tr1_it->second;
 
@@ -119,12 +120,19 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
     }
 
     short int crossing1 = tr1->get_crossing();
-
-    // calculate number silicon tracks
     double this_dca_cut = track_dca_cut;
-    TrackSeed* siliconseed = tr1->get_silicon_seed();
 
-    if (!siliconseed)
+    TrackSeed* siliconseed1 = tr1->get_silicon_seed(); // v4 and earlier
+    if(!siliconseed1)
+	{
+	  auto silseedid1 = tr1->get_silicon_seed_id();  // v5
+	  if(silseedid1 !=  USHRT_MAX)
+	    {
+	      siliconseed1 = m_silseedMap->get(silseedid1);
+	    }
+	}
+
+    if (!siliconseed1)
     {
       this_dca_cut *= 5;
       if (Verbosity() > 2)
@@ -142,15 +150,15 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
     unsigned int track1_intt_state_size = nstates1[1];
     
     unsigned int track1_silicon_cluster_size = std::numeric_limits<unsigned int>::quiet_NaN();
-    if (siliconseed)
+    if (siliconseed1)
     {
-      track1_silicon_cluster_size = siliconseed->size_cluster_keys();
+      track1_silicon_cluster_size = siliconseed1->size_cluster_keys();
     }
 
     std::vector<TrkrDefs::cluskey> ckeys1;
-    if (siliconseed)
+    if (siliconseed1)
     {
-      ckeys1.insert(ckeys1.end(), siliconseed->begin_cluster_keys(), siliconseed->end_cluster_keys());
+      ckeys1.insert(ckeys1.end(), siliconseed1->begin_cluster_keys(), siliconseed1->end_cluster_keys());
     }
 
     unsigned int track1_mvtx_cluster_size = 0;
@@ -228,11 +236,17 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
       }
 
       short int crossing2 = tr2->get_crossing();
-
-      // calculate number silicon tracks
-      TrackSeed* siliconseed2 = tr2->get_silicon_seed();
-
       double this_dca_cut2 = track_dca_cut;
+      
+      TrackSeed* siliconseed2 = tr2->get_silicon_seed(); // v4 and earlier
+      if(!siliconseed2)
+	{
+	  auto silseedid2 = tr2->get_silicon_seed_id();  // v5
+	  if(silseedid2 !=  USHRT_MAX)
+	    {
+	      siliconseed2 = m_silseedMap->get(silseedid2);
+	    }
+	}
 
       if (!siliconseed2)
       {
@@ -353,7 +367,6 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
 	    
 	    // invariant mass is calculated in this method
 	    fillHistogram(projected_mom1, projected_mom2, recomass, invariantMass, invariantPt, invariantPhi, rapidity, pseudorapidity,decaymassa, decaymassb);
-	    fillNtp(tr1, tr2, decaymassa, decaymassb, dcaVals1, dcaVals2, pca_rel1, pca_rel2, pair_dca, invariantMass, invariantPt, invariantPhi, rapidity, pseudorapidity, projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj, track1_silicon_cluster_size, track2_silicon_cluster_size, track1_mvtx_cluster_size, track1_mvtx_state_size, track1_intt_cluster_size, track1_intt_state_size, track2_mvtx_cluster_size, track2_mvtx_state_size, track2_intt_cluster_size, track2_intt_state_size, m_runNumber, m_evtNumber);
 
 	    if (Verbosity() > 1)
 	      {
@@ -378,7 +391,10 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
 		std::cout << "  Final: mom1: " << projected_mom1(0) << "  " << projected_mom1(1) << "  " << projected_mom1(2) << std::endl;
 		std::cout << "  Final: mom2: " << projected_mom2(0) << "  " << projected_mom2(1) << "  " << projected_mom2(2) << std::endl;
 	      }
+	    
+	    fillNtp(tr1, tr2, decaymassa, decaymassb, dcaVals1, dcaVals2, pca_rel1, pca_rel2, pair_dca, invariantMass, invariantPt, invariantPhi, rapidity, pseudorapidity, projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj, track1_silicon_cluster_size, track2_silicon_cluster_size, track1_mvtx_cluster_size, track1_mvtx_state_size, track1_intt_cluster_size, track1_intt_state_size, track2_mvtx_cluster_size, track2_mvtx_state_size, track2_intt_cluster_size, track2_intt_state_size, m_runNumber, m_evtNumber);
 	  }
+
         if (m_save_tracks)
 	  {
 	    m_output_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_output_trackMap_node_name);
@@ -439,15 +455,43 @@ void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, float m
   double px1 = track1->get_px();
   double py1 = track1->get_py();
   double pz1 = track1->get_pz();
+
   auto *tpcSeed1 = track1->get_tpc_seed();
-  size_t tpcClusters1 = tpcSeed1->size_cluster_keys();
+  if(!tpcSeed1)
+    {
+      auto tpcseedid1 = track1->get_tpc_seed_id();
+      if(tpcseedid1 != USHRT_MAX)
+	{
+	  tpcSeed1 = m_tpcseedMap->get(tpcseedid1);
+	}
+    }
+  size_t tpcClusters1 = 0;
+  if(tpcSeed1)
+    {
+      tpcClusters1 = tpcSeed1->size_cluster_keys();
+    }
+  
   double eta1 = asinh(pz1 / sqrt(pow(px1, 2) + pow(py1, 2)));
 
   double px2 = track2->get_px();
   double py2 = track2->get_py();
   double pz2 = track2->get_pz();
+
   auto *tpcSeed2 = track2->get_tpc_seed();
-  size_t tpcClusters2 = tpcSeed2->size_cluster_keys();
+  if(!tpcSeed2)
+    {
+      auto tpcseedid2 = track2->get_tpc_seed_id();
+      if(tpcseedid2 != USHRT_MAX)
+	{
+	  tpcSeed2 = m_tpcseedMap->get(tpcseedid2);
+	}
+    }
+  size_t tpcClusters2 = 0;
+  if(tpcSeed2)
+    {
+      tpcClusters2 = tpcSeed2->size_cluster_keys();
+    }
+  
   double eta2 = asinh(pz2 / sqrt(pow(px2, 2) + pow(py2, 2)));
 
   auto vtxid = track1->get_vertex_id();
@@ -843,9 +887,12 @@ Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack* track, const Acts::V
   Acts::Vector3 pos_R = rot * position;
   double dca3dxy = pos_R(0);
   double dca3dz = pos_R(2);
-
+  /*
   outVals(0) = abs(dca3dxy);
   outVals(1) = abs(dca3dz);
+  */
+  outVals(0) = dca3dxy;
+  outVals(1) = dca3dz;
   outVals(2) = phi;
   
   if (Verbosity() > 4)
@@ -903,19 +950,38 @@ int KshortReconstruction::End(PHCompositeNode* /**topNode*/)
 
 int KshortReconstruction::getNodes(PHCompositeNode* topNode)
 {
-  m_svtxTrackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  // m_svtxTrackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  m_svtxTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_input_trackMap_node_name.c_str());
   if (!m_svtxTrackMap)
-  {
-    std::cout << PHWHERE << "No SvtxTrackMap on node tree, exiting." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
+    {
+      std::cout << PHWHERE << "No SvtxTrackMap on node tree, exiting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  else
+    {
+      std::cout << PHWHERE << "Using tracks ffrom node " <<  m_input_trackMap_node_name.c_str()  << std::endl;
+    }
+  
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if (!m_vertexMap)
   {
     std::cout << PHWHERE << "No vertexMap on node tree, exiting." << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  m_silseedMap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  if (!m_silseedMap)
+    {
+      std::cout << PHWHERE << "No silicon seed map on node tree, exiting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  m_tpcseedMap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  if (!m_tpcseedMap)
+    {
+      std::cout << PHWHERE << "No TPC seed map on node tree, exiting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   _tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!_tGeometry)
