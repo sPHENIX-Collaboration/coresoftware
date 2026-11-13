@@ -234,15 +234,19 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
 
           auto *recover_f = new TF1(std::string("recover_f_" + std::to_string((int) round(v.at(size1)))).c_str(), this, &CaloWaveformFitting::template_function, 0, 31, 3, "CaloWaveformFitting", "template_function");
           ROOT::Math::WrappedMultiTF1 *recoverFitFunction = new ROOT::Math::WrappedMultiTF1(*recover_f, 3);
-          ROOT::Fit::BinData recoverData(rv.size() - 1, 1);
+          ROOT::Fit::BinData recoverData(rv.size(), 1);
           ROOT::Fit::FillData(recoverData, h);
           ROOT::Fit::Chi2Function *recoverEPChi2 = new ROOT::Fit::Chi2Function(recoverData, *recoverFitFunction);
           ROOT::Fit::Fitter *recoverFitter = new ROOT::Fit::Fitter();
           recoverFitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
 	  recoverFitter->Config().MinimizerOptions().SetPrintLevel(-1);
-          double recover_params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
+          double recover_params[] = {static_cast<double>(maxheight - pedestal), static_cast<double>(maxbin - m_peakTimeTemp), static_cast<double>(pedestal)};
           recoverFitter->Config().SetParamsSettings(3, recover_params);
           recoverFitter->Config().ParSettings(1).SetLimits(-1 * m_peakTimeTemp, size1 - m_peakTimeTemp);  // set lim on time par
+          if (m_setTimeLim) // same time limits as the main fit.
+          {
+            recoverFitter->Config().ParSettings(1).SetLimits(m_timeLim_low, m_timeLim_high);
+          }
           recoverFitter->FitFCN(*recoverEPChi2, nullptr, recoverData.Size(), true);
           ROOT::Fit::FitResult recover_fitres = recoverFitter->Result();
           int recover_validfit = recover_fitres.Status();
@@ -254,13 +258,27 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
             {
               v.at(i) = rv.at(i);
             }
-            for (int i = 0; i < 3; i++)
+            // the ZS test above used the raw s6 - s0; repeat it on the recovered samples
+            if ((_bdosoftwarezerosuppression && rv.at(6) - rv.at(0) < _nsoftwarezerosuppression) || (_maxsoftwarezerosuppression && maxheight - pedestal < _nsoftwarezerosuppression))
             {
-              v.push_back(recover_f->GetParameter(i));
+              v.push_back(rv.at(6) - rv.at(0));
+              v.push_back(std::numeric_limits<float>::quiet_NaN());
+              v.push_back(rv.at(0));
+              v.push_back(std::numeric_limits<float>::quiet_NaN());
+              v.push_back(1);
+              v.push_back(0);
             }
-            v.push_back(recover_chi2min);
-            v.push_back(1);
-            v.push_back(recover_validfit);
+            else
+            {
+              for (int i = 0; i < 3; i++)
+              {
+                v.push_back(recover_f->GetParameter(i));
+              }
+              // negative fit amplitude: flag as bad chi2
+              v.push_back((recover_f->GetParameter(0) < 0) ? _negfitampchi2 : recover_chi2min);
+              v.push_back(1);
+              v.push_back(recover_validfit);
+            }
           }
           else
           {
@@ -268,7 +286,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
             {
               v.push_back(f->GetParameter(i));
             }
-            v.push_back(chi2min);
+            v.push_back((f->GetParameter(0) < 0) ? _negfitampchi2 : chi2min);
             v.push_back(0);
             v.push_back(validfit);
           }
@@ -283,7 +301,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
           {
             v.push_back(f->GetParameter(i));
           }
-          v.push_back(chi2min);
+          v.push_back((f->GetParameter(0) < 0) ? _negfitampchi2 : chi2min);
           v.push_back(0);
           v.push_back(validfit);
         }

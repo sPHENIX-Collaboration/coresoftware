@@ -15,23 +15,29 @@ AM_CPPFLAGS = \
 
 pkginclude_HEADERS = \
   CaloValid.h \
-  CaloFittingQA.h
+  CaloFittingQA.h \
+  CDBCaloQA.h
 
 libcalovalid_la_SOURCES = \
   CaloValid.cc \
-  CaloFittingQA.cc
+  CaloFittingQA.cc \
+  CDBCaloQA.cc
 
 libcalovalid_la_LIBADD = \
   -lcalo_io \
   -lcalotrigger \
+  -lcalotrigger_io \
+  -lcentrality_io \
   -lCLHEP \
   -lfun4all \
   -lglobalvertex_io \
+  -ljetbase_io \
   -lmbd_io \
   -lzdcinfo_io \
   -lphool \
   -lSubsysReco \
   -lffarawobjects \
+  -lffaobjects \
   -lffamodules \
   -lcdbobjects \
   -lqautils
@@ -42,6 +48,8 @@ libcalovalid_la_LIBADD = \
 noinst_PROGRAMS = \
   testexternals
 
+BUILT_SOURCES  = testexternals.C
+
 testexternals_SOURCES = testexternals.C
 testexternals_LDADD = libcalovalid.la
 
@@ -51,10 +59,6 @@ testexternals.C:
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
-
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f $(BUILT_SOURCES)

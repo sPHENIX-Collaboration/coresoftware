@@ -83,7 +83,7 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   std::vector<int> findAllGoodTracks(const std::vector<KFParticle> &daughterParticles);//, const std::vector<KFParticle> &primaryVertices);
 
-  std::vector<std::vector<int>> findTwoProngs(std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices);
+  std::vector<std::vector<int>> findTwoProngs(const std::vector<KFParticle> &daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices);
 
   std::vector<std::vector<int>> findNProngs(const std::vector<KFParticle> &daughterParticles,
                                             const std::vector<int> &goodTrackIndex,
@@ -117,6 +117,8 @@ class KFParticle_Tools : protected KFParticle_MVA
   bool findParticle(const std::string &particle);
 
   int getParticleID(const std::string &particle);
+
+  bool finalStateMatchesDecay(const std::vector<std::pair<int, int>> &assigned);
 
   float getParticleMass(const std::string &particle);
   float getParticleMass(const int PDGID);
@@ -162,6 +164,12 @@ class KFParticle_Tools : protected KFParticle_MVA
   std::vector<float> m_intermediate_min_pt;
   std::vector<float> m_intermediate_min_dira;
   std::vector<float> m_intermediate_min_fdchi2;
+  // (min, max) of the decay length [cm] and decay time of each intermediate state from the mother decay vertex.
+  // An intermediate with no entry is not cut on
+  std::vector<std::pair<float, float>> m_intermediate_decayLength_range;
+  std::vector<std::pair<float, float>> m_intermediate_decayLength_xy_range;
+  std::vector<std::pair<float, float>> m_intermediate_decayTime_range;
+  std::vector<std::pair<float, float>> m_intermediate_decayTime_xy_range;
   std::vector<float> m_intermediate_min_PV_dca_xy;
   std::vector<float> m_intermediate_max_PV_dca_xy;
   std::vector<float> m_intermediate_min_PV_dca_stddev_xy;
@@ -289,6 +297,8 @@ class KFParticle_Tools : protected KFParticle_MVA
   bool m_force_mixed_event = false;
 
   bool m_require_bunch_crossing_match{true};
+
+  bool m_use_ordered_prongs{true};
 
   bool m_require_track_and_vertex_match{false};
 

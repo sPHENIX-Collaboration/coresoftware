@@ -248,6 +248,11 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_use_mbd_vertex = use;
   }
 
+  void useCentrality(bool use = true)
+  {
+    m_use_centrality_nTuple = use;
+  }
+
   void dontUseGlobalVertex(bool dont = true) { m_dont_use_global_vertex = dont; }
 
   void useFakePrimaryVertex(bool use_fake = true)
@@ -342,6 +347,30 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     for (unsigned int i = 0; i < intermediate_min_FDchi2.size(); ++i) m_intermediate_min_fdchi2.push_back(intermediate_min_FDchi2[i]);
   }
 
+  /// Decay length [cm] of each intermediate state, 3D, from the decay vertex of the mother: one (min, max) per intermediate
+  void setIntermediateDecayLengthRange(const std::vector<std::pair<float, float>> &intermediate_decayLength_range)
+  {
+    m_intermediate_decayLength_range = intermediate_decayLength_range;
+  }
+
+  /// Same in the transverse plane
+  void setIntermediateDecayLengthRange_XY(const std::vector<std::pair<float, float>> &intermediate_decayLength_range)
+  {
+    m_intermediate_decayLength_xy_range = intermediate_decayLength_range;
+  }
+
+  /// Decay time [ps] of each intermediate state, 3D, from the decay vertex of the mother
+  void setIntermediateDecayTimeRange(const std::vector<std::pair<float, float>> &intermediate_decayTime_range)
+  {
+    m_intermediate_decayTime_range = intermediate_decayTime_range;
+  }
+
+  /// Same in the transverse plane (pseudo-proper decay time [ps])
+  void setIntermediateDecayTimeRange_XY(const std::vector<std::pair<float, float>> &intermediate_decayTime_range)
+  {
+    m_intermediate_decayTime_xy_range = intermediate_decayTime_range;
+  }
+
   void setIntermediateMaxVertexVolume(const std::vector<float> &intermediate_max_vertexvol)
   {
     for (unsigned int i = 0; i < intermediate_max_vertexvol.size(); ++i) m_intermediate_vertex_volume.push_back(intermediate_max_vertexvol[i]);
@@ -388,13 +417,19 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void getAllPVInfo(bool pvinfo = true) { m_get_all_PVs = pvinfo; }
 
-  void saveMomentumCalibrationOutputOnly(bool minimal = true) { m_momentum_calibration_output = minimal; }
+  void saveLightweightNTuple(bool minimal = true) { m_minimal_output = minimal; if (!minimal) m_minimal_output_to_qa = false; }  // QA output is a sub-mode of the lightweight nTuple
+  void saveLightweightNTupleToQA(bool minimal = true) { m_minimal_output = m_minimal_output_to_qa = minimal; }  // also turns on the lightweight nTuple
 
   void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_bunch_crossing_zero_only = bcZeroOnly; }
 
   void forceMixedEvent(bool force = true) { m_force_mixed_event = force; }
 
   void requireBunchCrossingMatch(bool require = true) { m_require_bunch_crossing_match = require; }
+
+  /// On by default. Builds each N-prong combination (3+ body decays) once, from its (N-1)-prong subset plus a track with a
+  /// larger index, instead of once for every track that can be added last. About 2.7x faster, but the DCA test is made
+  /// after the vertex refit, so it can reject combinations that the exhaustive search (use = false) would keep.
+  void useOrderedProngCombinations(bool use = true) { m_use_ordered_prongs = use; }
 
   void requireTrackVertexBunchCrossingMatch(bool require = true) { m_require_track_and_vertex_match = require; }
 

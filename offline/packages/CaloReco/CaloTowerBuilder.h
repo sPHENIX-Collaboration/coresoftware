@@ -43,11 +43,6 @@ class CaloTowerBuilder : public SubsysReco
     return;
   }
 
-  void set_nsamples(int _nsamples)
-  {
-    m_nsamples_dummy = _nsamples;
-    return;
-  }
   void set_dataflag(bool flag)
   {
     m_isdata = flag;
@@ -74,12 +69,6 @@ class CaloTowerBuilder : public SubsysReco
   void set_outputNodePrefix(const std::string &name)
   {
     m_outputNodePrefix = name;
-    return;
-  }
-
-  void set_offlineflag(const bool f = true)
-  {
-    tmpdummy = f;
     return;
   }
 
@@ -142,13 +131,17 @@ class CaloTowerBuilder : public SubsysReco
   CDBTTree *cdbttree_sepd_map{nullptr};
   CDBTTree *cdbttree_tbt_zs{nullptr};
 
+  // sEPD packet 9001, channels 0-31 (north sector 7): before this run the
+  // uninstrumented input is ch 1 (Run 24 cabling), from this run on it is ch 14
+  // like every other 32-channel group
+  static constexpr int m_sepd_first_run25{66000};
+  int m_runnumber{0};
+
   bool m_isdata{true};
   bool m_bdosoftwarezerosuppression{false};
   bool m_dotbtszs{false};
-  bool tmpdummy{false};
   int m_packet_low{std::numeric_limits<int>::min()};
   int m_packet_high{std::numeric_limits<int>::min()};
-  int m_nsamples_dummy{16};
   int m_nchannels{192};
   int m_nzerosuppsamples{2};
   int m_nsoftwarezerosuppression{40};

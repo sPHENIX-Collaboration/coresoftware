@@ -7,7 +7,7 @@
 #include <calobase/TowerInfoContainerSimv2.h>
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfoContainerv2.h>
-#include <calobase/TowerInfoContainerv3.h>
+#include <calobase/TowerInfoContainerv5.h>
 #include <calobase/TowerInfoContainerv4.h>
 
 #include <ffarawobjects/CaloPacket.h>
@@ -140,6 +140,9 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     {
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);  // default the EPD to fast processing
     }
+
+    // the empty channel in packet 9001 depends on the run period (see skipChannel)
+    m_runnumber = recoConsts::instance()->get_IntFlag("RUNNUMBER");
 
     m_calibName = "SEPD_CHANNELMAP2";
     m_fieldname = "epd_channel_map2";
@@ -472,6 +475,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     }
     towerinfo->set_FitStatus(static_cast<bool>(processed_waveforms.at(idx).at(5)));
     int n_samples = waveforms.at(idx).size();
+    towerinfo->set_nsample(n_samples);
     if (n_samples == m_nzerosuppsamples || SZS)
     {
       if (waveforms.at(idx).at(0) == -1)
@@ -504,7 +508,8 @@ bool CaloTowerBuilder::skipChannel(int ich, int pid)
   {
     int sector = ((ich + 1) / 32);
     int emptych = -999;
-    if ((sector == 0) && (pid == 9001))
+    // Run 24 cabling: ch 1 of packet 9001 is the empty one; Run 25 on: ch 14 as everywhere else
+    if ((sector == 0) && (pid == 9001) && (m_runnumber < m_sepd_first_run25))
     {
       emptych = 1;
     }
@@ -611,7 +616,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   }
   else if (m_buildertype == CaloTowerDefs::kPRDFWaveform)
   {
-    m_CaloInfoContainer = new TowerInfoContainerv3(DetectorEnum);
+    m_CaloInfoContainer = new TowerInfoContainerv5(DetectorEnum);
   }
   else if (m_buildertype == CaloTowerDefs::kWaveformTowerv2)
   {

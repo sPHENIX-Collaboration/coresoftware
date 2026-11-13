@@ -1,19 +1,7 @@
-// PHHerwig7Core.h -- drive Herwig 7 in-process through its public API.
-//
-// No Fun4All and no HepMC dependency here, so the same code is exercised by
-// the PHHerwig7 SubsysReco on RCF (HepMC2) and by the standalone smoke test
-// on a machine with only Herwig (hwgen_test.cc, HepMC3).
-//
-// What Herwig's own `Herwig run file.run -N n -s seed` does, and what this
-// reproduces, is (Herwig-7.3.0/API/HerwigAPI.cc, HerwigGenericRun):
-//   PersistentIStream(runfile) >> eg;   eg->setSeed(seed);   eg->initialize();
-//   loop: eg->shoot();                  eg->finalize();
-// prepareRun() covers everything up to and including initialize().
+// PHHerwig7Core.h
+// This class aims at removing the need for a .run card, so .in card is the only input needed to run in Fun4All 
 #ifndef PHHERWIG7CORE_H
 #define PHHERWIG7CORE_H
-
-#include <Herwig/API/HerwigAPI.h>
-#include <Herwig/API/HerwigUI.h>
 
 #include <ThePEG/Config/Unitsystem.h>
 #include <ThePEG/EventRecord/Event.h>
@@ -23,48 +11,13 @@
 #include <ThePEG/Repository/Repository.h>
 
 #include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
-
-// The command-line options Herwig's CLI would carry, as a plain struct.
-class PHHerwigUI : public Herwig::HerwigUI
-{
- public:
-  PHHerwigUI() = default;
-  ~PHHerwigUI() override = default;
-
-  Herwig::RunMode::Mode runMode() const override { return Herwig::RunMode::RUN; }
-  std::string repository() const override { return m_Repository; }
-  std::string inputfile() const override { return m_RunFile; }
-  std::string setupfile() const override { return m_SetupFile; }
-  bool resume() const override { return false; }
-  bool tics() const override { return false; }
-  std::string tag() const override { return m_Tag; }
-  std::string integrationList() const override { return std::string(); }
-  const std::vector<std::string> &prependReadDirectories() const override { return m_Prepend; }
-  const std::vector<std::string> &appendReadDirectories() const override { return m_Append; }
-  long N() const override { return m_N; }
-  int seed() const override { return m_Seed; }
-  int jobs() const override { return 1; }
-  unsigned int jobSize() const override { return 0; }
-  unsigned int maxJobs() const override { return 0; }
-  void quitWithHelp() const override { throw std::runtime_error("PHHerwigUI: Herwig asked to quit (see messages above)"); }
-  void quit() const override { throw std::runtime_error("PHHerwigUI: Herwig asked to quit (see messages above)"); }
-  std::ostream &outStream() const override { return std::cout; }
-  std::ostream &errStream() const override { return std::cerr; }
-  std::istream &inStream() const override { return std::cin; }
-
-  std::string m_Repository = "HerwigDefaults.rpo";
-  std::string m_RunFile;
-  std::string m_SetupFile;
-  std::string m_Tag;
-  std::vector<std::string> m_Prepend;
-  std::vector<std::string> m_Append;
-  long m_N = 0;
-  int m_Seed = 0;
-};
 
 class PHHerwig7Core
 {
@@ -80,25 +33,63 @@ class PHHerwig7Core
   PHHerwig7Core(const PHHerwig7Core &) = delete;
   PHHerwig7Core &operator=(const PHHerwig7Core &) = delete;
 
-  PHHerwigUI &ui() { return m_UI; }
-
-  // Load the .run file, seed, initialize.  Throws std::runtime_error on failure.
+  // Read the config (and setup) file, seed, initialize. Throws std::runtime_error on failure.
   void init()
   {
-    if (m_UI.m_RunFile.empty())
+    if (m_ConfigFile.empty())
     {
-      throw std::runtime_error("PHHerwig7Core::init - no run file set");
+      throw std::runtime_error("PHHerwig7Core::init - no config file set");
     }
-    ThePEG::Repository::exitOnError() = 1;  // as the Herwig CLI does
-    m_Generator = Herwig::API::prepareRun(m_UI);
-    if (!m_Generator)
+    const char *offline_main = getenv("OFFLINE_MAIN");
+    if (!offline_main)
     {
-      throw std::runtime_error("PHHerwig7Core::init - prepareRun returned no EventGenerator");
+      throw std::runtime_error("PHHerwig7Core::init - OFFLINE_MAIN not set");
     }
-    // The .run file carries the card's NumberOfEvents and shoot() returns
-    // nothing once that many have been generated.  Fun4All owns the event
-    // count here, so lift the limit (Herwig's own -N does the same).
-    // N(long) is protected; go through the interface as a setup file would.
+    const std::string herwig_share = std::string(offline_main) + "/share/Herwig";
+
+    // Equivalent to "Herwig read [card].in": load HerwigDefaults.rpo, set read path, read the card, then update()
+    ThePEG::Repository::exitOnError() = 1; 
+    std::string msg = ThePEG::Repository::load(herwig_share + "/HerwigDefaults.rpo");
+    if (!msg.empty())
+    {
+      throw std::runtime_error("PHHerwig7Core::init - loading HerwigDefaults.rpo: " + msg);
+    }
+    // load() resets the read path, so the directories go in after it
+    ThePEG::Repository::prependReadDir(m_ReadDirs);
+    ThePEG::Repository::appendReadDir(herwig_share);
+    for (const std::string &file : {m_ConfigFile, m_SetupFile})
+    {
+      if (file.empty())
+      {
+        continue;
+      }
+      // (motivated from Coderabbit review) safeguard against "saverun" or "run" in the .in card, which would create a .run file on disk
+      std::ifstream card(file);
+      std::string line;
+      while (std::getline(card, line))
+      {
+        std::istringstream words(line);
+        std::string command;
+        words >> command;
+        if (command == "saverun" || command == "run")
+        {
+          throw std::runtime_error("PHHerwig7Core::init - " + file + " contains " + command + "; PHHerwig7 creates the run in memory, remove it");
+        }
+      }
+      msg = ThePEG::Repository::read(file, std::cout);
+      if (!msg.empty())
+      {
+        throw std::runtime_error("PHHerwig7Core::init - reading " + file + ": " + msg);
+      }
+    }
+    ThePEG::Repository::update();
+
+    const std::string run_name = std::filesystem::path(m_ConfigFile).stem().string() + "-S" + std::to_string(m_Seed);
+    // This replaces the Herwig "saverun", so the content of the .run card is only kept in memory instead of being produced as a separate file
+    m_Generator = ThePEG::Repository::makeRun(ThePEG::Repository::GetObject<ThePEG::EGPtr>("/Herwig/Generators/EventGenerator"), run_name);
+    m_Generator->setSeed(m_Seed);
+    m_Generator->initialize();
+
     const ThePEG::InterfaceBase *ifc = ThePEG::BaseRepository::FindInterface(m_Generator, "NumberOfEvents");
     if (ifc)
     {
@@ -115,7 +106,7 @@ class PHHerwig7Core
   // generator-side cap on events shot; default -1 = unlimited (Fun4All decides)
   void set_max_events(long n) { m_MaxEvents = n; }
 
-  // One event.  Returns a null pointer only if Herwig gives up on the event.
+  // event loop. Returns a null pointer only if Herwig gives up on the event
   ThePEG::EventPtr next()
   {
     ThePEG::EventPtr ev = m_Generator->shoot();
@@ -127,6 +118,7 @@ class PHHerwig7Core
     return ev;
   }
 
+  // finalize
   void finish()
   {
     if (m_Generator && !m_Finished)
@@ -154,8 +146,12 @@ class PHHerwig7Core
   long n_generated() const { return m_NGenerated; }
   double sum_weights() const { return m_SumWeights; }
 
+  std::string m_ConfigFile;
+  std::string m_SetupFile;
+  std::vector<std::string> m_ReadDirs;
+  int m_Seed = 0;
+
  private:
-  PHHerwigUI m_UI;
   ThePEG::EGPtr m_Generator;
   bool m_Finished = true;
   long m_NGenerated = 0;

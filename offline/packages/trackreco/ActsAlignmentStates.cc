@@ -286,7 +286,7 @@ SvtxAlignmentState::LocalMatrixPsuedo
 ActsAlignmentStates::makeLocalDerivativesPsuedo(const auto& state, SvtxAlignmentState::ActsTrackParamsVector& localmeaserrpsuedo)
 {
   SvtxAlignmentState::LocalMatrixPsuedo localderpsuedo = SvtxAlignmentState::LocalMatrixPsuedo::Zero();
-  localmeaserrpsuedo(0) = 1.;
+  localmeaserrpsuedo.setZero();
   Acts::ActsDynamicMatrix updatedCovariance{SvtxAlignmentState::NLOC,
                                         SvtxAlignmentState::NLOC};
   Acts::ActsDynamicMatrix updatedProjection{SvtxAlignmentState::NRES,
@@ -324,7 +324,10 @@ ActsAlignmentStates::makeLocalDerivativesPsuedo(const auto& state, SvtxAlignment
   const Acts::ActsDynamicVector& eigenVals = eigenSolver.eigenvalues();
   const Acts::ActsDynamicMatrix& eigenVecs = eigenSolver.eigenvectors();
 
-  /// convert each EV to a pseudo-measurement
+  /// convert each EV to a pseudo-measurement. Row iMeas is the local
+  /// derivative of pseudo-measurement iMeas (its eigenvector), as read
+  /// row by row into Mille; skipped (non-positive) EVs keep a sigma of 0,
+  /// which Mille drops.
   for (long iMeas = 0; iMeas < eigenVecs.rows();
        ++iMeas) {  // fill the local derivatives from the current eigenvector
     // skip negative EV
@@ -333,7 +336,7 @@ ActsAlignmentStates::makeLocalDerivativesPsuedo(const auto& state, SvtxAlignment
     }
     localmeaserrpsuedo(iMeas) = 1./std::sqrt(eigenVals(iMeas));
     for (std::size_t iPar = 0; iPar < SvtxAlignmentState::NLOC; ++iPar) {
-      localderpsuedo(iPar, iMeas) = eigenVecs(iPar, iMeas);
+      localderpsuedo(iMeas, iPar) = eigenVecs(iPar, iMeas);
     }
   }
 

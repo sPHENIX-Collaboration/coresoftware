@@ -7,6 +7,8 @@
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/Vertex.h>
 
+#include <mbd/MbdOut.h>
+
 // Tower includes
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -47,10 +49,12 @@
 #include <cstdlib>  // for exit
 #include <filesystem>
 #include <iostream>
+#include <limits>
 #include <map>        // for operator!=, _Rb_tree_con...
 #include <stdexcept>  // for runtime_error
 #include <string>
 #include <utility>
+#include <vector>
 
 pi0EtaByEta::pi0EtaByEta(const std::string& name, const std::string& filename)
   : SubsysReco(name)
@@ -132,6 +136,9 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
 
   h_tower_e = new TH1F("h_tower_e","",1000,-1,5);
 
+  // MBD t0 of the triggered events, before the t0 cut
+  h_mbd_t0 = new TH1F("h_mbd_t0", ";MBD t_{0} [ns];events", 400, -20, 20);
+
   std::vector<std::vector<CLHEP::Hep3Vector>> temp2 = std::vector<std::vector<CLHEP::Hep3Vector>>();
   std::vector<CLHEP::Hep3Vector> temp = std::vector<CLHEP::Hep3Vector>();
   for (int i = 0; i < NBinsVtx; i++)
@@ -192,6 +199,24 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     {
       return Fun4AllReturnCodes::EVENT_OK;
     }
+  }
+
+  //----------------------------------MBD t0------------------------------------------------------//
+  // out-of-time collisions: |t0| < mbd_t0_cut; with the cut on, an event without
+  // MbdOut or with an undefined t0 is rejected
+  MbdOut* mbdout = findNode::getClass<MbdOut>(topNode, "MbdOut");
+  float mbd_t0 = mbdout ? mbdout->get_t0() : std::numeric_limits<float>::quiet_NaN();
+  if (std::isfinite(mbd_t0))
+  {
+    h_mbd_t0->Fill(mbd_t0);
+  }
+  if (doMbdT0Cut && !(std::fabs(mbd_t0) < mbd_t0_cut))
+  {
+    if (!mbdout && _eventcounter == 1)
+    {
+      std::cout << "pi0EtaByEta: MbdOut node is missing, the MBD t0 cut rejects every event" << std::endl;
+    }
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   //----------------------------------get vertex------------------------------------------------------//
@@ -445,7 +470,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       }
 
       TLorentzVector pi0 = photon1 + photon2;
-      if (pi0.Pt() < pi0ptcut)
+      if (applyPairPtCut && pi0.Pt() < pi0ptcut)
       {
         continue;
       }
@@ -685,7 +710,10 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
   }
 
   TH1* h_M_tbt[96][256];
-  TF1* fitFunOut[96][256];
+  TF1* fitFunOut[96][256] = {};
+  // for the guards of the update: pairs per tower and fitted peak at a fit limit
+  std::vector<std::vector<double>> nPairs(96, std::vector<double>(256, 0));
+  std::vector<std::vector<bool>> peakAtLimit(96, std::vector<bool>(256, false));
 
   // creating output file
   TFile* fit_out = new TFile(fitOutFile.c_str(), "recreate");
@@ -706,8 +734,12 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
         exit(1);
       }
  
-      if (h_M_tbt[ieta][j]->GetEntries() == 0)
+      // the entries can be > 0 with an empty histogram (Split3DHist), the scaling
+      // below would then fill it with NaN
+      nPairs[ieta][j] = h_M_tbt[ieta][j]->Integral();
+      if (h_M_tbt[ieta][j]->GetEntries() == 0 || !(nPairs[ieta][j] > 0))
       {
+        nPairs[ieta][j] = 0;
         continue;
       }
 
@@ -719,6 +751,12 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
 
       float mass_val_out = fitFunOut[ieta][j]->GetParameter(1);
       float mass_err_out = fitFunOut[ieta][j]->GetParError(1);
+
+      // peak within 1.5 MeV of a limit of the fit: no real peak
+      double mass_lo = 0;
+      double mass_hi = 0;
+      fitFunOut[ieta][j]->GetParLimits(1, mass_lo, mass_hi);
+      peakAtLimit[ieta][j] = mass_val_out < mass_lo + 0.0015 || mass_val_out > mass_hi - 0.0015;
 
       if (std::isnan(h_M_tbt[ieta][j]->GetEntries()))
       {
@@ -765,6 +803,10 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
 
     for (auto& _hist : fitFunOut[ieta])
     {
+      if (!_hist)
+      {
+        continue;  // empty histogram, not fitted
+      }
       _hist->Write();
       delete _hist;
     }
@@ -777,6 +819,33 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
 
   float final_mass_target = target_pi0_mass;
 
+  // median of the pairs per tower over the towers with pairs, for the minimum
+  std::vector<double> pairsWithData;
+  for (const auto& row : nPairs)
+  {
+    for (double n : row)
+    {
+      if (n > 0)
+      {
+        pairsWithData.push_back(n);
+      }
+    }
+  }
+  double minPairs = 0;
+  if (!pairsWithData.empty())
+  {
+    std::nth_element(pairsWithData.begin(), pairsWithData.begin() + pairsWithData.size() / 2, pairsWithData.end());
+    minPairs = tbtMinPairFrac * pairsWithData[pairsWithData.size() / 2];
+  }
+
+  // A tower is not updated (correction 1) if it has too few pairs, a broad peak or the
+  // peak at a fit limit, and its step is limited to tbtMaxStep: a hot tower with mostly
+  // combinatorial pairs has no real peak, its fit pins at the lower mass limit and an
+  // unguarded update raises its energy and pair count further from iteration to iteration.
+  int nLowStat = 0;
+  int nBroad = 0;
+  int nAtLimit = 0;
+  int nClamped = 0;
   for (int i = 0; i < 96; i++)
   {
     for (int j = 0; j < 256; j++)
@@ -785,20 +854,41 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
       {
         final_mass_target = h_target_mass->GetBinContent(i + 1, j + 1);
       }
-      float correction = final_mass_target / h_peak_tbt->GetBinContent(i + 1, j + 1);
-      if (h_peak_tbt->GetBinContent(i + 1, j + 1) == 0)
+      float correction = 1;
+      float peak = h_peak_tbt->GetBinContent(i + 1, j + 1);
+      if (nPairs[i][j] <= 0 || nPairs[i][j] < minPairs)
       {
-        correction = 0;
+        nLowStat++;
       }
-      if (h_sigma_tbt->GetBinContent(i + 1, j + 1) > 0.040)
+      else if (!(peak > 0))  // NaN in the fit
       {
-        correction = 1;
+        nLowStat++;
+      }
+      else if (h_sigma_tbt->GetBinContent(i + 1, j + 1) > 0.040)
+      {
+        nBroad++;
+      }
+      else if (tbtFreezeAtFitLimit && peakAtLimit[i][j])
+      {
+        nAtLimit++;
+      }
+      else
+      {
+        correction = final_mass_target / peak;
+        if (tbtMaxStep > 0 && std::fabs(correction - 1) > tbtMaxStep)
+        {
+          correction = correction > 1 ? 1 + tbtMaxStep : 1 - tbtMaxStep;
+          nClamped++;
+        }
       }
       unsigned int key = TowerInfoDefs::encode_emcal(i, j);
       float val1 = cdbttree1->GetFloatValue(key, m_fieldname);
       cdbttree2->SetFloatValue(key, m_fieldname, val1 * correction);
     }
   }
+  std::cout << "pi0EtaByEta::fitEtaPhiTowers: towers not updated: " << nLowStat << " with < " << minPairs
+            << " pairs or no fit, " << nBroad << " with sigma > 40 MeV, " << nAtLimit
+            << " with the peak at a fit limit; " << nClamped << " steps limited to +-" << tbtMaxStep << std::endl;
 
   // writing out CDBTtree
   cdbttree2->Commit();

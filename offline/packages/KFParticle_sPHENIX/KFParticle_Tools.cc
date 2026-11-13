@@ -75,6 +75,7 @@
 #include <limits>
 #include <map>        // for _Rb_tree_iterator, map
 #include <memory>     // for allocator_traits<>::va...
+#include <numeric>    // for iota
 
 /// KFParticle constructor
 KFParticle_Tools::KFParticle_Tools()
@@ -615,9 +616,23 @@ std::vector<int> KFParticle_Tools::getParticleCrossings(const KFParticle &partic
   return crossings;
 }
 
-std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices)
+std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<KFParticle> &daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices)
 {
   std::vector<std::vector<int>> goodTracksThatMeet;
+
+  // The crossings of each particle do not depend on the pair, so get them once instead of for every pair
+  const bool checkCrossings = m_require_bunch_crossing_match || m_force_mixed_event;
+  std::vector<std::vector<int>> particleCrossings;
+  if (checkCrossings)
+  {
+    particleCrossings.resize(daughterParticles.size());
+    for (const auto &idx : goodTrackIndex)
+    {
+      particleCrossings[idx] = getParticleCrossings(daughterParticles[idx]);
+    }
+  }
+  std::vector<int> crossings;  // reused for every pair
+  crossings.reserve(16);
 
   for (std::vector<int>::iterator i_it = goodTrackIndex.begin(); i_it != goodTrackIndex.end(); ++i_it)
   {
@@ -625,16 +640,11 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
     {
       if (i_it < j_it)
       {
-        std::vector<KFParticle> dummy_tracks = {daughterParticles[*i_it], daughterParticles[*j_it]};
-        if (m_require_bunch_crossing_match || m_force_mixed_event)
+        if (checkCrossings)
         {
-          std::vector<int> crossings;
-          crossings.reserve(dummy_tracks.size());
-          for (const auto &track : dummy_tracks)
-          {
-            std::vector<int> trackCrossings = getParticleCrossings(track);
-            crossings.insert(crossings.end(), trackCrossings.begin(), trackCrossings.end());
-          }
+          crossings.clear();
+          crossings.insert(crossings.end(), particleCrossings[*i_it].begin(), particleCrossings[*i_it].end());
+          crossings.insert(crossings.end(), particleCrossings[*j_it].begin(), particleCrossings[*j_it].end());
           
           removeDuplicates(crossings);
           
@@ -647,6 +657,8 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
             continue;
           }
         }
+
+        std::vector<KFParticle> dummy_tracks = {daughterParticles[*i_it], daughterParticles[*j_it]};
 
         KFParticle dummy_mother;
         dummy_mother.SetConstructMethod(2);
@@ -738,10 +750,25 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
 {
   unsigned int nGoodProngs = goodTracksThatMeet.size();
 
+  std::vector<int> maxProngIndex;
+  if (m_use_ordered_prongs)
+  {
+    maxProngIndex.reserve(nGoodProngs);
+    for (const auto &prong : goodTracksThatMeet)
+    {
+      maxProngIndex.push_back(*std::max_element(prong.begin(), prong.begin() + (nProngs - 1)));
+    }
+  }
+
   for (const auto &i_it : goodTrackIndex)
   {
     for (unsigned int i_prongs = 0; i_prongs < nGoodProngs; ++i_prongs)
     {
+      if (m_use_ordered_prongs && i_it <= maxProngIndex[i_prongs])
+      {
+        continue;
+      }
+
       bool trackNotUsedAlready = true;
       for (unsigned int i_trackCheck = 0; i_trackCheck < nProngs - 1; ++i_trackCheck)
       {
@@ -755,13 +782,11 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
         bool dcaMet = true;
 
         //Need to propagate all tracks first
-        KFVertex particleVertex;
-        particleVertex += daughterParticles[i_it];
         std::vector<int> combination;
+        combination.reserve(nProngs);
         combination.push_back(i_it);
         for (unsigned int i = 0; i < nProngs - 1; ++i)
         {
-          particleVertex += daughterParticles[goodTracksThatMeet[i_prongs][i]];
           combination.push_back(goodTracksThatMeet[i_prongs][i]);
         }
 
@@ -801,11 +826,20 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
           if (dca > m_comb_DCA || dca_xy > m_comb_DCA_xy)
           {
             dcaMet = false;
+            break;  // this combination is rejected, no need to test the remaining tracks
           }
         }
 
         if (dcaMet)
         {
+          // The vertex of the raw tracks is only needed for the quality and radius selection, so build it here
+          KFVertex particleVertex;
+          particleVertex += daughterParticles[i_it];
+          for (unsigned int i = 0; i < nProngs - 1; ++i)
+          {
+            particleVertex += daughterParticles[goodTracksThatMeet[i_prongs][i]];
+          }
+
           float vertexchi2ndof = particleVertex.GetChi2() / particleVertex.GetNDF();
           float sv_radial_position = sqrt(pow(particleVertex.GetX(), 2) + pow(particleVertex.GetY(), 2));
 
@@ -1182,6 +1216,57 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
         goodCandidate = false;
       }
 
+      // Decay length and time of the intermediate state from the decay vertex of the mother, calculated in the same
+      // way as for the mother in constrainToVertex. The intermediate is refitted to the mother vertex on a temporary
+      // copy (SetProductionVertex changes the particle), so neither the intermediate nor the mother is altered
+      const bool cutOnIntermediateDecay = k < (int) m_intermediate_decayLength_range.size() || k < (int) m_intermediate_decayLength_xy_range.size() || k < (int) m_intermediate_decayTime_range.size() || k < (int) m_intermediate_decayTime_xy_range.size();
+      if (goodCandidate && cutOnIntermediateDecay)
+      {
+        KFParticle intermediateCopy = vDaughters[k];
+        intermediateCopy.SetProductionVertex(mother);
+        intermediateCopy.TransportToDecayVertex();
+
+        float intermediate_decayTime;
+        float intermediate_decayTimeErr;
+        float intermediate_decayLength;
+        float intermediate_decayLengthErr;
+        float intermediate_decayLength_xy;
+        float intermediate_decayLengthErr_xy;
+
+        intermediateCopy.GetLifeTime(intermediate_decayTime, intermediate_decayTimeErr);
+        intermediateCopy.GetDecayLength(intermediate_decayLength, intermediate_decayLengthErr);
+        intermediateCopy.GetDecayLengthXY(intermediate_decayLength_xy, intermediate_decayLengthErr_xy);
+        float intermediate_decayTime_xy = intermediateCopy.GetPseudoProperDecayTime(mother, intermediateCopy.GetMass());
+
+        const float speed = 2.99792458e-2;
+        intermediate_decayTime /= speed;
+        intermediate_decayTime_xy /= speed;  // As for the mother, the pseudo-proper decay time is returned as a length (c*tau)
+
+        const std::pair<float, float> noCut(-std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+        auto rangeOf = [&noCut, k](const std::vector<std::pair<float, float>> &ranges)
+        { return k < (int) ranges.size() ? ranges[k] : noCut; };
+        const auto lengthRange = rangeOf(m_intermediate_decayLength_range);
+        const auto lengthRange_xy = rangeOf(m_intermediate_decayLength_xy_range);
+        const auto timeRange = rangeOf(m_intermediate_decayTime_range);
+        const auto timeRange_xy = rangeOf(m_intermediate_decayTime_xy_range);
+
+        if (!isInRange(lengthRange.first, intermediate_decayLength, lengthRange.second) ||
+            !isInRange(lengthRange_xy.first, intermediate_decayLength_xy, lengthRange_xy.second) ||
+            !isInRange(timeRange.first, intermediate_decayTime, timeRange.second) ||
+            !isInRange(timeRange_xy.first, intermediate_decayTime_xy, timeRange_xy.second))
+        {
+          goodCandidate = false;
+        }
+
+        if (m_verbosity >= 11)
+        {
+          printSelectionCheck("Intermediate Decay Length", lengthRange.first, intermediate_decayLength, lengthRange.second);
+          printSelectionCheck("Intermediate Decay Length xy", lengthRange_xy.first, intermediate_decayLength_xy, lengthRange_xy.second);
+          printSelectionCheck("Intermediate Decay Time", timeRange.first, intermediate_decayTime, timeRange.second);
+          printSelectionCheck("Intermediate Decay Time xy", timeRange_xy.first, intermediate_decayTime_xy, timeRange_xy.second);
+        }
+      }
+
       if (m_verbosity >= 10)
       {
         printSelectionCheck("", "Accepted", "Rejected", "the intermediate selection", goodCandidate);
@@ -1245,6 +1330,7 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
 
   const float speed = 2.99792458e-2;
   calculated_decayTime /= speed;
+  calculated_decayTime_xy /= speed;  // The pseudo-proper decay time is returned as a length (c*tau), convert it to a time like the 3D one
 
   if (calculated_fdchi2 >= m_fdchi2 && calculated_PV_dca <= m_mother_PV_dca && calculated_PV_dca_stddev <= m_mother_PV_dca_stddev && calculated_PV_dca_xy <= m_mother_PV_dca_xy && calculated_PV_dca_stddev_xy <= m_mother_PV_dca_stddev_xy && calculated_decay_time_significance >= m_mother_min_decay_time_significance && calculated_decay_length_significance >= m_mother_min_decay_length_significance && calculated_decay_length_xy_significance >= m_mother_min_decay_length_xy_significance && isInRange(m_dira_min, calculated_dira, m_dira_max) && isInRange(m_dira_xy_min, calculated_dira_xy, m_dira_xy_max) && isInRange(m_min_decayTime, calculated_decayTime, m_max_decayTime) && isInRange(m_min_decayTime_xy, calculated_decayTime_xy, m_max_decayTime_xy) && isInRange(m_min_decayLength, calculated_decayLength, m_max_decayLength) && isInRange(m_min_decayLength_xy, calculated_decayLength_xy, m_max_decayLength_xy))
   {
@@ -1379,44 +1465,77 @@ bool KFParticle_Tools::isInRange(float min, float value, float max)
   return min <= value && value <= max;
 }
 
+namespace
+{
+  // Removes duplicates keeping the first occurrence of each element and the original order, exactly like the
+  // previous quadratic implementation, but in O(n log n) for long vectors. Short vectors use the simple loop.
+  template <typename T>
+  void removeDuplicatesKeepOrder(std::vector<T> &v)
+  {
+    const std::size_t n = v.size();
+    if (n < 2)
+    {
+      return;
+    }
+    if (n <= 16)
+    {
+      auto end = v.end();
+      for (auto it = v.begin(); it != end; ++it)
+      {
+        end = std::remove(it + 1, end, *it);
+      }
+      v.erase(end, v.end());
+      return;
+    }
+
+    std::vector<std::size_t> idx(n);
+    std::iota(idx.begin(), idx.end(), 0);
+    std::stable_sort(idx.begin(), idx.end(), [&v](std::size_t a, std::size_t b) { return v[a] < v[b]; });
+
+    // In each run of equal elements the first entry of the stable sort has the smallest original position
+    std::vector<char> keep(n, 0);
+    for (std::size_t i = 0; i < n; ++i)
+    {
+      if (i == 0 || !(v[idx[i]] == v[idx[i - 1]]))
+      {
+        keep[idx[i]] = 1;
+      }
+    }
+
+    std::size_t out = 0;
+    for (std::size_t i = 0; i < n; ++i)
+    {
+      if (keep[i])
+      {
+        if (out != i)
+        {
+          v[out] = std::move(v[i]);
+        }
+        ++out;
+      }
+    }
+    v.erase(v.begin() + out, v.end());
+  }
+}  // namespace
+
 void KFParticle_Tools::removeDuplicates(std::vector<double> &v)
 {
-  auto end = v.end();
-  for (auto it = v.begin(); it != end; ++it)
-  {
-    end = remove(it + 1, end, *it);
-  }
-  v.erase(end, v.end());
+  removeDuplicatesKeepOrder(v);
 }
 
 void KFParticle_Tools::removeDuplicates(std::vector<int> &v)
 {
-  auto end = v.end();
-  for (auto it = v.begin(); it != end; ++it)
-  {
-    end = remove(it + 1, end, *it);
-  }
-  v.erase(end, v.end());
+  removeDuplicatesKeepOrder(v);
 }
 
 void KFParticle_Tools::removeDuplicates(std::vector<std::vector<int>> &v)
 {
-  auto end = v.end();
-  for (auto it = v.begin(); it != end; ++it)
-  {
-    end = remove(it + 1, end, *it);
-  }
-  v.erase(end, v.end());
+  removeDuplicatesKeepOrder(v);
 }
 
 void KFParticle_Tools::removeDuplicates(std::vector<std::vector<std::string>> &v)
 {
-  auto end = v.end();
-  for (auto it = v.begin(); it != end; ++it)
-  {
-    end = remove(it + 1, end, *it);
-  }
-  v.erase(end, v.end());
+  removeDuplicatesKeepOrder(v);
 }
 
 bool KFParticle_Tools::findParticle(const std::string &particle)
@@ -1435,6 +1554,58 @@ bool KFParticle_Tools::findParticle(const std::string &particle)
 int KFParticle_Tools::getParticleID(const std::string &particle)
 {
   return TDatabasePDG::Instance()->GetParticle(particle.c_str())->PdgCode();
+}
+
+/*
+ *  Checks the charge and the particle species given to the final-state tracks of a decay with intermediate states
+ *  against the decay descriptor. 'assigned' holds (charge, |PDG ID|) for each final-state track, ordered as the
+ *  daughters of the descriptor: the tracks of each intermediate state in turn, then the tracks coming straight from
+ *  the mother. Within one parent the tracks can be in any order, as the PID permutations are tried per track.
+ *  Either every charge is as in the descriptor or, if the charge conjugate is requested, every charge is flipped.
+ *  Mixing the two (e.g. Lambda0 -> p- pi+ in Xi- -> Lambda0 pi-) is rejected.
+ */
+bool KFParticle_Tools::finalStateMatchesDecay(const std::vector<std::pair<int, int>> &assigned)
+{
+  if (assigned.size() != m_daughter_name.size() || m_daughter_charge.size() != m_daughter_name.size())
+  {
+    return true;  // The descriptor is not available in the form needed, do not reject anything
+  }
+
+  std::vector<unsigned int> groupSizes;
+  unsigned int tracksFromIntermediates = 0;
+  for (int i = 0; i < m_num_intermediate_states && i < (int) m_num_tracks_from_intermediate.size(); ++i)
+  {
+    groupSizes.push_back(m_num_tracks_from_intermediate[i]);
+    tracksFromIntermediates += m_num_tracks_from_intermediate[i];
+  }
+  if (tracksFromIntermediates < assigned.size())
+  {
+    groupSizes.push_back(assigned.size() - tracksFromIntermediates);
+  }
+
+  bool matchesDescriptor = true;
+  bool matchesConjugate = m_get_charge_conjugate;
+  unsigned int first = 0;
+  for (const auto &size : groupSizes)
+  {
+    std::vector<std::pair<int, int>> expected, expectedConjugate, found;
+    for (unsigned int i = first; i < first + size && i < assigned.size(); ++i)
+    {
+      const int absPDG = std::abs(getParticleID(m_daughter_name[i]));
+      expected.emplace_back(m_daughter_charge[i], absPDG);
+      expectedConjugate.emplace_back(-m_daughter_charge[i], absPDG);
+      found.push_back(assigned[i]);
+    }
+    std::sort(expected.begin(), expected.end());
+    std::sort(expectedConjugate.begin(), expectedConjugate.end());
+    std::sort(found.begin(), found.end());
+
+    matchesDescriptor = matchesDescriptor && (found == expected);
+    matchesConjugate = matchesConjugate && (found == expectedConjugate);
+    first += size;
+  }
+
+  return matchesDescriptor || matchesConjugate;
 }
 
 float KFParticle_Tools::getParticleMass(const std::string &particle)

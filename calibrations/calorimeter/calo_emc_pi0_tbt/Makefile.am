@@ -14,6 +14,7 @@ AM_LDFLAGS = \
   -lCLHEP \
   -lfun4all \
   -lglobalvertex_io \
+  -lmbd_io \
   -lcalo_io \
   -lcalotrigger_io \
   -lcalotrigger \

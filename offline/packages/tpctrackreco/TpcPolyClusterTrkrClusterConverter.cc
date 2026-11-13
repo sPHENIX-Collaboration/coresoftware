@@ -1,5 +1,7 @@
 #include "TpcPolyClusterTrkrClusterConverter.h"
 
+#include "Tpc_PolyClusterEdge.h"
+
 #include "Tpc_PolyCluster.h"
 #include "Tpc_PolyClusterContainer.h"
 #include "Tpc_PolyTrack.h"
@@ -25,6 +27,7 @@
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrDefs.h>
+#include <phgarfield/PHGarfield.h>
 
 #include <tpc/TpcClusterMover.h>
 
@@ -82,6 +85,12 @@ int TpcPolyClusterTrkrClusterConverter::InitRun(PHCompositeNode* topNode)
 
 int TpcPolyClusterTrkrClusterConverter::getNodes(PHCompositeNode* topNode)
 {
+  m_garfield = findNode::getClass<PHGarfield>(topNode, "PHGarfield");
+  if (!m_garfield)
+  {
+    std::cerr << Name() << "::getNodes - missing GARFIELD" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
   m_polyClusters = findNode::getClass<Tpc_PolyClusterContainer>(topNode, m_polyClusterNodeName);
   if (!m_polyClusters)
   {
@@ -107,6 +116,13 @@ int TpcPolyClusterTrkrClusterConverter::getNodes(PHCompositeNode* topNode)
   if (!m_geometry)
   {
     std::cerr << Name() << "::getNodes - missing ActsGeometry" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_geomContainerTpc = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  if (!m_geomContainerTpc)
+  {
+    std::cerr << Name() << "::getNodes - missing TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -270,9 +286,14 @@ bool TpcPolyClusterTrkrClusterConverter::localFromMovedGlobal(const Tpc_PolyClus
     local.y() - static_cast<double>(crossing) * z_bunch_separation;
   const double tuncorrected = (side == 0) ? (zloc_uncorrected + half_drift) / drift_velocity : (half_drift - zloc_uncorrected) / drift_velocity;
   //const double stored_t_uncorrected = tuncorrected - m_geometry->get_tpc_tzero() - m_geometry->get_sampa_tzero_bias();
-  const double stored_t_uncorrected = (side == 0) ?
+  double stored_t_uncorrected = (side == 0) ?
       tuncorrected - m_geometry->get_tpc_tzero() + 2 * m_geometry->get_sampa_tzero_bias() :
       tuncorrected - m_geometry->get_tpc_tzero() - m_geometry->get_sampa_tzero_bias();
+
+  // exact inverse of ActsGeometry::getLocalCoords, which adds tpc_tzero + sampa_tzero_bias on both sides
+  if(m_garfield->GetIsNonDistortedMC()){
+    stored_t_uncorrected = tuncorrected - m_geometry->get_tpc_tzero() - m_geometry->get_sampa_tzero_bias();
+  }
   if (!std::isfinite(stored_t_uncorrected)) { return false;
   }
 
@@ -406,7 +427,9 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
   const unsigned int adc = adc_to_uint16(cluster->get_adc());
   out->setAdc(adc);
   out->setMaxAdc(static_cast<uint16_t>(adc));
-  out->setEdge(0);
+  // Sector-edge count with the TpcClusterizer convention, so ClusterErrorPara
+  // and the fitter's edge rejection treat poly clusters like standard ones.
+  out->setEdge(static_cast<char>(tpc_poly_cluster_sector_edges(*cluster, *m_geomContainerTpc)));
   out->setPhiSize(size_to_char(cluster->get_phi_width()));
   out->setZSize(size_to_char(cluster->get_time_width()));
   out->setSubSurfKey(subsurfkey);

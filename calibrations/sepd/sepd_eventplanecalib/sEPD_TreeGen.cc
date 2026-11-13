@@ -12,6 +12,8 @@
 
 // -- MB
 #include <calotrigger/MinimumBiasInfo.h>
+#include <calotrigger/TriggerAnalyzer.h>
+#include <calotrigger/TriggerRunInfo.h>
 
 #include <centrality/CentralityInfo.h>
 
@@ -29,6 +31,8 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
+#include <phool/RunnumberRange.h>
 
 // -- ROOT
 #include <TProfile.h>
@@ -45,6 +49,10 @@ sEPD_TreeGen::sEPD_TreeGen(const std::string &name)
 }
 
 //____________________________________________________________________________..
+// Defined here so unique_ptr<TriggerAnalyzer> sees the complete type
+sEPD_TreeGen::~sEPD_TreeGen() = default;
+
+//____________________________________________________________________________..
 int sEPD_TreeGen::Init(PHCompositeNode *topNode)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
@@ -52,6 +60,9 @@ int sEPD_TreeGen::Init(PHCompositeNode *topNode)
   {
     se->Print("NODETREE");
   }
+
+  m_triggerAnalyzer = std::make_unique<TriggerAnalyzer>();
+
   unsigned int bins_sepd_totalcharge{100};
   double sepd_totalcharge_low{0};
   double sepd_totalcharge_high{2e4};
@@ -92,6 +103,68 @@ int sEPD_TreeGen::Init(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
+int sEPD_TreeGen::InitRun(PHCompositeNode *topNode)
+{
+  TriggerRunInfo *triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
+  if (!triggerruninfo)
+  {
+    std::cout << PHWHERE << "TriggerRunInfo Node missing, doing nothing." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  // MBD trigger names for each run period (gl1_triggernames)
+  const int runnumber = recoConsts::instance()->get_IntFlag("RUNNUMBER");
+  if (runnumber >= RunnumberRange::RUN2AUAU_FIRST && runnumber <= RunnumberRange::RUN2AUAU_LAST)
+  {
+    // No 150 cm trigger in early Run 2 Au+Au, so use the 60 cm trigger present for the full run period
+    m_trig_mbd_narrow = "MBD N&S >= 2, vtx < 10 cm";
+    m_trig_mbd_wide = "MBD N&S >= 2, vtx < 60 cm";
+  }
+  else if (runnumber >= RunnumberRange::RUN3AUAU_FIRST && runnumber <= RunnumberRange::RUN3AUAU_LAST)
+  {
+    m_trig_mbd_narrow = "MBD N&S >= 2, vtx < 10 cm";
+    m_trig_mbd_wide = "MBD N&S >= 2, vtx < 150 cm";
+  }
+  else if (runnumber >= RunnumberRange::RUN3PP_FIRST)
+  {
+    // Names changed from N&S >= 2 to N&S >= 1 starting with Run 3 p+p
+    m_trig_mbd_narrow = "MBD N&S >= 1, vtx < 10 cm";
+    m_trig_mbd_wide = "MBD N&S >= 1, vtx < 150 cm";
+  }
+  else
+  {
+    std::cout << PHWHERE << "Run " << runnumber << " is outside the supported run periods, no MBD trigger names defined." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  // getTriggerBitByName returns 0 for an unknown name, so confirm the round trip
+  auto resolve_bit = [triggerruninfo](const std::string &name) -> int
+  {
+    int bit = static_cast<int>(triggerruninfo->getTriggerBitByName(name));
+    return (triggerruninfo->getTriggerName(bit) == name) ? bit : -1;
+  };
+
+  m_bit_mbd_narrow = resolve_bit(m_trig_mbd_narrow);
+  m_bit_mbd_wide = resolve_bit(m_trig_mbd_wide);
+
+  if (m_bit_mbd_narrow < 0 || m_bit_mbd_wide < 0)
+  {
+    std::cout << PHWHERE << "Run " << runnumber << ": MBD trigger not found in TriggerRunInfo: "
+              << "\"" << m_trig_mbd_narrow << "\" -> " << m_bit_mbd_narrow << ", "
+              << "\"" << m_trig_mbd_wide << "\" -> " << m_bit_mbd_wide << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  if (Verbosity() > 0)
+  {
+    std::cout << "sEPD_TreeGen::InitRun - Run " << runnumber << ": \"" << m_trig_mbd_narrow << "\" -> bit " << m_bit_mbd_narrow
+              << ", \"" << m_trig_mbd_wide << "\" -> bit " << m_bit_mbd_wide << std::endl;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//____________________________________________________________________________..
 int sEPD_TreeGen::process_event_check(PHCompositeNode *topNode)
 {
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
@@ -121,8 +194,19 @@ int sEPD_TreeGen::process_event_check(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  // MBD Trigger
+  // decodeTriggers leaves the previous event's trigger bits in place on failure
+  if (m_triggerAnalyzer->decodeTriggers(topNode))
+  {
+    std::cout << PHWHERE << "Trigger decoding failed (TriggerRunInfo or GL1 packet missing), doing nothing." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  bool mbd_trigger_fire = m_triggerAnalyzer->didTriggerFire(m_bit_mbd_narrow) || m_triggerAnalyzer->didTriggerFire(m_bit_mbd_wide);
+  bool pass_MB = mbd_trigger_fire && m_mb_info->isAuAuMinimumBias();
+
   // skip event if not minimum bias
-  if (!m_mb_info->isAuAuMinimumBias())
+  if (!pass_MB)
   {
     if (Verbosity() > 1)
     {
@@ -294,10 +378,6 @@ int sEPD_TreeGen::process_event(PHCompositeNode *topNode)
 
   m_data.event_id = eventInfo->get_EvtSequence();
 
-  if (Verbosity() && m_event % PROGRESS_PRINT_INTERVAL == 0)
-  {
-    std::cout << "Progress: " << m_event << ", Global: " << m_data.event_id << std::endl;
-  }
   ++m_event;
 
   m_evtdata = findNode::getClass<EventPlaneData>(topNode, "EventPlaneData");

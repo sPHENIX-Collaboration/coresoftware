@@ -91,8 +91,10 @@ KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
 int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
 {
   m_verbosity = Verbosity();
+  m_qa_tree_path = Name() + "/DecayTree";  // one directory per module so several KFParticle modules do not clash
+  m_verbosity_nTuple = Verbosity();
   
-  if (m_save_output && Verbosity() >= VERBOSITY_SOME)
+  if (m_save_output && !m_minimal_output_to_qa && Verbosity() >= VERBOSITY_SOME)
   {
     std::cout << "Output nTuple: " << m_outfile_name << std::endl;
   }
@@ -156,7 +158,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   std::vector<std::vector<KFParticle>> intermediates;
   int nPVs;
   int multiplicity;
- 
+
   // Adding BCO Matching  
   auto* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader"); // event header node
   auto* gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");     // gl1 packet node
@@ -273,7 +275,10 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
       
       if (m_save_output && getCandidateCounter() == 0)
       {
-        m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
+        if (!m_minimal_output_to_qa)
+        {
+          m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
+        }
         initializeBranches(topNode);
       }
 
@@ -311,7 +316,7 @@ int KFParticle_sPHENIX::End(PHCompositeNode * /*topNode*/)
 {
   std::cout << "KFParticle_sPHENIX object " << Name() << " finished. Number of candidates: " << getCandidateCounter() << std::endl;
 
-  if (m_save_output && getCandidateCounter() != 0)
+  if (m_save_output && !m_minimal_output_to_qa && getCandidateCounter() != 0)
   {
     m_outfile->Write();
     m_outfile->Close();

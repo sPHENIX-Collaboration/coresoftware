@@ -52,8 +52,11 @@ class pi0EtaByEta : public SubsysReco
 
   void Detector(const std::string& name) { detector = name; }
   void set_timing_cut_width(const int t) { _range = t; }
-  void set_vertex_cut(const float v) { _vz = v; }
+  void set_vertex_cut(const float v) { vtx_z_cut = v; }
   void apply_vertex_cut(bool Vtx_cut) { doVtxCut = Vtx_cut; }
+  // |MBD t0| < cut (ns), against out-of-time collisions (default off; for AuAu)
+  void set_mbd_t0_cut(const float t) { mbd_t0_cut = t; }
+  void apply_mbd_t0_cut(bool state) { doMbdT0Cut = state; }
 
   static TF1* fitHistogram(TH1* h);
   void fitEtaSlices(const std::string& infile, const std::string& outfile, const std::string& cdbFile);
@@ -144,10 +147,31 @@ class pi0EtaByEta : public SubsysReco
   {
     ptClusMax = val;
   }
+  // pair pT > 1.22 * (pt1BaseClusCut + pt2BaseClusCut) (default on)
+  void set_applyPairPtCut(bool state)
+  {
+    applyPairPtCut = state;
+  }
   // cluster energy for the pairs: full cluster energy (default) or ECore
   void set_useEcore(bool state)
   {
     useEcore = state;
+  }
+  // guards of the tower-by-tower update in fitEtaPhiTowers (all on by default):
+  // largest step of a tower per iteration, |correction - 1| <= val (<= 0: no limit)
+  void set_tbt_max_step(float val)
+  {
+    tbtMaxStep = val;
+  }
+  // no update of a tower with fewer pairs than frac x the median over towers (0: off)
+  void set_tbt_min_pair_frac(float frac)
+  {
+    tbtMinPairFrac = frac;
+  }
+  // no update of a tower whose fitted peak is at a limit of the fit (no real peak)
+  void set_tbt_freeze_at_fit_limit(bool state)
+  {
+    tbtFreezeAtFitLimit = state;
   }
 
  protected:
@@ -163,6 +187,8 @@ class pi0EtaByEta : public SubsysReco
 
   bool doVtxCut{true};
   float vtx_z_cut{20};
+  bool doMbdT0Cut{false};
+  float mbd_t0_cut{2.5};
   bool m_use_vertextype{false};
   GlobalVertex::VTXTYPE m_vertex_type{GlobalVertex::UNDEFINED};
 
@@ -199,9 +225,9 @@ class pi0EtaByEta : public SubsysReco
   int _eventcounter{0};
   int _range{1};
 
-  float _vz{0.};
   float target_pi0_mass{0.146};
   float ptClusMax{4};
+  bool applyPairPtCut{true};
 
   bool dynMaskClus{false};
   bool doMix{false};
@@ -285,10 +311,15 @@ class pi0EtaByEta : public SubsysReco
   TH1* h_emcal_e_eta{nullptr};
   TH2* h_m_pt{nullptr};
   TH1* h_tower_e{nullptr};
+  TH1* h_mbd_t0{nullptr};
 
   TriggerAnalyzer* trigAna{nullptr};
 
   float convLev = {0.005};
+
+  float tbtMaxStep{0.10};
+  float tbtMinPairFrac{0.05};
+  bool tbtFreezeAtFitLimit{true};
 };
 
 #endif

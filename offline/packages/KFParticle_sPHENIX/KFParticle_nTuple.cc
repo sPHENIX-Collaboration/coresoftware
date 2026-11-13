@@ -1,17 +1,20 @@
 #include "KFParticle_nTuple.h"
-
 #include "KFParticle_Tools.h"
 
 #include <ffaobjects/EventHeader.h>
 #include <ffarawobjects/Gl1Packet.h>
+#include <fun4all/Fun4AllHistoManager.h>
 
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
+#include <qautils/QAHistManagerDef.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
 #include <KFParticle.h>
 #include <KFVertex.h>
+
+#include <centrality/CentralityInfo.h>
 
 #include <Rtypes.h>
 #include <TString.h>  // for TString, operator+
@@ -70,9 +73,14 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
   }
   //setup only the momentum calibration branches
   
-  if (m_momentum_calibration_output)
+  if (m_minimal_output)
   {
     initializeMomentumCalibrationBranches(mother_name);
+    // Hand the tree to the QA histogram manager, which then owns it (and detaches it from any TFile)
+    if (m_minimal_output_to_qa && !QAHistManagerDef::getHistoManager()->registerHisto(m_qa_tree_path, m_tree))
+    {
+      std::cout << "KFParticle_nTuple: could not register " << m_qa_tree_path << " with the QA histogram manager" << std::endl;
+    }
     return;
   }
 
@@ -247,7 +255,6 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
     // m_tree->Branch(TString(daughter_number) + "_expected_pion_dEdx", &m_calculated_daughter_expected_dedx_pion[i], TString(daughter_number) + "_expected_pion_dEdx/F");
     // m_tree->Branch(TString(daughter_number) + "_expected_kaon_dEdx", &m_calculated_daughter_expected_dedx_kaon[i], TString(daughter_number) + "_expected_kaon_dEdx/F");
     // m_tree->Branch(TString(daughter_number) + "_expected_proton_dEdx", &m_calculated_daughter_expected_dedx_proton[i], TString(daughter_number) + "_expected_proton_dEdx/F");
-
     if (m_calo_info)
     {
       initializeCaloBranches(m_tree, i, daughter_number);
@@ -302,6 +309,12 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
     // m_tree->Branch( "primary_vertex_Covariance",   m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
     m_tree->Branch("primary_vertex_Covariance", &m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6);
   }
+
+  if (m_use_centrality_nTuple)
+  {
+    m_tree->Branch("centrality_MBD", &m_centrality_mbd);
+  }
+
   if (m_get_all_PVs)
   {
     m_tree->Branch("all_primary_vertex_x", &allPV_x);
@@ -413,7 +426,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   }
   //This is the setup for filling only the momentum calibration branches
   //It is placed here after the daughters are prepared but before the branches are filled
-  if (m_momentum_calibration_output)
+  if (m_minimal_output)
   {
     fillMomentumCalibrationBranch(topNode, motherParticle, daughterArray);
     return;
@@ -509,6 +522,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   }
 
   isTrackEMCalmatch = true;
+  bool bunchCrossingisZero = true;
   for (int i = 0; i < m_num_tracks_nTuple; ++i)
   {
     m_calculated_daughter_mass[i] = daughterArray[i].GetMass();
@@ -553,6 +567,10 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     SvtxTrackMap* thisTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_tools->get_trk_map_node_name());
     SvtxTrack* thisTrack = getTrack(daughterArray[i].Id(), thisTrackMap);
     m_calculated_daughter_bunch_crossing[i] = thisTrack->get_crossing();
+    if (m_calculated_daughter_bunch_crossing[i] != 0)
+    {
+      bunchCrossingisZero = false;
+    }
     if (m_get_dEdx)
     {
       m_calculated_daughter_dedx[i] = m_tools->get_dEdx(topNode, daughterArray[i]);  // m_get_dEdx defaults to false; run get_dEdx_info() to change this
@@ -724,6 +742,44 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_runNumber = -1;
     m_evtNumber = -1;
     m_bco = -1;
+  }
+
+  if (m_use_centrality_nTuple)
+  {
+    m_CentInfo = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
+    if (!m_CentInfo)
+    {
+      std::cout << "KFparticle - [WARNING] - can't find CentralityInfo node " << "CentralityInfo" << std::endl;
+      m_centrality_mbd = -9999.;
+    }
+    else
+    {
+      if (m_CentInfo->has_centrality_bin(CentralityInfo::PROP::mbd_NS))
+      {
+        if (bunchCrossingisZero)
+        {
+          const int bin = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
+          m_centrality_mbd = bin;
+        }
+        else
+        {
+          if (m_verbosity_nTuple > 0)
+          {
+            std::cout << "KFParticle - Invalid bunch crossing" << std::endl;
+          }
+          m_centrality_mbd = std::numeric_limits<float>::quiet_NaN();
+        }
+      }
+      else
+      {
+        if (m_verbosity_nTuple > 0)
+        {
+          std::cout << "KFParticle - No centrality information found in CentralityInfo. Setting centrality_MBD to -999." << std::endl;
+          m_CentInfo->identify();
+        }
+        m_centrality_mbd = -999.;
+      }
+    }
   }
 
   if (m_trigger_info_available)

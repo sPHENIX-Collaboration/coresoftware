@@ -20,6 +20,7 @@ libzdcinfo_la_LIBADD = \
   libzdcinfo_io.la \
   -lfun4all \
   -lcalo_io \
+  -lmbd_io \
   -lcdbobjects \
   -lffamodules \
   -lglobalvertex_io

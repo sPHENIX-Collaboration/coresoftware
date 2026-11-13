@@ -35,10 +35,14 @@ class CDBInterface : public SubsysReco
 
   std::string getUrl(const std::string &domain, const std::string &filename = "");
 
+  /// all payloads this job got through getUrl() (also those from ReadCalibrationsFromFile),
+  /// as (type, url, timestamp); payloads carried in from input DSTs are not in here
+  const std::set<std::tuple<std::string, std::string, uint64_t>> &getUrls() const { return m_UrlVector; }
+
   void DumpCalibrations(const std::string &filename);
   void ReadCalibrationsFromFile(const std::string &filename);
 
- private:
+private:
   CDBInterface(const std::string &name = "CDBInterface");
 
   static CDBInterface *__instance;

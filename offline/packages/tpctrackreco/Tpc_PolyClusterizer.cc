@@ -395,7 +395,7 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
 
     m_garfield = m_ownedGarfield.get();
   }
-  // Non-distorted MC: t0 and sampling clock of the simulation, unless set in the macro.
+  // Non-distorted MC: t0, sampling clock and pedestal of the simulation, unless set in the macro.
   if (m_garfield->GetIsNonDistortedMC())
   {
     if (!m_t0Override)
@@ -406,11 +406,17 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
     {
       m_tpcAdcClock = layergeom->get_adc_clock();
     }
+    if (!m_pedestalOverride)
+    {
+      m_pedestal = kSimPedestalAdc;
+    }
     std::cout << Name() << "::InitRun - non-distorted MC: t0=" << m_t0 << " tbins"
               << (m_t0Override ? " [macro]" : "")
               << ", ADC clock=" << m_tpcAdcClock << " ns"
               << (m_tpcAdcClockOverride ? " [macro]" : "") << std::endl;
   }
+  std::cout << Name() << "::InitRun - pedestal=" << m_pedestal << " ADC"
+            << (m_pedestalOverride ? " [macro]" : "") << std::endl;
 
   // Per-side run dt0 (time bins), read once.
   m_deltaT0Tbins = {{m_garfield->GetDeltaT0Tbins(0), m_garfield->GetDeltaT0Tbins(1)}};
@@ -1109,7 +1115,8 @@ bool Tpc_PolyClusterizer::make_xyz_point(TrkrDefs::hitsetkey hsk,
   const unsigned int hit_side = TpcDefs::getSide(hsk);
   const unsigned int pad = TpcDefs::getPad(hk);
   const unsigned int tbin = TpcDefs::getTBin(hk);
-  const double adc = hit->getAdc();
+  // pedestal subtracted; a hit at or below pedestal gets zero weight in the centroid
+  const double adc = std::max(0.0, static_cast<double>(hit->getAdc()) - m_pedestal);
 
   double x = 0.0;
   double y = 0.0;
