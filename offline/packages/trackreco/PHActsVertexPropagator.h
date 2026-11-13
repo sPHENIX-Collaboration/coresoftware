@@ -35,6 +35,7 @@ class PHActsVertexPropagator : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
   void setTrackMapName(std::string const& track_map_name) { m_trackMapName = track_map_name; }
+  void setVertexMapName(std::string const& vertex_map_name) { m_vertexMapName = vertex_map_name; }
   void fieldMap(std::string &fieldmap) { m_fieldMap = fieldmap; }
 
  private:
@@ -50,6 +51,7 @@ class PHActsVertexPropagator : public SubsysReco
   ActsGeometry *m_tGeometry = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
   std::string m_trackMapName = "SvtxTrackMap";
+  std::string m_vertexMapName = "SvtxVertexMap";
   SvtxTrackMap *m_trackMap = nullptr;
   std::string m_fieldMap = "";
 };
