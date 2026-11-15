@@ -912,8 +912,6 @@ int KshortReconstruction::InitRun(PHCompositeNode* topNode)
 
 ntp_reco_info = new TNtuple("ntp_reco_info", "decay_pairs", "id1:mass1:crossing1:x1:y1:z1:px1:py1:pz1:dca3dxy1:dca3dz1:phi1:pca_rel1_x:pca_rel1_y:pca_rel1_z:eta1:charge1:tpcClusters_1:id2:mass2:crossing2:x2:y2:z2:px2:py2:pz2:dca3dxy2:dca3dz2:phi2:pca_rel2_x:pca_rel2_y:pca_rel2_z:eta2:charge2:tpcClusters_2:ntracks_vertex:vertex_x:vertex_y:vertex_z:pair_dca:invariant_mass:invariant_pt:invariantPhi:pathlength_x:pathlength_y:pathlength_z:pathlength:rapidity:pseudorapidity:projected_pos1_x:projected_pos1_y:projected_pos1_z:projected_pos2_x:projected_pos2_y:projected_pos2_z:projected_mom1_x:projected_mom1_y:projected_mom1_z:projected_mom2_x:projected_mom2_y:projected_mom2_z:projected_pca_rel1_x:projected_pca_rel1_y:projected_pca_rel1_z:projected_pca_rel2_x:projected_pca_rel2_y:projected_pca_rel2_z:projected_pair_dca:projected_pathlength_x:projected_pathlength_y:projected_pathlength_z:projected_pathlength:quality1:quality2:cosThetaReco:track1_silicon_clusters:track2_silicon_clusters:track1_mvtx_clusters:track1_mvtx_states:track1_intt_clusters:track1_intt_states:track2_mvtx_clusters:track2_mvtx_states:track2_intt_clusters:track2_intt_states:runNumber:eventNumber");
 
-  getNodes(topNode);
-
   recomass = new TH1D("recomass", "recomass", 1000, 0.0, 1);  // root histogram arguments: name,title,bins,minvalx,maxvalx
 
   //Add new track map to save selected tracks
@@ -935,7 +933,9 @@ ntp_reco_info = new TNtuple("ntp_reco_info", "decay_pairs", "id1:mass1:crossing1
     if (Verbosity() > 1) { std::cout << m_output_trackMap_node_name << " node added" << std::endl; }
   }
 
-  return 0;
+  int retvalue = getNodes(topNode);
+    
+  return retvalue;
 }
 
 int KshortReconstruction::End(PHCompositeNode* /**topNode*/)
@@ -959,13 +959,20 @@ int KshortReconstruction::getNodes(PHCompositeNode* topNode)
     }
   else
     {
-      std::cout << PHWHERE << "Using tracks ffrom node " <<  m_input_trackMap_node_name.c_str()  << std::endl;
+      std::cout << PHWHERE << "Using tracks ffrom node " <<  m_input_trackMap_node_name  << std::endl;
     }
   
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if (!m_vertexMap)
   {
     std::cout << PHWHERE << "No vertexMap on node tree, exiting." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if (!_tGeometry)
+  {
+    std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -982,13 +989,6 @@ int KshortReconstruction::getNodes(PHCompositeNode* topNode)
       std::cout << PHWHERE << "No TPC seed map on node tree, exiting." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-
-  _tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-  if (!_tGeometry)
-  {
-    std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
