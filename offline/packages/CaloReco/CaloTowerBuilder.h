@@ -131,6 +131,12 @@ class CaloTowerBuilder : public SubsysReco
   CDBTTree *cdbttree_sepd_map{nullptr};
   CDBTTree *cdbttree_tbt_zs{nullptr};
 
+  // sEPD packet 9001, channels 0-31 (north sector 7): before this run the
+  // uninstrumented input is ch 1 (Run 24 cabling), from this run on it is ch 14
+  // like every other 32-channel group
+  static constexpr int m_sepd_first_run25{66000};
+  int m_runnumber{0};
+
   bool m_isdata{true};
   bool m_bdosoftwarezerosuppression{false};
   bool m_dotbtszs{false};

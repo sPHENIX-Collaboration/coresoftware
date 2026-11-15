@@ -36,6 +36,7 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <map>
 #include <set>
 #include <thread>
 #include <utility>
@@ -1358,10 +1359,6 @@ bool Tpc_AssembledTrackReco::candidates_can_connect(const Candidate& a,
   {
     return false;
   }
-  if (a.last_layer >= b.first_layer)
-  {
-    return false;
-  }
 
   // Preserve the existing same-sector rejection. No new sector-distance
   // restriction is introduced: tracks are still free to cross sectors.
@@ -1370,7 +1367,19 @@ bool Tpc_AssembledTrackReco::candidates_can_connect(const Candidate& a,
     return false;
   }
 
-  const unsigned int gap = b.first_layer - a.last_layer - 1;
+  // b must extend a outwards. Since the sectors differ, the two may share up
+  // to m_connectMaxLayerOverlap layers (track along a sector edge).
+  if (b.first_layer <= a.first_layer || b.last_layer <= a.last_layer)
+  {
+    return false;
+  }
+  const unsigned int overlap = (a.last_layer >= b.first_layer) ? a.last_layer - b.first_layer + 1 : 0;
+  if (overlap > m_connectMaxLayerOverlap)
+  {
+    return false;
+  }
+
+  const unsigned int gap = (overlap > 0) ? 0 : b.first_layer - a.last_layer - 1;
   if (gap > m_connectMaxLayerGap)
   {
     return false;
@@ -1383,10 +1392,14 @@ bool Tpc_AssembledTrackReco::candidates_can_connect(const Candidate& a,
     return false;
   }
 
-    const double rmatch = m_useWeightedMatchPoint
-                            ? weighted_match_radius(a.first_layer, a.last_layer, a.nblobs,
-                                                    b.first_layer, b.last_layer, b.nblobs)
-                            : 0.5 * (ra + rb);
+  // With shared layers both candidates have hits at the middle of the
+  // overlap, so compare there and neither has to extrapolate.
+  double rmatch = 0.5 * (ra + rb);
+  if (overlap == 0 && m_useWeightedMatchPoint)
+  {
+    rmatch = weighted_match_radius(a.first_layer, a.last_layer, a.nblobs,
+                                   b.first_layer, b.last_layer, b.nblobs);
+  }
 
   // Cheap tbin compatibility first.
   const double tbin_a = a.tbin_slope_r * rmatch + a.tbin_intercept_r;
@@ -1868,6 +1881,32 @@ int Tpc_AssembledTrackReco::process_event(PHCompositeNode* /*unused*/)
       m_tree_source_side.push_back(p.side);
     }
 
+    // A cross-sector connection with shared layers carries hits from two
+    // sectors in those layers. Keep only the sector with more hits there, so
+    // the clusterizer does not build two edge-truncated clusters per layer.
+    std::map<unsigned int, std::map<unsigned int, unsigned int>> hits_per_layer_sector;
+    if (m_connectMaxLayerOverlap > 0)
+    {
+      for (unsigned int piece_index : c.piece_indices)
+      {
+        for (const PiecePoint& point : pieces[piece_index].points)
+        {
+          ++hits_per_layer_sector[TrkrDefs::getLayer(point.hitsetkey)][TpcDefs::getSectorId(point.hitsetkey)];
+        }
+      }
+    }
+    auto keep_point = [&hits_per_layer_sector](const PiecePoint& point)
+    {
+      const auto layer_it = hits_per_layer_sector.find(TrkrDefs::getLayer(point.hitsetkey));
+      if (layer_it == hits_per_layer_sector.end() || layer_it->second.size() < 2)
+      {
+        return true;
+      }
+      const auto best = std::max_element(layer_it->second.begin(), layer_it->second.end(),
+                                         [](const auto& x, const auto& y) { return x.second < y.second; });
+      return TpcDefs::getSectorId(point.hitsetkey) == best->first;
+    };
+
     // Candidate no longer duplicates all hit keys during every trial refit.
     // Recover them once from the accepted pieces when writing the final track.
     for (unsigned int piece_index : c.piece_indices)
@@ -1876,6 +1915,10 @@ int Tpc_AssembledTrackReco::process_event(PHCompositeNode* /*unused*/)
 
       for (const PiecePoint& point : p.points)
       {
+        if (!keep_point(point))
+        {
+          continue;
+        }
         out->add_hit_index(point.hitsetkey, point.hitkey);
         m_tree_hit_assembled_track_id.push_back(assembled_id);
         m_tree_hit_hitsetkey.push_back(

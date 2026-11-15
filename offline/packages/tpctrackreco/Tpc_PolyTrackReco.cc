@@ -4,6 +4,7 @@
 #include "Tpc_FittingTools.h"
 #include "Tpc_PolyCluster.h"
 #include "Tpc_PolyClusterContainer.h"
+#include "Tpc_PolyClusterEdge.h"
 #include "Tpc_PolyTrackContainerv1.h"
 #include "Tpc_PolyTrackv1.h"
 
@@ -156,6 +157,13 @@ int Tpc_PolyTrackReco::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }
   
+  m_geomContainerTpc = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  if (!m_geomContainerTpc)
+  {
+    std::cerr << Name() << "::getNodes - missing TPCGEOMCONTAINER" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
   m_clusters = findNode::getClass<Tpc_PolyClusterContainer>(topNode, m_inputNodeName);
   if (!m_clusters)
   {
@@ -289,13 +297,16 @@ int Tpc_PolyTrackReco::process_event(PHCompositeNode* topNode)
   {
     const std::vector<const Tpc_PolyCluster*>& clusters = track_clusters.second;
     std::vector<Tpc_FittingTools::Point> fit_points;
+    std::vector<Tpc_FittingTools::Point> fit_points_no_edge;
     fit_points.reserve(clusters.size());
+    fit_points_no_edge.reserve(clusters.size());
     for (const Tpc_PolyCluster* cluster : clusters)
     {
       if (!cluster)
       {
         continue;
       }
+      const bool at_edge = m_excludeEdgeClustersFromFit && tpc_poly_cluster_sector_edges(*cluster, *m_geomContainerTpc) > 0;
       Tpc_FittingTools::Point fp;
       Acts::Vector3 fp_envelope(cluster->get_centroid_x(), cluster->get_centroid_y(), cluster->get_centroid_z());
       const Acts::Vector3 fp_sphenix =  m_geometry->transformTpcEnvelopeToWorld(fp_envelope);
@@ -311,7 +322,15 @@ int Tpc_PolyTrackReco::process_event(PHCompositeNode* topNode)
       if (std::isfinite(fp.x) && std::isfinite(fp.y) && std::isfinite(fp.z))
       {
         fit_points.push_back(fp);
+        if (!at_edge)
+        {
+          fit_points_no_edge.push_back(fp);
+        }
       }
+    }
+    if (m_excludeEdgeClustersFromFit && fit_points_no_edge.size() >= m_minFitClustersNoEdge)
+    {
+      fit_points.swap(fit_points_no_edge);
     }
 
     Tpc_FittingTools::FitResult fit;

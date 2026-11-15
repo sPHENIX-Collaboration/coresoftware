@@ -347,6 +347,30 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     for (unsigned int i = 0; i < intermediate_min_FDchi2.size(); ++i) m_intermediate_min_fdchi2.push_back(intermediate_min_FDchi2[i]);
   }
 
+  /// Decay length [cm] of each intermediate state, 3D, from the decay vertex of the mother: one (min, max) per intermediate
+  void setIntermediateDecayLengthRange(const std::vector<std::pair<float, float>> &intermediate_decayLength_range)
+  {
+    m_intermediate_decayLength_range = intermediate_decayLength_range;
+  }
+
+  /// Same in the transverse plane
+  void setIntermediateDecayLengthRange_XY(const std::vector<std::pair<float, float>> &intermediate_decayLength_range)
+  {
+    m_intermediate_decayLength_xy_range = intermediate_decayLength_range;
+  }
+
+  /// Decay time [ps] of each intermediate state, 3D, from the decay vertex of the mother
+  void setIntermediateDecayTimeRange(const std::vector<std::pair<float, float>> &intermediate_decayTime_range)
+  {
+    m_intermediate_decayTime_range = intermediate_decayTime_range;
+  }
+
+  /// Same in the transverse plane (pseudo-proper decay time [ps])
+  void setIntermediateDecayTimeRange_XY(const std::vector<std::pair<float, float>> &intermediate_decayTime_range)
+  {
+    m_intermediate_decayTime_xy_range = intermediate_decayTime_range;
+  }
+
   void setIntermediateMaxVertexVolume(const std::vector<float> &intermediate_max_vertexvol)
   {
     for (unsigned int i = 0; i < intermediate_max_vertexvol.size(); ++i) m_intermediate_vertex_volume.push_back(intermediate_max_vertexvol[i]);

@@ -1,5 +1,7 @@
 #include "TpcPolyClusterTrkrClusterConverter.h"
 
+#include "Tpc_PolyClusterEdge.h"
+
 #include "Tpc_PolyCluster.h"
 #include "Tpc_PolyClusterContainer.h"
 #include "Tpc_PolyTrack.h"
@@ -114,6 +116,13 @@ int TpcPolyClusterTrkrClusterConverter::getNodes(PHCompositeNode* topNode)
   if (!m_geometry)
   {
     std::cerr << Name() << "::getNodes - missing ActsGeometry" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_geomContainerTpc = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  if (!m_geomContainerTpc)
+  {
+    std::cerr << Name() << "::getNodes - missing TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -418,7 +427,9 @@ bool TpcPolyClusterTrkrClusterConverter::publishCluster(const Tpc_PolyCluster* c
   const unsigned int adc = adc_to_uint16(cluster->get_adc());
   out->setAdc(adc);
   out->setMaxAdc(static_cast<uint16_t>(adc));
-  out->setEdge(0);
+  // Sector-edge count with the TpcClusterizer convention, so ClusterErrorPara
+  // and the fitter's edge rejection treat poly clusters like standard ones.
+  out->setEdge(static_cast<char>(tpc_poly_cluster_sector_edges(*cluster, *m_geomContainerTpc)));
   out->setPhiSize(size_to_char(cluster->get_phi_width()));
   out->setZSize(size_to_char(cluster->get_time_width()));
   out->setSubSurfKey(subsurfkey);
