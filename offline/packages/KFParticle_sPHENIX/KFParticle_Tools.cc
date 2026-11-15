@@ -379,9 +379,11 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
     }
 
     const int trackndof = m_dst_track->get_ndf();
-    const float trackchi2ndof = trackndof > 0
-                          ? m_dst_track->get_chisq() / trackndof
-                          : std::numeric_limits<float>::max();
+    const float trackchi2ndof = trackndof > 0 ? m_dst_track->get_chisq() / trackndof : std::numeric_limits<float>::max();
+    if (m_verbosity > 11)
+    {
+      printSelectionCheck("Track chi^2/nDoF", 0, trackchi2ndof, m_track_chi2ndof);
+    }
     if (trackchi2ndof > m_track_chi2ndof)
     {
       continue;
@@ -514,7 +516,6 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
       printSelectionCheck("PV DCA Std. Dev.", m_track_PV_dca_stddev, min_PV_dca_stddev, std::numeric_limits<float>::max());
       printSelectionCheck("PV DCA xy", m_track_PV_dca_xy, min_PV_dca_xy, std::numeric_limits<float>::max());
       printSelectionCheck("PV DCA xy Std. Dev.", m_track_PV_dca_stddev_xy, min_PV_dca_stddev_xy, std::numeric_limits<float>::max());
-      printSelectionCheck("Track chi^2/nDoF", 0, trackchi2ndof, m_track_chi2ndof);
     }
   }
 
