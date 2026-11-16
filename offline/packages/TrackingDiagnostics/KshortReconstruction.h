@@ -21,6 +21,7 @@ class PHCompositeNode;
 class SvtxTrack;
 class SvtxTrackMap;
 class SvtxVertexMap;
+class TrackSeedContainer;
 
 class KshortReconstruction : public SubsysReco
 {
@@ -42,6 +43,7 @@ class KshortReconstruction : public SubsysReco
   void setDecayMass2(float decayMassSet) { decaymass2 = decayMassSet; }  //(muons decaymass = 0.1057) (pions = 0.13957) (electron = 0.000511)
   //  void setDecayMass(float decayMassSet) { decaymass = decayMassSet; }  //(muons decaymass = 0.1057) (pions = 0.13957) (electron = 0.000511)
   void set_output_file(const std::string& outputfile) { filepath = outputfile; }
+  void set_input_trackmap_nodename(const std::string& inputfile) { m_input_trackMap_node_name = inputfile; }
   void save_tracks(bool save = true) { m_save_tracks = save; }
 
   //Truth matching code
@@ -75,6 +77,8 @@ class KshortReconstruction : public SubsysReco
   ActsGeometry* _tGeometry {nullptr};
   SvtxTrackMap* m_svtxTrackMap {nullptr};
   SvtxVertexMap* m_vertexMap {nullptr};
+  TrackSeedContainer* m_silseedMap {nullptr};
+  TrackSeedContainer* m_tpcseedMap {nullptr};
   
   std::string filepath {""};
   float decaymass1 = 0.13957;  // pion decay mass
@@ -93,6 +97,7 @@ class KshortReconstruction : public SubsysReco
   bool m_save_tracks {false};
   SvtxTrackMap *m_output_trackMap {nullptr};
   std::string m_output_trackMap_node_name {"KshortReconstruction_SvtxTrackMap"};
+  std::string m_input_trackMap_node_name {"SvtxTrackMap"};
 
   //Truth matching code
   bool m_truth_match {false};
