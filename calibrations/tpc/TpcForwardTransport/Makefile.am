@@ -56,10 +56,12 @@ libTpcForwardTransportTools_la_LIBADD = libTpcForwardTransport.la
 bin_PROGRAMS = \
   PHGarfieldForwardMapGenerator \
   PHGarfieldCompactMapMerger
+
 PHGarfieldForwardMapGenerator_SOURCES = tools/PHGarfieldForwardMapGenerator.cc
-PHGarfieldForwardMapGenerator_LDADD = libTpcForwardTransportTools.la libTpcForwardTransport.la -lffamodules
+PHGarfieldForwardMapGenerator_LDADD = libTpcForwardTransportTools.la
+
 PHGarfieldCompactMapMerger_SOURCES = tools/PHGarfieldCompactMapMerger.cc
-PHGarfieldCompactMapMerger_LDADD = libTpcForwardTransportTools.la libTpcForwardTransport.la
+PHGarfieldCompactMapMerger_LDADD = libTpcForwardTransportTools.la
 
 check_PROGRAMS = \
   test_adaptive_map \
