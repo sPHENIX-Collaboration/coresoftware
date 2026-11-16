@@ -14,7 +14,7 @@
 namespace
 {
   using Map = PHGarfieldAdaptiveMap;
-  constexpr double TwoPi = 6.283185307179586476925286766559;
+  constexpr double TwoPi = 2.0 * std::numbers::pi;
   struct CoordinateHash
   {
     std::size_t operator()(const std::array<double, 3>& coordinate) const
