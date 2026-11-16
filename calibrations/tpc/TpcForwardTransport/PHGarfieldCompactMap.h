@@ -1,13 +1,14 @@
 #ifndef PHGARFIELD_COMPACTMAP_H
 #define PHGARFIELD_COMPACTMAP_H
 
+#include "PHGarfieldAdaptiveMap.h"
+
 #include <array>
 #include <cstdint>
 #include <iosfwd>
 #include <limits>
 #include <string>
 #include <vector>
-#include "PHGarfieldAdaptiveMap.h"
 
 class TDirectory;
 

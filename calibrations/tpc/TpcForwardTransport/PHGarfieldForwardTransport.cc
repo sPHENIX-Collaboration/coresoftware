@@ -4,10 +4,12 @@
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <phfield/PHField.h>
 #include <phfield/PHField3DCartesian.h>
 #include <phfield/PHFieldUtility.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -28,8 +30,6 @@
 #include <filesystem>
 #include <iostream>
 #include <string>
-
-namespace fs = std::filesystem;
 
 class PHGarfieldForwardNode final : public PHDataNode<PHGarfield>
 {
@@ -268,7 +268,7 @@ int PHGarfieldForwardTransport::InitializeForwardTransport(PHCompositeNode* topN
   const auto gas = PHGarfieldForwardSetup::ResolveGas(
       {m_gasFileOverride, m_defaultGasfile}, lookup,
       [](const std::string& filename)
-      { return fs::exists(filename); });
+      { return std::filesystem::exists(filename); });
   if (!gas.valid)
   {
     std::cerr << PHWHERE << " Explicit Garfield gas path does not exist: "

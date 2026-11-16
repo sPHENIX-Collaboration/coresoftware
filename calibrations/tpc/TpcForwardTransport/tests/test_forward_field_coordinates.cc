@@ -1,4 +1,4 @@
-#include "../PHGarfieldForwardTransport.h"
+#include <PHGarfieldForwardTransport.h>
 
 #include <TFile.h>
 #include <TH2D.h>

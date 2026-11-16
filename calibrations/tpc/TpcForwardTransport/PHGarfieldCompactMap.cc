@@ -1,15 +1,17 @@
 #include "PHGarfieldCompactMap.h"
+#include "PHGarfieldCompactMapInternal.h"
+#include "PHGarfieldFingerprint.h"
+#include "PHGarfieldPrimitiveTree.h"
+
 #include <TDirectory.h>
 #include <TFile.h>
 #include <TNamed.h>
 #include <TParameter.h>
 #include <TTree.h>
+
 #include <algorithm>
 #include <cmath>
 #include <functional>
-#include "PHGarfieldCompactMapInternal.h"
-#include "PHGarfieldFingerprint.h"
-#include "PHGarfieldPrimitiveTree.h"
 
 namespace
 {

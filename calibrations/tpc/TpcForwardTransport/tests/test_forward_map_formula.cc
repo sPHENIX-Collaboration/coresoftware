@@ -1,4 +1,4 @@
-#include "../PHGarfieldForwardMap.h"
+#include <PHGarfieldForwardMap.h>
 
 #include <TMemFile.h>
 #include <TNamed.h>

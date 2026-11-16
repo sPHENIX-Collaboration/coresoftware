@@ -1,3 +1,8 @@
+#include "PHGarfieldTestUtils.h"
+
+#include <PHGarfieldCompactMap.h>
+#include <PHGarfieldRootOutput.h>
+
 #include <TBasket.h>
 #include <TBranch.h>
 #include <TDirectory.h>
@@ -6,6 +11,7 @@
 #include <TNamed.h>
 #include <TParameter.h>
 #include <TTree.h>
+
 #include <unistd.h>
 #include <algorithm>
 #include <bit>
@@ -16,9 +22,6 @@
 #include <random>
 #include <sstream>
 #include <stdexcept>
-#include "../PHGarfieldCompactMap.h"
-#include "../PHGarfieldRootOutput.h"
-#include "PHGarfieldTestUtils.h"
 
 namespace
 {

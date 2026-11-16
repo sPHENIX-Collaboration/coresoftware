@@ -1,4 +1,4 @@
-#include "../PHGarfieldForwardTransport.h"
+#include <PHGarfieldForwardTransport.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 

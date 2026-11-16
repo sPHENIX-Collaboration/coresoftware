@@ -1,7 +1,8 @@
-#include "../PHGarfieldAdaptiveMap.h"
-#include "../PHGarfieldCompactMap.h"
-#include "../PHGarfieldMapTools.h"
 #include "PHGarfieldTestUtils.h"
+
+#include <PHGarfieldAdaptiveMap.h>
+#include <PHGarfieldCompactMap.h>
+#include <PHGarfieldMapTools.h>
 
 #include <cmath>
 #include <iostream>
@@ -171,7 +172,7 @@ int main()
       {
         for (unsigned int i = 0; i < 50; ++i)
         {
-          const double phi = (i + .37) * 6.283185307179586 / 50.;
+          const double phi = (i + .37) * (2.0 * std::numbers::pi) / 50.;
           const double r = 10. + 2. * (i + .13) / 50.;
           const double z = (side ? 1. : -1.) * (1. + 2. * (i + .71) / 50.);
           const auto* cell = find_leaf(data, side, phi, r, z);
