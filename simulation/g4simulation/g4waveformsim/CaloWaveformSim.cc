@@ -361,11 +361,10 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       gSystem->Exit(1);
       exit(1);
     }
-    float mbd_t0 = mbdout->get_t0();
-    // no valid t0 (NaN): leave the pulses at the mean time
-    if (std::isfinite(mbd_t0))
+    // no valid t0 (NaN, or the old -9999.9 of earlier productions): leave the pulses at the mean time
+    if (mbdout->isValid())
     {
-      shift_of_shift += mbd_t0 / m_sampletime;
+      shift_of_shift += mbdout->get_t0() / m_sampletime;
     }
   }
 

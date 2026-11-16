@@ -151,9 +151,15 @@ void caloTowerEmbed::EstimateDataSignal()
   {
     TowerInfo *data = _data_towers->get_tower_at_channel(channel);
     TowerInfo *ped = m_PedestalContainer->get_tower_at_channel(channel);
+    // only towers with the two-sample HW ZS layout: the reco also sets isZS on full
+    // waveforms whose fit failed, and those do not have post in sample 1
+    if (!data->get_isZS() || data->get_nsample() != 2 || data->get_isNotInstr())
+    {
+      continue;
+    }
     const float pre = data->get_waveform_value(0);
     const float post = data->get_waveform_value(1);
-    if (!data->get_isZS() || data->get_isNotInstr() || pre == 0 || post == 0 || ped->get_waveform_value(0) == 0)
+    if (pre == 0 || post == 0 || ped->get_waveform_value(0) == 0)
     {
       continue;
     }
@@ -219,8 +225,9 @@ int caloTowerEmbed::process_event(PHCompositeNode * topNode)
 
     if (m_embedwaveform)
     {
-      // when the data is not ZS-ed
-      if (!(caloinfo_data->get_isZS() || caloinfo_data->get_isNotInstr()))
+      // when the data has the full waveform (decided by the sample count, not isZS: the
+      // reco also sets isZS on full waveforms whose fit failed)
+      if (!caloinfo_data->get_isNotInstr() && caloinfo_data->get_nsample() > 2)
       {
         // here we really don't want the m_samples being greater than what data has!
         for (int j = 0; j < m_nsamples; j++)
