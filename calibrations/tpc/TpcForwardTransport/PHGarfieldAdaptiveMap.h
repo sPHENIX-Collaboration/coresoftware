@@ -167,7 +167,7 @@ class PHGarfieldAdaptiveMap
           (*value)[2] < 0. || (*value)[2] > maximum_time_ns ||
           radius + (*value)[0] < geometry.inner_radius_cm - EndpointRadialToleranceCm ||
           radius + (*value)[0] > geometry.outer_radius_cm + EndpointRadialToleranceCm ||
-          std::abs((*value)[1] / radius) > std::acos(-1.) ||
+          std::abs((*value)[1] / radius) > std::numbers::pi ||
           (std::abs(coordinate[2]) == geometry.readout_abs_z_cm && *value != std::array<double, 3>{{0., 0., 0.}}))
       {
         return false;
@@ -176,7 +176,7 @@ class PHGarfieldAdaptiveMap
       minimum_angle = std::min(minimum_angle, angle);
       maximum_angle = std::max(maximum_angle, angle);
     }
-    return maximum_angle - minimum_angle <= std::acos(-1.);
+    return maximum_angle - minimum_angle <= std::numbers::pi;
   }
   // Both runtime layouts use the same arithmetic and corner order. The
   // accessor returns null for an invalid corner reference.
