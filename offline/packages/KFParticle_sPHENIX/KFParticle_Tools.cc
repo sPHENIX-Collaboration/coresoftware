@@ -384,7 +384,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
     {
       printSelectionCheck("Track chi^2/nDoF", 0, trackchi2ndof, m_track_chi2ndof);
     }
-    if (trackchi2ndof > m_track_chi2ndof)
+    if (!(trackchi2ndof <= m_track_chi2ndof)) //rejects nan
     {
       continue;
     }

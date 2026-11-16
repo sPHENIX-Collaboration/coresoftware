@@ -758,7 +758,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       {
         if (bunchCrossingisZero)
         {
-          m_centrality_mbd = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);;
+          m_centrality_mbd = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
         }
         else
         {
