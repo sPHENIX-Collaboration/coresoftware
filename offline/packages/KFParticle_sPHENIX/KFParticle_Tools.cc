@@ -495,7 +495,6 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
   }
 
   float ptchi2 = pow(pterr / pt, 2);
-  //float trackchi2ndof = particle.GetChi2() / particle.GetNDF();
   calcMinPV_DCA(particle, primaryVertices, min_PV_dca, min_PV_dca_stddev);
   calcMinPV_DCA(particle, primaryVertices, min_PV_dca_xy, min_PV_dca_stddev_xy, false);
 
