@@ -2,6 +2,7 @@
 #include "CaloWaveformSim.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -24,6 +25,8 @@
 #include <calobase/TowerInfoDefs.h>
 
 #include <caloreco/CaloTowerDefs.h>
+
+#include <mbd/MbdOut.h>
 
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom_Spacalv1.h>
@@ -345,6 +348,26 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
   f_fit->SetParameter(1, 0.0);
   float template_peak = f_fit->GetMaximumX();
   float shift_of_shift = m_timeshiftwidth * gsl_rng_uniform(m_RandomGenerator);
+
+  // the data tower times follow the collision time event by event (the meanTime calibration
+  // only removes the run average), so move the sim pulses with the t0 of the data event
+  if (m_shift_by_mbd_t0)
+  {
+    PHCompositeNode *dataTopNode = Fun4AllServer::instance()->topNode(m_mbd_topnode);
+    MbdOut *mbdout = findNode::getClass<MbdOut>(dataTopNode, "MbdOut");
+    if (!mbdout)
+    {
+      std::cout << PHWHERE << " MbdOut Node missing under " << m_mbd_topnode << ", cannot shift by the MBD t0." << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
+    float mbd_t0 = mbdout->get_t0();
+    // no valid t0 (NaN): leave the pulses at the mean time
+    if (std::isfinite(mbd_t0))
+    {
+      shift_of_shift += mbd_t0 / m_sampletime;
+    }
+  }
 
   float _shiftval = m_peakpos + shift_of_shift - template_peak;
 

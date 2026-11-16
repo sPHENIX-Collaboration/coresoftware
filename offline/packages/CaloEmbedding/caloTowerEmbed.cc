@@ -24,6 +24,10 @@
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
+#include <TFile.h>
+#include <TProfile.h>
+
+#include <algorithm>  // for min
 #include <cstdlib>    // for exit
 #include <exception>  // for exception
 #include <iostream>   // for operator<<, basic_ostream
@@ -48,14 +52,17 @@ int caloTowerEmbed::InitRun(PHCompositeNode *topNode)
   if (m_dettype == CaloTowerDefs::CEMC)
   {
     m_detector = "CEMC";
+    m_templateName = "CEMC_TEMPLATE";
   }
   else if (m_dettype == CaloTowerDefs::HCALIN)
   {
     m_detector = "HCALIN";
+    m_templateName = "IHCAL_TEMPLATE";
   }
   else if (m_dettype == CaloTowerDefs::HCALOUT)
   {
     m_detector = "HCALOUT";
+    m_templateName = "OHCAL_TEMPLATE";
   }
   else if (m_dettype == CaloTowerDefs::ZDC)
   {
@@ -76,7 +83,86 @@ int caloTowerEmbed::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  if (m_embedwaveform)
+  {
+    // the pulse shape the data's sub-threshold signal is given in ZS towers:
+    // the reco template, peak moved to the post sample and normalized to 1 there
+    std::string url = CDBInterface::instance()->getUrl(m_templateName);
+    TFile *fin = TFile::Open(url.c_str());
+    TProfile *h_template = (fin && fin->IsOpen()) ? dynamic_cast<TProfile *>(fin->Get("waveform_template")) : nullptr;
+    if (!h_template)
+    {
+      std::cout << PHWHERE << " no waveform_template for " << m_templateName << " at " << url << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    const float peak = h_template->GetBinCenter(h_template->GetMaximumBin());
+    const float norm = h_template->Interpolate(peak);
+    m_template.assign(m_nsamples, 0);
+    for (int j = 0; j < m_nsamples; j++)
+    {
+      m_template.at(j) = h_template->Interpolate(j - m_postsample + peak) / norm;
+    }
+    fin->Close();
+    delete fin;
+
+    // software ZS threshold of the fit of the embedded waveforms, as common/Calo_Fitting.C
+    if (m_szs_threshold < 0)
+    {
+      m_szs_threshold = (m_dettype == CaloTowerDefs::CEMC) ? 60 : (m_dettype == CaloTowerDefs::HCALIN) ? 30 : 15;
+    }
+    m_neta = (m_dettype == CaloTowerDefs::CEMC) ? 96 : 24;
+    m_bandsignal.assign(m_nsignalbands, 0);
+    std::cout << Name() << ": software ZS threshold " << m_szs_threshold << " ADC, data signal estimated in "
+              << m_nsignalbands << " |eta| bands" << std::endl;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//____________________________________________________________________________..
+int caloTowerEmbed::signal_band(unsigned int channel) const
+{
+  const unsigned int key = (m_dettype == CaloTowerDefs::CEMC) ? TowerInfoDefs::encode_emcal(channel) : TowerInfoDefs::encode_hcal(channel);
+  const int eta = static_cast<int>(TowerInfoDefs::getCaloTowerEtaBin(key));
+  const int abseta = std::min(eta, m_neta - 1 - eta);  // 0 at the edges, m_neta / 2 - 1 at eta = 0
+  return std::clamp(abseta * m_nsignalbands / (m_neta / 2), 0, m_nsignalbands - 1);
+}
+
+//____________________________________________________________________________..
+void caloTowerEmbed::EstimateDataSignal()
+{
+  // mean sub-threshold data signal of the HW ZS towers of this event, per |eta| band:
+  // <post - pre> of the data minus <X6 - X0> of the pedestal waveforms of the same towers,
+  // so the pedestal shape cancels on average
+  std::vector<double> sum(m_nsignalbands, 0);
+  std::vector<int> n(m_nsignalbands, 0);
+  for (unsigned int channel = 0; channel < _data_towers->size(); channel++)
+  {
+    TowerInfo *data = _data_towers->get_tower_at_channel(channel);
+    TowerInfo *ped = m_PedestalContainer->get_tower_at_channel(channel);
+    const float pre = data->get_waveform_value(0);
+    const float post = data->get_waveform_value(1);
+    if (!data->get_isZS() || data->get_isNotInstr() || pre == 0 || post == 0 || ped->get_waveform_value(0) == 0)
+    {
+      continue;
+    }
+    const int band = signal_band(channel);
+    sum[band] += (post - pre) - (ped->get_waveform_value(m_postsample) - ped->get_waveform_value(0));
+    ++n[band];
+  }
+  for (int b = 0; b < m_nsignalbands; b++)
+  {
+    m_bandsignal[b] = n[b] ? sum[b] / n[b] : 0;
+  }
+  if (Verbosity() > 1)
+  {
+    std::cout << Name() << ": mean data signal of the HW ZS towers per |eta| band (edge to center):";
+    for (int b = 0; b < m_nsignalbands; b++)
+    {
+      std::cout << " " << m_bandsignal[b] << " (" << n[b] << ")";
+    }
+    std::cout << std::endl;
+  }
 }
 
 //____________________________________________________________________________..
@@ -99,8 +185,8 @@ int caloTowerEmbed::process_event(PHCompositeNode * topNode)
       std::cout << PHWHERE << " " << ped_nodename << " Node missing, doing nothing." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+    EstimateDataSignal();
   }
-
 
   unsigned int ntowers = _data_towers->size();
   for (unsigned int channel = 0; channel < ntowers; channel++)
@@ -111,6 +197,14 @@ int caloTowerEmbed::process_event(PHCompositeNode * topNode)
 
     TowerInfo *caloinfo_data = _data_towers->get_tower_at_channel(channel);
     TowerInfo *caloinfo_sim = _sim_towers->get_tower_at_channel(channel);
+
+    // the embedded waveform is complete even where the data was zero suppressed: drop the
+    // data's ZS flag, else the calibration applies the ZS cross calibration (post - pre to
+    // template scale) to the template fit.  The fit sets it again for software ZS towers
+    if (m_embedwaveform)
+    {
+      caloinfo_sim->set_isZS(false);
+    }
 
     if (m_embedwaveform)
     {
@@ -126,34 +220,73 @@ int caloTowerEmbed::process_event(PHCompositeNode * topNode)
       }
       else
       {
-        // if this is ZS-ed or empty(like the packet is gone)
-        // we add the noise pedestal and add the post - pre to sample 6
+        // if this is ZS-ed or empty(like the packet is gone) the data only has pre (sample 0)
+        // and post (sample 6). With t the reco template (t_6 = 1), ped a waveform from a
+        // pedestal run and A = post - pre:
+        //  - sim (x_6 - x_0) below the software ZS threshold of the fit:
+        //      x_0 = pre, x_6 = post, x_j = pre + A t_j + (ped_j - <ped>)
+        //    a tower that stays below the threshold keeps exactly the data's post - pre; one that
+        //    goes above (data + sim) is fitted, with somewhat more than the real noise
+        //  - sim alone at or above the threshold (the tower is fitted):
+        //      x_j = pre + ped_j - ped_0 + s t_j
+        //    the whole pedestal waveform gives the fit the real noise; the data's own post - pre
+        //    is replaced by s, the mean data signal of the HW ZS towers of this event in this
+        //    |eta| band (EstimateDataSignal)
         TowerInfo *pedestal_tower = m_PedestalContainer->get_tower_at_channel(channel);
         float pedestal_mean = 0;
         std::vector<float> m_waveform_pedestal;
         m_waveform_pedestal.resize(m_nsamples);
-        // this is for pedestal scaling setting
         for (int j = 0; j < m_nsamples; j++)
         {
           m_waveform_pedestal.at(j) = (j < m_datasamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(m_datasamples - 1);
+        }
+        // <ped> over the samples the pedestal run has, not the padding
+        const int nped = std::min(m_nsamples, m_datasamples);
+        for (int j = 0; j < nped; j++)
+        {
           pedestal_mean += m_waveform_pedestal.at(j);
         }
-        pedestal_mean /= m_nsamples;
+        pedestal_mean /= nped;
+
+        float pre = caloinfo_data->get_waveform_value(0);
+        float post = caloinfo_data->get_waveform_value(1);
+        // no data (packet gone) or a lost post sample (the reco flags it with chi2 1e6):
+        // take the baseline from the pedestal run and no data signal
+        bool nodata = false;
+        if (caloinfo_data->get_isNotInstr() || (pre != 0 && post == 0))
+        {
+          pre = pedestal_mean;
+          post = pedestal_mean;
+          nodata = true;
+        }
+        const float amplitude = post - pre;
+
+        const float sim_amplitude = caloinfo_sim->get_waveform_value(m_postsample) - caloinfo_sim->get_waveform_value(0);
+        if (sim_amplitude >= m_szs_threshold)
+        {
+          ++m_npedestalonly;
+          const float s = nodata ? 0 : m_bandsignal[signal_band(channel)];
+          for (int j = 0; j < m_nsamples; j++)
+          {
+            const float x = pre + m_waveform_pedestal.at(j) - m_waveform_pedestal.at(0) + s * m_template.at(j);
+            caloinfo_sim->set_waveform_value(j, caloinfo_sim->get_waveform_value(j) + x);
+          }
+          continue;
+        }
+
         for (int j = 0; j < m_nsamples; j++)
         {
-          m_waveform_pedestal.at(j) = (m_waveform_pedestal.at(j) - pedestal_mean) * m_pedestal_scale + pedestal_mean;
+          float x = pre + (amplitude * m_template.at(j)) + ((m_waveform_pedestal.at(j) - pedestal_mean) * m_pedestal_scale);
+          if (j == 0)
+          {
+            x = pre;
+          }
+          else if (j == m_postsample)
+          {
+            x = post;
+          }
+          caloinfo_sim->set_waveform_value(j, caloinfo_sim->get_waveform_value(j) + x);
         }
-        // add the pedestal
-        for (int j = 0; j < m_nsamples; j++)
-        {
-          // superpose the waveforms
-
-          caloinfo_sim->set_waveform_value(j, caloinfo_sim->get_waveform_value(j) + m_waveform_pedestal.at(j));
-        }
-        // add the post - pre to sample 6
-        int post_pre = caloinfo_data->get_waveform_value(1) - caloinfo_data->get_waveform_value(0);
-
-        caloinfo_sim->set_waveform_value(6, caloinfo_sim->get_waveform_value(6) + post_pre);
       }
     }
     else
@@ -173,6 +306,11 @@ int caloTowerEmbed::process_event(PHCompositeNode * topNode)
 
 int caloTowerEmbed::End(PHCompositeNode * /*topNode*/)
 {
+  if (m_embedwaveform)
+  {
+    std::cout << Name() << ": " << m_npedestalonly << " HW ZS towers with sim above " << m_szs_threshold
+              << " ADC took the pedestal waveform, " << m_npedestalonly / std::max(1., m_eventNumber + 1.) << " per event" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
