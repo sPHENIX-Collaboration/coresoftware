@@ -108,7 +108,18 @@ int caloTowerEmbed::InitRun(PHCompositeNode *topNode)
     // software ZS threshold of the fit of the embedded waveforms, as common/Calo_Fitting.C
     if (m_szs_threshold < 0)
     {
-      m_szs_threshold = (m_dettype == CaloTowerDefs::CEMC) ? 60 : (m_dettype == CaloTowerDefs::HCALIN) ? 30 : 15;
+      if (m_dettype == CaloTowerDefs::CEMC)
+      {
+        m_szs_threshold = 60;
+      }
+      else if (m_dettype == CaloTowerDefs::HCALIN)
+      {
+        m_szs_threshold = 30;
+      }
+      else
+      {
+        m_szs_threshold = 15;
+      }
     }
     m_neta = (m_dettype == CaloTowerDefs::CEMC) ? 96 : 24;
     m_bandsignal.assign(m_nsignalbands, 0);

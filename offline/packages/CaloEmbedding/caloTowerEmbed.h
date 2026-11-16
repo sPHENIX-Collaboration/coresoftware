@@ -68,7 +68,7 @@ class caloTowerEmbed : public SubsysReco
   }
   // waveform mode: the software ZS threshold of the CaloTowerBuilder that fits the embedded
   // waveforms. Data HW ZS towers whose sim reaches it are built from the pedestal waveform plus
-  // the mean data signal. 
+  // the mean data signal.
   void set_softwarezerosuppression(float adc)
   {
     m_szs_threshold = adc;
