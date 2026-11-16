@@ -104,6 +104,10 @@ class JetContainerv1 : public JetContainer
   void set_vertex_z(float z) override { m_vertex_z = z; };
   float get_vertex_z() const override { return m_vertex_z; };
 
+ protected:
+  // for derived container versions that hold a newer jet class (JetContainerv2: Jetv3)
+  explicit JetContainerv1(const char* jet_class);
+
  private:
   static std::string str_Jet_PROPERTY(Jet::PROPERTY) ;
 

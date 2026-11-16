@@ -26,6 +26,13 @@ class TH2;
 //
 // Legacy method (select with set_UseEMfracCalib(false); CDB payload
 // "JES_Calib_Default"): per-(z-vertex bin, eta bin) TF1 corrections versus pT.
+//
+// Output: the calibrated pT is written into the jets of the input node
+// (Jet::set_pt_calib(); needs a JetContainerv2 with Jetv3 jets, which JetReco creates),
+// read back with Jet::get_pt_calib(). get_pt() of these jets stays the raw pT.
+// Optionally (set_OutputNode) the calibrated jets are also written into a separate
+// node as before (jets whose get_pt() is the calibrated pT); this is the only output
+// for an input node that is an older JetContainer version.
 
 class JetCalib : public SubsysReco
 {
@@ -39,6 +46,7 @@ class JetCalib : public SubsysReco
 
   // Setters (both methods).
   void set_InputNode(const std::string &inputNode) { m_inputNode = inputNode; }
+  // Optional: also write the calibrated jets into this separate node (old scheme).
   void set_OutputNode(const std::string &outputNode) { m_outputNode = outputNode; }
   void set_JetRadius(float radius) { jet_radius = radius; }
   // Method selection: true (default) = EMfrac method, false = legacy method.
@@ -72,7 +80,7 @@ class JetCalib : public SubsysReco
 
   // Input.
   std::string m_inputNode{"AntiKt_Tower_r04"};
-  std::string m_outputNode{"AntiKt_Tower_r04_Calib"};
+  std::string m_outputNode;                     // empty: no separate calib node (pT written into the input jets only)
   std::string m_calibFileOverride;              // EMfrac method: if set, read this file instead of the CDB payload
   float jet_radius{0.4};                        // Jet radius.
   bool m_useEMfracCalib{true};                  // true = EMfrac method (default), false = legacy method

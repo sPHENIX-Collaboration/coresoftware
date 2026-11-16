@@ -4,7 +4,7 @@
 #include "Jet.h"
 #include "JetAlgo.h"
 #include "JetContainer.h"
-#include "JetContainerv1.h"
+#include "JetContainerv2.h"
 #include "JetInput.h"
 #include "JetMap.h"
 #include "JetMapv1.h"
@@ -239,7 +239,7 @@ int JetReco::CreateNodes(PHCompositeNode *topNode)
       JetContainer *jetconn = findNode::getClass<JetContainer>(topNode, JC_name(_output));
       if (!jetconn)
       {
-        jetconn = new JetContainerv1();
+        jetconn = new JetContainerv2();  // Jetv3 jets: JetCalib etc. fill the corrected pT into them
         PHIODataNode<PHObject> *JetContainerNode = new PHIODataNode<PHObject>(jetconn, JC_name(_output), "PHObject");
         InputNode->addNode(JetContainerNode);
       }

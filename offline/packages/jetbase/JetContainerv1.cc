@@ -9,7 +9,11 @@
 
 JetContainerv1::JetContainerv1() : m_clones(new TClonesArray("Jetv2", 50))
 {
-  
+
+}
+
+JetContainerv1::JetContainerv1(const char* jet_class) : m_clones(new TClonesArray(jet_class, 50))
+{
 }
 
 void JetContainerv1::identify(std::ostream& os) const

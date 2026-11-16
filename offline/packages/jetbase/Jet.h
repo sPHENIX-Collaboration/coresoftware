@@ -193,6 +193,35 @@ class Jet : public PHObject
   virtual float get_ohcal_frac() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_ohcal_frac(float) { return; }
 
+  // corrected jet pT, filled after the jet reconstruction into the jet itself
+  // (Jetv3 and above; NaN in older versions and when the step did not run):
+  //   pt_calib:              after the MC JES calibration (JetCalib)
+  //   pt_insitu:             after the in-situ JES calibration (data)
+  //   pt_insitu_up / _down:  its systematic variations
+  //   pt_smear:              after the in-situ JER smearing (simulation)
+  //   pt_smear_up / _down:   its systematic variations
+  // get_pt() always stays the reconstructed (raw) pT.
+  virtual float get_pt_calib() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_pt_calib(float) { return; }
+
+  virtual float get_pt_insitu() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_pt_insitu(float) { return; }
+
+  virtual float get_pt_insitu_up() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_pt_insitu_up(float) { return; }
+
+  virtual float get_pt_insitu_down() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_pt_insitu_down(float) { return; }
+
+  virtual float get_pt_smear() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_pt_smear(float) { return; }
+
+  virtual float get_pt_smear_up() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_pt_smear_up(float) { return; }
+
+  virtual float get_pt_smear_down() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_pt_smear_down(float) { return; }
+
   // --------------------------------------------------------------------------
   // Functions for jet properties (always float values)
   // --------------------------------------------------------------------------
