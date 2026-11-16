@@ -12,7 +12,7 @@
 namespace
 {
   using Map = PHGarfieldAdaptiveMap;
-  constexpr double Pi = 3.1415926535897932384626433832795;
+  constexpr double Pi = std::numbers::pi;
 
   std::array<double, 2> error_at(const std::array<double, 3>& prediction,
                                  const Map::Point& actual, double velocity)
