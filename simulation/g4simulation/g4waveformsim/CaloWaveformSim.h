@@ -139,6 +139,12 @@ class CaloWaveformSim : public SubsysReco
   // Signal shaping parameters
   void set_deltaT(float deltaT) { m_deltaT = deltaT; }
   void set_timewidth(float timewidth) { m_timeshiftwidth = timewidth; }
+  // for embedding into data: shift all pulses of the event by the MBD t0 of the data event,
+  void set_shift_by_mbd_t0(bool state = true, const std::string &datatopnode = "TOPData")
+  {
+    m_shift_by_mbd_t0 = state;
+    m_mbd_topnode = datatopnode;
+  }
   void set_peakpos(float peakpos) { m_peakpos = peakpos; }
   void set_highgain(bool highgain = true) { m_highgain = highgain; }
   void set_gain(int gain) { m_gain = gain; }
@@ -224,6 +230,8 @@ class CaloWaveformSim : public SubsysReco
   int m_gaussian_noise{3};
   float m_deltaT{100.};
   float m_timeshiftwidth{0.};
+  bool m_shift_by_mbd_t0{false};
+  std::string m_mbd_topnode{"TOPData"};
   bool m_highgain{false};
   int m_gain{1};
   float m_peakpos{6.};

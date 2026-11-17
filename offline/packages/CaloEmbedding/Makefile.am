@@ -29,6 +29,7 @@ libCaloEmbedding_la_LIBADD = \
   -lcalo_io \
   -lcalotrigger_io \
   -lcentrality_io \
+  -lffamodules \
   -lfun4all \
   -lglobalvertex_io \
   -lphhepmc_io \
