@@ -193,35 +193,6 @@ class Jet : public PHObject
   virtual float get_ohcal_frac() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_ohcal_frac(float) { return; }
 
-  // corrected jet pT, filled after the jet reconstruction into the jet itself
-  // (Jetv3 and above; NaN in older versions and when the step did not run):
-  //   pt_calib:              after the MC JES calibration (JetCalib)
-  //   pt_insitu:             after the in-situ JES calibration (data)
-  //   pt_insitu_up / _down:  its systematic variations
-  //   pt_smear:              after the in-situ JER smearing (simulation)
-  //   pt_smear_up / _down:   its systematic variations
-  // get_pt() always stays the reconstructed (raw) pT.
-  virtual float get_pt_calib() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_pt_calib(float) { return; }
-
-  virtual float get_pt_insitu() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_pt_insitu(float) { return; }
-
-  virtual float get_pt_insitu_up() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_pt_insitu_up(float) { return; }
-
-  virtual float get_pt_insitu_down() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_pt_insitu_down(float) { return; }
-
-  virtual float get_pt_smear() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_pt_smear(float) { return; }
-
-  virtual float get_pt_smear_up() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_pt_smear_up(float) { return; }
-
-  virtual float get_pt_smear_down() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_pt_smear_down(float) { return; }
-
   // --------------------------------------------------------------------------
   // Functions for jet properties (always float values)
   // --------------------------------------------------------------------------
@@ -295,6 +266,42 @@ class Jet : public PHObject
   virtual size_t erase_comp(Jet::SRC) { return 0; }
   virtual void erase_comp(Iter /*iter*/) { return; }
   virtual void erase_comp(Iter /*first*/, Iter /*last*/) { return; }
+
+  // --------------------------------------------------------------------------
+  // corrected jet pT, filled after the jet reconstruction into the jet itself
+  // (Jetv3 and above; NaN in older versions and when the step did not run):
+  //   pt_calib:              after the MC JES calibration (JetCalib)
+  //   pt_insitu:             after the in-situ JES calibration (data)
+  //   pt_insitu_up / _down:  its systematic variations
+  //   pt_smear:              after the in-situ JER smearing (simulation)
+  //   pt_smear_up / _down:   its systematic variations
+  // get_pt() always stays the reconstructed (raw) pT.
+  // Kept after all older virtual functions, so the vtable slots of the existing Jet functions
+  // are unchanged: code compiled against the previous Jet.h that only calls existing functions
+  // on jets made by the rebuilt jetbase keeps working. This is not full binary compatibility:
+  // libjetbase_io and libjetbase must be rebuilt together, and a Jet subclass compiled outside
+  // jetbase must be rebuilt before the new functions are called on its objects.
+  // New virtual functions go below this block.
+  virtual float get_pt_calib() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_pt_calib(float) { return; }
+
+  virtual float get_pt_insitu() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_pt_insitu(float) { return; }
+
+  virtual float get_pt_insitu_up() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_pt_insitu_up(float) { return; }
+
+  virtual float get_pt_insitu_down() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_pt_insitu_down(float) { return; }
+
+  virtual float get_pt_smear() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_pt_smear(float) { return; }
+
+  virtual float get_pt_smear_up() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_pt_smear_up(float) { return; }
+
+  virtual float get_pt_smear_down() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_pt_smear_down(float) { return; }
   //----------------------------------------------------------------------------------
   // structure to iterate over the jets in a TClonesArray in the JetContainer
   struct IterJetTCA

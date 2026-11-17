@@ -1,23 +1,142 @@
 #ifndef JETBASE_JETCONTAINERV2_H
 #define JETBASE_JETCONTAINERV2_H
 
-#include "JetContainerv1.h"
+#include "JetContainer.h"
 
-#include <iostream>
+#include "Jet.h"
 
-// JetContainerv1 holding Jetv3 jets: each jet carries its corrected pT
-// (Jet::get_pt_calib(), get_pt_insitu[_up|_down](), get_pt_smear[_up|_down]()), so JetCalib and the
-// later correction modules fill the jets of this node instead of creating a new node.
-// Everything else (jet access, properties, sources, rho, vertex) is JetContainerv1; code that asks
-// for a JetContainerv1 also gets this container.
-class JetContainerv2 : public JetContainerv1
+#include <TClonesArray.h>
+
+#include <limits>
+
+// Same as JetContainerv1, but its TClonesArray holds Jetv3 jets: each jet carries its corrected pT
+// (Jet::get_pt_calib(), get_pt_insitu[_up|_down](), get_pt_smear[_up|_down]()), so JetCalib and the later
+// correction modules fill the jets of this node instead of creating a new node.
+// Derives from the JetContainer interface only (no inheritance from JetContainerv1: container
+// inheritance has caused readback problems before).
+class JetContainerv2 : public JetContainer
 {
  public:
+  // Manage class creation, reset, destruction
   JetContainerv2();
-  ~JetContainerv2() override = default;
+  ~JetContainerv2() override;
+  // Not copyable: the container owns m_clones (a raw pointer); the implicit copy would share it and
+  // delete it twice. ROOT readback uses the default constructor only.
+  JetContainerv2(const JetContainerv2&) = delete;
+  JetContainerv2& operator=(const JetContainerv2&) = delete;
   void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
+  TClonesArray* clone_data() const override
+  {
+    return (TClonesArray*) m_clones->Clone();
+  };
+
+  // status of jet contents
+  bool empty() const override { return m_njets == 0; };
+  size_t size() const override { return m_njets; };
+
+  // adding/access jets
+  Jet* add_jet() override;                            // Add a new jet to the TClonesArray and return the pointer
+  Jet* get_jet(unsigned int ijet) override;           // Get get at location.
+  Jet* get_UncheckedAt(unsigned int index) override;  // Get get at location.
+
+  // convenience shortcuts of get_{jet,UncheckedAt}
+  inline Jet* operator()(int index) override { return get_jet(index); };          // synonym for get_jet()
+  inline Jet* operator[](int index) override { return get_UncheckedAt(index); };  // get jet, don't check for length
+
+  // ----------------------------------------------------------------------------------------
+  //  Interface for adding properties to jets, and getting the index to those properties
+  // ----------------------------------------------------------------------------------------
+  // The optional properties in each Jet are stored in a vector of floats,
+  // e.g. { Rg_value, mg_value, area, .... }
+  // The JetContainer generates the jet and keeps a map of which properties in which location.
+  // Default values in the Jet Properties are set to NAN
+  // ----------------------------------------------------------------------------------------
+  std::map<Jet::PROPERTY, Jet::PROPERTY> property_indices() const override { return m_pindex; };
+  bool has_property(Jet::PROPERTY prop) const override { return m_pindex.find(prop) != m_pindex.end(); };
+  size_t size_properties() const override { return m_pindex.size(); };
+  size_t add_property(Jet::PROPERTY) override;                             // add property, if not already there, to jet prop vectors
+  size_t add_property(std::set<Jet::PROPERTY>) override;                   // same as above, convenience for other code using ::set
+  Jet::PROPERTY property_index(Jet::PROPERTY) override;                    // get the propery index
+  void print_property_types(std::ostream& os = std::cout) const override;  // print the order of properties in jet
+
+  // ---------------------------------------------------------------------------------------
+  //  Add ability to loop over jets
+  // ---------------------------------------------------------------------------------------
+  // Use:
+  // ```
+  //     for (jet : *jet_containter) {
+  //     // jet will increment as Jet* through all jets
+  //     ... }
+  // ```
+  Jet::IterJetTCA begin() override;
+  Jet::IterJetTCA end() override;
+  // ---------------------------------------------------------------------------------------
+
+  // -legacy-set-parameters-----------------------------------------------------------------
+  void set_algo(Jet::ALGO algo) override { m_algo = algo; };
+  Jet::ALGO get_algo() const override { return m_algo; };
+
+  void set_par(float par) override { set_jetpar_R(par); }
+  float get_par() const override { return get_jetpar_R(); }
+
+  void set_jetpar_R(float par) override { m_jetpar_R = par; }
+  float get_jetpar_R() const override { return m_jetpar_R; }
+
+  // set access to source identifiers ------------------------------------------
+
+  bool empty_src() const override { return m_src.empty(); }
+  void insert_src(Jet::SRC src) override { m_src.insert(src); }
+
+  ConstSrcIter begin_src() const override { return m_src.begin(); }
+  ConstSrcIter find_src(Jet::SRC src) const override { return m_src.find(src); }
+  ConstSrcIter end_src() const override { return m_src.end(); }
+
+  SrcIter begin_src() override { return m_src.begin(); }
+  SrcIter find_src(Jet::SRC src) override { return m_src.find(src); }
+  SrcIter end_src() override { return m_src.end(); }
+
+  void print_jets(std::ostream&) override;  // print the jets with their corrected pT and properties
+
+  void set_rho_median(float _) override { m_RhoMedian = _; };
+  float get_rho_median() const override { return m_RhoMedian; };
+
+  // z-vertex used in the jet reconstruction
+  // (has_zvertex() false: no valid vertex was found, jets reconstructed with z=0)
+  void set_has_zvertex(bool b) override { m_has_zvertex = b; };
+  bool has_zvertex() const override { return m_has_zvertex; };
+
+  void set_vertex_type(const std::string& type) override { m_vertex_type = type; };
+  std::string get_vertex_type() const override { return m_vertex_type; };
+
+  void set_vertex_z(float z) override { m_vertex_z = z; };
+  float get_vertex_z() const override { return m_vertex_z; };
 
  private:
+  static std::string str_Jet_PROPERTY(Jet::PROPERTY);
+
+  TClonesArray* m_clones{nullptr};  // TClonesArray of Jetv3 objects
+  size_t m_njets{0};                // size of jet_array
+
+  // properties contained in vectors of all jets
+  std::map<Jet::PROPERTY, Jet::PROPERTY /*really index for vectors in jets*/> m_pindex{};  // indices of properties in each jet property vector
+  size_t m_psize{0};                                                                       // size of p_index and p_vec
+
+  void resize_jet_pvecs();
+
+  // status
+  Jet::ALGO m_algo{Jet::NONE};
+  float m_jetpar_R{0.4};
+
+  std::set<Jet::SRC> m_src;  //< set of sources (clusters, towers, etc)
+
+  float m_RhoMedian{std::numeric_limits<float>::signaling_NaN()};
+
+  // z-vertex used in the jet reconstruction
+  bool m_has_zvertex{false};
+  std::string m_vertex_type;
+  float m_vertex_z{std::numeric_limits<float>::quiet_NaN()};
+
   ClassDefOverride(JetContainerv2, 1);
 };
 
