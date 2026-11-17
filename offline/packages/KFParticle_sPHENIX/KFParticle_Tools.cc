@@ -379,7 +379,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
     }
 
     const int trackndof = m_dst_track->get_ndf();
-    const float trackchi2ndof = trackndof > 0 ? m_dst_track->get_chisq() / trackndof : std::numeric_limits<float>::max();
+    const float trackchi2ndof = trackndof > 0 ? m_dst_track->get_chisq() / trackndof : std::numeric_limits<float>::quiet_NaN();
     if (m_verbosity > 11)
     {
       printSelectionCheck("Track chi^2/nDoF", 0, trackchi2ndof, m_track_chi2ndof);
