@@ -480,7 +480,8 @@ void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daug
   m_tree->Branch((daughter_number + "_EMCAL_energy_3x3").c_str(), &detector_emcal_energy_3x3[daughter_id], (daughter_number + "_EMCAL_energy_3x3/F").c_str());
   m_tree->Branch((daughter_number + "_EMCAL_energy_5x5").c_str(), &detector_emcal_energy_5x5[daughter_id], (daughter_number + "_EMCAL_energy_5x5/F").c_str());
   m_tree->Branch((daughter_number + "_EMCAL_energy_cluster").c_str(), &detector_emcal_cluster_energy[daughter_id], (daughter_number + "_EMCAL_energy_cluster/F").c_str());
-  
+  m_tree->Branch((daughter_number + "_EMCAL_cluster_prob").c_str(), &detector_emcal_cluster_prob[daughter_id], (daughter_number + "_EMCAL_cluster_prob/F").c_str());
+
   // Detailed calo info
   if (m_get_detailed_calorimetry)
   {
@@ -494,7 +495,7 @@ void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daug
     m_tree->Branch((daughter_number + "_EMCAL_nTowers").c_str(), &detector_emcal_ntowers[daughter_id], (daughter_number + "_EMCAL_nTowers/i").c_str());
   }
 
-  // 5x5 cell info 
+  // 5x5 cell info
   if (m_get_calo_5x5_cell_info)
   {
     m_tree->Branch((daughter_number + "_EMCAL_5x5Cell_binPhi").c_str(), &detector_emcal_5x5Cell_Phi[daughter_id]);
@@ -610,7 +611,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   }
 
   // Declare variables:
-  // Track 
+  // Track
   float _track_phi_emc = std::numeric_limits<float>::quiet_NaN();
   float _track_eta_emc = std::numeric_limits<float>::quiet_NaN();
   float _track_x_emc = std::numeric_limits<float>::quiet_NaN();
@@ -623,13 +624,17 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   float projection_z_emc = std::numeric_limits<float>::quiet_NaN();
   float projection_phi_emc = std::numeric_limits<float>::quiet_NaN();
   float projection_eta_emc = std::numeric_limits<float>::quiet_NaN();
-  
+
   // Basic EMCal vectors
   std::vector<float> v_emcal_clusE;
   std::vector<float> v_emcal_dphi;
   std::vector<float> v_emcal_deta;
   std::vector<float> v_emcal_dr;
   std::vector<float> v_emcal_dz;
+
+  // cluster prob (from RawClusterV1, cluster template probability for EM shower
+  /* as per John H. can be used as a cut to improve electron/photon signal purity in EMCAL */
+  std::vector<float> v_emcal_cluster_prob;
 
   // Detailed Calo Info vectors
   std::vector<float> v_projection_z_emc;
@@ -655,7 +660,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
 
   // If the state exists, start matching process
   if (thisState != nullptr){
-    
+
     // Vertex x,y,z for forrecting position when matching
     float vx = vertex_in.GetX();
     float vy = vertex_in.GetY();
@@ -668,7 +673,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     _track_phi_emc = std::atan2(_track_y_emc, _track_x_emc);
     _track_eta_emc = std::asinh(_track_z_emc / std::sqrt((_track_x_emc * _track_x_emc) + (_track_y_emc * _track_y_emc)));
 
-    // Same quantities as above but in detector coordinates i.e. wrt (0,0,0); 
+    // Same quantities as above but in detector coordinates i.e. wrt (0,0,0);
     // There are to be stored in nTuple -- not used in any calculations
     projection_x_emc = thisState->get_x();
     projection_y_emc = thisState->get_y();
@@ -744,14 +749,15 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       v_emcal_dz.push_back(dz);
       v_emcal_deta.push_back(deta);
       v_emcal_dr.push_back(dr);
-      
+      v_emcal_cluster_prob.push_back( cluster->get_prob() );
+
       // Detailed Calo Info
       v_emcal_cluster_z.push_back(detectorcoordinates_emcal_z);
       v_emcal_cluster_eta.push_back(detectorcoordinates_emcal_eta);
       v_emcal_cluster_phi.push_back(detectorcoordinates_emcal_phi);
       v_emcal_nTowers.push_back(_emcal_nTowers);
       v_emcal_chi2.push_back(_emcal_chi2);
-      
+
       // 5x5 call -- key used later in Get5x5CellInfo()
       v_clus_key.push_back(_clus_key);
 
@@ -794,7 +800,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     detector_emcal_energy_3x3[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_energy_5x5[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_cluster_energy[daughter_id] = std::numeric_limits<float>::quiet_NaN();
-    
+
     // Detailed Calo
     if (m_get_detailed_calorimetry)
     {
@@ -807,11 +813,11 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       detector_emcal_ntowers[daughter_id] = std::numeric_limits<unsigned int>::quiet_NaN();
       detector_emcal_chi2[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     }
-    
+
     // 5x5 cell
     if (m_get_calo_5x5_cell_info)
-    { 
-      // Fill with nothing -- no match found, so vectors should be empty ! 
+    {
+      // Fill with nothing -- no match found, so vectors should be empty !
     }
 
     isTrackEMCalmatch = false;
@@ -824,9 +830,9 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     float energy_3x3 = 0;
     float energy_5x5 = 0;
     KFParticle_truthAndDetTools::Get5x5CellInfo(
-      v_clus_key[index], 
-      energy_3x3, 
-      energy_5x5, 
+      v_clus_key[index],
+      energy_3x3,
+      energy_5x5,
       v_detector_emcal_5x5Cell_Phi,
       v_detector_emcal_5x5Cell_Eta,
       v_detector_emcal_5x5Cell_E
@@ -840,9 +846,10 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     detector_emcal_energy_3x3[daughter_id] = energy_3x3;
     detector_emcal_energy_5x5[daughter_id] = energy_5x5;
     detector_emcal_cluster_energy[daughter_id] = v_emcal_clusE[index];
-    
+    detector_emcal_cluster_prob[daughter_id] = v_emcal_cluster_prob[index];
+
     // Detailed Calo
-    if (m_get_detailed_calorimetry) 
+    if (m_get_detailed_calorimetry)
     {
       detector_emcal_projection_z[daughter_id] = projection_z_emc;
       detector_emcal_projection_eta[daughter_id] = projection_eta_emc;
@@ -861,7 +868,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       detector_emcal_5x5Cell_Eta[daughter_id] = v_detector_emcal_5x5Cell_Eta;
       detector_emcal_5x5Cell_E[daughter_id] = v_detector_emcal_5x5Cell_E;
     }
-    
+
 
     isTrackEMCalmatch = true;
   }
@@ -1161,8 +1168,8 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
 }
 
 void KFParticle_truthAndDetTools::Get5x5CellInfo(
-  RawClusterDefs::keytype key_in, 
-  float &E3x3, 
+  RawClusterDefs::keytype key_in,
+  float &E3x3,
   float &E5x5,
   std::vector<unsigned int> &v_emcal_5x5Cell_Phi,
   std::vector<unsigned int> &v_emcal_5x5Cell_Eta,
@@ -1170,7 +1177,7 @@ void KFParticle_truthAndDetTools::Get5x5CellInfo(
   ){
   // Make sure energy values are reset to start at 0
   E5x5 = 0.0;
-  E3x3 = 0.0; 
+  E3x3 = 0.0;
 
   // Get cluster from cluster key
   RawCluster *clus = clustersEM->getCluster(key_in);
@@ -1208,7 +1215,7 @@ void KFParticle_truthAndDetTools::Get5x5CellInfo(
     int phibin = center_phi + i;
     // Wraparound
     if (phibin < 0 || phibin > 255)
-    { 
+    {
       if (phibin == -1)
       {
         phibin = 255;
@@ -1253,14 +1260,14 @@ void KFParticle_truthAndDetTools::Get5x5CellInfo(
   {
     // Get ith phi bin
     const unsigned int iphi = v_phi_tmp[i];
-    
+
     // Add towers to 3x3 if not first or last rows in phi
     bool addto3x3 = false;
-    if(i < 4 && i > 0) 
+    if(i < 4 && i > 0)
     {
       addto3x3 = true;
     }
-    
+
     // Loop over eta
     for (int j = 0; j < eta_range; j++)
     {
@@ -1282,12 +1289,12 @@ void KFParticle_truthAndDetTools::Get5x5CellInfo(
         v_emcal_5x5Cell_E.push_back(energytmp);
       }
 
-      if(!addto3x3) 
+      if(!addto3x3)
       {
         continue; // Skip adding to E3x3 if phi is outside 3x3 grid
       }
       int etadiff = (int) jeta-center_eta;
-      if(etadiff < 2 && etadiff > -2) 
+      if(etadiff < 2 && etadiff > -2)
       {
         E3x3+=energytmp;
       }
