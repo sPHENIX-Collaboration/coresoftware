@@ -538,14 +538,14 @@ int KFParticle_Tools::calcMinPV_DCA(const KFParticle &track, const std::vector<K
     {
       ip.push_back(track.GetDistanceFromVertex(PV));
       thisPV_DCA_stddev = track.GetDeviationFromVertex(PV);
-      thisPV_DCA_stddev = std::max(thisPV_DCA_stddev, 0.F); // Sometimes the DCA calculation goes negative
     }
     else
     {
       ip.push_back(std::abs(track.GetDistanceFromVertexXY(PV)));
-      thisPV_DCA_stddev = std::abs(track.GetDeviationFromVertexXY(PV));
+      thisPV_DCA_stddev = track.GetDeviationFromVertexXY(PV);
     }
     
+    thisPV_DCA_stddev = std::max(thisPV_DCA_stddev, 0.F); // Sometimes the DCA calculation goes negative
     ip_significance.push_back(thisPV_DCA_stddev);
   }
 
@@ -1276,7 +1276,7 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
   float calculated_fdchi2 = flightDistanceChi2(particle, vertex);
 
   float calculated_PV_dca_xy = std::abs(particle.GetDistanceFromVertexXY(vertex));
-  float calculated_PV_dca_stddev_xy = std::abs(particle.GetDeviationFromVertexXY(vertex));
+  float calculated_PV_dca_stddev_xy = particle.GetDeviationFromVertexXY(vertex);
   float calculated_dira_xy = eventDIRA(particle, vertex, false);
   float calculated_PV_dca = particle.GetDistanceFromVertex(vertex);
   float calculated_PV_dca_stddev = particle.GetDeviationFromVertex(vertex);
