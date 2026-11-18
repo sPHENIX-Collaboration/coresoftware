@@ -452,7 +452,7 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
              mother != prevParticle->production_vertex()->particles_end(HepMC::parents); ++mother)
         {
           if (std::find(std::begin(forbiddenPDGIDs), std::end(forbiddenPDGIDs),
-                        abs((*mother)->pdg_id())) != std::end(forbiddenPDGIDs))
+                        std::abs((*mother)->pdg_id())) != std::end(forbiddenPDGIDs))
           {
             breakOut = true;
             break;
