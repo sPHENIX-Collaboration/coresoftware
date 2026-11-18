@@ -466,16 +466,14 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
           float min_PV_dca = 0;
           float min_PV_dca_stddev = 0;
           float min_PV_dca_xy = 0;
-          float min_PV_dca_stddev_xy  = 0;
+          float min_PV_dca_stddev_xy = 0;
           calcMinPV_DCA(candidate, primaryVerticesCand, min_PV_dca, min_PV_dca_stddev);
-          calcMinPV_DCA(candidate, primaryVerticesCand, min_PV_dca_xy , min_PV_dca_stddev_xy, false);
-          if (!isInRange(m_intermediate_min_PV_dca[intermediateNumber], min_PV_dca, m_intermediate_max_PV_dca[intermediateNumber])
-           || !isInRange(m_intermediate_min_PV_dca_stddev[intermediateNumber], min_PV_dca_stddev, m_intermediate_max_PV_dca_stddev[intermediateNumber])
-           || !isInRange(m_intermediate_min_PV_dca_xy[intermediateNumber], min_PV_dca_xy, m_intermediate_max_PV_dca_xy[intermediateNumber])
-           || !isInRange(m_intermediate_min_PV_dca_stddev_xy[intermediateNumber], min_PV_dca_stddev_xy, m_intermediate_max_PV_dca_stddev_xy[intermediateNumber]))
-          {
-            isGood = false;
-          }
+          calcMinPV_DCA(candidate, primaryVerticesCand, min_PV_dca_xy, min_PV_dca_stddev_xy, false);
+          const int n = intermediateNumber;
+          isGood = isInRange(m_intermediate_min_PV_dca[n], min_PV_dca, m_intermediate_max_PV_dca[n]) &&
+                   isInRange(m_intermediate_min_PV_dca_stddev[n], min_PV_dca_stddev, m_intermediate_max_PV_dca_stddev[n]) &&
+                   isInRange(m_intermediate_min_PV_dca_xy[n], min_PV_dca_xy, m_intermediate_max_PV_dca_xy[n]) &&
+                   isInRange(m_intermediate_min_PV_dca_stddev_xy[n], min_PV_dca_stddev_xy, m_intermediate_max_PV_dca_stddev_xy[n]);
         }
 
         if (isGood)

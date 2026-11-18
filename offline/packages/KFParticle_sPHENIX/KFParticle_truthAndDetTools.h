@@ -4,7 +4,6 @@
 // Cluster
 #include <calobase/RawClusterDefs.h>
 
-#include <cmath>
 #include <limits>
 #include <string>
 #include <vector>

@@ -159,18 +159,9 @@ KFParticle KFParticle_Tools::makeVertex(PHCompositeNode * /*topNode*/)
 
 std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode *topNode, const std::string &vertexMapName)
 {
-  std::string vtxMN;
-
   unsigned int vertexID = 0;
 
-  if (vertexMapName.empty())
-  {
-    vtxMN = m_vtx_map_node_name;
-  }
-  else
-  {
-    vtxMN = vertexMapName;
-  }
+  const std::string &vtxMN = vertexMapName.empty() ? m_vtx_map_node_name : vertexMapName;
 
   std::vector<KFParticle> primaryVertices;
 
@@ -404,15 +395,7 @@ void KFParticle_Tools::getTracksFromBC(PHCompositeNode *topNode, const int &bunc
     return;
   }
 
-  std::string vtxMN;
-  if (vertexMapName.empty())
-  {
-    vtxMN = m_vtx_map_node_name;
-  }
-  else
-  {
-    vtxMN = vertexMapName;
-  }
+  const std::string &vtxMN = vertexMapName.empty() ? m_vtx_map_node_name : vertexMapName;
 
   nTracks = 0;
   nPVs = 0;
@@ -435,15 +418,7 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
     return 0;
   }
 
-  std::string vtxMN;
-  if (vertexMapName.empty())
-  {
-    vtxMN = m_vtx_map_node_name;
-  }
-  else
-  {
-    vtxMN = vertexMapName;
-  }
+  const std::string &vtxMN = vertexMapName.empty() ? m_vtx_map_node_name : vertexMapName;
 
   SvtxVertex *associated_vertex = nullptr;
   if (m_dont_use_global_vertex)
@@ -479,8 +454,6 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
 
 /*const*/ bool KFParticle_Tools::isGoodTrack(const KFParticle &particle, const std::vector<KFParticle> &primaryVertices)
 {
-  bool goodTrack = false;
-
   float min_PV_dca = 0;
   float min_PV_dca_stddev = 0;
   float min_PV_dca_xy = 0;
@@ -498,12 +471,13 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
   calcMinPV_DCA(particle, primaryVertices, min_PV_dca, min_PV_dca_stddev);
   calcMinPV_DCA(particle, primaryVertices, min_PV_dca_xy, min_PV_dca_stddev_xy, false);
 
-  if (isInRange(m_track_min_pt, pt, m_track_max_pt) && ptchi2 <= m_track_ptchi2 && min_PV_dca >= m_track_PV_dca && min_PV_dca_stddev >= m_track_PV_dca_stddev && min_PV_dca_xy >= m_track_PV_dca_xy && min_PV_dca_stddev_xy >= m_track_PV_dca_stddev_xy)
-  {
-    goodTrack = true;
-  }
+  bool goodTrack = isInRange(m_track_min_pt, pt, m_track_max_pt) &&
+                   ptchi2 <= m_track_ptchi2 &&
+                   min_PV_dca >= m_track_PV_dca &&
+                   min_PV_dca_stddev >= m_track_PV_dca_stddev &&
+                   min_PV_dca_xy >= m_track_PV_dca_xy &&
+                   min_PV_dca_stddev_xy >= m_track_PV_dca_stddev_xy;
 
-  
   if (m_verbosity >= 10)
   {
     printSelectionCheck("This track", "passed", "failed", "the selection", goodTrack);
@@ -564,15 +538,15 @@ int KFParticle_Tools::calcMinPV_DCA(const KFParticle &track, const std::vector<K
     {
       ip.push_back(track.GetDistanceFromVertex(PV));
       thisPV_DCA_stddev = track.GetDeviationFromVertex(PV);
+      thisPV_DCA_stddev = std::max(thisPV_DCA_stddev, 0.F); // Sometimes the DCA calculation goes negative
     }
     else
     {
-      ip.push_back(abs(track.GetDistanceFromVertexXY(PV)));
-      thisPV_DCA_stddev = track.GetDeviationFromVertexXY(PV);
+      ip.push_back(std::abs(track.GetDistanceFromVertexXY(PV)));
+      thisPV_DCA_stddev = std::abs(track.GetDeviationFromVertexXY(PV));
     }
-
-    thisPV_DCA_stddev = std::max(thisPV_DCA_stddev, 0.F);
-    ip_significance.push_back(thisPV_DCA_stddev);  // Τhere are times where the PV_DCA_stddev calc fails
+    
+    ip_significance.push_back(thisPV_DCA_stddev);
   }
 
   if (ip.empty()) //Need to account for instances where the track has no associated primary vertex in its crossing. Track should always be rejected
@@ -654,14 +628,11 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<
           crossings.clear();
           crossings.insert(crossings.end(), particleCrossings[*i_it].begin(), particleCrossings[*i_it].end());
           crossings.insert(crossings.end(), particleCrossings[*j_it].begin(), particleCrossings[*j_it].end());
-          
+
           removeDuplicates(crossings);
-          
-          if (m_require_bunch_crossing_match && crossings.size() !=1)
-          {
-            continue;
-          }
-          if (m_force_mixed_event &&  crossings.size() == 1)
+
+          const bool sameCrossing = crossings.size() == 1;
+          if ((m_require_bunch_crossing_match && !sameCrossing) || (m_force_mixed_event && sameCrossing))
           {
             continue;
           }
@@ -716,12 +687,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<
           //Now check if tracks are good as we need full reco to make DCA calc make sense
           if (nTracks == 2)
           {
-            if (vertexchi2ndof > m_vertex_chi2ndof)
-            {
-              continue;
-            }
-
-            if (sv_radial_position < m_min_radial_SV)
+            if (vertexchi2ndof > m_vertex_chi2ndof || sv_radial_position < m_min_radial_SV)
             {
               continue;
             }
@@ -734,6 +700,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<
               if (!trackPassesCuts)
               {
                 rejectComboDueToTrack = true;
+                break;
               }
             }
 
@@ -864,12 +831,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
 
           if ((unsigned int) nRequiredTracks == nProngs)
           {
-            if (vertexchi2ndof > m_vertex_chi2ndof)
-            {
-              continue;
-            }
-
-            if (sv_radial_position < m_min_radial_SV)
+            if (vertexchi2ndof > m_vertex_chi2ndof || sv_radial_position < m_min_radial_SV)
             {
               continue;
             }
@@ -882,6 +844,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
               if (!trackPassesCuts)
               {
                 rejectComboDueToTrack = true;
+                break;
               }
             }
 
@@ -1149,12 +1112,9 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     {
       inputTracks[j].SetProductionVertex(mother);
     }
-    if (!m_allowZeroMassTracks)
+    if (!m_allowZeroMassTracks && inputTracks[j].GetMass() == 0)
     {
-      if (inputTracks[j].GetMass() == 0)
-      {
-        daughterMassCheck = false;
-      }
+      daughterMassCheck = false;
     }
   }
 
@@ -1171,13 +1131,11 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
   float max_vertex_volume = isIntermediate ? m_intermediate_vertex_volume[intermediateNumber] : m_mother_vertex_volume;
 
-  bool goodCandidate = false;
-
-  if (calculated_mass >= min_mass && calculated_mass <= max_mass &&
-      calculated_pt >= min_pt && daughterMassCheck && chargeCheck && calculateEllipsoidVolume(mother) <= max_vertex_volume)
-  {
-    goodCandidate = true;
-  }
+  bool goodCandidate = isInRange(min_mass, calculated_mass, max_mass) &&
+                       calculated_pt >= min_pt &&
+                       daughterMassCheck &&
+                       chargeCheck &&
+                       calculateEllipsoidVolume(mother) <= max_vertex_volume;
 
   std::vector<int> crossings;
   for (int i = 0; i < nTracks; ++i)
@@ -1189,19 +1147,15 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
   if (goodCandidate && (m_require_bunch_crossing_match || m_force_mixed_event))
   {
-    if (m_require_bunch_crossing_match && crossings.size() != 1)
-    {
-      goodCandidate = false;
-    }
-    if (m_force_mixed_event && crossings.size() == 1)
+    const bool sameCrossing = crossings.size() == 1;
+    if ((m_require_bunch_crossing_match && !sameCrossing) || (m_force_mixed_event && sameCrossing))
     {
       goodCandidate = false;
     }
 
     if (m_verbosity >= 11)
     {
-      bool accept = crossings.size() == 1;
-      printSelectionCheck("", "All tracks are from the same BC", "Tracks are from different BC", "", accept);
+      printSelectionCheck("", "All tracks are from the same BC", "Tracks are from different BC", "", sameCrossing);
     }
   }
 
@@ -1259,13 +1213,10 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
         const auto timeRange = rangeOf(m_intermediate_decayTime_range);
         const auto timeRange_xy = rangeOf(m_intermediate_decayTime_xy_range);
 
-        if (!isInRange(lengthRange.first, intermediate_decayLength, lengthRange.second) ||
-            !isInRange(lengthRange_xy.first, intermediate_decayLength_xy, lengthRange_xy.second) ||
-            !isInRange(timeRange.first, intermediate_decayTime, timeRange.second) ||
-            !isInRange(timeRange_xy.first, intermediate_decayTime_xy, timeRange_xy.second))
-        {
-          goodCandidate = false;
-        }
+        goodCandidate = isInRange(lengthRange.first, intermediate_decayLength, lengthRange.second) &&
+                        isInRange(lengthRange_xy.first, intermediate_decayLength_xy, lengthRange_xy.second) &&
+                        isInRange(timeRange.first, intermediate_decayTime, timeRange.second) &&
+                        isInRange(timeRange_xy.first, intermediate_decayTime_xy, timeRange_xy.second);
 
         if (m_verbosity >= 11)
         {
@@ -1324,8 +1275,8 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
 
   float calculated_fdchi2 = flightDistanceChi2(particle, vertex);
 
-  float calculated_PV_dca_xy = abs(particle.GetDistanceFromVertexXY(vertex));
-  float calculated_PV_dca_stddev_xy = particle.GetDeviationFromVertexXY(vertex);
+  float calculated_PV_dca_xy = std::abs(particle.GetDistanceFromVertexXY(vertex));
+  float calculated_PV_dca_stddev_xy = std::abs(particle.GetDeviationFromVertexXY(vertex));
   float calculated_dira_xy = eventDIRA(particle, vertex, false);
   float calculated_PV_dca = particle.GetDistanceFromVertex(vertex);
   float calculated_PV_dca_stddev = particle.GetDeviationFromVertex(vertex);
@@ -1335,16 +1286,24 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
   float calculated_decay_length_significance = calculated_decayLength / calculated_decayLengthErr;
   float calculated_decay_length_xy_significance = calculated_decayLength_xy / calculated_decayLengthErr_xy;
 
-  goodCandidate = false;
-
   const float speed = 2.99792458e-2;
   calculated_decayTime /= speed;
   calculated_decayTime_xy /= speed;  // The pseudo-proper decay time is returned as a length (c*tau), convert it to a time like the 3D one
 
-  if (calculated_fdchi2 >= m_fdchi2 && calculated_PV_dca <= m_mother_PV_dca && calculated_PV_dca_stddev <= m_mother_PV_dca_stddev && calculated_PV_dca_xy <= m_mother_PV_dca_xy && calculated_PV_dca_stddev_xy <= m_mother_PV_dca_stddev_xy && calculated_decay_time_significance >= m_mother_min_decay_time_significance && calculated_decay_length_significance >= m_mother_min_decay_length_significance && calculated_decay_length_xy_significance >= m_mother_min_decay_length_xy_significance && isInRange(m_dira_min, calculated_dira, m_dira_max) && isInRange(m_dira_xy_min, calculated_dira_xy, m_dira_xy_max) && isInRange(m_min_decayTime, calculated_decayTime, m_max_decayTime) && isInRange(m_min_decayTime_xy, calculated_decayTime_xy, m_max_decayTime_xy) && isInRange(m_min_decayLength, calculated_decayLength, m_max_decayLength) && isInRange(m_min_decayLength_xy, calculated_decayLength_xy, m_max_decayLength_xy))
-  {
-    goodCandidate = true;
-  }
+  goodCandidate = calculated_fdchi2 >= m_fdchi2 &&
+                  calculated_PV_dca <= m_mother_PV_dca &&
+                  calculated_PV_dca_stddev <= m_mother_PV_dca_stddev &&
+                  calculated_PV_dca_xy <= m_mother_PV_dca_xy &&
+                  calculated_PV_dca_stddev_xy <= m_mother_PV_dca_stddev_xy &&
+                  calculated_decay_time_significance >= m_mother_min_decay_time_significance &&
+                  calculated_decay_length_significance >= m_mother_min_decay_length_significance &&
+                  calculated_decay_length_xy_significance >= m_mother_min_decay_length_xy_significance &&
+                  isInRange(m_dira_min, calculated_dira, m_dira_max) &&
+                  isInRange(m_dira_xy_min, calculated_dira_xy, m_dira_xy_max) &&
+                  isInRange(m_min_decayTime, calculated_decayTime, m_max_decayTime) &&
+                  isInRange(m_min_decayTime_xy, calculated_decayTime_xy, m_max_decayTime_xy) &&
+                  isInRange(m_min_decayLength, calculated_decayLength, m_max_decayLength) &&
+                  isInRange(m_min_decayLength_xy, calculated_decayLength_xy, m_max_decayLength_xy);
 
   if (m_verbosity >= 10)
   {
@@ -1398,7 +1357,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findUniqueDaughterCombinations(i
   std::map<int, int> daughterMap;
   for (int i = start; i < end; i++)
   {
-    daughterMap.insert(std::pair<int, int>(i, abs(getParticleID(m_daughter_name[i]))));
+    daughterMap.insert(std::pair<int, int>(i, std::abs(getParticleID(m_daughter_name[i]))));
     vect_permutations.push_back(i);
   }
   int *permutations = vect_permutations.data();
@@ -1636,8 +1595,7 @@ void KFParticle_Tools::identify(const KFParticle &particle)
   std::cout << particle.GetPz() << " +/- " << std::sqrt(particle.GetCovariance(5, 5)) << ") GeV" << std::endl;
   std::cout << "(x,y,z) = (" << particle.GetX() << " +/- " << std::sqrt(particle.GetCovariance(0, 0)) << ", ";
   std::cout << particle.GetY() << " +/- " << std::sqrt(particle.GetCovariance(1, 1)) << ", ";
-  std::cout << particle.GetZ() << " +/- " << std::sqrt(particle.GetCovariance(2, 2)) << ") cm\n"
-            << std::endl;
+  std::cout << particle.GetZ() << " +/- " << std::sqrt(particle.GetCovariance(2, 2)) << ") cm\n" << std::endl;
 }
 
 float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter)
