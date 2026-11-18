@@ -36,6 +36,12 @@ MbdTrackVertex::MbdTrackVertex(const std::string &name)
 //____________________________________________________________________________..
 int MbdTrackVertex::Init(PHCompositeNode * /*topNode*/)
 {
+  if ( outFile != nullptr )
+  {
+    outFile->Close();
+    delete outFile;
+  }
+
   outFile = new TFile(outFileName.c_str(), "RECREATE");
   if (_treeflag)
   {
