@@ -545,39 +545,26 @@ int KFParticle_eventReconstruction::selectBestCombination(bool PVconstraint, boo
                                                           std::vector<KFParticle> possibleCandidates,
                                                           std::vector<KFParticle> possibleVertex)
 {
-  KFParticle smallestMassError = possibleCandidates[0];
+  const bool byMassError = !PVconstraint || isAnInterMother || m_select_by_mass_error;
+  auto score = [&](unsigned int i) -> float
+  {
+    if (byMassError)
+    {
+      return possibleCandidates[i].GetErrMass();
+    }
+    return m_use_2D_matching_tools ? possibleCandidates[i].GetDeviationFromVertexXY(possibleVertex[i])
+                                   : possibleCandidates[i].GetDeviationFromVertex(possibleVertex[i]);
+  };
+
   int bestCombinationIndex = 0;
+  float bestScore = score(0);
   for (unsigned int i = 1; i < possibleCandidates.size(); ++i)
   {
-    if (!PVconstraint || isAnInterMother || m_select_by_mass_error)
+    const float thisScore = score(i);
+    if (thisScore < bestScore)
     {
-      if (possibleCandidates[i].GetErrMass() < smallestMassError.GetErrMass())
-      {
-        smallestMassError = possibleCandidates[i];
-        bestCombinationIndex = i;
-      }
-    }
-    else 
-    {
-      float current_PV_DCAchi2 = 0;
-      float best_PV_DCAchi2 = 0;
-   
-      if (m_use_2D_matching_tools)
-      {
-        current_PV_DCAchi2 = possibleCandidates[i].GetDeviationFromVertexXY(possibleVertex[i]);
-        best_PV_DCAchi2 = smallestMassError.GetDeviationFromVertexXY(possibleVertex[bestCombinationIndex]);
-      }
-      else
-      {
-        current_PV_DCAchi2 = possibleCandidates[i].GetDeviationFromVertex(possibleVertex[i]);
-        best_PV_DCAchi2 = smallestMassError.GetDeviationFromVertex(possibleVertex[bestCombinationIndex]);
-      }
-
-      if (current_PV_DCAchi2 < best_PV_DCAchi2)
-      {
-        smallestMassError = possibleCandidates[i];
-        bestCombinationIndex = i;
-      }
+      bestScore = thisScore;
+      bestCombinationIndex = i;
     }
   }
   return bestCombinationIndex;
