@@ -722,7 +722,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
     maxProngIndex.reserve(nGoodProngs);
     for (const auto &prong : goodTracksThatMeet)
     {
-      maxProngIndex.push_back(*std::max_element(prong.begin(), prong.begin() + (nProngs - 1)));
+      maxProngIndex.push_back(*std::max_element(prong.begin(), prong.end()));
     }
   }
 
@@ -736,7 +736,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
       }
 
       const auto &prong = goodTracksThatMeet[i_prongs];
-      const bool trackNotUsedAlready = std::find(prong.begin(), prong.begin() + (nProngs - 1), i_it) == prong.begin() + (nProngs - 1);
+      const bool trackNotUsedAlready = std::find(prong.begin(), prong.end(), i_it) == prong.end();
       if (trackNotUsedAlready)
       {
         bool dcaMet = true;
@@ -745,10 +745,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
         std::vector<int> combination;
         combination.reserve(nProngs);
         combination.push_back(i_it);
-        for (unsigned int i = 0; i < nProngs - 1; ++i)
-        {
-          combination.push_back(goodTracksThatMeet[i_prongs][i]);
-        }
+        combination.insert(combination.end(), prong.begin(), prong.end());
 
         KFParticle dummy_mother;
         std::vector<KFParticle> dummy_tracks;
@@ -794,10 +791,9 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
         {
           // The vertex of the raw tracks is only needed for the quality and radius selection, so build it here
           KFVertex particleVertex;
-          particleVertex += daughterParticles[i_it];
-          for (unsigned int i = 0; i < nProngs - 1; ++i)
+          for (const int id : combination)
           {
-            particleVertex += daughterParticles[goodTracksThatMeet[i_prongs][i]];
+            particleVertex += daughterParticles[id];
           }
 
           float vertexchi2ndof = particleVertex.GetChi2() / particleVertex.GetNDF();
