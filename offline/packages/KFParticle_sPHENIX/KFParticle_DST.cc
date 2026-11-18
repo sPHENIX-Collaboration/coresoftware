@@ -51,18 +51,9 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
     std::cout << "DST node added" << std::endl;
   }
 
-  std::string baseName;
+  std::string baseName = m_container_name.empty() ? "reconstructedParticles" : m_container_name;
   std::string trackNodeName;
   std::string particleNodeName;
-
-  if (m_container_name.empty())
-  {
-    baseName = "reconstructedParticles";
-  }
-  else
-  {
-    baseName = m_container_name;
-  }
 
   // Cant have forward slashes in DST or else you make a subdirectory on save!!!
   std::string undrscr = "_";
@@ -135,17 +126,8 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
   unsigned int daughterCounter = 0;
   unsigned int resonanceCounter = UINT_MAX;
 
-  std::string baseName;
+  std::string baseName = m_container_name.empty() ? "reconstructedParticles" : m_container_name;
   std::string trackNodeName;
-
-  if (m_container_name.empty())
-  {
-    baseName = "reconstructedParticles";
-  }
-  else
-  {
-    baseName = m_container_name;
-  }
 
   // Cant have forward slashes in DST or else you make a subdirectory on save!!!
   std::string undrscr = "_";
@@ -241,17 +223,8 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, KFParti
                                                std::vector<KFParticle> daughters,
                                                std::vector<KFParticle> intermediates)
 {
-  std::string baseName;
+  std::string baseName = m_container_name.empty() ? "reconstructedParticles" : m_container_name;
   std::string particleNodeName;
-
-  if (m_container_name.empty())
-  {
-    baseName = "reconstructedParticles";
-  }
-  else
-  {
-    baseName = m_container_name;
-  }
 
   // Cant have forward slashes in DST or else you make a subdirectory on save!!!
   std::string undrscr = "_";
@@ -357,18 +330,9 @@ SvtxTrack* KFParticle_DST::buildSvtxTrack(const KFParticle& particle)
 
 void KFParticle_DST::printNode(PHCompositeNode* topNode)
 {
-  std::string baseName;
+  std::string baseName = m_container_name.empty() ? "reconstructedParticles" : m_container_name;
   std::string trackNodeName;
   std::string particleNodeName;
-
-  if (m_container_name.empty())
-  {
-    baseName = "reconstructedParticles";
-  }
-  else
-  {
-    baseName = m_container_name;
-  }
 
   // Cant have forward slashes in DST or else you make a subdirectory on save!!!
   std::string undrscr = "_";
