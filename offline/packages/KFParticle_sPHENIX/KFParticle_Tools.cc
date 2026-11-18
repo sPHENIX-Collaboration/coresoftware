@@ -1834,7 +1834,7 @@ int KFParticle_Tools::getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, co
   //auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_SEED");
   if (!m_siliconSeeds)
   {
-    if(m_verbosity > 0)
+    if (m_verbosity > 0)
     {
       std::cout << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << std::endl;
     }
@@ -1853,19 +1853,19 @@ int KFParticle_Tools::getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, co
   for (unsigned int phtrk_iter_si = 0;
          phtrk_iter_si < m_siliconSeeds->size();
          ++phtrk_iter_si)
+  {
+    _tracklet_si = m_siliconSeeds->get(phtrk_iter_si);
+    if (!_tracklet_si)
     {
-      _tracklet_si = m_siliconSeeds->get(phtrk_iter_si);
-      if(!_tracklet_si)
+      continue;
+    }
+    if (_tracklet_si->get_crossing() == bunch_crossing)
+    {
+      if (TrackAnalysisUtils::get_cluster_count(_tracklet_si,TrkrDefs::mvtxId) >= nMapsCut && 
+          TrackAnalysisUtils::get_cluster_count(_tracklet_si,TrkrDefs::inttId) >= nInttCut)
       {
-        continue;
+        ncharged_multiplicity++;
       }
-      if (_tracklet_si->get_crossing() == bunch_crossing)
-      {
-        if (TrackAnalysisUtils::get_cluster_count(_tracklet_si,TrkrDefs::mvtxId) >= nMapsCut && 
-            TrackAnalysisUtils::get_cluster_count(_tracklet_si,TrkrDefs::inttId) >= nInttCut)
-        {
-          ncharged_multiplicity++;
-        }
     }
   }
   

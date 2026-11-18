@@ -370,8 +370,6 @@ void KFParticle_sPHENIX::printParticles(const KFParticle &motherParticle,
 
 int KFParticle_sPHENIX::parseDecayDescriptor()
 {
-  bool ddCanBeParsed = true;
-
   size_t daughterLocator;
 
   std::string mother;
@@ -421,10 +419,8 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   // Find the initial particle
   size_t findMotherEndPoint = manipulateDecayDescriptor.find(decayArrow);
   mother = manipulateDecayDescriptor.substr(0, findMotherEndPoint);
-  if (!findParticle(mother))
-  {
-    ddCanBeParsed = false;
-  }
+  bool ddCanBeParsed = findParticle(mother);
+  
   manipulateDecayDescriptor.erase(0, findMotherEndPoint + decayArrow.length());
 
   // Try and find the intermediates
