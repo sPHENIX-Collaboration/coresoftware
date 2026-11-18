@@ -224,9 +224,9 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
           }
 
           if (have_duplicate_track)
-	  {
-	    continue;
-	  }
+	        {
+	          continue;
+	        }
 
           // If there are daughter tracks coming from the mother not an intermediate, need to ensure that the intermeditate decay tracks aren't used again
           std::vector<int> goodTrackIndexAdv_withoutIntermediates = goodTrackIndexAdv;
@@ -412,7 +412,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
               goodDaughters[j].clear();
             }
           }
-	  delete [] motherDecayProducts;
+	        delete [] motherDecayProducts;
         }  // Close forth intermediate
       }    // Close third intermediate
     }      // Close second intermediate
@@ -435,8 +435,6 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
   std::vector<std::vector<int>> uniqueCombinations = findUniqueDaughterCombinations(n_track_start, n_track_stop);
   std::vector<KFParticle> goodCandidates, goodVertex;
   std::vector<KFParticle> *goodDaughters = new std::vector<KFParticle>[nTracks];
-  KFParticle candidate;
-  bool isGood;
   bool fixToPV = m_constrain_to_vertex && !isIntermediate;
 
   float required_unique_vertexID = 0;
@@ -458,6 +456,8 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
     {
       for (unsigned int i_pv = 0; i_pv < primaryVerticesCand.size(); ++i_pv)  // Loop over all PVs in the event
       {
+        bool isGood;
+        KFParticle candidate;
         int* PDGIDofFirstParticleInCombination = &uniqueCombination[0];
         std::tie(candidate, isGood) = getCombination(daughterTracks, PDGIDofFirstParticleInCombination, primaryVerticesCand[i_pv], m_constrain_to_vertex,
                                                      isIntermediate, intermediateNumber, nTracks, constrainMass, required_unique_vertexID, topNode);
