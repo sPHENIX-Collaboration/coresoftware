@@ -138,6 +138,10 @@ int MbdEvent::InitRun()
   {
     _runtype = 1; // p+p
   }
+  else
+  {
+    _runtype = 0;
+  }
 
   // Always reload calibrations on InitRun()
   
