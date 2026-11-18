@@ -595,7 +595,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   if(m_track2caloVerbosity > 10 && thisState != nullptr)
   {
     thisState->identify();
-    std::cout << "size states " << (size_t)track->size_states() << std::endl;
+    std::cout << "size states " << track->size_states() << std::endl;
     for (auto state_iter = track->begin_states();
           state_iter != track->end_states();
           ++state_iter)
