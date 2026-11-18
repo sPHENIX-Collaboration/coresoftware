@@ -692,19 +692,9 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<
               continue;
             }
        
-            bool rejectComboDueToTrack = false;
-
-            for (auto &track : dummy_tracks)
-            {
-              bool trackPassesCuts = isGoodTrack(track, primaryVertices);
-              if (!trackPassesCuts)
-              {
-                rejectComboDueToTrack = true;
-                break;
-              }
-            }
-
-            if (rejectComboDueToTrack)
+            const bool allTracksPass = std::all_of(dummy_tracks.begin(), dummy_tracks.end(),
+                                                   [&](const KFParticle &track) { return isGoodTrack(track, primaryVertices); });
+            if (!allTracksPass)
             {
               continue;
             }
@@ -836,19 +826,9 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
               continue;
             }
 
-            bool rejectComboDueToTrack = false;
-
-            for (auto &track : dummy_tracks)
-            {
-              bool trackPassesCuts = isGoodTrack(track, primaryVertices);
-              if (!trackPassesCuts)
-              {
-                rejectComboDueToTrack = true;
-                break;
-              }
-            }
-
-            if (rejectComboDueToTrack)
+            const bool allTracksPass = std::all_of(dummy_tracks.begin(), dummy_tracks.end(),
+                                                   [&](const KFParticle &track) { return isGoodTrack(track, primaryVertices); });
+            if (!allTracksPass)
             {
               continue;
             }
@@ -1556,7 +1536,9 @@ bool KFParticle_Tools::finalStateMatchesDecay(const std::vector<std::pair<int, i
   unsigned int first = 0;
   for (const auto &size : groupSizes)
   {
-    std::vector<std::pair<int, int>> expected, expectedConjugate, found;
+    std::vector<std::pair<int, int>> expected;
+    std::vector<std::pair<int, int>> expectedConjugate;
+    std::vector<std::pair<int, int>> found;
     for (unsigned int i = first; i < first + size && i < assigned.size(); ++i)
     {
       const int absPDG = std::abs(getParticleID(m_daughter_name[i]));
