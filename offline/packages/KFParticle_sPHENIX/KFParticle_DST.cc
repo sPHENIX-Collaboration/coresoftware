@@ -178,9 +178,9 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
       while (!dummyIntermediate)
       {
         if (!m_recoTrackMap->get(resonanceCounter))
-	{
-	  dummyIntermediate = m_recoTrackMap->insertWithKey(m_recoTrack, resonanceCounter);
-	}
+	      {
+	        dummyIntermediate = m_recoTrackMap->insertWithKey(m_recoTrack, resonanceCounter);
+	      }
         --resonanceCounter;
       }
       m_recoTrack->Reset();
