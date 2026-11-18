@@ -37,12 +37,23 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>   // for std::abs(int)
 #include <iterator>  // for begin, distance, end
 #include <memory>   // for allocator_traits<>::value_type
+#include <set>
 #include <string>   // for string
 #include <tuple>    // for tie, tuple
 
 #include <iostream>
+
+namespace
+{
+  // pi+ pdgid = 211, pi- pdgid = -211
+  // e+ pdgid = -11, e- pdgid = 11
+  // mu+ pdgid = -13, mu- pdgid = 13
+  // tau+ pdgid = -15, tau- pdgid = 15
+  const std::set<int> chargedLeptonPDGIDs = {11, 13, 15};
+}  // namespace
 
 /// Create necessary objects
 KFParticle_Tools kfp_Tools_evtReco;
@@ -342,11 +353,8 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                     {
                       slowTrackMass = kfp_Tools_evtReco.getParticleMass((Int_t) motherDecayProducts[trackArrayID].GetQ() * uniqueCombination[trackArrayID]);
                       slowTrackPDG = (Int_t) motherDecayProducts[trackArrayID].GetQ() * uniqueCombination[trackArrayID];
-                      // pi+ pdgid = 211, pi- pdgid = -211
-                      // e+ pdgid = -11, e- pdgid = 11
-                      // mu+ pdgid = -13, mu- pdgid = 13
-                      // tau+ pdgid = -15, tau- pdgid = 15
-                      if (abs(slowTrackPDG) == 11 || abs(slowTrackPDG) == 13 || abs(slowTrackPDG) == 15)
+                      
+                      if (chargedLeptonPDGIDs.count(std::abs(slowTrackPDG)) != 0)
                       {
                         slowTrackPDG *= -1;
                       }
@@ -484,11 +492,8 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
             {
               intParticleMass = kfp_Tools_evtReco.getParticleMass((Int_t) daughterTracks[i].GetQ() * PDGIDofFirstParticleInCombination[i]);
               intParticlePDG = (Int_t) daughterTracks[i].GetQ() * PDGIDofFirstParticleInCombination[i];
-              // pi+ pdgid = 211, pi- pdgid = -211
-              // e+ pdgid = -11, e- pdgid = 11
-              // mu+ pdgid = -13, mu- pdgid = 13
-              // tau+ pdgid = -15, tau- pdgid = 15
-              if (abs(intParticlePDG) == 11 || abs(intParticlePDG) == 13 || abs(intParticlePDG) == 15)
+              
+              if (chargedLeptonPDGIDs.count(std::abs(intParticlePDG)) != 0)
               {
                 intParticlePDG *= -1;
               }
