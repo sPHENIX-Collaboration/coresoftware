@@ -735,14 +735,8 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
         continue;
       }
 
-      bool trackNotUsedAlready = true;
-      for (unsigned int i_trackCheck = 0; i_trackCheck < nProngs - 1; ++i_trackCheck)
-      {
-        if (i_it == goodTracksThatMeet[i_prongs][i_trackCheck])
-        {
-          trackNotUsedAlready = false;
-        }
-      }
+      const auto &prong = goodTracksThatMeet[i_prongs];
+      const bool trackNotUsedAlready = std::find(prong.begin(), prong.begin() + (nProngs - 1), i_it) == prong.begin() + (nProngs - 1);
       if (trackNotUsedAlready)
       {
         bool dcaMet = true;
