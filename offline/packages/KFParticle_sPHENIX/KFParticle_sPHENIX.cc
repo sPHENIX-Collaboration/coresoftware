@@ -391,6 +391,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   std::string chargeIndicator = "^";
   std::string startIntermediate = "{";
   std::string endIntermediate = "}";
+  static const std::map<std::string, int> chargeLookup = {{"+", +1}, {"-", -1}, {"0", 0}};
 
   // These tracks require a + or - after their name for TDatabasePDG
   std::string specialTracks[] = {"e", "mu", "pi", "K"};
@@ -455,17 +456,10 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
       {
         daughters_name.emplace_back(daughter.c_str());
 
-        if (daughterChargeString == "+")
+        auto charge = chargeLookup.find(daughterChargeString);
+        if (charge != chargeLookup.end())
         {
-          daughters_charge.push_back(+1);
-        }
-        else if (daughterChargeString == "-")
-        {
-          daughters_charge.push_back(-1);
-        }
-        else if (daughterChargeString == "0")
-        {
-          daughters_charge.push_back(0);
+          daughters_charge.push_back(charge->second);
         }
         else
         {
@@ -500,17 +494,10 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     if (findParticle(daughter))
     {
       daughters_name.emplace_back(daughter.c_str());
-      if (daughterChargeString == "+")
+      auto charge = chargeLookup.find(daughterChargeString);
+      if (charge != chargeLookup.end())
       {
-        daughters_charge.push_back(+1);
-      }
-      else if (daughterChargeString == "-")
-      {
-        daughters_charge.push_back(-1);
-      }
-      else if (daughterChargeString == "0")
-      {
-        daughters_charge.push_back(0);
+        daughters_charge.push_back(charge->second);
       }
       else
       {
