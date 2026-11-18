@@ -93,18 +93,8 @@ class KFParticle_truthAndDetTools
   }
  
   // Helper functions
-  float PiRange(float deltaPhi)
-  {
-    if (deltaPhi > M_PI)
-    {
-      deltaPhi -= 2 * M_PI;
-    }
-    if (deltaPhi < -M_PI)
-    {
-      deltaPhi += 2 * M_PI;
-    }
-    return deltaPhi;
-  }
+  // Wrap an azimuthal difference into [-pi, pi]
+  float PiRange(float deltaPhi) { return std::remainder(deltaPhi, 2 * M_PI); }
 
   void setToolsInstance(KFParticle_Tools *tools) { m_tools = tools; }
 
