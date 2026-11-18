@@ -201,9 +201,9 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
       while (!dummyDaughter)
       {
         if (!m_recoTrackMap->get(daughterCounter))
-	{
+	      {
           dummyDaughter = m_recoTrackMap->insertWithKey(m_recoTrack, daughterCounter);
-	}
+	      }
         ++daughterCounter;
       }
     }
