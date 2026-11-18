@@ -842,69 +842,47 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
 
 std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks, const std::vector<KFParticle> &primaryVertices)
 {
-  std::vector<std::vector<int>> goodTracksThatMeet;
-  std::vector<std::vector<int>> goodTracksThatMeetIntermediates;  //, vectorOfGoodTracks;
+  std::vector<std::vector<int>> goodTracksThatMeetIntermediates;
+
+  // Do these tracks form a vertex together with the intermediates?
+  auto combinesWithIntermediates = [&](const std::vector<int> &trackIds)
+  {
+    std::vector<KFParticle> v_intermediateResonances(intermediateResonances, intermediateResonances + m_num_intermediate_states);
+    for (const int j : trackIds)
+    {
+      v_intermediateResonances.push_back(daughterParticles[j]);
+    }
+    std::vector<int> dummyTrackID(v_intermediateResonances.size());
+    std::iota(dummyTrackID.begin(), dummyTrackID.end(), 0);
+    std::vector<std::vector<int>> dummyTrackList = findTwoProngs(v_intermediateResonances, dummyTrackID, (int) v_intermediateResonances.size(), primaryVertices);
+    for (unsigned int p = 3; p <= v_intermediateResonances.size(); ++p)
+    {
+      dummyTrackList = findNProngs(v_intermediateResonances, dummyTrackID, dummyTrackList, (int) v_intermediateResonances.size(), (int) p, primaryVertices);
+    }
+    return !dummyTrackList.empty();
+  };
+
   if (num_remaining_tracks == 1)
   {
     for (const auto &i_it : goodTrackIndex)
     {
-      std::vector<KFParticle> v_intermediateResonances(intermediateResonances, intermediateResonances + m_num_intermediate_states);
-      std::vector<std::vector<int>> dummyTrackList;
-      std::vector<int> dummyTrackID;  // I already have the track ids stored in goodTracksThatMeet[i]
-      v_intermediateResonances.insert(end(v_intermediateResonances), daughterParticles[i_it]);
-      dummyTrackID.reserve(v_intermediateResonances.size());
-      for (unsigned int k = 0; k < v_intermediateResonances.size(); ++k)
+      if (combinesWithIntermediates({i_it}))
       {
-        dummyTrackID.push_back(k);
-      }
-      dummyTrackList = findTwoProngs(v_intermediateResonances, dummyTrackID, (int) v_intermediateResonances.size(), primaryVertices);
-      if (v_intermediateResonances.size() > 2)
-      {
-        for (unsigned int p = 3; p <= v_intermediateResonances.size(); ++p)
-        {
-          dummyTrackList = findNProngs(v_intermediateResonances,
-                                       dummyTrackID, dummyTrackList,
-                                       (int) v_intermediateResonances.size(), (int) p, primaryVertices);
-        }
-      }
-
-      if (!dummyTrackList.empty())
-      {
-        std::vector<int> goodTrack{i_it};
-        goodTracksThatMeetIntermediates.push_back(goodTrack);
+        goodTracksThatMeetIntermediates.push_back({i_it});
       }
     }
   }
   else
   {
-    goodTracksThatMeet = findTwoProngs(daughterParticles, goodTrackIndex, num_remaining_tracks, primaryVertices);
-
+    std::vector<std::vector<int>> goodTracksThatMeet = findTwoProngs(daughterParticles, goodTrackIndex, num_remaining_tracks, primaryVertices);
     for (int p = 3; p <= num_remaining_tracks; ++p)
     {
       goodTracksThatMeet = findNProngs(daughterParticles, goodTrackIndex, goodTracksThatMeet, num_remaining_tracks, p, primaryVertices);
     }
 
-    for (auto &i : goodTracksThatMeet)
+    for (const auto &i : goodTracksThatMeet)
     {
-      std::vector<KFParticle> v_intermediateResonances(intermediateResonances, intermediateResonances + m_num_intermediate_states);
-      std::vector<std::vector<int>> dummyTrackList;
-      std::vector<int> dummyTrackID;  // I already have the track ids stored in goodTracksThatMeet[i]
-      for (int j : i)
-      {
-        v_intermediateResonances.push_back(daughterParticles[j]);
-      }
-      dummyTrackID.reserve(v_intermediateResonances.size());
-      for (unsigned int k = 0; k < v_intermediateResonances.size(); ++k)
-      {
-        dummyTrackID.push_back(k);
-      }
-      dummyTrackList = findTwoProngs(v_intermediateResonances, dummyTrackID, (int) v_intermediateResonances.size(), primaryVertices);
-      for (unsigned int p = 3; p <= v_intermediateResonances.size(); ++p)
-      {
-        dummyTrackList = findNProngs(v_intermediateResonances, dummyTrackID, dummyTrackList, (int) v_intermediateResonances.size(), (int) p, primaryVertices);
-      }
-
-      if (!dummyTrackList.empty())
+      if (combinesWithIntermediates(i))
       {
         goodTracksThatMeetIntermediates.push_back(i);
       }
