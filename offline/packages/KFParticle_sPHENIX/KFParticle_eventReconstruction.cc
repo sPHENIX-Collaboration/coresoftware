@@ -191,42 +191,32 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
           bool isGood = false;
           const unsigned int matchIterators[4] = {a, b, c, d};
 
-          int num_mother_decay_products = m_num_intermediate_states + num_remaining_tracks;
-          assert(num_mother_decay_products > 0);
-          KFParticle *motherDecayProducts = new KFParticle[num_mother_decay_products];
           std::vector<KFParticle> finalTracks = potentialDaughters[0][a];
-
-          for (int i = 0; i < m_num_intermediate_states; ++i)
-          {
-            motherDecayProducts[i] = potentialIntermediates[i][matchIterators[i]];
-          }
           for (int j = 1; j < m_num_intermediate_states; ++j)
           {
             finalTracks.insert(finalTracks.end(), potentialDaughters[j][matchIterators[j]].begin(), potentialDaughters[j][matchIterators[j]].end());
           }
 
-          bool have_duplicate_track = false;
-
-          for (size_t i = 0; i < finalTracks.size(); ++i)
+          // Skip combinations where intermediates share a track (checked before allocating motherDecayProducts so the continue cannot leak it)
+          std::vector<int> trackIds;
+          trackIds.reserve(finalTracks.size());
+          for (const auto& track : finalTracks)
           {
-            for (size_t j = i + 1; j < finalTracks.size(); ++j)
-            {
-              if (finalTracks[i].Id() == finalTracks[j].Id())
-              {
-                have_duplicate_track = true;
-                break;
-              }
-            }
-            if (have_duplicate_track)
-            {
-              break;
-            }
+            trackIds.push_back(track.Id());
+          }
+          std::sort(trackIds.begin(), trackIds.end());
+          if (std::adjacent_find(trackIds.begin(), trackIds.end()) != trackIds.end())
+          {
+            continue;
           }
 
-          if (have_duplicate_track)
-	        {
-	          continue;
-	        }
+          int num_mother_decay_products = m_num_intermediate_states + num_remaining_tracks;
+          assert(num_mother_decay_products > 0);
+          KFParticle *motherDecayProducts = new KFParticle[num_mother_decay_products];
+          for (int i = 0; i < m_num_intermediate_states; ++i)
+          {
+            motherDecayProducts[i] = potentialIntermediates[i][matchIterators[i]];
+          }
 
           // If there are daughter tracks coming from the mother not an intermediate, need to ensure that the intermeditate decay tracks aren't used again
           std::vector<int> goodTrackIndexAdv_withoutIntermediates = goodTrackIndexAdv;
