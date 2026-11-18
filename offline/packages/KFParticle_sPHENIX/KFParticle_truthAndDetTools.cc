@@ -1205,31 +1205,8 @@ void KFParticle_truthAndDetTools::Get5x5CellInfo(
   // Get phi bins, and account for wrap-around case
   for (int i = -2; i <= 2; i++)
   {
-    int phibin = center_phi + i;
-    // Wraparound
-    if (phibin < 0 || phibin > 255)
-    { 
-      if (phibin == -1)
-      {
-        phibin = 255;
-      }
-      if (phibin == -2)
-      {
-        phibin = 254;
-      }
-      if (phibin == 256)
-      {
-        phibin = 0;
-      }
-      if (phibin == 257)
-      {
-        phibin = 1;
-      }
-      if (phibin == 258)
-      {
-        phibin = 2;
-      }
-    }
+    // Wraparound in phi (256 EMCal phi bins)
+    int phibin = (static_cast<int>(center_phi) + i + 256) % 256;
     v_phi_tmp.push_back(phibin);
   }
 
