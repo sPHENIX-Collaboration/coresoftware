@@ -16,7 +16,7 @@ KFParticle_triggerInfo::~KFParticle_triggerInfo() = default;  // Destructor
 bool KFParticle_triggerInfo::buildTriggerBranches(PHCompositeNode *topNode, TTree *m_tree)
 {
   //First, check whether we actually have the right information
-  auto gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+  auto *gl1packet =findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
   if (!gl1packet)
   {
     gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
@@ -26,7 +26,7 @@ bool KFParticle_triggerInfo::buildTriggerBranches(PHCompositeNode *topNode, TTre
     }
   }
 
-  auto triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
+  auto *triggerruninfo =findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
   if (!triggerruninfo)
   {
     return false;
@@ -34,7 +34,7 @@ bool KFParticle_triggerInfo::buildTriggerBranches(PHCompositeNode *topNode, TTre
 
   size_t pos;
   std::string undrscr = "_";
-  std::string nothing = "";
+  std::string nothing;
   std::map<std::string, std::string> forbiddenStrings;
   forbiddenStrings[" "] = undrscr;
   forbiddenStrings[","] = nothing;
@@ -95,8 +95,8 @@ void KFParticle_triggerInfo::fillTriggerBranches(PHCompositeNode *topNode)
 
 void KFParticle_triggerInfo::resetTriggerBranches()
 {
-    for (int i = 0; i < nTriggerBits; ++i)
+  for (bool &bit : m_trigger_bit)
   {
-    m_trigger_bit[i] = std::numeric_limits<bool>::quiet_NaN();
+    bit = std::numeric_limits<bool>::quiet_NaN();
   }
 }

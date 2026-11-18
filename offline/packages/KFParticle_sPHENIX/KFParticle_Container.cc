@@ -16,16 +16,12 @@
 #include <ostream>   // for operator<<, endl, ostream, basic_ostream, bas...
 #include <utility>   // for pair, make_pair
 
-KFParticle_Container::KFParticle_Container()
-  : m_kfpmap()
-{
-}
+KFParticle_Container::KFParticle_Container() = default;
 
 // NOLINTNEXTLINE(bugprone-copy-constructor-init)
 KFParticle_Container::KFParticle_Container(const KFParticle_Container& kfparticlemap)
-  : m_kfpmap()
 {
-  for (auto& iter : kfparticlemap)
+  for (const auto& iter : kfparticlemap)
   {
     KFParticle* particle = dynamic_cast<KFParticle*>(iter.second->Clone());
     m_kfpmap.insert(std::make_pair(iter.first, particle));
@@ -35,7 +31,7 @@ KFParticle_Container::KFParticle_Container(const KFParticle_Container& kfparticl
 KFParticle_Container& KFParticle_Container::operator=(const KFParticle_Container& kfparticlemap)
 {
   Reset();
-  for (auto& iter : kfparticlemap)
+  for (const auto& iter : kfparticlemap)
   {
     KFParticle* particle = dynamic_cast<KFParticle*>(iter.second->Clone());
     m_kfpmap.insert(std::make_pair(iter.first, particle));
