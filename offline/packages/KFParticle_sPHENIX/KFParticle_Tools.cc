@@ -159,8 +159,6 @@ KFParticle KFParticle_Tools::makeVertex(PHCompositeNode * /*topNode*/)
 
 std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode *topNode, const std::string &vertexMapName)
 {
-  unsigned int vertexID = 0;
-
   const std::string &vtxMN = vertexMapName.empty() ? m_vtx_map_node_name : vertexMapName;
 
   std::vector<KFParticle> primaryVertices;
@@ -182,8 +180,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
       {
         m_dst_mbdvertex = iter->second;
         primaryVertices.push_back(makeVertex(topNode));
-        primaryVertices[vertexID].SetId(iter->first);
-        ++vertexID;
+        primaryVertices.back().SetId(iter->first);
       }
     }
     else
@@ -192,8 +189,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
       {
         m_dst_vertex = iter->second;
         primaryVertices.push_back(makeVertex(topNode));
-        primaryVertices[vertexID].SetId(iter->first);
-        ++vertexID;
+        primaryVertices.back().SetId(iter->first);
       }
     }
 
@@ -234,8 +230,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
       }
 
       primaryVertices.push_back(makeVertex(topNode));
-      primaryVertices[vertexID].SetId(m_dst_globalvertex->get_id());
-      ++vertexID;
+      primaryVertices.back().SetId(m_dst_globalvertex->get_id());
     }
   }
 
@@ -276,7 +271,6 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
 {
   std::vector<KFParticle> daughterParticles;
   m_dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
-  unsigned int trackID = 0;
 
   m_intermediate_crossings.clear();
   m_next_intermediate_id = -2;
@@ -381,8 +375,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
     }
 
     daughterParticles.push_back(makeParticle(topNode));  /// Turn all dst tracks in KFP tracks
-    daughterParticles[trackID].SetId(iter.first);
-    ++trackID;
+    daughterParticles.back().SetId(iter.first);
   }
 
   return daughterParticles;
