@@ -185,14 +185,10 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 
   int num_remaining_tracks = m_num_tracks - num_tracks_used_by_intermediates;
   // Number of potential intermediates found
-  unsigned int num_pot_inter_a;
-  unsigned int num_pot_inter_b;
-  unsigned int num_pot_inter_c;
-  unsigned int num_pot_inter_d;
-  num_pot_inter_a = potentialIntermediates[0].size();
-  num_pot_inter_b = m_num_intermediate_states < 2 ? 1 : potentialIntermediates[1].size();  // Ensure the code inside the loop below is executed
-  num_pot_inter_c = m_num_intermediate_states < 3 ? 1 : potentialIntermediates[2].size();
-  num_pot_inter_d = m_num_intermediate_states < 4 ? 1 : potentialIntermediates[3].size();
+  unsigned int num_pot_inter_a = potentialIntermediates[0].size();;
+  unsigned int num_pot_inter_b = m_num_intermediate_states < 2 ? 1 : potentialIntermediates[1].size();  // Ensure the code inside the loop below is executed;
+  unsigned int num_pot_inter_c = m_num_intermediate_states < 3 ? 1 : potentialIntermediates[2].size();;
+  unsigned int num_pot_inter_d = m_num_intermediate_states < 4 ? 1 : potentialIntermediates[3].size();;
 
   for (unsigned int a = 0; a < num_pot_inter_a; ++a)
   {
