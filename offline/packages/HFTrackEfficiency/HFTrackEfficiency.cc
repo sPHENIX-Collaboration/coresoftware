@@ -4,7 +4,6 @@
 
 #include <trackbase/TrkrDefs.h>
 
-#include <trackbase_historic/PHG4ParticleSvtxMap.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
@@ -12,6 +11,8 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 
 #include <g4eval/SvtxClusterEval.h>
+#include <g4eval/SvtxEvalStack.h>
+#include <g4eval/SvtxTrackEval.h>
 #include <g4eval/SvtxTruthEval.h>
 
 #include <g4main/PHG4Particle.h>
@@ -24,10 +25,14 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>
 #include <phool/getClass.h>
 
 #include <TDatabasePDG.h>
 #include <TFile.h>
+#include <TParticlePDG.h>
 #include <TTree.h>
 
 #include <CLHEP/Vector/LorentzRotation.h>
@@ -41,25 +46,121 @@
 #include <HepMC/Units.h>
 
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <limits>
-#include <map>
 #include <set>
+#include <type_traits>
 
 namespace
 {
   // Speed of light in cm/ps, to turn a flight distance into a proper decay time
-  constexpr double c_cm_per_ps = 0.0299792458;
+  constexpr double kCmPerPs = 0.0299792458;
+
+  // PDG IDs (absolute value) of the particles that leave a track
+  constexpr std::array<int, 5> kTrackablePDGs{11, 13, 211, 321, 2212};
+
+  // Largest difference in a momentum component [GeV] that still counts as the same particle when there is no barcode
+  // match, and the relative size of that difference for fast particles
+  constexpr double kMomentumTolerance = 5e-3;
+
+  // Number of vertices to follow back through a record, a guard against a malformed record
+  constexpr int kMaxAncestryDepth = 200;
+
+  // Vertices in the HepMC record closer than this are the same vertex, in the HepMC length unit
+  constexpr double kVertexEpsilon = 1e-6;
+
+  // Size of a vertex shift [cm] that is worth telling the user about
+  constexpr double kVertexShiftWarning = 1e-3;
+
+  // Rapidity of a particle moving along the beam with E <= |pz|, where it is not defined
+  constexpr float kInvalidRapidity = -999.;
+
+  constexpr float kNaN = std::numeric_limits<float>::quiet_NaN();
+
+  bool isTrackable(const int pdgID)
+  {
+    return std::ranges::find(kTrackablePDGs, std::abs(pdgID)) != kTrackablePDGs.end();
+  }
+
+  std::string getParticleName(const int pdgID)
+  {
+    const TParticlePDG *particle = TDatabasePDG::Instance()->GetParticle(pdgID);
+    return particle ? particle->GetName() : "unknown";
+  }
+
+  float getParticleMass(const int pdgID)
+  {
+    const TParticlePDG *particle = TDatabasePDG::Instance()->GetParticle(pdgID);
+    return particle ? static_cast<float>(particle->Mass()) : kNaN;
+  }
+
+  // Add a branch with the leaf type of the variable
+  template <typename T>
+  void addBranch(TTree &tree, const std::string &name, T *address)
+  {
+    char leafType = 'F';
+    if constexpr (std::is_same_v<T, bool>)
+    {
+      leafType = 'O';
+    }
+    else if constexpr (std::is_same_v<T, int>)
+    {
+      leafType = 'I';
+    }
+    else
+    {
+      static_assert(std::is_same_v<T, float>, "No leaf type for this branch type");
+    }
+    tree.Branch(name.c_str(), address, (name + "/" + leafType).c_str());
+  }
+
+  // Index of the detector in the cluster branches, -1 if the detector is not one of them
+  int getDetectorIndex(const TrkrDefs::cluskey key)
+  {
+    switch (TrkrDefs::getTrkrId(key))
+    {
+    case TrkrDefs::mvtxId:
+      return 0;
+    case TrkrDefs::inttId:
+      return 1;
+    case TrkrDefs::tpcId:
+      return 2;
+    case TrkrDefs::micromegasId:
+      return 3;
+    default:
+      return -1;
+    }
+  }
+
+  // Does the reco track have the momentum of the true one to within the given fraction in all three components
+  bool isMomentumMatch(const SvtxTrack &track, const CLHEP::HepLorentzVector &trueLV, const float fraction)
+  {
+    const auto delta_px = static_cast<float>((track.get_px() - trueLV.px()) / trueLV.px());
+    const auto delta_py = static_cast<float>((track.get_py() - trueLV.py()) / trueLV.py());
+    const auto delta_pz = static_cast<float>((track.get_pz() - trueLV.pz()) / trueLV.pz());
+    return std::abs(delta_px) <= fraction && std::abs(delta_py) <= fraction && std::abs(delta_pz) <= fraction;
+  }
+
+  // Does the Geant4 particle have the PDG ID and barcode of an entry in the decay
+  template <typename Entry>
+  bool isDecayEntry(const PHG4Particle *particle, const Entry &entry)
+  {
+    return particle && particle->get_pid() == entry.second && particle->get_barcode() == entry.first.second;
+  }
+
+  // The parent of a Geant4 particle, nullptr if it has none
+  PHG4Particle *getParent(PHG4TruthInfoContainer *truthInfo, const PHG4Particle *particle)
+  {
+    return particle->get_parent_id() != 0 ? truthInfo->GetParticle(particle->get_parent_id()) : nullptr;
+  }
 
   // Follow the first incoming particle of every vertex back to the start of the HepMC record
-  HepMC::GenVertex *findRootVertex(const HepMC::GenParticle *particle)
+  HepMC::GenVertex *findRootVertex(const HepMC::GenParticle &particle)
   {
-    HepMC::GenVertex *vtx = particle->production_vertex();
-    constexpr int maxDepth = 200;  // Guard against a malformed record
-    for (int depth = 0; vtx && depth < maxDepth; ++depth)
+    HepMC::GenVertex *vtx = particle.production_vertex();
+    for (int depth = 0; vtx && depth < kMaxAncestryDepth; ++depth)
     {
       if (vtx->particles_in_size() == 0)
       {
@@ -77,50 +178,73 @@ namespace
 
   // Position of a HepMC vertex in cm in the lab frame, the same transformation that HepMCNodeReader applies
   // (generator frame -> lab frame, units to cm, plus the collision vertex) but without any extra reader offset
-  CLHEP::Hep3Vector getLabFrameVertex(const HepMC::GenVertex &vtx, const HepMC::GenEvent &evt, const CLHEP::HepLorentzRotation &evtGen2Lab, const HepMC::FourVector &collisionVertex)
+  CLHEP::Hep3Vector getLabFrameVertex(const HepMC::GenVertex &vtx, const HepMC::GenEvent &evt,
+                                      const CLHEP::HepLorentzRotation &evtGen2Lab,
+                                      const HepMC::FourVector &collisionVertex)
   {
     const double lengthFactor = HepMC::Units::conversion_factor(evt.length_unit(), HepMC::Units::CM);
-    const CLHEP::HepLorentzVector genVertex(vtx.position().x(), vtx.position().y(), vtx.position().z(), vtx.position().t());
+    const CLHEP::HepLorentzVector genVertex(vtx.position().x(), vtx.position().y(), vtx.position().z(),
+                                            vtx.position().t());
     const CLHEP::HepLorentzVector labVertex = evtGen2Lab(genVertex);
     return CLHEP::Hep3Vector(labVertex.x() * lengthFactor + collisionVertex.x(),
                              labVertex.y() * lengthFactor + collisionVertex.y(),
                              labVertex.z() * lengthFactor + collisionVertex.z());
   }
+
+  // Are two HepMC vertices at the same place
+  bool isSameVertex(const HepMC::GenVertex &first, const HepMC::GenVertex &second)
+  {
+    return std::abs(first.position().x() - second.position().x()) < kVertexEpsilon &&
+           std::abs(first.position().y() - second.position().y()) < kVertexEpsilon &&
+           std::abs(first.position().z() - second.position().z()) < kVertexEpsilon;
+  }
 }  // namespace
+
+struct HFTrackEfficiency::DecayTruth
+{
+  HepMC::GenEvent *event{nullptr};  // HepMC event of the mother, nullptr if the decay is only in the Geant4 record
+
+  CLHEP::HepLorentzVector daughterSumLV;  // Sum of the true daughters that leave a track
+  CLHEP::HepLorentzVector recoSumLV;      // Sum of the matched reco tracks, with the true masses
+  std::set<SvtxTrack *> selectedTracks;   // The matched reco tracks
+
+  // True vertices, all in cm and in the lab frame that Geant4 (and so the reconstruction) uses
+  bool haveVertices{false};
+  CLHEP::Hep3Vector primaryVtx;
+  CLHEP::Hep3Vector productionVtx;
+  CLHEP::Hep3Vector decayVtx;
+
+  // The HepMC record is in the event generator frame. HepMCNodeReader rotates it to the lab frame (crossing angle) and
+  // shifts it by the collision vertex, possibly plus a vertex offset/smearing of its own that is not visible from
+  // here. The latter is recovered by comparing one HepMC daughter vertex to the Geant4 vertex of the same particle.
+  CLHEP::HepLorentzRotation evtGen2Lab;
+  CLHEP::Hep3Vector vertexOffset;
+  bool vertexOffsetKnown{false};
+};
+
+struct HFTrackEfficiency::DaughterTruth
+{
+  PHG4Particle *g4{nullptr};  // Geant4 particle of the daughter, nullptr if there is none
+  bool haveKinematics{false};
+  CLHEP::HepLorentzVector lv;  // Four vector of the true daughter
+};
 
 //____________________________________________________________________________..
 HFTrackEfficiency::HFTrackEfficiency(const std::string &name)
   : SubsysReco(name)
-  , m_input_track_map_node_name("SvtxTrackMap")
-  , m_output_track_map_node_name("HFSelected")
-  , m_outfile_name("outputHFTrackEff.root")
-  , m_truthRecoMatchPercent(5.)
-  , m_nDaughters(2)
 {
 }
+
+HFTrackEfficiency::~HFTrackEfficiency() = default;
 
 //____________________________________________________________________________..
 int HFTrackEfficiency::Init(PHCompositeNode *topNode)
 {
-  m_truthRecoMatchPercent /= 100.;
+  m_truthRecoMatchPercent /= 100.F;
 
   if (m_write_track_map)
   {
-    PHNodeIterator nodeIter(topNode);
-
-    PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(nodeIter.findFirst("PHCompositeNode", "DST"));
-    if (!dstNode)
-    {
-      dstNode = new PHCompositeNode("DST");
-      topNode->addNode(dstNode);
-      std::cout << "DST node added" << std::endl;
-    }
-
-    outputNodeName = m_output_track_map_node_name + "_SvtxTrackMap";
-    m_output_trackMap = new SvtxTrackMap_v2();
-    PHIODataNode<PHObject> *outputTrackNode = new PHIODataNode<PHObject>(m_output_trackMap, outputNodeName, "PHObject");
-    dstNode->addNode(outputTrackNode);
-    std::cout << outputNodeName << " node added" << std::endl;
+    createOutputTrackMap(topNode);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -129,11 +253,94 @@ int HFTrackEfficiency::Init(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int HFTrackEfficiency::process_event(PHCompositeNode *topNode)
 {
-  PHNodeIterator nodeIter(topNode);
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(nodeIter.findFirst("PHCompositeNode", "DST"));
-  assert(dstNode);
+  int returnCode = getNodes(topNode);
+  if (returnCode != Fun4AllReturnCodes::EVENT_OK)
+  {
+    return returnCode;
+  }
 
-  std::string df_node_name = m_df_module_name + "_DecayMap";
+  setupEvaluation(topNode);
+
+  returnCode = setupDecay();
+  if (returnCode != Fun4AllReturnCodes::EVENT_OK)
+  {
+    return returnCode;
+  }
+
+  const bool reconstructableDecay = processDecays(topNode);
+
+  if (m_triggerOnDecay && !reconstructableDecay)
+  {
+    if (Verbosity() >= VERBOSITY_MORE)
+    {
+      std::cout << "No decays were reconstructable in this event, skipping" << std::endl;
+    }
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//____________________________________________________________________________..
+int HFTrackEfficiency::End(PHCompositeNode * /*topNode*/)
+{
+  PrintEff();
+
+  if (m_write_nTuple && m_counter_allDecays != 0 && m_outfile)
+  {
+    m_outfile->Write();
+    m_outfile->Close();
+    m_outfile.reset();  // Closing the file deletes the tree
+    m_tree = nullptr;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//____________________________________________________________________________..
+void HFTrackEfficiency::PrintEff()
+{
+  std::cout << "\n--------------- Heavy Flavor Tracking Efficiency ---------------" << std::endl;
+  std::cout << "Tracking Efficiency for " << m_decay_descriptor << std::endl;
+  std::cout << "Number of decays fully in acceptance: " << m_counter_allDecays << std::endl;
+  std::cout << "Number of decays with all tracks reconstructed: " << m_counter_acceptedDecays << std::endl;
+  if (m_counter_allDecays != 0)
+  {
+    std::cout << "Efficiency: " << std::setw(4)
+              << static_cast<float>(m_counter_acceptedDecays) * 100 / static_cast<float>(m_counter_allDecays) << "%"
+              << std::endl;
+  }
+  if (m_counter_unmatchedTruth != 0)
+  {
+    std::cout << "Warning: " << m_counter_unmatchedTruth
+              << " daughters had no Geant4 particle, these use the momentum matching to find a reco track" << std::endl;
+  }
+  std::cout << "----------------------------------------------------------------\n"
+            << std::endl;
+}
+
+void HFTrackEfficiency::createOutputTrackMap(PHCompositeNode *topNode)
+{
+  PHNodeIterator nodeIter(topNode);
+
+  auto *dstNode = dynamic_cast<PHCompositeNode *>(nodeIter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+  {
+    dstNode = new PHCompositeNode("DST");
+    topNode->addNode(dstNode);
+    std::cout << "DST node added" << std::endl;
+  }
+
+  m_outputNodeName = m_output_track_map_node_name + "_SvtxTrackMap";
+  m_output_trackMap = new SvtxTrackMap_v2();
+  auto *outputTrackNode = new PHIODataNode<PHObject>(m_output_trackMap, m_outputNodeName, "PHObject");
+  dstNode->addNode(outputTrackNode);
+  std::cout << m_outputNodeName << " node added" << std::endl;
+}
+
+int HFTrackEfficiency::getNodes(PHCompositeNode *topNode)
+{
+  const std::string df_node_name = m_df_module_name + "_DecayMap";
   m_decayMap = findNode::getClass<DecayFinderContainerBase>(topNode, df_node_name);
   if (!m_decayMap)
   {
@@ -165,33 +372,51 @@ int HFTrackEfficiency::process_event(PHCompositeNode *topNode)
   m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
 
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void HFTrackEfficiency::setupEvaluation(PHCompositeNode *topNode)
+{
   if (!m_svtx_evalstack)
   {
-    m_svtx_evalstack = new SvtxEvalStack(topNode);
-    trackeval = m_svtx_evalstack->get_track_eval();
-    trackeval->set_track_nodename(m_input_track_map_node_name);
+    m_svtx_evalstack = std::make_unique<SvtxEvalStack>(topNode);
+    m_trackeval = m_svtx_evalstack->get_track_eval();
+    m_trackeval->set_track_nodename(m_input_track_map_node_name);
   }
   m_svtx_evalstack->next_event(topNode);
+}
 
-  if (m_decay_descriptor.empty() && !m_decayMap->empty())
+int HFTrackEfficiency::setupDecay()
+{
+  if (!m_decay_descriptor.empty() || m_decayMap->empty())
   {
-    getDecayDescriptor();
-    getNDaughters();
-    if (m_nDaughters > m_maxTracks)
-    {
-      std::cout << __FILE__ << ": The decay has " << m_nDaughters << " trackable daughters but at most " << m_maxTracks << " are supported" << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-    if (m_nDaughters != 2 && m_nDaughters != 3)
-    {
-      std::cout << __FILE__ << ": Warning, " << m_nDaughters << " trackable daughters. Decays found in the Geant4 record only support 2 or 3" << std::endl;
-    }
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  bool reconstructableDecay = false;
-  for (auto &iter : *m_decayMap)
+  getDecayDescriptor();
+  getNDaughters();
+
+  if (m_nDaughters > s_maxTracks)
   {
-    Decay decay = iter.second;
+    std::cout << __FILE__ << ": The decay has " << m_nDaughters << " trackable daughters but at most " << s_maxTracks
+              << " are supported" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  if (m_nDaughters != 2 && m_nDaughters != 3)
+  {
+    std::cout << __FILE__ << ": Warning, " << m_nDaughters
+              << " trackable daughters. Decays found in the Geant4 record only support 2 or 3" << std::endl;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+bool HFTrackEfficiency::processDecays(PHCompositeNode *topNode)
+{
+  bool reconstructableDecay = false;
+  for (const auto &iter : *m_decayMap)
+  {
+    const Decay decay = iter.second;
     ++m_counter_allDecays;
 
     m_all_tracks_reconstructed = findTracks(topNode, decay);
@@ -211,45 +436,341 @@ int HFTrackEfficiency::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (m_triggerOnDecay && !reconstructableDecay)
-  {
-    if (Verbosity() >= VERBOSITY_MORE)
-    {
-      std::cout << "No decays were reconstructable in this event, skipping" << std::endl;
-    }
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  return Fun4AllReturnCodes::EVENT_OK;
+  return reconstructableDecay;
 }
 
-int HFTrackEfficiency::End(PHCompositeNode * /*topNode*/)
+bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, const Decay &decay)
 {
-  PrintEff();
+  resetBranches();
 
-  if (m_write_nTuple && m_counter_allDecays != 0)
+  DecayTruth truth;
+  if (m_geneventmap)
   {
-    m_outfile->Write();
-    m_outfile->Close();
-    delete m_outfile;
+    fillHepMCMother(decay, truth);
   }
 
-  return Fun4AllReturnCodes::EVENT_OK;
+  unsigned int nTrackable = 0;
+  for (unsigned int i = 1; i < decay.size(); ++i)
+  {
+    if (!isTrackable(decay[i].second))
+    {
+      continue;
+    }
+
+    if (nTrackable >= s_maxTracks)
+    {
+      std::cout << __FILE__ << ": Decay has more than " << s_maxTracks << " trackable daughters, increase s_maxTracks"
+                << std::endl;
+      return false;
+    }
+
+    processDaughter(decay, i, nTrackable, truth);
+    ++nTrackable;
+  }
+
+  m_true_mother_mass = static_cast<float>(truth.daughterSumLV.m());
+  fillVertexBranches(decay, truth);
+
+  return storeSelectedTracks(topNode, truth);
 }
 
-PHG4Particle *HFTrackEfficiency::findGeant4Primary(const int embeddingID, const int barcode, const int pdgID, const CLHEP::Hep3Vector &labMomentum) const
+void HFTrackEfficiency::processDaughter(const Decay &decay, const unsigned int decayIndex,
+                                        const unsigned int trackIndex, DecayTruth &truth)
+{
+  DaughterTruth daughter;
+  findDaughterTruth(decay, decayIndex, trackIndex, truth, daughter);
+
+  if (!daughter.g4)
+  {
+    ++m_counter_unmatchedTruth;
+    if (Verbosity() > 0)
+    {
+      std::cout << __FILE__ << ": No Geant4 particle found for daughter " << trackIndex + 1 << " (PDG "
+                << decay[decayIndex].second << ")" << std::endl;
+    }
+  }
+
+  if (!daughter.haveKinematics)
+  {
+    return;  // Nothing to compare a reco track to
+  }
+
+  fillTrueDaughterBranches(trackIndex, daughter);
+
+  SvtxTrack *track = findRecoTrack(trackIndex, daughter);
+  if (!track)
+  {
+    return;
+  }
+
+  if (Verbosity() >= VERBOSITY_MORE)
+  {
+    track->identify();
+  }
+
+  truth.selectedTracks.insert(track);
+  fillRecoTrackBranches(track, daughter.g4, trackIndex);
+
+  CLHEP::HepLorentzVector daughterRecoLV;
+  daughterRecoLV.setVectM(CLHEP::Hep3Vector(track->get_px(), track->get_py(), track->get_pz()),
+                          getParticleMass(static_cast<int>(m_true_track_PID[trackIndex])));
+  truth.recoSumLV += daughterRecoLV;
+}
+
+void HFTrackEfficiency::fillHepMCMother(const Decay &decay, DecayTruth &truth)
+{
+  m_genevt = m_geneventmap->get(decay[0].first.first);
+  if (!m_genevt)
+  {
+    return;  // The decay is not in the HepMC record, the truth comes from Geant4
+  }
+
+  truth.event = m_genevt->getEvent();
+  const HepMC::GenParticle *mother = truth.event ? truth.event->barcode_to_particle(decay[0].first.second) : nullptr;
+  if (!mother)
+  {
+    truth.event = nullptr;
+    return;
+  }
+
+  if (Verbosity() >= VERBOSITY_MORE)
+  {
+    mother->print();
+  }
+
+  truth.evtGen2Lab = m_genevt->get_LorentzRotation_EvtGen2Lab();
+  fillHepMCMotherKinematics(*mother);
+  fillHepMCVertices(*mother, truth);
+}
+
+void HFTrackEfficiency::fillHepMCMotherKinematics(const HepMC::GenParticle &mother)
+{
+  // These are the generator frame values, the crossing angle rotation is not applied. Compare with the Geant4 truth
+  // at the 1e-3 level
+  const HepMC::FourVector &momentum = mother.momentum();
+  m_true_mother_pT = static_cast<float>(momentum.perp());
+  // Must have an old HepMC build, no mag function
+  m_true_mother_p = static_cast<float>(std::sqrt(momentum.px() * momentum.px() + momentum.py() * momentum.py() +
+                                                 momentum.pz() * momentum.pz()));
+  m_true_mother_eta = static_cast<float>(momentum.eta());
+  m_true_mother_phi = static_cast<float>(momentum.phi());
+  if (momentum.e() > std::abs(momentum.pz()))
+  {
+    m_true_mother_rapidity =
+        static_cast<float>(0.5 * std::log((momentum.e() + momentum.pz()) / (momentum.e() - momentum.pz())));
+  }
+  else
+  {
+    m_true_mother_rapidity = kInvalidRapidity;
+  }
+}
+
+void HFTrackEfficiency::fillHepMCVertices(const HepMC::GenParticle &mother, DecayTruth &truth)
+{
+  const HepMC::GenVertex *motherProductionVtx = mother.production_vertex();
+  const HepMC::GenVertex *motherDecayVtx = mother.end_vertex();
+  const HepMC::GenVertex *rootVtx = findRootVertex(mother);
+
+  if (!motherProductionVtx || !motherDecayVtx || !rootVtx)
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << __FILE__
+                << ": The mother in the HepMC record has no production or decay vertex, no true vertices will be filled"
+                << std::endl;
+    }
+    return;
+  }
+
+  const HepMC::FourVector &collisionVtx = m_genevt->get_collision_vertex();
+  truth.primaryVtx = getLabFrameVertex(*rootVtx, *truth.event, truth.evtGen2Lab, collisionVtx);
+  truth.productionVtx = getLabFrameVertex(*motherProductionVtx, *truth.event, truth.evtGen2Lab, collisionVtx);
+  truth.decayVtx = getLabFrameVertex(*motherDecayVtx, *truth.event, truth.evtGen2Lab, collisionVtx);
+  truth.haveVertices = true;
+
+  // A prompt mother is produced where the record starts. Compared in the HepMC length unit, no reliance on the
+  // record starting at the origin
+  m_is_primary = isSameVertex(*motherProductionVtx, *rootVtx);
+}
+
+void HFTrackEfficiency::findDaughterTruth(const Decay &decay, const unsigned int decayIndex,
+                                          const unsigned int trackIndex, DecayTruth &truth, DaughterTruth &daughter)
+{
+  const HepMC::GenParticle *daughterHepMC = nullptr;
+  if (truth.event && decay[decayIndex].first.second > -1)
+  {
+    daughterHepMC = truth.event->barcode_to_particle(decay[decayIndex].first.second);
+  }
+
+  if (daughterHepMC)
+  {
+    fillHepMCDaughter(decay, decayIndex, trackIndex, *daughterHepMC, truth, daughter);
+  }
+  else if (m_truthInfo)
+  {
+    findGeant4Daughter(decay, decayIndex, trackIndex, truth, daughter);
+  }
+}
+
+void HFTrackEfficiency::fillHepMCDaughter(const Decay &decay, const unsigned int decayIndex,
+                                          const unsigned int trackIndex, const HepMC::GenParticle &daughterHepMC,
+                                          DecayTruth &truth, DaughterTruth &daughter)
+{
+  if (Verbosity() >= VERBOSITY_MORE)
+  {
+    daughterHepMC.print();
+  }
+
+  const HepMC::FourVector &momentum = daughterHepMC.momentum();
+  daughter.lv.setVectM(CLHEP::Hep3Vector(momentum.px(), momentum.py(), momentum.pz()),
+                       getParticleMass(decay[decayIndex].second));
+  truth.daughterSumLV += daughter.lv;
+  daughter.haveKinematics = true;
+
+  m_true_track_PID[trackIndex] = static_cast<float>(daughterHepMC.pdg_id());
+
+  // We need the G4 particle, not the HepMC one, to use the truth/reco matching.
+  // The Geant4 momentum is in the lab frame so rotate the HepMC one before comparing
+  const CLHEP::HepLorentzVector daughterLabLV =
+      truth.evtGen2Lab(CLHEP::HepLorentzVector(momentum.px(), momentum.py(), momentum.pz(), momentum.e()));
+  daughter.g4 = findGeant4Primary(decay[decayIndex].first.first, decay[decayIndex].first.second,
+                                  decay[decayIndex].second, daughterLabLV.vect());
+
+  if (daughter.g4 && truth.haveVertices && !truth.vertexOffsetKnown)
+  {
+    updateVertexOffset(daughterHepMC, *daughter.g4, truth);
+  }
+}
+
+void HFTrackEfficiency::updateVertexOffset(const HepMC::GenParticle &daughterHepMC, const PHG4Particle &daughterG4,
+                                           DecayTruth &truth)
+{
+  const HepMC::GenVertex *daughterProductionVtx = daughterHepMC.production_vertex();
+  const PHG4VtxPoint *daughterG4Vtx = m_truthInfo->GetVtx(daughterG4.get_vtx_id());
+  if (!daughterProductionVtx || !daughterG4Vtx)
+  {
+    return;
+  }
+
+  const CLHEP::Hep3Vector expectedVtx =
+      getLabFrameVertex(*daughterProductionVtx, *truth.event, truth.evtGen2Lab, m_genevt->get_collision_vertex());
+  truth.vertexOffset.set(daughterG4Vtx->get_x() - expectedVtx.x(), daughterG4Vtx->get_y() - expectedVtx.y(),
+                         daughterG4Vtx->get_z() - expectedVtx.z());
+  truth.vertexOffsetKnown = true;
+
+  if (Verbosity() > 0 && truth.vertexOffset.mag() > kVertexShiftWarning)
+  {
+    std::cout << __FILE__ << ": The Geant4 vertices are shifted by " << truth.vertexOffset
+              << " cm relative to the HepMC record in the lab frame, correcting the true vertices" << std::endl;
+  }
+}
+
+void HFTrackEfficiency::findGeant4Daughter(const Decay &decay, const unsigned int decayIndex,
+                                           const unsigned int trackIndex, DecayTruth &truth, DaughterTruth &daughter)
+{
+  PHG4TruthInfoContainer::ConstRange range = m_truthInfo->GetParticleRange();
+  for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
+  {
+    PHG4Particle *candidate = iter->second;
+    PHG4Particle *motherG4 = findGeant4Mother(decay, decayIndex, candidate);
+    if (motherG4)
+    {
+      fillGeant4Truth(decay, motherG4, candidate, trackIndex, truth, daughter);
+      return;
+    }
+  }
+}
+
+PHG4Particle *HFTrackEfficiency::findGeant4Mother(const Decay &decay, const unsigned int decayIndex,
+                                                  const PHG4Particle *candidate) const
+{
+  if (!isDecayEntry(candidate, decay[decayIndex]))
+  {
+    return nullptr;
+  }
+
+  PHG4Particle *parent = getParent(m_truthInfo, candidate);
+  if (!parent)
+  {
+    return nullptr;
+  }
+
+  // Two daughters, the parent is the mother
+  if (m_nDaughters == 2)
+  {
+    return isDecayEntry(parent, decay[0]) ? parent : nullptr;
+  }
+
+  // Three daughters, the decay is [mother, d1, d2, intermediate, d3]. d3 comes from the mother and d1 and d2 from the
+  // intermediate, which comes from the mother
+  if (m_nDaughters == 3 && decay.size() > 4)
+  {
+    if (decayIndex == 4)
+    {
+      return isDecayEntry(parent, decay[0]) ? parent : nullptr;
+    }
+
+    if (!isDecayEntry(parent, decay[3]))
+    {
+      return nullptr;
+    }
+    PHG4Particle *grandparent = getParent(m_truthInfo, parent);
+    return isDecayEntry(grandparent, decay[0]) ? grandparent : nullptr;
+  }
+
+  return nullptr;
+}
+
+void HFTrackEfficiency::fillGeant4Truth(const Decay &decay, PHG4Particle *motherG4, PHG4Particle *daughterG4,
+                                        const unsigned int trackIndex, DecayTruth &truth, DaughterTruth &daughter)
+{
+  if (Verbosity() >= VERBOSITY_MORE)
+  {
+    daughterG4->identify();
+  }
+
+  daughter.g4 = daughterG4;
+  daughter.haveKinematics = true;
+
+  m_is_primary = m_truthInfo->is_sPHENIX_primary(motherG4);
+
+  const CLHEP::Hep3Vector mother3Vector(motherG4->get_px(), motherG4->get_py(), motherG4->get_pz());
+  CLHEP::HepLorentzVector motherTrueLV;
+  motherTrueLV.setVectM(mother3Vector, getParticleMass(decay[0].second));
+  m_true_mother_pT = static_cast<float>(motherTrueLV.perp());
+  m_true_mother_p = static_cast<float>(mother3Vector.mag());
+  m_true_mother_eta = static_cast<float>(motherTrueLV.pseudoRapidity());
+  m_true_mother_phi = static_cast<float>(motherTrueLV.phi());
+  m_true_mother_rapidity = static_cast<float>(motherTrueLV.rapidity());
+
+  daughter.lv.setVectM(CLHEP::Hep3Vector(daughterG4->get_px(), daughterG4->get_py(), daughterG4->get_pz()),
+                       getParticleMass(daughterG4->get_pid()));
+  truth.daughterSumLV += daughter.lv;
+
+  // A HepMC mother already provided the vertices
+  if (!truth.haveVertices)
+  {
+    truth.haveVertices =
+        getGeant4Vertices(motherG4, daughterG4, truth.primaryVtx, truth.productionVtx, truth.decayVtx);
+  }
+
+  m_true_track_PID[trackIndex] = static_cast<float>(daughterG4->get_pid());
+}
+
+PHG4Particle *HFTrackEfficiency::findGeant4Primary(const int embeddingID, const int barcode, const int pdgID,
+                                                   const CLHEP::Hep3Vector &labMomentum) const
 {
   if (!m_truthInfo)
   {
     return nullptr;
   }
 
-  // HepMCNodeReader copies the HepMC barcode to the Geant4 primary and registers it with the embedding ID of the HepMC event
-  // so that is the unambiguous match. The barcode is only unique within one HepMC event, hence the embedding ID.
+  // HepMCNodeReader copies the HepMC barcode to the Geant4 primary and registers it with the embedding ID of the HepMC
+  // event so that is the unambiguous match. The barcode is only unique within one HepMC event, hence the embedding ID.
   // If that fails fall back on the closest momentum (in the lab frame, as the Geant4 particles are)
   PHG4Particle *closest = nullptr;
   double closestDelta = std::numeric_limits<double>::max();
-  const double tolerance = std::max(5e-3, 5e-3 * labMomentum.mag());
+  const double tolerance = std::max(kMomentumTolerance, kMomentumTolerance * labMomentum.mag());
 
   PHG4TruthInfoContainer::ConstRange range = m_truthInfo->GetPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
@@ -278,13 +799,15 @@ PHG4Particle *HFTrackEfficiency::findGeant4Primary(const int embeddingID, const 
   return closest;
 }
 
-bool HFTrackEfficiency::getGeant4Vertices(const PHG4Particle *motherG4, const PHG4Particle *daughterG4, CLHEP::Hep3Vector &primary, CLHEP::Hep3Vector &production, CLHEP::Hep3Vector &decay) const
+bool HFTrackEfficiency::getGeant4Vertices(const PHG4Particle *motherG4, const PHG4Particle *daughterG4,
+                                          CLHEP::Hep3Vector &primary, CLHEP::Hep3Vector &production,
+                                          CLHEP::Hep3Vector &decay) const
 {
   // Follow the parents of the mother back to the particle that started the chain
   const PHG4Particle *root = motherG4;
-  for (int depth = 0; depth < 200 && root->get_parent_id() != 0; ++depth)
+  for (int depth = 0; depth < kMaxAncestryDepth; ++depth)
   {
-    const PHG4Particle *parent = m_truthInfo->GetParticle(root->get_parent_id());
+    const PHG4Particle *parent = getParent(m_truthInfo, root);
     if (!parent)
     {
       break;
@@ -307,7 +830,53 @@ bool HFTrackEfficiency::getGeant4Vertices(const PHG4Particle *motherG4, const PH
   return true;
 }
 
-void HFTrackEfficiency::countClusters(SvtxTrack *track, PHG4Particle *truthParticle, const unsigned int index)
+void HFTrackEfficiency::fillTrueDaughterBranches(const unsigned int trackIndex, const DaughterTruth &daughter)
+{
+  m_true_track_pT[trackIndex] = static_cast<float>(daughter.lv.perp());
+  m_true_track_eta[trackIndex] = static_cast<float>(daughter.lv.pseudoRapidity());
+  m_true_track_rapidity[trackIndex] = static_cast<float>(daughter.lv.rapidity());
+  m_true_track_phi[trackIndex] = static_cast<float>(daughter.lv.phi());
+  m_min_true_track_pT = std::min(m_true_track_pT[trackIndex], m_min_true_track_pT);
+  m_max_true_track_pT = std::max(m_true_track_pT[trackIndex], m_max_true_track_pT);
+}
+
+SvtxTrack *HFTrackEfficiency::findRecoTrack(const unsigned int trackIndex, const DaughterTruth &daughter)
+{
+  if (m_trackeval && daughter.g4)
+  {
+    SvtxTrack *track = m_trackeval->best_track_from(daughter.g4);
+    m_used_truth_reco_map[trackIndex] = (track != nullptr);
+    return track;
+  }
+
+  for (const auto &iter : *m_input_trackMap)
+  {
+    SvtxTrack *track = iter.second;
+    if (isMomentumMatch(*track, daughter.lv, m_truthRecoMatchPercent))
+    {
+      return track;
+    }
+  }
+
+  return nullptr;
+}
+
+void HFTrackEfficiency::fillRecoTrackBranches(SvtxTrack *track, PHG4Particle *truthParticle,
+                                              const unsigned int trackIndex)
+{
+  m_reco_track_exists[trackIndex] = true;
+  m_reco_track_pT[trackIndex] = track->get_pt();
+  m_reco_track_eta[trackIndex] = track->get_eta();
+  m_reco_track_phi[trackIndex] = track->get_phi();
+  m_reco_track_chi2nDoF[trackIndex] = track->get_chisq() / static_cast<float>(track->get_ndf());
+
+  countClusters(track, truthParticle, trackIndex);
+
+  m_min_reco_track_pT = std::min(m_reco_track_pT[trackIndex], m_min_reco_track_pT);
+  m_max_reco_track_pT = std::max(m_reco_track_pT[trackIndex], m_max_reco_track_pT);
+}
+
+std::set<TrkrDefs::cluskey> HFTrackEfficiency::collectClusterKeys(SvtxTrack *track) const
 {
   // Same cluster keys that SvtxTrackEval uses, but also valid for tracks that only store the seed IDs
   std::set<TrkrDefs::cluskey> clusterKeys;
@@ -315,10 +884,7 @@ void HFTrackEfficiency::countClusters(SvtxTrack *track, PHG4Particle *truthParti
   {
     if (seed)
     {
-      for (auto iter = seed->begin_cluster_keys(); iter != seed->end_cluster_keys(); ++iter)
-      {
-        clusterKeys.insert(*iter);
-      }
+      clusterKeys.insert(seed->begin_cluster_keys(), seed->end_cluster_keys());
     }
   };
 
@@ -336,580 +902,250 @@ void HFTrackEfficiency::countClusters(SvtxTrack *track, PHG4Particle *truthParti
   }
   collectKeys(tpcSeed);
 
-  SvtxClusterEval *clusterEval = trackeval->get_cluster_eval();
-  SvtxTruthEval *truthEval = trackeval->get_truth_eval();
+  return clusterKeys;
+}
 
-  for (int iDet = 0; iDet < m_nDetectors; ++iDet)
-  {
-    m_reco_track_nclusters[index][iDet] = 0;
-    m_reco_track_ntrue_clusters[index][iDet] = truthParticle ? 0 : -1;
-  }
+void HFTrackEfficiency::countClusters(SvtxTrack *track, PHG4Particle *truthParticle, const unsigned int trackIndex)
+{
+  const std::set<TrkrDefs::cluskey> clusterKeys = collectClusterKeys(track);
 
-  for (const auto &key : clusterKeys)
+  SvtxClusterEval *clusterEval = m_trackeval->get_cluster_eval();
+  SvtxTruthEval *truthEval = m_trackeval->get_truth_eval();
+
+  m_reco_track_nclusters[trackIndex].fill(0);
+  m_reco_track_ntrue_clusters[trackIndex].fill(truthParticle ? 0 : -1);
+
+  for (const TrkrDefs::cluskey key : clusterKeys)
   {
-    int iDet = -1;
-    switch (TrkrDefs::getTrkrId(key))
-    {
-    case TrkrDefs::mvtxId:
-      iDet = 0;
-      break;
-    case TrkrDefs::inttId:
-      iDet = 1;
-      break;
-    case TrkrDefs::tpcId:
-      iDet = 2;
-      break;
-    case TrkrDefs::micromegasId:
-      iDet = 3;
-      break;
-    default:
-      break;
-    }
+    const int iDet = getDetectorIndex(key);
     if (iDet < 0)
     {
       continue;
     }
 
-    ++m_reco_track_nclusters[index][iDet];
+    ++m_reco_track_nclusters[trackIndex][iDet];
 
-    if (truthParticle)
+    if (!truthParticle)
     {
-      // A cluster is true if the truth daughter left energy in it, counted once however many particles share the cluster
-      for (PHG4Particle *contributor : clusterEval->all_truth_particles(key))
-      {
-        if (truthEval->are_same_particle(contributor, truthParticle))
-        {
-          ++m_reco_track_ntrue_clusters[index][iDet];
-          break;
-        }
-      }
+      continue;
+    }
+
+    // A cluster is true if the truth daughter left energy in it, counted once however many particles share the cluster
+    const auto contributors = clusterEval->all_truth_particles(key);
+    const bool isTrue = std::ranges::any_of(contributors, [truthEval, truthParticle](PHG4Particle *contributor)
+                                            { return truthEval->are_same_particle(contributor, truthParticle); });
+    if (isTrue)
+    {
+      ++m_reco_track_ntrue_clusters[trackIndex][iDet];
     }
   }
 }
 
-bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, const Decay &decay)
+void HFTrackEfficiency::fillVertexBranches(const Decay &decay, DecayTruth &truth)
 {
-  resetBranches();
-
-  int trackableParticles[] = {11, 13, 211, 321, 2212};
-  bool recoTrackFound = false;
-  std::set<SvtxTrack *> selectedTracks;
-
-  CLHEP::HepLorentzVector motherRecoLV;
-  CLHEP::HepLorentzVector daughterSumTrueLV;
-  CLHEP::HepLorentzVector motherTrueLV;
-  CLHEP::HepLorentzVector daughterTrueLV;
-
-  // True vertices, all in cm and in the lab frame that Geant4 (and so the reconstruction) uses
-  bool haveVertices = false;
-  CLHEP::Hep3Vector primaryVtx;
-  CLHEP::Hep3Vector productionVtx;
-  CLHEP::Hep3Vector decayVtx;
-
-  // The HepMC record is in the event generator frame. HepMCNodeReader rotates it to the lab frame (crossing angle) and shifts it
-  // by the collision vertex, possibly plus a vertex offset/smearing of its own that is not visible from here.
-  // The latter is recovered by comparing one HepMC daughter vertex to the Geant4 vertex of the same particle.
-  CLHEP::HepLorentzRotation evtGen2Lab;
-  CLHEP::Hep3Vector vertexOffset;
-  bool vertexOffsetKnown = false;
-
-  HepMC::GenEvent *theEvent = nullptr;
-  if (m_geneventmap)
+  if (!truth.haveVertices)
   {
-    m_genevt = m_geneventmap->get(decay[0].first.first);
-    assert(m_genevt);
-
-    theEvent = m_genevt->getEvent();
-    HepMC::GenParticle *mother = theEvent->barcode_to_particle(decay[0].first.second);
-    assert(mother);
-    if (Verbosity() >= VERBOSITY_MORE)
-    {
-      mother->print();
-    }
-
-    // These are the generator frame values, the crossing angle rotation is not applied. Compare with the Geant4 truth at the 1e-3 level
-    m_true_mother_pT = mother->momentum().perp();
-    m_true_mother_p = std::sqrt(std::pow(mother->momentum().px(), 2) + std::pow(mother->momentum().py(), 2) + std::pow(mother->momentum().pz(), 2));  // Must have an old HepMC build, no mag function
-    m_true_mother_eta = mother->momentum().eta();
-    m_true_mother_phi = mother->momentum().phi();
-    if (mother->momentum().e() > std::fabs(mother->momentum().pz()))
-    {
-      m_true_mother_rapidity = 0.5 * log((mother->momentum().e() + mother->momentum().pz()) / (mother->momentum().e() - mother->momentum().pz()));
-    }
-    else
-    {
-      m_true_mother_rapidity = -999.;
-    }
-
-    evtGen2Lab = m_genevt->get_LorentzRotation_EvtGen2Lab();
-    HepMC::GenVertex *motherProductionVtx = mother->production_vertex();
-    HepMC::GenVertex *motherDecayVtx = mother->end_vertex();
-    HepMC::GenVertex *rootVtx = findRootVertex(mother);
-    if (motherProductionVtx && motherDecayVtx && rootVtx)
-    {
-      const HepMC::FourVector &collisionVtx = m_genevt->get_collision_vertex();
-      primaryVtx = getLabFrameVertex(*rootVtx, *theEvent, evtGen2Lab, collisionVtx);
-      productionVtx = getLabFrameVertex(*motherProductionVtx, *theEvent, evtGen2Lab, collisionVtx);
-      decayVtx = getLabFrameVertex(*motherDecayVtx, *theEvent, evtGen2Lab, collisionVtx);
-      haveVertices = true;
-
-      // A prompt mother is produced where the record starts. Compared in the HepMC length unit, no reliance on the record starting at the origin
-      constexpr double epsilon = 1e-6;
-      m_is_primary = std::abs(motherProductionVtx->position().x() - rootVtx->position().x()) < epsilon &&
-                     std::abs(motherProductionVtx->position().y() - rootVtx->position().y()) < epsilon &&
-                     std::abs(motherProductionVtx->position().z() - rootVtx->position().z()) < epsilon;
-    }
-    else if (Verbosity() > 0)
-    {
-      std::cout << __FILE__ << ": The mother in the HepMC record has no production or decay vertex, no true vertices will be filled" << std::endl;
-    }
+    return;
   }
 
-  // Fill the mother and daughter truth from a Geant4 mother/daughter pair, used when the decay was found in the Geant4 record
-  auto fillFromGeant4 = [&](PHG4Particle *motherG4, PHG4Particle *daughterG4, const int daughterPDG, const int daughterIndex)
+  if (truth.vertexOffsetKnown)
   {
-    if (Verbosity() >= VERBOSITY_MORE)
-    {
-      daughterG4->identify();
-    }
-
-    m_is_primary = m_truthInfo->is_sPHENIX_primary(motherG4);
-
-    CLHEP::Hep3Vector mother3Vector(motherG4->get_px(), motherG4->get_py(), motherG4->get_pz());
-    motherTrueLV.setVectM(mother3Vector, getParticleMass(decay[0].second));
-    m_true_mother_pT = motherTrueLV.perp();
-    m_true_mother_p = mother3Vector.mag();
-    m_true_mother_eta = motherTrueLV.pseudoRapidity();
-    m_true_mother_phi = motherTrueLV.phi();
-    m_true_mother_rapidity = motherTrueLV.rapidity();
-
-    daughterTrueLV.setVectM(CLHEP::Hep3Vector(daughterG4->get_px(), daughterG4->get_py(), daughterG4->get_pz()), getParticleMass(daughterPDG));
-    daughterSumTrueLV += daughterTrueLV;
-
-    // A HepMC mother already provided the vertices
-    if (!haveVertices)
-    {
-      haveVertices = getGeant4Vertices(motherG4, daughterG4, primaryVtx, productionVtx, decayVtx);
-    }
-
-    m_true_track_PID[daughterIndex] = daughterG4->get_pid();
-  };
-
-  int index = -1;
-
-  for (unsigned int i = 1; i < decay.size(); ++i)
-  {
-    m_dst_track = nullptr;
-
-    if (std::find(std::begin(trackableParticles), std::end(trackableParticles),
-                  std::abs(decay[i].second)) != std::end(trackableParticles))
-    {
-      ++index;
-      if (index >= m_maxTracks)
-      {
-        std::cout << __FILE__ << ": Decay has more than " << m_maxTracks << " trackable daughters, increase m_maxTracks" << std::endl;
-        return false;
-      }
-
-      PHG4Particle *daughterG4 = nullptr;  // Must not carry over from the previous daughter
-      bool haveTruthKinematics = false;
-
-      HepMC::GenParticle *daughterHepMC = nullptr;
-      if (theEvent && decay[i].first.second > -1)
-      {
-        daughterHepMC = theEvent->barcode_to_particle(decay[i].first.second);
-      }
-
-      if (daughterHepMC)
-      {
-        if (Verbosity() >= VERBOSITY_MORE)
-        {
-          daughterHepMC->print();
-        }
-
-        daughterTrueLV.setVectM(CLHEP::Hep3Vector(daughterHepMC->momentum().px(), daughterHepMC->momentum().py(), daughterHepMC->momentum().pz()), getParticleMass(decay[i].second));
-        daughterSumTrueLV += daughterTrueLV;
-        haveTruthKinematics = true;
-
-        m_true_track_PID[index] = daughterHepMC->pdg_id();
-
-        // We need the G4 particle, not the HepMC one, to use the truth/reco matching.
-        // The Geant4 momentum is in the lab frame so rotate the HepMC one before comparing
-        const CLHEP::HepLorentzVector daughterLabLV = evtGen2Lab(CLHEP::HepLorentzVector(daughterHepMC->momentum().px(), daughterHepMC->momentum().py(), daughterHepMC->momentum().pz(), daughterHepMC->momentum().e()));
-        daughterG4 = findGeant4Primary(decay[i].first.first, decay[i].first.second, decay[i].second, daughterLabLV.vect());
-
-        if (daughterG4 && haveVertices && !vertexOffsetKnown)
-        {
-          const HepMC::GenVertex *daughterProductionVtx = daughterHepMC->production_vertex();
-          const PHG4VtxPoint *daughterG4Vtx = m_truthInfo->GetVtx(daughterG4->get_vtx_id());
-          if (daughterProductionVtx && daughterG4Vtx)
-          {
-            const CLHEP::Hep3Vector expectedVtx = getLabFrameVertex(*daughterProductionVtx, *theEvent, evtGen2Lab, m_genevt->get_collision_vertex());
-            vertexOffset.set(daughterG4Vtx->get_x() - expectedVtx.x(), daughterG4Vtx->get_y() - expectedVtx.y(), daughterG4Vtx->get_z() - expectedVtx.z());
-            vertexOffsetKnown = true;
-            if (Verbosity() > 0 && vertexOffset.mag() > 1e-3)
-            {
-              std::cout << __FILE__ << ": The Geant4 vertices are shifted by " << vertexOffset << " cm relative to the HepMC record in the lab frame, correcting the true vertices" << std::endl;
-            }
-          }
-        }
-      }
-      else if (m_truthInfo)
-      {
-        PHG4TruthInfoContainer::ConstRange range = m_truthInfo->GetParticleRange();
-
-        for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
-        {
-          PHG4Particle *candidate = iter->second;
-
-          PHG4Particle *motherG4 = nullptr;
-          if (candidate->get_parent_id() != 0)
-          {
-            motherG4 = m_truthInfo->GetParticle(candidate->get_parent_id());
-          }
-          if (!motherG4)
-          {
-            continue;
-          }
-
-          if (motherG4->get_pid() == decay[0].second && motherG4->get_barcode() == decay[0].first.second && candidate->get_pid() == decay[i].second && candidate->get_barcode() == decay[i].first.second && m_nDaughters == 2)
-          {
-            daughterG4 = candidate;
-            fillFromGeant4(motherG4, daughterG4, decay[i].second, index);
-            haveTruthKinematics = true;
-            break;
-          }
-
-          if (m_nDaughters == 3)
-          {
-            if (i != 4 && motherG4->get_pid() == decay[3].second && motherG4->get_barcode() == decay[3].first.second && candidate->get_pid() == decay[i].second && candidate->get_barcode() == decay[i].first.second)
-            {
-              PHG4Particle *motherG4_temp = nullptr;
-              if (motherG4->get_parent_id() != 0)
-              {
-                motherG4_temp = m_truthInfo->GetParticle(motherG4->get_parent_id());
-              }
-
-              if (motherG4_temp && motherG4_temp->get_pid() == decay[0].second && motherG4_temp->get_barcode() == decay[0].first.second)
-              {
-                motherG4 = motherG4_temp;
-              }
-              else
-              {
-                continue;
-              }
-            }
-            else if (i != 4)
-            {
-              continue;
-            }
-
-            if (i == 4 && !(motherG4->get_pid() == decay[0].second && motherG4->get_barcode() == decay[0].first.second && candidate->get_pid() == decay[i].second && candidate->get_barcode() == decay[i].first.second))
-            {
-              continue;
-            }
-
-            daughterG4 = candidate;
-            fillFromGeant4(motherG4, daughterG4, decay[i].second, index);
-            haveTruthKinematics = true;
-            break;
-          }
-        }
-      }
-
-      if (!daughterG4)
-      {
-        ++m_counter_unmatchedTruth;
-        if (Verbosity() > 0)
-        {
-          std::cout << __FILE__ << ": No Geant4 particle found for daughter " << index + 1 << " (PDG " << decay[i].second << ")" << std::endl;
-        }
-      }
-
-      if (!haveTruthKinematics)
-      {
-        continue;  // Nothing to compare a reco track to
-      }
-
-      m_true_track_pT[index] = (float) daughterTrueLV.perp();
-      m_true_track_eta[index] = (float) daughterTrueLV.pseudoRapidity();
-      m_true_track_rapidity[index] = (float) daughterTrueLV.rapidity();
-      m_true_track_phi[index] = (float) daughterTrueLV.phi();
-      m_min_true_track_pT = std::min(m_true_track_pT[index], m_min_true_track_pT);
-      m_max_true_track_pT = std::max(m_true_track_pT[index], m_max_true_track_pT);
-
-      if (trackeval && daughterG4)
-      {
-        m_dst_track = trackeval->best_track_from(daughterG4);
-        if (m_dst_track)
-        {
-          m_used_truth_reco_map[index] = true;
-          recoTrackFound = true;
-        }
-      }
-      else
-      {
-        for (auto &iter : *m_input_trackMap)
-        {
-          m_dst_track = iter.second;
-          float delta_px = (m_dst_track->get_px() - daughterTrueLV.px()) / daughterTrueLV.px();
-          float delta_py = (m_dst_track->get_py() - daughterTrueLV.py()) / daughterTrueLV.py();
-          float delta_pz = (m_dst_track->get_pz() - daughterTrueLV.pz()) / daughterTrueLV.pz();
-
-          if (std::abs(delta_px) <= m_truthRecoMatchPercent && std::abs(delta_py) <= m_truthRecoMatchPercent && std::abs(delta_pz) <= m_truthRecoMatchPercent)
-          {
-            recoTrackFound = true;
-            break;
-          }
-        }
-      }
-
-      if (recoTrackFound)
-      {
-        selectedTracks.insert(m_dst_track);
-        if (Verbosity() >= VERBOSITY_MORE)
-        {
-          m_dst_track->identify();
-        }
-        m_reco_track_exists[index] = true;
-        m_reco_track_pT[index] = m_dst_track->get_pt();
-        m_reco_track_eta[index] = m_dst_track->get_eta();
-        m_reco_track_phi[index] = m_dst_track->get_phi();
-        m_reco_track_chi2nDoF[index] = m_dst_track->get_chisq() / m_dst_track->get_ndf();
-
-        countClusters(m_dst_track, daughterG4, index);
-
-        m_min_reco_track_pT = std::min(m_reco_track_pT[index], m_min_reco_track_pT);
-        m_max_reco_track_pT = std::max(m_reco_track_pT[index], m_max_reco_track_pT);
-
-        CLHEP::HepLorentzVector daughterRecoLV;
-        daughterRecoLV.setVectM(CLHEP::Hep3Vector(m_dst_track->get_px(), m_dst_track->get_py(), m_dst_track->get_pz()), getParticleMass(m_true_track_PID[index]));
-
-        motherRecoLV += daughterRecoLV;
-      }
-
-      recoTrackFound = false;
-    }
+    truth.primaryVtx += truth.vertexOffset;
+    truth.productionVtx += truth.vertexOffset;
+    truth.decayVtx += truth.vertexOffset;
   }
 
-  m_true_mother_mass = daughterSumTrueLV.m();
+  m_primary_vtx_x = static_cast<float>(truth.primaryVtx.x());
+  m_primary_vtx_y = static_cast<float>(truth.primaryVtx.y());
+  m_primary_vtx_z = static_cast<float>(truth.primaryVtx.z());
+  m_production_vtx_x = static_cast<float>(truth.productionVtx.x());
+  m_production_vtx_y = static_cast<float>(truth.productionVtx.y());
+  m_production_vtx_z = static_cast<float>(truth.productionVtx.z());
+  m_decay_vtx_x = static_cast<float>(truth.decayVtx.x());
+  m_decay_vtx_y = static_cast<float>(truth.decayVtx.y());
+  m_decay_vtx_z = static_cast<float>(truth.decayVtx.z());
 
-  if (haveVertices)
+  // Flight of the mother from where it was produced to where it decays. Not measured from the primary vertex,
+  // that would include the flight of any parent (e.g. the B for a non-prompt D0)
+  m_true_decay_length = static_cast<float>((truth.decayVtx - truth.productionVtx).mag());
+
+  // Proper time of the mother, t = L m / (p c)
+  if (m_true_mother_p > 0)
   {
-    if (vertexOffsetKnown)
-    {
-      primaryVtx += vertexOffset;
-      productionVtx += vertexOffset;
-      decayVtx += vertexOffset;
-    }
+    m_true_decay_time = static_cast<float>(m_true_decay_length * getParticleMass(decay[0].second) /
+                                           (m_true_mother_p * kCmPerPs));
+  }
+}
 
-    m_primary_vtx_x = primaryVtx.x();
-    m_primary_vtx_y = primaryVtx.y();
-    m_primary_vtx_z = primaryVtx.z();
-    m_production_vtx_x = productionVtx.x();
-    m_production_vtx_y = productionVtx.y();
-    m_production_vtx_z = productionVtx.z();
-    m_decay_vtx_x = decayVtx.x();
-    m_decay_vtx_y = decayVtx.y();
-    m_decay_vtx_z = decayVtx.z();
-
-    // Flight of the mother from where it was produced to where it decays. Not measured from the primary vertex,
-    // that would include the flight of any parent (e.g. the B for a non-prompt D0)
-    const CLHEP::Hep3Vector flight = decayVtx - productionVtx;
-    m_true_decay_length = flight.mag();
-
-    // Proper time of the mother, t = L m / (p c)
-    if (m_true_mother_p > 0)
-    {
-      m_true_decay_time = m_true_decay_length * getParticleMass(decay[0].second) / (m_true_mother_p * c_cm_per_ps);
-    }
+bool HFTrackEfficiency::storeSelectedTracks(PHCompositeNode *topNode, const DecayTruth &truth)
+{
+  if (truth.selectedTracks.size() != m_nDaughters)
+  {
+    return false;
   }
 
-  bool foundDecay = true;
-  if (selectedTracks.size() == m_nDaughters)
+  m_reco_mother_mass = static_cast<float>(truth.recoSumLV.m());
+  m_reco_mother_pT = static_cast<float>(truth.recoSumLV.perp());
+
+  if (m_write_track_map)
   {
-    m_reco_mother_mass = motherRecoLV.m();
-    m_reco_mother_pT = motherRecoLV.perp();
-    if (m_write_track_map)
+    m_output_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_outputNodeName);
+    if (m_output_trackMap)
     {
-      m_output_trackMap = findNode::getClass<SvtxTrackMap>(topNode, outputNodeName);
-      for (const auto &track : selectedTracks)
+      for (SvtxTrack *track : truth.selectedTracks)
       {
         m_output_trackMap->insertWithKey(track, track->get_id());
       }
     }
   }
-  else
-  {
-    foundDecay = false;
-  }
 
-  selectedTracks.clear();
-
-  return foundDecay;
+  return true;
 }
 
 void HFTrackEfficiency::initializeBranches()
 {
-  m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
+  m_outfile = std::make_unique<TFile>(m_outfile_name.c_str(), "RECREATE");
   m_tree = new TTree("HFTrackEfficiency", "HFTrackEfficiency");
   m_tree->OptimizeBaskets();
   m_tree->SetAutoSave(-5e6);  // Save the output file every 5MB
 
-  m_tree->Branch("all_tracks_reconstructed", &m_all_tracks_reconstructed, "all_tracks_reconstructed/O");
-  m_tree->Branch("is_primary", &m_is_primary, "is_primary/O");
-  m_tree->Branch("true_mother_mass", &m_true_mother_mass, "true_mother_mass/F");
-  m_tree->Branch("reco_mother_mass", &m_reco_mother_mass, "reco_mother_mass/F");
-  m_tree->Branch("true_mother_pT", &m_true_mother_pT, "true_mother_pT/F");
-  m_tree->Branch("reco_mother_pT", &m_reco_mother_pT, "reco_mother_pT/F");
-  m_tree->Branch("true_mother_p", &m_true_mother_p, "true_mother_p/F");
-  m_tree->Branch("true_mother_eta", &m_true_mother_eta, "true_mother_eta/F");
-  m_tree->Branch("true_mother_rapidity", &m_true_mother_rapidity, "true_mother_rapidity/F");
-  m_tree->Branch("true_mother_phi", &m_true_mother_phi, "true_mother_phi/F");
-  m_tree->Branch("min_true_track_pT", &m_min_true_track_pT, "min_true_track_pT/F");
-  m_tree->Branch("min_reco_track_pT", &m_min_reco_track_pT, "min_reco_track_pT/F");
-  m_tree->Branch("max_true_track_pT", &m_max_true_track_pT, "max_true_track_pT/F");
-  m_tree->Branch("max_reco_track_pT", &m_max_reco_track_pT, "max_reco_track_pT/F");
-
-  const char *detectorNames[m_nDetectors] = {"mvtx", "intt", "tpc", "tpot"};
-
+  addMotherBranches();
   for (unsigned int iTrack = 0; iTrack < m_nDaughters; ++iTrack)
   {
-    std::string daughter_number = "track_" + std::to_string(iTrack + 1);
-    m_tree->Branch("reco_" + TString(daughter_number) + "_exists", &m_reco_track_exists[iTrack], "reco_" + TString(daughter_number) + "_exists/O");
-    m_tree->Branch("reco_" + TString(daughter_number) + "_used_truth_reco_map", &m_used_truth_reco_map[iTrack], "reco_" + TString(daughter_number) + "_used_truth_reco_map/O");
-    m_tree->Branch("true_" + TString(daughter_number) + "_pT", &m_true_track_pT[iTrack], "true_" + TString(daughter_number) + "_pT/F");
-    m_tree->Branch("reco_" + TString(daughter_number) + "_pT", &m_reco_track_pT[iTrack], "reco_" + TString(daughter_number) + "_pT/F");
-    m_tree->Branch("true_" + TString(daughter_number) + "_eta", &m_true_track_eta[iTrack], "true_" + TString(daughter_number) + "_eta/F");
-    m_tree->Branch("reco_" + TString(daughter_number) + "_eta", &m_reco_track_eta[iTrack], "reco_" + TString(daughter_number) + "_eta/F");
-    m_tree->Branch("true_" + TString(daughter_number) + "_rapidity", &m_true_track_rapidity[iTrack], "true_" + TString(daughter_number) + "_rapidity/F");
-    m_tree->Branch("true_" + TString(daughter_number) + "_phi", &m_true_track_phi[iTrack], "true_" + TString(daughter_number) + "_phi/F");
-    m_tree->Branch("reco_" + TString(daughter_number) + "_phi", &m_reco_track_phi[iTrack], "reco_" + TString(daughter_number) + "_phi/F");
-    m_tree->Branch("true_" + TString(daughter_number) + "_PID", &m_true_track_PID[iTrack], "true_" + TString(daughter_number) + "_PID/F");
-    m_tree->Branch("reco_" + TString(daughter_number) + "_chi2nDoF", &m_reco_track_chi2nDoF[iTrack], "reco_" + TString(daughter_number) + "_chi2nDoF/F");
-    for (int iDet = 0; iDet < m_nDetectors; ++iDet)
-    {
-      const TString nClusters = "reco_" + TString(daughter_number) + "_nclusters_" + detectorNames[iDet];
-      const TString nTrueClusters = "reco_" + TString(daughter_number) + "_ntrue_clusters_" + detectorNames[iDet];
-      m_tree->Branch(nClusters, &m_reco_track_nclusters[iTrack][iDet], nClusters + "/I");
-      m_tree->Branch(nTrueClusters, &m_reco_track_ntrue_clusters[iTrack][iDet], nTrueClusters + "/I");
-    }
+    addDaughterBranches(iTrack);
   }
+  addVertexBranches();
+}
 
-  m_tree->Branch("true_primary_vertex_x", &m_primary_vtx_x, "true_primary_vertex_x/F");
-  m_tree->Branch("true_primary_vertex_y", &m_primary_vtx_y, "true_primary_vertex_y/F");
-  m_tree->Branch("true_primary_vertex_z", &m_primary_vtx_z, "true_primary_vertex_z/F");
-  m_tree->Branch("true_production_vertex_x", &m_production_vtx_x, "true_production_vertex_x/F");
-  m_tree->Branch("true_production_vertex_y", &m_production_vtx_y, "true_production_vertex_y/F");
-  m_tree->Branch("true_production_vertex_z", &m_production_vtx_z, "true_production_vertex_z/F");
-  m_tree->Branch("true_decay_vertex_x", &m_decay_vtx_x, "true_decay_vertex_x/F");
-  m_tree->Branch("true_decay_vertex_y", &m_decay_vtx_y, "true_decay_vertex_y/F");
-  m_tree->Branch("true_decay_vertex_z", &m_decay_vtx_z, "true_decay_vertex_z/F");
-  m_tree->Branch("true_decay_length", &m_true_decay_length, "true_decay_length/F");
-  m_tree->Branch("true_decay_time", &m_true_decay_time, "true_decay_time/F");
+void HFTrackEfficiency::addMotherBranches()
+{
+  addBranch(*m_tree, "all_tracks_reconstructed", &m_all_tracks_reconstructed);
+  addBranch(*m_tree, "is_primary", &m_is_primary);
+  addBranch(*m_tree, "true_mother_mass", &m_true_mother_mass);
+  addBranch(*m_tree, "reco_mother_mass", &m_reco_mother_mass);
+  addBranch(*m_tree, "true_mother_pT", &m_true_mother_pT);
+  addBranch(*m_tree, "reco_mother_pT", &m_reco_mother_pT);
+  addBranch(*m_tree, "true_mother_p", &m_true_mother_p);
+  addBranch(*m_tree, "true_mother_eta", &m_true_mother_eta);
+  addBranch(*m_tree, "true_mother_rapidity", &m_true_mother_rapidity);
+  addBranch(*m_tree, "true_mother_phi", &m_true_mother_phi);
+  addBranch(*m_tree, "min_true_track_pT", &m_min_true_track_pT);
+  addBranch(*m_tree, "min_reco_track_pT", &m_min_reco_track_pT);
+  addBranch(*m_tree, "max_true_track_pT", &m_max_true_track_pT);
+  addBranch(*m_tree, "max_reco_track_pT", &m_max_reco_track_pT);
+}
+
+void HFTrackEfficiency::addDaughterBranches(const unsigned int trackIndex)
+{
+  const std::string track = "track_" + std::to_string(trackIndex + 1);
+  const auto reco = [&track](const std::string &what)
+  { return "reco_" + track + "_" + what; };
+  const auto truth = [&track](const std::string &what)
+  { return "true_" + track + "_" + what; };
+
+  addBranch(*m_tree, reco("exists"), &m_reco_track_exists[trackIndex]);
+  addBranch(*m_tree, reco("used_truth_reco_map"), &m_used_truth_reco_map[trackIndex]);
+  addBranch(*m_tree, truth("pT"), &m_true_track_pT[trackIndex]);
+  addBranch(*m_tree, reco("pT"), &m_reco_track_pT[trackIndex]);
+  addBranch(*m_tree, truth("eta"), &m_true_track_eta[trackIndex]);
+  addBranch(*m_tree, reco("eta"), &m_reco_track_eta[trackIndex]);
+  addBranch(*m_tree, truth("rapidity"), &m_true_track_rapidity[trackIndex]);
+  addBranch(*m_tree, truth("phi"), &m_true_track_phi[trackIndex]);
+  addBranch(*m_tree, reco("phi"), &m_reco_track_phi[trackIndex]);
+  addBranch(*m_tree, truth("PID"), &m_true_track_PID[trackIndex]);
+  addBranch(*m_tree, reco("chi2nDoF"), &m_reco_track_chi2nDoF[trackIndex]);
+
+  const std::array<std::string, s_nDetectors> detectorNames = {"mvtx", "intt", "tpc", "tpot"};
+  for (unsigned int iDet = 0; iDet < s_nDetectors; ++iDet)
+  {
+    addBranch(*m_tree, reco("nclusters_" + detectorNames[iDet]), &m_reco_track_nclusters[trackIndex][iDet]);
+    addBranch(*m_tree, reco("ntrue_clusters_" + detectorNames[iDet]), &m_reco_track_ntrue_clusters[trackIndex][iDet]);
+  }
+}
+
+void HFTrackEfficiency::addVertexBranches()
+{
+  addBranch(*m_tree, "true_primary_vertex_x", &m_primary_vtx_x);
+  addBranch(*m_tree, "true_primary_vertex_y", &m_primary_vtx_y);
+  addBranch(*m_tree, "true_primary_vertex_z", &m_primary_vtx_z);
+  addBranch(*m_tree, "true_production_vertex_x", &m_production_vtx_x);
+  addBranch(*m_tree, "true_production_vertex_y", &m_production_vtx_y);
+  addBranch(*m_tree, "true_production_vertex_z", &m_production_vtx_z);
+  addBranch(*m_tree, "true_decay_vertex_x", &m_decay_vtx_x);
+  addBranch(*m_tree, "true_decay_vertex_y", &m_decay_vtx_y);
+  addBranch(*m_tree, "true_decay_vertex_z", &m_decay_vtx_z);
+  addBranch(*m_tree, "true_decay_length", &m_true_decay_length);
+  addBranch(*m_tree, "true_decay_time", &m_true_decay_time);
 }
 
 void HFTrackEfficiency::resetBranches()
 {
   m_all_tracks_reconstructed = false;
   m_is_primary = false;
-  m_true_mother_mass = std::numeric_limits<float>::quiet_NaN();
-  m_reco_mother_mass = std::numeric_limits<float>::quiet_NaN();
-  m_true_mother_pT = std::numeric_limits<float>::quiet_NaN();
-  m_reco_mother_pT = std::numeric_limits<float>::quiet_NaN();
-  m_true_mother_p = std::numeric_limits<float>::quiet_NaN();
-  m_true_mother_eta = std::numeric_limits<float>::quiet_NaN();
-  m_true_mother_rapidity = std::numeric_limits<float>::quiet_NaN();
-  m_true_mother_phi = std::numeric_limits<float>::quiet_NaN();
+  m_true_mother_mass = kNaN;
+  m_reco_mother_mass = kNaN;
+  m_true_mother_pT = kNaN;
+  m_reco_mother_pT = kNaN;
+  m_true_mother_p = kNaN;
+  m_true_mother_eta = kNaN;
+  m_true_mother_rapidity = kNaN;
+  m_true_mother_phi = kNaN;
   m_min_true_track_pT = std::numeric_limits<float>::max();
   m_min_reco_track_pT = std::numeric_limits<float>::max();
   m_max_true_track_pT = std::numeric_limits<float>::lowest();
   m_max_reco_track_pT = std::numeric_limits<float>::lowest();
-  for (int iTrack = 0; iTrack < m_maxTracks; ++iTrack)
+
+  m_reco_track_exists.fill(false);
+  m_used_truth_reco_map.fill(false);
+  m_true_track_pT.fill(kNaN);
+  m_reco_track_pT.fill(kNaN);
+  m_true_track_eta.fill(kNaN);
+  m_reco_track_eta.fill(kNaN);
+  m_true_track_rapidity.fill(kNaN);
+  m_true_track_phi.fill(kNaN);
+  m_reco_track_phi.fill(kNaN);
+  m_true_track_PID.fill(kNaN);
+  m_reco_track_chi2nDoF.fill(kNaN);
+  for (unsigned int iTrack = 0; iTrack < s_maxTracks; ++iTrack)
   {
-    m_reco_track_exists[iTrack] = false;
-    m_used_truth_reco_map[iTrack] = false;
-    m_true_track_pT[iTrack] = std::numeric_limits<float>::quiet_NaN();
-    m_reco_track_pT[iTrack] = std::numeric_limits<float>::quiet_NaN();
-    m_true_track_eta[iTrack] = std::numeric_limits<float>::quiet_NaN();
-    m_reco_track_eta[iTrack] = std::numeric_limits<float>::quiet_NaN();
-    m_true_track_rapidity[iTrack] = std::numeric_limits<float>::quiet_NaN();
-    m_true_track_phi[iTrack] = std::numeric_limits<float>::quiet_NaN();
-    m_reco_track_phi[iTrack] = std::numeric_limits<float>::quiet_NaN();
-    m_true_track_PID[iTrack] = std::numeric_limits<float>::quiet_NaN();
-    m_reco_track_chi2nDoF[iTrack] = std::numeric_limits<float>::quiet_NaN();
-    for (int iDet = 0; iDet < m_nDetectors; ++iDet)
-    {
-      m_reco_track_nclusters[iTrack][iDet] = -1;
-      m_reco_track_ntrue_clusters[iTrack][iDet] = -1;
-    }
+    m_reco_track_nclusters[iTrack].fill(-1);
+    m_reco_track_ntrue_clusters[iTrack].fill(-1);
   }
 
-  m_primary_vtx_x = std::numeric_limits<float>::quiet_NaN();
-  m_primary_vtx_y = std::numeric_limits<float>::quiet_NaN();
-  m_primary_vtx_z = std::numeric_limits<float>::quiet_NaN();
-  m_production_vtx_x = std::numeric_limits<float>::quiet_NaN();
-  m_production_vtx_y = std::numeric_limits<float>::quiet_NaN();
-  m_production_vtx_z = std::numeric_limits<float>::quiet_NaN();
-  m_decay_vtx_x = std::numeric_limits<float>::quiet_NaN();
-  m_decay_vtx_y = std::numeric_limits<float>::quiet_NaN();
-  m_decay_vtx_z = std::numeric_limits<float>::quiet_NaN();
-  m_true_decay_length = std::numeric_limits<float>::quiet_NaN();
-  m_true_decay_time = std::numeric_limits<float>::quiet_NaN();
+  m_primary_vtx_x = kNaN;
+  m_primary_vtx_y = kNaN;
+  m_primary_vtx_z = kNaN;
+  m_production_vtx_x = kNaN;
+  m_production_vtx_y = kNaN;
+  m_production_vtx_z = kNaN;
+  m_decay_vtx_x = kNaN;
+  m_decay_vtx_y = kNaN;
+  m_decay_vtx_z = kNaN;
+  m_true_decay_length = kNaN;
+  m_true_decay_time = kNaN;
 }
 
 void HFTrackEfficiency::getDecayDescriptor()
 {
-  Decay decay = m_decayMap->begin()->second;
+  const Decay decay = m_decayMap->begin()->second;
   m_decay_descriptor = getParticleName(decay[0].second);
   m_decay_descriptor += " ->";
   for (unsigned int i = 1; i < decay.size(); ++i)
   {
-    m_decay_descriptor += " ";
+    m_decay_descriptor += ' ';
     m_decay_descriptor += getParticleName(decay[i].second);
   }
 }
 
 void HFTrackEfficiency::getNDaughters()
 {
-  int trackableParticles[] = {11, 13, 211, 321, 2212};
+  const Decay decay = m_decayMap->begin()->second;
   m_nDaughters = 0;
-  Decay decay = m_decayMap->begin()->second;
   for (unsigned int i = 1; i < decay.size(); ++i)
   {
-    if (std::find(std::begin(trackableParticles), std::end(trackableParticles),
-                  std::abs(decay[i].second)) != std::end(trackableParticles))
+    if (isTrackable(decay[i].second))
     {
       ++m_nDaughters;
     }
   }
-}
-
-std::string HFTrackEfficiency::getParticleName(const int PDGID)
-{
-  return TDatabasePDG::Instance()->GetParticle(PDGID)->GetName();
-}
-
-float HFTrackEfficiency::getParticleMass(const int PDGID)
-{
-  return TDatabasePDG::Instance()->GetParticle(PDGID)->Mass();
-}
-
-//____________________________________________________________________________..
-void HFTrackEfficiency::PrintEff()
-{
-  std::cout << "\n--------------- Heavy Flavor Tracking Efficiency ---------------" << std::endl;
-  std::cout << "Tracking Efficiency for " << m_decay_descriptor << std::endl;
-  std::cout << "Number of decays fully in acceptance: " << m_counter_allDecays << std::endl;
-  std::cout << "Number of decays with all tracks reconstructed: " << m_counter_acceptedDecays << std::endl;
-  if (m_counter_allDecays != 0)
-  {
-    std::cout << "Efficiency: " << std::setw(4) << (float) m_counter_acceptedDecays * 100 / float(m_counter_allDecays) << "%" << std::endl;
-  }
-  if (m_counter_unmatchedTruth != 0)
-  {
-    std::cout << "Warning: " << m_counter_unmatchedTruth << " daughters had no Geant4 particle, these use the momentum matching to find a reco track" << std::endl;
-  }
-  std::cout << "----------------------------------------------------------------\n"
-            << std::endl;
 }
