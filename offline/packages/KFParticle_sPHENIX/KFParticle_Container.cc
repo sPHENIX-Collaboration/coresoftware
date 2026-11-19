@@ -62,22 +62,14 @@ void KFParticle_Container::identify(std::ostream& os) const
 
 const KFParticle* KFParticle_Container::get(unsigned int id) const
 {
-  ConstIter iter = m_kfpmap.find(id);
-  if (iter == m_kfpmap.end())
-  {
-    return nullptr;
-  }
-  return iter->second;
+  const auto iter = m_kfpmap.find(id);
+  return iter == m_kfpmap.end() ? nullptr : iter->second;
 }
 
 KFParticle* KFParticle_Container::get(unsigned int id)
 {
-  Iter iter = m_kfpmap.find(id);
-  if (iter == m_kfpmap.end())
-  {
-    return nullptr;
-  }
-  return iter->second;
+  const auto iter = m_kfpmap.find(id);
+  return iter == m_kfpmap.end() ? nullptr : iter->second;
 }
 
 KFParticle* KFParticle_Container::insert(const KFParticle* particle)
