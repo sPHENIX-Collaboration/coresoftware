@@ -578,8 +578,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   }
 
   // Radii for track projections
-  double caloRadiusEMCal;
-  caloRadiusEMCal = m_emcal_radius_user;  // Use function set_emcal_radius_user(float set_variable) to set this in your Fun4All macro
+  const double caloRadiusEMCal = m_emcal_radius_user;  // Use function set_emcal_radius_user(float set_variable) to set this in your Fun4All macro
 
   // Create variables and containers etc.
   bool is_match;
@@ -588,8 +587,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
 
   // EMCAL******************************************************
   // Get state
-  SvtxTrackState *thisState = nullptr;
-  thisState = track->get_state(caloRadiusEMCal);
+  SvtxTrackState *thisState = track->get_state(caloRadiusEMCal);
 
   // Print out additional track states with high verbosity:
   if(m_track2caloVerbosity > 10 && thisState != nullptr)
@@ -770,7 +768,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     }
 
     // Find the closest match from all potential matches
-    if (is_match == true)
+    if (is_match)
     {
       float tmp = 99999;
       for (long unsigned int i = 0; i < v_emcal_dr.size(); i++)

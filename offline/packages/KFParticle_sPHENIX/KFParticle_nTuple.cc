@@ -708,6 +708,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   PHNode* evtNode = nodeIter.findFirst("EventHeader");
 
+  m_runNumber = -1;
+  m_evtNumber = -1;
+  m_bco = -1;
   if (evtNode)
   {
     EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
@@ -716,32 +719,17 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_runNumber = evtHeader->get_RunNumber();
       m_evtNumber = evtHeader->get_EvtSequence();
     }
-    else
-    {
-      m_runNumber = -1;
-      m_evtNumber = -1;
-    }
-    
+
     auto* gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
     if (!gl1packet)
     {
       gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
     }
-    
+
     if (gl1packet)
     {
       m_bco = gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0];
     }
-    else
-    {
-      m_bco = -1;
-    }
-  }
-  else
-  {
-    m_runNumber = -1;
-    m_evtNumber = -1;
-    m_bco = -1;
   }
 
   if (m_use_centrality_nTuple)
