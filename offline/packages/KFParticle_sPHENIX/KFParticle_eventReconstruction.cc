@@ -449,12 +449,12 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
 
     for (auto& uniqueCombination : uniqueCombinations)  // Loop over unique track PID assignments
     {
-      for (unsigned int i_pv = 0; i_pv < primaryVerticesCand.size(); ++i_pv)  // Loop over all PVs in the event
+      for (auto const& pv : primaryVerticesCand)  // Loop over all PVs in the event
       {
         bool isGood;
         KFParticle candidate;
         int* PDGIDofFirstParticleInCombination = uniqueCombination.data();
-        std::tie(candidate, isGood) = getCombination(daughterTracks.data(), PDGIDofFirstParticleInCombination, primaryVerticesCand[i_pv], m_constrain_to_vertex,
+        std::tie(candidate, isGood) = getCombination(daughterTracks.data(), PDGIDofFirstParticleInCombination, pv, m_constrain_to_vertex,
                                                      isIntermediate, intermediateNumber, nTracks, constrainMass, required_unique_vertexID, topNode);
         if (isIntermediate && isGood)
         {
@@ -474,7 +474,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
         if (isGood)
         {
           goodCandidates.push_back(candidate);
-          goodVertex.push_back(primaryVerticesCand[i_pv]);
+          goodVertex.push_back(pv);
           for (int i = 0; i < nTracks; ++i)
           {
             KFParticle intParticle;
