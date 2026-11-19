@@ -55,7 +55,6 @@ void KFParticle_Container::Reset()
 void KFParticle_Container::identify(std::ostream& os) const
 {
   os << "KFParticle_Container: size = " << m_kfpmap.size() << std::endl;
-  return;
 }
 
 const KFParticle* KFParticle_Container::get(unsigned int id) const
