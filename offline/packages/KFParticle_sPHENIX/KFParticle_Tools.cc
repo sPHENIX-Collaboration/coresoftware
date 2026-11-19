@@ -1024,15 +1024,8 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     mother.SetPDG(getParticleID(m_mother_name_Tools));
   }
 
-  bool chargeCheck;
-  if (m_get_charge_conjugate)
-  {
-    chargeCheck = std::abs(unique_vertexID) == std::abs(required_vertexID) ? true : false;
-  }
-  else
-  {
-    chargeCheck = unique_vertexID == required_vertexID ? true : false;
-  }
+  const bool chargeCheck = m_get_charge_conjugate ? std::abs(unique_vertexID) == std::abs(required_vertexID)
+                                                  : unique_vertexID == required_vertexID;
 
   for (int j = 0; j < nTracks; ++j)
   {
@@ -1257,10 +1250,7 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
 
 std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaughters[], int daughterOrder[], KFParticle vertex, bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, PHCompositeNode *topNode)
 {
-  KFParticle candidate;
-  bool isGoodCandidate;
-
-  std::tie(candidate, isGoodCandidate) = buildMother(vDaughters, daughterOrder, isIntermediate, intermediateNumber, nTracks, constrainMass, required_vertexID, topNode);
+  auto [candidate, isGoodCandidate] = buildMother(vDaughters, daughterOrder, isIntermediate, intermediateNumber, nTracks, constrainMass, required_vertexID, topNode);
 
   if (constrain_to_vertex && isGoodCandidate && !isIntermediate)
   {
@@ -1284,7 +1274,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findUniqueDaughterCombinations(i
   std::map<int, int> daughterMap;
   for (int i = start; i < end; i++)
   {
-    daughterMap.insert(std::pair<int, int>(i, std::abs(getParticleID(m_daughter_name[i]))));
+    daughterMap.emplace(i, std::abs(getParticleID(m_daughter_name[i])));
     vect_permutations.push_back(i);
   }
   int *permutations = vect_permutations.data();
@@ -1551,12 +1541,7 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
   }
 
   bool isTrack_v5 = daughter_track->InheritsFrom("SvtxTrack_v5");
-  TrackSeedContainer *tpcSeedContainer = nullptr;
-
-  if (isTrack_v5)
-  {
-    tpcSeedContainer = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
-  }
+  TrackSeedContainer *tpcSeedContainer = isTrack_v5 ? findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer") : nullptr;
 
   TrackSeed *tpcseed = isTrack_v5 ? findSeed(tpcSeedContainer, daughter_track->get_tpc_seed_id()) : daughter_track->get_tpc_seed();
   if (!tpcseed)
@@ -1577,15 +1562,7 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
 
 void KFParticle_Tools::init_dEdx_fits()
 {
-  std::string dedx_fitparams;
-  if (m_use_local_PID_file)
-  {
-    dedx_fitparams = m_local_PID_filename;
-  }
-  else
-  {
-    dedx_fitparams = CDBInterface::instance()->getUrl("TPC_DEDX_FITPARAM");
-  }
+  const std::string dedx_fitparams = m_use_local_PID_file ? m_local_PID_filename : CDBInterface::instance()->getUrl("TPC_DEDX_FITPARAM");
 
   std::cout << PHWHERE << " opening " << dedx_fitparams << std::endl;
 
@@ -1638,18 +1615,15 @@ double KFParticle_Tools::get_dEdx_fitValue(float momentum, int PID)
 
 bool KFParticle_Tools::vertexToleranceCheck(float vertexMap_pos[3], float kfp_vertex_pos[3])
 {
-  bool tolerance_met = true;
   constexpr float epsilon = 1e-6F;
   for (unsigned int i = 0; i < 3; ++i)
   {
     if (std::abs(vertexMap_pos[i] - kfp_vertex_pos[i]) > epsilon)
     {
-      tolerance_met = false;
-      break;
+      return false;
     }
   }
-
-  return tolerance_met;
+  return true;
 }
 
 bool KFParticle_Tools::checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex)
