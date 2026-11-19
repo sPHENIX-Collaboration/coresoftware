@@ -62,18 +62,7 @@ namespace TMVA
 //int candidateCounter = 0;
 
 /// KFParticle constructor
-KFParticle_sPHENIX::KFParticle_sPHENIX()
-  : SubsysReco("KFPARTICLE")
-  , m_has_intermediates_sPHENIX(false)
-  , m_constrain_to_vertex_sPHENIX(false)
-  , m_require_mva(false)
-  , m_save_dst(false)
-  , m_save_output(true)
-  , m_outfile_name("outputData.root")
-  , m_outfile(nullptr)
-{
-  setToolsInstance(static_cast<KFParticle_Tools *>(this));
-}
+KFParticle_sPHENIX::KFParticle_sPHENIX() : KFParticle_sPHENIX("KFPARTICLE"){}
 
 KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
   : SubsysReco(name)
