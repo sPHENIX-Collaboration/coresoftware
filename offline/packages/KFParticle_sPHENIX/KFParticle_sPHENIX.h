@@ -108,11 +108,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setNumberTracksFromIntermeditateState(const std::vector<int> &num_tracks)
   {
-    for (const auto &entry : num_tracks)
-    {
-      m_num_tracks_from_intermediate.push_back(entry);
-      m_num_tracks_from_intermediate_nTuple.push_back(entry);
-    }
+    m_num_tracks_from_intermediate.insert(m_num_tracks_from_intermediate.end(), num_tracks.begin(), num_tracks.end());
+    m_num_tracks_from_intermediate_nTuple.insert(m_num_tracks_from_intermediate_nTuple.end(), num_tracks.begin(), num_tracks.end());
   }
 
   void setNumberOfIntermediateStates(int n_intermediates)

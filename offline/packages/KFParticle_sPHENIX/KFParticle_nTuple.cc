@@ -408,9 +408,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   if (m_extrapolateTracksToSV_nTuple)
   {
-    for (unsigned int i = 0; i < daughters.size(); ++i)
+    for (auto &daughter : daughters)
     {
-      daughterArray[i].SetProductionVertex(motherParticle);
+      daughter.SetProductionVertex(motherParticle);
     }
   }
   //This is the setup for filling only the momentum calibration branches
@@ -657,14 +657,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
     // it only makes sense to calculate PVID for non-fake vertex
     // (this otherwise crashes if m_use_fake_pv_nTuple is true in an event with no real vertices)
-    if (m_use_fake_pv_nTuple)
-    {
-      m_calculated_vertex_ID = -100;  // error value returned by getPVID
-    }
-    else
-    {
-      m_calculated_vertex_ID = getPVID(topNode, vertex_fillbranch);
-    }
+    m_calculated_vertex_ID = m_use_fake_pv_nTuple ? -100 : getPVID(topNode, vertex_fillbranch);  // -100 is the error value returned by getPVID
     // m_calculated_vertex_cov          = &vertex_fillbranch.CovarianceMatrix()[0];
     for (int j = 0; j < 6; ++j)
     {
