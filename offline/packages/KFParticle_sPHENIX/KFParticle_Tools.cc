@@ -216,9 +216,9 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
       continue;
     }
 
-    auto svtxvertexvector = svtxiter->second;
+    const auto &svtxvertexvector = svtxiter->second;
 
-    for (auto &vertex : svtxvertexvector)
+    for (const auto &vertex : svtxvertexvector)
     {
       if (m_use_mbd_vertex)
       {
@@ -430,9 +430,9 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
     auto *associated_gvertex = m_dst_globalvertexmap->get(vertex.Id());
 
     auto svtxiter = associated_gvertex->find_vertexes(GlobalVertex::SVTX);
-    auto svtxvertexvector = svtxiter->second;
+    const auto &svtxvertexvector = svtxiter->second;
 
-    for (auto &gvertex : svtxvertexvector)
+    for (const auto &gvertex : svtxvertexvector)
     {
       associated_vertex = m_dst_vertexmap->find(gvertex->get_id())->second;
     }
@@ -1694,9 +1694,9 @@ bool KFParticle_Tools::checkTrackAndVertexMatch(KFParticle vDaughters[], int nTr
     GlobalVertex::VTXTYPE whichVtx = m_use_mbd_vertex ? GlobalVertex::MBD : GlobalVertex::SVTX;
 
     auto svtxiter = m_dst_globalvertex->find_vertexes(whichVtx);
-    auto svtxvertexvector = svtxiter->second;
+    const auto &svtxvertexvector = svtxiter->second;
 
-    for (auto &gvertex : svtxvertexvector)
+    for (const auto &gvertex : svtxvertexvector)
     {
       if (m_use_mbd_vertex)
       {
