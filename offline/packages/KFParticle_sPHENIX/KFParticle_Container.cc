@@ -21,20 +21,18 @@ KFParticle_Container::KFParticle_Container() = default;
 // NOLINTNEXTLINE(bugprone-copy-constructor-init)
 KFParticle_Container::KFParticle_Container(const KFParticle_Container& kfparticlemap)
 {
-  for (const auto& iter : kfparticlemap)
+  for (const auto& [id, particle] : kfparticlemap)
   {
-    KFParticle* particle = dynamic_cast<KFParticle*>(iter.second->Clone());
-    m_kfpmap.insert(std::make_pair(iter.first, particle));
+    m_kfpmap.emplace(id, dynamic_cast<KFParticle*>(particle->Clone()));
   }
 }
 
 KFParticle_Container& KFParticle_Container::operator=(const KFParticle_Container& kfparticlemap)
 {
   Reset();
-  for (const auto& iter : kfparticlemap)
+  for (const auto& [id, particle] : kfparticlemap)
   {
-    KFParticle* particle = dynamic_cast<KFParticle*>(iter.second->Clone());
-    m_kfpmap.insert(std::make_pair(iter.first, particle));
+    m_kfpmap.emplace(id, dynamic_cast<KFParticle*>(particle->Clone()));
   }
   return *this;
 }
