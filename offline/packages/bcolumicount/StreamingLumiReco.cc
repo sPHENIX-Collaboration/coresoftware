@@ -1,9 +1,9 @@
 #include "StreamingLumiReco.h"
 
+#include "BcoInfo.h"
 #include "StreamingBcoInfo.h"
 #include "StreamingLumiInfo.h"
 #include "StreamingLumiInfov1.h"
-
 
 #include <ffaobjects/SyncDefs.h>
 #include <ffaobjects/SyncObject.h>
@@ -49,6 +49,8 @@ int StreamingLumiReco::InitRun(PHCompositeNode * topNode)
     std::cout << PHWHERE << " Run Node is missing doing nothing" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  //triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
+
   m_streaming_lumi_info = findNode::getClass<StreamingLumiInfo>(topNode, "STREAMINGLUMIINFO");
   if (!m_streaming_lumi_info)
   {
@@ -75,64 +77,60 @@ int StreamingLumiReco::CreateNodeTree(PHCompositeNode *topNode)
 int StreamingLumiReco::process_event(PHCompositeNode *topNode)
 {
   StreamingBcoInfo *streaming_bcoinfo = findNode::getClass<StreamingBcoInfo>(topNode, "STREAMINGBCOINFO");
-  Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
-  if (!gl1packet)
+  BcoInfo *bcoinfo = findNode::getClass<BcoInfo>(topNode, "BCOINFO");
+
+  if (bcoinfo)
   {
-    if (Verbosity() > 0)
+    int bunchno = bcoinfo->get_current_bunchno();
+    if (bunchno < 0 || bunchno >= m_bunches)
     {
-      std::cout << "no gl1 packet 14001" << std::endl;
-    }
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  uint64_t gtm_bco = gl1packet->lValue(0, "BCO");
-
-  int bunchno = gl1packet->lValue(0,"BunchNumber");
-  if (bunchno < 0 || bunchno >= m_bunches)
-  {
-    if (Verbosity() > 0)
-    {
-      std::cout << PHWHERE << " invalid bunch number: " << bunchno << std::endl;
-    }
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  // SYNTAX TAKEN FROM ZHIWANS CODE, why = and not +=? If this is correct it seems like a waste to call it for every event (would just need it for the last event in a particular crossing?)
-  // Are these really MBDNS scalers? The name seems misleading
-  m_bunchnumber_MBDNS[bunchno] = gl1packet->lValue(0, "GL1PRAW");
-  //m_bunchnumber_MBDNS_live[bunchno] = gl1packet->lValue(0, "GL1PLIVE");
-  //m_bunchnumber_MBDNS_scaled[bunchno] = gl1packet->lValue(0, "GL1PSCALED");
-
-
-  if(gl1packet->lValue(0, 0))
-  {
-    m_rawgl1scaler = gl1packet->lValue(0, 0);
-  }
-
-  if (streaming_bcoinfo)
-  {
-    if (gtm_bco != streaming_bcoinfo->get_bco()) { std::cout << "BCO MISMATCH!!! : gtm_bco : " << gtm_bco << " bco " << streaming_bcoinfo->get_bco() << std::endl;}
-
-    // Double check Zhiwan's logic for assigning the adjusted bunch!
-    int lower = streaming_bcoinfo->get_bco_streaming_window().first - streaming_bcoinfo->get_bco();
-    int upper = streaming_bcoinfo->get_bco_streaming_window().second - streaming_bcoinfo->get_bco();
-    for(int i = lower; i <= upper; i++)
-    {
-      int adjusted_bunch = bunchno + i;
-      while (adjusted_bunch < 0)
+      if (Verbosity() > 0)
       {
-          adjusted_bunch += 120;
+        std::cout << PHWHERE << " invalid bunch number: " << bunchno << std::endl;
       }
-      while (adjusted_bunch > 119)
-      {
-          adjusted_bunch -= 120;
-      }
-      // ABORT GAP!
-      if (adjusted_bunch>110) { continue; }
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
-      // Make sure this is the correct way to count crossings! Need to zero out for each run!
-      if(i!=0 || streaming_bcoinfo->get_usable_bco_tag())
+    // Are these really MBDNS scalers? The name seems misleading
+
+    m_bunchnumber_MBDNS[bunchno] = bcoinfo->get_current_MBDNS_scalers();
+
+    m_rawgl1scaler = bcoinfo->get_current_rawgl1scalers();
+
+    if ((Verbosity() > 10))
+    {
+      std::cout << " bunchno : " << bunchno << std::endl;
+      std::cout << " rawgl1scalers :  " << m_rawgl1scaler << std::endl;
+      std::cout << " MBDNS_scalers : " << bcoinfo->get_current_MBDNS_scalers() << std::endl;
+      std::cout << " m_bunchnumber_MBDNS : " << m_bunchnumber_MBDNS[bunchno] << std::endl;
+    }
+  
+    if (streaming_bcoinfo)
+    {
+      //if (gtm_bco != streaming_bcoinfo->get_bco()) { std::cout << "BCO MISMATCH!!! : gtm_bco : " << gtm_bco << " bco " << streaming_bcoinfo->get_bco() << std::endl;}
+
+      // Double check Zhiwan's logic for assigning the adjusted bunch!
+      int lower = streaming_bcoinfo->get_bco_streaming_window().first - streaming_bcoinfo->get_bco();
+      int upper = streaming_bcoinfo->get_bco_streaming_window().second - streaming_bcoinfo->get_bco();
+      for(int i = lower; i <= upper; i++)
       {
-        m_bunchnumber_crossings[adjusted_bunch] += 1;
+        int adjusted_bunch = bunchno + i;
+        while (adjusted_bunch < 0)
+        {
+            adjusted_bunch += 120;
+        }
+        while (adjusted_bunch > 119)
+        {
+            adjusted_bunch -= 120;
+        }
+        // ABORT GAP!
+        if (adjusted_bunch>110) { continue; }
+
+        // Make sure this is the correct way to count crossings! Need to zero out for each run!
+        if(i!=0 || streaming_bcoinfo->get_usable_bco_tag())
+        {
+          m_bunchnumber_crossings[adjusted_bunch] += 1;
+        }
       }
     }
   }
@@ -150,7 +148,9 @@ int StreamingLumiReco::EndRun(int /*runnumber*/)
 
     if (Verbosity() > 1)
     {
-     std::cout << "bunchno : " << i << " lumi : " << m_bunchnumber_lumi[i] << std::endl;
+      std::cout << "bunchno : " << i << " m_bunchnumber_MBDNS  : " << m_bunchnumber_MBDNS[i] << std::endl;
+      std::cout << "bunchno : " << i << " m_bunchnumber_crossings  : " << m_bunchnumber_crossings[i] << std::endl;
+      std::cout << "bunchno : " << i << " lumi : " << m_bunchnumber_lumi[i] << std::endl;
     }
   }
   if (!m_streaming_lumi_info)

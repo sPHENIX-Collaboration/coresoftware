@@ -3,6 +3,7 @@
 
 #include "StreamingLumiInfo.h"
 
+
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllHistoManager.h>
 
@@ -38,8 +39,6 @@ class StreamingLumiReco : public SubsysReco
   uint64_t m_rawgl1scaler{0};
 
   std::array<long, 120> m_bunchnumber_MBDNS{0};
-  //std::array<long, 120> m_bunchnumber_MBDNS_live{0};
-  //std::array<long, 120> m_bunchnumber_MBDNS_scaled{0};
 
   std::array<long, 120> m_bunchnumber_crossings{0};
 
