@@ -461,11 +461,7 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
 
   float pt = 0;
   float pterr = 0;
-  int MeansToEnd = particle.GetPt(pt, pterr);  // Both pt and pterr are passed by reference. GetPt() unhelpfully returns 0 for simulated silicon-only tracks, so we are changing to this function GetPt(p_t, sigma p_T)
-  if (false)
-  {
-    std::cout << MeansToEnd << std::endl;  // This if statement is here only to keep Fun4All from complaining about defined but unused variable
-  }
+  particle.GetPt(pt, pterr);  // Both pt and pterr are passed by reference. GetPt() unhelpfully returns 0 for simulated silicon-only tracks, so we are changing to this function GetPt(p_t, sigma p_T)
 
   float ptchi2 = pow(pterr / pt, 2);
   calcMinPV_DCA(particle, primaryVertices, min_PV_dca, min_PV_dca_stddev);
