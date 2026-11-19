@@ -1281,7 +1281,7 @@ void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int 
     m_tree->Branch((daughter_number + "_layer").c_str(), &detector_layer[daughter_id]);
   }
 
-  for (auto const &subdetector : Use)
+  for (const auto &subdetector : Use)
   {
     if (subdetector.second)
     {

@@ -449,7 +449,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
 
     for (auto& uniqueCombination : uniqueCombinations)  // Loop over unique track PID assignments
     {
-      for (auto const& pv : primaryVerticesCand)  // Loop over all PVs in the event
+      for (const auto& pv : primaryVerticesCand)  // Loop over all PVs in the event
       {
         bool isGood;
         KFParticle candidate;

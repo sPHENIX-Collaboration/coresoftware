@@ -47,7 +47,7 @@ namespace
     std::string baseName = containerName.empty() ? "reconstructedParticles" : containerName;
     const std::map<std::string, std::string> forbiddenStrings = {
         {"/", "_"}, {"(", "_"}, {")", ""}, {"+", "plus"}, {"-", "minus"}, {"*", "star"}};
-    for (auto const& [badString, goodString] : forbiddenStrings)
+    for (const auto& [badString, goodString] : forbiddenStrings)
     {
       size_t pos;
       while ((pos = baseName.find(badString)) != std::string::npos)

@@ -56,7 +56,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
   forbiddenStrings["+"] = "plus";
   forbiddenStrings["-"] = "minus";
   forbiddenStrings["*"] = "star";
-  for (auto const& [badString, goodString] : forbiddenStrings)
+  for (const auto& [badString, goodString] : forbiddenStrings)
   {
     while ((pos = mother_name.find(badString)) != std::string::npos)
     {
@@ -129,7 +129,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
       std::string intermediate_name = m_intermediate_name_ntuple[i];
 
       // Note, TBranch will not allow the leaf to contain a forward slash as it is used to define the branch type. Causes problems with J/psi
-      for (auto const& [badString, goodString] : forbiddenStrings)
+      for (const auto& [badString, goodString] : forbiddenStrings)
       {
         while ((pos = intermediate_name.find(badString)) != std::string::npos)
         {

@@ -62,7 +62,7 @@ bool KFParticle_triggerInfo::buildTriggerBranches(PHCompositeNode *topNode, TTre
 
     std::string branchName = trigger_header + triggeranalyzer->getTriggerName(i);
 
-    for (auto const& [badString, goodString] : forbiddenStrings)
+    for (const auto& [badString, goodString] : forbiddenStrings)
     {
       while ((pos = branchName.find(badString)) != std::string::npos)
       {
