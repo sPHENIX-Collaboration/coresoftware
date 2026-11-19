@@ -378,6 +378,17 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
       continue;
     }
 
+    const int trackndof = m_dst_track->get_ndf();
+    const float trackchi2ndof = trackndof > 0 ? m_dst_track->get_chisq() / trackndof : std::numeric_limits<float>::quiet_NaN();
+    if (m_verbosity > 11)
+    {
+      printSelectionCheck("Track chi^2/nDoF", 0, trackchi2ndof, m_track_chi2ndof);
+    }
+    if (!(trackchi2ndof <= m_track_chi2ndof)) //rejects nan
+    {
+      continue;
+    }
+
     daughterParticles.push_back(makeParticle(topNode));  /// Turn all dst tracks in KFP tracks
     daughterParticles[trackID].SetId(iter.first);
     ++trackID;
@@ -484,11 +495,10 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
   }
 
   float ptchi2 = pow(pterr / pt, 2);
-  float trackchi2ndof = particle.GetChi2() / particle.GetNDF();
   calcMinPV_DCA(particle, primaryVertices, min_PV_dca, min_PV_dca_stddev);
   calcMinPV_DCA(particle, primaryVertices, min_PV_dca_xy, min_PV_dca_stddev_xy, false);
 
-  if (isInRange(m_track_min_pt, pt, m_track_max_pt) && ptchi2 <= m_track_ptchi2 && min_PV_dca >= m_track_PV_dca && min_PV_dca_stddev >= m_track_PV_dca_stddev && min_PV_dca_xy >= m_track_PV_dca_xy && min_PV_dca_stddev_xy >= m_track_PV_dca_stddev_xy && trackchi2ndof <= m_track_chi2ndof)
+  if (isInRange(m_track_min_pt, pt, m_track_max_pt) && ptchi2 <= m_track_ptchi2 && min_PV_dca >= m_track_PV_dca && min_PV_dca_stddev >= m_track_PV_dca_stddev && min_PV_dca_xy >= m_track_PV_dca_xy && min_PV_dca_stddev_xy >= m_track_PV_dca_stddev_xy)
   {
     goodTrack = true;
   }
@@ -505,7 +515,6 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
       printSelectionCheck("PV DCA Std. Dev.", m_track_PV_dca_stddev, min_PV_dca_stddev, std::numeric_limits<float>::max());
       printSelectionCheck("PV DCA xy", m_track_PV_dca_xy, min_PV_dca_xy, std::numeric_limits<float>::max());
       printSelectionCheck("PV DCA xy Std. Dev.", m_track_PV_dca_stddev_xy, min_PV_dca_stddev_xy, std::numeric_limits<float>::max());
-      printSelectionCheck("Track chi^2/nDoF", 0, trackchi2ndof, m_track_chi2ndof);
     }
   }
 

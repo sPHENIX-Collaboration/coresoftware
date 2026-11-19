@@ -234,6 +234,7 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
     vertexeval = m_svtx_evalstack->get_vertex_eval();
   }
 
+  m_svtx_evalstack->next_event(topNode);
   if (isParticleValid)
   {
     g4vertex_point = trutheval->get_vertex(g4particle);
