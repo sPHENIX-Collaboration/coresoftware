@@ -46,7 +46,9 @@
 #include <memory>     // for allocator_traits<>::value_type
 #include <ranges>
 
-int listOfResonantPIDs[] = {111, 113, 213, 333, 310, 311, 313, 323, 413, 423, 513, 523, 441, 443, 100443, 9000111, 9000211, 100111, 100211, 10111,
+// Resonances that are ignored when searching for the decay. Each DecayFinder takes a copy and removes the particles that are
+// part of its own decay chain, see findDecay, so that finders with different decay descriptors do not affect each other
+static const int defaultResonantPIDs[] = {111, 113, 213, 333, 310, 311, 313, 323, 413, 423, 513, 523, 441, 443, 100443, 9000111, 9000211, 100111, 100211, 10111,
                             10211, 9010111, 9010211, 10113, 10213, 20113, 20213, 9000113, 9000213, 100113, 100213, 9010113, 9010213, 9020113, 9020213,
                             30113, 30213, 9030113, 9030213, 9040113, 9040213, 115, 215, 10115, 10215, 9000115, 9000215, 9010115, 9010215, 117, 217,
                             9000117, 9000217, 9010117, 9010217, 119, 219, 221, 331, 9000221, 9010221, 100221, 10221, 9020221, 100331, 9030221, 10331,
@@ -161,7 +163,11 @@ int DecayFinder::parseDecayDescriptor()
   }
 
   // Check for charge conjugate requirement
-  std::string checkForCC = manipulateDecayDescriptor.substr(0, 1) + manipulateDecayDescriptor.substr(manipulateDecayDescriptor.size() - 3, 3);
+  std::string checkForCC;
+  if (manipulateDecayDescriptor.size() >= 4)  // Anything shorter cannot be "[...]CC" and substr would throw
+  {
+    checkForCC = manipulateDecayDescriptor.substr(0, 1) + manipulateDecayDescriptor.substr(manipulateDecayDescriptor.size() - 3, 3);
+  }
   std::for_each(checkForCC.begin(), checkForCC.end(), [](char& c)
                 { c = ::toupper(c); });
 
@@ -328,13 +334,18 @@ int DecayFinder::findDecay(PHCompositeNode* topNode)
   std::vector<int> correctMotherProducts;
   std::vector<int> positive_motherDecayProducts;
 
-  int n = sizeof(listOfResonantPIDs) / sizeof(listOfResonantPIDs[0]);
+  // The mother and intermediates are not resonances to skip over. The IDs here can carry the sign of the charge so compare absolute values
+  m_resonantPIDs.assign(std::begin(defaultResonantPIDs), std::end(defaultResonantPIDs));
+  auto removeResonance = [this](const int pdgID)
+  {
+    m_resonantPIDs.erase(std::remove(m_resonantPIDs.begin(), m_resonantPIDs.end(), std::abs(pdgID)), m_resonantPIDs.end());
+  };
   for (int i : m_intermediates_ID)
   {
-    n = deleteElement(listOfResonantPIDs, n, i);
+    removeResonance(i);
   }
 
-  n = deleteElement(listOfResonantPIDs, n, m_mother_ID);
+  removeResonance(m_mother_ID);
 
   positive_motherDecayProducts.reserve(m_motherDecayProducts.size());
   for (int m_motherDecayProduct : m_motherDecayProducts)
@@ -648,8 +659,8 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
         }
       }
     }  // Now check if it's part of the resonance list
-    else if (std::find(std::begin(listOfResonantPIDs), std::end(listOfResonantPIDs),
-                       std::abs((*children)->pdg_id())) != std::end(listOfResonantPIDs))
+    else if (std::find(std::begin(m_resonantPIDs), std::end(m_resonantPIDs),
+                       std::abs((*children)->pdg_id())) != std::end(m_resonantPIDs))
     {
       if (Verbosity() >= VERBOSITY_MAX)
       {
@@ -748,8 +759,8 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, std::vector<int> deca
       {
         continue;
       }
-      else if (std::find(std::begin(listOfResonantPIDs), std::end(listOfResonantPIDs),
-                         std::abs(particleID)) != std::end(listOfResonantPIDs))
+      else if (std::find(std::begin(m_resonantPIDs), std::end(m_resonantPIDs),
+                         std::abs(particleID)) != std::end(m_resonantPIDs))
       {
         if (Verbosity() >= VERBOSITY_MAX)
         {
@@ -819,8 +830,8 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
         std::cout << "----grandchildren->pdg_id(): " << (*grandchildren)->pdg_id() << std::endl;
       }
 
-      if (std::find(std::begin(listOfResonantPIDs), std::end(listOfResonantPIDs),
-                    std::abs((*grandchildren)->pdg_id())) != std::end(listOfResonantPIDs))
+      if (std::find(std::begin(m_resonantPIDs), std::end(m_resonantPIDs),
+                    std::abs((*grandchildren)->pdg_id())) != std::end(m_resonantPIDs))
       {
         for (HepMC::GenVertex::particle_iterator greatgrandchildren = (*grandchildren)->end_vertex()->particles_begin(HepMC::children);
              greatgrandchildren != (*grandchildren)->end_vertex()->particles_end(HepMC::children); ++greatgrandchildren)
@@ -1119,34 +1130,6 @@ bool DecayFinder::compareDecays(std::vector<int> required, std::vector<int> actu
 /*
  * Everything below this is helper functions
  */
-int DecayFinder::deleteElement(int arr[], int n, int x)
-{
-  // https://www.geeksforgeeks.org/delete-an-element-from-array-using-two-traversals-and-one-traversal/
-  // Search x in array
-  int i;
-  for (i = 0; i < n; i++)
-  {
-    if (arr[i] == x)
-    {
-      break;
-    }
-  }
-
-  // If x found in array
-  if (i < n)
-  {
-    // reduce size of array and move all
-    // elements on space ahead
-    n = n - 1;
-    for (int j = i; j < n; j++)
-    {
-      arr[j] = arr[j + 1];
-    }
-  }
-
-  return n;
-}
-
 bool DecayFinder::findParticle(const std::string& particle)
 {
   bool particleFound = true;

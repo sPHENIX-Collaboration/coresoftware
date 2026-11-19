@@ -60,8 +60,6 @@ class DecayFinder : public SubsysReco
 
   bool compareDecays(std::vector<int> required, std::vector<int> actual);
 
-  int deleteElement(int arr[], int n, int x);
-
   void multiplyVectorByScalarAndSort(std::vector<int> &v, int k);
 
   int get_pdgcode(const std::string &name);
@@ -191,6 +189,7 @@ class DecayFinder : public SubsysReco
 
   int m_mother_ID{0};
   std::vector<int> m_intermediates_ID;
+  std::vector<int> m_resonantPIDs;  // Resonances to ignore for this decay, rebuilt every event
   std::vector<int> m_daughters_ID;
 
   int m_nTracksFromMother{0};
