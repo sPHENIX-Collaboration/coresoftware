@@ -39,6 +39,26 @@
 KFParticle_Tools kfpTupleTools_DST;
 KFParticle_truthAndDetTools kfpTruthTools_DST;
 
+namespace
+{
+  // Base name for the DST nodes. Cant have forward slashes in DST or else you make a subdirectory on save!!!
+  std::string dstBaseName(const std::string& containerName)
+  {
+    std::string baseName = containerName.empty() ? "reconstructedParticles" : containerName;
+    const std::map<std::string, std::string> forbiddenStrings = {
+        {"/", "_"}, {"(", "_"}, {")", ""}, {"+", "plus"}, {"-", "minus"}, {"*", "star"}};
+    for (auto const& [badString, goodString] : forbiddenStrings)
+    {
+      size_t pos;
+      while ((pos = baseName.find(badString)) != std::string::npos)
+      {
+        baseName.replace(pos, 1, goodString);
+      }
+    }
+    return baseName;
+  }
+}  // namespace
+
 int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
@@ -51,31 +71,9 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
     std::cout << "DST node added" << std::endl;
   }
 
-  std::string baseName = m_container_name.empty() ? "reconstructedParticles" : m_container_name;
-  std::string trackNodeName;
-  std::string particleNodeName;
-
-  // Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  std::string undrscr = "_";
-  std::string nothing;
-  std::map<std::string, std::string> forbiddenStrings;
-  forbiddenStrings["/"] = undrscr;
-  forbiddenStrings["("] = undrscr;
-  forbiddenStrings[")"] = nothing;
-  forbiddenStrings["+"] = "plus";
-  forbiddenStrings["-"] = "minus";
-  forbiddenStrings["*"] = "star";
-  for (auto const& [badString, goodString] : forbiddenStrings)
-  {
-    size_t pos;
-    while ((pos = baseName.find(badString)) != std::string::npos)
-    {
-      baseName.replace(pos, 1, goodString);
-    }
-  }
-
-  trackNodeName = baseName + "_SvtxTrackMap";
-  particleNodeName = baseName + "_KFParticle_Container";
+  const std::string baseName = dstBaseName(m_container_name);
+  const std::string trackNodeName = baseName + "_SvtxTrackMap";
+  const std::string particleNodeName = baseName + "_KFParticle_Container";
 
   if (m_write_track_container)
   {
@@ -126,29 +124,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
   unsigned int daughterCounter = 0;
   unsigned int resonanceCounter = UINT_MAX;
 
-  std::string baseName = m_container_name.empty() ? "reconstructedParticles" : m_container_name;
-  std::string trackNodeName;
-
-  // Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  std::string undrscr = "_";
-  std::string nothing;
-  std::map<std::string, std::string> forbiddenStrings;
-  forbiddenStrings["/"] = undrscr;
-  forbiddenStrings["("] = undrscr;
-  forbiddenStrings[")"] = nothing;
-  forbiddenStrings["+"] = "plus";
-  forbiddenStrings["-"] = "minus";
-  forbiddenStrings["*"] = "star";
-  for (auto const& [badString, goodString] : forbiddenStrings)
-  {
-    size_t pos;
-    while ((pos = baseName.find(badString)) != std::string::npos)
-    {
-      baseName.replace(pos, 1, goodString);
-    }
-  }
-
-  trackNodeName = baseName + "_SvtxTrackMap";
+  const std::string trackNodeName = dstBaseName(m_container_name) + "_SvtxTrackMap";
 
   m_recoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, trackNodeName);
 
@@ -223,29 +199,7 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, KFParti
                                                std::vector<KFParticle> daughters,
                                                std::vector<KFParticle> intermediates)
 {
-  std::string baseName = m_container_name.empty() ? "reconstructedParticles" : m_container_name;
-  std::string particleNodeName;
-
-  // Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  std::string undrscr = "_";
-  std::string nothing;
-  std::map<std::string, std::string> forbiddenStrings;
-  forbiddenStrings["/"] = undrscr;
-  forbiddenStrings["("] = undrscr;
-  forbiddenStrings[")"] = nothing;
-  forbiddenStrings["+"] = "plus";
-  forbiddenStrings["-"] = "minus";
-  forbiddenStrings["*"] = "star";
-  for (auto const& [badString, goodString] : forbiddenStrings)
-  {
-    size_t pos;
-    while ((pos = baseName.find(badString)) != std::string::npos)
-    {
-      baseName.replace(pos, 1, goodString);
-    }
-  }
-
-  particleNodeName = baseName + "_KFParticle_Container";
+  const std::string particleNodeName = dstBaseName(m_container_name) + "_KFParticle_Container";
 
   m_recoParticleMap = findNode::getClass<KFParticle_Container>(topNode, particleNodeName);
 
@@ -330,32 +284,11 @@ SvtxTrack* KFParticle_DST::buildSvtxTrack(const KFParticle& particle)
 
 void KFParticle_DST::printNode(PHCompositeNode* topNode)
 {
-  std::string baseName = m_container_name.empty() ? "reconstructedParticles" : m_container_name;
-  std::string trackNodeName;
-  std::string particleNodeName;
-
-  // Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  std::string undrscr = "_";
-  std::string nothing;
-  std::map<std::string, std::string> forbiddenStrings;
-  forbiddenStrings["/"] = undrscr;
-  forbiddenStrings["("] = undrscr;
-  forbiddenStrings[")"] = nothing;
-  forbiddenStrings["+"] = "plus";
-  forbiddenStrings["-"] = "minus";
-  forbiddenStrings["*"] = "star";
-  for (auto const& [badString, goodString] : forbiddenStrings)
-  {
-    size_t pos;
-    while ((pos = baseName.find(badString)) != std::string::npos)
-    {
-      baseName.replace(pos, 1, goodString);
-    }
-  }
+  const std::string baseName = dstBaseName(m_container_name);
 
   if (m_write_track_container)
   {
-    trackNodeName = baseName + "_SvtxTrackMap";
+    const std::string trackNodeName = baseName + "_SvtxTrackMap";
     std::cout << "----------------";
     std::cout << " KFParticle_DST: " << trackNodeName << " information ";
     std::cout << "----------------" << std::endl;
@@ -370,7 +303,7 @@ void KFParticle_DST::printNode(PHCompositeNode* topNode)
 
   if (m_write_particle_container)
   {
-    particleNodeName = baseName + "_KFParticle_Container";
+    const std::string particleNodeName = baseName + "_KFParticle_Container";
     std::cout << "----------------";
     std::cout << " KFParticle_DST: " << particleNodeName << " information ";
     std::cout << "----------------" << std::endl;
