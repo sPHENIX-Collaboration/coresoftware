@@ -884,18 +884,7 @@ float KFParticle_nTuple::calc_secondary_vertex_mass_noPID(std::vector<KFParticle
 
 bool KFParticle_nTuple::fillConditionMet() const
 {
-  // return true if this is a track-only analysis
-  if (!m_calo_info)
-  {
-    return true;
-  }
-
-  // return true if do not require track-calo matching
-  if (!m_require_track_emcal_match)
-  {
-    return true;
-  }
-
-  // if requiring track-calo matching, the match result is returned
-  return isTrackEMCalmatch;
+  // Fill if this is a track-only analysis, if track-calo matching is not required,
+  // or otherwise only if the track was matched to an EMCal cluster
+  return !m_calo_info || !m_require_track_emcal_match || isTrackEMCalmatch;
 }
