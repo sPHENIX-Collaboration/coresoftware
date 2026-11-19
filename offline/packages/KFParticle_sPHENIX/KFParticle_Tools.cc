@@ -1621,14 +1621,14 @@ void KFParticle_Tools::init_dEdx_fits()
     filefit->GetObject("f_pbar_band", f_proton_minus);
   }
 
-  pidMap.insert(std::pair<int, TF1 *>(-11, f_pion_plus));
-  pidMap.insert(std::pair<int, TF1 *>(211, f_pion_plus));
-  pidMap.insert(std::pair<int, TF1 *>(321, f_kaon_plus));
-  pidMap.insert(std::pair<int, TF1 *>(2212, f_proton_plus));
-  pidMap.insert(std::pair<int, TF1 *>(11, f_pion_minus));
-  pidMap.insert(std::pair<int, TF1 *>(-211, f_pion_minus));
-  pidMap.insert(std::pair<int, TF1 *>(-321, f_kaon_minus));
-  pidMap.insert(std::pair<int, TF1 *>(-2212, f_proton_minus));
+  pidMap.emplace(-11, f_pion_plus);
+  pidMap.emplace(211, f_pion_plus);
+  pidMap.emplace(321, f_kaon_plus);
+  pidMap.emplace(2212, f_proton_plus);
+  pidMap.emplace(11, f_pion_minus);
+  pidMap.emplace(-211, f_pion_minus);
+  pidMap.emplace(-321, f_kaon_minus);
+  pidMap.emplace(-2212, f_proton_minus);
 }
 
 double KFParticle_Tools::get_dEdx_fitValue(float momentum, int PID)
