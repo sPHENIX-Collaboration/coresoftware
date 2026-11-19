@@ -44,15 +44,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
   m_tree->OptimizeBaskets();
   m_tree->SetAutoSave(-5e6);  // Save the output file every 5MB
 
-  std::string mother_name;
-  if (m_mother_name.empty())
-  {
-    mother_name = "mother";
-  }
-  else
-  {
-    mother_name = m_mother_name;
-  }
+  std::string mother_name = m_mother_name.empty() ? "mother" : m_mother_name;
 
   size_t pos;
   std::string undrscr = "_";
