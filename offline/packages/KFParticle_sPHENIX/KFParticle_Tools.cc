@@ -943,7 +943,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
                                                            bool constrainMass, float required_vertexID, PHCompositeNode *topNode)
 {
   KFParticle mother;
-  KFParticle *inputTracks = new KFParticle[nTracks];
+  std::vector<KFParticle> inputTracks(nTracks);
 
   mother.SetConstructMethod(2);
 
@@ -1012,7 +1012,6 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
         if (!accept_dEdx)
         {
-          delete[] inputTracks;
           return std::make_tuple(mother, false);
         }
       }
@@ -1186,7 +1185,6 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
       printSelectionCheck("Mother SV volume", 0., calculateEllipsoidVolume(mother), max_vertex_volume);
     }
   }
-  delete[] inputTracks;
   return std::make_tuple(mother, goodCandidate);
 }
 
