@@ -566,16 +566,8 @@ int KFParticle_Tools::calcMinPV_DCA(const KFParticle &track, const std::vector<K
 
 std::vector<int> KFParticle_Tools::findAllGoodTracks(const std::vector<KFParticle> &daughterParticles)//, const std::vector<KFParticle> &primaryVertices)
 {
-  std::vector<int> goodTrackIndex;
-  goodTrackIndex.reserve(daughterParticles.size());
-
-  for (unsigned int i_parts = 0; i_parts < daughterParticles.size(); ++i_parts)
-  {
-    goodTrackIndex.push_back(i_parts);
-  }
-
-  removeDuplicates(goodTrackIndex);
-
+  std::vector<int> goodTrackIndex(daughterParticles.size());
+  std::iota(goodTrackIndex.begin(), goodTrackIndex.end(), 0);  // every track index, 0..n-1
   return goodTrackIndex;
 }
 
