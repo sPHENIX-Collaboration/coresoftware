@@ -146,7 +146,6 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   std::vector<std::vector<KFParticle>> daughters;
   std::vector<std::vector<KFParticle>> intermediates;
   int nPVs;
-  int multiplicity;
 
   // Adding BCO Matching  
   auto* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader"); // event header node
@@ -216,7 +215,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     }
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  multiplicity = check_trackmap->size();
+  const int multiplicity = check_trackmap->size();
 
   if (!m_use_fake_pv)
   {
@@ -257,44 +256,38 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     vertex_kfparticle = mother;
   }
 
-  if (!mother.empty())
+  for (unsigned int i = 0; i < mother.size(); ++i)
   {
-    for (unsigned int i = 0; i < mother.size(); ++i)
+    
+    if (m_save_output && getCandidateCounter() == 0)
     {
-      
-      if (m_save_output && getCandidateCounter() == 0)
+      if (!m_minimal_output_to_qa)
       {
-        if (!m_minimal_output_to_qa)
-        {
-          m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
-        }
-        initializeBranches(topNode);
+        m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
       }
+      initializeBranches(topNode);
+    }
 
-      //candidateCounter += 1;
-      incrementCandidateCounter();
+    //candidateCounter += 1;
+    incrementCandidateCounter();
 
-      if (m_save_output)
-      {
-	set_event_bcos(m_this_event_bco, m_last_event_bco); //filling nTuple for BCO Matching
-        fillBranch(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i]);
-      }
-      if (m_save_dst)
-      {
-        fillParticleNode(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i]);
-      }
+    if (m_save_output)
+    {
+	    set_event_bcos(m_this_event_bco, m_last_event_bco); //filling nTuple for BCO Matching
+      fillBranch(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i]);
+    }
+    if (m_save_dst)
+    {
+      fillParticleNode(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i]);
+    }
 
-      if (Verbosity() >= VERBOSITY_SOME)
-      {
-        printParticles(mother[i], vertex_kfparticle[i], daughters[i], intermediates[i], nPVs, multiplicity);
-      }
-      if (Verbosity() >= VERBOSITY_MORE)
-      {
-        if (m_save_dst)
-        {
-          printNode(topNode);
-        }
-      }
+    if (Verbosity() >= VERBOSITY_SOME)
+    {
+      printParticles(mother[i], vertex_kfparticle[i], daughters[i], intermediates[i], nPVs, multiplicity);
+    }
+    if (Verbosity() >= VERBOSITY_MORE && m_save_dst)
+    {
+      printNode(topNode);
     }
   }
 
