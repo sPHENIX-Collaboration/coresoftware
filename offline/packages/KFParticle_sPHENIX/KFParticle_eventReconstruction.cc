@@ -405,14 +405,8 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
             }
             goodCandidates.clear();
             goodVertex.clear();
-            for (int j = 0; j < m_num_intermediate_states; ++j)
-            {
-              goodIntermediates[j].clear();
-            }
-            for (int j = 0; j < m_num_tracks; ++j)
-            {
-              goodDaughters[j].clear();
-            }
+            std::for_each(goodIntermediates, goodIntermediates + m_num_intermediate_states, [](auto& v) { v.clear(); });
+            std::for_each(goodDaughters, goodDaughters + m_num_tracks, [](auto& v) { v.clear(); });
           }
 	        delete [] motherDecayProducts;
         }  // Close forth intermediate
@@ -536,10 +530,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
 
       goodCandidates.clear();
       goodVertex.clear();
-      for (int j = 0; j < nTracks; ++j)
-      {
-        goodDaughters[j].clear();
-      }
+      std::for_each(goodDaughters, goodDaughters + nTracks, [](auto& v) { v.clear(); });
     }
     delete [] daughterTracks;
   }
