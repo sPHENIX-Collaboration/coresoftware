@@ -532,7 +532,6 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_calculated_daughter_PV_dca_sig[i] = daughterArray[i].GetDeviationFromVertex(vertex_fillbranch);
       m_calculated_daughter_PV_dca_err[i] = m_calculated_daughter_PV_dca[i] / std::sqrt(m_calculated_daughter_PV_dca_sig[i]);
       m_calculated_daughter_PV_dca_xy[i] = daughterArray[i].GetDistanceFromVertexXY(vertex_fillbranch);
-      m_calculated_daughter_PV_dca_sig[i] = daughterArray[i].GetDeviationFromVertex(vertex_fillbranch);
       m_calculated_daughter_PV_dca_xy_sig[i] = daughterArray[i].GetDeviationFromVertexXY(vertex_fillbranch);
     }
     m_calculated_daughter_x[i] = daughterArray[i].GetX();
