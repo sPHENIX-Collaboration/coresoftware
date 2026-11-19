@@ -82,14 +82,9 @@ KFParticle* KFParticle_Container::get(unsigned int id)
 
 KFParticle* KFParticle_Container::insert(const KFParticle* particle)
 {
-  unsigned int index = 0;
-  if (!m_kfpmap.empty())
-  {
-    index = m_kfpmap.rbegin()->first + 1;
-  }
-  m_kfpmap.insert(std::make_pair(index, dynamic_cast<KFParticle*>(particle->Clone())));
+  const unsigned int index = m_kfpmap.empty() ? 0 : m_kfpmap.rbegin()->first + 1;
   // m_kfpmap[index]->SetId(index);
-  return m_kfpmap[index];
+  return m_kfpmap.emplace(index, dynamic_cast<KFParticle*>(particle->Clone())).first->second;
 }
 
 KFParticle_Container::ConstIter
@@ -107,10 +102,7 @@ KFParticle_Container::addParticleSpecifyKey(unsigned int id, KFParticle* particl
     std::cout << "KFParticle_Container::AddParticleSpecifyKey: duplicate id: " << id << " exiting now" << std::endl;
     exit(1);
   }
-  else
-  {
-    return ret.first;
-  }
+  return ret.first;
 }
 
 KFParticle_Container::Map
@@ -118,11 +110,11 @@ KFParticle_Container::returnParticlesByPDGid(int PDGid)
 {
   Map requiredParticles;
 
-  for (auto& iter : m_kfpmap)
+  for (const auto& iter : m_kfpmap)
   {
     if (iter.second->GetPDG() == PDGid)
     {
-      requiredParticles.insert(std::make_pair(iter.first, iter.second));
+      requiredParticles.insert(iter);
     }
   }
 
