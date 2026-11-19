@@ -41,7 +41,7 @@ libTpcForwardTransport_la_SOURCES = \
   PHGarfieldForwardMap.cc \
   PHGarfieldAdaptiveMap.cc \
   PHGarfieldCompactMap.cc
-libTpcForwardTransport_la_LIBADD = -lPHGarfield
+libTpcForwardTransport_la_LIBADD = -lPHGarfield -lffamodules
 
 # Kept separate from runtime consumers. Installed for generation tools and
 # downstream make-check fixtures that need synthetic adaptive construction.
