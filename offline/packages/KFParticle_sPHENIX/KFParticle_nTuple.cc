@@ -590,9 +590,6 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     if (m_truth_matching)
     {
       fillTruthBranch(topNode, m_tree, daughterArray[i], i, vertex_fillbranch, m_constrain_to_vertex_nTuple);
-    }
-    if (m_truth_matching)
-    {
       getHepMCInfo(topNode, m_tree, daughterArray[i], i);
     }
     if (m_detector_info)
