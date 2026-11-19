@@ -128,9 +128,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
 
   m_recoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, trackNodeName);
 
-  SvtxTrack* m_recoTrack = new SvtxTrack_v4();
-
-  m_recoTrack = buildSvtxTrack(motherParticle);
+  SvtxTrack* m_recoTrack = buildSvtxTrack(motherParticle);
 
   SvtxTrack *dummyMother = nullptr;  
   while (!dummyMother)
