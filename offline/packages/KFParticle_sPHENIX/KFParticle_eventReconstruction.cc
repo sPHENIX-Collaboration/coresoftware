@@ -284,13 +284,12 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
           }
           else
           {
-            std::vector<int> m_intermediate_id;
-            m_intermediate_id.clear();
+            std::vector<int> intermediate_id;
             for (const auto& element_of_intermediate : m_intermediate_name)
             {
-              m_intermediate_id.push_back(kfp_Tools_evtReco.getParticleID(element_of_intermediate));
+              intermediate_id.push_back(kfp_Tools_evtReco.getParticleID(element_of_intermediate));
             }
-            uniqueCombinations.push_back(m_intermediate_id);
+            uniqueCombinations.push_back(intermediate_id);
             listOfTracksToAppend.push_back({0});
           }
 
