@@ -362,9 +362,11 @@ class PHGarfield : public SubsysReco
     return m_keffReferenceKeff * (m_keffPar0 + m_keffPar1 * igem / igemReference);
   }
 
+  friend class PHGarfieldForwardTransport;
+  friend struct PHGarfieldForwardFieldTest;
   void GetMagneticFieldTesla(double x_cm, double y_cm, double z_cm, double &bx_t, double &by_t, double &bz_t) const;      // Feeds magnetic field to Garfield
   void GetElectricFieldVcm(double x_cm, double y_cm, double z_cm, double &ex_vcm, double &ey_vcm, double &ez_vcm) const;  // Feeds electric field to Garfield
-  void InitializeGas(const std::string &name);                                                                            // Accepts a file or a directory
+  void InitializeGas(const std::string &name, bool strict = false);                                                       // Accepts a file or a directory
   bool LoadElectricFieldCorrections(const std::string &filename);
   bool LoadElectricFieldCorrections3D(const std::string &filename, std::size_t side);
   bool HasElectricFieldCorrections3D(std::size_t side) const;
