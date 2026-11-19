@@ -354,7 +354,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                       slowTrackMass = kfp_Tools_evtReco.getParticleMass((Int_t) motherDecayProducts[trackArrayID].GetQ() * uniqueCombination[trackArrayID]);
                       slowTrackPDG = (Int_t) motherDecayProducts[trackArrayID].GetQ() * uniqueCombination[trackArrayID];
                       
-                      if (chargedLeptonPDGIDs.count(std::abs(slowTrackPDG)) != 0)
+                      if (chargedLeptonPDGIDs.contains(std::abs(slowTrackPDG)))
                       {
                         slowTrackPDG *= -1;
                       }
@@ -487,7 +487,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
               intParticleMass = kfp_Tools_evtReco.getParticleMass((Int_t) daughterTracks[i].GetQ() * PDGIDofFirstParticleInCombination[i]);
               intParticlePDG = (Int_t) daughterTracks[i].GetQ() * PDGIDofFirstParticleInCombination[i];
               
-              if (chargedLeptonPDGIDs.count(std::abs(intParticlePDG)) != 0)
+              if (chargedLeptonPDGIDs.contains(std::abs(intParticlePDG)))
               {
                 intParticlePDG *= -1;
               }
