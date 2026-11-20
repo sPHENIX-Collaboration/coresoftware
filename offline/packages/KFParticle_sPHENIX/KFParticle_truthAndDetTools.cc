@@ -209,7 +209,7 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   track = getTrack(daughter.Id(), dst_trackmap);
   g4particle = getTruthTrack(track, topNode);
 
-  bool isParticleValid = g4particle == nullptr ? false : true;
+  bool isParticleValid = g4particle != nullptr;
 
   true_px = isParticleValid ? (Float_t) g4particle->get_px() : 0.;
   true_py = isParticleValid ? (Float_t) g4particle->get_py() : 0.;
@@ -391,7 +391,7 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
   track = getTrack(daughter.Id(), dst_trackmap);
   g4particle = getTruthTrack(track, topNode);
 
-  bool isParticleValid = g4particle == nullptr ? false : true;
+  bool isParticleValid = g4particle != nullptr;
 
   if (!isParticleValid)
   {
