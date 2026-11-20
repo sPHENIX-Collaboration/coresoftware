@@ -87,12 +87,14 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   static const int max_particles = 99;
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setMotherName(const std::string &mother_name)
   {
     m_mother_name = mother_name;
     m_mother_name_Tools = mother_name;
   }
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void hasIntermediateStates(bool has_intermediates = true)
   {
     m_has_intermediates = has_intermediates;
@@ -101,30 +103,35 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_has_intermediates_DST = has_intermediates;
   }
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setNumberOfTracks(int num_tracks)
   {
     m_num_tracks = num_tracks;
     m_num_tracks_nTuple = num_tracks;
   }
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setNumberTracksFromIntermeditateState(const std::vector<int> &num_tracks)
   {
     m_num_tracks_from_intermediate.insert(m_num_tracks_from_intermediate.end(), num_tracks.begin(), num_tracks.end());
     m_num_tracks_from_intermediate_nTuple.insert(m_num_tracks_from_intermediate_nTuple.end(), num_tracks.begin(), num_tracks.end());
   }
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setNumberOfIntermediateStates(int n_intermediates)
   {
     m_num_intermediate_states = n_intermediates;
     m_num_intermediate_states_nTuple = n_intermediates;
   }
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void getChargeConjugate(bool get_charge_conjugate = true)
   {
     m_get_charge_conjugate_nTuple = get_charge_conjugate;
     m_get_charge_conjugate = get_charge_conjugate;
   }
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setDaughters(std::vector<std::pair<std::string, int>> &daughter_list)
   {
     for (const auto &entry : daughter_list)
@@ -134,6 +141,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     }
   }
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setIntermediateStates(const std::vector<std::pair<std::string, int>> &intermediate_list)
   {
     for (const auto &entry : intermediate_list)
