@@ -85,7 +85,7 @@ int StreamingBcoReco::process_event(PHCompositeNode *topNode)
   }
   if (bcoinfo)
   {
-    if (Verbosity() > 2)
+    if (Verbosity() > 5)
     {
       std::cout << "prev event: " << bcoinfo->get_previous_evtno() /*<< std::hex*/
                 << " bco: " << bcoinfo->get_previous_bco() << std::dec << std::endl;
@@ -130,6 +130,8 @@ int StreamingBcoReco::process_event(PHCompositeNode *topNode)
     {
       std::cout << "bco_diff_prev : " << bco_diff_prev << std::endl;
       std::cout << "bco_diff_futu : " << bco_diff_futu << std::endl;
+      std::cout << "bco window : ( " << m_bco_streaming_window.first << ", " << m_bco_streaming_window.second << ")" << std::endl;
+      std::cout << "usable trigger bco ? " << m_usable_bco_tag << std::endl;
     }
     h_bco_diff->Fill(bco_diff_prev);
     h_bco_tag->Fill(m_usable_bco_tag);
