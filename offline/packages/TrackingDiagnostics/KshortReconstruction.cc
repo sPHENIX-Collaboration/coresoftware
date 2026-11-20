@@ -914,6 +914,8 @@ ntp_reco_info = new TNtuple("ntp_reco_info", "decay_pairs", "id1:mass1:crossing1
 
   recomass = new TH1D("recomass", "recomass", 1000, 0.0, 1);  // root histogram arguments: name,title,bins,minvalx,maxvalx
 
+  int retvalue = getNodes(topNode);
+    
   //Add new track map to save selected tracks
   if (m_save_tracks)
   {
@@ -932,8 +934,6 @@ ntp_reco_info = new TNtuple("ntp_reco_info", "decay_pairs", "id1:mass1:crossing1
     dstNode->addNode(outputTrackNode);
     if (Verbosity() > 1) { std::cout << m_output_trackMap_node_name << " node added" << std::endl; }
   }
-
-  int retvalue = getNodes(topNode);
     
   return retvalue;
 }
