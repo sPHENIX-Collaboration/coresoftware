@@ -256,7 +256,7 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
       std::cout << "Have a global vertex with no " << vtxType << " vertex... shouldn't happen in KFParticle_truthAndDetTools::fillTruthBranch..." << std::endl;
     }
 
-    auto &svtxvertexvector = svtxviter->second;
+    const auto &svtxvertexvector = svtxviter->second;
     MbdVertex *mbdvertex = nullptr;
     SvtxVertex *svtxvertex = nullptr;
 
