@@ -112,14 +112,6 @@ KFParticle_Tools::KFParticle_Tools()
   , m_use_fake_pv(false)
   , m_vtx_map_node_name("SvtxVertexMap")
   , m_trk_map_node_name("SvtxTrackMap")
-  , m_dst_mbdvertexmap()
-  , m_dst_mbdvertex()
-  , m_dst_trackmap()
-  , m_dst_track()
-  , m_dst_vertexmap()
-  , m_dst_vertex()
-  , m_cluster_map()
-  , m_geom_container()
 {
 }
 
