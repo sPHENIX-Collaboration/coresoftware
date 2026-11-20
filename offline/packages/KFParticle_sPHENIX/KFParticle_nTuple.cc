@@ -45,25 +45,23 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
   m_tree->OptimizeBaskets();
   m_tree->SetAutoSave(-5e6);  // Save the output file every 5MB
 
-  std::string mother_name = m_mother_name.empty() ? "mother" : m_mother_name;
-
-  size_t pos;
-  std::string undrscr = "_";
-  std::string nothing;
-  std::map<std::string, std::string> forbiddenStrings;
-  forbiddenStrings["/"] = undrscr;
-  forbiddenStrings["("] = undrscr;
-  forbiddenStrings[")"] = nothing;
-  forbiddenStrings["+"] = "plus";
-  forbiddenStrings["-"] = "minus";
-  forbiddenStrings["*"] = "star";
-  for (const auto& [badString, goodString] : forbiddenStrings)
+  // Note, TBranch will not allow the leaf to contain a forward slash as it is used to define the branch type
+  const std::map<std::string, std::string> forbiddenStrings = {
+      {"/", "_"}, {"(", "_"}, {")", ""}, {"+", "plus"}, {"-", "minus"}, {"*", "star"}};
+  auto sanitize = [&forbiddenStrings](std::string name)
   {
-    while ((pos = mother_name.find(badString)) != std::string::npos)
+    size_t pos;
+    for (const auto& [badString, goodString] : forbiddenStrings)
     {
-      mother_name.replace(pos, 1, goodString);
+      while ((pos = name.find(badString)) != std::string::npos)
+      {
+        name.replace(pos, 1, goodString);
+      }
     }
-  }
+    return name;
+  };
+
+  std::string mother_name = sanitize(m_mother_name.empty() ? "mother" : m_mother_name);
   //setup only the momentum calibration branches
   
   if (m_minimal_output)
@@ -127,16 +125,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
   {
     for (int i = 0; i < m_num_intermediate_states_nTuple; ++i)
     {
-      std::string intermediate_name = m_intermediate_name_ntuple[i];
-
-      // Note, TBranch will not allow the leaf to contain a forward slash as it is used to define the branch type. Causes problems with J/psi
-      for (const auto& [badString, goodString] : forbiddenStrings)
-      {
-        while ((pos = intermediate_name.find(badString)) != std::string::npos)
-        {
-          intermediate_name.replace(pos, 1, goodString);
-        }
-      }
+      std::string intermediate_name = sanitize(m_intermediate_name_ntuple[i]);
 
       m_tree->Branch(TString(intermediate_name) + "_mass", &m_calculated_intermediate_mass[i], TString(intermediate_name) + "_mass/F");
       m_tree->Branch(TString(intermediate_name) + "_massErr", &m_calculated_intermediate_mass_err[i], TString(intermediate_name) + "_massErr/F");
