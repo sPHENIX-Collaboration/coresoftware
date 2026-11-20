@@ -260,7 +260,7 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
     MbdVertex *mbdvertex = nullptr;
     SvtxVertex *svtxvertex = nullptr;
 
-    for (auto &vertex_iter : svtxvertexvector)
+    for (const auto &vertex_iter : svtxvertexvector)
     {
       if (m_tools->get_use_mbd_vertex())
       {

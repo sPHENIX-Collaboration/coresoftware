@@ -117,8 +117,8 @@ void KFParticle_DST::fillParticleNode(PHCompositeNode* topNode, KFParticle& moth
 }
 
 void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle& motherParticle,
-                                            std::vector<KFParticle> daughters,
-                                            std::vector<KFParticle> intermediates)
+                                            const std::vector<KFParticle>& daughters,
+                                            const std::vector<KFParticle>& intermediates)
 {
   //Make keys for daughters, mothers and intermediates
   unsigned int daughterCounter = 0;
