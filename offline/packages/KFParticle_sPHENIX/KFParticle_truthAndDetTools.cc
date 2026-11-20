@@ -85,9 +85,7 @@ SvtxTrack *KFParticle_truthAndDetTools::getTrack(unsigned int track_id, SvtxTrac
 
 GlobalVertex *KFParticle_truthAndDetTools::getVertex(unsigned int vertex_id, GlobalVertexMap *vertexmap)
 {
-  GlobalVertex *matched_vertex = vertexmap->get(vertex_id);
-
-  return matched_vertex;
+  return vertexmap->get(vertex_id);;
 }
 
 PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack *thisTrack, PHCompositeNode *topNode)
