@@ -130,7 +130,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
 
   // Insert track under the first free key, starting at key.
   // Key is left one step past the key that was used.
-  auto insertAtFreeKey = [&](SvtxTrack* track, unsigned int& key, bool countDown)
+  auto insertAtFreeKey = [&](SvtxTrack* track, unsigned int& key, int count)
   {
     SvtxTrack* inserted = nullptr;
     while (!inserted)
@@ -139,12 +139,12 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
       {
         inserted = m_recoTrackMap->insertWithKey(track, key);
       }
-      key = countDown ? key - 1 : key + 1;
+      key += count;
     }
   };
 
   SvtxTrack* m_recoTrack = buildSvtxTrack(motherParticle);
-  insertAtFreeKey(m_recoTrack, resonanceCounter, true);
+  insertAtFreeKey(m_recoTrack, resonanceCounter, -1);
   m_recoTrack->Reset();
 
   if (m_has_intermediates_DST)
@@ -152,7 +152,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
     for (const auto& intermediate : intermediates)
     {
       m_recoTrack = buildSvtxTrack(intermediate);
-      insertAtFreeKey(m_recoTrack, resonanceCounter, true);
+      insertAtFreeKey(m_recoTrack, resonanceCounter, -1);
       m_recoTrack->Reset();
     }
   }
@@ -165,7 +165,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
     {
       std::cout << "There was no original track map found, the tracks will have no cluster information!" << std::endl;
       m_recoTrack = buildSvtxTrack(daughter);
-      insertAtFreeKey(m_recoTrack, daughterCounter, false);
+      insertAtFreeKey(m_recoTrack, daughterCounter, 1);
     }
     else
     {
