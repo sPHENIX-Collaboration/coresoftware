@@ -58,6 +58,39 @@ namespace
 /// Create necessary objects
 KFParticle_Tools kfp_Tools_evtReco;
 
+namespace
+{
+  // Copy of track with the mass and PDG ID for hypothesis pid. A charged track gets q * pid
+  // (sign flipped for charged leptons, so e-/mu- keep a positive PDG code); a neutral track gets pid.
+  KFParticle withAssignedPID(KFParticle &track, int pid)
+  {
+    double mass = -1;
+    int pdg = 0;
+    if ((Int_t) track.GetQ() != 0)
+    {
+      mass = kfp_Tools_evtReco.getParticleMass((Int_t) track.GetQ() * pid);
+      pdg = (Int_t) track.GetQ() * pid;
+
+      if (chargedLeptonPDGIDs.contains(std::abs(pdg)))
+      {
+        pdg *= -1;
+      }
+    }
+    else
+    {
+      mass = kfp_Tools_evtReco.getParticleMass(pid);
+      pdg = pid;
+    }
+    KFParticle particle;
+    particle.Create(track.Parameters(), track.CovarianceMatrix(), (Int_t) track.GetQ(), mass);
+    particle.NDF() = track.GetNDF();
+    particle.Chi2() = track.GetChi2();
+    particle.SetId(track.Id());
+    particle.SetPDG(pdg);
+    return particle;
+  }
+}  // namespace
+
 /// KFParticle constructor
 KFParticle_eventReconstruction::KFParticle_eventReconstruction()
   : m_constrain_to_vertex(false)
@@ -343,33 +376,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                   for (int k = 0; k < num_remaining_tracks; ++k)
                   {  // Need to deal with track mass and PID assignment for extra tracks
                     int trackArrayID = k + m_num_intermediate_states;
-                    double slowTrackMass=-1;
-                    int slowTrackPDG=0;
-                    if ((Int_t) motherDecayProducts[trackArrayID].GetQ() != 0)
-                    {
-                      slowTrackMass = kfp_Tools_evtReco.getParticleMass((Int_t) motherDecayProducts[trackArrayID].GetQ() * uniqueCombination[trackArrayID]);
-                      slowTrackPDG = (Int_t) motherDecayProducts[trackArrayID].GetQ() * uniqueCombination[trackArrayID];
-                      
-                      if (chargedLeptonPDGIDs.contains(std::abs(slowTrackPDG)))
-                      {
-                        slowTrackPDG *= -1;
-                      }
-                    }
-                    else
-                    {
-                      slowTrackMass = kfp_Tools_evtReco.getParticleMass(uniqueCombination[trackArrayID]);
-                      slowTrackPDG = uniqueCombination[trackArrayID];
-                    }
-                    KFParticle slowTrack;
-                    slowTrack.Create(motherDecayProducts[trackArrayID].Parameters(),
-                                     motherDecayProducts[trackArrayID].CovarianceMatrix(),
-                                     (Int_t) motherDecayProducts[trackArrayID].GetQ(),
-                                     slowTrackMass);
-                    slowTrack.NDF() = motherDecayProducts[trackArrayID].GetNDF();
-                    slowTrack.Chi2() = motherDecayProducts[trackArrayID].GetChi2();
-                    slowTrack.SetId(motherDecayProducts[trackArrayID].Id());
-                    slowTrack.SetPDG(slowTrackPDG);
-                    goodDaughters[k + num_tracks_used_by_intermediates].push_back(slowTrack);
+                    goodDaughters[k + num_tracks_used_by_intermediates].push_back(withAssignedPID(motherDecayProducts[trackArrayID], uniqueCombination[trackArrayID]));
                   }
                 }
               }
@@ -477,33 +484,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
           goodVertex.push_back(pv);
           for (int i = 0; i < nTracks; ++i)
           {
-            KFParticle intParticle;
-            double intParticleMass=-1;
-            int intParticlePDG=0;
-            if ((Int_t) daughterTracks[i].GetQ() != 0)
-            {
-              intParticleMass = kfp_Tools_evtReco.getParticleMass((Int_t) daughterTracks[i].GetQ() * PDGIDofFirstParticleInCombination[i]);
-              intParticlePDG = (Int_t) daughterTracks[i].GetQ() * PDGIDofFirstParticleInCombination[i];
-              
-              if (chargedLeptonPDGIDs.contains(std::abs(intParticlePDG)))
-              {
-                intParticlePDG *= -1;
-              }
-            }
-            else
-            {
-              intParticleMass = kfp_Tools_evtReco.getParticleMass(PDGIDofFirstParticleInCombination[i]);
-              intParticlePDG = PDGIDofFirstParticleInCombination[i];
-            }
-            intParticle.Create(daughterTracks[i].Parameters(),
-                               daughterTracks[i].CovarianceMatrix(),
-                               (Int_t) daughterTracks[i].GetQ(),
-                               intParticleMass);
-            intParticle.NDF() = daughterTracks[i].GetNDF();
-            intParticle.Chi2() = daughterTracks[i].GetChi2();
-            intParticle.SetId(daughterTracks[i].Id());
-            intParticle.SetPDG(intParticlePDG);
-            goodDaughters[i].push_back(intParticle);
+            goodDaughters[i].push_back(withAssignedPID(daughterTracks[i], PDGIDofFirstParticleInCombination[i]));
           }
         }
       }
