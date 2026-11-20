@@ -414,7 +414,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void getAllPVInfo(bool pvinfo = true) { m_get_all_PVs = pvinfo; }
 
-  void saveLightweightNTuple(bool minimal = true)  // QA output is a sub-mode of the lightweight nTuple
+  // QA output is a sub-mode of the lightweight nTuple
+  void saveLightweightNTuple(bool minimal = true)
   {
     m_minimal_output = minimal;
     if (!minimal)

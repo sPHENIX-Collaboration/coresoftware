@@ -128,7 +128,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
 
   m_recoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, trackNodeName);
 
-  // Insert track under the first free key, starting at key
+  // Insert track under the first free key, starting at key.
   // Key is left one step past the key that was used.
   auto insertAtFreeKey = [&](SvtxTrack* track, unsigned int& key, bool countDown)
   {

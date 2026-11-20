@@ -268,12 +268,11 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
       initializeBranches(topNode);
     }
 
-    //candidateCounter += 1;
     incrementCandidateCounter();
 
     if (m_save_output)
     {
-	    set_event_bcos(m_this_event_bco, m_last_event_bco); //filling nTuple for BCO Matching
+      set_event_bcos(m_this_event_bco, m_last_event_bco); //filling nTuple for BCO Matching
       fillBranch(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i]);
     }
     if (m_save_dst)

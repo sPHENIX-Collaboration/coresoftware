@@ -534,7 +534,7 @@ int KFParticle_Tools::calcMinPV_DCA(const KFParticle &track, const std::vector<K
       thisPV_DCA_stddev = track.GetDeviationFromVertexXY(PV);
     }
     
-    thisPV_DCA_stddev = std::max(thisPV_DCA_stddev, 0.F); // Τhere are times where the PV_DCA_stddev calc fails
+    thisPV_DCA_stddev = std::max(thisPV_DCA_stddev, 0.F); // There are times where the PV_DCA_stddev calc fails
     ip_significance.push_back(thisPV_DCA_stddev);
   }
 
