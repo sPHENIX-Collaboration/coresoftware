@@ -212,6 +212,8 @@ std::string JetContainerv1::str_Jet_PROPERTY(Jet::PROPERTY prop)
     return "area";
   case Jet::PROPERTY::prop_t:
     return "t";
+  case Jet::PROPERTY::prop_signedSumeT:
+    return "signedSumeT";
   default:
     return "no_property";
   }

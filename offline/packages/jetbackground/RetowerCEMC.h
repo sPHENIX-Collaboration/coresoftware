@@ -55,7 +55,6 @@ class RetowerCEMC : public SubsysReco
   int rawtower_status[neta_emcal][nphi_emcal]{{0}};
 
   std::string EMTowerName;
-  std::string IHTowerName;
   std::string EMRetowerName;
 };
 

@@ -148,6 +148,10 @@ class Jet : public PHObject
 
     //! jet time
     prop_t = 13,
+
+    //! signed scalar sum of the constituent E_T, sum_i sign(E_i) |pT_i|,
+    //! so negative-energy constituents subtract
+    prop_signedSumeT = 14,
   };
 
   Jet() {}
