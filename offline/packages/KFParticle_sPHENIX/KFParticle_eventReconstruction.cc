@@ -231,8 +231,6 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
       {
         for (unsigned int d = 0; d < num_pot_inter_d; ++d)
         {
-          KFParticle candidate;
-          bool isGood = false;
           const unsigned int matchIterators[4] = {a, b, c, d};
 
           std::vector<KFParticle> finalTracks = potentialDaughters[0][a];
@@ -336,8 +334,8 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
             {
               for (const auto& i_pv : primaryVerticesAdv)
               {
-                std::tie(candidate, isGood) = getCombination(motherDecayProducts.data(), uniqueCombination.data(), i_pv,
-                                                             m_constrain_to_vertex, false, 0, num_mother_decay_products, m_constrain_int_mass, required_unique_vertexID, topNode);
+                auto [candidate, isGood] = getCombination(motherDecayProducts.data(), uniqueCombination.data(), i_pv,
+                                                          m_constrain_to_vertex, false, 0, num_mother_decay_products, m_constrain_int_mass, required_unique_vertexID, topNode);
 
                 if (isGood)
                 {
@@ -458,10 +456,8 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
     {
       for (const auto& pv : primaryVerticesCand)  // Loop over all PVs in the event
       {
-        bool isGood;
-        KFParticle candidate;
         int* PDGIDofFirstParticleInCombination = uniqueCombination.data();
-        std::tie(candidate, isGood) = getCombination(daughterTracks.data(), PDGIDofFirstParticleInCombination, pv, m_constrain_to_vertex,
+        auto [candidate, isGood] = getCombination(daughterTracks.data(), PDGIDofFirstParticleInCombination, pv, m_constrain_to_vertex,
                                                      isIntermediate, intermediateNumber, nTracks, constrainMass, required_unique_vertexID, topNode);
         if (isIntermediate && isGood)
         {
