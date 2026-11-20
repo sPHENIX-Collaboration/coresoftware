@@ -800,6 +800,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     detector_emcal_energy_3x3[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_energy_5x5[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_cluster_energy[daughter_id] = std::numeric_limits<float>::quiet_NaN();
+    detector_emcal_cluster_prob[daughter_id] = std::numeric_limits<float>::quiet_NaN();
 
     // Detailed Calo
     if (m_get_detailed_calorimetry)
