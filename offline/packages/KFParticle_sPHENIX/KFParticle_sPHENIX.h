@@ -40,6 +40,7 @@
 #include <KFParticle.h>
 
 #include <algorithm>  // for max
+#include <iostream>
 #include <memory>     // for allocator_traits<>::valu...
 #include <string>
 #include <utility>  // for pair
@@ -375,20 +376,23 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void use2Dmatching(bool use_2D_matching_tools = true) { m_use_2D_matching_tools = use_2D_matching_tools; }
 
-  void useMVA(bool require_mva = true) { m_require_mva = require_mva; }
+  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
+  void useMVA(bool /*require_mva*/ = true) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
 
-  void setNumMVAPars(unsigned int nPars) { m_nPars = nPars; }
+  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
+  void setNumMVAPars(unsigned int /*nPars*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
 
-  void setMVAVarList(const std::vector<std::string> &mva_variable_list)
-  {
-    m_mva_variable_list.insert(m_mva_variable_list.end(), mva_variable_list.begin(), mva_variable_list.end());
-  }
+  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
+  void setMVAVarList(const std::vector<std::string> & /*mva_variable_list*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
 
-  void setMVAType(const std::string &mva_type) { m_mva_type = mva_type; }
+  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
+  void setMVAType(const std::string & /*mva_type*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
 
-  void setMVAWeightsPath(const std::string &mva_weights_path) { m_mva_path = mva_weights_path; }
+  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
+  void setMVAWeightsPath(const std::string & /*mva_weights_path*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
 
-  void setMVACutValue(float cut_value) { m_mva_cut_value = cut_value; }
+  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
+  void setMVACutValue(float /*cut_value*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
 
   void saveDST(bool save = true) { m_save_dst = save; }
 

@@ -93,13 +93,14 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
     createParticleNode(topNode);
   }
 
+/* DEPRECATED: Code is initialized to be completely discarded
   if (m_require_mva)
   {
     TMVA::Reader *reader;
     std::vector<Float_t> MVA_parValues;
     tie(reader, MVA_parValues) = initMVA();
   }
-
+*/
   int returnCode = 0;
   if (!m_decayDescriptor.empty())
   {
