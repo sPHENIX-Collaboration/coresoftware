@@ -2,7 +2,9 @@
 
 #include <decayfinder/DecayFinderContainerBase.h>
 
+#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -15,6 +17,7 @@
 #include <g4eval/SvtxTrackEval.h>
 #include <g4eval/SvtxTruthEval.h>
 
+#include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
@@ -156,6 +159,24 @@ namespace
     return particle->get_parent_id() != 0 ? truthInfo->GetParticle(particle->get_parent_id()) : nullptr;
   }
 
+  // The child of an ancestor that a descendant comes from, which is the descendant itself for a direct child.
+  // nullptr if the descendant does not come from the ancestor
+  const PHG4Particle *getChildOf(PHG4TruthInfoContainer *truthInfo, const PHG4Particle *ancestor,
+                                 const PHG4Particle *descendant)
+  {
+    const PHG4Particle *child = descendant;
+    for (int depth = 0; child && depth < kMaxAncestryDepth; ++depth)
+    {
+      const PHG4Particle *parent = getParent(truthInfo, child);
+      if (parent && parent->get_track_id() == ancestor->get_track_id())
+      {
+        return child;
+      }
+      child = parent;
+    }
+    return nullptr;
+  }
+
   // Follow the first incoming particle of every vertex back to the start of the HepMC record
   HepMC::GenVertex *findRootVertex(const HepMC::GenParticle &particle)
   {
@@ -191,6 +212,15 @@ namespace
                              labVertex.z() * lengthFactor + collisionVertex.z());
   }
 
+  // Four momentum of a HepMC particle in GeV, whatever the unit of the event is, as HepMCNodeReader does
+  HepMC::FourVector getMomentumInGeV(const HepMC::GenParticle &particle, const HepMC::GenEvent &evt)
+  {
+    const double momentumFactor = HepMC::Units::conversion_factor(evt.momentum_unit(), HepMC::Units::GEV);
+    const HepMC::FourVector &momentum = particle.momentum();
+    return HepMC::FourVector(momentum.px() * momentumFactor, momentum.py() * momentumFactor,
+                             momentum.pz() * momentumFactor, momentum.e() * momentumFactor);
+  }
+
   // Are two HepMC vertices at the same place
   bool isSameVertex(const HepMC::GenVertex &first, const HepMC::GenVertex &second)
   {
@@ -218,6 +248,7 @@ struct HFTrackEfficiency::DecayTruth
   // shifts it by the collision vertex, possibly plus a vertex offset/smearing of its own that is not visible from
   // here. The latter is recovered by comparing one HepMC daughter vertex to the Geant4 vertex of the same particle.
   CLHEP::HepLorentzRotation evtGen2Lab;
+  double motherLabP{0.};  // Momentum of the mother in the lab frame [GeV], for the proper time
   CLHEP::Hep3Vector vertexOffset;
   bool vertexOffsetKnown{false};
 };
@@ -226,7 +257,8 @@ struct HFTrackEfficiency::DaughterTruth
 {
   PHG4Particle *g4{nullptr};  // Geant4 particle of the daughter, nullptr if there is none
   bool haveKinematics{false};
-  CLHEP::HepLorentzVector lv;  // Four vector of the true daughter
+  CLHEP::HepLorentzVector lv;     // Four vector of the true daughter, generator frame if it came from HepMC
+  CLHEP::HepLorentzVector labLV;  // Four vector of the true daughter in the lab frame, the frame of the reco tracks
 };
 
 //____________________________________________________________________________..
@@ -372,7 +404,30 @@ int HFTrackEfficiency::getNodes(PHCompositeNode *topNode)
   m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
 
+  getClusterTruthNodes(topNode);
+
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void HFTrackEfficiency::getClusterTruthNodes(PHCompositeNode *topNode)
+{
+  // SvtxClusterEval dereferences these without checking them, so they have to be there before it is asked for the
+  // truth particles of a cluster. Same order as the detector index
+  static constexpr std::array<const char *, s_nDetectors> kG4HitNodeNames{"G4HIT_MVTX", "G4HIT_INTT", "G4HIT_TPC",
+                                                                          "G4HIT_MICROMEGAS"};
+
+  m_haveClusterTruthAssoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC") &&
+                            findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+  for (unsigned int iDet = 0; iDet < s_nDetectors; ++iDet)
+  {
+    m_haveDetectorG4Hits[iDet] = findNode::getClass<PHG4HitContainer>(topNode, kG4HitNodeNames[iDet]) != nullptr;
+  }
+
+  if (!m_haveClusterTruthAssoc && Verbosity() > 0)
+  {
+    std::cout << __FILE__ << ": Missing TRKR_CLUSTERHITASSOC or TRKR_HITTRUTHASSOC, the true cluster counts are -1"
+              << std::endl;
+  }
 }
 
 void HFTrackEfficiency::setupEvaluation(PHCompositeNode *topNode)
@@ -539,15 +594,15 @@ void HFTrackEfficiency::fillHepMCMother(const Decay &decay, DecayTruth &truth)
   }
 
   truth.evtGen2Lab = m_genevt->get_LorentzRotation_EvtGen2Lab();
-  fillHepMCMotherKinematics(*mother);
+  fillHepMCMotherKinematics(*mother, truth);
   fillHepMCVertices(*mother, truth);
 }
 
-void HFTrackEfficiency::fillHepMCMotherKinematics(const HepMC::GenParticle &mother)
+void HFTrackEfficiency::fillHepMCMotherKinematics(const HepMC::GenParticle &mother, DecayTruth &truth)
 {
-  // These are the generator frame values, the crossing angle rotation is not applied. Compare with the Geant4 truth
-  // at the 1e-3 level
-  const HepMC::FourVector &momentum = mother.momentum();
+  // These are the generator frame values, the transformation to the lab frame (crossing angle rotation and boost) is
+  // not applied. Compare with the Geant4 truth at the 1e-3 level
+  const HepMC::FourVector momentum = getMomentumInGeV(mother, *truth.event);
   m_true_mother_pT = static_cast<float>(momentum.perp());
   // Must have an old HepMC build, no mag function
   m_true_mother_p = static_cast<float>(std::sqrt(momentum.px() * momentum.px() + momentum.py() * momentum.py() +
@@ -563,6 +618,11 @@ void HFTrackEfficiency::fillHepMCMotherKinematics(const HepMC::GenParticle &moth
   {
     m_true_mother_rapidity = kInvalidRapidity;
   }
+
+  // The flight distance is in the lab frame so the proper time needs the lab frame momentum, the boost changes it
+  const CLHEP::HepLorentzVector labMomentum =
+      truth.evtGen2Lab(CLHEP::HepLorentzVector(momentum.px(), momentum.py(), momentum.pz(), momentum.e()));
+  truth.motherLabP = labMomentum.vect().mag();
 }
 
 void HFTrackEfficiency::fillHepMCVertices(const HepMC::GenParticle &mother, DecayTruth &truth)
@@ -621,7 +681,7 @@ void HFTrackEfficiency::fillHepMCDaughter(const Decay &decay, const unsigned int
     daughterHepMC.print();
   }
 
-  const HepMC::FourVector &momentum = daughterHepMC.momentum();
+  const HepMC::FourVector momentum = getMomentumInGeV(daughterHepMC, *truth.event);
   daughter.lv.setVectM(CLHEP::Hep3Vector(momentum.px(), momentum.py(), momentum.pz()),
                        getParticleMass(decay[decayIndex].second));
   truth.daughterSumLV += daughter.lv;
@@ -629,12 +689,13 @@ void HFTrackEfficiency::fillHepMCDaughter(const Decay &decay, const unsigned int
 
   m_true_track_PID[trackIndex] = static_cast<float>(daughterHepMC.pdg_id());
 
-  // We need the G4 particle, not the HepMC one, to use the truth/reco matching.
-  // The Geant4 momentum is in the lab frame so rotate the HepMC one before comparing
-  const CLHEP::HepLorentzVector daughterLabLV =
+  // The Geant4 and reco momenta are in the lab frame so rotate the HepMC one before comparing with them
+  daughter.labLV =
       truth.evtGen2Lab(CLHEP::HepLorentzVector(momentum.px(), momentum.py(), momentum.pz(), momentum.e()));
+
+  // We need the G4 particle, not the HepMC one, to use the truth/reco matching
   daughter.g4 = findGeant4Primary(decay[decayIndex].first.first, decay[decayIndex].first.second,
-                                  decay[decayIndex].second, daughterLabLV.vect());
+                                  decay[decayIndex].second, daughter.labLV.vect());
 
   if (daughter.g4 && truth.haveVertices && !truth.vertexOffsetKnown)
   {
@@ -701,6 +762,12 @@ PHG4Particle *HFTrackEfficiency::findGeant4Mother(const Decay &decay, const unsi
     return isDecayEntry(parent, decay[0]) ? parent : nullptr;
   }
 
+  // Three daughters, direct decay [mother, d1, d2, d3], every daughter comes from the mother
+  if (m_nDaughters == 3 && decay.size() == 4)
+  {
+    return isDecayEntry(parent, decay[0]) ? parent : nullptr;
+  }
+
   // Three daughters, the decay is [mother, d1, d2, intermediate, d3]. d3 comes from the mother and d1 and d2 from the
   // intermediate, which comes from the mother
   if (m_nDaughters == 3 && decay.size() > 4)
@@ -739,12 +806,14 @@ void HFTrackEfficiency::fillGeant4Truth(const Decay &decay, PHG4Particle *mother
   motherTrueLV.setVectM(mother3Vector, getParticleMass(decay[0].second));
   m_true_mother_pT = static_cast<float>(motherTrueLV.perp());
   m_true_mother_p = static_cast<float>(mother3Vector.mag());
+  truth.motherLabP = mother3Vector.mag();
   m_true_mother_eta = static_cast<float>(motherTrueLV.pseudoRapidity());
   m_true_mother_phi = static_cast<float>(motherTrueLV.phi());
   m_true_mother_rapidity = static_cast<float>(motherTrueLV.rapidity());
 
   daughter.lv.setVectM(CLHEP::Hep3Vector(daughterG4->get_px(), daughterG4->get_py(), daughterG4->get_pz()),
                        getParticleMass(daughterG4->get_pid()));
+  daughter.labLV = daughter.lv;  // The Geant4 truth is already in the lab frame
   truth.daughterSumLV += daughter.lv;
 
   // A HepMC mother already provided the vertices
@@ -776,12 +845,13 @@ PHG4Particle *HFTrackEfficiency::findGeant4Primary(const int embeddingID, const 
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
   {
     PHG4Particle *candidate = iter->second;
-    if (candidate->get_pid() != pdgID)
+    // Only the primaries of the same HepMC event can match, for the barcode and for the momentum
+    if (candidate->get_pid() != pdgID || m_truthInfo->isEmbeded(candidate->get_track_id()) != embeddingID)
     {
       continue;
     }
 
-    if (candidate->get_barcode() == barcode && m_truthInfo->isEmbeded(candidate->get_track_id()) == embeddingID)
+    if (candidate->get_barcode() == barcode)
     {
       return candidate;
     }
@@ -815,9 +885,17 @@ bool HFTrackEfficiency::getGeant4Vertices(const PHG4Particle *motherG4, const PH
     root = parent;
   }
 
+  // The mother decays where its own child is produced. For a daughter of an intermediate that is the production
+  // vertex of the intermediate, not the vertex of the daughter, which is further along
+  const PHG4Particle *child = getChildOf(m_truthInfo, motherG4, daughterG4);
+  if (!child)
+  {
+    return false;  // The daughter does not descend from the mother
+  }
+
   const PHG4VtxPoint *primaryVtx = m_truthInfo->GetVtx(root->get_vtx_id());
   const PHG4VtxPoint *productionVtx = m_truthInfo->GetVtx(motherG4->get_vtx_id());
-  const PHG4VtxPoint *decayVtx = m_truthInfo->GetVtx(daughterG4->get_vtx_id());
+  const PHG4VtxPoint *decayVtx = m_truthInfo->GetVtx(child->get_vtx_id());
   if (!primaryVtx || !productionVtx || !decayVtx)
   {
     return false;
@@ -852,7 +930,7 @@ SvtxTrack *HFTrackEfficiency::findRecoTrack(const unsigned int trackIndex, const
   for (const auto &iter : *m_input_trackMap)
   {
     SvtxTrack *track = iter.second;
-    if (isMomentumMatch(*track, daughter.lv, m_truthRecoMatchPercent))
+    if (isMomentumMatch(*track, daughter.labLV, m_truthRecoMatchPercent))
     {
       return track;
     }
@@ -912,8 +990,13 @@ void HFTrackEfficiency::countClusters(SvtxTrack *track, PHG4Particle *truthParti
   SvtxClusterEval *clusterEval = m_trackeval->get_cluster_eval();
   SvtxTruthEval *truthEval = m_trackeval->get_truth_eval();
 
+  // The true cluster count is -1, rather than 0, for any detector whose cluster truth cannot be looked up
   m_reco_track_nclusters[trackIndex].fill(0);
-  m_reco_track_ntrue_clusters[trackIndex].fill(truthParticle ? 0 : -1);
+  for (unsigned int iDet = 0; iDet < s_nDetectors; ++iDet)
+  {
+    const bool canMatchTruth = truthParticle && m_haveClusterTruthAssoc && m_haveDetectorG4Hits[iDet];
+    m_reco_track_ntrue_clusters[trackIndex][iDet] = canMatchTruth ? 0 : -1;
+  }
 
   for (const TrkrDefs::cluskey key : clusterKeys)
   {
@@ -925,7 +1008,7 @@ void HFTrackEfficiency::countClusters(SvtxTrack *track, PHG4Particle *truthParti
 
     ++m_reco_track_nclusters[trackIndex][iDet];
 
-    if (!truthParticle)
+    if (m_reco_track_ntrue_clusters[trackIndex][iDet] < 0)
     {
       continue;
     }
@@ -969,11 +1052,11 @@ void HFTrackEfficiency::fillVertexBranches(const Decay &decay, DecayTruth &truth
   // that would include the flight of any parent (e.g. the B for a non-prompt D0)
   m_true_decay_length = static_cast<float>((truth.decayVtx - truth.productionVtx).mag());
 
-  // Proper time of the mother, t = L m / (p c)
-  if (m_true_mother_p > 0)
+  // Proper time of the mother, t = L m / (p c), with the flight and the momentum both in the lab frame
+  if (truth.motherLabP > 0)
   {
     m_true_decay_time = static_cast<float>(m_true_decay_length * getParticleMass(decay[0].second) /
-                                           (m_true_mother_p * kCmPerPs));
+                                           (truth.motherLabP * kCmPerPs));
   }
 }
 

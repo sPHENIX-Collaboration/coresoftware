@@ -173,6 +173,17 @@ int DecayFinder::End(PHCompositeNode * /*topNode*/)
  */
 int DecayFinder::parseDecayDescriptor()
 {
+  // Everything below is built from the decay descriptor alone, so a second call must not add to the first
+  // m_allowPhotons is not reset, it is a user setting
+  m_getChargeConjugate = false;
+  m_hasPhotonDaughter = false;
+  m_mother_ID = 0;
+  m_intermediates_ID.clear();
+  m_daughters_ID.clear();
+  m_nTracksFromMother = 0;
+  m_nTracksFromIntermediates.clear();
+  m_motherDecayProducts.clear();
+
   std::string descriptor = simplifyDecayDescriptor();
   std::vector<int> daughtersCharge;
 
@@ -180,10 +191,11 @@ int DecayFinder::parseDecayDescriptor()
   const bool intermediatesParsed = parseIntermediates(descriptor, daughtersCharge);
   const bool tracksParsed = parseMotherTracks(descriptor, daughtersCharge);
 
-  assignCharges(daughtersCharge);
-
   if (motherParsed && intermediatesParsed && tracksParsed)
   {
+    // Only with every particle known, a particle that was not found has no charge in daughtersCharge
+    assignCharges(daughtersCharge);
+
     if (Verbosity() >= VERBOSITY_MORE)
     {
       std::cout << "Your decay descriptor can be parsed" << std::endl;
@@ -247,6 +259,15 @@ bool DecayFinder::parseIntermediates(std::string &descriptor, std::vector<int> &
   while ((pos = descriptor.find(kStartIntermediate)) != std::string::npos)
   {
     const size_t endPoint = descriptor.find(kEndIntermediate, pos);
+    if (endPoint == std::string::npos)
+    {
+      // Without this the intermediate is never removed from the descriptor and it is parsed forever
+      if (Verbosity() >= VERBOSITY_SOME)
+      {
+        std::cout << "The intermediate decay in your decay descriptor has no closing " << kEndIntermediate << std::endl;
+      }
+      return false;
+    }
     std::string intermediateDecay = descriptor.substr(pos + 1, endPoint - (pos + 1));
 
     const std::string intermediate = intermediateDecay.substr(0, intermediateDecay.find(kDecayArrow));
@@ -466,8 +487,8 @@ int DecayFinder::searchGeant4Mothers(PHCompositeNode *topNode, const std::vector
     m_decayChain.emplace_back(std::make_pair(g4particle->get_primary_id(), g4particle->get_barcode()),
                               g4particle->get_pid());
 
-    searchGeant4Record(g4particle->get_barcode(), g4particle->get_pid(), positiveProducts, state.breakLoop,
-                       state.hasPhoton, state.hasPi0, state.failedPT, state.failedETA, state.products);
+    searchGeant4Children(g4particle->get_track_id(), positiveProducts, state.breakLoop,
+                         state.hasPhoton, state.hasPi0, state.failedPT, state.failedETA, state.products);
 
     if (evaluateCandidate(topNode, state))
     {
@@ -638,6 +659,10 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle *particle, const std::vec
       }
       searchWantedHepMCChild(*children, breakLoop, hasPhoton, hasPi0, failedPT, failedETA, actualDecayProducts);
     }
+    else if (isIgnoredPhotonOrPi0(pdgID))
+    {
+      continue;  // An allowed photon or pi0 that is not part of the decay, as in the Geant4 search
+    }
     else if (isResonance(pdgID))  // Now check if it's part of the resonance list
     {
       if (Verbosity() >= VERBOSITY_MAX)
@@ -683,12 +708,17 @@ void DecayFinder::searchUndecayedIntermediate(HepMC::GenParticle *intermediate, 
   std::vector<int> actualIntermediateDecayProducts;
   const std::size_t chainSize = m_decayChain.size();
 
+  // The tracks of an intermediate that is not needed must not fail the candidate, so keep their cuts apart
+  bool probeFailedPT = false;
+  bool probeFailedETA = false;
   searchGeant4Record(intermediate->barcode(), intermediate->pdg_id(),
-                     absoluteValues(requiredIntermediateDecayProducts), breakLoop, hasPhoton, hasPi0, failedPT,
-                     failedETA, actualIntermediateDecayProducts);
+                     absoluteValues(requiredIntermediateDecayProducts), breakLoop, hasPhoton, hasPi0, probeFailedPT,
+                     probeFailedETA, actualIntermediateDecayProducts);
 
   if (compareDecays(requiredIntermediateDecayProducts, actualIntermediateDecayProducts))
   {
+    failedPT = failedPT || probeFailedPT;
+    failedETA = failedETA || probeFailedETA;
     recordHepMCParticle(*intermediate, actualDecayProducts);
   }
   else
@@ -740,6 +770,39 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, const std::vector<int
                                      bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA,
                                      std::vector<int> &actualDecayProducts)
 {
+  // A HepMC only event can still have a decay that is only complete in the Geant4 record, this candidate is incomplete
+  if (!m_truthinfo)
+  {
+    if (Verbosity() >= VERBOSITY_SOME)
+    {
+      std::cout << "DecayFinder: The decay is not complete in the HepMC record and there is no G4TruthInfo node"
+                << std::endl;
+    }
+    breakLoop = true;
+    return;
+  }
+
+  // The HepMC record only gives the barcode and PDG ID, from here the children are found from the Geant4 parent link
+  PHG4TruthInfoContainer::ConstRange range = m_truthinfo->GetParticleRange();
+  for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
+  {
+    const PHG4Particle *parent = iter->second;
+    if (parent->get_barcode() == barcode && std::abs(parent->get_pid()) == std::abs(pid))
+    {
+      searchGeant4Children(parent->get_track_id(), decayProducts, breakLoop, hasPhoton, hasPi0, failedPT, failedETA,
+                           actualDecayProducts);
+      if (breakLoop)
+      {
+        break;
+      }
+    }
+  }
+}
+
+void DecayFinder::searchGeant4Children(const int parentTrackID, const std::vector<int> &decayProducts,
+                                       bool &breakLoop, bool &hasPhoton, bool &hasPi0, bool &failedPT,
+                                       bool &failedETA, std::vector<int> &actualDecayProducts)
+{
   PHG4TruthInfoContainer::ConstRange range = m_truthinfo->GetParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
   {
@@ -749,20 +812,17 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, const std::vector<int
       break;
     }
 
+    // The track ID identifies the parent, the barcode does not for particles from a particle gun
     PHG4Particle *g4particle = iter->second;
-    if (g4particle->get_parent_id() == 0)
+    if (g4particle->get_parent_id() != parentTrackID)
     {
       continue;
     }
 
-    PHG4Particle *mother = m_truthinfo->GetParticle(g4particle->get_parent_id());
-    if (mother->get_barcode() == barcode && std::abs(mother->get_pid()) == std::abs(pid))
+    if (processGeant4Child(g4particle, decayProducts, breakLoop, hasPhoton, hasPi0, failedPT, failedETA,
+                           actualDecayProducts))
     {
-      if (processGeant4Child(g4particle, decayProducts, breakLoop, hasPhoton, hasPi0, failedPT, failedETA,
-                             actualDecayProducts))
-      {
-        break;
-      }
+      break;
     }
   }
 }
@@ -815,8 +875,8 @@ bool DecayFinder::processGeant4Child(PHG4Particle *child, const std::vector<int>
     {
       std::cout << "This is a resonance to investigate further" << std::endl;
     }
-    searchGeant4Record(child->get_barcode(), child->get_pid(), decayProducts, breakLoop, hasPhoton, hasPi0, failedPT,
-                       failedETA, actualDecayProducts);
+    searchGeant4Children(child->get_track_id(), decayProducts, breakLoop, hasPhoton, hasPi0, failedPT,
+                         failedETA, actualDecayProducts);
   }
   else
   {
@@ -853,10 +913,20 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle *particle, bool
   std::vector<int> actualIntermediateDecayProducts;
   const std::size_t chainSize = m_decayChain.size();
 
-  searchHepMCIntermediate(*particle, trackFailedPT, trackFailedETA, actualIntermediateDecayProducts);
+  // The tracks of an intermediate that is not needed must not fail the candidate, so keep their cuts apart
+  bool probeFailedPT = false;
+  bool probeFailedETA = false;
+  const bool vetoed = searchHepMCIntermediate(*particle, absoluteValues(requiredIntermediateDecayProducts),
+                                              probeFailedPT, probeFailedETA, actualIntermediateDecayProducts);
 
-  const bool acceptParticle = compareDecays(requiredIntermediateDecayProducts, actualIntermediateDecayProducts);
-  if (!acceptParticle)
+  const bool acceptParticle =
+      !vetoed && compareDecays(requiredIntermediateDecayProducts, actualIntermediateDecayProducts);
+  if (acceptParticle)
+  {
+    trackFailedPT = trackFailedPT || probeFailedPT;
+    trackFailedETA = trackFailedETA || probeFailedETA;
+  }
+  else
   {
     restoreDecayChain(chainSize);  // Remove the products of the intermediate that was not needed
   }
@@ -864,8 +934,9 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle *particle, bool
   return acceptParticle;
 }
 
-void DecayFinder::searchHepMCIntermediate(const HepMC::GenParticle &intermediate, bool &failedPT, bool &failedETA,
-                                          std::vector<int> &actualIntermediateDecayProducts)
+bool DecayFinder::searchHepMCIntermediate(const HepMC::GenParticle &intermediate,
+                                          const std::vector<int> &positiveRequiredProducts, bool &failedPT,
+                                          bool &failedETA, std::vector<int> &actualIntermediateDecayProducts)
 {
   for (HepMC::GenVertex::particle_iterator grandchildren = intermediate.end_vertex()->particles_begin(HepMC::children);
        grandchildren != intermediate.end_vertex()->particles_end(HepMC::children); ++grandchildren)
@@ -878,27 +949,10 @@ void DecayFinder::searchHepMCIntermediate(const HepMC::GenParticle &intermediate
 
     if (isResonance(pdgID))
     {
-      for (HepMC::GenVertex::particle_iterator greatgrandchildren =
-               (*grandchildren)->end_vertex()->particles_begin(HepMC::children);
-           greatgrandchildren != (*grandchildren)->end_vertex()->particles_end(HepMC::children);
-           ++greatgrandchildren)
+      if (searchIntermediateResonance(**grandchildren, positiveRequiredProducts, failedPT, failedETA,
+                                      actualIntermediateDecayProducts))
       {
-        const int greatgrandchildID = (*greatgrandchildren)->pdg_id();
-        if (Verbosity() >= VERBOSITY_MAX)
-        {
-          std::cout << "--------greatgrandchildren->pdg_id(): " << greatgrandchildID << std::endl;
-        }
-
-        if (isIgnoredPhotonOrPi0(greatgrandchildID))
-        {
-          continue;
-        }
-        if (isRejectedPhotonOrPi0(greatgrandchildID))
-        {
-          break;
-        }
-
-        addHepMCIntermediateProduct(**greatgrandchildren, failedPT, failedETA, actualIntermediateDecayProducts);
+        return true;
       }
     }
     else if (isIgnoredPhotonOrPi0(pdgID))
@@ -907,13 +961,66 @@ void DecayFinder::searchHepMCIntermediate(const HepMC::GenParticle &intermediate
     }
     else if (isRejectedPhotonOrPi0(pdgID))
     {
-      break;
+      return true;  // A photon or pi0 that is not allowed rules out this decay, whatever was found before it
     }
     else
     {
       addHepMCIntermediateProduct(**grandchildren, failedPT, failedETA, actualIntermediateDecayProducts);
     }
   }
+
+  return false;
+}
+
+bool DecayFinder::searchIntermediateResonance(const HepMC::GenParticle &resonance,
+                                              const std::vector<int> &positiveRequiredProducts, bool &failedPT,
+                                              bool &failedETA, std::vector<int> &actualIntermediateDecayProducts)
+{
+  HepMC::GenVertex *endVertex = resonance.end_vertex();
+  if (!endVertex)
+  {
+    // The generator did not decay it and so Geant4 did. A photon or pi0 is dealt with as any other, otherwise the
+    // decay is in the Geant4 record
+    const int pdgID = resonance.pdg_id();
+    if (isIgnoredPhotonOrPi0(pdgID))
+    {
+      return false;
+    }
+    if (isRejectedPhotonOrPi0(pdgID))
+    {
+      return true;
+    }
+
+    bool vetoed = false;
+    bool hasPhoton = false;
+    bool hasPi0 = false;
+    searchGeant4Record(resonance.barcode(), pdgID, positiveRequiredProducts, vetoed, hasPhoton, hasPi0, failedPT,
+                       failedETA, actualIntermediateDecayProducts);
+    return vetoed;
+  }
+
+  for (HepMC::GenVertex::particle_iterator greatgrandchildren = endVertex->particles_begin(HepMC::children);
+       greatgrandchildren != endVertex->particles_end(HepMC::children); ++greatgrandchildren)
+  {
+    const int greatgrandchildID = (*greatgrandchildren)->pdg_id();
+    if (Verbosity() >= VERBOSITY_MAX)
+    {
+      std::cout << "--------greatgrandchildren->pdg_id(): " << greatgrandchildID << std::endl;
+    }
+
+    if (isIgnoredPhotonOrPi0(greatgrandchildID))
+    {
+      continue;
+    }
+    if (isRejectedPhotonOrPi0(greatgrandchildID))
+    {
+      return true;
+    }
+
+    addHepMCIntermediateProduct(**greatgrandchildren, failedPT, failedETA, actualIntermediateDecayProducts);
+  }
+
+  return false;
 }
 
 void DecayFinder::addHepMCIntermediateProduct(const HepMC::GenParticle &particle, bool &failedPT, bool &failedETA,
@@ -998,12 +1105,23 @@ bool DecayFinder::checkIfCorrectGeant4Particle(PHG4Particle *particle, bool &has
 
   const std::size_t chainSize = m_decayChain.size();
 
+  // The tracks of an intermediate that is not needed must not fail the candidate, so keep their cuts apart
+  bool probeFailedPT = false;
+  bool probeFailedETA = false;
   bool fakeBreak = false;
-  searchGeant4Record(particle->get_barcode(), particle->get_pid(), absoluteValues(requiredIntermediateDecayProducts),
-                     fakeBreak, hasPhoton, hasPi0, trackFailedPT, trackFailedETA, actualIntermediateDecayProducts);
+  searchGeant4Children(particle->get_track_id(), absoluteValues(requiredIntermediateDecayProducts), fakeBreak,
+                       hasPhoton, hasPi0, probeFailedPT, probeFailedETA, actualIntermediateDecayProducts);
 
-  const bool acceptParticle = compareDecays(requiredIntermediateDecayProducts, actualIntermediateDecayProducts);
-  if (!acceptParticle)
+  // A break means a photon or pi0 that is not allowed, or a particle that is not in the decay, was found, so the
+  // products that were found before it do not make this the intermediate decay that is needed
+  const bool acceptParticle =
+      !fakeBreak && compareDecays(requiredIntermediateDecayProducts, actualIntermediateDecayProducts);
+  if (acceptParticle)
+  {
+    trackFailedPT = trackFailedPT || probeFailedPT;
+    trackFailedETA = trackFailedETA || probeFailedETA;
+  }
+  else
   {
     restoreDecayChain(chainSize);  // Remove the products of the intermediate that was not needed
   }

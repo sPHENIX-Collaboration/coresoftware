@@ -23,7 +23,7 @@ namespace CLHEP
 namespace HepMC
 {
   class GenParticle;
-}
+}  // namespace HepMC
 
 class DecayFinderContainerBase;
 class PHCompositeNode;
@@ -119,8 +119,9 @@ class HFTrackEfficiency : public SubsysReco
   /** @brief Fill the mother kinematics and the true vertices from the HepMC record. */
   void fillHepMCMother(const Decay &decay, DecayTruth &truth);
 
-  /** @brief Fill the mother kinematics from HepMC, these are in the generator frame. */
-  void fillHepMCMotherKinematics(const HepMC::GenParticle &mother);
+  /** @brief Fill the mother kinematics from HepMC in GeV, these are in the generator frame. Also stores the lab frame
+   *         momentum of the mother for the proper time. */
+  void fillHepMCMotherKinematics(const HepMC::GenParticle &mother, DecayTruth &truth);
 
   /** @brief Fill the true vertices from HepMC, in the lab frame. */
   void fillHepMCVertices(const HepMC::GenParticle &mother, DecayTruth &truth);
@@ -171,7 +172,8 @@ class HFTrackEfficiency : public SubsysReco
   /**
    * @brief Get the true vertices of a decay from the Geant4 truth record.
    * @param motherG4 The mother, its production vertex is the production vertex of the decay.
-   * @param daughterG4 A daughter of the mother, its production vertex is the decay vertex.
+   * @param daughterG4 A direct or indirect daughter of the mother. The production vertex of the child of the mother
+   *        on the way to this particle is the decay vertex, so the flight of any intermediate is not included.
    * @param[out] primary Where the parent chain of the mother started [cm].
    * @param[out] production Where the mother was produced [cm].
    * @param[out] decay Where the mother decayed [cm].
@@ -219,6 +221,9 @@ class HFTrackEfficiency : public SubsysReco
   void addDaughterBranches(unsigned int trackIndex);
   void addVertexBranches();
   void resetBranches();
+  /** @brief Check which of the nodes that the cluster truth matching needs are on the node tree this event. */
+  void getClusterTruthNodes(PHCompositeNode *topNode);
+
   void getDecayDescriptor();
   void getNDaughters();
 
@@ -231,6 +236,11 @@ class HFTrackEfficiency : public SubsysReco
   // Only needed to find the clusters of a track when the track stores seed IDs instead of seed pointers (SvtxTrack_v5)
   TrackSeedContainer *m_siliconSeeds{nullptr};
   TrackSeedContainer *m_tpcSeeds{nullptr};
+
+  // The cluster truth matching needs the cluster to hit and the hit to truth associations, and the G4 hits of the
+  // detector. Reduced DSTs may not have them, the truth cluster counts are then left at -1
+  bool m_haveClusterTruthAssoc{false};
+  std::array<bool, s_nDetectors> m_haveDetectorG4Hits{};
 
   std::unique_ptr<SvtxEvalStack> m_svtx_evalstack;
   SvtxTrackEval *m_trackeval{nullptr};  // Owned by the evaluation stack

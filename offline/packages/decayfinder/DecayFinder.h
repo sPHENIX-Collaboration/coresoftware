@@ -222,6 +222,13 @@ class DecayFinder : public SubsysReco
 
   // Helpers of searchGeant4Record
   /**
+   * @brief Check all the children of a Geant4 particle, found from the track ID of the parent. Use this rather than
+   * searchGeant4Record when starting from a Geant4 particle, the barcode is not unique for a particle gun.
+   */
+  void searchGeant4Children(int parentTrackID, const std::vector<int> &decayProducts, bool &breakLoop,
+                            bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA,
+                            std::vector<int> &actualDecayProducts);
+  /**
    * @brief Check one child of the mother in the Geant4 record.
    * @return True if the search of the children should stop.
    */
@@ -230,9 +237,21 @@ class DecayFinder : public SubsysReco
                           std::vector<int> &actualDecayProducts);
 
   // Helpers of the checkIfCorrect functions
-  /** @brief Check the decay products of an intermediate in the HepMC record. */
-  void searchHepMCIntermediate(const HepMC::GenParticle &intermediate, bool &failedPT, bool &failedETA,
-                               std::vector<int> &actualIntermediateDecayProducts);
+  /**
+   * @brief Check the decay products of an intermediate in the HepMC record.
+   * @return True if a photon or pi0 that is not allowed was found, whatever else was found the decay is ruled out.
+   */
+  bool searchHepMCIntermediate(const HepMC::GenParticle &intermediate, const std::vector<int> &positiveRequiredProducts,
+                               bool &failedPT, bool &failedETA, std::vector<int> &actualIntermediateDecayProducts);
+  /**
+   * @brief Check the decay products of a resonance that is a decay product of an intermediate, in the HepMC record
+   * or, if the generator did not decay it, in the Geant4 record.
+   * @return True if the intermediate is ruled out, see searchHepMCIntermediate.
+   */
+  bool searchIntermediateResonance(const HepMC::GenParticle &resonance,
+                                   const std::vector<int> &positiveRequiredProducts,
+                                   bool &failedPT, bool &failedETA,
+                                   std::vector<int> &actualIntermediateDecayProducts);
   /** @brief Add a decay product of an intermediate that was found in the HepMC record. */
   void addHepMCIntermediateProduct(const HepMC::GenParticle &particle, bool &failedPT, bool &failedETA,
                                    std::vector<int> &actualIntermediateDecayProducts);
