@@ -24,6 +24,7 @@
 #include <cmath>
 #include <cstdlib>  // for abs, size_t
 #include <map>      // for map, _Rb_tree_iterator, map<>:...
+#include <utility>  // for swap
 
 class PHCompositeNode;
 class PHNode;
@@ -338,23 +339,23 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 {
   const float speedOfLight = 2.99792458e-2;
 
-  KFParticle temp;
   KFParticle* daughterArray = daughters.data();
 
-  bool switchTrackPosition;
-
   int num_tracks_used_by_intermediates = 0;
-  for (int k = 0; k < m_num_intermediate_states_nTuple; ++k)  // Rearrange tracks from intermediate states
+
+  // Order the n tracks starting at num_tracks_used_by_intermediates (by PDG ID, or by mass for charge conjugates)
+  auto sortTracks = [&](int n)
   {
-    for (int i = 0; i < m_num_tracks_from_intermediate_nTuple[k]; ++i)
+    for (int i = 0; i < n; ++i)
     {
-      for (int j = i + 1; j < m_num_tracks_from_intermediate_nTuple[k]; ++j)
+      for (int j = i + 1; j < n; ++j)
       {
         int particleAElement = i + num_tracks_used_by_intermediates;
         int particleBElement = j + num_tracks_used_by_intermediates;
         int particleAPID = daughterArray[particleAElement].GetPDG();
         int particleBPID = daughterArray[particleBElement].GetPDG();
 
+        bool switchTrackPosition;
         if (m_get_charge_conjugate_nTuple)
         {
           float daughterA_mass = m_tools->getParticleMass(particleAPID);
@@ -367,44 +368,21 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
         }
         if (switchTrackPosition)
         {
-          temp = daughterArray[particleAElement];
-          daughterArray[particleAElement] = daughterArray[particleBElement];
-          daughterArray[particleBElement] = temp;
+          std::swap(daughterArray[particleAElement], daughterArray[particleBElement]);
         }
       }
     }
+  };
+
+  for (int k = 0; k < m_num_intermediate_states_nTuple; ++k)  // Rearrange tracks from intermediate states
+  {
+    sortTracks(m_num_tracks_from_intermediate_nTuple[k]);
     num_tracks_used_by_intermediates += m_num_tracks_from_intermediate_nTuple[k];
   }
 
   int num_remaining_tracks = m_num_tracks_nTuple - num_tracks_used_by_intermediates;
 
-  for (int i = 0; i < num_remaining_tracks; i++)
-  {
-    for (int j = i + 1; j < num_remaining_tracks; j++)
-    {
-      int particleAElement = i + num_tracks_used_by_intermediates;
-      int particleBElement = j + num_tracks_used_by_intermediates;
-      int particleAPID = daughterArray[particleAElement].GetPDG();
-      int particleBPID = daughterArray[particleBElement].GetPDG();
-
-      if (m_get_charge_conjugate_nTuple)
-      {
-        float daughterA_mass = m_tools->getParticleMass(particleAPID);
-        float daughterB_mass = m_tools->getParticleMass(particleBPID);
-        switchTrackPosition = daughterA_mass > daughterB_mass;
-      }
-      else
-      {
-        switchTrackPosition = particleAPID > particleBPID;
-      }
-      if (switchTrackPosition)
-      {
-        temp = daughterArray[particleAElement];
-        daughterArray[particleAElement] = daughterArray[particleBElement];
-        daughterArray[particleBElement] = temp;
-      }
-    }
-  }
+  sortTracks(num_remaining_tracks);
 
   if (m_extrapolateTracksToSV_nTuple)
   {
