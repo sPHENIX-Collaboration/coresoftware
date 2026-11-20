@@ -1289,40 +1289,41 @@ void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int 
 }
 void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, const std::string &detectorName, int daughter_id, const std::string &daughter_number)
 {
+  const std::string branchName = daughter_number + "_" + detectorName;
   if (detectorName == "MVTX")
   {
     if (m_get_detailed_tracking)
     {
-      m_tree->Branch((daughter_number + "_" + detectorName + "_staveID").c_str(), &mvtx_staveID[daughter_id]);
-      m_tree->Branch((daughter_number + "_" + detectorName + "_chipID").c_str(), &mvtx_chipID[daughter_id]);
+      m_tree->Branch((branchName + "_staveID").c_str(), &mvtx_staveID[daughter_id]);
+      m_tree->Branch((branchName + "_chipID").c_str(), &mvtx_chipID[daughter_id]);
     }
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_MVTX[daughter_id]);
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_MVTX[daughter_id]);
+    m_tree->Branch((branchName + "_nHits").c_str(), &detector_nHits_MVTX[daughter_id]);
+    m_tree->Branch((branchName + "_nStates").c_str(), &detector_nStates_MVTX[daughter_id]);
   }
-  if (detectorName == "INTT")
+  else if (detectorName == "INTT")
   {
     if (m_get_detailed_tracking)
     {
-      m_tree->Branch((daughter_number + "_" + detectorName + "_ladderZID").c_str(), &intt_ladderZID[daughter_id]);
-      m_tree->Branch((daughter_number + "_" + detectorName + "_ladderPhiID").c_str(), &intt_ladderPhiID[daughter_id]);
+      m_tree->Branch((branchName + "_ladderZID").c_str(), &intt_ladderZID[daughter_id]);
+      m_tree->Branch((branchName + "_ladderPhiID").c_str(), &intt_ladderPhiID[daughter_id]);
     }
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_INTT[daughter_id]);
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_INTT[daughter_id]);
+    m_tree->Branch((branchName + "_nHits").c_str(), &detector_nHits_INTT[daughter_id]);
+    m_tree->Branch((branchName + "_nStates").c_str(), &detector_nStates_INTT[daughter_id]);
   }
-  if (detectorName == "TPC")
+  else if (detectorName == "TPC")
   {
     if (m_get_detailed_tracking)
     {
-      m_tree->Branch((daughter_number + "_" + detectorName + "_sectorID").c_str(), &tpc_sectorID[daughter_id]);
-      m_tree->Branch((daughter_number + "_" + detectorName + "_side").c_str(), &tpc_side[daughter_id]);
+      m_tree->Branch((branchName + "_sectorID").c_str(), &tpc_sectorID[daughter_id]);
+      m_tree->Branch((branchName + "_side").c_str(), &tpc_side[daughter_id]);
     }
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_TPC[daughter_id]);
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_TPC[daughter_id]);
+    m_tree->Branch((branchName + "_nHits").c_str(), &detector_nHits_TPC[daughter_id]);
+    m_tree->Branch((branchName + "_nStates").c_str(), &detector_nStates_TPC[daughter_id]);
   }
-  if (detectorName == "TPOT")
+  else if (detectorName == "TPOT")
   {
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_TPOT[daughter_id]);
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_TPOT[daughter_id]);
+    m_tree->Branch((branchName + "_nHits").c_str(), &detector_nHits_TPOT[daughter_id]);
+    m_tree->Branch((branchName + "_nStates").c_str(), &detector_nStates_TPOT[daughter_id]);
   }
 }
 
