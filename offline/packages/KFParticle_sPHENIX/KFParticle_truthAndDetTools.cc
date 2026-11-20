@@ -1621,7 +1621,6 @@ void KFParticle_truthAndDetTools::clearVectors()
   allPV_x.clear();
   allPV_y.clear();
   allPV_z.clear();
-  allPV_z.clear();
 
   allPV_mother_PV_DCA.clear();
   allPV_mother_PV_DCA_StdDev.clear();
