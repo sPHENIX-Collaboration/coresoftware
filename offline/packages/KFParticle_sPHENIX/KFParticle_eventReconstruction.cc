@@ -355,7 +355,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                         slowTrackPDG *= -1;
                       }
                     }
-                    else if ((Int_t) motherDecayProducts[trackArrayID].GetQ() == 0)
+                    else
                     {
                       slowTrackMass = kfp_Tools_evtReco.getParticleMass(uniqueCombination[trackArrayID]);
                       slowTrackPDG = uniqueCombination[trackArrayID];
@@ -490,7 +490,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
                 intParticlePDG *= -1;
               }
             }
-            else if ((Int_t) daughterTracks[i].GetQ() == 0)
+            else
             {
               intParticleMass = kfp_Tools_evtReco.getParticleMass(PDGIDofFirstParticleInCombination[i]);
               intParticlePDG = PDGIDofFirstParticleInCombination[i];
