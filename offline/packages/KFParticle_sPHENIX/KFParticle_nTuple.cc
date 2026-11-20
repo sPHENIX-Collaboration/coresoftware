@@ -256,7 +256,8 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
   {
     for (int j = i + 1; j < m_num_tracks_nTuple; ++j)
     {
-      std::string dca_branch_name = "track_" + std::to_string(i + 1) + "_track_" + std::to_string(j + 1) + "_DCA";
+      const std::string branch_name_base = "track_" + std::to_string(i + 1) + "_track_" + std::to_string(j + 1);
+      std::string dca_branch_name = branch_name_base + "_DCA";
       std::string dca_leaf_name = dca_branch_name + "/F";
       m_tree->Branch(dca_branch_name.c_str(), &m_daughter_dca[iter], dca_leaf_name.c_str());
 
@@ -264,7 +265,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
       std::string dca_leaf_name_xy = dca_branch_name_xy + "/F";
       m_tree->Branch(dca_branch_name_xy.c_str(), &m_daughter_dca_xy[iter], dca_leaf_name_xy.c_str());
 
-      std::string dca_sig_branch_name = "track_" + std::to_string(i + 1) + "_track_" + std::to_string(j + 1) + "_DCA_sig";
+      std::string dca_sig_branch_name = branch_name_base + "_DCA_sig";
       std::string dca_sig_leaf_name = dca_sig_branch_name + "/F";
       m_tree->Branch(dca_sig_branch_name.c_str(), &m_daughter_dca_sig[iter], dca_sig_leaf_name.c_str());
 
