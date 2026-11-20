@@ -219,29 +219,16 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 
   if (!m_use_fake_pv)
   {
-    if (m_use_mbd_vertex)
+    const bool noVertices = m_use_mbd_vertex
+                                ? findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap")->empty()
+                                : findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name)->empty();
+    if (noVertices)
     {
-      MbdVertexMap* check_vertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
-      if (check_vertexmap->empty())
+      if (Verbosity() >= VERBOSITY_SOME)
       {
-        if (Verbosity() >= VERBOSITY_SOME)
-        {
-          std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
-        }
-        return Fun4AllReturnCodes::EVENT_OK;
+        std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
       }
-    }
-    else
-    {
-      SvtxVertexMap* check_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name);
-      if (check_vertexmap->empty())
-      {
-        if (Verbosity() >= VERBOSITY_SOME)
-        {
-          std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
-        }
-        return Fun4AllReturnCodes::EVENT_OK;
-      }
+      return Fun4AllReturnCodes::EVENT_OK;
     }
   }
   
