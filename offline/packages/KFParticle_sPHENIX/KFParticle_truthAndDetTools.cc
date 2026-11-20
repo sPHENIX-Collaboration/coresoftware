@@ -109,10 +109,10 @@ PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack *thisTrack, P
       std::cout << "KFParticle truth matching: G4TruthInfo does not exist" << std::endl;
     }
 
-    std::map<float, std::set<int>> truth_set = dst_reco_truth_map->get(thisTrack->get_id());
+    const auto &truth_set = dst_reco_truth_map->get(thisTrack->get_id());
     if (!truth_set.empty())
     {
-      std::pair<float, std::set<int>> best_weight = *truth_set.rbegin();
+      const auto &best_weight = *truth_set.rbegin();
       int best_truth_id = *best_weight.second.rbegin();
       particle = m_truthinfo->GetParticle(best_truth_id);
     }
