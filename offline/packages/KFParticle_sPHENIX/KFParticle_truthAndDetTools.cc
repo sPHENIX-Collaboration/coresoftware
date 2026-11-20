@@ -85,7 +85,7 @@ SvtxTrack *KFParticle_truthAndDetTools::getTrack(unsigned int track_id, SvtxTrac
 
 GlobalVertex *KFParticle_truthAndDetTools::getVertex(unsigned int vertex_id, GlobalVertexMap *vertexmap)
 {
-  return vertexmap->get(vertex_id);;
+  return vertexmap->get(vertex_id);
 }
 
 PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack *thisTrack, PHCompositeNode *topNode)
@@ -372,11 +372,11 @@ void KFParticle_truthAndDetTools::fillHepMCBranch(HepMC::GenParticle *particle, 
 int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id)
 {
   // Make dummy particle for null pointers and missing nodes
-  HepMC::GenParticle *dummyParticle = new HepMC::GenParticle();
+  HepMC::GenParticle dummyParticle;
   HepMC::FourVector dummyFourVector(0, 0, 0, 0);
-  dummyParticle->set_momentum(dummyFourVector);
-  dummyParticle->set_pdg_id(0);
-  dummyParticle->set_generated_mass(0.);
+  dummyParticle.set_momentum(dummyFourVector);
+  dummyParticle.set_pdg_id(0);
+  dummyParticle.set_generated_mass(0.);
 
   dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_tools->get_trk_map_node_name());
   if (!dst_trackmap)
@@ -394,7 +394,7 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
   if (!isParticleValid)
   {
     std::cout << "KFParticle truth matching: this track is a ghost" << std::endl;
-    fillHepMCBranch(dummyParticle, daughter_id);
+    fillHepMCBranch(&dummyParticle, daughter_id);
     return 0;
   }
 
@@ -403,7 +403,7 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
   {
     std::cout << "KFParticle truth matching: Missing node PHHepMCGenEventMap" << std::endl;
     std::cout << "You will have no mother information" << std::endl;
-    fillHepMCBranch(dummyParticle, daughter_id);
+    fillHepMCBranch(&dummyParticle, daughter_id);
     return 0;
   }
 
@@ -412,7 +412,7 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
   {
     std::cout << "KFParticle truth matching: Missing node PHHepMCGenEvent" << std::endl;
     std::cout << "You will have no mother information" << std::endl;
-    fillHepMCBranch(dummyParticle, daughter_id);
+    fillHepMCBranch(&dummyParticle, daughter_id);
     return 0;
   }
 
