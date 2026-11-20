@@ -128,17 +128,23 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
 
   m_recoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, trackNodeName);
 
-  SvtxTrack* m_recoTrack = buildSvtxTrack(motherParticle);
-
-  SvtxTrack *dummyMother = nullptr;  
-  while (!dummyMother)
+  // Insert track under the first free key, starting at key
+  // Key is left one step past the key that was used.
+  auto insertAtFreeKey = [&](SvtxTrack* track, unsigned int& key, bool countDown)
   {
-    if (!m_recoTrackMap->get(resonanceCounter))
+    SvtxTrack* inserted = nullptr;
+    while (!inserted)
     {
-      dummyMother = m_recoTrackMap->insertWithKey(m_recoTrack, resonanceCounter);
+      if (!m_recoTrackMap->get(key))
+      {
+        inserted = m_recoTrackMap->insertWithKey(track, key);
+      }
+      key = countDown ? key - 1 : key + 1;
     }
-    --resonanceCounter;
-  }
+  };
+
+  SvtxTrack* m_recoTrack = buildSvtxTrack(motherParticle);
+  insertAtFreeKey(m_recoTrack, resonanceCounter, true);
   m_recoTrack->Reset();
 
   if (m_has_intermediates_DST)
@@ -146,15 +152,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
     for (const auto& intermediate : intermediates)
     {
       m_recoTrack = buildSvtxTrack(intermediate);
-      SvtxTrack *dummyIntermediate = nullptr;  
-      while (!dummyIntermediate)
-      {
-        if (!m_recoTrackMap->get(resonanceCounter))
-	      {
-	        dummyIntermediate = m_recoTrackMap->insertWithKey(m_recoTrack, resonanceCounter);
-	      }
-        --resonanceCounter;
-      }
+      insertAtFreeKey(m_recoTrack, resonanceCounter, true);
       m_recoTrack->Reset();
     }
   }
@@ -167,16 +165,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
     {
       std::cout << "There was no original track map found, the tracks will have no cluster information!" << std::endl;
       m_recoTrack = buildSvtxTrack(daughter);
-
-      SvtxTrack *dummyDaughter = nullptr;  
-      while (!dummyDaughter)
-      {
-        if (!m_recoTrackMap->get(daughterCounter))
-	      {
-          dummyDaughter = m_recoTrackMap->insertWithKey(m_recoTrack, daughterCounter);
-	      }
-        ++daughterCounter;
-      }
+      insertAtFreeKey(m_recoTrack, daughterCounter, false);
     }
     else
     {
