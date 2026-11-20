@@ -6,10 +6,7 @@
 
 #include <TTree.h>
 
-KFParticle_triggerInfo::KFParticle_triggerInfo()
-  : triggeranalyzer(nullptr)
-{
-}  // Constructor
+KFParticle_triggerInfo::KFParticle_triggerInfo() = default;  // Constructor
 
 KFParticle_triggerInfo::~KFParticle_triggerInfo() = default;  // Destructor
 
@@ -33,19 +30,9 @@ bool KFParticle_triggerInfo::buildTriggerBranches(PHCompositeNode *topNode, TTre
   }
 
   size_t pos;
-  std::string undrscr = "_";
-  std::string nothing;
-  std::map<std::string, std::string> forbiddenStrings;
-  forbiddenStrings[" "] = undrscr;
-  forbiddenStrings[","] = nothing;
-  forbiddenStrings["/"] = undrscr;
-  forbiddenStrings["&"] = "and";
-  forbiddenStrings["="] = "eq";
-  forbiddenStrings["<"] = "l";
-  forbiddenStrings[">"] = "g";
-  forbiddenStrings["+"] = "plus";
-  forbiddenStrings["-"] = "minus";
-  forbiddenStrings["*"] = "star";
+  const std::map<std::string, std::string> forbiddenStrings = {
+      {" ", "_"}, {",", ""}, {"/", "_"}, {"&", "and"}, {"=", "eq"},
+      {"<", "l"}, {">", "g"}, {"+", "plus"}, {"-", "minus"}, {"*", "star"}};
 
   std::string trigger_header = "trigger_";
 
@@ -60,7 +47,7 @@ bool KFParticle_triggerInfo::buildTriggerBranches(PHCompositeNode *topNode, TTre
       continue;
     }
 
-    std::string branchName = trigger_header + triggeranalyzer->getTriggerName(i);
+    std::string branchName = trigger_header + triggerName;
 
     for (const auto& [badString, goodString] : forbiddenStrings)
     {
