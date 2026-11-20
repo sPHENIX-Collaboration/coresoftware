@@ -24,6 +24,7 @@
 #include <cmath>
 #include <cstdlib>  // for abs, size_t
 #include <map>      // for map, _Rb_tree_iterator, map<>:...
+#include <utility>  // for swap
 
 class PHCompositeNode;
 class PHNode;
@@ -44,33 +45,23 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
   m_tree->OptimizeBaskets();
   m_tree->SetAutoSave(-5e6);  // Save the output file every 5MB
 
-  std::string mother_name;
-  if (m_mother_name.empty())
+  // Note, TBranch will not allow the leaf to contain a forward slash as it is used to define the branch type
+  const std::map<std::string, std::string> forbiddenStrings = {
+      {"/", "_"}, {"(", "_"}, {")", ""}, {"+", "plus"}, {"-", "minus"}, {"*", "star"}};
+  auto sanitize = [&forbiddenStrings](std::string name)
   {
-    mother_name = "mother";
-  }
-  else
-  {
-    mother_name = m_mother_name;
-  }
-
-  size_t pos;
-  std::string undrscr = "_";
-  std::string nothing;
-  std::map<std::string, std::string> forbiddenStrings;
-  forbiddenStrings["/"] = undrscr;
-  forbiddenStrings["("] = undrscr;
-  forbiddenStrings[")"] = nothing;
-  forbiddenStrings["+"] = "plus";
-  forbiddenStrings["-"] = "minus";
-  forbiddenStrings["*"] = "star";
-  for (auto const& [badString, goodString] : forbiddenStrings)
-  {
-    while ((pos = mother_name.find(badString)) != std::string::npos)
+    size_t pos;
+    for (const auto& [badString, goodString] : forbiddenStrings)
     {
-      mother_name.replace(pos, 1, goodString);
+      while ((pos = name.find(badString)) != std::string::npos)
+      {
+        name.replace(pos, 1, goodString);
+      }
     }
-  }
+    return name;
+  };
+
+  std::string mother_name = sanitize(m_mother_name.empty() ? "mother" : m_mother_name);
   //setup only the momentum calibration branches
   
   if (m_minimal_output)
@@ -134,16 +125,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
   {
     for (int i = 0; i < m_num_intermediate_states_nTuple; ++i)
     {
-      std::string intermediate_name = m_intermediate_name_ntuple[i];
-
-      // Note, TBranch will not allow the leaf to contain a forward slash as it is used to define the branch type. Causes problems with J/psi
-      for (auto const& [badString, goodString] : forbiddenStrings)
-      {
-        while ((pos = intermediate_name.find(badString)) != std::string::npos)
-        {
-          intermediate_name.replace(pos, 1, goodString);
-        }
-      }
+      std::string intermediate_name = sanitize(m_intermediate_name_ntuple[i]);
 
       m_tree->Branch(TString(intermediate_name) + "_mass", &m_calculated_intermediate_mass[i], TString(intermediate_name) + "_mass/F");
       m_tree->Branch(TString(intermediate_name) + "_massErr", &m_calculated_intermediate_mass_err[i], TString(intermediate_name) + "_massErr/F");
@@ -272,28 +254,26 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
   int iter = 0;
   for (int i = 0; i < m_num_tracks_nTuple; ++i)
   {
-    for (int j = 0; j < m_num_tracks_nTuple; ++j)
+    for (int j = i + 1; j < m_num_tracks_nTuple; ++j)
     {
-      if (i < j)
-      {
-        std::string dca_branch_name = "track_" + std::to_string(i + 1) + "_track_" + std::to_string(j + 1) + "_DCA";
-        std::string dca_leaf_name = dca_branch_name + "/F";
-        m_tree->Branch(dca_branch_name.c_str(), &m_daughter_dca[iter], dca_leaf_name.c_str());
+      const std::string branch_name_base = "track_" + std::to_string(i + 1) + "_track_" + std::to_string(j + 1);
+      std::string dca_branch_name = branch_name_base + "_DCA";
+      std::string dca_leaf_name = dca_branch_name + "/F";
+      m_tree->Branch(dca_branch_name.c_str(), &m_daughter_dca[iter], dca_leaf_name.c_str());
 
-        std::string dca_branch_name_xy = dca_branch_name + "_xy";
-        std::string dca_leaf_name_xy = dca_branch_name_xy + "/F";
-        m_tree->Branch(dca_branch_name_xy.c_str(), &m_daughter_dca_xy[iter], dca_leaf_name_xy.c_str());
-        
-        std::string dca_sig_branch_name = "track_" + std::to_string(i + 1) + "_track_" + std::to_string(j + 1) + "_DCA_sig";
-        std::string dca_sig_leaf_name = dca_sig_branch_name + "/F";
-        m_tree->Branch(dca_sig_branch_name.c_str(), &m_daughter_dca_sig[iter], dca_sig_leaf_name.c_str());
+      std::string dca_branch_name_xy = dca_branch_name + "_xy";
+      std::string dca_leaf_name_xy = dca_branch_name_xy + "/F";
+      m_tree->Branch(dca_branch_name_xy.c_str(), &m_daughter_dca_xy[iter], dca_leaf_name_xy.c_str());
 
-        std::string dca_sig_branch_name_xy = dca_sig_branch_name + "_xy";
-        std::string dca_sig_leaf_name_xy = dca_sig_branch_name_xy + "/F";
-        m_tree->Branch(dca_sig_branch_name_xy.c_str(), &m_daughter_dca_sig_xy[iter], dca_sig_leaf_name_xy.c_str());
+      std::string dca_sig_branch_name = branch_name_base + "_DCA_sig";
+      std::string dca_sig_leaf_name = dca_sig_branch_name + "/F";
+      m_tree->Branch(dca_sig_branch_name.c_str(), &m_daughter_dca_sig[iter], dca_sig_leaf_name.c_str());
 
-        ++iter;
-      }
+      std::string dca_sig_branch_name_xy = dca_sig_branch_name + "_xy";
+      std::string dca_sig_leaf_name_xy = dca_sig_branch_name_xy + "/F";
+      m_tree->Branch(dca_sig_branch_name_xy.c_str(), &m_daughter_dca_sig_xy[iter], dca_sig_leaf_name_xy.c_str());
+
+      ++iter;
     }
   }
 
@@ -349,23 +329,23 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 {
   const float speedOfLight = 2.99792458e-2;
 
-  KFParticle temp;
   KFParticle* daughterArray = daughters.data();
 
-  bool switchTrackPosition;
-
   int num_tracks_used_by_intermediates = 0;
-  for (int k = 0; k < m_num_intermediate_states_nTuple; ++k)  // Rearrange tracks from intermediate states
+
+  // Order the n tracks starting at num_tracks_used_by_intermediates (by PDG ID, or by mass for charge conjugates)
+  auto sortTracks = [&](int n)
   {
-    for (int i = 0; i < m_num_tracks_from_intermediate_nTuple[k]; ++i)
+    for (int i = 0; i < n; ++i)
     {
-      for (int j = i + 1; j < m_num_tracks_from_intermediate_nTuple[k]; ++j)
+      for (int j = i + 1; j < n; ++j)
       {
         int particleAElement = i + num_tracks_used_by_intermediates;
         int particleBElement = j + num_tracks_used_by_intermediates;
         int particleAPID = daughterArray[particleAElement].GetPDG();
         int particleBPID = daughterArray[particleBElement].GetPDG();
 
+        bool switchTrackPosition;
         if (m_get_charge_conjugate_nTuple)
         {
           float daughterA_mass = m_tools->getParticleMass(particleAPID);
@@ -378,50 +358,27 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
         }
         if (switchTrackPosition)
         {
-          temp = daughterArray[particleAElement];
-          daughterArray[particleAElement] = daughterArray[particleBElement];
-          daughterArray[particleBElement] = temp;
+          std::swap(daughterArray[particleAElement], daughterArray[particleBElement]);
         }
       }
     }
+  };
+
+  for (int k = 0; k < m_num_intermediate_states_nTuple; ++k)  // Rearrange tracks from intermediate states
+  {
+    sortTracks(m_num_tracks_from_intermediate_nTuple[k]);
     num_tracks_used_by_intermediates += m_num_tracks_from_intermediate_nTuple[k];
   }
 
   int num_remaining_tracks = m_num_tracks_nTuple - num_tracks_used_by_intermediates;
 
-  for (int i = 0; i < num_remaining_tracks; i++)
-  {
-    for (int j = i + 1; j < num_remaining_tracks; j++)
-    {
-      int particleAElement = i + num_tracks_used_by_intermediates;
-      int particleBElement = j + num_tracks_used_by_intermediates;
-      int particleAPID = daughterArray[particleAElement].GetPDG();
-      int particleBPID = daughterArray[particleBElement].GetPDG();
-
-      if (m_get_charge_conjugate_nTuple)
-      {
-        float daughterA_mass = m_tools->getParticleMass(particleAPID);
-        float daughterB_mass = m_tools->getParticleMass(particleBPID);
-        switchTrackPosition = daughterA_mass > daughterB_mass;
-      }
-      else
-      {
-        switchTrackPosition = particleAPID > particleBPID;
-      }
-      if (switchTrackPosition)
-      {
-        temp = daughterArray[particleAElement];
-        daughterArray[particleAElement] = daughterArray[particleBElement];
-        daughterArray[particleBElement] = temp;
-      }
-    }
-  }
+  sortTracks(num_remaining_tracks);
 
   if (m_extrapolateTracksToSV_nTuple)
   {
-    for (unsigned int i = 0; i < daughters.size(); ++i)
+    for (auto &daughter : daughters)
     {
-      daughterArray[i].SetProductionVertex(motherParticle);
+      daughter.SetProductionVertex(motherParticle);
     }
   }
   //This is the setup for filling only the momentum calibration branches
@@ -532,7 +489,6 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_calculated_daughter_PV_dca_sig[i] = daughterArray[i].GetDeviationFromVertex(vertex_fillbranch);
       m_calculated_daughter_PV_dca_err[i] = m_calculated_daughter_PV_dca[i] / std::sqrt(m_calculated_daughter_PV_dca_sig[i]);
       m_calculated_daughter_PV_dca_xy[i] = daughterArray[i].GetDistanceFromVertexXY(vertex_fillbranch);
-      m_calculated_daughter_PV_dca_sig[i] = daughterArray[i].GetDeviationFromVertex(vertex_fillbranch);
       m_calculated_daughter_PV_dca_xy_sig[i] = daughterArray[i].GetDeviationFromVertexXY(vertex_fillbranch);
     }
     m_calculated_daughter_x[i] = daughterArray[i].GetX();
@@ -591,9 +547,6 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     if (m_truth_matching)
     {
       fillTruthBranch(topNode, m_tree, daughterArray[i], i, vertex_fillbranch, m_constrain_to_vertex_nTuple);
-    }
-    if (m_truth_matching)
-    {
       getHepMCInfo(topNode, m_tree, daughterArray[i], i);
     }
     if (m_detector_info)
@@ -632,16 +585,13 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   iter = 0;
   for (int i = 0; i < m_num_tracks_nTuple; ++i)
   {
-    for (int j = 0; j < m_num_tracks_nTuple; ++j)
+    for (int j = i + 1; j < m_num_tracks_nTuple; ++j)
     {
-      if (i < j)
-      {
-        m_daughter_dca[iter] = daughterArray[i].GetDistanceFromParticle(daughterArray[j]);
-        m_daughter_dca_xy[iter] = daughterArray[i].GetDistanceFromParticleXY(daughterArray[j]);
-        m_daughter_dca_sig[iter] = daughterArray[i].GetDeviationFromParticle(daughterArray[j]);
-        m_daughter_dca_sig_xy[iter] = daughterArray[i].GetDeviationFromParticleXY(daughterArray[j]);
-        ++iter;
-      }
+      m_daughter_dca[iter] = daughterArray[i].GetDistanceFromParticle(daughterArray[j]);
+      m_daughter_dca_xy[iter] = daughterArray[i].GetDistanceFromParticleXY(daughterArray[j]);
+      m_daughter_dca_sig[iter] = daughterArray[i].GetDeviationFromParticle(daughterArray[j]);
+      m_daughter_dca_sig_xy[iter] = daughterArray[i].GetDeviationFromParticleXY(daughterArray[j]);
+      ++iter;
     }
   }
 
@@ -675,14 +625,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
     // it only makes sense to calculate PVID for non-fake vertex
     // (this otherwise crashes if m_use_fake_pv_nTuple is true in an event with no real vertices)
-    if (m_use_fake_pv_nTuple)
-    {
-      m_calculated_vertex_ID = -100;  // error value returned by getPVID
-    }
-    else
-    {
-      m_calculated_vertex_ID = getPVID(topNode, vertex_fillbranch);
-    }
+    m_calculated_vertex_ID = m_use_fake_pv_nTuple ? -100 : getPVID(topNode, vertex_fillbranch);  // -100 is the error value returned by getPVID
     // m_calculated_vertex_cov          = &vertex_fillbranch.CovarianceMatrix()[0];
     for (int j = 0; j < 6; ++j)
     {
@@ -708,6 +651,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   PHNode* evtNode = nodeIter.findFirst("EventHeader");
 
+  m_runNumber = -1;
+  m_evtNumber = -1;
+  m_bco = -1;
   if (evtNode)
   {
     EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
@@ -716,32 +662,17 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_runNumber = evtHeader->get_RunNumber();
       m_evtNumber = evtHeader->get_EvtSequence();
     }
-    else
-    {
-      m_runNumber = -1;
-      m_evtNumber = -1;
-    }
-    
+
     auto* gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
     if (!gl1packet)
     {
       gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
     }
-    
+
     if (gl1packet)
     {
       m_bco = gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0];
     }
-    else
-    {
-      m_bco = -1;
-    }
-  }
-  else
-  {
-    m_runNumber = -1;
-    m_evtNumber = -1;
-    m_bco = -1;
   }
 
   if (m_use_centrality_nTuple)
@@ -749,35 +680,29 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_CentInfo = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
     if (!m_CentInfo)
     {
-      std::cout << "KFparticle - [WARNING] - can't find CentralityInfo node " << "CentralityInfo" << std::endl;
+      std::cout << "KFparticle - [WARNING] - can't find CentralityInfo node CentralityInfo" << std::endl;
       m_centrality_mbd = -9999.;
+    }
+    else if (!m_CentInfo->has_centrality_bin(CentralityInfo::PROP::mbd_NS))
+    {
+      if (m_verbosity_nTuple > 0)
+      {
+        std::cout << "KFParticle - No centrality information found in CentralityInfo. Setting centrality_MBD to -999." << std::endl;
+        m_CentInfo->identify();
+      }
+      m_centrality_mbd = -999.;
+    }
+    else if (!bunchCrossingisZero)
+    {
+      if (m_verbosity_nTuple > 0)
+      {
+        std::cout << "KFParticle - Invalid bunch crossing" << std::endl;
+      }
+      m_centrality_mbd = std::numeric_limits<float>::quiet_NaN();
     }
     else
     {
-      if (m_CentInfo->has_centrality_bin(CentralityInfo::PROP::mbd_NS))
-      {
-        if (bunchCrossingisZero)
-        {
-          m_centrality_mbd = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
-        }
-        else
-        {
-          if (m_verbosity_nTuple > 0)
-          {
-            std::cout << "KFParticle - Invalid bunch crossing" << std::endl;
-          }
-          m_centrality_mbd = std::numeric_limits<float>::quiet_NaN();
-        }
-      }
-      else
-      {
-        if (m_verbosity_nTuple > 0)
-        {
-          std::cout << "KFParticle - No centrality information found in CentralityInfo. Setting centrality_MBD to -999." << std::endl;
-          m_CentInfo->identify();
-        }
-        m_centrality_mbd = -999.;
-      }
+      m_centrality_mbd = m_CentInfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
     }
   }
 
@@ -884,18 +809,7 @@ float KFParticle_nTuple::calc_secondary_vertex_mass_noPID(std::vector<KFParticle
 
 bool KFParticle_nTuple::fillConditionMet() const
 {
-  // return true if this is a track-only analysis
-  if (!m_calo_info)
-  {
-    return true;
-  }
-
-  // return true if do not require track-calo matching
-  if (!m_require_track_emcal_match)
-  {
-    return true;
-  }
-
-  // if requiring track-calo matching, the match result is returned
-  return isTrackEMCalmatch;
+  // Fill if this is a track-only analysis, if track-calo matching is not required,
+  // or otherwise only if the track was matched to an EMCal cluster
+  return !m_calo_info || !m_require_track_emcal_match || isTrackEMCalmatch;
 }

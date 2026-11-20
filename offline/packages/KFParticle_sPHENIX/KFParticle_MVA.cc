@@ -18,6 +18,7 @@
 
 KFParticle_Tools kfpTools;
 
+//DEPRECATED: This function is not used in the current implementation of KFParticle
 std::tuple<TMVA::Reader *, std::vector<Float_t>> KFParticle_MVA::initMVA()
 {
   TMVA::Tools::Instance();  // Start TMVA
@@ -35,6 +36,7 @@ std::tuple<TMVA::Reader *, std::vector<Float_t>> KFParticle_MVA::initMVA()
   return make_tuple(reader, reader_floats);
 }
 
+//DEPRECATED: This function is not used in the current implementation of KFParticle
 Float_t KFParticle_MVA::evaluateMVA(TMVA::Reader *reader, std::vector<Float_t> reader_floats, const KFParticle &particle, const KFPVertex &vertex)
 {
   KFParticle kfpvertex(vertex);
