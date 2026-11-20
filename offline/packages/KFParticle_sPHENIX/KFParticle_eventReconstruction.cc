@@ -218,10 +218,10 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 
   int num_remaining_tracks = m_num_tracks - num_tracks_used_by_intermediates;
   // Number of potential intermediates found
-  unsigned int num_pot_inter_a = potentialIntermediates[0].size();
-  unsigned int num_pot_inter_b = m_num_intermediate_states < 2 ? 1 : potentialIntermediates[1].size();  // Ensure the code inside the loop below is executed
-  unsigned int num_pot_inter_c = m_num_intermediate_states < 3 ? 1 : potentialIntermediates[2].size();
-  unsigned int num_pot_inter_d = m_num_intermediate_states < 4 ? 1 : potentialIntermediates[3].size();
+  const unsigned int num_pot_inter_a = potentialIntermediates[0].size();
+  const unsigned int num_pot_inter_b = m_num_intermediate_states < 2 ? 1 : potentialIntermediates[1].size();  // Ensure the code inside the loop below is executed
+  const unsigned int num_pot_inter_c = m_num_intermediate_states < 3 ? 1 : potentialIntermediates[2].size();
+  const unsigned int num_pot_inter_d = m_num_intermediate_states < 4 ? 1 : potentialIntermediates[3].size();
 
   for (unsigned int a = 0; a < num_pot_inter_a; ++a)
   {
@@ -458,7 +458,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
       {
         int* PDGIDofFirstParticleInCombination = uniqueCombination.data();
         auto [candidate, isGood] = getCombination(daughterTracks.data(), PDGIDofFirstParticleInCombination, pv, m_constrain_to_vertex,
-                                                     isIntermediate, intermediateNumber, nTracks, constrainMass, required_unique_vertexID, topNode);
+                                                  isIntermediate, intermediateNumber, nTracks, constrainMass, required_unique_vertexID, topNode);
         if (isIntermediate && isGood)
         {
           float min_PV_dca = 0;
