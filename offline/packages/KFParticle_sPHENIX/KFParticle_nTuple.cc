@@ -694,10 +694,6 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     }
     else if (!bunchCrossingisZero)
     {
-      if (m_verbosity_nTuple > 0)
-      {
-        std::cout << "KFParticle - Invalid bunch crossing" << std::endl;
-      }
       m_centrality_mbd = std::numeric_limits<float>::quiet_NaN();
     }
     else
