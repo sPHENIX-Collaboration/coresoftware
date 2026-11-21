@@ -2,6 +2,7 @@
 
 #include "Jet.h"
 #include "JetContainerv1.h"
+#include "JetContainerv2.h"
 
 #include <cdbobjects/CDBTF.h>  // for CDBTF1 (legacy method)
 
@@ -22,6 +23,7 @@
 #include <TF1.h>
 #include <TFile.h>
 #include <TH2.h>
+#include <TSystem.h>
 
 #include <algorithm>  // for std::max, std::min
 #include <cmath>
@@ -61,11 +63,15 @@ JetCalib::~JetCalib()
 
 int JetCalib::InitRun(PHCompositeNode *topNode)
 {
-  // Create calib jet node.
-  int ret = CreateNodeTree(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK)
+  // Create the separate calib jet node (only when an output node is set).
+  int ret = Fun4AllReturnCodes::EVENT_OK;
+  if (!m_outputNode.empty())
   {
-    return ret;
+    ret = CreateNodeTree(topNode);
+    if (ret != Fun4AllReturnCodes::EVENT_OK)
+    {
+      return ret;
+    }
   }
 
   ret = m_useEMfracCalib ? initEMfracCalib() : initLegacyCalib();
@@ -77,7 +83,7 @@ int JetCalib::InitRun(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     std::cout << "JetCalib::InitRun(PHCompositeNode *topNode) - InitRun with inputNode: " << m_inputNode
-              << " outputNode: " << m_outputNode
+              << " outputNode: " << (m_outputNode.empty() ? "(none, pT written into the input jets)" : m_outputNode)
               << " method: " << (m_useEMfracCalib ? "EMfrac" : "legacy") << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -268,11 +274,25 @@ int JetCalib::process_event(PHCompositeNode *topNode)
     std::cout << "JetCalib::process_event(PHCompositeNode *topNode) : Raw jet node not found! Cannot apply calibration." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  JetContainer *_calib_jets = findNode::getClass<JetContainer>(topNode, m_outputNode);
-  if (!_calib_jets)
+  // The calibrated pT goes into the input jets when they can hold it (JetContainerv2 / Jetv3);
+  // an older container version needs the separate output node, or the calibration is lost.
+  const bool fillInPlace = dynamic_cast<JetContainerv2 *>(_raw_jets) != nullptr;
+  if (!fillInPlace && m_outputNode.empty())
   {
-    std::cout << "JetCalib::process_event(PHCompositeNode *topNode) : Calib jet node not found! Cannot apply calibration." << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    std::cout << PHWHERE << " JetCalib::process_event : input node " << m_inputNode
+              << " is not a JetContainerv2 (its jets cannot hold the calibrated pT) and no output node is set"
+              << " (set_OutputNode). Exiting." << std::endl;
+    gSystem->Exit(1);
+  }
+  JetContainer *_calib_jets = nullptr;
+  if (!m_outputNode.empty())
+  {
+    _calib_jets = findNode::getClass<JetContainer>(topNode, m_outputNode);
+    if (!_calib_jets)
+    {
+      std::cout << "JetCalib::process_event(PHCompositeNode *topNode) : Calib jet node not found! Cannot apply calibration." << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
   }
 
   float zvertex = m_useEMfracCalib ? 0 : -999.0;
@@ -295,7 +315,7 @@ int JetCalib::process_event(PHCompositeNode *topNode)
     }
   }
 
-  // Apply calibration to jets and add to calib jet node.
+  // Apply calibration: write it into the jet itself, and into the calib jet node if set.
   int ijet = 0;
   for (auto *jet : *_raw_jets)
   {
@@ -328,17 +348,25 @@ int JetCalib::process_event(PHCompositeNode *topNode)
       calib_pt = doCalibration(m_JetCalibFunc, pt, zvertex, eta);
     }
 
-    auto *calib_jet = _calib_jets->add_jet();
-    calib_jet->set_px(calib_pt * std::cos(phi));
-    calib_jet->set_py(calib_pt * std::sin(phi));
-    calib_jet->set_pz(calib_pt * std::sinh(eta));
-    calib_jet->set_id(ijet);
-    calib_jet->insert_comp(jet->get_comp_vec(), true);
-    calib_jet->set_isCalib(1);
+    if (fillInPlace)
+    {
+      jet->set_pt_calib(calib_pt);
+    }
+
+    if (_calib_jets)
+    {
+      auto *calib_jet = _calib_jets->add_jet();
+      calib_jet->set_px(calib_pt * std::cos(phi));
+      calib_jet->set_py(calib_pt * std::sin(phi));
+      calib_jet->set_pz(calib_pt * std::sinh(eta));
+      calib_jet->set_id(ijet);
+      calib_jet->insert_comp(jet->get_comp_vec(), true);
+      calib_jet->set_isCalib(1);
+    }
     ijet++;
   }
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 0 && _calib_jets)
   {
     std::cout << "JetCalib::process_event(PHCompositeNode *topNode) : nRawJets: " << _raw_jets->size() << " nCalibJets: " << _calib_jets->size() << std::endl;
     if (_calib_jets->size() != _raw_jets->size())

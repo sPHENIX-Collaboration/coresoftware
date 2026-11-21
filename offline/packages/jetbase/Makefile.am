@@ -44,8 +44,10 @@ pkginclude_HEADERS = \
   JetCalib.h \
   Jetv1.h \
   Jetv2.h \
+  Jetv3.h \
   JetContainer.h \
   JetContainerv1.h \
+  JetContainerv2.h \
   JetMap.h \
   JetMapv1.h \
   JetInput.h \
@@ -60,8 +62,10 @@ ROOTDICTS = \
   Jet_Dict.cc \
   Jetv1_Dict.cc \
   Jetv2_Dict.cc \
+  Jetv3_Dict.cc \
   JetContainer_Dict.cc \
   JetContainerv1_Dict.cc \
+  JetContainerv2_Dict.cc \
   JetMap_Dict.cc \
   JetMapv1_Dict.cc
 
@@ -74,8 +78,10 @@ libjetbase_io_la_SOURCES = \
   Jet.cc \
   Jetv1.cc \
   Jetv2.cc \
+  Jetv3.cc \
   JetContainer.cc \
   JetContainerv1.cc \
+  JetContainerv2.cc \
   JetMap.cc \
   JetMapv1.cc
 
