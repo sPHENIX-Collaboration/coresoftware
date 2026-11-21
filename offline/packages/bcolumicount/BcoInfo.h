@@ -43,6 +43,19 @@ class BcoInfo : public PHObject
   virtual void set_current_evtno(int /*val*/) { return; }
   virtual void set_future_evtno(int /*val*/) { return; }
 
+  virtual int get_current_bunchno() const { return 0; }
+  virtual void set_current_bunchno(int /*val*/) { return; }
+
+  virtual uint64_t get_current_MBDNS_scalers() const { return 0; }
+  virtual void set_current_MBDNS_scalers(uint64_t /*val*/) { return; }
+
+  virtual uint64_t get_current_ZDCNS_scalers() const { return 0; }
+  virtual void set_current_ZDCNS_scalers(uint64_t /*val*/) { return; }
+
+  virtual uint64_t get_current_rawgl1scalers() const { return 0; }
+  virtual void set_current_rawgl1scalers(uint64_t /*val*/) { return; }
+
+
  private:
   ClassDefOverride(BcoInfo, 1)
 };

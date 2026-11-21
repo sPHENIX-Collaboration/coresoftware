@@ -144,6 +144,14 @@ void CopyIODataNodes::CopyRunHeader(PHCompositeNode *from_topNode, PHCompositeNo
       to_runheader->identify();
     }
   }
+  else if (to_runheader->get_RunNumber() != from_runheader->get_RunNumber())
+  {
+    // another input (e.g. the pedestal DST) brought its own RunHeader, the data run wins
+    std::cout << "CopyIODataNodes: RunHeader on " << to_topNode->getName() << " has run "
+              << to_runheader->get_RunNumber() << ", setting it to the data run "
+              << from_runheader->get_RunNumber() << std::endl;
+    to_runheader->set_RunNumber(from_runheader->get_RunNumber());
+  }
   return;
 }
 
