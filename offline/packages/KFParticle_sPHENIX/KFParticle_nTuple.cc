@@ -685,7 +685,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     }
     else if (!m_CentInfo->has_centrality_bin(CentralityInfo::PROP::mbd_NS))
     {
-      if (m_verbosity_nTuple > 0)
+      if (m_verbosity_nTuple > 10)
       {
         std::cout << "KFParticle - No centrality information found in CentralityInfo. Setting centrality_MBD to -999." << std::endl;
         m_CentInfo->identify();
