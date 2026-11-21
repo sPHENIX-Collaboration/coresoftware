@@ -7,7 +7,7 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPoint.h>
 
-#include <cstddef>  // for NULL
+#include <cstddef>  // for size_t
 #include <string>
 #include <utility>  // for pair
 #include <vector>
@@ -46,21 +46,20 @@ class DecayFinder : public SubsysReco
 
   bool findParticle(const std::string &particle);
 
-  void searchHepMCRecord(HepMC::GenParticle *particle, std::vector<int> decayProducts,
+  void searchHepMCRecord(HepMC::GenParticle *particle, const std::vector<int> &decayProducts,
                          bool &breakLoop, bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA,
                          std::vector<int> &actualDecayProducts);
 
-  void searchGeant4Record(int barcode, int pid, std::vector<int> decayProducts,
+  void searchGeant4Record(int barcode, int pid, const std::vector<int> &decayProducts,
                           bool &breakLoop, bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA,
                           std::vector<int> &actualDecayProducts);
 
   bool checkIfCorrectHepMCParticle(HepMC::GenParticle *particle, bool &trackFailedPT, bool &trackFailedETA);
 
-  bool checkIfCorrectGeant4Particle(PHG4Particle *particle, bool &hasPhoton, bool &hasPi0, bool &trackFailedPT, bool &trackFailedETA);
+  bool checkIfCorrectGeant4Particle(PHG4Particle *particle, bool &hasPhoton, bool &hasPi0, bool &trackFailedPT,
+                                    bool &trackFailedETA);
 
   bool compareDecays(std::vector<int> required, std::vector<int> actual);
-
-  int deleteElement(int arr[], int n, int x);
 
   void multiplyVectorByScalarAndSort(std::vector<int> &v, int k);
 
@@ -116,8 +115,9 @@ class DecayFinder : public SubsysReco
    */
   void allowPi0(bool allow) { m_allowPi0 = allow; }
   /**
-   * @param[in] allow Set to true to save any of your decays that are found back to the node tree in a DecayFinderContainer
-   *           The default name is "decay" and will automatically have "_DecayMap" added to the end
+   * @param[in] allow Set to true to save any of your decays that are found back to the node tree in a
+   *           DecayFinderContainer. The default name is "decay" and will automatically have "_DecayMap" added to
+   *           the end
    */
   void saveDST(bool save) { m_save_dst = save; }
   /**
@@ -154,6 +154,124 @@ class DecayFinder : public SubsysReco
   std::string passOrFail(bool condition);
 
  private:
+  // What is found while searching for one decay
+  struct SearchState
+  {
+    bool breakLoop{false};  // The search found something that rules this candidate out
+    bool hasPhoton{false};
+    bool hasPi0{false};
+    bool failedPT{false};
+    bool failedETA{false};
+    std::vector<int> products;  // PDG IDs of the decay products that were found
+  };
+
+  // Helpers of parseDecayDescriptor, they work through the descriptor from the left and remove what they have read
+  /** @brief Remove the white space, and the []cc if there is one, from the decay descriptor. */
+  std::string simplifyDecayDescriptor();
+  /** @brief Read the mother. @return False if it is not a known particle. */
+  bool parseMother(std::string &descriptor);
+  /** @brief Read the intermediate decays within {}. @return False if any particle is not known. */
+  bool parseIntermediates(std::string &descriptor, std::vector<int> &daughtersCharge);
+  /** @brief Read the tracks that come directly from the mother. @return False if any particle is not known. */
+  bool parseMotherTracks(std::string &descriptor, std::vector<int> &daughtersCharge);
+  /**
+   * @brief Read the track in front of the charge indicator at chargeLocation and remove it from the descriptor.
+   * @param[out] daughterID The absolute PDG ID of the track, if it is a known particle.
+   * @return False if it is not a known particle.
+   */
+  bool parseDaughter(std::string &descriptor, size_t chargeLocation, std::vector<int> &daughtersCharge,
+                     int &daughterID);
+  /** @brief Give the mother, intermediates and tracks their charge from the charges of the tracks. */
+  void assignCharges(const std::vector<int> &daughtersCharge);
+
+  // Helpers of findDecay
+  /** @brief Start from the default list of resonances to skip over, minus those in the decay descriptor. */
+  void resetResonances();
+  /** @brief Find the truth nodes, the module cannot work without either of them. */
+  void getTruthNodes(PHCompositeNode *topNode);
+  /** @return The number of reconstructable decays found in the Geant4 record. */
+  int searchGeant4Mothers(PHCompositeNode *topNode, const std::vector<int> &positiveProducts, int motherIDToMatch);
+  /** @return The number of reconstructable decays found in the HepMC records. */
+  int searchHepMCMothers(PHCompositeNode *topNode, const std::vector<int> &positiveProducts, int motherIDToMatch);
+  /** @return The number of reconstructable decays found in the HepMC record of the current event. */
+  int searchHepMCEvent(PHCompositeNode *topNode, const std::vector<int> &positiveProducts, int motherIDToMatch);
+  /**
+   * @brief Check if a search found the decay, count it and save it if it is reconstructable.
+   * @return True if the decay was found and is reconstructable.
+   */
+  bool evaluateCandidate(PHCompositeNode *topNode, const SearchState &state);
+  /** @brief Count a reconstructable decay by whether it has photons and pi0s. */
+  void countPhotonsAndPi0s(bool hasPhoton, bool hasPi0);
+
+  // Helpers of searchHepMCRecord
+  /** @brief Check a child of the mother that is one of the decay products. */
+  void searchWantedHepMCChild(HepMC::GenParticle *child, bool &breakLoop, bool &hasPhoton, bool &hasPi0,
+                              bool &failedPT, bool &failedETA, std::vector<int> &actualDecayProducts);
+  /** @brief Check an intermediate that did not decay in the generator, its decay is in the Geant4 record. */
+  void searchUndecayedIntermediate(HepMC::GenParticle *intermediate, unsigned int index, bool &breakLoop,
+                                   bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA,
+                                   std::vector<int> &actualDecayProducts);
+  /** @brief Check the decay products of a resonance that is skipped over. */
+  void searchHepMCResonance(HepMC::GenParticle *resonance, const std::vector<int> &decayProducts, bool &breakLoop,
+                            bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA,
+                            std::vector<int> &actualDecayProducts);
+  /** @brief Add a particle to the products that were found and to the decay chain. */
+  void recordHepMCParticle(const HepMC::GenParticle &particle, std::vector<int> &actualDecayProducts);
+  /** @brief Remove what was added to the decay chain after it had this size. */
+  void restoreDecayChain(std::size_t size);
+
+  // Helpers of searchGeant4Record
+  /**
+   * @brief Check all the children of a Geant4 particle, found from the track ID of the parent. Use this rather than
+   * searchGeant4Record when starting from a Geant4 particle, the barcode is not unique for a particle gun.
+   */
+  void searchGeant4Children(int parentTrackID, const std::vector<int> &decayProducts, bool &breakLoop,
+                            bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA,
+                            std::vector<int> &actualDecayProducts);
+  /**
+   * @brief Check one child of the mother in the Geant4 record.
+   * @return True if the search of the children should stop.
+   */
+  bool processGeant4Child(PHG4Particle *child, const std::vector<int> &decayProducts, bool &breakLoop,
+                          bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA,
+                          std::vector<int> &actualDecayProducts);
+
+  // Helpers of the checkIfCorrect functions
+  /**
+   * @brief Check the decay products of an intermediate in the HepMC record.
+   * @return True if a photon or pi0 that is not allowed was found, whatever else was found the decay is ruled out.
+   */
+  bool searchHepMCIntermediate(const HepMC::GenParticle &intermediate, const std::vector<int> &positiveRequiredProducts,
+                               bool &failedPT, bool &failedETA, std::vector<int> &actualIntermediateDecayProducts);
+  /**
+   * @brief Check the decay products of a resonance that is a decay product of an intermediate, in the HepMC record
+   * or, if the generator did not decay it, in the Geant4 record.
+   * @return True if the intermediate is ruled out, see searchHepMCIntermediate.
+   */
+  bool searchIntermediateResonance(const HepMC::GenParticle &resonance,
+                                   const std::vector<int> &positiveRequiredProducts,
+                                   bool &failedPT, bool &failedETA,
+                                   std::vector<int> &actualIntermediateDecayProducts);
+  /** @brief Add a decay product of an intermediate that was found in the HepMC record. */
+  void addHepMCIntermediateProduct(const HepMC::GenParticle &particle, bool &failedPT, bool &failedETA,
+                                   std::vector<int> &actualIntermediateDecayProducts);
+  /** @brief Check the pT and eta of a HepMC track. */
+  void checkHepMCTrack(const HepMC::GenParticle &particle, bool &failedPT, bool &failedETA);
+  /** @brief Check the pT and eta of a track against the requirements, recalculating the eta range if needed. */
+  void applyTrackRequirements(double pt, double eta, double py, double vertex[3], bool &failedPT, bool &failedETA);
+  /** @return The absolute PDG IDs of the intermediates. */
+  std::vector<int> getPositiveIntermediateIDs() const;
+  /** @return The PDG IDs of the tracks that come from the intermediate at this position in the descriptor. */
+  std::vector<int> getIntermediateDaughterIDs(unsigned int index) const;
+  /** @return True if the particle decays too quickly to be seen and so is skipped over. */
+  bool isResonance(int pdgID) const;
+  /** @return True if the photon or pi0 is allowed and is not part of the decay and so is ignored. */
+  bool isIgnoredPhotonOrPi0(int pdgID) const;
+  /** @return True if the photon or pi0 is not allowed and so rules out this decay. */
+  bool isRejectedPhotonOrPi0(int pdgID) const;
+  /** @brief Print the decay products that are compared, and whether they match. */
+  void printComparison(const std::vector<int> &required, const std::vector<int> &actual) const;
+
   PHHepMCGenEventMap *m_geneventmap{nullptr};
   PHHepMCGenEvent *m_genevt{nullptr};
   PHG4TruthInfoContainer *m_truthinfo{nullptr};
@@ -171,7 +289,6 @@ class DecayFinder : public SubsysReco
   double m_pt_req{0.2};
 
   int m_counter{0};
-  int m_intermediate_product_counter{0};
   int m_nCandFail_pT{0};
   int m_nCandFail_eta{0};
   int m_nCandFail_pT_and_eta{0};
@@ -191,6 +308,7 @@ class DecayFinder : public SubsysReco
 
   int m_mother_ID{0};
   std::vector<int> m_intermediates_ID;
+  std::vector<int> m_resonantPIDs;  // Resonances to ignore for this decay, rebuilt every event
   std::vector<int> m_daughters_ID;
 
   int m_nTracksFromMother{0};
@@ -198,9 +316,9 @@ class DecayFinder : public SubsysReco
 
   std::vector<int> m_motherDecayProducts;
 
-  bool m_save_dst;
+  bool m_save_dst{false};
   DecayFinderContainer_v1 *m_decayMap{nullptr};
-  Decay decayChain;
+  Decay m_decayChain;
   std::string m_nodeName;
   std::string m_container_name;
 };
