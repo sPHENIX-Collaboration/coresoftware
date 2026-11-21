@@ -680,7 +680,6 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_CentInfo = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
     if (!m_CentInfo)
     {
-      std::cout << "KFparticle - [WARNING] - can't find CentralityInfo node CentralityInfo" << std::endl;
       m_centrality_mbd = -9999.;
     }
     else if (!m_CentInfo->has_centrality_bin(CentralityInfo::PROP::mbd_NS))
