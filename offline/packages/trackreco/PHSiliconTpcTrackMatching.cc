@@ -282,7 +282,7 @@ short int PHSiliconTpcTrackMatching::findCrossingGeometrically(unsigned int tpci
   const short int tpc_crossing = tpc_track->get_crossing();
 
   // this is an initial estimate of the bunch crossing based on the z-mismatch of the seeds for this track
-  int rounded_crossing_estimate = (short int) getBunchCrossing(tpcid, tpc_z - si_z);
+  double rounded_crossing_estimate = std::round(getBunchCrossing(tpcid, tpc_z - si_z));
   short int crossing_estimate = (short int) rounded_crossing_estimate;
   
   if (Verbosity() > 1)
