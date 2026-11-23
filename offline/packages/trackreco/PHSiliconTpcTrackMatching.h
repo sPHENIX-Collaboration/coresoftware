@@ -117,7 +117,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
     // max for |deltaX| for neg Q
     void set_negQoverpT_maxabs (const Arr3D& _negHi, const double _min_pt=0.25)
-    { posLo={100.,0.,0.}; negHi=_negHi; min_pt_negQ = _min_pt; };
+    { negLo={100.,0.,0.}; negHi=_negHi; min_pt_negQ = _min_pt; };
 
     // range for deltaX for pos Q
     void set_posQoverpT_range  (const Arr3D& _posLo, const Arr3D& _posHi, const double _min_pt=0.25)
