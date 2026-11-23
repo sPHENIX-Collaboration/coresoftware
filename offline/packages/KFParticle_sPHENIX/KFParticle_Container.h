@@ -41,8 +41,8 @@ class KFParticle_Container : public PHObject
   size_t count(unsigned int key) const { return m_kfpmap.count(key); }
   void clear() { Reset(); }
 
-  const KFParticle* get(unsigned int key) const;
-  KFParticle* get(unsigned int key);
+  const KFParticle* get(unsigned int id) const;
+  KFParticle* get(unsigned int id);
 
   ConstIter begin() const { return m_kfpmap.begin(); }
   ConstIter find(unsigned int key) const { return m_kfpmap.find(key); }
@@ -54,7 +54,7 @@ class KFParticle_Container : public PHObject
 
   KFParticle* insert(const KFParticle* particle);
   ConstIter addParticle(KFParticle* particle);
-  ConstIter addParticleSpecifyKey(unsigned int key, KFParticle* particle);
+  ConstIter addParticleSpecifyKey(unsigned int id, KFParticle* particle);
 
   /// Use the PDG MC ID to return a subset of the KFParticle container, if those particle exist in the container
   Map returnParticlesByPDGid(int PDGid);
