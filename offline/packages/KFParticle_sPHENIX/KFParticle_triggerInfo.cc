@@ -1,16 +1,20 @@
 #include "KFParticle_triggerInfo.h"
 
+#include <calotrigger/TriggerAnalyzer.h>
 #include <calotrigger/TriggerRunInfo.h>
 #include <ffarawobjects/Gl1Packet.h>
 #include <phool/getClass.h>
 
 #include <TTree.h>
 
+#include <map>
+#include <string>
+
 KFParticle_triggerInfo::KFParticle_triggerInfo() = default;  // Constructor
 
 KFParticle_triggerInfo::~KFParticle_triggerInfo() = default;  // Destructor
 
-bool KFParticle_triggerInfo::buildTriggerBranches(PHCompositeNode *topNode, TTree *m_tree)
+bool KFParticle_triggerInfo::initializeBranches(PHCompositeNode *topNode, TTree *m_tree)
 {
   //First, check whether we actually have the right information
   auto *gl1packet =findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
@@ -36,6 +40,10 @@ bool KFParticle_triggerInfo::buildTriggerBranches(PHCompositeNode *topNode, TTre
 
   std::string trigger_header = "trigger_";
 
+  if (!triggeranalyzer)
+  {
+    triggeranalyzer = std::make_unique<TriggerAnalyzer>();
+  }
   triggeranalyzer->decodeTriggers(topNode);
 
   for (int i = 0; i < nTriggerBits; ++i)
@@ -61,10 +69,11 @@ bool KFParticle_triggerInfo::buildTriggerBranches(PHCompositeNode *topNode, TTre
     m_tree->Branch(branchName.c_str(), &m_trigger_bit[i], branchNameType.c_str());
   }
 
+  m_available = true;
   return true;
 }
 
-void KFParticle_triggerInfo::fillTriggerBranches(PHCompositeNode *topNode)
+void KFParticle_triggerInfo::fill(PHCompositeNode *topNode)
 {
   triggeranalyzer->decodeTriggers(topNode);
   for (int i = 0; i < nTriggerBits; ++i)
@@ -80,7 +89,7 @@ void KFParticle_triggerInfo::fillTriggerBranches(PHCompositeNode *topNode)
   }
 }
 
-void KFParticle_triggerInfo::resetTriggerBranches()
+void KFParticle_triggerInfo::clear()
 {
   for (bool &bit : m_trigger_bit)
   {

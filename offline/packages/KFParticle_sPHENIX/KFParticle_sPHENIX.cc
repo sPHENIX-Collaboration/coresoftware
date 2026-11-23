@@ -20,6 +20,7 @@
  */
 
 #include "KFParticle_sPHENIX.h"
+#include "KFParticle_unsorted.h"
 
 #include <centrality/CentralityInfo.h>
 
@@ -52,14 +53,8 @@
 #include <filesystem>
 #include <iostream>  // for operator<<, endl, basi...
 #include <map>       // for map
-#include <tuple>     // for tie, tuple
 
 class PHCompositeNode;
-
-namespace TMVA
-{
-  class Reader;
-}
 
 //int candidateCounter = 0;
 
@@ -68,12 +63,9 @@ KFParticle_sPHENIX::KFParticle_sPHENIX() : KFParticle_sPHENIX("KFPARTICLE"){}
 
 KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
   : SubsysReco(name)
-  , m_has_intermediates_sPHENIX(false)
-  , m_constrain_to_vertex_sPHENIX(false)
-  , m_require_mva(false)
-  , m_save_dst(false)
-  , m_save_output(true)
-  , m_outfile_name("outputData.root")
+  , KFParticle_nTuple(m_config)  // binds only; m_config is constructed before any of it is read
+  , KFParticle_DST(m_config)  // same
+  , KFParticle_eventReconstruction(m_config)  // same
   , m_outfile(nullptr)
 {
   setToolsInstance(static_cast<KFParticle_Tools *>(this));
@@ -85,36 +77,23 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
   m_qa_tree_path = Name() + "/DecayTree";  // one directory per module so several KFParticle modules do not clash
   m_verbosity_nTuple = Verbosity();
   
-  if (m_save_output && !m_minimal_output_to_qa && Verbosity() >= VERBOSITY_SOME)
+  if (m_config.saveOutput && !m_config.lightweightNTupleToQA && Verbosity() >= VERBOSITY_SOME)
   {
-    std::cout << "Output nTuple: " << m_outfile_name << std::endl;
+    std::cout << "Output nTuple: " << m_config.outputName << std::endl;
   }
 
-  if (m_save_dst)
+  if (m_config.saveDST)
   {
     createParticleNode(topNode);
   }
 
-/* DEPRECATED: Code is initialized to be completely discarded
-  if (m_require_mva)
-  {
-    TMVA::Reader *reader;
-    std::vector<Float_t> MVA_parValues;
-    tie(reader, MVA_parValues) = initMVA();
-  }
-*/
   int returnCode = 0;
-  if (!m_decayDescriptor.empty())
+  if (!m_config.decayDescriptor.empty())
   {
     returnCode = parseDecayDescriptor();
   }
 
-  if (m_get_trigger_info)
-  {
-    triggeranalyzer = new TriggerAnalyzer();
-  }
-
-  if (m_use_PID)
+  if (m_config.usePID)
   {
     init_dEdx_fits();
   }
@@ -139,7 +118,7 @@ int KFParticle_sPHENIX::InitRun(PHCompositeNode *topNode)
 
   getField();
 
-  if (m_use_centrality_nTuple && !findNode::getClass<CentralityInfo>(topNode, "CentralityInfo"))
+  if (m_config.useCentrality && !findNode::getClass<CentralityInfo>(topNode, "CentralityInfo"))
   {
     std::cout << "KFParticle - [WARNING] - can't find CentralityInfo node CentralityInfo" << std::endl;
   }
@@ -213,7 +192,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   }
   // End BCO matching here
 
-  SvtxTrackMap *check_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
+  SvtxTrackMap *check_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_config.trackMapNodeName);
 
   if (!check_trackmap || check_trackmap->empty())
   {
@@ -227,9 +206,9 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 
   if (!m_use_fake_pv)
   {
-    const bool noVertices = m_use_mbd_vertex
+    const bool noVertices = m_config.useMbdVertex
                                 ? findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap")->empty()
-                                : findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name)->empty();
+                                : findNode::getClass<SvtxVertexMap>(topNode, m_config.vertexMapNodeName)->empty();
     if (noVertices)
     {
       if (Verbosity() >= VERBOSITY_SOME)
@@ -242,11 +221,11 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   
 
   createDecay(topNode, mother, vertex_kfparticle, daughters, intermediates, nPVs);
-  if (!m_has_intermediates_sPHENIX)
+  if (!m_config.hasIntermediates)
   {
     intermediates = daughters;
   }
-  if (!m_constrain_to_vertex_sPHENIX)
+  if (!m_config.constrainToPrimaryVertex)
   {
     vertex_kfparticle = mother;
   }
@@ -254,23 +233,23 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   for (unsigned int i = 0; i < mother.size(); ++i)
   {
     
-    if (m_save_output && getCandidateCounter() == 0)
+    if (m_config.saveOutput && getCandidateCounter() == 0)
     {
-      if (!m_minimal_output_to_qa)
+      if (!m_config.lightweightNTupleToQA)
       {
-        m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
+        m_outfile = new TFile(m_config.outputName.c_str(), "RECREATE");
       }
       initializeBranches(topNode);
     }
 
     incrementCandidateCounter();
 
-    if (m_save_output)
+    if (m_config.saveOutput)
     {
       set_event_bcos(m_this_event_bco, m_last_event_bco); //filling nTuple for BCO Matching
       fillBranch(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i]);
     }
-    if (m_save_dst)
+    if (m_config.saveDST)
     {
       fillParticleNode(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i]);
     }
@@ -279,7 +258,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     {
       printParticles(mother[i], vertex_kfparticle[i], daughters[i], intermediates[i], nPVs, multiplicity);
     }
-    if (Verbosity() >= VERBOSITY_MORE && m_save_dst)
+    if (Verbosity() >= VERBOSITY_MORE && m_config.saveDST)
     {
       printNode(topNode);
     }
@@ -292,7 +271,7 @@ int KFParticle_sPHENIX::End(PHCompositeNode * /*topNode*/)
 {
   std::cout << "KFParticle_sPHENIX object " << Name() << " finished. Number of candidates: " << getCandidateCounter() << std::endl;
 
-  if (m_save_output && !m_minimal_output_to_qa && getCandidateCounter() != 0)
+  if (m_config.saveOutput && !m_config.lightweightNTupleToQA && getCandidateCounter() != 0)
   {
     m_outfile->Write();
     m_outfile->Close();
@@ -306,29 +285,29 @@ void KFParticle_sPHENIX::printParticles(const KFParticle &motherParticle,
                                         const KFParticle &chosenVertex,
                                         const std::vector<KFParticle> &daughterParticles,
                                         const std::vector<KFParticle> &intermediateParticles,
-                                        const int numPVs, const int numTracks)
+                                        const int numPVs, const int numTracks) const
 {
   std::cout << "\n---------------KFParticle candidate information---------------" << std::endl;
 
   std::cout << "Mother information:" << std::endl;
-  identify(motherParticle);
+  KFParticle_utilities::identify(motherParticle);
 
-  if (m_has_intermediates_sPHENIX)
+  if (m_config.hasIntermediates)
   {
     std::cout << "Intermediate state information:" << std::endl;
     for (const auto &intermediateParticle : intermediateParticles)
     {
-      identify(intermediateParticle);
+      KFParticle_utilities::identify(intermediateParticle);
     }
   }
 
   std::cout << "Final track information:" << std::endl;
   for (const auto &daughterParticle : daughterParticles)
   {
-    identify(daughterParticle);
+    KFParticle_utilities::identify(daughterParticle);
   }
 
-  if (m_constrain_to_vertex_sPHENIX)
+  if (m_config.constrainToPrimaryVertex)
   {
     std::cout << "Primary vertex information:" << std::endl;
     std::cout << "(x,y,z) = (" << chosenVertex.GetX() << " +/- " << std::sqrt(chosenVertex.GetCovariance(0, 0)) << ", ";
@@ -369,7 +348,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   // These tracks require a + or - after their name for TDatabasePDG
   std::string specialTracks[] = {"e", "mu", "pi", "K"};
 
-  std::string manipulateDecayDescriptor = m_decayDescriptor;
+  std::string manipulateDecayDescriptor = m_config.decayDescriptor;
 
   // Remove all white space before we begin
   size_t pos;
@@ -393,7 +372,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   // Find the initial particle
   size_t findMotherEndPoint = manipulateDecayDescriptor.find(decayArrow);
   mother = manipulateDecayDescriptor.substr(0, findMotherEndPoint);
-  bool ddCanBeParsed = findParticle(mother);
+  bool ddCanBeParsed = KFParticle_unsorted::findParticle(mother);
   manipulateDecayDescriptor.erase(0, findMotherEndPoint + decayArrow.length());
 
   // Consume every "name^charge" daughter in decay, filling daughters_name/daughters_charge; returns how many were read
@@ -409,7 +388,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
       {
         daughter += daughterChargeString;
       }
-      if (findParticle(daughter))
+      if (KFParticle_unsorted::findParticle(daughter))
       {
         daughters_name.emplace_back(daughter.c_str());
         auto charge = chargeLookup.find(daughterChargeString);
@@ -444,7 +423,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     std::string intermediateDecay = manipulateDecayDescriptor.substr(pos + 1, findIntermediateEndPoint - (pos + 1));
 
     intermediate = intermediateDecay.substr(0, intermediateDecay.find(decayArrow));
-    if (findParticle(intermediate))
+    if (KFParticle_unsorted::findParticle(intermediate))
     {
       intermediates_name.emplace_back(intermediate.c_str());
     }
@@ -521,14 +500,14 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
 void KFParticle_sPHENIX::getField()
 {
   //This sweeps the sPHENIX magnetic field map from some point radially then grabs the first event that passes the selection
-  m_magField = std::filesystem::exists(m_magField) ? m_magField : CDBInterface::instance()->getUrl(m_magField);
+  m_config.magFieldFile = std::filesystem::exists(m_config.magFieldFile) ? m_config.magFieldFile : CDBInterface::instance()->getUrl(m_config.magFieldFile);
 
   if (Verbosity() > 0)
   {
-    std::cout << PHWHERE << ": using fieldmap : " << m_magField << std::endl;
+    std::cout << PHWHERE << ": using fieldmap : " << m_config.magFieldFile << std::endl;
   }
 
-  TFile *fin = new TFile(m_magField.c_str());
+  TFile *fin = new TFile(m_config.magFieldFile.c_str());
   TTree *fieldmap = (TTree *) fin->Get("fieldmap");
 
   float Bz = 0.;

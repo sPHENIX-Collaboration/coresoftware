@@ -1,6 +1,8 @@
 #ifndef KFPARTICLESPHENIX_KFPARTICLEDST_H
 #define KFPARTICLESPHENIX_KFPARTICLEDST_H
 
+#include "KFParticle_Config.h"
+
 #include <KFParticle.h>
 
 #include <string>
@@ -14,8 +16,12 @@ class SvtxTrackMap;
 class KFParticle_DST
 {
  public:
-  /// Constructor
-  KFParticle_DST() = default;
+  /// Constructor. The config is owned by KFParticle_sPHENIX and is not yet constructed when this runs:
+  /// store the reference only, never read through it here.
+  explicit KFParticle_DST(const KFParticle_Config& config)
+    : m_config(config)
+  {
+  }
 
   /// Destructor
   virtual ~KFParticle_DST() = default;
@@ -43,14 +49,8 @@ class KFParticle_DST
   /// Prints contents of KFParticle_Containers and SvtxTrackMaps for an event if they are enabled
   void printNode(PHCompositeNode* topNode);
 
- protected:
-  bool m_has_intermediates_DST = false;
-  bool m_write_track_container = true;
-  bool m_write_particle_container = true;
-  std::string m_container_name;
-  std::string m_origin_track_map_node_name = "SvtxTrackMap";
-
  private:
+  const KFParticle_Config& m_config;
   SvtxTrackMap* m_recoTrackMap = nullptr;
   KFParticle_Container* m_recoParticleMap = nullptr;
   SvtxTrack* buildSvtxTrack(const KFParticle& particle);

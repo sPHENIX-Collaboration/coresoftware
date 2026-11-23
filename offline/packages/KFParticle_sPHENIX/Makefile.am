@@ -1,13 +1,8 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-    libkfparticle_sphenix_io.la \
-    libkfparticle_sphenix.la
-
-AM_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  `root-config --libs`
+  libkfparticle_sphenix_io.la \
+  libkfparticle_sphenix.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -15,17 +10,25 @@ AM_CPPFLAGS = \
   -isystem$(ROOTSYS)/include \
   -DHomogeneousField
 
+AM_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  `root-config --libs`
 
 pkginclude_HEADERS = \
+  KFParticle_caloInfo.h \
+  KFParticle_Config.h \
   KFParticle_Container.h \
+  KFParticle_detectorInfo.h \
   KFParticle_DST.h \
-  KFParticle_truthAndDetTools.h \
-  KFParticle_triggerInfo.h \
-  KFParticle_nTuple.h \
-  KFParticle_Tools.h \
-  KFParticle_MVA.h \
   KFParticle_eventReconstruction.h \
-  KFParticle_sPHENIX.h
+  KFParticle_nTuple.h \
+  KFParticle_sPHENIX.h \
+  KFParticle_Tools.h \
+  KFParticle_triggerInfo.h \
+  KFParticle_truthInfo.h \
+  KFParticle_unsorted.h \
+  KFParticle_utilities.h
 
 ROOTDICTS = \
   KFParticle_Container_Dict.cc
@@ -39,30 +42,32 @@ libkfparticle_sphenix_io_la_SOURCES = \
   KFParticle_Container.cc
 
 libkfparticle_sphenix_la_SOURCES = \
+  KFParticle_caloInfo.cc \
+  KFParticle_detectorInfo.cc \
   KFParticle_DST.cc \
-  KFParticle_truthAndDetTools.cc \
-  KFParticle_triggerInfo.cc \
-  KFParticle_nTuple.cc \
-  KFParticle_Tools.cc \
-  KFParticle_MVA.cc \
   KFParticle_eventReconstruction.cc \
-  KFParticle_sPHENIX.cc
+  KFParticle_nTuple.cc \
+  KFParticle_sPHENIX.cc \
+  KFParticle_Tools.cc \
+  KFParticle_triggerInfo.cc \
+  KFParticle_truthInfo.cc \
+  KFParticle_unsorted.cc \
+  KFParticle_utilities.cc
 
 libkfparticle_sphenix_io_la_LIBADD = \
+  -lcentrality \
   -lKFParticle \
-  -lphool\
-  -lcentrality
+  -lphool
 
 libkfparticle_sphenix_la_LIBADD = \
   libkfparticle_sphenix_io.la \
   -lcalo_io \
+  -lcalotrigger \
   -lCLHEP \
+  -lffarawobjects \
   -lfun4all \
   -lg4eval \
-  -lTMVA \
   -lphhepmc \
-  -lcalotrigger \
-  -lffarawobjects \
   -lqautils
 
 # Rule for generating table CINT dictionaries.

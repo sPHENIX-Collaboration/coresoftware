@@ -77,20 +77,20 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
                       const KFParticle &chosenVertex,
                       const std::vector<KFParticle> &daughterParticles,
                       const std::vector<KFParticle> &intermediateParticles,
-                      int numPVs, int numTracks);
+                      int numPVs, int numTracks) const;
 
   int parseDecayDescriptor();
 
   /// Parameters for the user to vary
 
-  void setDecayDescriptor(const std::string &decayDescriptor) { m_decayDescriptor = decayDescriptor; }
+  void setDecayDescriptor(const std::string &decayDescriptor) { m_config.decayDescriptor = decayDescriptor; }
 
   static const int max_particles = 99;
 
   //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setMotherName(const std::string &mother_name)
   {
-    m_mother_name = mother_name;
+    m_config.motherName = mother_name;
     m_mother_name_Tools = mother_name;
   }
 
@@ -98,36 +98,34 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void hasIntermediateStates(bool has_intermediates = true)
   {
     m_has_intermediates = has_intermediates;
-    m_has_intermediates_nTuple = has_intermediates;
-    m_has_intermediates_sPHENIX = has_intermediates;
-    m_has_intermediates_DST = has_intermediates;
+    m_config.hasIntermediates = has_intermediates;
   }
 
   //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setNumberOfTracks(int num_tracks)
   {
     m_num_tracks = num_tracks;
-    m_num_tracks_nTuple = num_tracks;
+    m_config.numTracks = num_tracks;
   }
 
   //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setNumberTracksFromIntermeditateState(const std::vector<int> &num_tracks)
   {
     m_num_tracks_from_intermediate.insert(m_num_tracks_from_intermediate.end(), num_tracks.begin(), num_tracks.end());
-    m_num_tracks_from_intermediate_nTuple.insert(m_num_tracks_from_intermediate_nTuple.end(), num_tracks.begin(), num_tracks.end());
+    m_config.numTracksFromIntermediate.insert(m_config.numTracksFromIntermediate.end(), num_tracks.begin(), num_tracks.end());
   }
 
   //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setNumberOfIntermediateStates(int n_intermediates)
   {
     m_num_intermediate_states = n_intermediates;
-    m_num_intermediate_states_nTuple = n_intermediates;
+    m_config.numIntermediateStates = n_intermediates;
   }
 
   //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void getChargeConjugate(bool get_charge_conjugate = true)
   {
-    m_get_charge_conjugate_nTuple = get_charge_conjugate;
+    m_config.chargeConjugate = get_charge_conjugate;
     m_get_charge_conjugate = get_charge_conjugate;
   }
 
@@ -146,7 +144,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   {
     for (const auto &entry : intermediate_list)
     {
-      m_intermediate_name_ntuple.push_back(entry.first);
+      m_config.intermediateNames.push_back(entry.first);
       m_intermediate_name.push_back(entry.first);
       m_intermediate_charge.push_back(entry.second);
     }
@@ -242,24 +240,19 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMaximumMotherVertexVolume(float vertexvol) { m_mother_vertex_volume = vertexvol; }
 
-  void constrainToPrimaryVertex(bool constrain_to_vertex = true)
-  {
-    m_constrain_to_vertex = constrain_to_vertex;
-    m_constrain_to_vertex_nTuple = constrain_to_vertex;
-    m_constrain_to_vertex_sPHENIX = constrain_to_vertex;
-  }
+  void constrainToPrimaryVertex(bool constrain_to_vertex = true) { m_config.constrainToPrimaryVertex = constrain_to_vertex; }
 
   void useMbdVertex(bool use = true)
   {
-    m_use_mbd_vertex = use;
+    m_config.useMbdVertex = use;
   }
 
   void useCentrality(bool use = true)
   {
-    m_use_centrality_nTuple = use;
+    m_config.useCentrality = use;
   }
 
-  void dontUseGlobalVertex(bool dont = true) { m_dont_use_global_vertex = dont; }
+  void dontUseGlobalVertex(bool dont = true) { m_config.dontUseGlobalVertex = dont; }
 
   void useFakePrimaryVertex(bool use_fake = true)
   {
@@ -384,58 +377,78 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void use2Dmatching(bool use_2D_matching_tools = true) { m_use_2D_matching_tools = use_2D_matching_tools; }
 
-  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
-  void useMVA(bool /*require_mva*/ = true) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
+  void saveDST(bool save = true) { m_config.saveDST = save; }
 
-  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
-  void setNumMVAPars(unsigned int /*nPars*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
+  void saveTrackContainer(bool save = true) { m_config.writeTrackContainer = save; }
 
-  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
-  void setMVAVarList(const std::vector<std::string> & /*mva_variable_list*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
+  void saveParticleContainer(bool save = true) { m_config.writeParticleContainer = save; }
 
-  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
-  void setMVAType(const std::string & /*mva_type*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
+  void setContainerName(const std::string &name) { m_config.containerName = name; }
 
-  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
-  void setMVAWeightsPath(const std::string & /*mva_weights_path*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
+  void saveOutput(bool save = true) { m_config.saveOutput = save; }
 
-  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
-  void setMVACutValue(float /*cut_value*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
+  void setOutputName(const std::string &name) { m_config.outputName = name; }
 
-  void saveDST(bool save = true) { m_save_dst = save; }
+  void doTruthMatching(bool truth = true) { m_config.truthMatching = truth; }
 
-  void saveTrackContainer(bool save = true) { m_write_track_container = save; }
+  void getTriggerInfo(bool get = true) { m_config.triggerInfo = get; }
 
-  void saveParticleContainer(bool save = true) { m_write_particle_container = save; }
+  void getDetectorInfo(bool detinfo = true) { m_config.detectorInfo = detinfo; }
 
-  void setContainerName(const std::string &name) { m_container_name = name; }
+  void getCaloInfo(bool caloinfo = true) { m_config.caloInfo = caloinfo; }
 
-  void saveOutput(bool save = true) { m_save_output = save; }
+  void requireTrackEMCalMatch(bool require = true) { m_config.requireTrackEMCalMatch = require; }
 
-  void setOutputName(const std::string &name) { m_outfile_name = name; }
-
-  void doTruthMatching(bool truth = true) { m_truth_matching = truth; }
-
-  void getTriggerInfo(bool get = true) { m_get_trigger_info = get; }
-
-  void getDetectorInfo(bool detinfo = true) { m_detector_info = detinfo; }
-
-  void getCaloInfo(bool caloinfo = true) { m_calo_info = caloinfo; }
-
-  void requireTrackEMCalMatch(bool require = true) { m_require_track_emcal_match = require; }
-
-  void getAllPVInfo(bool pvinfo = true) { m_get_all_PVs = pvinfo; }
+  void getAllPVInfo(bool pvinfo = true) { m_config.allPVInfo = pvinfo; }
 
   // QA output is a sub-mode of the lightweight nTuple
   void saveLightweightNTuple(bool minimal = true)
   {
-    m_minimal_output = minimal;
+    m_config.lightweightNTuple = minimal;
     if (!minimal)
     {
-      m_minimal_output_to_qa = false;
+      m_config.lightweightNTupleToQA = false;
     }
   }
-  void saveLightweightNTupleToQA(bool minimal = true) { m_minimal_output = m_minimal_output_to_qa = minimal; }  // also turns on the lightweight nTuple
+  void saveLightweightNTupleToQA(bool minimal = true) { m_config.lightweightNTuple = m_config.lightweightNTupleToQA = minimal; }  // also turns on the lightweight nTuple
+
+  /// Functions to get detailed subsystem information
+  void GetDetailedTracking(bool set_variable = true)
+  {
+    m_config.detailedTracking = set_variable;
+    if (set_variable)
+    {
+      m_config.detectorInfo = true;
+    }
+  }
+  // Function that will add additional calorimetry info to the output TTree
+  void GetDetailedCalorimetry(bool set_variable = true)
+  {
+    m_config.detailedCalorimetry = set_variable;
+    if (set_variable)
+    {
+      m_config.caloInfo = true;
+    }
+  }
+  // Function that will add info from the 5x5 cell of towers around the cluster center to the output TTree
+  void GetCalo5x5CellInfo(bool set_variable = true)
+  {
+    m_config.calo5x5CellInfo = set_variable;
+    if (set_variable)
+    {
+      m_config.caloInfo = true;
+    }
+  }
+  void get_dEdx_info(bool set_variable = true) { m_config.dEdxInfo = set_variable; }
+
+  // Track-to-EMCal matching
+  void setVerbosityTrack2Calo(int verb) { m_config.track2CaloVerbosity = verb; }
+  void set_emcal_radius_user(float set_variable) { m_config.emcalRadius = set_variable; }
+  void set_emcal_e_low_cut(float set_variable) { m_config.emcalEnergyLowCut = set_variable; }
+  void set_dphi_cut_low(float set_variable) { m_config.emcalDPhiCutLow = set_variable; }
+  void set_dphi_cut_high(float set_variable) { m_config.emcalDPhiCutHigh = set_variable; }
+  void set_dz_cut_low(float set_variable) { m_config.emcalDZCutLow = set_variable; }
+  void set_dz_cut_high(float set_variable) { m_config.emcalDZCutHigh = set_variable; }
 
   void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_bunch_crossing_zero_only = bcZeroOnly; }
 
@@ -450,23 +463,23 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void requireTrackVertexBunchCrossingMatch(bool require = true) { m_require_track_and_vertex_match = require; }
 
-  void selectMotherByMassError(bool select = true) { m_select_by_mass_error = select; }
+  void selectMotherByMassError(bool select = true) { m_config.selectMotherByMassError = select; }
 
-  void usePID(bool use = true){ m_use_PID = use; }
+  void usePID(bool use = true){ m_config.usePID = use; }
 
-  void useLocalPIDFile(bool use = true){ m_use_local_PID_file = use; }
+  void useLocalPIDFile(bool use = true){ m_config.useLocalPIDFile = use; }
 
-  void setLocalPIDFilename(const std::string &filename){ m_local_PID_filename = filename; }
+  void setLocalPIDFilename(const std::string &filename){ m_config.localPIDFilename = filename; }
  
-  void setPIDacceptFraction(float frac = 0.2){ m_dEdx_band_width = frac; }
+  void setPIDacceptFraction(float frac = 0.2){ m_config.dEdxBandWidth = frac; }
 
   /// Use alternate vertex and track fitters
-  void setVertexMapNodeName(const std::string &vtx_map_node_name) { m_vtx_map_node_name = vtx_map_node_name; }
+  void setVertexMapNodeName(const std::string &vtx_map_node_name) { m_config.vertexMapNodeName = vtx_map_node_name; }
 
   /// Use alternate vertex and track fitters
-  void setTrackMapNodeName(const std::string &trk_map_node_name) { m_trk_map_node_name = m_origin_track_map_node_name = trk_map_node_name; }
+  void setTrackMapNodeName(const std::string &trk_map_node_name) { m_config.trackMapNodeName = trk_map_node_name; }
 
-  void magFieldFile(const std::string &fname) { m_magField = fname; }
+  void magFieldFile(const std::string &fname) { m_config.magFieldFile = fname; }
 
   void getField();
 
@@ -475,11 +488,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   int getCandidateCounter() const { return candidateCounter; }
 
  private:
-  bool m_has_intermediates_sPHENIX;
-  bool m_constrain_to_vertex_sPHENIX;
-  bool m_require_mva;
-  bool m_save_dst;
-  bool m_save_output;
+  KFParticle_Config m_config;  // the only writable configuration; base classes hold a const reference to it
   int candidateCounter = 0;
   //Adding member variables for BCO matching
   uint64_t m_this_event_bco{0};
@@ -487,10 +496,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   uint64_t m_prev_event_bco{0};
   int64_t m_prev_runNumber{-1};
   int64_t m_prev_eventNumber{-1}; //till here
-  std::string m_outfile_name;
   TFile *m_outfile;
-  std::string m_decayDescriptor;
-  std::string m_magField = "FIELDMAP_TRACKING";
 };
 
 #endif  // KFPARTICLESPHENIX_KFPARTICLESPHENIX_H

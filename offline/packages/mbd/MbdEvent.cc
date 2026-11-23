@@ -133,6 +133,16 @@ int MbdEvent::InitRun()
     _mbdgeom = new MbdGeomV1();
   }
 
+  // Get run type (p+p, Au+Au, or O+O)
+  if ( (_runnum > 42000 && _runnum < 53881) || (_runnum > 78954 && _runnum < 81669) || _runnum == 21 || _runnum == 22 || _runnum == 28 || _runnum == 29 )
+  {
+    _runtype = 1; // p+p
+  }
+  else
+  {
+    _runtype = 0;
+  }
+
   // Always reload calibrations on InitRun()
   
   
@@ -1225,6 +1235,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNod
 
     if (std::fabs(t_pmt) < 25. && q_pmt > 0.)
     {
+      // use only channels with good time hits for now
       if ( bbcpmt->get_badtdc() == 0 )
       {
         hit_times[arm].push_back(t_pmt);
@@ -1295,7 +1306,15 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNod
     double rms;
     double rmin;
     double rmax;
-    ClusterEarliest( hit_times[iarm], mean, rms, rmin, rmax );
+
+    if ( _runtype == 1 )
+    {
+      ClusterEarliest( hit_times[iarm], mean, rms, rmin, rmax );
+    }
+    else
+    {
+      ClusterAll( hit_times[iarm], mean, rms, rmin, rmax );
+    }
 
     gausfit[iarm]->SetParameter(0, 5);
     gausfit[iarm]->SetParameter(1, mean);
@@ -1464,6 +1483,44 @@ void MbdEvent::ClusterEarliest(std::vector<float>& times, double& mean, double& 
   if ( _verbose )
   {
     std::cout << "CLUSTER " << mean << "\t" << rms << "\t" << npts << "\t" << rmin << "\t" << rmax << std::endl;
+  }
+}
+
+// get the values for the earliest cluster
+void MbdEvent::ClusterAll(std::vector<float>& times, double& mean, double& rms, double& rmin, double& rmax)
+{
+  _verbose = 0;
+
+  rmin = times[0];
+  rmax = times[0];
+
+  double npts = 0.;
+  double sum = 0.;
+  double sum2 = 0.;
+  mean = times[0];
+  for ( size_t it = 0; it<times.size(); it++ )
+  {
+    sum += times[it];
+    sum2 += (times[it]*times[it]);
+
+    mean = sum/(it+1.0);
+    npts += 1.0;
+
+    rmax = times[it];
+  }
+
+  if ( npts>1.0 )
+  {
+    rms = std::max( sqrt( (sum2/npts) - (mean*mean) ), 0.05);
+  }
+  else
+  {
+    rms = 0.;
+  }
+
+  if ( _verbose )
+  {
+    std::cout << "MEAN " << mean << "\t" << rms << "\t" << npts << "\t" << rmin << "\t" << rmax << std::endl;
   }
 }
 
