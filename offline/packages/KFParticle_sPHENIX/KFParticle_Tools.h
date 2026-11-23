@@ -22,7 +22,7 @@
 #ifndef KFPARTICLESPHENIX_KFPARTICLETOOLS_H
 #define KFPARTICLESPHENIX_KFPARTICLETOOLS_H
 
-#include "KFParticle_MVA.h"
+#include "KFParticle_Config.h"
 
 #include <globalvertex/MbdVertex.h>
 #include <globalvertex/MbdVertexMap.h>
@@ -54,12 +54,17 @@ class GlobalVertex;
 class TrkrClusterContainer;
 class PHG4TpcGeomContainer;
 
-class KFParticle_Tools : protected KFParticle_MVA
+class KFParticle_Tools
 {
  public:
+  /// Standalone use (QA, helper objects): reads a default configuration
   KFParticle_Tools();
 
-  ~KFParticle_Tools() override = default;
+  /// Used by KFParticle_sPHENIX. The config is owned there and is not yet constructed when this runs:
+  /// store the reference only, never read through it here.
+  explicit KFParticle_Tools(const KFParticle_Config &config);
+
+  virtual ~KFParticle_Tools() = default;
 
   KFParticle makeVertex(PHCompositeNode *topNode);
 
@@ -68,12 +73,6 @@ class KFParticle_Tools : protected KFParticle_MVA
   KFParticle makeParticle(PHCompositeNode *topNode);
 
   std::vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
-
-  void getTracksFromBC(PHCompositeNode *topNode, const int &bunch_crossing, const std::string &vertexMapName, int &nTracks, int &nPVs);
-
-  int getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, const int &bunch_crossing) const;
-
-  int getTracksFromVertex(PHCompositeNode *topNode, const KFParticle &vertex, const std::string &vertexMapName);
 
   /*const*/ bool isGoodTrack(const KFParticle &particle, const std::vector<KFParticle> &primaryVertices);
 
@@ -92,11 +91,6 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   std::vector<std::vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks, const std::vector<KFParticle> &primaryVertices);
 
-  /// Calculates the cosine of the angle betweent the flight direction and momentum
-  float eventDIRA(const KFParticle &particle, const KFParticle &vertex, bool do3D = true);
-
-  float flightDistanceChi2(const KFParticle &particle, const KFParticle &vertex);
-
   std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], int daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, PHCompositeNode *topNode);
 
   void constrainToVertex(KFParticle &particle, bool &goodCandidate, KFParticle &vertex);
@@ -106,24 +100,9 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   std::vector<std::vector<int>> findUniqueDaughterCombinations(int start, int end);
 
-  double calculateEllipsoidRadius(int posOrNeg, double sigma_ii, double sigma_jj, double sigma_ij);
-
-  float calculateEllipsoidVolume(const KFParticle &particle);
-
-  float calculateJT(const KFParticle &mother, const KFParticle &daughter);
-
   bool isInRange(float min, float value, float max);
 
-  bool findParticle(const std::string &particle);
-
-  int getParticleID(const std::string &particle);
-
   bool finalStateMatchesDecay(const std::vector<std::pair<int, int>> &assigned);
-
-  float getParticleMass(const std::string &particle);
-  float getParticleMass(int PDGID);
-
-  void identify(const KFParticle &particle);
 
   float get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter);
 
@@ -136,16 +115,6 @@ class KFParticle_Tools : protected KFParticle_MVA
   bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex);
 
   std::vector<int> getParticleCrossings(const KFParticle &particle);
-
-  static TrackSeed *findSeed(TrackSeedContainer *container, unsigned short id);
-
-  // Read-only access to the settings that the nTuple/truth helper classes need.
-  // The helpers use the one KFParticle_Tools instance that owns the settings (see
-  // KFParticle_truthAndDetTools::setToolsInstance) rather than keeping their own copies.
-  bool get_use_mbd_vertex() const { return m_use_mbd_vertex; }
-  bool get_dont_use_global_vertex() const { return m_dont_use_global_vertex; }
-  const std::string &get_vtx_map_node_name() const { return m_vtx_map_node_name; }
-  const std::string &get_trk_map_node_name() const { return m_trk_map_node_name; }
 
  protected:
   int m_verbosity = 0;
@@ -179,11 +148,6 @@ class KFParticle_Tools : protected KFParticle_MVA
   std::vector<float> m_intermediate_min_PV_dca_stddev;
   std::vector<float> m_intermediate_max_PV_dca_stddev;
   std::vector<float> m_intermediate_vertex_volume;
-
-  bool m_use_PID{false};
-  bool m_use_local_PID_file{false};
-  std::string m_local_PID_filename;
-  float m_dEdx_band_width{0.2};  // Fraction of expected dE/dx
 
   TF1 *f_pion_plus{nullptr};
   TF1 *f_kaon_plus{nullptr};
@@ -274,8 +238,6 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   float m_mother_vertex_volume{std::numeric_limits<float>::max()};
 
-  float m_mva_cut_value{-1};
-
   bool m_get_charge_conjugate{false};
 
   bool m_extrapolateTracksToSV{true};
@@ -290,10 +252,6 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   bool m_use_fake_pv{false};
 
-  bool m_use_mbd_vertex{false};
-
-  bool m_dont_use_global_vertex{false};
-
   bool m_force_mixed_event = false;
 
   bool m_require_bunch_crossing_match{true};
@@ -306,8 +264,6 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   int m_next_intermediate_id{-2};
 
-  std::string m_vtx_map_node_name;
-  std::string m_trk_map_node_name;
   GlobalVertexMap *m_dst_globalvertexmap{nullptr};
   GlobalVertex *m_dst_globalvertex{nullptr};
   MbdVertexMap *m_dst_mbdvertexmap{nullptr};
@@ -329,6 +285,9 @@ class KFParticle_Tools : protected KFParticle_MVA
   void printSelectionCheck(const std::string &info, unsigned int value);
   std::string accept_colour = "32";
   std::string reject_colour = "31";
+
+ private:
+  const KFParticle_Config &m_config;
 };
 
 #endif  // KFPARTICLESPHENIX_KFPARTICLETOOLS_H

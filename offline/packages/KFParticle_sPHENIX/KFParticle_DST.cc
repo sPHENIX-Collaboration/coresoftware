@@ -12,8 +12,7 @@
 #include "KFParticle_DST.h"
 
 #include "KFParticle_Container.h"
-#include "KFParticle_Tools.h"
-#include "KFParticle_truthAndDetTools.h"
+#include "KFParticle_utilities.h"
 
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack
 #include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, SvtxTr...
@@ -35,9 +34,6 @@
 #include <iostream>  // for operator<<, endl
 #include <map>       // for map, map<>::mapped_type
 #include <utility>   // for pair
-
-KFParticle_Tools kfpTupleTools_DST;
-KFParticle_truthAndDetTools kfpTruthTools_DST;
 
 namespace
 {
@@ -71,11 +67,11 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
     std::cout << "DST node added" << std::endl;
   }
 
-  const std::string baseName = dstBaseName(m_container_name);
+  const std::string baseName = dstBaseName(m_config.containerName);
   const std::string trackNodeName = baseName + "_SvtxTrackMap";
   const std::string particleNodeName = baseName + "_KFParticle_Container";
 
-  if (m_write_track_container)
+  if (m_config.writeTrackContainer)
   {
     m_recoTrackMap = new SvtxTrackMap_v2();
     PHIODataNode<PHObject>* trackNode = new PHIODataNode<PHObject>(m_recoTrackMap, trackNodeName, "PHObject");
@@ -83,7 +79,7 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
     std::cout << trackNodeName << " node added" << std::endl;
   }
 
-  if (m_write_particle_container)
+  if (m_config.writeParticleContainer)
   {
     m_recoParticleMap = new KFParticle_Container();
     PHIODataNode<PHObject>* particleNode = new PHIODataNode<PHObject>(m_recoParticleMap, particleNodeName, "PHObject");
@@ -91,7 +87,7 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
     std::cout << particleNodeName << " node added" << std::endl;
   }
 
-  if (!m_write_track_container && !m_write_particle_container)
+  if (!m_config.writeTrackContainer && !m_config.writeParticleContainer)
   {
     std::cout << "You have asked to put your selection on the node tree but disabled both the SvtxTrackMap and KFParticle_Container\n";
     std::cout << "Check your options" << std::endl;
@@ -106,11 +102,11 @@ void KFParticle_DST::fillParticleNode(PHCompositeNode* topNode, KFParticle& moth
                                       const std::vector<KFParticle>& daughters,
                                       const std::vector<KFParticle>& intermediates)
 {
-  if (m_write_track_container)
+  if (m_config.writeTrackContainer)
   {
     fillParticleNode_Track(topNode, motherParticle, daughters, intermediates);
   }
-  if (m_write_particle_container)
+  if (m_config.writeParticleContainer)
   {
     fillParticleNode_Particle(topNode, motherParticle, PV, daughters, intermediates);
   }
@@ -124,7 +120,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
   unsigned int daughterCounter = 0;
   unsigned int resonanceCounter = UINT_MAX;
 
-  const std::string trackNodeName = dstBaseName(m_container_name) + "_SvtxTrackMap";
+  const std::string trackNodeName = dstBaseName(m_config.containerName) + "_SvtxTrackMap";
 
   m_recoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, trackNodeName);
 
@@ -147,7 +143,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
   insertAtFreeKey(m_recoTrack, resonanceCounter, -1);
   m_recoTrack->Reset();
 
-  if (m_has_intermediates_DST)
+  if (m_config.hasIntermediates)
   {
     for (const auto& intermediate : intermediates)
     {
@@ -157,7 +153,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
     }
   }
 
-  SvtxTrackMap* originalTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_origin_track_map_node_name);
+  SvtxTrackMap* originalTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_config.trackMapNodeName);
 
   for (const auto& daughter : daughters)
   {
@@ -169,7 +165,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
     }
     else
     {
-      m_recoTrack = KFParticle_truthAndDetTools::getTrack(daughter.Id(), originalTrackMap);
+      m_recoTrack = KFParticle_utilities::getTrack(daughter.Id(), originalTrackMap);
       if (!m_recoTrackMap->get(daughter.Id()))
       {
         m_recoTrackMap->insertWithKey(m_recoTrack, daughter.Id());
@@ -183,14 +179,14 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, KFParti
                                                std::vector<KFParticle> daughters,
                                                std::vector<KFParticle> intermediates)
 {
-  const std::string particleNodeName = dstBaseName(m_container_name) + "_KFParticle_Container";
+  const std::string particleNodeName = dstBaseName(m_config.containerName) + "_KFParticle_Container";
 
   m_recoParticleMap = findNode::getClass<KFParticle_Container>(topNode, particleNodeName);
 
   motherParticle.SetProductionVertex(PV);
   motherParticle.TransportToDecayVertex();
 
-  if (m_has_intermediates_DST)
+  if (m_config.hasIntermediates)
   {
     for (auto& intermediate : intermediates)
     {
@@ -223,7 +219,7 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, KFParti
     m_recoParticleMap->insert(&daughter);
   }
 
-  if (m_has_intermediates_DST)
+  if (m_config.hasIntermediates)
   {
     for (auto& intermediate : intermediates)
     {
@@ -266,9 +262,9 @@ SvtxTrack* KFParticle_DST::buildSvtxTrack(const KFParticle& particle)
 
 void KFParticle_DST::printNode(PHCompositeNode* topNode)
 {
-  const std::string baseName = dstBaseName(m_container_name);
+  const std::string baseName = dstBaseName(m_config.containerName);
 
-  if (m_write_track_container)
+  if (m_config.writeTrackContainer)
   {
     const std::string trackNodeName = baseName + "_SvtxTrackMap";
     std::cout << "----------------";
@@ -283,7 +279,7 @@ void KFParticle_DST::printNode(PHCompositeNode* topNode)
     std::cout << "--------------------------------------------------------------------------------------------------" << std::endl;
   }
 
-  if (m_write_particle_container)
+  if (m_config.writeParticleContainer)
   {
     const std::string particleNodeName = baseName + "_KFParticle_Container";
     std::cout << "----------------";
@@ -293,7 +289,7 @@ void KFParticle_DST::printNode(PHCompositeNode* topNode)
     for (auto& iter : *particlemap)
     {
       KFParticle* particle = iter.second;
-      kfpTupleTools_DST.identify(*particle);
+      KFParticle_utilities::identify(*particle);
     }
     std::cout << "--------------------------------------------------------------------------------------------------" << std::endl;
   }

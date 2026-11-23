@@ -27,7 +27,7 @@
 
 #include "KFParticle_eventReconstruction.h"
 #include "KFParticle_Tools.h"
-#include "KFParticle_truthAndDetTools.h"
+#include "KFParticle_utilities.h"
 
 //sPHENIX stuff
 #include <trackbase_historic/SvtxTrack.h>
@@ -55,9 +55,6 @@ namespace
   const std::set<int> chargedLeptonPDGIDs = {11, 13, 15};
 }  // namespace
 
-/// Create necessary objects
-KFParticle_Tools kfp_Tools_evtReco;
-
 namespace
 {
   // Copy of track with the mass and PDG ID for hypothesis pid. A charged track gets q * pid
@@ -68,7 +65,7 @@ namespace
     int pdg = 0;
     if ((Int_t) track.GetQ() != 0)
     {
-      mass = kfp_Tools_evtReco.getParticleMass((Int_t) track.GetQ() * pid);
+      mass = KFParticle_utilities::getParticleMass((Int_t) track.GetQ() * pid);
       pdg = (Int_t) track.GetQ() * pid;
 
       if (chargedLeptonPDGIDs.contains(std::abs(pdg)))
@@ -78,7 +75,7 @@ namespace
     }
     else
     {
-      mass = kfp_Tools_evtReco.getParticleMass(pid);
+      mass = KFParticle_utilities::getParticleMass(pid);
       pdg = pid;
     }
     KFParticle particle;
@@ -92,9 +89,10 @@ namespace
 }  // namespace
 
 /// KFParticle constructor
-KFParticle_eventReconstruction::KFParticle_eventReconstruction()
-  : m_constrain_to_vertex(false)
+KFParticle_eventReconstruction::KFParticle_eventReconstruction(const KFParticle_Config& config)
+  : KFParticle_Tools(config)
   , m_constrain_int_mass(false)
+  , m_config(config)
 {
 }
 
@@ -110,7 +108,7 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
   }
   else
   {
-    primaryVertices = makeAllPrimaryVertices(topNode, m_vtx_map_node_name);
+    primaryVertices = makeAllPrimaryVertices(topNode, m_config.vertexMapNodeName);
   }
 
   std::vector<KFParticle> daughterParticles = makeAllDaughterParticles(topNode);
@@ -284,7 +282,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
           float required_unique_vertexID = 0;
           for (int n = 0; n < m_num_intermediate_states; ++n)
           {
-            required_unique_vertexID += m_intermediate_charge[n] * kfp_Tools_evtReco.getParticleMass(m_intermediate_name[n]);
+            required_unique_vertexID += m_intermediate_charge[n] * KFParticle_utilities::getParticleMass(m_intermediate_name[n]);
           }
 
           std::vector<std::vector<int>> uniqueCombinations;
@@ -294,7 +292,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
           {
             for (int i = num_tracks_used_by_intermediates; i < m_num_tracks; ++i)
             {
-              required_unique_vertexID += m_daughter_charge[i] * kfp_Tools_evtReco.getParticleMass(m_daughter_name[i]);
+              required_unique_vertexID += m_daughter_charge[i] * KFParticle_utilities::getParticleMass(m_daughter_name[i]);
             }
 
             uniqueCombinations = findUniqueDaughterCombinations(num_tracks_used_by_intermediates, m_num_tracks);  // Unique comb of remaining trackIDs
@@ -305,7 +303,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
             {
               for (const auto& element_of_intermediate : m_intermediate_name)
               {
-                uniqueCombination.insert(begin(uniqueCombination), kfp_Tools_evtReco.getParticleID(element_of_intermediate));
+                uniqueCombination.insert(begin(uniqueCombination), KFParticle_utilities::getParticleID(element_of_intermediate));
               }
             }
           }
@@ -315,7 +313,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
             intermediate_id.reserve(m_intermediate_name.size());
             for (const auto& element_of_intermediate : m_intermediate_name)
             {
-              intermediate_id.push_back(kfp_Tools_evtReco.getParticleID(element_of_intermediate));
+              intermediate_id.push_back(KFParticle_utilities::getParticleID(element_of_intermediate));
             }
             uniqueCombinations.push_back(intermediate_id);
             listOfTracksToAppend.push_back({0});
@@ -335,7 +333,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
               for (const auto& i_pv : primaryVerticesAdv)
               {
                 auto [candidate, isGood] = getCombination(motherDecayProducts.data(), uniqueCombination.data(), i_pv,
-                                                          m_constrain_to_vertex, false, 0, num_mother_decay_products, m_constrain_int_mass, required_unique_vertexID, topNode);
+                                                          m_config.constrainToPrimaryVertex, false, 0, num_mother_decay_products, m_constrain_int_mass, required_unique_vertexID, topNode);
 
                 if (isGood)
                 {
@@ -359,7 +357,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                 if (isGood)
                 {
                   goodCandidates.push_back(candidate);
-                  if (m_constrain_to_vertex)
+                  if (m_config.constrainToPrimaryVertex)
                   {
                     goodVertex.push_back(i_pv);
                   }
@@ -382,10 +380,10 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 
             if (!goodCandidates.empty())
             {
-              int bestCombinationIndex = selectBestCombination(m_constrain_to_vertex, false, goodCandidates, goodVertex);
+              int bestCombinationIndex = selectBestCombination(m_config.constrainToPrimaryVertex, false, goodCandidates, goodVertex);
 
               selectedMotherAdv.push_back(goodCandidates[bestCombinationIndex]);
-              if (m_constrain_to_vertex)
+              if (m_config.constrainToPrimaryVertex)
               {
                 selectedVertexAdv.push_back(goodVertex[bestCombinationIndex]);
               }
@@ -435,12 +433,12 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
   std::vector<KFParticle> goodCandidates;
   std::vector<KFParticle> goodVertex;
   std::vector<std::vector<KFParticle>> goodDaughters(nTracks);
-  bool fixToPV = m_constrain_to_vertex && !isIntermediate;
+  bool fixToPV = m_config.constrainToPrimaryVertex && !isIntermediate;
 
   float required_unique_vertexID = 0;
   for (int i = n_track_start; i < n_track_stop; ++i)
   {
-    required_unique_vertexID += m_daughter_charge[i] * kfp_Tools_evtReco.getParticleMass(m_daughter_name[i]);
+    required_unique_vertexID += m_daughter_charge[i] * KFParticle_utilities::getParticleMass(m_daughter_name[i]);
   }
 
   for (const auto& i_comb : goodTracksThatMeetCand)  // Loop over all good track combinations
@@ -457,7 +455,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
       for (const auto& pv : primaryVerticesCand)  // Loop over all PVs in the event
       {
         int* PDGIDofFirstParticleInCombination = uniqueCombination.data();
-        auto [candidate, isGood] = getCombination(daughterTracks.data(), PDGIDofFirstParticleInCombination, pv, m_constrain_to_vertex,
+        auto [candidate, isGood] = getCombination(daughterTracks.data(), PDGIDofFirstParticleInCombination, pv, m_config.constrainToPrimaryVertex,
                                                   isIntermediate, intermediateNumber, nTracks, constrainMass, required_unique_vertexID, topNode);
         if (isIntermediate && isGood)
         {
@@ -517,7 +515,7 @@ int KFParticle_eventReconstruction::selectBestCombination(bool PVconstraint, boo
                                                           std::vector<KFParticle> possibleCandidates,
                                                           std::vector<KFParticle> possibleVertex)
 {
-  const bool byMassError = !PVconstraint || isAnInterMother || m_select_by_mass_error;
+  const bool byMassError = !PVconstraint || isAnInterMother || m_config.selectMotherByMassError;
   auto score = [&](unsigned int i) -> float
   {
     if (byMassError)

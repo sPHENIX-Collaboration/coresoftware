@@ -33,7 +33,8 @@ class PHCompositeNode;
 class KFParticle_eventReconstruction : public KFParticle_Tools
 {
  public:
-  KFParticle_eventReconstruction();
+  /// The config is owned by KFParticle_sPHENIX and is not yet constructed when this runs: pass it on, never read it here
+  explicit KFParticle_eventReconstruction(const KFParticle_Config& config);
 
   ~KFParticle_eventReconstruction() override = default;
 
@@ -85,11 +86,10 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
   KFParticle createFakePV();
 
  protected:
-  bool m_constrain_to_vertex;
   bool m_constrain_int_mass;
-  bool m_select_by_mass_error {true};
 
- //private:
+ private:
+  const KFParticle_Config& m_config;
 };
 
 #endif  // KFPARTICLESPHENIX_KFPARTICLEEVENTRECONSTRUCTION_H

@@ -4,7 +4,7 @@
 #include <qautils/QAHistManagerDef.h>  // for getHistoManager
 
 #include <kfparticle_sphenix/KFParticle_Container.h>
-#include <kfparticle_sphenix/KFParticle_Tools.h>
+#include <kfparticle_sphenix/KFParticle_utilities.h>
 
 #include <calotrigger/TriggerRunInfo.h>
 
@@ -48,7 +48,6 @@
 #include <utility>  // for pair
 #include <vector>
 
-KFParticle_Tools kfpTools;
 
 namespace
 {
@@ -83,7 +82,7 @@ namespace
 
 QAKFParticle::QAKFParticle(const std::string &name, const std::string &mother_name, double min_m, double max_m)
   : SubsysReco(name)
-  , m_mother_id(kfpTools.getParticleID(mother_name))
+  , m_mother_id(KFParticle_utilities::getParticleID(mother_name))
   , m_min_mass(min_m)
   , m_max_mass(max_m)
 {
