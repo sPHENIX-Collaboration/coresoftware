@@ -225,7 +225,8 @@ void PHActsSiliconSeeding::runSeeder()
     }
 
     /// Seeding coordinates are single precision, computed the same way
-    /// the legacy Acts space point container did (beam position at 0,0)
+    /// the legacy Acts space point container did. The space points are
+    /// already relative to the beam spot (see makeSpacePoint)
     std::vector<std::array<float, 4>> spCoords;  // x, y, z, r
     spCoords.reserve(spVec.size());
     Acts::CylindricalSpacePointGrid2 grid(m_gridCfg);
@@ -430,8 +431,8 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<SeedTriplet>
         }
         TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 7);
         TrackSeedHelper::lineFit(trackSeed.get(), positions, 0, 2);
-        trackSeed->set_Z0(z);
         trackSeed->set_phi(TrackSeedHelper::get_phi(trackSeed.get(), positions));
+        trackSeed->set_Z0(zAtOriginPCA(z, *trackSeed));
         trackSeed->set_crossing(getCrossingIntt(*trackSeed));
         m_seedContainer->insert(trackSeed.get());
         numGoodSeeds++;
@@ -448,8 +449,8 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const std::vector<SeedTriplet>
       }
       TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 7);
       TrackSeedHelper::lineFit(trackSeed.get(), positions, 0, 2);
-      trackSeed->set_Z0(z);
       trackSeed->set_phi(TrackSeedHelper::get_phi(trackSeed.get(), positions));
+      trackSeed->set_Z0(zAtOriginPCA(z, *trackSeed));
       trackSeed->set_crossing(SHRT_MAX);
       m_seedContainer->insert(trackSeed.get());
       numGoodSeeds++;
@@ -511,7 +512,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const std::vector<SeedTriplet> &seedVe
       positions.insert(std::make_pair(cluskey, globalPosition));
       if (Verbosity() > 1)
       {
-        std::cout << "Adding cluster with x,y " << sps[spid]->x() << ", " << sps[spid]->y() << " mm in detector "
+        std::cout << "Adding cluster with beam-relative x,y " << sps[spid]->x() << ", " << sps[spid]->y() << " mm in detector "
                   << (unsigned int) TrkrDefs::getTrkrId(cluskey) << " with cluskey " << cluskey << std::endl;
       }
     }
@@ -606,7 +607,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const std::vector<SeedTriplet> &seedVe
     numGoodSeeds++;
 
     /// The Acts z projection has better resolution than the circle fit
-    trackSeed->set_Z0(z);
+    trackSeed->set_Z0(zAtOriginPCA(z, *trackSeed));
 
     if (Verbosity() > 1)
     {
@@ -1311,8 +1312,11 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const Surface &surf, const Tr
   Acts::Vector3 mom(1, 1, 1);
   globalPos = surf->localToGlobal(m_tGeometry->geometry().getGeoContext(), localPos, mom);
 
-  float x = globalPos.x();
-  float y = globalPos.y();
+  /// The Acts seed finder assumes tracks come from near x = y = 0, so give it
+  /// the space point transverse position relative to the beam spot. The seeds
+  /// keep only the cluster keys; later fits use the global cluster positions.
+  float x = globalPos.x() - m_beamSpotx * Acts::UnitConstants::cm;
+  float y = globalPos.y() - m_beamSpoty * Acts::UnitConstants::cm;
   float z = globalPos.z();
   float r = std::sqrt(x * x + y * y);
 
@@ -1682,6 +1686,17 @@ double PHActsSiliconSeeding::normPhi2Pi(const double phi)
     returnPhi -= 2 * M_PI;
   }
   return returnPhi;
+}
+
+float PHActsSiliconSeeding::zAtOriginPCA(const float zBeam, const TrackSeed &seed) const
+{
+  /// The Acts seed vertex z is the z of the triplet at the beam spot, since the
+  /// space points are beam relative. The seed Z0 goes with X0, Y0, the point of
+  /// closest approach to x = y = 0, so move along the track by the projection of
+  /// the beam spot offset on the track direction (straight line, the offset is mm)
+  const float phi = seed.get_phi();
+  const float cotTheta = std::sinh(seed.get_eta());
+  return zBeam - (m_beamSpotx * std::cos(phi) + m_beamSpoty * std::sin(phi)) * cotTheta;
 }
 
 float PHActsSiliconSeeding::getPhiFromBeamSpot(float clusy, float clusx) const
