@@ -11,8 +11,6 @@
 #include <ffaobjects/EventHeader.h>
 #include <ffaobjects/RunHeader.h>
 
-#include <globalvertex/GlobalVertex.h>
-#include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/MbdVertex.h>
 #include <globalvertex/MbdVertexMap.h>
 #include <globalvertex/SvtxVertex.h>
@@ -20,24 +18,30 @@
 
 #include <mbd/MbdOut.h>
 
-constexpr GlobalVertex::VTXTYPE trkType = GlobalVertex::SVTX;
-constexpr GlobalVertex::VTXTYPE mbdType = GlobalVertex::MBD;
-//____________________________________________________________________________..
-MbdTrackVertex::MbdTrackVertex(const std::string &name):
- SubsysReco(name)
-{
-  std::cout << "MbdTrackVertex::MbdTrackVertex(const std::string &name) Calling ctor" << std::endl;
-}
+#include <TFile.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <THnSparse.h>
+#include <TTree.h>
+
+#include <cmath>
+#include <iostream>
 
 //____________________________________________________________________________..
-MbdTrackVertex::~MbdTrackVertex()
+MbdTrackVertex::MbdTrackVertex(const std::string &name)
+  : SubsysReco(name)
 {
-  std::cout << "MbdTrackVertex::~MbdTrackVertex() Calling dtor" << std::endl;
 }
 
 //____________________________________________________________________________..
 int MbdTrackVertex::Init(PHCompositeNode * /*topNode*/)
 {
+  if ( outFile != nullptr )
+  {
+    outFile->Close();
+    delete outFile;
+  }
+
   outFile = new TFile(outFileName.c_str(), "RECREATE");
   if (_treeflag)
   {
@@ -47,10 +51,16 @@ int MbdTrackVertex::Init(PHCompositeNode * /*topNode*/)
 
     outTree->Branch("run", &_run, "run/I");
     outTree->Branch("evt", &_evt, "evt/I");
+    outTree->Branch("strig", &_strig, "strig/l");
     outTree->Branch("mbdz", &_mbdVertex, "mbdz/F");
+    outTree->Branch("mbdt0", &_mbdT0, "mbdt0/F");
     outTree->Branch("trkz", &_trackerVertex, "trkz/F");
+    outTree->Branch("trkx", &_trackerX, "trkx/F");
+    outTree->Branch("trky", &_trackerY, "trky/F");
+    outTree->Branch("trkchi2ndf", &_trackerChi2ndf, "trkchi2ndf/F");
     outTree->Branch("nbz", &_nMBDVertex, "nbz/i");
     outTree->Branch("ntz", &_nTRKVertex, "ntz/i");
+    outTree->Branch("ntzall", &_nTRKVertexAll, "ntzall/i");
     outTree->Branch("ntrks", &_nTracks, "ntrks/i");
     outTree->Branch("bns", &_nMBD[0], "bns/S");
     outTree->Branch("bnn", &_nMBD[1], "bnn/S");
@@ -60,16 +70,22 @@ int MbdTrackVertex::Init(PHCompositeNode * /*topNode*/)
 
   // h_mbdtrkz: dz = _mbdVertex - trackerVertex, range (-15,15) cm, 0.25 cm bins → 120 bins
   h_mbdtrkz = new TH1F("h_mbdtrkz", "MBD - Tracker z-vertex;dz (cm);Counts", 120, -15., 15.);
-  h_bz   = new TH1F("h_bz",   "MBD z-vertex;z (cm);Counts", 400, -20., 20.);
+  h_bz = new TH1F("h_bz", "MBD z-vertex;z (cm);Counts", 400, -20., 20.);
   h_trkz = new TH1F("h_trkz", "Tracker z-vertex;z (cm);Counts", 400, -20., 20.);
+  // h_bt0: MBD t0, range (-10,10) ns, 0.05 ns bins → 400 bins
+  h_bt0 = new TH1F("h_bt0", "MBD t0;t0 (ns);Counts", 400, -10., 10.);
 
   // h2_mbdtrkz: THnSparseF, x = _trackerVertex, y = _mbdVertex, (-20,20) cm, 0.1 cm bins → 400 bins each
-  const int    nbins2[2] = {400, 400};
-  const double xmin2[2]  = {-20., -20.};
-  const double xmax2[2]  = { 20.,  20.};
+  const int nbins2[2] = {400, 400};
+  const double xmin2[2] = {-20., -20.};
+  const double xmax2[2] = {20., 20.};
   h2_mbdtrkz = new THnSparseF("h2_mbdtrkz", "MBD vs Tracker z-vertex", 2, nbins2, xmin2, xmax2);
   h2_mbdtrkz->GetAxis(0)->SetTitle("Tracker z (cm)");
   h2_mbdtrkz->GetAxis(1)->SetTitle("MBD z (cm)");
+
+  // h2_dzvstrkz: x = _trackerVertex (-20,20) cm, 0.5 cm bins; y = dz (-25,25) cm, 0.25 cm bins
+  h2_dzvstrkz = new TH2F("h2_dzvstrkz", "MBD - Tracker z-vertex vs Tracker z;Tracker z (cm);MBD z - Tracker z (cm)",
+                         80, -20., 20., 200, -25., 25.);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -83,38 +99,54 @@ int MbdTrackVertex::process_event(PHCompositeNode *topNode)
   EventHeader *eventheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
   _evt = eventheader ? eventheader->get_EvtSequence() : -1;
 
+  if (Verbosity())
+  {
+    std::cout << "evt " << _evt << std::endl;
+  }
+
+  // GL1 is packet 14001 in DST_CALOFITTING, GL1RAWHIT in DST_TRKR_TRACKS
+  Gl1Packet *gl1 = findNode::getClass<Gl1Packet>(topNode, 14001);
+  if (!gl1)
+  {
+    gl1 = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+  }
+  if (!gl1)
+  {
+    gl1 = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+  }
+  _strig = gl1 ? gl1->getScaledVector() : 0;
+
   if (_gl1_trigmask != 0)
   {
-    Gl1Packet *gl1 = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-    if (gl1)
+    if (!gl1)
     {
-      if ((gl1->getScaledVector() & _gl1_trigmask) == 0)
-      {
-        return Fun4AllReturnCodes::DISCARDEVENT;
-      }
+      std::cout << PHWHERE << " Gl1Packet not found; discarding event because trigger masking was requested" << std::endl;
+      return Fun4AllReturnCodes::DISCARDEVENT;
     }
-    else
+    if ((_strig & _gl1_trigmask) == 0)
     {
-      std::cout << PHWHERE << " GL1Packet node not found; discarding event because trigger masking was requested" << std::endl;
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
   }
 
   MbdOut *mbdout = findNode::getClass<MbdOut>(topNode, "MbdOut");
-  MbdVertexMap *m_dst_mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
-  SvtxVertexMap *m_dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  GlobalVertexMap *globalvertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  MbdVertexMap *mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+  SvtxVertexMap *svtxvertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
 
-  if ( !m_dst_mbdvertexmap || !m_dst_vertexmap || !globalvertexmap )
+  if (!mbdvertexmap || !svtxvertexmap)
   {
-    std::cout << PHWHERE << " missing required vertex node(s)" << std::endl;
+    std::cout << PHWHERE << " missing MbdVertexMap or SvtxVertexMap" << std::endl;
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
 
-  _mbdVertex = _trackerVertex = std::numeric_limits<float>::quiet_NaN();
-  _nTracks = _nMBDVertex = _nTRKVertex = std::numeric_limits<unsigned int>::quiet_NaN();
+  _mbdVertex = _mbdT0 = std::numeric_limits<float>::quiet_NaN();
+  _trackerVertex = _trackerX = _trackerY = _trackerChi2ndf = std::numeric_limits<float>::quiet_NaN();
+  _nTracks = 0;
+  _nMBDVertex = 0;
+  _nTRKVertex = 0;
+  _nTRKVertexAll = 0;
 
-  if ( mbdout )
+  if (mbdout)
   {
     _nMBD[0] = mbdout->get_npmt(0);
     _nMBD[1] = mbdout->get_npmt(1);
@@ -129,59 +161,58 @@ int MbdTrackVertex::process_event(PHCompositeNode *topNode)
     _qMBD[1] = std::numeric_limits<Float_t>::quiet_NaN();
   }
 
+  // MBD vertex (MbdReco only fills a valid z when both arms fire)
   _hasMBD = false;
-  _hasTRK = false;
-
-  for (GlobalVertexMap::ConstIter iter = globalvertexmap->begin(); iter != globalvertexmap->end(); ++iter)
+  _nMBDVertex = mbdvertexmap->size();
+  for (auto &[key, mbdvtx] : *mbdvertexmap)
   {
-    GlobalVertex *gvertex = iter->second;
-
-    if (gvertex->count_vtxs(mbdType) != 0)
+    if (std::isfinite(mbdvtx->get_z()))
     {
+      _mbdVertex = mbdvtx->get_z();
+      _mbdT0 = mbdvtx->get_t();
       _hasMBD = true;
-
-      auto mbditer = gvertex->find_vertexes(mbdType);
-      auto mbdvertexvector = mbditer->second;
-
-      _nMBDVertex = mbdvertexvector.size();
-      for (auto &vertex : mbdvertexvector)
-      {
-        MbdVertex *m_dst_vertex = m_dst_mbdvertexmap->find(vertex->get_id())->second;
-        _mbdVertex = m_dst_vertex->get_z();
-      }
+      break;
     }
+  }
 
-    if (gvertex->count_vtxs(trkType) != 0)
-    { 
-      _hasTRK = true; 
-
-      auto trkiter = gvertex->find_vertexes(trkType);
-      auto trkvertexvector = trkiter->second;
-
-      _nTRKVertex = trkvertexvector.size();
-      for (auto &vertex : trkvertexvector)
-      {
-        SvtxVertex *m_dst_vertex = m_dst_vertexmap->find(vertex->get_id())->second;
-        if ( m_dst_vertex->get_beam_crossing() != 0 ) 
-        {
-          continue;
-        }
-        if ( m_dst_vertex->size_tracks() > _nTracks)
-        {
-          _trackerVertex = m_dst_vertex->get_z();
-          _nTracks = m_dst_vertex->size_tracks();
-        }
-        if (_nTracks == 0)
-        {
-          _hasTRK = false; 
-        }
-      }
+  // Tracker vertex: the one with the most tracks in the selected crossing
+  _hasTRK = false;
+  _nTRKVertexAll = svtxvertexmap->size();
+  for (auto &[key, svtxvtx] : *svtxvertexmap)
+  {
+    if (svtxvtx->get_beam_crossing() != _trk_crossing)
+    {
+      continue;
     }
+    ++_nTRKVertex;
+    const unsigned int ntrk = svtxvtx->size_tracks();
+    if (ntrk > _nTracks)
+    {
+      _nTracks = ntrk;
+      _trackerVertex = svtxvtx->get_z();
+      _trackerX = svtxvtx->get_x();
+      _trackerY = svtxvtx->get_y();
+      _trackerChi2ndf = (svtxvtx->get_ndof() > 0) ? svtxvtx->get_chisq() / svtxvtx->get_ndof() : std::numeric_limits<float>::quiet_NaN();
+    }
+  }
+  if (_nTracks >= _min_ntracks && std::isfinite(_trackerVertex))
+  {
+    _hasTRK = true;
+  }
+
+  if (Verbosity())
+  {
+    std::cout << "  mbdz " << _mbdVertex << " trkz " << _trackerVertex
+              << " ntrks " << _nTracks << " ntz " << _nTRKVertex << "/" << _nTRKVertexAll << std::endl;
   }
 
   if (_hasMBD)
   {
     h_bz->Fill(_mbdVertex);
+    if (std::isfinite(_mbdT0))
+    {
+      h_bt0->Fill(_mbdT0);
+    }
   }
   if (_hasTRK)
   {
@@ -193,6 +224,7 @@ int MbdTrackVertex::process_event(PHCompositeNode *topNode)
     h_mbdtrkz->Fill(_mbdVertex - _trackerVertex);
     const double coords[2] = {_trackerVertex, _mbdVertex};
     h2_mbdtrkz->Fill(coords);
+    h2_dzvstrkz->Fill(_trackerVertex, _mbdVertex - _trackerVertex);
   }
 
   if (_treeflag)
@@ -208,10 +240,10 @@ int MbdTrackVertex::process_event(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int MbdTrackVertex::End(PHCompositeNode * /*topNode*/)
 {
+  std::cout << Name() << " processed " << _counter << " events" << std::endl;
   outFile->Write();
   outFile->Close();
   delete outFile;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-

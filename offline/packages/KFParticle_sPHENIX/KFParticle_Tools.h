@@ -77,7 +77,7 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   /*const*/ bool isGoodTrack(const KFParticle &particle, const std::vector<KFParticle> &primaryVertices);
 
-  bool isTPConlyAtZeroCrossing(const KFParticle&);
+  bool isTPConlyAtZeroCrossing(const KFParticle &track);
 
   int calcMinPV_DCA(const KFParticle &track, const std::vector<KFParticle> &PVs, float &minimumPV_DCA, float &minimumPV_DCA_stddev, bool do3D = true);
 
@@ -121,7 +121,7 @@ class KFParticle_Tools : protected KFParticle_MVA
   bool finalStateMatchesDecay(const std::vector<std::pair<int, int>> &assigned);
 
   float getParticleMass(const std::string &particle);
-  float getParticleMass(const int PDGID);
+  float getParticleMass(int PDGID);
 
   void identify(const KFParticle &particle);
 
@@ -182,7 +182,7 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   bool m_use_PID{false};
   bool m_use_local_PID_file{false};
-  std::string m_local_PID_filename = "";
+  std::string m_local_PID_filename;
   float m_dEdx_band_width{0.2};  // Fraction of expected dE/dx
 
   TF1 *f_pion_plus{nullptr};

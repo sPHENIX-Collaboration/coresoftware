@@ -44,9 +44,27 @@ class BcoInfov1 : public BcoInfo
   void set_current_evtno(int val) override { evtno[1] = val; }
   void set_future_evtno(int val) override { evtno[2] = val; }
 
+  int get_current_bunchno() const override { return bunchno; }
+  void set_current_bunchno(int val) override { bunchno = val; }
+
+  uint64_t get_current_MBDNS_scalers() const override { return MBDNS_scalers; }
+  void set_current_MBDNS_scalers(uint64_t val) override { MBDNS_scalers = val; }
+
+  uint64_t get_current_ZDCNS_scalers() const override { return ZDCNS_scalers; }
+  void set_current_ZDCNS_scalers(uint64_t val) override { ZDCNS_scalers = val; }
+
+  uint64_t get_current_rawgl1scalers() const override { return rawgl1scalers; }
+  void set_current_rawgl1scalers(uint64_t val) override { rawgl1scalers = val; }
+
+
  private:
   std::array<uint64_t, 3> bco{0};
   std::array<int, 3> evtno{0};
+  int bunchno{0};
+  uint64_t MBDNS_scalers{0};
+  uint64_t ZDCNS_scalers{0};
+  uint64_t rawgl1scalers{0};
+
 
   ClassDefOverride(BcoInfov1, 1)
 };

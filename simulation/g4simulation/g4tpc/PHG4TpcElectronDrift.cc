@@ -784,10 +784,14 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         side = 1;
       }
 
-      const double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - std::abs(z_start));
-      const double rantrans =
-          gsl_ran_gaussian(RandomGenerator.get(), r_sigma) +
-          gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_trans);
+      // The diffusion coefficient specifies the Gaussian width in each
+      // transverse axis. A Gaussian radius at a random angle would give
+      // x and y widths smaller by sqrt(2), with non-Gaussian distributions.
+      const double transverse_sigma = diffusion_trans * std::sqrt(tpc_length / 2. - std::abs(z_start));
+      const double diffusion_x = gsl_ran_gaussian(RandomGenerator.get(), transverse_sigma);
+      const double diffusion_y = gsl_ran_gaussian(RandomGenerator.get(), transverse_sigma);
+      const double added_smear_x = gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_trans);
+      const double added_smear_y = gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_trans);
 
       const double t_path = (tpc_length / 2. - std::abs(z_start)) / layergeom->get_drift_velocity_sim();
       const double t_sigma = diffusion_long * sqrt(tpc_length / 2. - std::abs(z_start)) / layergeom->get_drift_velocity_sim();
@@ -813,19 +817,18 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
       const double radstart = std::sqrt(square(x_start) + square(y_start));
       const double phistart = std::atan2(y_start, x_start);
-      const double ranphi = gsl_ran_flat(RandomGenerator.get(), -M_PI, M_PI);
-
-      double x_final = x_start + rantrans * std::cos(ranphi);  // Initialize these to be only diffused first, will be overwritten if doing SC distortion
-      double y_final = y_start + rantrans * std::sin(ranphi);
+      double x_final = x_start + diffusion_x + added_smear_x;  // Before space-charge distortion
+      double y_final = y_start + diffusion_y + added_smear_y;
 
       double rad_final = sqrt(square(x_final) + square(y_final));
       double phi_final = atan2(y_final, x_final);
 
       if (do_ElectronDriftQAHistos)
       {
-        z_startmap->Fill(z_start, radstart);                   // map of starting location in Z vs. R
-        deltaphinodist->Fill(phistart, rantrans / rad_final);  // delta phi no distortion, just diffusion+smear
-        deltarnodist->Fill(radstart, rantrans);                // delta r no distortion, just diffusion+smear
+        z_startmap->Fill(z_start, radstart);  // map of starting location in Z vs. R
+        // Actual displacements before space-charge distortion.
+        deltaphinodist->Fill(phistart, std::remainder(phi_final - phistart, 2. * M_PI));
+        deltarnodist->Fill(radstart, rad_final - radstart);
       }
 
       if (m_distortionMap)

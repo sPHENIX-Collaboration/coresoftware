@@ -174,6 +174,7 @@ class MbdEvent
   // Calibration Data
   int  _calpass{0};
   bool _always_process_charge{false};
+  int  _runtype{0};   // 1 = p+p
   TString _caldir;
   //std::string _caldir;
 
@@ -193,6 +194,7 @@ class MbdEvent
 
   //
   void ClusterEarliest(std::vector<float> &times, double& mean, double& rms, double& rmin, double& rmax);
+  void ClusterAll(std::vector<float> &times, double& mean, double& rms, double& rmin, double& rmax);
  
   // debug stuff
   TCanvas *ac{nullptr};  // for plots used during debugging

@@ -67,8 +67,8 @@ class KFParticle_truthAndDetTools
   virtual void initializeCaloBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
   virtual void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch, const KFParticle &vertex);
   void Get5x5CellInfo(
-    RawClusterDefs::keytype key_in, 
-    float &E3x3, 
+    RawClusterDefs::keytype key_in,
+    float &E3x3,
     float &E5x5,
     std::vector<unsigned int> &v_emcal_5x5Cell_Phi,
     std::vector<unsigned int> &v_emcal_5x5Cell_Eta,
@@ -91,18 +91,14 @@ class KFParticle_truthAndDetTools
   void setVerbosityTrack2Calo(int verb){
     m_track2caloVerbosity = verb;
   }
- 
+
   // Helper functions
-  float PiRange(float deltaPhi)
-  {
-    if (deltaPhi > M_PI) deltaPhi -= 2 * M_PI;
-    if (deltaPhi < -M_PI) deltaPhi += 2 * M_PI;
-    return deltaPhi;
-  }
+  // Wrap an azimuthal difference into [-pi, pi]
+  float PiRange(float deltaPhi) { return std::remainder(deltaPhi, 2 * M_PI); }
 
   void setToolsInstance(KFParticle_Tools *tools) { m_tools = tools; }
 
-  // Functions to set cuts on track-emcal matching 
+  // Functions to set cuts on track-emcal matching
   void set_emcal_radius_user(float set_variable) { m_emcal_radius_user = set_variable; }
   void set_emcal_e_low_cut(float set_variable) { m_emcal_e_low_cut = set_variable; }
   void set_dphi_cut_low(float set_variable) { m_dphi_cut_low = set_variable; }
@@ -189,6 +185,8 @@ class KFParticle_truthAndDetTools
   float detector_emcal_energy_3x3[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_emcal_energy_5x5[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_emcal_cluster_energy[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_cluster_prob[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
+
   float detector_ihcal_deltaphi[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_ihcal_deltaeta[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_ihcal_energy_3x3[max_tracks]{std::numeric_limits<float>::quiet_NaN()};

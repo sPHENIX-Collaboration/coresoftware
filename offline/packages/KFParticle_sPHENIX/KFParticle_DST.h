@@ -31,8 +31,8 @@ class KFParticle_DST
 
   /// Called by fillParticleNode, fills an SvtxTrackMap
   void fillParticleNode_Track(PHCompositeNode* topNode, KFParticle& motherParticle,
-                              std::vector<KFParticle> daughters,
-                              std::vector<KFParticle> intermediates);
+                              const std::vector<KFParticle>& daughters,
+                              const std::vector<KFParticle>& intermediates);
 
   /// Called by fillParticleNode, fills a KFParitcle_Container
   void fillParticleNode_Particle(PHCompositeNode* topNode, KFParticle& motherParticle,

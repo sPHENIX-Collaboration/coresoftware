@@ -20,7 +20,7 @@
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/packet.h>  // for Packet
-#
+
 #include <iostream>
 
 BcoLumiReco::BcoLumiReco(const std::string &name)
@@ -81,18 +81,33 @@ int BcoLumiReco::process_event(PHCompositeNode *topNode)
     {
       if (Verbosity() > 0)
       {
-	std::cout << "no gl1 packet 14001" << std::endl;
-	evt->identify();
+    std::cout << "no gl1 packet 14001" << std::endl;
+    evt->identify();
       }
       return Fun4AllReturnCodes::ABORTEVENT;
     }
     uint64_t gtm_bco = packet->lValue(0, "BCO");
+    int bunchno = packet->lValue(0,"BunchNumber");
+    uint64_t MBDNS_scalers = packet->lValue(0, "GL1PRAW");
+    uint64_t ZDCNS_scalers = packet->lValue(5, "GL1PRAW");
+
+    uint64_t rawgl1scalers = 0;
+    if(packet->lValue(0, 0))
+    {
+      rawgl1scalers = packet->lValue(0, 0);
+    }
+
+
     if (Verbosity() > 1)
     {
       std::cout << std::hex << "packet ival: 0x" << packet->lValue(0, "BCO")
                 << " uint64_t: 0x" << gtm_bco << std::dec << std::endl;
     }
     push_bco(gtm_bco);
+    push_bunchno(bunchno);
+    push_MBDNS_scalers(MBDNS_scalers);
+    push_ZDCNS_scalers(ZDCNS_scalers);
+    push_rawgl1scalers(rawgl1scalers);
     delete packet;
   }
   if (syncobject)
@@ -129,12 +144,23 @@ int BcoLumiReco::process_event(PHCompositeNode *topNode)
     std::cout << "future   bco: " << get_future_bco() << std::endl;
     std::cout << std::dec;
   }
+
+  if (Verbosity() > 10)
+  {
+    std::cout << " event num : " << get_current_evtno() << " MBDNS scalers : " << get_current_MBDNS_scalers() << " rawgl1scalers : " << get_current_rawgl1scalers() << std::endl;
+  }
   bcoinfo->set_previous_bco(get_previous_bco());
   bcoinfo->set_current_bco(get_current_bco());
   bcoinfo->set_future_bco(get_future_bco());
   bcoinfo->set_previous_evtno(get_previous_evtno());
   bcoinfo->set_current_evtno(get_current_evtno());
   bcoinfo->set_future_evtno(get_future_evtno());
+  bcoinfo->set_current_bunchno(get_current_bunchno());
+  bcoinfo->set_current_MBDNS_scalers(get_current_MBDNS_scalers());
+  bcoinfo->set_current_ZDCNS_scalers(get_current_ZDCNS_scalers());
+  bcoinfo->set_current_rawgl1scalers(get_current_rawgl1scalers());
+
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -150,4 +176,32 @@ void BcoLumiReco::push_evtno(int value)
   m_evtno[0] = m_evtno[1];
   m_evtno[1] = m_evtno[2];
   m_evtno[2] = value;
+}
+
+void BcoLumiReco::push_bunchno(int value)
+{
+  m_bunchno[0] = m_bunchno[1];
+  m_bunchno[1] = m_bunchno[2];
+  m_bunchno[2] = value;
+}
+
+void BcoLumiReco::push_MBDNS_scalers(uint64_t value)
+{
+  m_MBDNS_scalers[0] = m_MBDNS_scalers[1];
+  m_MBDNS_scalers[1] = m_MBDNS_scalers[2];
+  m_MBDNS_scalers[2] = value;
+}
+
+void BcoLumiReco::push_ZDCNS_scalers(uint64_t value)
+{
+  m_ZDCNS_scalers[0] = m_ZDCNS_scalers[1];
+  m_ZDCNS_scalers[1] = m_ZDCNS_scalers[2];
+  m_ZDCNS_scalers[2] = value;
+}
+
+void BcoLumiReco::push_rawgl1scalers(uint64_t value)
+{
+  m_rawgl1scalers[0] = m_rawgl1scalers[1];
+  m_rawgl1scalers[1] = m_rawgl1scalers[2];
+  m_rawgl1scalers[2] = value;
 }

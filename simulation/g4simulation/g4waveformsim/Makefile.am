@@ -22,8 +22,10 @@ libCaloWaveformSim_la_SOURCES = \
 libCaloWaveformSim_la_LIBADD = \
   -lcalo_io \
   -lcdbobjects \
+  -lfun4all \
   -lg4detectors \
   -lg4detectors_io \
+  -lmbd_io \
   -lphg4hit \
   -lSubsysReco
 
