@@ -17,6 +17,7 @@ class Tpc_PolyCluster;
 class Tpc_PolyClusterContainer;
 class ActsGeometry;
 class PHG4TpcGeomContainer;
+class TpcClusterdxMap;
 
 class Tpc_PolyTrackReco : public SubsysReco
 {
@@ -66,5 +67,7 @@ class Tpc_PolyTrackReco : public SubsysReco
   PHG4TpcGeomContainer* m_geomContainerTpc{nullptr};
   bool m_excludeEdgeClustersFromFit{true};
   unsigned int m_minFitClustersNoEdge{10};
+  TpcClusterdxMap *m_cluster_dx{nullptr};
+
 };
 #endif

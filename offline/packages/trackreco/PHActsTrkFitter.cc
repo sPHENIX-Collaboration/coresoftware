@@ -28,6 +28,7 @@
 #include <trackbase_historic/SvtxTrackState_v3.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/SvtxTrack_v5.h>
+#include <trackbase_historic/SvtxTrack_v6.h>
 #include <trackbase_historic/TrackSeed.h>
 //#include <trackbase_historic/SvtxTrackSeed_v3.h>
 #include <trackbase_historic/TrackSeedContainer.h>
@@ -544,7 +545,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     bool use_estimate = false;
     short int nvary = 0;
     std::vector<float> chisq_ndf;
-    std::vector<SvtxTrack_v4> svtx_vec;
+    std::vector<SvtxTrack_v6> svtx_vec;
 
     if (m_pp_mode)
     {
@@ -870,10 +871,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           // this is a trial variation of the crossing estimate for this track
           // Capture the chisq/ndf so we can choose the best one after all trials
 
-          SvtxTrack_v4 newTrack;
+          SvtxTrack_v6 newTrack;
           newTrack.set_tpc_seed(tpcseed);
           newTrack.set_crossing(this_crossing);
           newTrack.set_silicon_seed(siseed);
+	  newTrack.set_tpc_dedx(tpcseed->get_dedx());
 
           if (getTrackFitResult(result, track, &newTrack, tracks, measurements))
           {
@@ -921,10 +923,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         }
         else  // case where crossing is known
         {
-          SvtxTrack_v4 newTrack;
+          SvtxTrack_v6 newTrack;
           newTrack.set_tpc_seed(tpcseed);
           newTrack.set_crossing(this_crossing);
           newTrack.set_silicon_seed(siseed);
+	  newTrack.set_tpc_dedx(tpcseed->get_dedx());
 
           if (m_fitSiliconMMs)
           {

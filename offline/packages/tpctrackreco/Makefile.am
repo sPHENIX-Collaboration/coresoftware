@@ -26,6 +26,8 @@ pkginclude_HEADERS = \
   Tpc_AssembledTrackContainer.h \
   Tpc_AssembledTrackContainerv1.h \
   Tpc_AssembledTrackReco.h \
+  TpcClusterdxMap.h \
+  TpcClusterdxMapv1.h \
   TpcCrossingDecision.h \
   TpcCrossingDecisionv1.h \
   TpcCrossingDecisionContainer.h \
@@ -60,6 +62,8 @@ ROOTDICTS = \
   Tpc_AssembledTrackContainer_Dict.cc \
   Tpc_AssembledTrackContainerv1_Dict.cc \
   Tpc_AssembledTrackv1_Dict.cc \
+  TpcClusterdxMap_Dict.cc \
+  TpcClusterdxMapv1_Dict.cc \
   TpcCrossingDecision_Dict.cc \
   TpcCrossingDecisionv1_Dict.cc \
   TpcCrossingDecisionContainer_Dict.cc \
@@ -90,6 +94,7 @@ libtpctrackreco_io_la_SOURCES = \
   Tpc_ModuleTrackContainerv1.cc \
   Tpc_AssembledTrackv1.cc \
   Tpc_AssembledTrackContainerv1.cc \
+  TpcClusterdxMapv1.cc \
   TpcCrossingDecisionv1.cc \
   TpcCrossingDecisionContainerv1.cc \
   Tpc_PolyTrackv1.cc \

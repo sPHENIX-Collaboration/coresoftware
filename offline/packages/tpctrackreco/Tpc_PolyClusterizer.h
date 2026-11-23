@@ -21,7 +21,9 @@ class TpcCrossingDecisionContainer;
 class TrkrHitSetContainer;
 class PHG4CylinderGeomContainer;
 class PHG4TpcGeomContainer;
+class TpcClusterdxMap;
 class TpcConditions;
+class CDBTTree;
 
 class Tpc_PolyClusterizer : public SubsysReco
 {
@@ -33,6 +35,7 @@ class Tpc_PolyClusterizer : public SubsysReco
   int process_event(PHCompositeNode*) override;
 
   static constexpr unsigned int NPhiSamples = 24;
+  static constexpr unsigned int nZBins = 202;
 
   void setInputNodeName(const std::string& n) { m_inputNodeName = n; }
   void setOutputNodeName(const std::string& n) { m_outputNodeName = n; }
@@ -251,8 +254,11 @@ class Tpc_PolyClusterizer : public SubsysReco
   void configure_garfield(PHGarfield* garfield) const;
   void reconfigure_garfield(PHGarfield* garfield) const;
   static unsigned int drift_lookup_index(unsigned int layer_index, unsigned int side, unsigned int sector, unsigned int sample);
+  static unsigned int dx_index(unsigned int layer_index, unsigned int side, unsigned int sector, unsigned int zbin);
+
   // t0 in time bins for one TPC side: macro/default t0 plus PHGarfield's run dt0.
   double t0_for_side(unsigned int side) const { return m_t0 + m_deltaT0Tbins[side & 1U]; }
+
   std::string m_inputNodeName;
   std::string m_outputNodeName;
   std::string m_crossingDecisionNodeName{"TPC_CROSSING_DECISIONS"};
@@ -268,6 +274,9 @@ class Tpc_PolyClusterizer : public SubsysReco
   TpcCrossingDecisionContainer* m_crossingDecisions{nullptr};
   TrkrHitSetContainer* m_hits{nullptr};
   IdealPadMap* m_idealPadMap{nullptr};
+
+  TpcClusterdxMap *Cluster_dx;
+  std::string m_ClusterdxMapName = "TPC_CLUSTER_DX_MAP";
 
   PHGarfield* m_garfield{nullptr};                // shared instance from PAR node (not owned)
   std::unique_ptr<PHGarfield> m_ownedGarfield{};  // private instance, only with setUsePHGarfieldDefaults(false)
@@ -317,6 +326,10 @@ class Tpc_PolyClusterizer : public SubsysReco
   bool m_isNonDistortedMC{false};
   bool m_t0Override{false};
   bool m_tpcAdcClockOverride{false};
+  
+  CDBTTree *gain_cdbttree = nullptr;
+  std::string gaincorrFile = "/sphenix/user/llegnosky/GainMap_New.root";
+  
   bool m_pedestalOverride{false};
 
   std::array<double, 3> m_tpcMove{{0.0, 0.0, 0.0}};                                             //{{-0.16775, -0.0337, -0.71365}};
