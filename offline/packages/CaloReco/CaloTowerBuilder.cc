@@ -9,6 +9,7 @@
 #include <calobase/TowerInfoContainerv2.h>
 #include <calobase/TowerInfoContainerv5.h>
 #include <calobase/TowerInfoContainerv4.h>
+#include <calobase/TowerInfoDefs.h>
 
 #include <ffarawobjects/CaloPacket.h>
 
@@ -112,6 +113,15 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_detector = "HCALIN";
     m_nchannels = 192;
     WaveformProcessing->set_template_name("IHCAL_TEMPLATE");
+    // channel indices of the swapped tower pairs (see m_ihcal_swap_pairs)
+    m_ihcal_swap_map.clear();
+    for (const auto &pair : m_ihcal_swap_pairs)
+    {
+      const int cha = TowerInfoDefs::decode_hcal(TowerInfoDefs::encode_hcal(pair[0], pair[1]));
+      const int chb = TowerInfoDefs::decode_hcal(TowerInfoDefs::encode_hcal(pair[0], pair[2]));
+      m_ihcal_swap_map[cha] = chb;
+      m_ihcal_swap_map[chb] = cha;
+    }
     if (_processingtype == CaloWaveformProcessing::NONE)
     {
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
@@ -456,6 +466,15 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     if (m_dettype == CaloTowerDefs::SEPD)
     {
       idx = cdbttree_sepd_map->GetIntValue(i, m_fieldname);
+    }
+    // IHCal cabling swaps: read tower i from the channel that actually sees it
+    else if (m_dettype == CaloTowerDefs::HCALIN && m_doihcalswap)
+    {
+      const auto swapped = m_ihcal_swap_map.find(i);
+      if (swapped != m_ihcal_swap_map.end())
+      {
+        idx = swapped->second;
+      }
     }
     TowerInfo *towerinfo = m_CaloInfoContainer->get_tower_at_channel(i);
     towerinfo->set_time(processed_waveforms.at(idx).at(1));
