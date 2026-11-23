@@ -2161,6 +2161,11 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
     m_pcaz = track->get_z();
     m_dcaxy = std::numeric_limits<float>::quiet_NaN();
     m_dcaz = std::numeric_limits<float>::quiet_NaN();
+    m_vx = std::numeric_limits<float>::quiet_NaN();
+    m_vy = std::numeric_limits<float>::quiet_NaN();
+    m_vz = std::numeric_limits<float>::quiet_NaN();
+    m_vertex_ntracks = 0;                                   // no vertex: no vertex tracks
+    m_vertex_crossing = std::numeric_limits<short>::max();  // SHRT_MAX: unknown crossing
     m_vertexid = track->get_vertex_id();
     if (vertexmap)
     {
@@ -2172,6 +2177,7 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
         m_vy = vertex->get_y();
         m_vz = vertex->get_z();
         m_vertex_ntracks = vertex->size_tracks();
+        m_vertex_crossing = vertex->get_beam_crossing();
         Acts::Vector3 v(m_vx, m_vy, m_vz);
         auto dcapair = TrackAnalysisUtils::get_dca(track, v);
         m_dcaxy = dcapair.first.first;
@@ -2529,6 +2535,11 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
     m_pcaz = track->get_z();
     m_dcaxy = std::numeric_limits<float>::quiet_NaN();
     m_dcaz = std::numeric_limits<float>::quiet_NaN();
+    m_vx = std::numeric_limits<float>::quiet_NaN();
+    m_vy = std::numeric_limits<float>::quiet_NaN();
+    m_vz = std::numeric_limits<float>::quiet_NaN();
+    m_vertex_ntracks = 0;                                   // no vertex: no vertex tracks
+    m_vertex_crossing = std::numeric_limits<short>::max();  // SHRT_MAX: unknown crossing
     if (vertexmap)
     {
       auto vertexit = vertexmap->find(m_vertexid);
@@ -2538,6 +2549,8 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
         m_vx = vertex->get_x();
         m_vy = vertex->get_y();
         m_vz = vertex->get_z();
+        m_vertex_ntracks = vertex->size_tracks();
+        m_vertex_crossing = vertex->get_beam_crossing();
         Acts::Vector3 vert(m_vx, m_vy, m_vz);
         auto dcapair = TrackAnalysisUtils::get_dca(track, vert);
         m_dcaxy = dcapair.first.first;
