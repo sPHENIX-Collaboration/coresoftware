@@ -606,8 +606,9 @@ void PHActsSiliconSeeding::makeSvtxTracks(const std::vector<SeedTriplet> &seedVe
     }
     numGoodSeeds++;
 
-    /// The Acts z projection has better resolution than the circle fit
-    trackSeed->set_Z0(zAtOriginPCA(z, *trackSeed));
+    /// z is the line fit intercept in global coordinates (set above), so it
+    /// needs no beam spot conversion here
+    trackSeed->set_Z0(z);
 
     if (Verbosity() > 1)
     {
