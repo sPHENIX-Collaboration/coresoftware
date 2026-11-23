@@ -39,6 +39,26 @@
 KFParticle_Tools kfpTupleTools_DST;
 KFParticle_truthAndDetTools kfpTruthTools_DST;
 
+namespace
+{
+  // Base name for the DST nodes. Cant have forward slashes in DST or else you make a subdirectory on save!!!
+  std::string dstBaseName(const std::string& containerName)
+  {
+    std::string baseName = containerName.empty() ? "reconstructedParticles" : containerName;
+    const std::map<std::string, std::string> forbiddenStrings = {
+        {"/", "_"}, {"(", "_"}, {")", ""}, {"+", "plus"}, {"-", "minus"}, {"*", "star"}};
+    for (const auto& [badString, goodString] : forbiddenStrings)
+    {
+      size_t pos;
+      while ((pos = baseName.find(badString)) != std::string::npos)
+      {
+        baseName.replace(pos, 1, goodString);
+      }
+    }
+    return baseName;
+  }
+}  // namespace
+
 int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
@@ -51,40 +71,9 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
     std::cout << "DST node added" << std::endl;
   }
 
-  std::string baseName;
-  std::string trackNodeName;
-  std::string particleNodeName;
-
-  if (m_container_name.empty())
-  {
-    baseName = "reconstructedParticles";
-  }
-  else
-  {
-    baseName = m_container_name;
-  }
-
-  // Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  std::string undrscr = "_";
-  std::string nothing;
-  std::map<std::string, std::string> forbiddenStrings;
-  forbiddenStrings["/"] = undrscr;
-  forbiddenStrings["("] = undrscr;
-  forbiddenStrings[")"] = nothing;
-  forbiddenStrings["+"] = "plus";
-  forbiddenStrings["-"] = "minus";
-  forbiddenStrings["*"] = "star";
-  for (auto const& [badString, goodString] : forbiddenStrings)
-  {
-    size_t pos;
-    while ((pos = baseName.find(badString)) != std::string::npos)
-    {
-      baseName.replace(pos, 1, goodString);
-    }
-  }
-
-  trackNodeName = baseName + "_SvtxTrackMap";
-  particleNodeName = baseName + "_KFParticle_Container";
+  const std::string baseName = dstBaseName(m_container_name);
+  const std::string trackNodeName = baseName + "_SvtxTrackMap";
+  const std::string particleNodeName = baseName + "_KFParticle_Container";
 
   if (m_write_track_container)
   {
@@ -128,109 +117,62 @@ void KFParticle_DST::fillParticleNode(PHCompositeNode* topNode, KFParticle& moth
 }
 
 void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle& motherParticle,
-                                            std::vector<KFParticle> daughters,
-                                            std::vector<KFParticle> intermediates)
+                                            const std::vector<KFParticle>& daughters,
+                                            const std::vector<KFParticle>& intermediates)
 {
   //Make keys for daughters, mothers and intermediates
   unsigned int daughterCounter = 0;
   unsigned int resonanceCounter = UINT_MAX;
 
-  std::string baseName;
-  std::string trackNodeName;
-
-  if (m_container_name.empty())
-  {
-    baseName = "reconstructedParticles";
-  }
-  else
-  {
-    baseName = m_container_name;
-  }
-
-  // Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  std::string undrscr = "_";
-  std::string nothing;
-  std::map<std::string, std::string> forbiddenStrings;
-  forbiddenStrings["/"] = undrscr;
-  forbiddenStrings["("] = undrscr;
-  forbiddenStrings[")"] = nothing;
-  forbiddenStrings["+"] = "plus";
-  forbiddenStrings["-"] = "minus";
-  forbiddenStrings["*"] = "star";
-  for (auto const& [badString, goodString] : forbiddenStrings)
-  {
-    size_t pos;
-    while ((pos = baseName.find(badString)) != std::string::npos)
-    {
-      baseName.replace(pos, 1, goodString);
-    }
-  }
-
-  trackNodeName = baseName + "_SvtxTrackMap";
+  const std::string trackNodeName = dstBaseName(m_container_name) + "_SvtxTrackMap";
 
   m_recoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, trackNodeName);
 
-  SvtxTrack* m_recoTrack = new SvtxTrack_v4();
-
-  m_recoTrack = buildSvtxTrack(motherParticle);
-
-  SvtxTrack *dummyMother = nullptr;  
-  while (!dummyMother)
+  // Insert track under the first free key, starting at key.
+  // Key is left one step past the key that was used.
+  auto insertAtFreeKey = [&](SvtxTrack* track, unsigned int& key, int count)
   {
-    if (!m_recoTrackMap->get(resonanceCounter))
+    SvtxTrack* inserted = nullptr;
+    while (!inserted)
     {
-      dummyMother = m_recoTrackMap->insertWithKey(m_recoTrack, resonanceCounter);
+      if (!m_recoTrackMap->get(key))
+      {
+        inserted = m_recoTrackMap->insertWithKey(track, key);
+      }
+      key += count;
     }
-    --resonanceCounter;
-  }
+  };
+
+  SvtxTrack* m_recoTrack = buildSvtxTrack(motherParticle);
+  insertAtFreeKey(m_recoTrack, resonanceCounter, -1);
   m_recoTrack->Reset();
 
   if (m_has_intermediates_DST)
   {
-    KFParticle* intermediateArray = intermediates.data();
-
-    for (unsigned int k = 0; k < intermediates.size(); ++k)
+    for (const auto& intermediate : intermediates)
     {
-      m_recoTrack = buildSvtxTrack(intermediateArray[k]);
-      SvtxTrack *dummyIntermediate = nullptr;  
-      while (!dummyIntermediate)
-      {
-        if (!m_recoTrackMap->get(resonanceCounter))
-	{
-	  dummyIntermediate = m_recoTrackMap->insertWithKey(m_recoTrack, resonanceCounter);
-	}
-        --resonanceCounter;
-      }
+      m_recoTrack = buildSvtxTrack(intermediate);
+      insertAtFreeKey(m_recoTrack, resonanceCounter, -1);
       m_recoTrack->Reset();
     }
   }
 
   SvtxTrackMap* originalTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_origin_track_map_node_name);
-  KFParticle* daughterArray = daughters.data();
 
-  for (unsigned int k = 0; k < daughters.size(); ++k)
+  for (const auto& daughter : daughters)
   {
     if (originalTrackMap->empty())
     {
       std::cout << "There was no original track map found, the tracks will have no cluster information!" << std::endl;
-      m_recoTrack = buildSvtxTrack(daughterArray[k]);
-
-      SvtxTrack *dummyDaughter = nullptr;  
-      while (!dummyDaughter)
-      {
-        if (!m_recoTrackMap->get(daughterCounter))
-	{
-          dummyDaughter = m_recoTrackMap->insertWithKey(m_recoTrack, daughterCounter);
-	}
-        ++daughterCounter;
-      }
+      m_recoTrack = buildSvtxTrack(daughter);
+      insertAtFreeKey(m_recoTrack, daughterCounter, 1);
     }
     else
     {
-      m_recoTrack = KFParticle_truthAndDetTools::getTrack(daughterArray[k].Id(), originalTrackMap);
-      if (!m_recoTrackMap->get(daughterArray[k].Id()))
+      m_recoTrack = KFParticle_truthAndDetTools::getTrack(daughter.Id(), originalTrackMap);
+      if (!m_recoTrackMap->get(daughter.Id()))
       {
-        m_recoTrackMap->insertWithKey(m_recoTrack, daughterArray[k].Id());
+        m_recoTrackMap->insertWithKey(m_recoTrack, daughter.Id());
       }
     }
   }
@@ -241,56 +183,23 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, KFParti
                                                std::vector<KFParticle> daughters,
                                                std::vector<KFParticle> intermediates)
 {
-  std::string baseName;
-  std::string particleNodeName;
-
-  if (m_container_name.empty())
-  {
-    baseName = "reconstructedParticles";
-  }
-  else
-  {
-    baseName = m_container_name;
-  }
-
-  // Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  std::string undrscr = "_";
-  std::string nothing;
-  std::map<std::string, std::string> forbiddenStrings;
-  forbiddenStrings["/"] = undrscr;
-  forbiddenStrings["("] = undrscr;
-  forbiddenStrings[")"] = nothing;
-  forbiddenStrings["+"] = "plus";
-  forbiddenStrings["-"] = "minus";
-  forbiddenStrings["*"] = "star";
-  for (auto const& [badString, goodString] : forbiddenStrings)
-  {
-    size_t pos;
-    while ((pos = baseName.find(badString)) != std::string::npos)
-    {
-      baseName.replace(pos, 1, goodString);
-    }
-  }
-
-  particleNodeName = baseName + "_KFParticle_Container";
+  const std::string particleNodeName = dstBaseName(m_container_name) + "_KFParticle_Container";
 
   m_recoParticleMap = findNode::getClass<KFParticle_Container>(topNode, particleNodeName);
 
   motherParticle.SetProductionVertex(PV);
   motherParticle.TransportToDecayVertex();
 
-  KFParticle* intermediateArray = intermediates.data();
   if (m_has_intermediates_DST)
   {
-    for (unsigned int k = 0; k < intermediates.size(); ++k)
+    for (auto& intermediate : intermediates)
     {
-      intermediateArray[k].SetProductionVertex(motherParticle);
-      intermediateArray[k].TransportToDecayVertex();
+      intermediate.SetProductionVertex(motherParticle);
+      intermediate.TransportToDecayVertex();
     }
   }
 
-  KFParticle* daughterArray = daughters.data();
-  for (unsigned int k = 0; k < daughters.size(); ++k)
+  for (auto& daughter : daughters)
   {
       bool didntSetTrackToIntermediate = true;
       for (auto& intermediate : intermediates)
@@ -298,28 +207,28 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, KFParti
         const std::vector<int>& daughterIDs = intermediate.DaughterIds();
         for (const auto& id : daughterIDs)
         {
-          if (daughterArray[k].Id() == id)
+          if (daughter.Id() == id)
           {
             didntSetTrackToIntermediate = false;
-            daughterArray[k].SetProductionVertex(intermediate);
+            daughter.SetProductionVertex(intermediate);
           }
         }
       }
 
       if (didntSetTrackToIntermediate)
       {
-        daughterArray[k].SetProductionVertex(motherParticle);
+        daughter.SetProductionVertex(motherParticle);
       }
 
-    m_recoParticleMap->insert(&daughterArray[k]);
+    m_recoParticleMap->insert(&daughter);
   }
 
   if (m_has_intermediates_DST)
   {
-    for (unsigned int k = 0; k < intermediates.size(); ++k)
+    for (auto& intermediate : intermediates)
     {
-      intermediateArray[k].TransportToProductionVertex();
-      m_recoParticleMap->insert(&intermediateArray[k]);
+      intermediate.TransportToProductionVertex();
+      m_recoParticleMap->insert(&intermediate);
     }
   }
 
@@ -357,41 +266,11 @@ SvtxTrack* KFParticle_DST::buildSvtxTrack(const KFParticle& particle)
 
 void KFParticle_DST::printNode(PHCompositeNode* topNode)
 {
-  std::string baseName;
-  std::string trackNodeName;
-  std::string particleNodeName;
-
-  if (m_container_name.empty())
-  {
-    baseName = "reconstructedParticles";
-  }
-  else
-  {
-    baseName = m_container_name;
-  }
-
-  // Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  std::string undrscr = "_";
-  std::string nothing;
-  std::map<std::string, std::string> forbiddenStrings;
-  forbiddenStrings["/"] = undrscr;
-  forbiddenStrings["("] = undrscr;
-  forbiddenStrings[")"] = nothing;
-  forbiddenStrings["+"] = "plus";
-  forbiddenStrings["-"] = "minus";
-  forbiddenStrings["*"] = "star";
-  for (auto const& [badString, goodString] : forbiddenStrings)
-  {
-    size_t pos;
-    while ((pos = baseName.find(badString)) != std::string::npos)
-    {
-      baseName.replace(pos, 1, goodString);
-    }
-  }
+  const std::string baseName = dstBaseName(m_container_name);
 
   if (m_write_track_container)
   {
-    trackNodeName = baseName + "_SvtxTrackMap";
+    const std::string trackNodeName = baseName + "_SvtxTrackMap";
     std::cout << "----------------";
     std::cout << " KFParticle_DST: " << trackNodeName << " information ";
     std::cout << "----------------" << std::endl;
@@ -406,7 +285,7 @@ void KFParticle_DST::printNode(PHCompositeNode* topNode)
 
   if (m_write_particle_container)
   {
-    particleNodeName = baseName + "_KFParticle_Container";
+    const std::string particleNodeName = baseName + "_KFParticle_Container";
     std::cout << "----------------";
     std::cout << " KFParticle_DST: " << particleNodeName << " information ";
     std::cout << "----------------" << std::endl;

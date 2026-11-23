@@ -40,6 +40,7 @@
 #include <KFParticle.h>
 
 #include <algorithm>  // for max
+#include <iostream>
 #include <memory>     // for allocator_traits<>::valu...
 #include <string>
 #include <utility>  // for pair
@@ -76,7 +77,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
                       const KFParticle &chosenVertex,
                       const std::vector<KFParticle> &daughterParticles,
                       const std::vector<KFParticle> &intermediateParticles,
-                      const int numPVs, const int numTracks);
+                      int numPVs, int numTracks);
 
   int parseDecayDescriptor();
 
@@ -86,12 +87,14 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   static const int max_particles = 99;
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setMotherName(const std::string &mother_name)
   {
     m_mother_name = mother_name;
     m_mother_name_Tools = mother_name;
   }
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void hasIntermediateStates(bool has_intermediates = true)
   {
     m_has_intermediates = has_intermediates;
@@ -100,49 +103,52 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_has_intermediates_DST = has_intermediates;
   }
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setNumberOfTracks(int num_tracks)
   {
     m_num_tracks = num_tracks;
     m_num_tracks_nTuple = num_tracks;
   }
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setNumberTracksFromIntermeditateState(const std::vector<int> &num_tracks)
   {
-    for (unsigned int i = 0; i < num_tracks.size(); ++i)
-    {
-      m_num_tracks_from_intermediate.push_back(num_tracks[i]);
-      m_num_tracks_from_intermediate_nTuple.push_back(num_tracks[i]);
-    }
+    m_num_tracks_from_intermediate.insert(m_num_tracks_from_intermediate.end(), num_tracks.begin(), num_tracks.end());
+    m_num_tracks_from_intermediate_nTuple.insert(m_num_tracks_from_intermediate_nTuple.end(), num_tracks.begin(), num_tracks.end());
   }
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setNumberOfIntermediateStates(int n_intermediates)
   {
     m_num_intermediate_states = n_intermediates;
     m_num_intermediate_states_nTuple = n_intermediates;
   }
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void getChargeConjugate(bool get_charge_conjugate = true)
   {
     m_get_charge_conjugate_nTuple = get_charge_conjugate;
     m_get_charge_conjugate = get_charge_conjugate;
   }
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setDaughters(std::vector<std::pair<std::string, int>> &daughter_list)
   {
-    for (unsigned int i = 0; i < daughter_list.size(); ++i)
+    for (const auto &entry : daughter_list)
     {
-      m_daughter_name.push_back(daughter_list[i].first);
-      m_daughter_charge.push_back(daughter_list[i].second);
+      m_daughter_name.push_back(entry.first);
+      m_daughter_charge.push_back(entry.second);
     }
   }
 
+  //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setIntermediateStates(const std::vector<std::pair<std::string, int>> &intermediate_list)
   {
-    for (unsigned int i = 0; i < intermediate_list.size(); ++i)
+    for (const auto &entry : intermediate_list)
     {
-      m_intermediate_name_ntuple.push_back(intermediate_list[i].first);
-      m_intermediate_name.push_back(intermediate_list[i].first);
-      m_intermediate_charge.push_back(intermediate_list[i].second);
+      m_intermediate_name_ntuple.push_back(entry.first);
+      m_intermediate_name.push_back(entry.first);
+      m_intermediate_charge.push_back(entry.second);
     }
   }
 
@@ -273,7 +279,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setIntermediateMassRange(const std::vector<std::pair<float, float>> &intermediate_mass_range)
   {
-    for (unsigned int i = 0; i < intermediate_mass_range.size(); ++i) m_intermediate_mass_range.push_back(intermediate_mass_range[i]);
+    m_intermediate_mass_range.insert(m_intermediate_mass_range.end(), intermediate_mass_range.begin(), intermediate_mass_range.end());
   }
 
   void setIntermediateMinPT(const std::vector<float> &intermediate_min_pt)
@@ -283,68 +289,68 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setIntermediateMinPV_DCA_XY(const std::vector<float> &intermediate_min_PV_DCA)
   {
-    for (unsigned int i = 0; i < intermediate_min_PV_DCA.size(); ++i) m_intermediate_min_PV_dca_xy.push_back(intermediate_min_PV_DCA[i]);
+    m_intermediate_min_PV_dca_xy.insert(m_intermediate_min_PV_dca_xy.end(), intermediate_min_PV_DCA.begin(), intermediate_min_PV_DCA.end());
   }
 
   void setIntermediatePV_DCARange_XY(const std::vector<std::pair<float, float> /*unused*/> &intermediate_PV_DCA_range)
   {
-    for (unsigned int i = 0; i < intermediate_PV_DCA_range.size(); ++i)
+    for (const auto &entry : intermediate_PV_DCA_range)
     {
-      m_intermediate_min_PV_dca_xy.push_back(intermediate_PV_DCA_range[i].first);
-      m_intermediate_max_PV_dca_xy.push_back(intermediate_PV_DCA_range[i].second);
+      m_intermediate_min_PV_dca_xy.push_back(entry.first);
+      m_intermediate_max_PV_dca_xy.push_back(entry.second);
     }
   }
 
   void setIntermediateMinPV_DCA(const std::vector<float> &intermediate_min_PV_DCA)
   {
-    for (unsigned int i = 0; i < intermediate_min_PV_DCA.size(); ++i) m_intermediate_min_PV_dca.push_back(intermediate_min_PV_DCA[i]);
+    m_intermediate_min_PV_dca.insert(m_intermediate_min_PV_dca.end(), intermediate_min_PV_DCA.begin(), intermediate_min_PV_DCA.end());
   }
 
   void setIntermediatePV_DCARange(const std::vector<std::pair<float, float> /*unused*/> &intermediate_PV_DCA_range)
   {
-    for (unsigned int i = 0; i < intermediate_PV_DCA_range.size(); ++i)
+    for (const auto &entry : intermediate_PV_DCA_range)
     {
-      m_intermediate_min_PV_dca.push_back(intermediate_PV_DCA_range[i].first);
-      m_intermediate_max_PV_dca.push_back(intermediate_PV_DCA_range[i].second);
+      m_intermediate_min_PV_dca.push_back(entry.first);
+      m_intermediate_max_PV_dca.push_back(entry.second);
     }
   }
 
   void setIntermediateMinPV_DCA_StdDev_XY(const std::vector<float> &intermediate_min_PV_DCA_StdDev)
   {
-    for (unsigned int i = 0; i < intermediate_min_PV_DCA_StdDev.size(); ++i) m_intermediate_min_PV_dca_stddev_xy.push_back(intermediate_min_PV_DCA_StdDev[i]);
+    m_intermediate_min_PV_dca_stddev_xy.insert(m_intermediate_min_PV_dca_stddev_xy.end(), intermediate_min_PV_DCA_StdDev.begin(), intermediate_min_PV_DCA_StdDev.end());
   }
 
   void setIntermediatePV_DCA_StdDevRange_XY(const std::vector<std::pair<float, float> /*unused*/> &intermediate_PV_DCA_StdDev_range)
   {
-    for (unsigned int i = 0; i < intermediate_PV_DCA_StdDev_range.size(); ++i)
+    for (const auto &entry : intermediate_PV_DCA_StdDev_range)
     {
-      m_intermediate_min_PV_dca_stddev_xy.push_back(intermediate_PV_DCA_StdDev_range[i].first);
-      m_intermediate_max_PV_dca_stddev_xy.push_back(intermediate_PV_DCA_StdDev_range[i].second);
+      m_intermediate_min_PV_dca_stddev_xy.push_back(entry.first);
+      m_intermediate_max_PV_dca_stddev_xy.push_back(entry.second);
     }
   }
 
   void setIntermediateMinPV_DCA_StdDev(const std::vector<float> &intermediate_min_PV_DCA_StdDev)
   {
-    for (unsigned int i = 0; i < intermediate_min_PV_DCA_StdDev.size(); ++i) m_intermediate_min_PV_dca_stddev.push_back(intermediate_min_PV_DCA_StdDev[i]);
+    m_intermediate_min_PV_dca_stddev.insert(m_intermediate_min_PV_dca_stddev.end(), intermediate_min_PV_DCA_StdDev.begin(), intermediate_min_PV_DCA_StdDev.end());
   }
 
   void setIntermediatePV_DCA_StdDevRange(const std::vector<std::pair<float, float> /*unused*/> &intermediate_PV_DCA_StdDev_range)
   {
-    for (unsigned int i = 0; i < intermediate_PV_DCA_StdDev_range.size(); ++i)
+    for (const auto &entry : intermediate_PV_DCA_StdDev_range)
     {
-      m_intermediate_min_PV_dca_stddev.push_back(intermediate_PV_DCA_StdDev_range[i].first);
-      m_intermediate_max_PV_dca_stddev.push_back(intermediate_PV_DCA_StdDev_range[i].second);
+      m_intermediate_min_PV_dca_stddev.push_back(entry.first);
+      m_intermediate_max_PV_dca_stddev.push_back(entry.second);
     }
   }
 
   void setIntermediateMinDIRA(const std::vector<float> &intermediate_min_DIRA)
   {
-    for (unsigned int i = 0; i < intermediate_min_DIRA.size(); ++i) m_intermediate_min_dira.push_back(intermediate_min_DIRA[i]);
+    m_intermediate_min_dira.insert(m_intermediate_min_dira.end(), intermediate_min_DIRA.begin(), intermediate_min_DIRA.end());
   }
 
   void setIntermediateMinFDchi2(const std::vector<float> &intermediate_min_FDchi2)
   {
-    for (unsigned int i = 0; i < intermediate_min_FDchi2.size(); ++i) m_intermediate_min_fdchi2.push_back(intermediate_min_FDchi2[i]);
+    m_intermediate_min_fdchi2.insert(m_intermediate_min_fdchi2.end(), intermediate_min_FDchi2.begin(), intermediate_min_FDchi2.end());
   }
 
   /// Decay length [cm] of each intermediate state, 3D, from the decay vertex of the mother: one (min, max) per intermediate
@@ -373,25 +379,28 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setIntermediateMaxVertexVolume(const std::vector<float> &intermediate_max_vertexvol)
   {
-    for (unsigned int i = 0; i < intermediate_max_vertexvol.size(); ++i) m_intermediate_vertex_volume.push_back(intermediate_max_vertexvol[i]);
+    m_intermediate_vertex_volume.insert(m_intermediate_vertex_volume.end(), intermediate_max_vertexvol.begin(), intermediate_max_vertexvol.end());
   }
 
   void use2Dmatching(bool use_2D_matching_tools = true) { m_use_2D_matching_tools = use_2D_matching_tools; }
 
-  void useMVA(bool require_mva = true) { m_require_mva = require_mva; }
+  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
+  void useMVA(bool /*require_mva*/ = true) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
 
-  void setNumMVAPars(unsigned int nPars) { m_nPars = nPars; }
+  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
+  void setNumMVAPars(unsigned int /*nPars*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
 
-  void setMVAVarList(const std::vector<std::string> &mva_variable_list)
-  {
-    for (unsigned int i = 0; i < mva_variable_list.size(); ++i) m_mva_variable_list.push_back(mva_variable_list[i]);
-  }
+  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
+  void setMVAVarList(const std::vector<std::string> & /*mva_variable_list*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
 
-  void setMVAType(const std::string &mva_type) { m_mva_type = mva_type; }
+  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
+  void setMVAType(const std::string & /*mva_type*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
 
-  void setMVAWeightsPath(const std::string &mva_weights_path) { m_mva_path = mva_weights_path; }
+  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
+  void setMVAWeightsPath(const std::string & /*mva_weights_path*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
 
-  void setMVACutValue(float cut_value) { m_mva_cut_value = cut_value; }
+  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
+  void setMVACutValue(float /*cut_value*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
 
   void saveDST(bool save = true) { m_save_dst = save; }
 
@@ -417,7 +426,15 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void getAllPVInfo(bool pvinfo = true) { m_get_all_PVs = pvinfo; }
 
-  void saveLightweightNTuple(bool minimal = true) { m_minimal_output = minimal; if (!minimal) m_minimal_output_to_qa = false; }  // QA output is a sub-mode of the lightweight nTuple
+  // QA output is a sub-mode of the lightweight nTuple
+  void saveLightweightNTuple(bool minimal = true)
+  {
+    m_minimal_output = minimal;
+    if (!minimal)
+    {
+      m_minimal_output_to_qa = false;
+    }
+  }
   void saveLightweightNTupleToQA(bool minimal = true) { m_minimal_output = m_minimal_output_to_qa = minimal; }  // also turns on the lightweight nTuple
 
   void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_bunch_crossing_zero_only = bcZeroOnly; }
@@ -455,7 +472,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void incrementCandidateCounter(){ candidateCounter += 1; }
   void setCandidateCounter(int countNum) { candidateCounter = countNum; }
-  int getCandidateCounter() { return candidateCounter; }
+  int getCandidateCounter() const { return candidateCounter; }
 
  private:
   bool m_has_intermediates_sPHENIX;

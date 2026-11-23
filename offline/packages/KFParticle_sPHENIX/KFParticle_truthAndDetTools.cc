@@ -85,9 +85,7 @@ SvtxTrack *KFParticle_truthAndDetTools::getTrack(unsigned int track_id, SvtxTrac
 
 GlobalVertex *KFParticle_truthAndDetTools::getVertex(unsigned int vertex_id, GlobalVertexMap *vertexmap)
 {
-  GlobalVertex *matched_vertex = vertexmap->get(vertex_id);
-
-  return matched_vertex;
+  return vertexmap->get(vertex_id);
 }
 
 PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack *thisTrack, PHCompositeNode *topNode)
@@ -109,10 +107,10 @@ PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack *thisTrack, P
       std::cout << "KFParticle truth matching: G4TruthInfo does not exist" << std::endl;
     }
 
-    std::map<float, std::set<int>> truth_set = dst_reco_truth_map->get(thisTrack->get_id());
+    const auto &truth_set = dst_reco_truth_map->get(thisTrack->get_id());
     if (!truth_set.empty())
     {
-      std::pair<float, std::set<int>> best_weight = *truth_set.rbegin();
+      const auto &best_weight = *truth_set.rbegin();
       int best_truth_id = *best_weight.second.rbegin();
       particle = m_truthinfo->GetParticle(best_truth_id);
     }
@@ -209,7 +207,7 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   track = getTrack(daughter.Id(), dst_trackmap);
   g4particle = getTruthTrack(track, topNode);
 
-  bool isParticleValid = g4particle == nullptr ? false : true;
+  const bool isParticleValid = g4particle != nullptr;
 
   true_px = isParticleValid ? (Float_t) g4particle->get_px() : 0.;
   true_py = isParticleValid ? (Float_t) g4particle->get_py() : 0.;
@@ -258,11 +256,11 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
       std::cout << "Have a global vertex with no " << vtxType << " vertex... shouldn't happen in KFParticle_truthAndDetTools::fillTruthBranch..." << std::endl;
     }
 
-    auto svtxvertexvector = svtxviter->second;
+    const auto &svtxvertexvector = svtxviter->second;
     MbdVertex *mbdvertex = nullptr;
     SvtxVertex *svtxvertex = nullptr;
 
-    for (auto &vertex_iter : svtxvertexvector)
+    for (const auto &vertex_iter : svtxvertexvector)
     {
       if (m_tools->get_use_mbd_vertex())
       {
@@ -374,11 +372,11 @@ void KFParticle_truthAndDetTools::fillHepMCBranch(HepMC::GenParticle *particle, 
 int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id)
 {
   // Make dummy particle for null pointers and missing nodes
-  HepMC::GenParticle *dummyParticle = new HepMC::GenParticle();
+  HepMC::GenParticle dummyParticle;
   HepMC::FourVector dummyFourVector(0, 0, 0, 0);
-  dummyParticle->set_momentum(dummyFourVector);
-  dummyParticle->set_pdg_id(0);
-  dummyParticle->set_generated_mass(0.);
+  dummyParticle.set_momentum(dummyFourVector);
+  dummyParticle.set_pdg_id(0);
+  dummyParticle.set_generated_mass(0.);
 
   dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_tools->get_trk_map_node_name());
   if (!dst_trackmap)
@@ -391,12 +389,12 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
   track = getTrack(daughter.Id(), dst_trackmap);
   g4particle = getTruthTrack(track, topNode);
 
-  bool isParticleValid = g4particle == nullptr ? false : true;
+  const bool isParticleValid = g4particle != nullptr;
 
   if (!isParticleValid)
   {
     std::cout << "KFParticle truth matching: this track is a ghost" << std::endl;
-    fillHepMCBranch(dummyParticle, daughter_id);
+    fillHepMCBranch(&dummyParticle, daughter_id);
     return 0;
   }
 
@@ -405,7 +403,7 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
   {
     std::cout << "KFParticle truth matching: Missing node PHHepMCGenEventMap" << std::endl;
     std::cout << "You will have no mother information" << std::endl;
-    fillHepMCBranch(dummyParticle, daughter_id);
+    fillHepMCBranch(&dummyParticle, daughter_id);
     return 0;
   }
 
@@ -414,7 +412,7 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
   {
     std::cout << "KFParticle truth matching: Missing node PHHepMCGenEvent" << std::endl;
     std::cout << "You will have no mother information" << std::endl;
-    fillHepMCBranch(dummyParticle, daughter_id);
+    fillHepMCBranch(&dummyParticle, daughter_id);
     return 0;
   }
 
@@ -452,7 +450,7 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
              mother != prevParticle->production_vertex()->particles_end(HepMC::parents); ++mother)
         {
           if (std::find(std::begin(forbiddenPDGIDs), std::end(forbiddenPDGIDs),
-                        abs((*mother)->pdg_id())) != std::end(forbiddenPDGIDs))
+                        std::abs((*mother)->pdg_id())) != std::end(forbiddenPDGIDs))
           {
             breakOut = true;
             break;
@@ -579,8 +577,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   }
 
   // Radii for track projections
-  double caloRadiusEMCal;
-  caloRadiusEMCal = m_emcal_radius_user;  // Use function set_emcal_radius_user(float set_variable) to set this in your Fun4All macro
+  const double caloRadiusEMCal = m_emcal_radius_user;  // Use function set_emcal_radius_user(float set_variable) to set this in your Fun4All macro
 
   // Create variables and containers etc.
   bool is_match;
@@ -589,14 +586,13 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
 
   // EMCAL******************************************************
   // Get state
-  SvtxTrackState *thisState = nullptr;
-  thisState = track->get_state(caloRadiusEMCal);
+  SvtxTrackState *thisState = track->get_state(caloRadiusEMCal);
 
   // Print out additional track states with high verbosity:
   if(m_track2caloVerbosity > 10 && thisState != nullptr)
   {
     thisState->identify();
-    std::cout << "size states " << (size_t)track->size_states() << std::endl;
+    std::cout << "size states " << track->size_states() << std::endl;
     for (auto state_iter = track->begin_states();
           state_iter != track->end_states();
           ++state_iter)
@@ -776,7 +772,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     }
 
     // Find the closest match from all potential matches
-    if (is_match == true)
+    if (is_match)
     {
       float tmp = 99999;
       for (long unsigned int i = 0; i < v_emcal_dr.size(); i++)
@@ -1213,31 +1209,8 @@ void KFParticle_truthAndDetTools::Get5x5CellInfo(
   // Get phi bins, and account for wrap-around case
   for (int i = -2; i <= 2; i++)
   {
-    int phibin = center_phi + i;
-    // Wraparound
-    if (phibin < 0 || phibin > 255)
-    {
-      if (phibin == -1)
-      {
-        phibin = 255;
-      }
-      if (phibin == -2)
-      {
-        phibin = 254;
-      }
-      if (phibin == 256)
-      {
-        phibin = 0;
-      }
-      if (phibin == 257)
-      {
-        phibin = 1;
-      }
-      if (phibin == 258)
-      {
-        phibin = 2;
-      }
-    }
+    // Wraparound in phi (256 EMCal phi bins)
+    int phibin = (static_cast<int>(center_phi) + i + 256) % 256;
     v_phi_tmp.push_back(phibin);
   }
 
@@ -1314,7 +1287,7 @@ void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int 
     m_tree->Branch((daughter_number + "_layer").c_str(), &detector_layer[daughter_id]);
   }
 
-  for (auto const &subdetector : Use)
+  for (const auto &subdetector : Use)
   {
     if (subdetector.second)
     {
@@ -1324,40 +1297,41 @@ void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int 
 }
 void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, const std::string &detectorName, int daughter_id, const std::string &daughter_number)
 {
+  const std::string branchName = daughter_number + "_" + detectorName;
   if (detectorName == "MVTX")
   {
     if (m_get_detailed_tracking)
     {
-      m_tree->Branch((daughter_number + "_" + detectorName + "_staveID").c_str(), &mvtx_staveID[daughter_id]);
-      m_tree->Branch((daughter_number + "_" + detectorName + "_chipID").c_str(), &mvtx_chipID[daughter_id]);
+      m_tree->Branch((branchName + "_staveID").c_str(), &mvtx_staveID[daughter_id]);
+      m_tree->Branch((branchName + "_chipID").c_str(), &mvtx_chipID[daughter_id]);
     }
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_MVTX[daughter_id]);
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_MVTX[daughter_id]);
+    m_tree->Branch((branchName + "_nHits").c_str(), &detector_nHits_MVTX[daughter_id]);
+    m_tree->Branch((branchName + "_nStates").c_str(), &detector_nStates_MVTX[daughter_id]);
   }
-  if (detectorName == "INTT")
+  else if (detectorName == "INTT")
   {
     if (m_get_detailed_tracking)
     {
-      m_tree->Branch((daughter_number + "_" + detectorName + "_ladderZID").c_str(), &intt_ladderZID[daughter_id]);
-      m_tree->Branch((daughter_number + "_" + detectorName + "_ladderPhiID").c_str(), &intt_ladderPhiID[daughter_id]);
+      m_tree->Branch((branchName + "_ladderZID").c_str(), &intt_ladderZID[daughter_id]);
+      m_tree->Branch((branchName + "_ladderPhiID").c_str(), &intt_ladderPhiID[daughter_id]);
     }
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_INTT[daughter_id]);
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_INTT[daughter_id]);
+    m_tree->Branch((branchName + "_nHits").c_str(), &detector_nHits_INTT[daughter_id]);
+    m_tree->Branch((branchName + "_nStates").c_str(), &detector_nStates_INTT[daughter_id]);
   }
-  if (detectorName == "TPC")
+  else if (detectorName == "TPC")
   {
     if (m_get_detailed_tracking)
     {
-      m_tree->Branch((daughter_number + "_" + detectorName + "_sectorID").c_str(), &tpc_sectorID[daughter_id]);
-      m_tree->Branch((daughter_number + "_" + detectorName + "_side").c_str(), &tpc_side[daughter_id]);
+      m_tree->Branch((branchName + "_sectorID").c_str(), &tpc_sectorID[daughter_id]);
+      m_tree->Branch((branchName + "_side").c_str(), &tpc_side[daughter_id]);
     }
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_TPC[daughter_id]);
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_TPC[daughter_id]);
+    m_tree->Branch((branchName + "_nHits").c_str(), &detector_nHits_TPC[daughter_id]);
+    m_tree->Branch((branchName + "_nStates").c_str(), &detector_nStates_TPC[daughter_id]);
   }
-  if (detectorName == "TPOT")
+  else if (detectorName == "TPOT")
   {
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_TPOT[daughter_id]);
-    m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_TPOT[daughter_id]);
+    m_tree->Branch((branchName + "_nHits").c_str(), &detector_nHits_TPOT[daughter_id]);
+    m_tree->Branch((branchName + "_nStates").c_str(), &detector_nStates_TPOT[daughter_id]);
   }
 }
 
@@ -1653,7 +1627,6 @@ void KFParticle_truthAndDetTools::clearVectors()
 
   allPV_x.clear();
   allPV_y.clear();
-  allPV_z.clear();
   allPV_z.clear();
 
   allPV_mother_PV_DCA.clear();

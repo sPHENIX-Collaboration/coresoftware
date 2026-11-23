@@ -282,8 +282,9 @@ short int PHSiliconTpcTrackMatching::findCrossingGeometrically(unsigned int tpci
   const short int tpc_crossing = tpc_track->get_crossing();
 
   // this is an initial estimate of the bunch crossing based on the z-mismatch of the seeds for this track
-  short int crossing_estimate = (short int) getBunchCrossing(tpcid, tpc_z - si_z);
-
+  double rounded_crossing_estimate = std::round(getBunchCrossing(tpcid, tpc_z - si_z));
+  short int crossing_estimate = (short int) rounded_crossing_estimate;
+  
   if (Verbosity() > 1)
   {
     std::cout << "findCrossing: "
@@ -316,8 +317,12 @@ double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_m
     unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
     if (trkrid == TrkrDefs::tpcId)
     {
-      side = TpcDefs::getSide(cluster_key);
-      side_set.insert(side);
+      const unsigned int this_side = TpcDefs::getSide(cluster_key);
+      if (side == 10)
+      {
+        side = this_side;  // use the first TPC cluster, consistent with checkZMatches
+      }
+      side_set.insert(this_side);
     }
   }
 
@@ -329,7 +334,7 @@ double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_m
   if (side_set.size() == 2 && Verbosity() > 1)
   {
     std::cout << "     WARNING: tpc seed " << trid << " changed TPC sides, "
-              << "  final side " << side << std::endl;
+              << "  using side of first cluster " << side << std::endl;
   }
 
   // if side = 1 (north, +ve z side), a positive t0 will make the cluster late relative to true z, so it will look like z is less positive
@@ -478,7 +483,12 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
       std::tie(ok_track, tpc_phi, tpc_eta, tpc_pt, tpc_pos, mom) =
         TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list);
-      if (!ok_track) { continue; }
+      if (!ok_track)
+      {
+        // keep the tpc seed for fitting, as for any unmatched seed
+        tpc_unmatched_set.insert(tpcid);
+        continue;
+      }
       tpc_px = mom.x();
       tpc_py = mom.y();
       tpc_pz = mom.z();
@@ -687,15 +697,19 @@ void PHSiliconTpcTrackMatching::checkZMatches(
       auto cluster_list_tpc = getTrackletClusterList(tpc_track);
       auto cluster_list_si = getTrackletClusterList(si_track);
 
-      tpc_pt = std::get<3>(TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list_tpc));
-      tpc_z = std::get<4>(TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list_tpc)).z();
+      const auto tpc_params = TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list_tpc);
+      const auto si_params = TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list_si);
+      if (!std::get<0>(tpc_params) || !std::get<0>(si_params)) { continue; }
+
+      tpc_pt = std::get<3>(tpc_params);
+      tpc_z = std::get<4>(tpc_params).z();
       tpc_q = -100;
 
-      si_z = std::get<4>(TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list_si)).z();
+      si_z = std::get<4>(si_params).z();
     } else {
-      tpc_pt = std::abs(1. / _tracklet_tpc->get_qOverR()) * (0.3 / 100.) * fieldstrength;
+      tpc_pt = std::abs(1. / tpc_track->get_qOverR()) * (0.3 / 100.) * fieldstrength;
       tpc_z = TrackSeedHelper::get_z(tpc_track);
-      tpc_q = _tracklet_tpc->get_charge();
+      tpc_q = tpc_track->get_charge();
       si_z = TrackSeedHelper::get_z(si_track);
     }
 
@@ -823,9 +837,9 @@ std::vector<short int>  PHSiliconTpcTrackMatching::getBestCrossing(unsigned int 
     {
       short int inttdiff = intt_crossing - geom_crossing;
       short int tpcdiff = tpc_crossing - geom_crossing;
-      if( abs(inttdiff) < _max_crossing_diff || abs(tpcdiff) < _max_crossing_diff )
+      if( std::abs(inttdiff) < _max_crossing_diff || std::abs(tpcdiff) < _max_crossing_diff )
 	{
-	  crossing = ( abs(inttdiff) < abs(tpcdiff) ) ? (intt_crossing) : (tpc_crossing);
+	  crossing = ( std::abs(inttdiff) < std::abs(tpcdiff) ) ? (intt_crossing) : (tpc_crossing);
 	}
     }
 

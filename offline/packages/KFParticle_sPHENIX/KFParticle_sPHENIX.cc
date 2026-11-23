@@ -21,6 +21,8 @@
 
 #include "KFParticle_sPHENIX.h"
 
+#include <centrality/CentralityInfo.h>
+
 #include <globalvertex/MbdVertex.h>
 #include <globalvertex/MbdVertexMap.h>
 #include <globalvertex/SvtxVertexMap.h>
@@ -62,18 +64,7 @@ namespace TMVA
 //int candidateCounter = 0;
 
 /// KFParticle constructor
-KFParticle_sPHENIX::KFParticle_sPHENIX()
-  : SubsysReco("KFPARTICLE")
-  , m_has_intermediates_sPHENIX(false)
-  , m_constrain_to_vertex_sPHENIX(false)
-  , m_require_mva(false)
-  , m_save_dst(false)
-  , m_save_output(true)
-  , m_outfile_name("outputData.root")
-  , m_outfile(nullptr)
-{
-  setToolsInstance(static_cast<KFParticle_Tools *>(this));
-}
+KFParticle_sPHENIX::KFParticle_sPHENIX() : KFParticle_sPHENIX("KFPARTICLE"){}
 
 KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
   : SubsysReco(name)
@@ -104,13 +95,14 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
     createParticleNode(topNode);
   }
 
+/* DEPRECATED: Code is initialized to be completely discarded
   if (m_require_mva)
   {
     TMVA::Reader *reader;
     std::vector<Float_t> MVA_parValues;
     tie(reader, MVA_parValues) = initMVA();
   }
-
+*/
   int returnCode = 0;
   if (!m_decayDescriptor.empty())
   {
@@ -147,6 +139,11 @@ int KFParticle_sPHENIX::InitRun(PHCompositeNode *topNode)
 
   getField();
 
+  if (m_use_centrality_nTuple && !findNode::getClass<CentralityInfo>(topNode, "CentralityInfo"))
+  {
+    std::cout << "KFParticle - [WARNING] - can't find CentralityInfo node CentralityInfo" << std::endl;
+  }
+
   return 0;
 }
 
@@ -157,7 +154,6 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   std::vector<std::vector<KFParticle>> daughters;
   std::vector<std::vector<KFParticle>> intermediates;
   int nPVs;
-  int multiplicity;
 
   // Adding BCO Matching  
   auto* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader"); // event header node
@@ -227,33 +223,20 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     }
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  multiplicity = check_trackmap->size();
+  const int multiplicity = check_trackmap->size();
 
   if (!m_use_fake_pv)
   {
-    if (m_use_mbd_vertex)
+    const bool noVertices = m_use_mbd_vertex
+                                ? findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap")->empty()
+                                : findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name)->empty();
+    if (noVertices)
     {
-      MbdVertexMap* check_vertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
-      if (check_vertexmap->empty())
+      if (Verbosity() >= VERBOSITY_SOME)
       {
-        if (Verbosity() >= VERBOSITY_SOME)
-        {
-          std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
-        }
-        return Fun4AllReturnCodes::EVENT_OK;
+        std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
       }
-    }
-    else
-    {
-      SvtxVertexMap* check_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name);
-      if (check_vertexmap->empty())
-      {
-        if (Verbosity() >= VERBOSITY_SOME)
-        {
-          std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
-        }
-        return Fun4AllReturnCodes::EVENT_OK;
-      }
+      return Fun4AllReturnCodes::EVENT_OK;
     }
   }
   
@@ -268,44 +251,37 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     vertex_kfparticle = mother;
   }
 
-  if (!mother.empty())
+  for (unsigned int i = 0; i < mother.size(); ++i)
   {
-    for (unsigned int i = 0; i < mother.size(); ++i)
+    
+    if (m_save_output && getCandidateCounter() == 0)
     {
-      
-      if (m_save_output && getCandidateCounter() == 0)
+      if (!m_minimal_output_to_qa)
       {
-        if (!m_minimal_output_to_qa)
-        {
-          m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
-        }
-        initializeBranches(topNode);
+        m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
       }
+      initializeBranches(topNode);
+    }
 
-      //candidateCounter += 1;
-      incrementCandidateCounter();
+    incrementCandidateCounter();
 
-      if (m_save_output)
-      {
-	set_event_bcos(m_this_event_bco, m_last_event_bco); //filling nTuple for BCO Matching
-        fillBranch(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i]);
-      }
-      if (m_save_dst)
-      {
-        fillParticleNode(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i]);
-      }
+    if (m_save_output)
+    {
+      set_event_bcos(m_this_event_bco, m_last_event_bco); //filling nTuple for BCO Matching
+      fillBranch(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i]);
+    }
+    if (m_save_dst)
+    {
+      fillParticleNode(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i]);
+    }
 
-      if (Verbosity() >= VERBOSITY_SOME)
-      {
-        printParticles(mother[i], vertex_kfparticle[i], daughters[i], intermediates[i], nPVs, multiplicity);
-      }
-      if (Verbosity() >= VERBOSITY_MORE)
-      {
-        if (m_save_dst)
-        {
-          printNode(topNode);
-        }
-      }
+    if (Verbosity() >= VERBOSITY_SOME)
+    {
+      printParticles(mother[i], vertex_kfparticle[i], daughters[i], intermediates[i], nPVs, multiplicity);
+    }
+    if (Verbosity() >= VERBOSITY_MORE && m_save_dst)
+    {
+      printNode(topNode);
     }
   }
 
@@ -370,13 +346,8 @@ void KFParticle_sPHENIX::printParticles(const KFParticle &motherParticle,
 
 int KFParticle_sPHENIX::parseDecayDescriptor()
 {
-  bool ddCanBeParsed = true;
-
-  size_t daughterLocator;
-
   std::string mother;
   std::string intermediate;
-  std::string daughter;
 
   std::vector<std::pair<std::string, int>> intermediate_list;
   std::vector<std::string> intermediates_name;
@@ -393,6 +364,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   std::string chargeIndicator = "^";
   std::string startIntermediate = "{";
   std::string endIntermediate = "}";
+  static const std::map<std::string, int> chargeLookup = {{"+", +1}, {"-", -1}, {"0", 0}};
 
   // These tracks require a + or - after their name for TDatabasePDG
   std::string specialTracks[] = {"e", "mu", "pi", "K"};
@@ -421,11 +393,48 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   // Find the initial particle
   size_t findMotherEndPoint = manipulateDecayDescriptor.find(decayArrow);
   mother = manipulateDecayDescriptor.substr(0, findMotherEndPoint);
-  if (!findParticle(mother))
-  {
-    ddCanBeParsed = false;
-  }
+  bool ddCanBeParsed = findParticle(mother);
   manipulateDecayDescriptor.erase(0, findMotherEndPoint + decayArrow.length());
+
+  // Consume every "name^charge" daughter in decay, filling daughters_name/daughters_charge; returns how many were read
+  auto parseDaughters = [&](std::string &decay)
+  {
+    int nFound = 0;
+    size_t daughterLocator;
+    while ((daughterLocator = decay.find(chargeIndicator)) != std::string::npos)
+    {
+      std::string daughter = decay.substr(0, daughterLocator);
+      std::string daughterChargeString = decay.substr(daughterLocator + 1, 1);
+      if (std::find(std::begin(specialTracks), std::end(specialTracks), daughter) != std::end(specialTracks))
+      {
+        daughter += daughterChargeString;
+      }
+      if (findParticle(daughter))
+      {
+        daughters_name.emplace_back(daughter.c_str());
+        auto charge = chargeLookup.find(daughterChargeString);
+        if (charge != chargeLookup.end())
+        {
+          daughters_charge.push_back(charge->second);
+        }
+        else
+        {
+          if (Verbosity() >= VERBOSITY_MORE)
+          {
+            std::cout << "The charge of " << daughterChargeString << " was not known" << std::endl;
+          }
+          ddCanBeParsed = false;
+        }
+      }
+      else
+      {
+        ddCanBeParsed = false;
+      }
+      decay.erase(0, daughterLocator + 2);
+      ++nFound;
+    }
+    return nFound;
+  };
 
   // Try and find the intermediates
   while ((pos = manipulateDecayDescriptor.find(startIntermediate)) != std::string::npos)
@@ -445,93 +454,15 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     }
 
     // Now find the daughters associated to this intermediate
-    int nDaughters = 0;
     intermediateDecay.erase(0, intermediateDecay.find(decayArrow) + decayArrow.length());
-    while ((daughterLocator = intermediateDecay.find(chargeIndicator)) != std::string::npos)
-    {
-      daughter = intermediateDecay.substr(0, daughterLocator);
-      std::string daughterChargeString = intermediateDecay.substr(daughterLocator + 1, 1);
-      if (std::find(std::begin(specialTracks), std::end(specialTracks), daughter) != std::end(specialTracks))
-      {
-        daughter += daughterChargeString;
-      }
-      if (findParticle(daughter))
-      {
-        daughters_name.emplace_back(daughter.c_str());
-
-        if (daughterChargeString == "+")
-        {
-          daughters_charge.push_back(+1);
-        }
-        else if (daughterChargeString == "-")
-        {
-          daughters_charge.push_back(-1);
-        }
-        else if (daughterChargeString == "0")
-        {
-          daughters_charge.push_back(0);
-        }
-        else
-        {
-          if (Verbosity() >= VERBOSITY_MORE)
-          {
-            std::cout << "The charge of " << daughterChargeString << " was not known" << std::endl;
-          }
-          ddCanBeParsed = false;
-        }
-      }
-      else
-      {
-        ddCanBeParsed = false;
-      }
-      intermediateDecay.erase(0, daughterLocator + 2);
-      ++nDaughters;
-    }
+    const int nDaughters = parseDaughters(intermediateDecay);
     manipulateDecayDescriptor.erase(findIntermediateStartPoint, findIntermediateEndPoint + 1 - findIntermediateStartPoint);
     m_nTracksFromIntermediates.push_back(nDaughters);
     nTracks += nDaughters;
   }
 
   // Now find any remaining reconstructable tracks from the mother
-  while ((daughterLocator = manipulateDecayDescriptor.find(chargeIndicator)) != std::string::npos)
-  {
-    daughter = manipulateDecayDescriptor.substr(0, daughterLocator);
-    std::string daughterChargeString = manipulateDecayDescriptor.substr(daughterLocator + 1, 1);
-    if (std::find(std::begin(specialTracks), std::end(specialTracks), daughter) != std::end(specialTracks))
-    {
-      daughter += daughterChargeString;
-    }
-    if (findParticle(daughter))
-    {
-      daughters_name.emplace_back(daughter.c_str());
-      if (daughterChargeString == "+")
-      {
-        daughters_charge.push_back(+1);
-      }
-      else if (daughterChargeString == "-")
-      {
-        daughters_charge.push_back(-1);
-      }
-      else if (daughterChargeString == "0")
-      {
-        daughters_charge.push_back(0);
-      }
-      else
-      {
-        if (Verbosity() >= VERBOSITY_MORE)
-        {
-          std::cout << "The charge of " << daughterChargeString << " was not known" << std::endl;
-        }
-        ddCanBeParsed = false;
-      }
-    }
-    else
-    {
-      ddCanBeParsed = false;
-    }
-    manipulateDecayDescriptor.erase(0, daughterLocator + 2);
-    nTracks += 1;
-  }
+  nTracks += parseDaughters(manipulateDecayDescriptor);
 
   int trackEnd = 0;
   for (unsigned int i = 0; i < intermediates_name.size(); ++i)
