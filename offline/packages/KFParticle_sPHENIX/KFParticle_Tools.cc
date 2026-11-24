@@ -1001,9 +1001,8 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
         intermediateCopy.GetDecayLengthXY(intermediate_decayLength_xy, intermediate_decayLengthErr_xy);
         float intermediate_decayTime_xy = intermediateCopy.GetPseudoProperDecayTime(mother, intermediateCopy.GetMass());
 
-        const float speed = 2.99792458e-2;
-        intermediate_decayTime /= speed;
-        intermediate_decayTime_xy /= speed;  // As for the mother, the pseudo-proper decay time is returned as a length (c*tau)
+        intermediate_decayTime /= KFParticle_utilities::speedOfLight;
+        intermediate_decayTime_xy /= KFParticle_utilities::speedOfLight;  // As for the mother, the pseudo-proper decay time is returned as a length (c*tau)
 
         const std::pair<float, float> noCut(-std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
         auto rangeOf = [&noCut, k](const std::vector<std::pair<float, float>> &ranges)
@@ -1085,9 +1084,8 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
   float calculated_decay_length_significance = calculated_decayLength / calculated_decayLengthErr;
   float calculated_decay_length_xy_significance = calculated_decayLength_xy / calculated_decayLengthErr_xy;
 
-  const float speed = 2.99792458e-2;
-  calculated_decayTime /= speed;
-  calculated_decayTime_xy /= speed;  // The pseudo-proper decay time is returned as a length (c*tau), convert it to a time like the 3D one
+  calculated_decayTime /= KFParticle_utilities::speedOfLight;
+  calculated_decayTime_xy /= KFParticle_utilities::speedOfLight;  // The pseudo-proper decay time is returned as a length (c*tau), convert it to a time like the 3D one
 
   goodCandidate = calculated_fdchi2 >= m_fdchi2 &&
                   calculated_PV_dca <= m_mother_PV_dca &&

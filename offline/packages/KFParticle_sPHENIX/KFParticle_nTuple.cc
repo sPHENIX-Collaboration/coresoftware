@@ -339,8 +339,6 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
                                    std::vector<KFParticle> daughters,
                                    std::vector<KFParticle> intermediates)
 {
-  const float speedOfLight = 2.99792458e-2;
-
   KFParticle* daughterArray = daughters.data();
 
   int num_tracks_used_by_intermediates = 0;
@@ -485,8 +483,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       intermediateArray[i].GetDecayLength(m_calculated_intermediate_decaylength[i], m_calculated_intermediate_decaylength_err[i]);
       intermediateArray[i].GetDecayLengthXY(m_calculated_intermediate_decaylength_xy[i], m_calculated_intermediate_decaylength_xy_err[i]);
 
-      m_calculated_intermediate_decaytime[i] /= speedOfLight;
-      m_calculated_intermediate_decaytime_err[i] /= speedOfLight;
+      m_calculated_intermediate_decaytime[i] /= KFParticle_utilities::speedOfLight;
+      m_calculated_intermediate_decaytime_err[i] /= KFParticle_utilities::speedOfLight;
     }
   }
 
@@ -625,8 +623,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     motherParticle.GetDecayLength(m_calculated_mother_decaylength, m_calculated_mother_decaylength_err);
     motherParticle.GetDecayLengthXY(m_calculated_mother_decaylength_xy, m_calculated_mother_decaylength_xy_err);
 
-    m_calculated_mother_decaytime /= speedOfLight;
-    m_calculated_mother_decaytime_err /= speedOfLight;
+    m_calculated_mother_decaytime /= KFParticle_utilities::speedOfLight;
+    m_calculated_mother_decaytime_err /= KFParticle_utilities::speedOfLight;
 
     m_calculated_vertex_x = vertex_fillbranch.GetX();
     m_calculated_vertex_y = vertex_fillbranch.GetY();

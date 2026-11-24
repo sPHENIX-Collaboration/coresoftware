@@ -19,6 +19,9 @@ class KFParticle_utilities
   // Size of the per-daughter branch arrays
   static constexpr int max_tracks{20};
 
+  // Speed of light in cm/ps: KFParticle decay times come out as lengths (c*tau, cm), divide by this to get ps
+  static constexpr float speedOfLight{2.99792458e-2};
+
   static SvtxTrack *getTrack(unsigned int track_id, SvtxTrackMap *trackmap);
 
   // Beam crossing of the vertex the candidate was built with; -100 if it can't be found
