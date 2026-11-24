@@ -203,6 +203,19 @@ float KFParticle_utilities::getParticleMass(const int PDGID)
   return TDatabasePDG::Instance()->GetParticle(PDGID)->Mass();
 }
 
+bool KFParticle_utilities::findParticle(const std::string &particle)
+{
+  bool particleFound = true;
+  if (!TDatabasePDG::Instance()->GetParticle(particle.c_str()))
+  {
+    std::cout << "The particle, " << particle << " is not recognized" << std::endl;
+    std::cout << "Check TDatabasePDG for a list of available particles" << std::endl;
+    particleFound = false;
+  }
+
+  return particleFound;
+}
+
 //Taken from PHTrackCleaner.cc but this was declared private there
 TrackSeed *KFParticle_utilities::findSeed(TrackSeedContainer *container, unsigned short id)
 {

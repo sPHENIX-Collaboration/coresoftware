@@ -41,6 +41,9 @@ class KFParticle_utilities
   static float getParticleMass(const std::string &particle);
   static float getParticleMass(int PDGID);
 
+  // False (with a message) if the name is not in TDatabasePDG
+  static bool findParticle(const std::string &particle);
+
   // Seed with this index, or nullptr for an unset or out-of-range id
   static TrackSeed *findSeed(TrackSeedContainer *container, unsigned short id);
 };

@@ -20,7 +20,6 @@
  */
 
 #include "KFParticle_sPHENIX.h"
-#include "KFParticle_unsorted.h"
 
 #include <centrality/CentralityInfo.h>
 
@@ -372,7 +371,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   // Find the initial particle
   size_t findMotherEndPoint = manipulateDecayDescriptor.find(decayArrow);
   mother = manipulateDecayDescriptor.substr(0, findMotherEndPoint);
-  bool ddCanBeParsed = KFParticle_unsorted::findParticle(mother);
+  bool ddCanBeParsed = KFParticle_utilities::findParticle(mother);
   manipulateDecayDescriptor.erase(0, findMotherEndPoint + decayArrow.length());
 
   // Consume every "name^charge" daughter in decay, filling daughters_name/daughters_charge; returns how many were read
@@ -388,7 +387,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
       {
         daughter += daughterChargeString;
       }
-      if (KFParticle_unsorted::findParticle(daughter))
+      if (KFParticle_utilities::findParticle(daughter))
       {
         daughters_name.emplace_back(daughter.c_str());
         auto charge = chargeLookup.find(daughterChargeString);
@@ -423,7 +422,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     std::string intermediateDecay = manipulateDecayDescriptor.substr(pos + 1, findIntermediateEndPoint - (pos + 1));
 
     intermediate = intermediateDecay.substr(0, intermediateDecay.find(decayArrow));
-    if (KFParticle_unsorted::findParticle(intermediate))
+    if (KFParticle_utilities::findParticle(intermediate))
     {
       intermediates_name.emplace_back(intermediate.c_str());
     }
