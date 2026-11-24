@@ -28,8 +28,6 @@
 
 #include <KFParticle.h>  // for KFParticle
 
-#include <TDatabasePDG.h>  // for PDG masses of Geant4 ancestors
-#include <TParticlePDG.h>
 #include <TSystem.h>  // for gSystem->Exit()
 #include <TTree.h>    // for TTree
 
@@ -240,7 +238,10 @@ void KFParticle_truthInfo::fill(PHCompositeNode *topNode, const KFParticle &daug
     if (m_config.useMbdVertex)
     {
       std::set<PHG4VtxPoint *> truePointSet = vertexeval->all_truth_points(mbdvertex);
-      truePoint = *truePointSet.begin();
+      if (!truePointSet.empty())
+      {
+        truePoint = *truePointSet.begin();
+      }
     }
     else
     {
@@ -249,19 +250,16 @@ void KFParticle_truthInfo::fill(PHCompositeNode *topNode, const KFParticle &daug
 
     if (truePoint == nullptr && isParticleValid)
     {
-      // Use the production vertex of the generator-level (primary) ancestor, not of the
-      // direct parent: for a cascade (p <- Lambda <- Xi) the parent's vertex is the Xi decay point
-      // (for a primary, get_primary_particle returns the particle itself)
-      PHG4Particle *g4primary = trutheval->get_primary_particle(g4particle);
-      if (!g4primary)
+      PHG4Particle *g4mother = trutheval->get_parent_particle(g4particle);
+      if (!g4mother)
       {
-        std::cout << "KFParticle truth matching: True primary ancestor not found!\n";
+        std::cout << "KFParticle truth matching: True mother not found!\n";
         std::cout << "Your truth track DCA will be measured wrt a reconstructed vertex!" << std::endl;
         truePoint = nullptr;
       }
       else
       {
-        truePoint = trutheval->get_vertex(g4primary);
+        truePoint = trutheval->get_vertex(g4mother);
       }
     }
 
@@ -315,9 +313,7 @@ void KFParticle_truthInfo::fillGeant4Branch(PHG4Particle *particle, int daughter
 {
   Float_t pT = sqrt(pow(particle->get_px(), 2) + pow(particle->get_py(), 2));
   m_true_daughter_track_history_PDG_ID[daughter_id].push_back(particle->get_pid());
-  // PDG mass (0 if the code is not in ROOT's PDG table, e.g. nuclei)
-  const TParticlePDG *pdgParticle = TDatabasePDG::Instance()->GetParticle(particle->get_pid());
-  m_true_daughter_track_history_PDG_mass[daughter_id].push_back(pdgParticle ? (Float_t) pdgParticle->Mass() : 0.F);
+  m_true_daughter_track_history_PDG_mass[daughter_id].push_back(0);
   m_true_daughter_track_history_px[daughter_id].push_back((Float_t) particle->get_px());
   m_true_daughter_track_history_py[daughter_id].push_back((Float_t) particle->get_py());
   m_true_daughter_track_history_pz[daughter_id].push_back((Float_t) particle->get_pz());
