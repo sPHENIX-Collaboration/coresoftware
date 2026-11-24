@@ -24,6 +24,7 @@ pkginclude_HEADERS = \
   ActsAlignmentStates.h \
   ActsEvaluator.h \
   ActsPropagator.h \
+  ActsXYVertexSeeder.h \
   ALICEKF.h \
   AssocInfoContainer.h \
   AssocInfoContainerv1.h \
@@ -36,6 +37,7 @@ pkginclude_HEADERS = \
   nanoflann.hpp \
   PHActsKDTreeSeeding.h \
   PHActsSiliconSeeding.h \
+  PHActsIterativeVertexFinder.h \
   PHActsVertexPropagator.h \
   PHActsTrkFitter.h \
   PHActsTrackProjection.h \
@@ -105,11 +107,13 @@ ACTS_SOURCES = \
   ActsAlignmentStates.cc \
   ActsEvaluator.cc \
   ActsPropagator.cc \
+  ActsXYVertexSeeder.cc \
   MakeActsGeometry.cc \
   MakeSourceLinks.cc \
   PHActsKDTreeSeeding.cc \
   PHActsSiliconSeeding.cc \
   PHActsTrkFitter.cc \
+  PHActsIterativeVertexFinder.cc \
   PHActsVertexPropagator.cc \
   PHActsTrackProjection.cc \
   PHActsTrackPropagator.cc \
