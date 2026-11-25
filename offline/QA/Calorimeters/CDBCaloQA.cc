@@ -240,13 +240,13 @@ void CDBCaloQA::createHistos()
   for (int a = 0; !m_mc && a < 2; a++)
   {
     const std::string arm = a ? "north" : "south";
-    h2_zdc_e_ohcal[a] = book2("zdc_e_ohcal_" + arm, ("ZDC " + arm + " energy vs OHCal energy sum, " + zsel + ";#SigmaE_{OHCal} (GeV);E (" + zu + ")"), 200, 0, ohmax, 250, 0, zdcmax);
-    h2_zdc_e_t0[a] = book2("zdc_e_t0_" + arm, ("ZDC " + arm + " energy vs MBD t0, " + zsel + ";t0 (ns);E (" + zu + ")"), 40, -10, 10, 250, 0, zdcmax);
-    p2_zdc_t0_ohcal[a] = new TProfile2D(("p2_" + Name() + "_zdc_t0_ohcal_" + arm).c_str(), ("ZDC " + arm + " mean energy, " + zsel + ";t0 (ns);#SigmaE_{OHCal} (GeV)").c_str(), 40, -10, 10, 40, 0, ohmax);
+    h2_zdc_e_ohcal[a] = book2("zdc_e_ohcal_" + arm, std::format("ZDC {} energy vs OHCal energy sum, {};#SigmaE_{{OHCal}} (GeV);E ({})", arm, zsel, zu), 200, 0, ohmax, 250, 0, zdcmax);
+    h2_zdc_e_t0[a] = book2("zdc_e_t0_" + arm, std::format("ZDC {} energy vs MBD t0, {};t0 (ns);E ({})", arm, zsel, zu), 40, -10, 10, 250, 0, zdcmax);
+    p2_zdc_t0_ohcal[a] = new TProfile2D(std::format("p2_{}_zdc_t0_ohcal_{}", Name(), arm).c_str(), std::format("ZDC {} mean energy, {};t0 (ns);#SigmaE_{{OHCal}} (GeV)", arm, zsel).c_str(), 40, -10, 10, 40, 0, ohmax);
     m_hm->registerHisto(p2_zdc_t0_ohcal[a]);
   }
-  h2_zdc_e_ns_mb = book2("zdc_e_ns_mb", ("ZDC north vs south energy, MB;E_{south} (" + zu + ");E_{north} (" + zu + ")"), 200, 0, zdcmax, 200, 0, zdcmax);
-  h2_zdc_e_ns = book2("zdc_e_ns", ("ZDC north vs south energy, ZDC trigger;E_{south} (" + zu + ");E_{north} (" + zu + ")"), 200, 0, zdcmax, 200, 0, zdcmax);
+  h2_zdc_e_ns_mb = book2("zdc_e_ns_mb", std::format("ZDC north vs south energy, MB;E_{{south}} ({});E_{{north}} ({})", zu, zu), 200, 0, zdcmax, 200, 0, zdcmax);
+  h2_zdc_e_ns = book2("zdc_e_ns", std::format("ZDC north vs south energy, ZDC trigger;E_{{south}} ({});E_{{north}} ({})", zu, zu), 200, 0, zdcmax, 200, 0, zdcmax);
   const int nsq = std::lround((sepdqmax + 1.) / sepdqbinw);
   h2_sepd_q_ch = book2("sepd_q_ch", "sEPD tile charge, MB;channel;q (nMIP)", 744, -0.5, 743.5, nsq, -1., sepdqmax);
   h_sepd_qsum_south = book1("sepd_qsum_south", "sEPD south charge sum per event, MB;#Sigmaq (nMIP);events", 500, 0, sepdsummax);
@@ -266,7 +266,15 @@ void CDBCaloQA::createHistos()
     h_tow_e[l] = book1(tag + "_e", (ln + " good tower energy, MB;E (GeV);towers"), ne, elo_c, ehi_c);
     h_tow_e_noZSXCalib[l] = book1(tag + "_e_noZSXCalib", (ln + " good tower energy, no ZSCrossCalib, MB;E (GeV);towers"), ne, elo_c, ehi_c);
     h_tow_esum[l] = book1(tag + "_esum", (ln + " good tower energy sum per event, MB;#SigmaE (GeV);events"), 1100, -0.1 * esummax, esummax);
-    const double fracmax = (m_species == "pp") ? 0.05 : (m_species == "OO" ? 0.3 : 1.0);
+    double fracmax = 1.;
+    if (m_species == "pp")
+    {
+      fracmax = 0.05;
+    }
+    else if (m_species == "OO")
+    {
+      fracmax = 0.3;
+    }
     const double fbinw = (l == kCEMC) ? 1e-4 : 1. / 1536.;
     const int nfrac = std::lround(fracmax / fbinw) + 1;
     h_tow_occ[l] = book1(tag + "_occ", (ln + " fraction of good towers above threshold, MB;fraction;events"), nfrac, -0.5 * fbinw, (nfrac - 0.5) * fbinw);
@@ -452,7 +460,15 @@ int CDBCaloQA::process_event(PHCompositeNode *topNode)
                     (m_mc || m_trigname[kJet].empty() || m_ntrig[kJet] >= m_mintrig);
   if (!keep)
   {
-    return done ? Fun4AllReturnCodes::ABORTRUN : (m_select ? Fun4AllReturnCodes::ABORTEVENT : Fun4AllReturnCodes::EVENT_OK);
+    if (done)
+    {
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    if (m_select)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    return Fun4AllReturnCodes::EVENT_OK;
   }
   if (m_select)
   {
@@ -849,7 +865,22 @@ int CDBCaloQA::End(PHCompositeNode * /*topNode*/)
               << m_ntrig[kPhoton] << " photon, " << m_ntrig[kJet] << " jet events" << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  m_hm->registerHisto(new TNamed("trig_MB", m_mc ? m_mbname.c_str() : (m_mbbit_or >= 0 ? Form("%s (bits %d, %d)", m_mbname.c_str(), m_mbbit, m_mbbit_or) : Form("%s (bit %d)", m_mbname.c_str(), m_mbbit))));
+  // m_hm->registerHisto(new TNamed("trig_MB", m_mc ? m_mbname.c_str() : (m_mbbit_or >= 0 ? std::format("{} (bits {}, {})", m_mbname, m_mbbit, m_mbbit_or) : std::format("{} (bit {})", m_mbname, m_mbbit))));
+std::string title;
+if (m_mc)
+{
+  title = m_mbname;
+}
+else if (m_mbbit_or >= 0)
+{
+  title = std::format("{} (bits {}, {})", m_mbname, m_mbbit, m_mbbit_or);
+}
+else
+{
+  title = std::format("{} (bit {})", m_mbname, m_mbbit);
+}
+
+m_hm->registerHisto(new TNamed("trig_MB", title.c_str()));  
   m_hm->registerHisto(new TNamed("trig_Photon", m_mc ? "" : m_trigname[kPhoton].c_str()));
   m_hm->registerHisto(new TNamed("trig_Jet", m_mc ? "" : m_trigname[kJet].c_str()));
   m_hm->registerHisto(new TNamed("trig_ZDC", m_zdcname.c_str()));
