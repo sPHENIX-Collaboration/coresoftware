@@ -49,7 +49,7 @@ PHG4ChimneyDetector::PHG4ChimneyDetector(PHG4Subsystem *subsys, PHCompositeNode 
 
 int PHG4ChimneyDetector::IsInChimney(G4VPhysicalVolume *volume) const
 {
-  return (m_LogicalVolSet.find(volume->GetLogicalVolume()) != m_LogicalVolSet.end()) ? 1 : 0;
+  return (m_LogicalVolSet.contains(volume->GetLogicalVolume())) ? 1 : 0;
 }
 
 void PHG4ChimneyDetector::ConstructMe(G4LogicalVolume *logicWorld)
@@ -64,38 +64,55 @@ void PHG4ChimneyDetector::ConstructMe(G4LogicalVolume *logicWorld)
   const double r_env = m_Params->get_double_param("r_env") * cm;  // OHCal envelope inner radius
   const double wall = m_Params->get_double_param("box_wall") * cm;
   // box 1 (camino on the end flange)
-  const double b1_zmin = m_Params->get_double_param("box1_zmin") * cm, b1_zmax = m_Params->get_double_param("box1_zmax") * cm;
-  const double b_rlo = m_Params->get_double_param("box_rlo") * cm, b_rhi = b_rlo + m_Params->get_double_param("box_dr") * cm;
+  const double b1_zmin = m_Params->get_double_param("box1_zmin") * cm;
+  const double b1_zmax = m_Params->get_double_param("box1_zmax") * cm;
+  const double b_rlo = m_Params->get_double_param("box_rlo") * cm;
+  const double b_rhi = b_rlo + m_Params->get_double_param("box_dr") * cm;
   const double b1_hx = 0.5 * m_Params->get_double_param("box1_dx") * cm;
   // box 2 (duplicate chimney with the riser)
-  const double b2_zmin = m_Params->get_double_param("box2_zmin") * cm, b2_zmax = m_Params->get_double_param("box2_zmax") * cm;
+  const double b2_zmin = m_Params->get_double_param("box2_zmin") * cm;
+  const double b2_zmax = m_Params->get_double_param("box2_zmax") * cm;
   const double b2_hx = 0.5 * m_Params->get_double_param("box2_dx") * cm;
   // tube and contents
-  const double tube_od = m_Params->get_double_param("tube_od") * cm, tube_wall = m_Params->get_double_param("tube_wall") * cm;
+  const double tube_od = m_Params->get_double_param("tube_od") * cm;
+  const double tube_wall = m_Params->get_double_param("tube_wall") * cm;
   const double tube_r = m_Params->get_double_param("tube_r_axis") * cm;
-  const double shield_od = m_Params->get_double_param("shield_od") * cm, shield_wall = m_Params->get_double_param("shield_wall") * cm;
-  const double he_od = m_Params->get_double_param("heline_od") * cm, he_wall = m_Params->get_double_param("heline_wall") * cm;
-  const double cu_dx = m_Params->get_double_param("cu_dx") * cm, cu_dy = m_Params->get_double_param("cu_dy") * cm;
-  const double hole_d = m_Params->get_double_param("hole_d") * cm, leg_len = m_Params->get_double_param("leg_len") * cm;
-  const double g10_w = m_Params->get_double_param("g10_w") * cm, g10_t = m_Params->get_double_param("g10_t") * cm;
+  const double shield_od = m_Params->get_double_param("shield_od") * cm;
+  const double shield_wall = m_Params->get_double_param("shield_wall") * cm;
+  const double he_od = m_Params->get_double_param("heline_od") * cm;
+  const double he_wall = m_Params->get_double_param("heline_wall") * cm;
+  const double cu_dx = m_Params->get_double_param("cu_dx") * cm;
+  const double cu_dy = m_Params->get_double_param("cu_dy") * cm;
+  const double hole_d = m_Params->get_double_param("hole_d") * cm;
+  const double leg_len = m_Params->get_double_param("leg_len") * cm;
+  const double g10_w = m_Params->get_double_param("g10_w") * cm;
+  const double g10_t = m_Params->get_double_param("g10_t") * cm;
   // riser and valve box
-  const double riser_od = m_Params->get_double_param("riser_od") * cm, riser_wall = m_Params->get_double_param("riser_wall") * cm;
-  const double vb_rlo = m_Params->get_double_param("vbox_rlo") * cm, vb_rhi = m_Params->get_double_param("vbox_rhi") * cm;
-  const double vb_od = m_Params->get_double_param("vbox_od") * cm, vb_wall = m_Params->get_double_param("vbox_wall") * cm;
+  const double riser_od = m_Params->get_double_param("riser_od") * cm;
+  const double riser_wall = m_Params->get_double_param("riser_wall") * cm;
+  const double vb_rlo = m_Params->get_double_param("vbox_rlo") * cm;
+  const double vb_rhi = m_Params->get_double_param("vbox_rhi") * cm;
+  const double vb_od = m_Params->get_double_param("vbox_od") * cm;
+  const double vb_wall = m_Params->get_double_param("vbox_wall") * cm;
   // doors
   const int door_mode = m_Params->get_int_param("door_mode");
-  const double door_z1 = m_Params->get_double_param("door_z1") * cm, door_z2 = m_Params->get_double_param("door_z2") * cm;
-  const double door_rin = m_Params->get_double_param("door_rin") * cm, door_rout = m_Params->get_double_param("door_rout") * cm;
-  const double chase_hw = m_Params->get_double_param("chase_halfwidth") * cm, chase_rlo = m_Params->get_double_param("chase_rlo") * cm;
+  const double door_z1 = m_Params->get_double_param("door_z1") * cm;
+  const double door_z2 = m_Params->get_double_param("door_z2") * cm;
+  const double door_rin = m_Params->get_double_param("door_rin") * cm;
+  const double door_rout = m_Params->get_double_param("door_rout") * cm;
+  const double chase_hw = m_Params->get_double_param("chase_halfwidth") * cm;
+  const double chase_rlo = m_Params->get_double_param("chase_rlo") * cm;
   const double door_hole_d = m_Params->get_double_param("door_hole_d") * cm;
-  const double slot_w = m_Params->get_double_param("door_slot_w") * cm, slot_h = m_Params->get_double_param("door_slot_h") * cm;
-  const double slot_r = m_Params->get_double_param("door_slot_r") * cm;   // slot center radius
-  const double xoff = m_Params->get_double_param("ext_xoff") * cm;        // transverse offset of the extension tube, box 2, riser and valve box
+  const double slot_w = m_Params->get_double_param("door_slot_w") * cm;
+  const double slot_h = m_Params->get_double_param("door_slot_h") * cm;
+  const double slot_r = m_Params->get_double_param("door_slot_r") * cm;                 // slot center radius
+  const double xoff = m_Params->get_double_param("ext_xoff") * cm;                      // transverse offset of the extension tube, box 2, riser and valve box
   const double door_south_shift = m_Params->get_double_param("door_south_shift") * cm;  // mode 3: full south door moved outward by this much
 
   // The OHCal envelope is placed with rot_y = 180 deg: envelope-local x = -x_lab, z = -z_lab.
   const bool flip = (std::string(logicWorld->GetName()) == "OHCal_envelope");
-  auto P = [flip](double x, double y, double z) { return flip ? G4ThreeVector(-x, y, -z) : G4ThreeVector(x, y, z); };
+  auto P = [flip](double x, double y, double z)
+  { return flip ? G4ThreeVector(-x, y, -z) : G4ThreeVector(x, y, z); };
   if (Verbosity() > 0)
   {
     std::cout << "PHG4ChimneyDetector part " << part << ": mother volume " << logicWorld->GetName() << (flip ? " (rot_y 180: flipping x, z)" : "")
@@ -105,8 +122,12 @@ void PHG4ChimneyDetector::ConstructMe(G4LogicalVolume *logicWorld)
   }
   int copy = 0;
   // Al plate from full lab extents, placed in the current mother
-  auto plate = [&](const std::string &name, double x0, double x1, double y0, double y1, double z0, double z1) {
-    if (x1 <= x0 || y1 <= y0 || z1 <= z0) return;
+  auto plate = [&](const std::string &name, double x0, double x1, double y0, double y1, double z0, double z1)
+  {
+    if (x1 <= x0 || y1 <= y0 || z1 <= z0)
+    {
+      return;
+    }
     G4Box *b = new G4Box(name + "_solid", 0.5 * (x1 - x0), 0.5 * (y1 - y0), 0.5 * (z1 - z0));
     G4LogicalVolume *lv = new G4LogicalVolume(b, aluminum, name);
     m_DisplayAction->AddVolume(lv, "CHIMNEYBOX");
@@ -114,8 +135,10 @@ void PHG4ChimneyDetector::ConstructMe(G4LogicalVolume *logicWorld)
     new G4PVPlacement(nullptr, P(0.5 * (x0 + x1), 0.5 * (y0 + y1), 0.5 * (z0 + z1)), lv, name, logicWorld, false, copy++, OverlapCheck());
   };
   // six walls of a box, restricted to y in [ylo, yhi] (the split at the envelope radius)
-  auto boxwalls = [&](const std::string &tag, double hx, double zmin, double zmax, double ylo, double yhi, double xc = 0) {
-    auto seg = [&](const std::string &n, double x0, double x1, double y0, double y1, double z0, double z1) {
+  auto boxwalls = [&](const std::string &tag, double hx, double zmin, double zmax, double ylo, double yhi, double xc = 0)
+  {
+    auto seg = [&](const std::string &n, double x0, double x1, double y0, double y1, double z0, double z1)
+    {
       plate(tag + n, xc + x0, xc + x1, std::max(y0, ylo), std::min(y1, yhi), z0, z1);
     };
     seg("Floor", -hx, hx, b_rlo, b_rlo + wall, zmin, zmax);
@@ -141,7 +164,10 @@ void PHG4ChimneyDetector::ConstructMe(G4LogicalVolume *logicWorld)
     boxwalls("ChimneyBox2", b2_hx, b2_zmin, b2_zmax, -1e9, 1e9, xoff);
 
     // tube between the boxes, with the heat shield inside
-    const double tz0 = b2_zmax, tz1 = b1_zmin, tlen = tz1 - tz0, tzc = 0.5 * (tz0 + tz1);
+    const double tz0 = b2_zmax;
+    const double tz1 = b1_zmin;
+    const double tlen = tz1 - tz0;
+    const double tzc = 0.5 * (tz0 + tz1);
     G4Tubs *tube = new G4Tubs("ChimneyTube", 0.5 * tube_od - tube_wall, 0.5 * tube_od, 0.5 * tlen, 0, 360 * deg);
     G4LogicalVolume *logTube = new G4LogicalVolume(tube, aluminum, "CHIMNEYTUBE");
     m_DisplayAction->AddVolume(logTube, "CHIMNEYTUBE");
@@ -157,9 +183,9 @@ void PHG4ChimneyDetector::ConstructMe(G4LogicalVolume *logicWorld)
     G4LogicalVolume *logHe = new G4LogicalVolume(he, ssteel, "CHIMNEYHELINE");
     m_DisplayAction->AddVolume(logHe, "CHIMNEYHELINE");
     m_LogicalVolSet.insert(logHe);
-    for (int s = -1; s <= 1; s += 2)
+    for (int side = -1; side <= 1; side += 2)
     {
-      new G4PVPlacement(nullptr, P(xoff + s * 5.0 * cm, tube_r + 4.5 * cm, tzc), logHe, "CHIMNEYHELINE", logicWorld, false, (s > 0), OverlapCheck());
+      new G4PVPlacement(nullptr, P(xoff + side * 5.0 * cm, tube_r + 4.5 * cm, tzc), logHe, "CHIMNEYHELINE", logicWorld, false, (side > 0), OverlapCheck());
     }
     // copper lead stack along the tube (inside the shield), with the coolant hole, and the G-10 clamp bars
     const double cu_len = tlen - 2 * cm;
@@ -180,7 +206,8 @@ void PHG4ChimneyDetector::ConstructMe(G4LogicalVolume *logicWorld)
     }
     // vertical copper legs: down to the floor of box 1 (toward the coil), up in box 2 (toward the riser)
     {
-      const double y_top = tube_r + 0.5 * cu_dy, y_floor = b_rlo + wall + 1 * mm;
+      const double y_top = tube_r + 0.5 * cu_dy;
+      const double y_floor = b_rlo + wall + 1 * mm;
       const double len1 = std::min(leg_len, y_top - y_floor);
       G4Box *leg1 = new G4Box("ChimneyCuLeg1", 0.5 * cu_dx, 0.5 * len1, 0.5 * cu_dy);
       G4LogicalVolume *logLeg1 = new G4LogicalVolume(leg1, copper, "CHIMNEYBUSLEG1");
@@ -227,7 +254,8 @@ void PHG4ChimneyDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   if (part == 2 && door_mode > 0)
   {
-    const double dlen = door_z2 - door_z1, dzc = 0.5 * (door_z1 + door_z2);
+    const double dlen = door_z2 - door_z1;
+    const double dzc = 0.5 * (door_z1 + door_z2);
     G4Tubs *disk = new G4Tubs("ChimneyDoorDisk", door_rin, door_rout, 0.5 * dlen, 0, 360 * deg);
     // north door: full disk
     G4LogicalVolume *logN = new G4LogicalVolume(disk, steel, "CHIMNEYDOORN");

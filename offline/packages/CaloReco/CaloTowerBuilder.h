@@ -11,6 +11,8 @@
 #include <fun4all/SubsysReco.h>
 
 #include <limits>
+#include <array>
+#include <map>
 #include <string>
 
 class CaloWaveformProcessing;
@@ -80,6 +82,11 @@ class CaloTowerBuilder : public SubsysReco
     return;
   }
 
+  void set_ihcalSwapFix(bool doswap)
+  {
+    m_doihcalswap = doswap;
+  }
+
   void set_bitFlipRecovery(bool dobitfliprecovery)
   {
     m_dobitfliprecovery = dobitfliprecovery;
@@ -136,6 +143,17 @@ class CaloTowerBuilder : public SubsysReco
   // like every other 32-channel group
   static constexpr int m_sepd_first_run25{66000};
   int m_runnumber{0};
+
+  // IHCal channel swaps: for these tower pairs (same ieta, adjacent iphi) the
+  // readout channel labelled with one tower actually reads the other tower.
+  // (Established with cosmics MIP spectra of the 2024-2026
+  // cosmics runs). The map of tower index -> index to read from is filled in InitRun 
+  // and applied when filling the TowerInfoContainer.
+
+  bool m_doihcalswap{true};
+  static constexpr std::array<std::array<int, 3>, 5> m_ihcal_swap_pairs{{
+      {10, 18, 19}, {10, 60, 61}, {10, 62, 63}, {13, 60, 61}, {13, 62, 63}}};  // {ieta, iphi_a, iphi_b}
+  std::map<int, int> m_ihcal_swap_map;
 
   bool m_isdata{true};
   bool m_bdosoftwarezerosuppression{false};

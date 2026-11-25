@@ -2,8 +2,8 @@
 
 #include <ffaobjects/EventHeader.h>
 
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxPHG4ParticleMap.h>
@@ -43,11 +43,9 @@ using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
 using Trajectory = ActsExamples::Trajectories;
 
-
-int KshortReconstruction::process_event(PHCompositeNode* topNode)
+int KshortReconstruction::process_event(PHCompositeNode *topNode)
 {
-
-  EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+  EventHeader *evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
 
   int m_runNumber;
   int m_evtNumber;
@@ -61,7 +59,7 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
     m_runNumber = m_evtNumber = -1;
   }
 
-  //Truth matching setup. Setting IDs and getting nodes
+  // Truth matching setup. Setting IDs and getting nodes
   if (m_truth_match)
   {
     if (m_used_string)
@@ -71,11 +69,10 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
 
     m_truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
-    if (!m_truthinfo) //Missing truth info container. Disable truth matching
+    if (!m_truthinfo)  // Missing truth info container. Disable truth matching
     {
       m_truth_match = false;
     }
-
   }
 
   // Loop over tracks and check for close DCA match with all other tracks
@@ -84,7 +81,7 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
     auto id1 = tr1_it->first;
     auto *tr1 = tr1_it->second;
 
-    //Truth matching. Let's see if this track came from the right mother
+    // Truth matching. Let's see if this track came from the right mother
     if (m_truth_match)
     {
       truth_particle_1 = getTruthTrack(tr1, topNode);
@@ -95,14 +92,14 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
       }
 
       int parent_id = truth_particle_1->get_parent_id();
-      if (parent_id == 0) //Particle is primary. Trying to access its parent returns nullptr
+      if (parent_id == 0)  // Particle is primary. Trying to access its parent returns nullptr
       {
         continue;
       }
 
       PHG4Particle *g4mother = m_truthinfo->GetParticle(parent_id);
 
-      if (g4mother == nullptr || (abs(g4mother->get_pid()) != abs(m_mother_id))) //PID check
+      if (g4mother == nullptr || (abs(g4mother->get_pid()) != abs(m_mother_id)))  // PID check
       {
         continue;
       }
@@ -122,15 +119,15 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
     short int crossing1 = tr1->get_crossing();
     double this_dca_cut = track_dca_cut;
 
-    TrackSeed* siliconseed1 = tr1->get_silicon_seed(); // v4 and earlier
-    if(!siliconseed1)
-	{
-	  auto silseedid1 = tr1->get_silicon_seed_id();  // v5
-	  if(silseedid1 !=  USHRT_MAX)
-	    {
-	      siliconseed1 = m_silseedMap->get(silseedid1);
-	    }
-	}
+    TrackSeed *siliconseed1 = tr1->get_silicon_seed();  // v4 and earlier
+    if (!siliconseed1)
+    {
+      auto silseedid1 = tr1->get_silicon_seed_id();  // v5
+      if (silseedid1 != USHRT_MAX)
+      {
+        siliconseed1 = m_silseedMap->get(silseedid1);
+      }
+    }
 
     if (!siliconseed1)
     {
@@ -148,7 +145,7 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
     std::vector<unsigned int> nstates1 = getTrackStates(tr1);
     unsigned int track1_mvtx_state_size = nstates1[0];
     unsigned int track1_intt_state_size = nstates1[1];
-    
+
     unsigned int track1_silicon_cluster_size = std::numeric_limits<unsigned int>::quiet_NaN();
     if (siliconseed1)
     {
@@ -163,7 +160,7 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
 
     unsigned int track1_mvtx_cluster_size = 0;
     unsigned int track1_intt_cluster_size = 0;
-    for (const auto& ckey : ckeys1)
+    for (const auto &ckey : ckeys1)
     {
       auto detid = TrkrDefs::getTrkrId(ckey);
       if (detid == TrkrDefs::TrkrId::mvtxId)
@@ -180,17 +177,17 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
     Acts::Vector3 mom1(tr1->get_px(), tr1->get_py(), tr1->get_pz());
     Acts::Vector3 dcaVals1 = calculateDca(tr1, mom1, pos1);
     if (fabs(dcaVals1(0)) < this_dca_cut || fabs(dcaVals1(1)) < this_dca_cut)
-      {
-	//	std::cout << "  tr1 failed dca cuts " << std::endl;      
-	continue;
-      }
+    {
+      //	std::cout << "  tr1 failed dca cuts " << std::endl;
+      continue;
+    }
     // look for close DCA matches with all other such tracks
     for (auto tr2_it = std::next(tr1_it); tr2_it != m_svtxTrackMap->end(); ++tr2_it)
     {
       auto id2 = tr2_it->first;
       auto *tr2 = tr2_it->second;
 
-      //Truth matching. Let's see if this track came from the right mother
+      // Truth matching. Let's see if this track came from the right mother
       if (m_truth_match)
       {
         truth_particle_2 = getTruthTrack(tr2, topNode);
@@ -201,21 +198,21 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
         }
 
         int parent_id = truth_particle_2->get_parent_id();
-        if (parent_id == 0) //Particle is primary. Trying to access its parent returns nullptr
+        if (parent_id == 0)  // Particle is primary. Trying to access its parent returns nullptr
         {
           continue;
         }
         PHG4Particle *g4mother = m_truthinfo->GetParticle(parent_id);
-  
-        if (g4mother == nullptr || (abs(g4mother->get_pid()) != abs(m_mother_id))) //PID check
+
+        if (g4mother == nullptr || (abs(g4mother->get_pid()) != abs(m_mother_id)))  // PID check
         {
           continue;
         }
-  
+
         truth_mother_id_particle_2 = g4mother->get_barcode();
 
-        //Check that the two tracks came from the same mother
-        if (truth_mother_id_particle_1 != truth_mother_id_particle_2) 
+        // Check that the two tracks came from the same mother
+        if (truth_mother_id_particle_1 != truth_mother_id_particle_2)
         {
           continue;
         }
@@ -228,7 +225,7 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
 
       if (tr2->get_quality() > _qual_cut)
       {
-	  continue;
+        continue;
       }
       if (tr2->get_pt() < track_pt_cut)
       {
@@ -237,16 +234,16 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
 
       short int crossing2 = tr2->get_crossing();
       double this_dca_cut2 = track_dca_cut;
-      
-      TrackSeed* siliconseed2 = tr2->get_silicon_seed(); // v4 and earlier
-      if(!siliconseed2)
-	{
-	  auto silseedid2 = tr2->get_silicon_seed_id();  // v5
-	  if(silseedid2 !=  USHRT_MAX)
-	    {
-	      siliconseed2 = m_silseedMap->get(silseedid2);
-	    }
-	}
+
+      TrackSeed *siliconseed2 = tr2->get_silicon_seed();  // v4 and earlier
+      if (!siliconseed2)
+      {
+        auto silseedid2 = tr2->get_silicon_seed_id();  // v5
+        if (silseedid2 != USHRT_MAX)
+        {
+          siliconseed2 = m_silseedMap->get(silseedid2);
+        }
+      }
 
       if (!siliconseed2)
       {
@@ -257,14 +254,14 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
         }
         if (_require_mvtx)
         {
-	  continue;
-	}
+          continue;
+        }
       }
 
       std::vector<unsigned int> nstates2 = getTrackStates(tr2);
       unsigned int track2_mvtx_state_size = nstates2[0];
       unsigned int track2_intt_state_size = nstates2[1];
-      
+
       unsigned int track2_silicon_cluster_size = std::numeric_limits<unsigned int>::quiet_NaN();
       if (siliconseed2)
       {
@@ -279,9 +276,9 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
 
       unsigned int track2_mvtx_cluster_size = 0;
       unsigned int track2_intt_cluster_size = 0;
-      for (const auto& ckey : ckeys2)
+      for (const auto &ckey : ckeys2)
       {
-         auto detid = TrkrDefs::getTrkrId(ckey);
+        auto detid = TrkrDefs::getTrkrId(ckey);
         if (detid == TrkrDefs::TrkrId::mvtxId)
         {
           track2_mvtx_cluster_size++;
@@ -292,7 +289,6 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
         }
       }
 
-      
       if (fabs(dcaVals2(0)) < this_dca_cut2 || fabs(dcaVals2(1)) < this_dca_cut2)
       {
         continue;
@@ -349,59 +345,58 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
 
         // if(pair_dca_proj > pair_dca_cut) continue;
 
-	// calculate both ways if decaymass1 and decaymass2 are different
-	int ncombinations = 1;
-	if(decaymass1 != decaymass2)
-	  {
-	    ncombinations = 2;
-	  }
-	for(int icomb=0;icomb < ncombinations; ++icomb)
-	  {
-	    float decaymassa = decaymass1;
-	    float decaymassb = decaymass2;
-	    if(icomb == 1)
-	      {
-		decaymassa = decaymass2;
-		decaymassb = decaymass1;
-	      }
-	    
-	    // invariant mass is calculated in this method
-	    fillHistogram(projected_mom1, projected_mom2, recomass, invariantMass, invariantPt, invariantPhi, rapidity, pseudorapidity,decaymassa, decaymassb);
+        // calculate both ways if decaymass1 and decaymass2 are different
+        int ncombinations = 1;
+        if (decaymass1 != decaymass2)
+        {
+          ncombinations = 2;
+        }
+        for (int icomb = 0; icomb < ncombinations; ++icomb)
+        {
+          float decaymassa = decaymass1;
+          float decaymassb = decaymass2;
+          if (icomb == 1)
+          {
+            decaymassa = decaymass2;
+            decaymassb = decaymass1;
+          }
 
-	    if (Verbosity() > 1)
-	      {
-		std::cout << "Accepted Track Pair" << " id1 " << id1 << " id2 " << id2 << " crossing1 " << crossing1 << " crossing2 " << crossing2 << std::endl;
-		std::cout << "  invariant mass: " << invariantMass << " decaymassa " << decaymassa << " decaymassb " << decaymassb << std::endl;
-		std::cout << "  track1 dca_cut: " << this_dca_cut << " track2 dca_cut: " << this_dca_cut2 << std::endl;
-		std::cout << "  dca3dxy1,dca3dz1,phi1: " << dcaVals1(0) << "  " << dcaVals1(1) << "  " << dcaVals1(2) << std::endl;
-		std::cout << "  dca3dxy2,dca3dz2,phi2: " << dcaVals2(0) << "  " << dcaVals2(1) << "  " << dcaVals2(2) << std::endl;
-		std::cout << "  Initial:  pca_rel1: " << pca_rel1(0) << "  " << pca_rel1(1) << "  " << pca_rel1(2) << std::endl;
-		std::cout << "  Initial:  pca_rel2: " << pca_rel2(0) << "  " << pca_rel2(1) << "  " << pca_rel2(2) << std::endl;
-		std::cout << "  Initial: mom1: " << mom1(0) << " " << mom1(1) << "  " << mom1(2) << std::endl;
-		std::cout  << "  Initial: mom2: " << mom2(0) << "  " << mom2(1) << "  " << mom2(2) << std::endl;
-		std::cout << "  Proj_pca_rel:  proj_pos1: " << projected_pos1(0) << "  " << projected_pos1(1) << "  " << projected_pos1(2) << std::endl;
-		std::cout << "  Proj_pca_rel:  proj_pos2: " << projected_pos2(0) << "  " << projected_pos2(1) << "  " << projected_pos2(2) << std::endl;
-		std::cout << "  proj_mom1: " << projected_mom1(0) << "  " << projected_mom1(1) << "  " << projected_mom1(2) << std::endl;
-		std::cout << "  proj_mom2: " << projected_mom2(0) << "  " << projected_mom2(1) << "  " << projected_mom2(2) << std::endl;
-		std::cout << "  Relative PCA = " << abs(pair_dca) << " pca_cut = " << pair_dca_cut << std::endl;
-		std::cout << "  charge 1: " << tr1->get_charge() << " charge2: " << tr2->get_charge() << std::endl;
-		std::cout << "  found viable projection" << std::endl;
-		std::cout << "  Final: pca_rel1_proj: " << pca_rel1_proj(0) << "  " << pca_rel1_proj(1) << "  " << pca_rel1_proj(2) << std::endl;
-		std::cout << "  Final: pca_rel2_proj: " << pca_rel2_proj(0) << "  " << pca_rel2_proj(1) << "  " << pca_rel2_proj(2) << std::endl;
-		std::cout << "  Final: mom1: " << projected_mom1(0) << "  " << projected_mom1(1) << "  " << projected_mom1(2) << std::endl;
-		std::cout << "  Final: mom2: " << projected_mom2(0) << "  " << projected_mom2(1) << "  " << projected_mom2(2) << std::endl;
-	      }
-	    
-	    fillNtp(tr1, tr2, decaymassa, decaymassb, dcaVals1, dcaVals2, pca_rel1, pca_rel2, pair_dca, invariantMass, invariantPt, invariantPhi, rapidity, pseudorapidity, projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj, track1_silicon_cluster_size, track2_silicon_cluster_size, track1_mvtx_cluster_size, track1_mvtx_state_size, track1_intt_cluster_size, track1_intt_state_size, track2_mvtx_cluster_size, track2_mvtx_state_size, track2_intt_cluster_size, track2_intt_state_size, m_runNumber, m_evtNumber);
-	  }
+          // invariant mass is calculated in this method
+          fillHistogram(projected_mom1, projected_mom2, recomass, invariantMass, invariantPt, invariantPhi, rapidity, pseudorapidity, decaymassa, decaymassb);
+
+          if (Verbosity() > 1)
+          {
+            std::cout << "Accepted Track Pair" << " id1 " << id1 << " id2 " << id2 << " crossing1 " << crossing1 << " crossing2 " << crossing2 << std::endl;
+            std::cout << "  invariant mass: " << invariantMass << " decaymassa " << decaymassa << " decaymassb " << decaymassb << std::endl;
+            std::cout << "  track1 dca_cut: " << this_dca_cut << " track2 dca_cut: " << this_dca_cut2 << std::endl;
+            std::cout << "  dca3dxy1,dca3dz1,phi1: " << dcaVals1(0) << "  " << dcaVals1(1) << "  " << dcaVals1(2) << std::endl;
+            std::cout << "  dca3dxy2,dca3dz2,phi2: " << dcaVals2(0) << "  " << dcaVals2(1) << "  " << dcaVals2(2) << std::endl;
+            std::cout << "  Initial:  pca_rel1: " << pca_rel1(0) << "  " << pca_rel1(1) << "  " << pca_rel1(2) << std::endl;
+            std::cout << "  Initial:  pca_rel2: " << pca_rel2(0) << "  " << pca_rel2(1) << "  " << pca_rel2(2) << std::endl;
+            std::cout << "  Initial: mom1: " << mom1(0) << " " << mom1(1) << "  " << mom1(2) << std::endl;
+            std::cout << "  Initial: mom2: " << mom2(0) << "  " << mom2(1) << "  " << mom2(2) << std::endl;
+            std::cout << "  Proj_pca_rel:  proj_pos1: " << projected_pos1(0) << "  " << projected_pos1(1) << "  " << projected_pos1(2) << std::endl;
+            std::cout << "  Proj_pca_rel:  proj_pos2: " << projected_pos2(0) << "  " << projected_pos2(1) << "  " << projected_pos2(2) << std::endl;
+            std::cout << "  proj_mom1: " << projected_mom1(0) << "  " << projected_mom1(1) << "  " << projected_mom1(2) << std::endl;
+            std::cout << "  proj_mom2: " << projected_mom2(0) << "  " << projected_mom2(1) << "  " << projected_mom2(2) << std::endl;
+            std::cout << "  Relative PCA = " << abs(pair_dca) << " pca_cut = " << pair_dca_cut << std::endl;
+            std::cout << "  charge 1: " << tr1->get_charge() << " charge2: " << tr2->get_charge() << std::endl;
+            std::cout << "  found viable projection" << std::endl;
+            std::cout << "  Final: pca_rel1_proj: " << pca_rel1_proj(0) << "  " << pca_rel1_proj(1) << "  " << pca_rel1_proj(2) << std::endl;
+            std::cout << "  Final: pca_rel2_proj: " << pca_rel2_proj(0) << "  " << pca_rel2_proj(1) << "  " << pca_rel2_proj(2) << std::endl;
+            std::cout << "  Final: mom1: " << projected_mom1(0) << "  " << projected_mom1(1) << "  " << projected_mom1(2) << std::endl;
+            std::cout << "  Final: mom2: " << projected_mom2(0) << "  " << projected_mom2(1) << "  " << projected_mom2(2) << std::endl;
+          }
+
+          fillNtp(tr1, tr2, decaymassa, decaymassb, dcaVals1, dcaVals2, pca_rel1, pca_rel2, pair_dca, invariantMass, invariantPt, invariantPhi, rapidity, pseudorapidity, projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj, track1_silicon_cluster_size, track2_silicon_cluster_size, track1_mvtx_cluster_size, track1_mvtx_state_size, track1_intt_cluster_size, track1_intt_state_size, track2_mvtx_cluster_size, track2_mvtx_state_size, track2_intt_cluster_size, track2_intt_state_size, m_runNumber, m_evtNumber);
+        }
 
         if (m_save_tracks)
-	  {
-	    m_output_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_output_trackMap_node_name);
-	    m_output_trackMap->insertWithKey(tr1, tr1->get_id());
-	    m_output_trackMap->insertWithKey(tr2, tr2->get_id());
-	  }
-	
+        {
+          m_output_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_output_trackMap_node_name);
+          m_output_trackMap->insertWithKey(tr1, tr1->get_id());
+          m_output_trackMap->insertWithKey(tr2, tr2->get_id());
+        }
       }
     }
   }
@@ -415,33 +410,33 @@ std::vector<unsigned int> KshortReconstruction::getTrackStates(SvtxTrack *track)
   unsigned int ninttstate = 0;
   unsigned int ntpcstate = 0;
   unsigned int nmmsstate = 0;
-  
+
   // the track states from the Acts fit are fitted to fully corrected clusters, and are on the surface
   for (auto state_iter = track->begin_states();
        state_iter != track->end_states();
        ++state_iter)
-    {
-      SvtxTrackState* tstate = state_iter->second;
-      auto stateckey = tstate->get_cluskey();
+  {
+    SvtxTrackState *tstate = state_iter->second;
+    auto stateckey = tstate->get_cluskey();
 
-      switch (TrkrDefs::getTrkrId(stateckey))
-	{
-	case TrkrDefs::mvtxId:
-	  nmapsstate++;
-	  break;
-	case TrkrDefs::inttId:
-	  ninttstate++;
-	  break;
-	case TrkrDefs::tpcId:
-	  ntpcstate++;
-	  break;
-	case TrkrDefs::micromegasId:
-	  nmmsstate++;
-	  break;
-	default:
-	  break;
-	}
+    switch (TrkrDefs::getTrkrId(stateckey))
+    {
+    case TrkrDefs::mvtxId:
+      nmapsstate++;
+      break;
+    case TrkrDefs::inttId:
+      ninttstate++;
+      break;
+    case TrkrDefs::tpcId:
+      ntpcstate++;
+      break;
+    case TrkrDefs::micromegasId:
+      nmmsstate++;
+      break;
+    default:
+      break;
     }
+  }
   nstates.push_back(nmapsstate);
   nstates.push_back(ninttstate);
   nstates.push_back(ntpcstate);
@@ -450,27 +445,27 @@ std::vector<unsigned int> KshortReconstruction::getTrackStates(SvtxTrack *track)
   return nstates;
 }
 
-void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, float mass1, float mass2, Acts::Vector3 dcavals1, Acts::Vector3 dcavals2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, float invariantPhi, float rapidity, float pseudorapidity, Eigen::Vector3d projected_pos1, Eigen::Vector3d projected_pos2, Eigen::Vector3d projected_mom1, Eigen::Vector3d projected_mom2, Acts::Vector3 pca_rel1_proj, Acts::Vector3 pca_rel2_proj, double pair_dca_proj, unsigned int track1_silicon_cluster_size, unsigned int track2_silicon_cluster_size, unsigned int track1_mvtx_cluster_size,  unsigned int track1_mvtx_state_size, unsigned int track1_intt_cluster_size,  unsigned int track1_intt_state_size, unsigned int track2_mvtx_cluster_size,  unsigned int track2_mvtx_state_size, unsigned int track2_intt_cluster_size,  unsigned int track2_intt_state_size, int runNumber, int eventNumber)
+void KshortReconstruction::fillNtp(SvtxTrack *track1, SvtxTrack *track2, float mass1, float mass2, Acts::Vector3 dcavals1, Acts::Vector3 dcavals2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, float invariantPhi, float rapidity, float pseudorapidity, Eigen::Vector3d projected_pos1, Eigen::Vector3d projected_pos2, Eigen::Vector3d projected_mom1, Eigen::Vector3d projected_mom2, Acts::Vector3 pca_rel1_proj, Acts::Vector3 pca_rel2_proj, double pair_dca_proj, unsigned int track1_silicon_cluster_size, unsigned int track2_silicon_cluster_size, unsigned int track1_mvtx_cluster_size, unsigned int track1_mvtx_state_size, unsigned int track1_intt_cluster_size, unsigned int track1_intt_state_size, unsigned int track2_mvtx_cluster_size, unsigned int track2_mvtx_state_size, unsigned int track2_intt_cluster_size, unsigned int track2_intt_state_size, int runNumber, int eventNumber)
 {
   double px1 = track1->get_px();
   double py1 = track1->get_py();
   double pz1 = track1->get_pz();
 
   auto *tpcSeed1 = track1->get_tpc_seed();
-  if(!tpcSeed1)
+  if (!tpcSeed1)
+  {
+    auto tpcseedid1 = track1->get_tpc_seed_id();
+    if (tpcseedid1 != USHRT_MAX)
     {
-      auto tpcseedid1 = track1->get_tpc_seed_id();
-      if(tpcseedid1 != USHRT_MAX)
-	{
-	  tpcSeed1 = m_tpcseedMap->get(tpcseedid1);
-	}
+      tpcSeed1 = m_tpcseedMap->get(tpcseedid1);
     }
+  }
   size_t tpcClusters1 = 0;
-  if(tpcSeed1)
-    {
-      tpcClusters1 = tpcSeed1->size_cluster_keys();
-    }
-  
+  if (tpcSeed1)
+  {
+    tpcClusters1 = tpcSeed1->size_cluster_keys();
+  }
+
   double eta1 = asinh(pz1 / sqrt(pow(px1, 2) + pow(py1, 2)));
 
   double px2 = track2->get_px();
@@ -478,20 +473,20 @@ void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, float m
   double pz2 = track2->get_pz();
 
   auto *tpcSeed2 = track2->get_tpc_seed();
-  if(!tpcSeed2)
+  if (!tpcSeed2)
+  {
+    auto tpcseedid2 = track2->get_tpc_seed_id();
+    if (tpcseedid2 != USHRT_MAX)
     {
-      auto tpcseedid2 = track2->get_tpc_seed_id();
-      if(tpcseedid2 != USHRT_MAX)
-	{
-	  tpcSeed2 = m_tpcseedMap->get(tpcseedid2);
-	}
+      tpcSeed2 = m_tpcseedMap->get(tpcseedid2);
     }
+  }
   size_t tpcClusters2 = 0;
-  if(tpcSeed2)
-    {
-      tpcClusters2 = tpcSeed2->size_cluster_keys();
-    }
-  
+  if (tpcSeed2)
+  {
+    tpcClusters2 = tpcSeed2->size_cluster_keys();
+  }
+
   double eta2 = asinh(pz2 / sqrt(pow(px2, 2) + pow(py2, 2)));
 
   auto vtxid = track1->get_vertex_id();
@@ -502,8 +497,8 @@ void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, float m
   if (svtxVertex)
   {
     vertex(0) = svtxVertex->get_x();
-    vertex(1) =  svtxVertex->get_y();
-    vertex(2) = svtxVertex->get_z(); 
+    vertex(1) = svtxVertex->get_y();
+    vertex(2) = svtxVertex->get_z();
     ntracks_vertex = svtxVertex->size_tracks();
   }
 
@@ -516,13 +511,10 @@ void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, float m
   Acts::Vector3 projected_momentum = projected_mom1 + projected_mom2;
   float cos_theta_reco = pathLength_proj.dot(projected_momentum) / (projected_momentum.norm() * pathLength_proj.norm());
 
-
-  float reco_info[] = {(float) track1->get_id(), mass1, (float) track1->get_crossing(), track1->get_x(), track1->get_y(), track1->get_z(), track1->get_px(), track1->get_py(), track1->get_pz(), (float) dcavals1(0), (float) dcavals1(1), (float) dcavals1(2), (float) pca_rel1(0), (float) pca_rel1(1), (float) pca_rel1(2), (float) eta1, (float) track1->get_charge(), (float) tpcClusters1, (float) track2->get_id(), mass2, (float) track2->get_crossing(), track2->get_x(), track2->get_y(), track2->get_z(), track2->get_px(), track2->get_py(), track2->get_pz(), (float) dcavals2(0), (float) dcavals2(1), (float) dcavals2(2), (float) pca_rel2(0), (float) pca_rel2(1), (float) pca_rel2(2), (float) eta2, (float) track2->get_charge(), (float) tpcClusters2, (float) ntracks_vertex, (float) vertex(0), (float) vertex(1), (float) vertex(2), (float) pair_dca, (float) invariantMass, (float) invariantPt, invariantPhi, (float) pathLength(0), (float) pathLength(1), (float) pathLength(2), mag_pathLength, rapidity, pseudorapidity, (float) projected_pos1(0), (float) projected_pos1(1), (float) projected_pos1(2), (float) projected_pos2(0), (float) projected_pos2(1), (float) projected_pos2(2), (float) projected_mom1(0), (float) projected_mom1(1), (float) projected_mom1(2), (float) projected_mom2(0), (float) projected_mom2(1), (float) projected_mom2(2), (float) pca_rel1_proj(0), (float) pca_rel1_proj(1), (float) pca_rel1_proj(2), (float) pca_rel2_proj(0), (float) pca_rel2_proj(1), (float) pca_rel2_proj(2), (float) pair_dca_proj, (float) pathLength_proj(0), (float) pathLength_proj(1), (float) pathLength_proj(2), mag_pathLength_proj, track1->get_quality(), track2->get_quality(), cos_theta_reco, (float) track1_silicon_cluster_size, (float) track2_silicon_cluster_size, (float) track1_mvtx_cluster_size, (float) track1_mvtx_state_size, (float) track1_intt_cluster_size,  (float) track1_intt_state_size, (float) track2_mvtx_cluster_size, (float) track2_mvtx_state_size,  (float) track2_intt_cluster_size, (float) track2_intt_state_size, (float) runNumber, (float) eventNumber};
+  float reco_info[] = {(float) track1->get_id(), mass1, (float) track1->get_crossing(), track1->get_x(), track1->get_y(), track1->get_z(), track1->get_px(), track1->get_py(), track1->get_pz(), (float) dcavals1(0), (float) dcavals1(1), (float) dcavals1(2), (float) pca_rel1(0), (float) pca_rel1(1), (float) pca_rel1(2), (float) eta1, (float) track1->get_charge(), (float) tpcClusters1, (float) track2->get_id(), mass2, (float) track2->get_crossing(), track2->get_x(), track2->get_y(), track2->get_z(), track2->get_px(), track2->get_py(), track2->get_pz(), (float) dcavals2(0), (float) dcavals2(1), (float) dcavals2(2), (float) pca_rel2(0), (float) pca_rel2(1), (float) pca_rel2(2), (float) eta2, (float) track2->get_charge(), (float) tpcClusters2, (float) ntracks_vertex, (float) vertex(0), (float) vertex(1), (float) vertex(2), (float) pair_dca, (float) invariantMass, (float) invariantPt, invariantPhi, (float) pathLength(0), (float) pathLength(1), (float) pathLength(2), mag_pathLength, rapidity, pseudorapidity, (float) projected_pos1(0), (float) projected_pos1(1), (float) projected_pos1(2), (float) projected_pos2(0), (float) projected_pos2(1), (float) projected_pos2(2), (float) projected_mom1(0), (float) projected_mom1(1), (float) projected_mom1(2), (float) projected_mom2(0), (float) projected_mom2(1), (float) projected_mom2(2), (float) pca_rel1_proj(0), (float) pca_rel1_proj(1), (float) pca_rel1_proj(2), (float) pca_rel2_proj(0), (float) pca_rel2_proj(1), (float) pca_rel2_proj(2), (float) pair_dca_proj, (float) pathLength_proj(0), (float) pathLength_proj(1), (float) pathLength_proj(2), mag_pathLength_proj, track1->get_quality(), track2->get_quality(), cos_theta_reco, (float) track1_silicon_cluster_size, (float) track2_silicon_cluster_size, (float) track1_mvtx_cluster_size, (float) track1_mvtx_state_size, (float) track1_intt_cluster_size, (float) track1_intt_state_size, (float) track2_mvtx_cluster_size, (float) track2_mvtx_state_size, (float) track2_intt_cluster_size, (float) track2_intt_state_size, (float) runNumber, (float) eventNumber};
 
   ntp_reco_info->Fill(reco_info);
 }
-
-
 
 /*
 void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, Acts::Vector3 dcavals1, Acts::Vector3 dcavals2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, float invariantPhi, float rapidity, float pseudorapidity, Eigen::Vector3d projected_pos1, Eigen::Vector3d projected_pos2, Eigen::Vector3d projected_mom1, Eigen::Vector3d projected_mom2, Acts::Vector3 pca_rel1_proj, Acts::Vector3 pca_rel2_proj, double pair_dca_proj, unsigned int track1_silicon_cluster_size, unsigned int track2_silicon_cluster_size, unsigned int track1_mvtx_cluster_size,  unsigned int track1_mvtx_state_size, unsigned int track1_intt_cluster_size,  unsigned int track1_intt_state_size, unsigned int track2_mvtx_cluster_size,  unsigned int track2_mvtx_state_size, unsigned int track2_intt_cluster_size,  unsigned int track2_intt_state_size, int runNumber, int eventNumber)
@@ -549,7 +541,7 @@ void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, Acts::V
   {
     vertex(0) = svtxVertex->get_x();
     vertex(1) =  svtxVertex->get_y();
-    vertex(2) = svtxVertex->get_z(); 
+    vertex(2) = svtxVertex->get_z();
   }
 
   Acts::Vector3 pathLength = (pca_rel1 + pca_rel2) * 0.5 - vertex;
@@ -568,38 +560,38 @@ void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, Acts::V
 }
 */
 
-void KshortReconstruction::fillHistogram(Eigen::Vector3d mom1, Eigen::Vector3d mom2, TH1* massreco, double& invariantMass, double& invariantPt, float& invariantPhi, float& rapidity, float& pseudorapidity, float &decaymassa, float &decaymassb)
+void KshortReconstruction::fillHistogram(Eigen::Vector3d mom1, Eigen::Vector3d mom2, TH1 *massreco, double &invariantMass, double &invariantPt, float &invariantPhi, float &rapidity, float &pseudorapidity, float &decaymassa, float &decaymassb)
 {
   double E1 = sqrt(pow(mom1(0), 2) + pow(mom1(1), 2) + pow(mom1(2), 2) + pow(decaymassa, 2));
   double E2 = sqrt(pow(mom2(0), 2) + pow(mom2(1), 2) + pow(mom2(2), 2) + pow(decaymassb, 2));
-  
+
   TLorentzVector v1(mom1(0), mom1(1), mom1(2), E1);
   TLorentzVector v2(mom2(0), mom2(1), mom2(2), E2);
-  
+
   TLorentzVector tsum;
   tsum = v1 + v2;
-  
+
   rapidity = tsum.Rapidity();
   pseudorapidity = tsum.Eta();
   invariantMass = tsum.M();
   invariantPt = tsum.Pt();
   invariantPhi = tsum.Phi();
-  
+
   if (Verbosity() > 1)
-    {
-      std::cout << "px1: " << mom1(0) << " py1: " << mom1(1) << " pz1: " << mom1(2) << " mass " << decaymassa << " E1: " << E1 << std::endl;
-      std::cout << "px2: " << mom2(0) << " py2: " << mom2(1) << " pz2: " << mom2(2) << "  mass2 " << decaymassb << " E2: " << E2 << std::endl;
-      std::cout << "tsum: " << tsum(0) << " " << tsum(1) << " " << tsum(2) << " " << tsum(3) << std::endl;
-      std::cout << "invariant mass: " << invariantMass << " invariant Pt: " << invariantPt << " invariantPhi: " << invariantPhi << std::endl;
-    }
-  
+  {
+    std::cout << "px1: " << mom1(0) << " py1: " << mom1(1) << " pz1: " << mom1(2) << " mass " << decaymassa << " E1: " << E1 << std::endl;
+    std::cout << "px2: " << mom2(0) << " py2: " << mom2(1) << " pz2: " << mom2(2) << "  mass2 " << decaymassb << " E2: " << E2 << std::endl;
+    std::cout << "tsum: " << tsum(0) << " " << tsum(1) << " " << tsum(2) << " " << tsum(3) << std::endl;
+    std::cout << "invariant mass: " << invariantMass << " invariant Pt: " << invariantPt << " invariantPhi: " << invariantPhi << std::endl;
+  }
+
   if (invariantPt > invariant_pt_cut)
-    {
-      massreco->Fill(invariantMass);
-    }
+  {
+    massreco->Fill(invariantMass);
+  }
 }
 
-bool KshortReconstruction::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d PCA, Eigen::Vector3d& pos, Eigen::Vector3d& mom)
+bool KshortReconstruction::projectTrackToPoint(SvtxTrack *track, Eigen::Vector3d PCA, Eigen::Vector3d &pos, Eigen::Vector3d &mom)
 {
   bool ret = true;
 
@@ -640,15 +632,15 @@ bool KshortReconstruction::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d
     mom(1) = track->get_py();
     mom(2) = track->get_pz();
 
-    if(Verbosity() > 0)
-      {
-	std::cout << result.error() << std::endl;
-	std::cout << result.error().message() << std::endl;
-	std::cout << " Failed projection of track with: " << std::endl;
-	std::cout << " x,y,z = " << track->get_x() << "  " << track->get_y() << "  " << track->get_z() << std::endl;
-	std::cout << " px,py,pz = " << track->get_px() << "  " << track->get_py() << "  " << track->get_pz() << std::endl;
-	std::cout << " to point (x,y,z) = " << PCA(0) / Acts::UnitConstants::cm << "  " << PCA(1) / Acts::UnitConstants::cm << "  " << PCA(2) / Acts::UnitConstants::cm << std::endl;
-      }
+    if (Verbosity() > 0)
+    {
+      std::cout << result.error() << std::endl;
+      std::cout << result.error().message() << std::endl;
+      std::cout << " Failed projection of track with: " << std::endl;
+      std::cout << " x,y,z = " << track->get_x() << "  " << track->get_y() << "  " << track->get_z() << std::endl;
+      std::cout << " px,py,pz = " << track->get_px() << "  " << track->get_py() << "  " << track->get_pz() << std::endl;
+      std::cout << " to point (x,y,z) = " << PCA(0) / Acts::UnitConstants::cm << "  " << PCA(1) / Acts::UnitConstants::cm << "  " << PCA(2) / Acts::UnitConstants::cm << std::endl;
+    }
 
     //    ret = false;
   }
@@ -656,7 +648,7 @@ bool KshortReconstruction::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d
   return ret;
 }
 
-bool KshortReconstruction::projectTrackToCylinder(SvtxTrack* track, double Radius, Eigen::Vector3d& pos, Eigen::Vector3d& mom)
+bool KshortReconstruction::projectTrackToCylinder(SvtxTrack *track, double Radius, Eigen::Vector3d &pos, Eigen::Vector3d &mom)
 {
   // Make a cylinder surface at the radius and project the track to that
   bool ret = true;
@@ -700,10 +692,10 @@ bool KshortReconstruction::projectTrackToCylinder(SvtxTrack* track, double Radiu
   return ret;
 }
 
-Acts::Vector3 KshortReconstruction::getVertex(SvtxTrack* track)
+Acts::Vector3 KshortReconstruction::getVertex(SvtxTrack *track)
 {
   auto vertexId = track->get_vertex_id();
-  const SvtxVertex* svtxVertex = m_vertexMap->get(vertexId);
+  const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
   Acts::Vector3 vertex = Acts::Vector3::Zero();
   if (svtxVertex)
   {
@@ -715,7 +707,7 @@ Acts::Vector3 KshortReconstruction::getVertex(SvtxTrack* track)
   return vertex;
 }
 
-void KshortReconstruction::findPcaTwoTracks(const Acts::Vector3& pos1, const Acts::Vector3& pos2, Acts::Vector3 mom1, Acts::Vector3 mom2, Acts::Vector3& pca1, Acts::Vector3& pca2, double& dca) const
+void KshortReconstruction::findPcaTwoTracks(const Acts::Vector3 &pos1, const Acts::Vector3 &pos2, Acts::Vector3 mom1, Acts::Vector3 mom2, Acts::Vector3 &pca1, Acts::Vector3 &pca2, double &dca) const
 {
   TLorentzVector v1;
   TLorentzVector v2;
@@ -728,8 +720,8 @@ void KshortReconstruction::findPcaTwoTracks(const Acts::Vector3& pos1, const Act
   double pz2 = mom2(2);
 
   // calculate lorentz vector
-  const Eigen::Vector3d& a1 = pos1;
-  const Eigen::Vector3d& a2 = pos2;
+  const Eigen::Vector3d &a1 = pos1;
+  const Eigen::Vector3d &a2 = pos2;
 
   Eigen::Vector3d b1(px1, py1, pz1);
   Eigen::Vector3d b2(px2, py2, pz2);
@@ -760,20 +752,20 @@ void KshortReconstruction::findPcaTwoTracks(const Acts::Vector3& pos1, const Act
 
   // get the points at which the normal to the lines intersect the lines, where the lines are perpendicular
 
-  // coderabbit suggestion 
+  // coderabbit suggestion
   const double b1b1 = b1.dot(b1);
   const double b2b2 = b2.dot(b2);
   const double b1b2 = b1.dot(b2);
   const double denom = b1b1 * b2b2 - b1b2 * b1b2;
   if (std::abs(denom) < 1e-12)
-    {
-      return;
-    }
+  {
+    return;
+  }
   const Eigen::Vector3d w0 = a1 - a2;
   const double c = (b1b2 * b2.dot(w0) - b2b2 * b1.dot(w0)) / denom;
   const double d = (b1b1 * b2.dot(w0) - b1b2 * b1.dot(w0)) / denom;
 
-    // then the points of closest approach are:
+  // then the points of closest approach are:
   pca1 = a1 + c * b1;
   pca2 = a2 + d * b2;
 
@@ -847,27 +839,27 @@ void KshortReconstruction::findPcaTwoTracks(const Acts::Vector3& pos1, const Act
 }
 */
 
-KshortReconstruction::KshortReconstruction(const std::string& name)
+KshortReconstruction::KshortReconstruction(const std::string &name)
   : SubsysReco(name)
 {
 }
 
-Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack* track, const Acts::Vector3& momentum, Acts::Vector3 position)
+Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack *track, const Acts::Vector3 &momentum, Acts::Vector3 position)
 {
   // For the purposes of this module, we set default values to prevent this track from being rejected if the dca calc fails
   Acts::Vector3 r = momentum.cross(Acts::Vector3(0., 0., 1.));
   float phi = std::atan2(r(1), r(0));
-  Acts::Vector3 outVals(track_dca_cut*1.1, track_dca_cut*1.1, phi);
+  Acts::Vector3 outVals(track_dca_cut * 1.1, track_dca_cut * 1.1, phi);
   auto vtxid = track->get_vertex_id();
   if (!m_vertexMap)
   {
-    //std::cout << "Could not find m_vertexmap " << std::endl;
+    // std::cout << "Could not find m_vertexmap " << std::endl;
     return outVals;
   }
   auto *svtxVertex = m_vertexMap->get(vtxid);
   if (!svtxVertex)
   {
-    //std::cout << "Could not find vtxid in m_vertexMap " << vtxid << std::endl;
+    // std::cout << "Could not find vtxid in m_vertexMap " << vtxid << std::endl;
     return outVals;
   }
   Acts::Vector3 vertex(svtxVertex->get_x(), svtxVertex->get_y(), svtxVertex->get_z());
@@ -894,7 +886,7 @@ Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack* track, const Acts::V
   outVals(0) = dca3dxy;
   outVals(1) = dca3dz;
   outVals(2) = phi;
-  
+
   if (Verbosity() > 4)
   {
     std::cout << " pre-position: " << position << std::endl;
@@ -905,18 +897,18 @@ Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack* track, const Acts::V
   return outVals;
 }
 
-int KshortReconstruction::InitRun(PHCompositeNode* topNode)
+int KshortReconstruction::InitRun(PHCompositeNode *topNode)
 {
-  const char* cfilepath = filepath.c_str();
+  const char *cfilepath = filepath.c_str();
   fout = new TFile(cfilepath, "recreate");
 
-ntp_reco_info = new TNtuple("ntp_reco_info", "decay_pairs", "id1:mass1:crossing1:x1:y1:z1:px1:py1:pz1:dca3dxy1:dca3dz1:phi1:pca_rel1_x:pca_rel1_y:pca_rel1_z:eta1:charge1:tpcClusters_1:id2:mass2:crossing2:x2:y2:z2:px2:py2:pz2:dca3dxy2:dca3dz2:phi2:pca_rel2_x:pca_rel2_y:pca_rel2_z:eta2:charge2:tpcClusters_2:ntracks_vertex:vertex_x:vertex_y:vertex_z:pair_dca:invariant_mass:invariant_pt:invariantPhi:pathlength_x:pathlength_y:pathlength_z:pathlength:rapidity:pseudorapidity:projected_pos1_x:projected_pos1_y:projected_pos1_z:projected_pos2_x:projected_pos2_y:projected_pos2_z:projected_mom1_x:projected_mom1_y:projected_mom1_z:projected_mom2_x:projected_mom2_y:projected_mom2_z:projected_pca_rel1_x:projected_pca_rel1_y:projected_pca_rel1_z:projected_pca_rel2_x:projected_pca_rel2_y:projected_pca_rel2_z:projected_pair_dca:projected_pathlength_x:projected_pathlength_y:projected_pathlength_z:projected_pathlength:quality1:quality2:cosThetaReco:track1_silicon_clusters:track2_silicon_clusters:track1_mvtx_clusters:track1_mvtx_states:track1_intt_clusters:track1_intt_states:track2_mvtx_clusters:track2_mvtx_states:track2_intt_clusters:track2_intt_states:runNumber:eventNumber");
+  ntp_reco_info = new TNtuple("ntp_reco_info", "decay_pairs", "id1:mass1:crossing1:x1:y1:z1:px1:py1:pz1:dca3dxy1:dca3dz1:phi1:pca_rel1_x:pca_rel1_y:pca_rel1_z:eta1:charge1:tpcClusters_1:id2:mass2:crossing2:x2:y2:z2:px2:py2:pz2:dca3dxy2:dca3dz2:phi2:pca_rel2_x:pca_rel2_y:pca_rel2_z:eta2:charge2:tpcClusters_2:ntracks_vertex:vertex_x:vertex_y:vertex_z:pair_dca:invariant_mass:invariant_pt:invariantPhi:pathlength_x:pathlength_y:pathlength_z:pathlength:rapidity:pseudorapidity:projected_pos1_x:projected_pos1_y:projected_pos1_z:projected_pos2_x:projected_pos2_y:projected_pos2_z:projected_mom1_x:projected_mom1_y:projected_mom1_z:projected_mom2_x:projected_mom2_y:projected_mom2_z:projected_pca_rel1_x:projected_pca_rel1_y:projected_pca_rel1_z:projected_pca_rel2_x:projected_pca_rel2_y:projected_pca_rel2_z:projected_pair_dca:projected_pathlength_x:projected_pathlength_y:projected_pathlength_z:projected_pathlength:quality1:quality2:cosThetaReco:track1_silicon_clusters:track2_silicon_clusters:track1_mvtx_clusters:track1_mvtx_states:track1_intt_clusters:track1_intt_states:track2_mvtx_clusters:track2_mvtx_states:track2_intt_clusters:track2_intt_states:runNumber:eventNumber");
 
   recomass = new TH1D("recomass", "recomass", 1000, 0.0, 1);  // root histogram arguments: name,title,bins,minvalx,maxvalx
 
   int retvalue = getNodes(topNode);
-    
-  //Add new track map to save selected tracks
+
+  // Add new track map to save selected tracks
   if (m_save_tracks)
   {
     PHNodeIterator nodeIter(topNode);
@@ -932,13 +924,16 @@ ntp_reco_info = new TNtuple("ntp_reco_info", "decay_pairs", "id1:mass1:crossing1
     m_output_trackMap = new SvtxTrackMap_v2();
     PHIODataNode<PHObject> *outputTrackNode = new PHIODataNode<PHObject>(m_output_trackMap, m_output_trackMap_node_name, "PHObject");
     dstNode->addNode(outputTrackNode);
-    if (Verbosity() > 1) { std::cout << m_output_trackMap_node_name << " node added" << std::endl; }
+    if (Verbosity() > 1)
+    {
+      std::cout << m_output_trackMap_node_name << " node added" << std::endl;
+    }
   }
-    
+
   return retvalue;
 }
 
-int KshortReconstruction::End(PHCompositeNode* /**topNode*/)
+int KshortReconstruction::End(PHCompositeNode * /**topNode*/)
 {
   fout->cd();
   ntp_reco_info->Write();
@@ -948,20 +943,18 @@ int KshortReconstruction::End(PHCompositeNode* /**topNode*/)
   return 0;
 }
 
-int KshortReconstruction::getNodes(PHCompositeNode* topNode)
+int KshortReconstruction::getNodes(PHCompositeNode *topNode)
 {
   // m_svtxTrackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-  m_svtxTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_input_trackMap_node_name.c_str());
+  m_svtxTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_input_trackMap_node_name);
   if (!m_svtxTrackMap)
-    {
-      std::cout << PHWHERE << "No SvtxTrackMap on node tree, exiting." << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  else
-    {
-      std::cout << PHWHERE << "Using tracks ffrom node " <<  m_input_trackMap_node_name  << std::endl;
-    }
-  
+  {
+    std::cout << PHWHERE << "No SvtxTrackMap on node tree, exiting." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  std::cout << PHWHERE << "Using tracks ffrom node " << m_input_trackMap_node_name << std::endl;
+
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if (!m_vertexMap)
   {
@@ -978,24 +971,24 @@ int KshortReconstruction::getNodes(PHCompositeNode* topNode)
 
   m_silseedMap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   if (!m_silseedMap)
-    {
-      std::cout << PHWHERE << "No silicon seed map on node tree, exiting." << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+  {
+    std::cout << PHWHERE << "No silicon seed map on node tree, exiting." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   m_tpcseedMap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if (!m_tpcseedMap)
-    {
-      std::cout << PHWHERE << "No TPC seed map on node tree, exiting." << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+  {
+    std::cout << PHWHERE << "No TPC seed map on node tree, exiting." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int KshortReconstruction::getMotherPDG()
 {
-  TParticlePDG* particle = TDatabasePDG::Instance()->GetParticle(m_mother_name.c_str());
+  TParticlePDG *particle = TDatabasePDG::Instance()->GetParticle(m_mother_name.c_str());
   if (!particle)
   {
     if (Verbosity() > 2)
@@ -1034,8 +1027,8 @@ PHG4Particle *KshortReconstruction::getTruthTrack(SvtxTrack *thisTrack, PHCompos
     {
       m_svtx_evalstack = new SvtxEvalStack(topNode);
       trackeval = m_svtx_evalstack->get_track_eval();
-      //trutheval = m_svtx_evalstack->get_truth_eval();
-      //vertexeval = m_svtx_evalstack->get_vertex_eval();
+      // trutheval = m_svtx_evalstack->get_truth_eval();
+      // vertexeval = m_svtx_evalstack->get_vertex_eval();
     }
 
     m_svtx_evalstack->next_event(topNode);

@@ -3,10 +3,10 @@
 //   with_chimney: 0 none, 1 box 1 + tube + contents + box 2 + riser + valve box
 #ifndef CHIMNEYSETUP_H
 #define CHIMNEYSETUP_H
-#include "PHG4ChimneySubsystem.h"
 #include <g4main/PHG4Reco.h>
 #include <g4main/PHG4Subsystem.h>
 #include <iostream>
+#include "PHG4ChimneySubsystem.h"
 inline void RegisterChimney(PHG4Reco *g4, const int with_chimney, const int door_mode, const bool overlapcheck = false, const int verbosity = 0)
 {
   if (with_chimney)
@@ -20,7 +20,12 @@ inline void RegisterChimney(PHG4Reco *g4, const int with_chimney, const int door
       c->Verbosity(verbosity);
       if (part == 0)
       {
-        if (!ohcal) { std::cout << "RegisterChimney: no HCALOUT_0, skipping the envelope part" << std::endl; delete c; continue; }
+        if (!ohcal)
+        {
+          std::cout << "RegisterChimney: no HCALOUT_0, skipping the envelope part" << std::endl;
+          delete c;
+          continue;
+        }
         c->SetMotherSubsystem(ohcal);
       }
       g4->registerSubsystem(c);

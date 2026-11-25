@@ -188,6 +188,7 @@ class PHActsSiliconSeeding : public SubsysReco
   std::vector<short int> getInttCrossings(TrackSeed &si_track);
 
   float getPhiFromBeamSpot(float clusy, float clusx) const;
+  float zAtOriginPCA(const float zBeam, const TrackSeed &seed) const;
 
   void createHistograms();
   void writeHistograms();
