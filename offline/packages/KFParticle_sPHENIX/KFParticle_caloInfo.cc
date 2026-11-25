@@ -1,5 +1,5 @@
 #include "KFParticle_caloInfo.h"
-#include "KFParticle_utilities.h"
+#include "KFParticle_util.h"
 
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::...
 #include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, SvtxTrac...
@@ -90,7 +90,7 @@ void KFParticle_caloInfo::fill(PHCompositeNode *topNode, const KFParticle &daugh
   }
 
   // Get track
-  SvtxTrack *track = KFParticle_utilities::getTrack(daughter.Id(), dst_trackmap);
+  SvtxTrack *track = KFParticle_util::getTrack(daughter.Id(), dst_trackmap);
 
   // EMCal info
   if (!clustersEM)

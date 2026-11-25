@@ -1,6 +1,6 @@
 #include "KFParticle_nTuple.h"
 #include "KFParticle_Tools.h"
-#include "KFParticle_utilities.h"
+#include "KFParticle_util.h"
 
 #include <ffaobjects/EventHeader.h>
 #include <ffarawobjects/Gl1Packet.h>
@@ -358,8 +358,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
         bool switchTrackPosition;
         if (m_config.chargeConjugate)
         {
-          float daughterA_mass = KFParticle_utilities::getParticleMass(particleAPID);
-          float daughterB_mass = KFParticle_utilities::getParticleMass(particleBPID);
+          float daughterA_mass = KFParticle_util::getParticleMass(particleAPID);
+          float daughterB_mass = KFParticle_util::getParticleMass(particleBPID);
           switchTrackPosition = daughterA_mass > daughterB_mass;
         }
         else
@@ -401,9 +401,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   if (m_config.constrainToPrimaryVertex)
   {
-    m_calculated_mother_dira = KFParticle_utilities::eventDIRA(motherParticle, vertex_fillbranch);
-    m_calculated_mother_dira_xy = KFParticle_utilities::eventDIRA(motherParticle, vertex_fillbranch, false);
-    m_calculated_mother_fdchi2 = KFParticle_utilities::flightDistanceChi2(motherParticle, vertex_fillbranch);
+    m_calculated_mother_dira = KFParticle_util::eventDIRA(motherParticle, vertex_fillbranch);
+    m_calculated_mother_dira_xy = KFParticle_util::eventDIRA(motherParticle, vertex_fillbranch, false);
+    m_calculated_mother_fdchi2 = KFParticle_util::flightDistanceChi2(motherParticle, vertex_fillbranch);
     m_calculated_mother_PV_dca = motherParticle.GetDistanceFromVertex(vertex_fillbranch);
     m_calculated_mother_PV_dca_sig = motherParticle.GetDeviationFromVertex(vertex_fillbranch);
     m_calculated_mother_PV_dca_err = m_calculated_mother_PV_dca / std::sqrt(m_calculated_mother_PV_dca_sig);
@@ -427,7 +427,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   m_calculated_mother_theta = motherParticle.GetTheta();
   // m_calculated_mother_phi = motherParticle.GetPhi();
   motherParticle.GetPhi(m_calculated_mother_phi, TempError);
-  m_calculated_mother_v = KFParticle_utilities::calculateEllipsoidVolume(motherParticle);
+  m_calculated_mother_v = KFParticle_util::calculateEllipsoidVolume(motherParticle);
   m_calculated_mother_pdgID = motherParticle.GetPDG();
   // m_calculated_mother_cov          = &motherParticle.CovarianceMatrix()[0];
   for (int j = 0; j < 21; ++j)
@@ -442,8 +442,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   {
     for (int i = 0; i < m_config.numIntermediateStates; ++i)
     {
-      m_calculated_intermediate_dira[i] = KFParticle_utilities::eventDIRA(intermediateArray[i], motherParticle);
-      m_calculated_intermediate_fdchi2[i] = KFParticle_utilities::flightDistanceChi2(intermediateArray[i], motherParticle);
+      m_calculated_intermediate_dira[i] = KFParticle_util::eventDIRA(intermediateArray[i], motherParticle);
+      m_calculated_intermediate_fdchi2[i] = KFParticle_util::flightDistanceChi2(intermediateArray[i], motherParticle);
       if (m_config.constrainToPrimaryVertex)
       {
         m_calculated_intermediate_PV_dca[i] = intermediateArray[i].GetDistanceFromVertex(vertex_fillbranch);
@@ -469,7 +469,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_calculated_intermediate_theta[i] = intermediateArray[i].GetTheta();
       // m_calculated_intermediate_phi[i] = intermediateArray[i].GetPhi();
       intermediateArray[i].GetPhi(m_calculated_intermediate_phi[i], TempError);
-      m_calculated_intermediate_v[i] = KFParticle_utilities::calculateEllipsoidVolume(intermediateArray[i]);
+      m_calculated_intermediate_v[i] = KFParticle_util::calculateEllipsoidVolume(intermediateArray[i]);
       m_calculated_intermediate_pdgID[i] = intermediateArray[i].GetPDG();
       // m_calculated_intermediate_cov[i]          = &intermediateArray[i].CovarianceMatrix()[0];
       for (int j = 0; j < 21; ++j)
@@ -483,8 +483,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       intermediateArray[i].GetDecayLength(m_calculated_intermediate_decaylength[i], m_calculated_intermediate_decaylength_err[i]);
       intermediateArray[i].GetDecayLengthXY(m_calculated_intermediate_decaylength_xy[i], m_calculated_intermediate_decaylength_xy_err[i]);
 
-      m_calculated_intermediate_decaytime[i] /= KFParticle_utilities::speedOfLight;
-      m_calculated_intermediate_decaytime_err[i] /= KFParticle_utilities::speedOfLight;
+      m_calculated_intermediate_decaytime[i] /= KFParticle_util::speedOfLight;
+      m_calculated_intermediate_decaytime_err[i] /= KFParticle_util::speedOfLight;
     }
   }
 
@@ -531,7 +531,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
     // Now get bunch crossing number for the daughter particle
     SvtxTrackMap* thisTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_config.trackMapNodeName);
-    SvtxTrack* thisTrack = KFParticle_utilities::getTrack(daughterArray[i].Id(), thisTrackMap);
+    SvtxTrack* thisTrack = KFParticle_util::getTrack(daughterArray[i].Id(), thisTrackMap);
     m_calculated_daughter_bunch_crossing[i] = thisTrack->get_crossing();
     if (m_calculated_daughter_bunch_crossing[i] != 0)
     {
@@ -623,20 +623,20 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     motherParticle.GetDecayLength(m_calculated_mother_decaylength, m_calculated_mother_decaylength_err);
     motherParticle.GetDecayLengthXY(m_calculated_mother_decaylength_xy, m_calculated_mother_decaylength_xy_err);
 
-    m_calculated_mother_decaytime /= KFParticle_utilities::speedOfLight;
-    m_calculated_mother_decaytime_err /= KFParticle_utilities::speedOfLight;
+    m_calculated_mother_decaytime /= KFParticle_util::speedOfLight;
+    m_calculated_mother_decaytime_err /= KFParticle_util::speedOfLight;
 
     m_calculated_vertex_x = vertex_fillbranch.GetX();
     m_calculated_vertex_y = vertex_fillbranch.GetY();
     m_calculated_vertex_z = vertex_fillbranch.GetZ();
-    m_calculated_vertex_v = KFParticle_utilities::calculateEllipsoidVolume(vertex_fillbranch);
+    m_calculated_vertex_v = KFParticle_util::calculateEllipsoidVolume(vertex_fillbranch);
     m_calculated_vertex_chi2 = vertex_fillbranch.GetChi2();
     m_calculated_vertex_ndof = vertex_fillbranch.GetNDF();
 
     // it only makes sense to calculate PVID for non-fake vertex
     // (this otherwise crashes if m_config.useFakePrimaryVertex is true in an event with no real vertices)
-    m_calculated_vertex_ID = m_config.useFakePrimaryVertex ? -100 : KFParticle_utilities::getPVID(topNode, vertex_fillbranch, m_config.dontUseGlobalVertex,
-                                                                                          m_config.useMbdVertex, m_config.vertexMapNodeName);  // -100 is the error value returned by getPVID
+    m_calculated_vertex_ID = m_config.useFakePrimaryVertex ? -100 : KFParticle_util::getPVID(topNode, vertex_fillbranch, m_config.dontUseGlobalVertex,
+                                                                                     m_config.useMbdVertex, m_config.vertexMapNodeName);  // -100 is the error value returned by getPVID
     // m_calculated_vertex_cov          = &vertex_fillbranch.CovarianceMatrix()[0];
     for (int j = 0; j < 6; ++j)
     {

@@ -2,7 +2,7 @@
 #define KFPARTICLESPHENIX_KFPARTICLEDETECTORINFO_H
 
 #include "KFParticle_Config.h"
-#include "KFParticle_utilities.h"
+#include "KFParticle_util.h"
 
 #include <string>
 #include <vector>
@@ -28,28 +28,28 @@ class KFParticle_detectorInfo
  private:
   void initializeSubDetectorBranches(TTree *m_tree, const std::string &detectorName, int daughter_id, const std::string &daughter_number);
 
-  static constexpr int max_tracks{KFParticle_utilities::max_tracks};
+  static constexpr int maxTracks{KFParticle_util::maxTracks};
 
   const KFParticle_Config &m_config;
 
-  unsigned int detector_nHits_MVTX[max_tracks]{0};
-  unsigned int detector_nHits_INTT[max_tracks]{0};
-  unsigned int detector_nHits_TPC[max_tracks]{0};
-  unsigned int detector_nHits_TPOT[max_tracks]{0};
-  unsigned int detector_nStates_MVTX[max_tracks]{0};
-  unsigned int detector_nStates_INTT[max_tracks]{0};
-  unsigned int detector_nStates_TPC[max_tracks]{0};
-  unsigned int detector_nStates_TPOT[max_tracks]{0};
-  std::vector<float> residual_x[max_tracks];
-  std::vector<float> residual_y[max_tracks];
-  std::vector<float> residual_z[max_tracks];
-  std::vector<int> detector_layer[max_tracks];
-  std::vector<int> mvtx_staveID[max_tracks];
-  std::vector<int> mvtx_chipID[max_tracks];
-  std::vector<int> intt_ladderZID[max_tracks];
-  std::vector<int> intt_ladderPhiID[max_tracks];
-  std::vector<int> tpc_sectorID[max_tracks];
-  std::vector<int> tpc_side[max_tracks];
+  unsigned int detector_nHits_MVTX[maxTracks]{0};
+  unsigned int detector_nHits_INTT[maxTracks]{0};
+  unsigned int detector_nHits_TPC[maxTracks]{0};
+  unsigned int detector_nHits_TPOT[maxTracks]{0};
+  unsigned int detector_nStates_MVTX[maxTracks]{0};
+  unsigned int detector_nStates_INTT[maxTracks]{0};
+  unsigned int detector_nStates_TPC[maxTracks]{0};
+  unsigned int detector_nStates_TPOT[maxTracks]{0};
+  std::vector<float> residual_x[maxTracks];
+  std::vector<float> residual_y[maxTracks];
+  std::vector<float> residual_z[maxTracks];
+  std::vector<int> detector_layer[maxTracks];
+  std::vector<int> mvtx_staveID[maxTracks];
+  std::vector<int> mvtx_chipID[maxTracks];
+  std::vector<int> intt_ladderZID[maxTracks];
+  std::vector<int> intt_ladderPhiID[maxTracks];
+  std::vector<int> tpc_sectorID[maxTracks];
+  std::vector<int> tpc_side[maxTracks];
 };
 
 #endif  // KFPARTICLESPHENIX_KFPARTICLEDETECTORINFO_H

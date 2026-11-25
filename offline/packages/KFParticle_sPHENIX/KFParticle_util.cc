@@ -1,4 +1,4 @@
-#include "KFParticle_utilities.h"
+#include "KFParticle_util.h"
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
@@ -21,7 +21,7 @@
 #include <TMatrixT.h>     // for TMatrixT, operator*
 #include <TParticlePDG.h>
 
-#include <cmath>     // for sqrt, pow
+#include <cmath>     // for sqrt
 #include <cstdlib>   // for abs
 #include <iostream>
 
@@ -32,7 +32,7 @@ namespace
   const std::string reject_colour = "31";
 }  // namespace
 
-SvtxTrack *KFParticle_utilities::getTrack(unsigned int track_id, SvtxTrackMap *trackmap)
+SvtxTrack *KFParticle_util::getTrack(unsigned int track_id, const SvtxTrackMap *trackmap)
 {
   // Track ids are the keys of the map, so look the track up directly instead of scanning the whole map
   auto iter = trackmap->find(track_id);
@@ -44,8 +44,8 @@ SvtxTrack *KFParticle_utilities::getTrack(unsigned int track_id, SvtxTrackMap *t
   return iter->second;
 }
 
-int KFParticle_utilities::getPVID(PHCompositeNode *topNode, const KFParticle &kfpvertex,
-                                  bool dontUseGlobalVertex, bool useMbdVertex, const std::string &vtxMapName)
+int KFParticle_util::getPVID(PHCompositeNode *topNode, const KFParticle &kfpvertex,
+                             bool dontUseGlobalVertex, bool useMbdVertex, const std::string &vtxMapName)
 {
   if (dontUseGlobalVertex)
   {
@@ -87,7 +87,7 @@ int KFParticle_utilities::getPVID(PHCompositeNode *topNode, const KFParticle &kf
   return -100;
 }
 
-void KFParticle_utilities::identify(const KFParticle &particle)
+void KFParticle_util::identify(const KFParticle &particle)
 {
   std::cout << "Track ID: " << particle.Id() << std::endl;
   std::cout << "PDG ID: " << particle.GetPDG() << ", charge: " << (int) particle.GetQ() << ", mass: " << particle.GetMass() << " GeV" << std::endl;
@@ -99,20 +99,7 @@ void KFParticle_utilities::identify(const KFParticle &particle)
   std::cout << particle.GetZ() << " +/- " << std::sqrt(particle.GetCovariance(2, 2)) << ") cm\n" << std::endl;
 }
 
-double KFParticle_utilities::calculateEllipsoidRadius(int posOrNeg, double sigma_ii, double sigma_jj, double sigma_ij)
-{  // Note - Only works for a 2D ellipsoid OR rotated nD ellipsoid to avoid projections
-  if (std::abs(posOrNeg) != 1)
-  {
-    std::cout << "You have set posOrNeg to " << posOrNeg << ". This value must be  +/- 1! Skipping" << std::endl;
-    return 0;
-  }
-
-  double r_ij = sqrt((sigma_ii + sigma_jj) / 2 + posOrNeg * (sqrt(pow((sigma_ii - sigma_jj) / 2, 2) + pow(sigma_ij, 2))));
-
-  return r_ij;
-}
-
-float KFParticle_utilities::eventDIRA(const KFParticle &particle, const KFParticle &vertex, bool do3D)
+float KFParticle_util::eventDIRA(const KFParticle &particle, const KFParticle &vertex, bool do3D)
 {
   const int nDimensions = do3D ? 3 : 2;
   TMatrixD flightVector(nDimensions, 1);
@@ -144,7 +131,7 @@ float KFParticle_utilities::eventDIRA(const KFParticle &particle, const KFPartic
   return f_momDotFD / (f_sizeOfMom * f_sizeOfFD);
 }
 
-float KFParticle_utilities::flightDistanceChi2(const KFParticle &particle, const KFParticle &vertex)
+float KFParticle_util::flightDistanceChi2(const KFParticle &particle, const KFParticle &vertex)
 {
   TMatrixD flightVector(3, 1);
   TMatrixD flightDistanceCovariance(3, 3);
@@ -170,7 +157,7 @@ float KFParticle_utilities::flightDistanceChi2(const KFParticle &particle, const
   return m_chi2Value(0, 0);
 }
 
-float KFParticle_utilities::calculateEllipsoidVolume(const KFParticle &particle)
+float KFParticle_util::calculateEllipsoidVolume(const KFParticle &particle)
 {
   TMatrixD cov_matrix(3, 3);
 
@@ -195,22 +182,22 @@ float KFParticle_utilities::calculateEllipsoidVolume(const KFParticle &particle)
   return volume;
 }
 
-int KFParticle_utilities::getParticleID(const std::string &particle)
+int KFParticle_util::getParticleID(const std::string &particle)
 {
   return TDatabasePDG::Instance()->GetParticle(particle.c_str())->PdgCode();
 }
 
-float KFParticle_utilities::getParticleMass(const std::string &particle)
+float KFParticle_util::getParticleMass(const std::string &particle)
 {
   return TDatabasePDG::Instance()->GetParticle(particle.c_str())->Mass();
 }
 
-float KFParticle_utilities::getParticleMass(const int PDGID)
+float KFParticle_util::getParticleMass(const int PDGID)
 {
   return TDatabasePDG::Instance()->GetParticle(PDGID)->Mass();
 }
 
-bool KFParticle_utilities::findParticle(const std::string &particle)
+bool KFParticle_util::findParticle(const std::string &particle)
 {
   bool particleFound = true;
   if (!TDatabasePDG::Instance()->GetParticle(particle.c_str()))
@@ -224,7 +211,7 @@ bool KFParticle_utilities::findParticle(const std::string &particle)
 }
 
 //Taken from PHTrackCleaner.cc but this was declared private there
-TrackSeed *KFParticle_utilities::findSeed(TrackSeedContainer *container, unsigned short id)
+TrackSeed *KFParticle_util::findSeed(const TrackSeedContainer *container, unsigned short id)
 {
   // find() does no bounds checking, so guard against unset (USHRT_MAX) or stale ids
   if (!container || id >= container->size())
@@ -234,12 +221,12 @@ TrackSeed *KFParticle_utilities::findSeed(TrackSeedContainer *container, unsigne
   return *container->find(id);
 }
 
-bool KFParticle_utilities::isInRange(float min, float value, float max)
+bool KFParticle_util::isInRange(float min, float value, float max)
 {
   return min <= value && value <= max;
 }
 
-void KFParticle_utilities::printSelectionCheck(const std::string &parameter, float min, float val, float max)
+void KFParticle_util::printSelectionCheck(const std::string &parameter, float min, float val, float max)
 {
   std::string trailer = "the " + parameter + " requirement\033[0m";
   std::string passOrFail = isInRange(min, val, max) ? "\033[1;" + accept_colour + "mPassed " + trailer
@@ -247,7 +234,7 @@ void KFParticle_utilities::printSelectionCheck(const std::string &parameter, flo
   std::cout << passOrFail << ". Lower bound = " << min << ", measured value =  " << val << ", upper bound = " << max << std::endl; 
 }
 
-void KFParticle_utilities::printSelectionCheck(const std::string &start, const std::string &accept, const std::string &reject, const std::string &end, bool equality)
+void KFParticle_util::printSelectionCheck(const std::string &start, const std::string &accept, const std::string &reject, const std::string &end, bool equality)
 {
   std::string decision = equality ? accept : reject;
   std::string colour = equality ? accept_colour : reject_colour;
@@ -255,7 +242,7 @@ void KFParticle_utilities::printSelectionCheck(const std::string &start, const s
   std::cout << "\033[1;" << colour << "m" << start << spacing << decision << " " << end << "\033[0m" << std::endl;
 }
 
-void KFParticle_utilities::printSelectionCheck(const std::string &info, unsigned int value)
+void KFParticle_util::printSelectionCheck(const std::string &info, unsigned int value)
 {
   std::string colour = value > 0 ? accept_colour : reject_colour;
   std::cout << info << " = \033[1;" << colour << "m" << value << "\033[0m" << std::endl;

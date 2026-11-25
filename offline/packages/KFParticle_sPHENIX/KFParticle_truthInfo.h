@@ -2,7 +2,7 @@
 #define KFPARTICLESPHENIX_KFPARTICLETRUTHINFO_H
 
 #include "KFParticle_Config.h"
-#include "KFParticle_utilities.h"
+#include "KFParticle_util.h"
 
 #include <limits>
 #include <string>
@@ -52,7 +52,7 @@ class KFParticle_truthInfo
   void fillGeant4Branch(PHG4Particle *particle, int daughter_id);
   void fillHepMCBranch(HepMC::GenParticle *particle, int daughter_id);
 
-  static constexpr int max_tracks{KFParticle_utilities::max_tracks};
+  static constexpr int maxTracks{KFParticle_util::maxTracks};
 
   const KFParticle_Config &m_config;
 
@@ -71,28 +71,28 @@ class KFParticle_truthInfo
   PHHepMCGenEventMap *m_geneventmap{nullptr};
   PHHepMCGenEvent *m_genevt{nullptr};
 
-  float m_true_daughter_vertex_x[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float m_true_daughter_vertex_y[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float m_true_daughter_vertex_z[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float m_true_daughter_ip[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float m_true_daughter_ip_xy[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float m_true_daughter_px[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float m_true_daughter_py[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float m_true_daughter_pz[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float m_true_daughter_p[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float m_true_daughter_pt[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  int m_true_daughter_id[max_tracks]{std::numeric_limits<int>::quiet_NaN()};
-  float m_true_daughter_pv_x[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float m_true_daughter_pv_y[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float m_true_daughter_pv_z[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_daughter_vertex_x[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_daughter_vertex_y[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_daughter_vertex_z[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_daughter_ip[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_daughter_ip_xy[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_daughter_px[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_daughter_py[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_daughter_pz[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_daughter_p[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_daughter_pt[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  int m_true_daughter_id[maxTracks]{std::numeric_limits<int>::quiet_NaN()};
+  float m_true_daughter_pv_x[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_daughter_pv_y[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_daughter_pv_z[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
 
-  std::vector<int> m_true_daughter_track_history_PDG_ID[max_tracks];
-  std::vector<float> m_true_daughter_track_history_PDG_mass[max_tracks];
-  std::vector<float> m_true_daughter_track_history_px[max_tracks];
-  std::vector<float> m_true_daughter_track_history_py[max_tracks];
-  std::vector<float> m_true_daughter_track_history_pz[max_tracks];
-  std::vector<float> m_true_daughter_track_history_pE[max_tracks];
-  std::vector<float> m_true_daughter_track_history_pT[max_tracks];
+  std::vector<int> m_true_daughter_track_history_PDG_ID[maxTracks];
+  std::vector<float> m_true_daughter_track_history_PDG_mass[maxTracks];
+  std::vector<float> m_true_daughter_track_history_px[maxTracks];
+  std::vector<float> m_true_daughter_track_history_py[maxTracks];
+  std::vector<float> m_true_daughter_track_history_pz[maxTracks];
+  std::vector<float> m_true_daughter_track_history_pE[maxTracks];
+  std::vector<float> m_true_daughter_track_history_pT[maxTracks];
 };
 
 #endif  // KFPARTICLESPHENIX_KFPARTICLETRUTHINFO_H

@@ -2,7 +2,7 @@
 #define KFPARTICLESPHENIX_KFPARTICLECALOINFO_H
 
 #include "KFParticle_Config.h"
-#include "KFParticle_utilities.h"
+#include "KFParticle_util.h"
 
 // Cluster
 #include <calobase/RawClusterDefs.h>
@@ -47,7 +47,7 @@ class KFParticle_caloInfo
   // Wrap an azimuthal difference into [-pi, pi]
   static float PiRange(float deltaPhi) { return std::remainder(deltaPhi, 2 * M_PI); }
 
-  static constexpr int max_tracks{KFParticle_utilities::max_tracks};
+  static constexpr int maxTracks{KFParticle_util::maxTracks};
 
   const KFParticle_Config &m_config;
 
@@ -58,37 +58,37 @@ class KFParticle_caloInfo
   float m_ohcal_e_low_cut{0.01};
 
   // Vectors for calo info
-  float detector_emcal_deltaphi[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_emcal_deltaeta[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_emcal_deltaz[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_emcal_energy_3x3[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_emcal_energy_5x5[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_emcal_cluster_energy[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_emcal_cluster_prob[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_deltaphi[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_deltaeta[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_deltaz[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_energy_3x3[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_energy_5x5[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_cluster_energy[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_cluster_prob[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
 
-  float detector_ihcal_deltaphi[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_ihcal_deltaeta[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_ihcal_energy_3x3[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_ihcal_energy_5x5[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_ihcal_cluster_energy[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_ohcal_deltaphi[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_ohcal_deltaeta[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_ohcal_energy_3x3[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_ohcal_energy_5x5[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_ohcal_cluster_energy[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_ihcal_deltaphi[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_ihcal_deltaeta[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_ihcal_energy_3x3[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_ihcal_energy_5x5[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_ihcal_cluster_energy[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_ohcal_deltaphi[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_ohcal_deltaeta[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_ohcal_energy_3x3[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_ohcal_energy_5x5[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_ohcal_cluster_energy[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
   // Detailed Calo Info
-  float detector_emcal_projection_z[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_emcal_projection_eta[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_emcal_projection_phi[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_emcal_cluster_z[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_emcal_cluster_eta[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_emcal_cluster_phi[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  float detector_emcal_chi2[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  unsigned int detector_emcal_ntowers[max_tracks]{std::numeric_limits<unsigned int>::quiet_NaN()};
+  float detector_emcal_projection_z[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_projection_eta[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_projection_phi[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_cluster_z[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_cluster_eta[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_cluster_phi[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_chi2[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  unsigned int detector_emcal_ntowers[maxTracks]{std::numeric_limits<unsigned int>::quiet_NaN()};
   // 5x5 grid
-  std::vector<unsigned int> detector_emcal_5x5Cell_Phi[max_tracks];
-  std::vector<unsigned int> detector_emcal_5x5Cell_Eta[max_tracks];
-  std::vector<float> detector_emcal_5x5Cell_E[max_tracks];
+  std::vector<unsigned int> detector_emcal_5x5Cell_Phi[maxTracks];
+  std::vector<unsigned int> detector_emcal_5x5Cell_Eta[maxTracks];
+  std::vector<float> detector_emcal_5x5Cell_E[maxTracks];
 
   // Containers for calo info
   RawTowerGeomContainer *EMCalGeo{nullptr};

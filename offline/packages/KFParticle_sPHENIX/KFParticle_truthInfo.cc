@@ -1,5 +1,5 @@
 #include "KFParticle_truthInfo.h"
-#include "KFParticle_utilities.h"
+#include "KFParticle_util.h"
 
 #include <g4eval/SvtxEvalStack.h>   // for SvtxEvalStack
 #include <g4eval/SvtxTrackEval.h>   // for SvtxTrackEval
@@ -166,7 +166,7 @@ void KFParticle_truthInfo::fill(PHCompositeNode *topNode, const KFParticle &daug
     std::cout << "KFParticle truth matching: GlobalVertexMap does not exist" << std::endl;
   }
 
-  SvtxTrack *track = KFParticle_utilities::getTrack(daughter.Id(), dst_trackmap);
+  SvtxTrack *track = KFParticle_util::getTrack(daughter.Id(), dst_trackmap);
   g4particle = getTruthTrack(track, topNode);
 
   const bool isParticleValid = g4particle != nullptr;
@@ -351,7 +351,7 @@ int KFParticle_truthInfo::getHepMCInfo(PHCompositeNode *topNode, const KFParticl
     exit(1);
   }
 
-  SvtxTrack *track = KFParticle_utilities::getTrack(daughter.Id(), dst_trackmap);
+  SvtxTrack *track = KFParticle_util::getTrack(daughter.Id(), dst_trackmap);
   g4particle = getTruthTrack(track, topNode);
 
   const bool isParticleValid = g4particle != nullptr;

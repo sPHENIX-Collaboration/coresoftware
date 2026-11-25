@@ -27,7 +27,7 @@ pkginclude_HEADERS = \
   KFParticle_Tools.h \
   KFParticle_triggerInfo.h \
   KFParticle_truthInfo.h \
-  KFParticle_utilities.h
+  KFParticle_util.h
 
 ROOTDICTS = \
   KFParticle_Container_Dict.cc
@@ -50,7 +50,7 @@ libkfparticle_sphenix_la_SOURCES = \
   KFParticle_Tools.cc \
   KFParticle_triggerInfo.cc \
   KFParticle_truthInfo.cc \
-  KFParticle_utilities.cc
+  KFParticle_util.cc
 
 libkfparticle_sphenix_io_la_LIBADD = \
   -lcentrality \

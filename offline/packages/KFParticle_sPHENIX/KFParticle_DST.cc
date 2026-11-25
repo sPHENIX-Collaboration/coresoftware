@@ -12,7 +12,7 @@
 #include "KFParticle_DST.h"
 
 #include "KFParticle_Container.h"
-#include "KFParticle_utilities.h"
+#include "KFParticle_util.h"
 
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack
 #include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, SvtxTr...
@@ -165,7 +165,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
     }
     else
     {
-      m_recoTrack = KFParticle_utilities::getTrack(daughter.Id(), originalTrackMap);
+      m_recoTrack = KFParticle_util::getTrack(daughter.Id(), originalTrackMap);
       if (!m_recoTrackMap->get(daughter.Id()))
       {
         m_recoTrackMap->insertWithKey(m_recoTrack, daughter.Id());
@@ -289,7 +289,7 @@ void KFParticle_DST::printNode(PHCompositeNode* topNode)
     for (auto& iter : *particlemap)
     {
       KFParticle* particle = iter.second;
-      KFParticle_utilities::identify(*particle);
+      KFParticle_util::identify(*particle);
     }
     std::cout << "--------------------------------------------------------------------------------------------------" << std::endl;
   }

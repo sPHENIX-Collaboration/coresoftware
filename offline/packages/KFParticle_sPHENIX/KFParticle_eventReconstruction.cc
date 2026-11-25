@@ -27,7 +27,7 @@
 
 #include "KFParticle_eventReconstruction.h"
 #include "KFParticle_Tools.h"
-#include "KFParticle_utilities.h"
+#include "KFParticle_util.h"
 
 //sPHENIX stuff
 #include <trackbase_historic/SvtxTrack.h>
@@ -66,7 +66,7 @@ namespace
     int pdg = 0;
     if ((Int_t) track.GetQ() != 0)
     {
-      mass = KFParticle_utilities::getParticleMass((Int_t) track.GetQ() * pid);
+      mass = KFParticle_util::getParticleMass((Int_t) track.GetQ() * pid);
       pdg = (Int_t) track.GetQ() * pid;
 
       if (chargedLeptonPDGIDs.contains(std::abs(pdg)))
@@ -76,7 +76,7 @@ namespace
     }
     else
     {
-      mass = KFParticle_utilities::getParticleMass(pid);
+      mass = KFParticle_util::getParticleMass(pid);
       pdg = pid;
     }
     KFParticle particle;
@@ -120,9 +120,9 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
 
   if (m_config.verbosity >= 10)
   {
-    KFParticle_utilities::printSelectionCheck("Number of daughters passing state selection", daughterParticles.size());
-    KFParticle_utilities::printSelectionCheck("Number of daughters passing track selection", goodTrackIndex.size());
-    KFParticle_utilities::printSelectionCheck("Number of PVs passing selection", primaryVertices.size());
+    KFParticle_util::printSelectionCheck("Number of daughters passing state selection", daughterParticles.size());
+    KFParticle_util::printSelectionCheck("Number of daughters passing track selection", goodTrackIndex.size());
+    KFParticle_util::printSelectionCheck("Number of PVs passing selection", primaryVertices.size());
   }
 
   if (!m_config.hasIntermediates)
@@ -153,7 +153,7 @@ void KFParticle_eventReconstruction::buildBasicChain(std::vector<KFParticle>& se
 
   if (m_config.verbosity >= 10)
   { 
-    KFParticle_utilities::printSelectionCheck("Number of SVs passing selection", goodTracksThatMeet.size());
+    KFParticle_util::printSelectionCheck("Number of SVs passing selection", goodTracksThatMeet.size());
   }
 
   getCandidateDecay(selectedMotherBasic, selectedVertexBasic, selectedDaughtersBasic, daughterParticlesBasic,
@@ -193,7 +193,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 
     if (m_config.verbosity >= 10)
     { 
-      KFParticle_utilities::printSelectionCheck("Number of SVs passing selection", goodTracksThatMeet.size());
+      KFParticle_util::printSelectionCheck("Number of SVs passing selection", goodTracksThatMeet.size());
     }
 
     getCandidateDecay(potentialIntermediates[i], vertices, potentialDaughters[i], daughterParticlesAdv,
@@ -283,7 +283,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
           float required_unique_vertexID = 0;
           for (int n = 0; n < m_config.numIntermediateStates; ++n)
           {
-            required_unique_vertexID += m_config.intermediateCharges[n] * KFParticle_utilities::getParticleMass(m_config.intermediateNames[n]);
+            required_unique_vertexID += m_config.intermediateCharges[n] * KFParticle_util::getParticleMass(m_config.intermediateNames[n]);
           }
 
           std::vector<std::vector<int>> uniqueCombinations;
@@ -293,7 +293,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
           {
             for (int i = num_tracks_used_by_intermediates; i < m_config.numTracks; ++i)
             {
-              required_unique_vertexID += m_config.daughterCharges[i] * KFParticle_utilities::getParticleMass(m_config.daughterNames[i]);
+              required_unique_vertexID += m_config.daughterCharges[i] * KFParticle_util::getParticleMass(m_config.daughterNames[i]);
             }
 
             uniqueCombinations = findUniqueDaughterCombinations(num_tracks_used_by_intermediates, m_config.numTracks);  // Unique comb of remaining trackIDs
@@ -304,7 +304,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
             {
               for (const auto& element_of_intermediate : m_config.intermediateNames)
               {
-                uniqueCombination.insert(begin(uniqueCombination), KFParticle_utilities::getParticleID(element_of_intermediate));
+                uniqueCombination.insert(begin(uniqueCombination), KFParticle_util::getParticleID(element_of_intermediate));
               }
             }
           }
@@ -314,7 +314,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
             intermediate_id.reserve(m_config.intermediateNames.size());
             for (const auto& element_of_intermediate : m_config.intermediateNames)
             {
-              intermediate_id.push_back(KFParticle_utilities::getParticleID(element_of_intermediate));
+              intermediate_id.push_back(KFParticle_util::getParticleID(element_of_intermediate));
             }
             uniqueCombinations.push_back(intermediate_id);
             listOfTracksToAppend.push_back({0});
@@ -439,7 +439,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
   float required_unique_vertexID = 0;
   for (int i = n_track_start; i < n_track_stop; ++i)
   {
-    required_unique_vertexID += m_config.daughterCharges[i] * KFParticle_utilities::getParticleMass(m_config.daughterNames[i]);
+    required_unique_vertexID += m_config.daughterCharges[i] * KFParticle_util::getParticleMass(m_config.daughterNames[i]);
   }
 
   for (const auto& i_comb : goodTracksThatMeetCand)  // Loop over all good track combinations
@@ -467,10 +467,10 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
           calcMinPV_DCA(candidate, primaryVerticesCand, min_PV_dca, min_PV_dca_stddev);
           calcMinPV_DCA(candidate, primaryVerticesCand, min_PV_dca_xy, min_PV_dca_stddev_xy, false);
           const int n = intermediateNumber;
-          isGood = KFParticle_utilities::isInRange(m_config.intermediateMinPVDCA[n], min_PV_dca, m_config.intermediateMaxPVDCA[n]) &&
-                   KFParticle_utilities::isInRange(m_config.intermediateMinPVDCAStdDev[n], min_PV_dca_stddev, m_config.intermediateMaxPVDCAStdDev[n]) &&
-                   KFParticle_utilities::isInRange(m_config.intermediateMinPVDCAXY[n], min_PV_dca_xy, m_config.intermediateMaxPVDCAXY[n]) &&
-                   KFParticle_utilities::isInRange(m_config.intermediateMinPVDCAStdDevXY[n], min_PV_dca_stddev_xy, m_config.intermediateMaxPVDCAStdDevXY[n]);
+          isGood = KFParticle_util::isInRange(m_config.intermediateMinPVDCA[n], min_PV_dca, m_config.intermediateMaxPVDCA[n]) &&
+                   KFParticle_util::isInRange(m_config.intermediateMinPVDCAStdDev[n], min_PV_dca_stddev, m_config.intermediateMaxPVDCAStdDev[n]) &&
+                   KFParticle_util::isInRange(m_config.intermediateMinPVDCAXY[n], min_PV_dca_xy, m_config.intermediateMaxPVDCAXY[n]) &&
+                   KFParticle_util::isInRange(m_config.intermediateMinPVDCAStdDevXY[n], min_PV_dca_stddev_xy, m_config.intermediateMaxPVDCAStdDevXY[n]);
         }
 
         if (isGood)

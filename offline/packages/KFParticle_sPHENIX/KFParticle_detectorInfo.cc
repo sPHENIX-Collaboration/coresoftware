@@ -1,5 +1,5 @@
 #include "KFParticle_detectorInfo.h"
-#include "KFParticle_utilities.h"
+#include "KFParticle_util.h"
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/InttDefs.h>              // for getLadderPhiId, getLad...
@@ -122,7 +122,7 @@ void KFParticle_detectorInfo::fill(PHCompositeNode *topNode, const KFParticle &d
     }
   }
 
-  SvtxTrack *track = KFParticle_utilities::getTrack(daughter.Id(), dst_trackmap);
+  SvtxTrack *track = KFParticle_util::getTrack(daughter.Id(), dst_trackmap);
   detector_nHits_MVTX[daughter_id] = 0;
   detector_nHits_INTT[daughter_id] = 0;
   detector_nHits_TPC[daughter_id] = 0;
@@ -138,8 +138,8 @@ void KFParticle_detectorInfo::fill(PHCompositeNode *topNode, const KFParticle &d
     tpcSeedContainer = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   }
 
-  TrackSeed *silseed = isTrack_v5 ? KFParticle_utilities::findSeed(siliconSeedContainer, track->get_silicon_seed_id()) : track->get_silicon_seed();
-  TrackSeed *tpcseed = isTrack_v5 ? KFParticle_utilities::findSeed(tpcSeedContainer, track->get_tpc_seed_id()) : track->get_tpc_seed();
+  TrackSeed *silseed = isTrack_v5 ? KFParticle_util::findSeed(siliconSeedContainer, track->get_silicon_seed_id()) : track->get_silicon_seed();
+  TrackSeed *tpcseed = isTrack_v5 ? KFParticle_util::findSeed(tpcSeedContainer, track->get_tpc_seed_id()) : track->get_tpc_seed();
 
   if (silseed)
   {

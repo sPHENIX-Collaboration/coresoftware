@@ -282,21 +282,21 @@ void KFParticle_sPHENIX::printParticles(const KFParticle &motherParticle,
   std::cout << "\n---------------KFParticle candidate information---------------" << std::endl;
 
   std::cout << "Mother information:" << std::endl;
-  KFParticle_utilities::identify(motherParticle);
+  KFParticle_util::identify(motherParticle);
 
   if (m_config.hasIntermediates)
   {
     std::cout << "Intermediate state information:" << std::endl;
     for (const auto &intermediateParticle : intermediateParticles)
     {
-      KFParticle_utilities::identify(intermediateParticle);
+      KFParticle_util::identify(intermediateParticle);
     }
   }
 
   std::cout << "Final track information:" << std::endl;
   for (const auto &daughterParticle : daughterParticles)
   {
-    KFParticle_utilities::identify(daughterParticle);
+    KFParticle_util::identify(daughterParticle);
   }
 
   if (m_config.constrainToPrimaryVertex)
@@ -364,7 +364,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   // Find the initial particle
   size_t findMotherEndPoint = manipulateDecayDescriptor.find(decayArrow);
   mother = manipulateDecayDescriptor.substr(0, findMotherEndPoint);
-  bool ddCanBeParsed = KFParticle_utilities::findParticle(mother);
+  bool ddCanBeParsed = KFParticle_util::findParticle(mother);
   manipulateDecayDescriptor.erase(0, findMotherEndPoint + decayArrow.length());
 
   // Consume every "name^charge" daughter in decay, filling daughters_name/daughters_charge; returns how many were read
@@ -380,7 +380,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
       {
         daughter += daughterChargeString;
       }
-      if (KFParticle_utilities::findParticle(daughter))
+      if (KFParticle_util::findParticle(daughter))
       {
         daughters_name.emplace_back(daughter.c_str());
         auto charge = chargeLookup.find(daughterChargeString);
@@ -415,7 +415,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     std::string intermediateDecay = manipulateDecayDescriptor.substr(pos + 1, findIntermediateEndPoint - (pos + 1));
 
     intermediate = intermediateDecay.substr(0, intermediateDecay.find(decayArrow));
-    if (KFParticle_utilities::findParticle(intermediate))
+    if (KFParticle_util::findParticle(intermediate))
     {
       intermediates_name.emplace_back(intermediate.c_str());
     }

@@ -26,7 +26,7 @@
 /*****************/
 
 #include "KFParticle_Tools.h"
-#include "KFParticle_utilities.h"
+#include "KFParticle_util.h"
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrack_v5.h>
@@ -321,10 +321,10 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
 
     if (m_config.verbosity > 100)
     {
-      KFParticle_utilities::printSelectionCheck("MVTX states", m_config.minMVTXStates, MVTX_states, 5);
-      KFParticle_utilities::printSelectionCheck("INTT states", m_config.minINTTStates, INTT_states, 5);
-      KFParticle_utilities::printSelectionCheck("TPC states", m_config.minTPCStates, TPC_states, 100);
-      KFParticle_utilities::printSelectionCheck("TPOT states", m_config.minTPOTStates, TPOT_states, 5);
+      KFParticle_util::printSelectionCheck("MVTX states", m_config.minMVTXStates, MVTX_states, 5);
+      KFParticle_util::printSelectionCheck("INTT states", m_config.minINTTStates, INTT_states, 5);
+      KFParticle_util::printSelectionCheck("TPC states", m_config.minTPCStates, TPC_states, 100);
+      KFParticle_util::printSelectionCheck("TPOT states", m_config.minTPOTStates, TPOT_states, 5);
     }
 
     if (MVTX_states < m_config.minMVTXStates && !m_config.useTPCOnlyTracks)
@@ -352,7 +352,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
     const float trackchi2ndof = trackndof > 0 ? m_dst_track->get_chisq() / trackndof : std::numeric_limits<float>::quiet_NaN();
     if (m_config.verbosity > 11)
     {
-      KFParticle_utilities::printSelectionCheck("Track chi^2/nDoF", 0, trackchi2ndof, m_config.trackMaxChi2nDOF);
+      KFParticle_util::printSelectionCheck("Track chi^2/nDoF", 0, trackchi2ndof, m_config.trackMaxChi2nDOF);
     }
     if (!(trackchi2ndof <= m_config.trackMaxChi2nDOF)) //rejects nan
     {
@@ -381,7 +381,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
   calcMinPV_DCA(particle, primaryVertices, min_PV_dca, min_PV_dca_stddev);
   calcMinPV_DCA(particle, primaryVertices, min_PV_dca_xy, min_PV_dca_stddev_xy, false);
 
-  bool goodTrack = KFParticle_utilities::isInRange(m_config.trackMinPt, pt, m_config.trackMaxPt) &&
+  bool goodTrack = KFParticle_util::isInRange(m_config.trackMinPt, pt, m_config.trackMaxPt) &&
                    ptchi2 <= m_config.trackMaxPtChi2 &&
                    min_PV_dca >= m_config.trackMinPVDCA &&
                    min_PV_dca_stddev >= m_config.trackMinPVDCAStdDev &&
@@ -390,15 +390,15 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
 
   if (m_config.verbosity >= 10)
   {
-    KFParticle_utilities::printSelectionCheck("This track", "passed", "failed", "the selection", goodTrack);
+    KFParticle_util::printSelectionCheck("This track", "passed", "failed", "the selection", goodTrack);
     if (m_config.verbosity >= 11)
     {
-      KFParticle_utilities::printSelectionCheck("Track pT", m_config.trackMinPt, pt, m_config.trackMaxPt);
-      KFParticle_utilities::printSelectionCheck("Track pT chi^2", 0, ptchi2, m_config.trackMaxPtChi2);
-      KFParticle_utilities::printSelectionCheck("PV DCA", m_config.trackMinPVDCA, min_PV_dca, std::numeric_limits<float>::max());
-      KFParticle_utilities::printSelectionCheck("PV DCA Std. Dev.", m_config.trackMinPVDCAStdDev, min_PV_dca_stddev, std::numeric_limits<float>::max());
-      KFParticle_utilities::printSelectionCheck("PV DCA xy", m_config.trackMinPVDCAXY, min_PV_dca_xy, std::numeric_limits<float>::max());
-      KFParticle_utilities::printSelectionCheck("PV DCA xy Std. Dev.", m_config.trackMinPVDCAStdDevXY, min_PV_dca_stddev_xy, std::numeric_limits<float>::max());
+      KFParticle_util::printSelectionCheck("Track pT", m_config.trackMinPt, pt, m_config.trackMaxPt);
+      KFParticle_util::printSelectionCheck("Track pT chi^2", 0, ptchi2, m_config.trackMaxPtChi2);
+      KFParticle_util::printSelectionCheck("PV DCA", m_config.trackMinPVDCA, min_PV_dca, std::numeric_limits<float>::max());
+      KFParticle_util::printSelectionCheck("PV DCA Std. Dev.", m_config.trackMinPVDCAStdDev, min_PV_dca_stddev, std::numeric_limits<float>::max());
+      KFParticle_util::printSelectionCheck("PV DCA xy", m_config.trackMinPVDCAXY, min_PV_dca_xy, std::numeric_limits<float>::max());
+      KFParticle_util::printSelectionCheck("PV DCA xy Std. Dev.", m_config.trackMinPVDCAStdDevXY, min_PV_dca_stddev_xy, std::numeric_limits<float>::max());
     }
   }
 
@@ -407,7 +407,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
 
 bool KFParticle_Tools::isTPConlyAtZeroCrossing(const KFParticle& track)
 {
-  const auto* svtxTrack = KFParticle_utilities::getTrack(track.Id(), m_dst_trackmap);
+  const auto* svtxTrack = KFParticle_util::getTrack(track.Id(), m_dst_trackmap);
 
   if (!svtxTrack || svtxTrack->get_crossing() != 0)
   {
@@ -478,7 +478,7 @@ std::vector<int> KFParticle_Tools::getParticleCrossings(const KFParticle &partic
 {
   std::vector<int> crossings;
 
-  SvtxTrack *thisTrack = KFParticle_utilities::getTrack(particle.Id(), m_dst_trackmap);
+  SvtxTrack *thisTrack = KFParticle_util::getTrack(particle.Id(), m_dst_trackmap);
   if (thisTrack)
   {
     crossings.push_back(thisTrack->get_crossing());
@@ -524,7 +524,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<
           crossings.insert(crossings.end(), particleCrossings[*i_it].begin(), particleCrossings[*i_it].end());
           crossings.insert(crossings.end(), particleCrossings[*j_it].begin(), particleCrossings[*j_it].end());
 
-          KFParticle_utilities::removeDuplicates(crossings);
+          KFParticle_util::removeDuplicates(crossings);
 
           const bool sameCrossing = crossings.size() == 1;
           if ((m_config.bunchCrossingMode == BunchCrossingMode::Same && !sameCrossing) || (m_config.bunchCrossingMode == BunchCrossingMode::Mixed && sameCrossing))
@@ -552,11 +552,11 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<
 
         if (m_config.verbosity >= 10)
         {
-          KFParticle_utilities::printSelectionCheck("This track pair", "passed", "failed", "the DCA selection", (dca <= m_config.maxDaughterDCA) && (dca_xy <= m_config.maxDaughterDCAXY));
+          KFParticle_util::printSelectionCheck("This track pair", "passed", "failed", "the DCA selection", (dca <= m_config.maxDaughterDCA) && (dca_xy <= m_config.maxDaughterDCAXY));
           if (m_config.verbosity >= 11)
           {
-            KFParticle_utilities::printSelectionCheck("Pair DCA", 0., dca, m_config.maxDaughterDCA);
-            KFParticle_utilities::printSelectionCheck("Pair DCA xy", 0., dca_xy, m_config.maxDaughterDCAXY);
+            KFParticle_util::printSelectionCheck("Pair DCA", 0., dca, m_config.maxDaughterDCA);
+            KFParticle_util::printSelectionCheck("Pair DCA xy", 0., dca_xy, m_config.maxDaughterDCAXY);
           }
         }
 
@@ -571,11 +571,11 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<
 
           if (nTracks == 2 && m_config.verbosity >= 10)
           {
-            KFParticle_utilities::printSelectionCheck("This track pair", "passed", "failed", "the quality and radius selection", (vertexchi2ndof <= m_config.maxVertexChi2nDOF) && (sv_radial_position >= m_config.minRadialSV));
+            KFParticle_util::printSelectionCheck("This track pair", "passed", "failed", "the quality and radius selection", (vertexchi2ndof <= m_config.maxVertexChi2nDOF) && (sv_radial_position >= m_config.minRadialSV));
             if (m_config.verbosity >= 11)
             {
-              KFParticle_utilities::printSelectionCheck("SV chi^2/nDoF", 0., vertexchi2ndof, m_config.maxVertexChi2nDOF);
-              KFParticle_utilities::printSelectionCheck("SV radius", m_config.minRadialSV, sv_radial_position, std::numeric_limits<float>::max());
+              KFParticle_util::printSelectionCheck("SV chi^2/nDoF", 0., vertexchi2ndof, m_config.maxVertexChi2nDOF);
+              KFParticle_util::printSelectionCheck("SV radius", m_config.minRadialSV, sv_radial_position, std::numeric_limits<float>::max());
             }
           }
 
@@ -667,11 +667,11 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
 
          if (m_config.verbosity >= 10)
          {
-           KFParticle_utilities::printSelectionCheck("This track", "combined", "did not combine", "with a SV set", (dca <= m_config.maxDaughterDCA) && (dca_xy <= m_config.maxDaughterDCAXY));
+           KFParticle_util::printSelectionCheck("This track", "combined", "did not combine", "with a SV set", (dca <= m_config.maxDaughterDCA) && (dca_xy <= m_config.maxDaughterDCAXY));
            if (m_config.verbosity >= 11)
            {
-             KFParticle_utilities::printSelectionCheck("Pair DCA", 0., dca, m_config.maxDaughterDCA);
-             KFParticle_utilities::printSelectionCheck("Pair DCA xy", 0., dca_xy, m_config.maxDaughterDCAXY);
+             KFParticle_util::printSelectionCheck("Pair DCA", 0., dca, m_config.maxDaughterDCA);
+             KFParticle_util::printSelectionCheck("Pair DCA xy", 0., dca_xy, m_config.maxDaughterDCAXY);
            }
          }
 
@@ -696,11 +696,11 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
 
           if ((unsigned int) nRequiredTracks == nProngs && m_config.verbosity >= 10)
           {
-            KFParticle_utilities::printSelectionCheck("This SV combination", "passed", "failed", "the quality and radius selection", (vertexchi2ndof <= m_config.maxVertexChi2nDOF) && (sv_radial_position >= m_config.minRadialSV));
+            KFParticle_util::printSelectionCheck("This SV combination", "passed", "failed", "the quality and radius selection", (vertexchi2ndof <= m_config.maxVertexChi2nDOF) && (sv_radial_position >= m_config.minRadialSV));
             if (m_config.verbosity >= 11)
             {
-              KFParticle_utilities::printSelectionCheck("SV chi^2/nDoF", 0., vertexchi2ndof, m_config.maxVertexChi2nDOF);
-              KFParticle_utilities::printSelectionCheck("SV radius", m_config.minRadialSV, sv_radial_position, std::numeric_limits<float>::max());
+              KFParticle_util::printSelectionCheck("SV chi^2/nDoF", 0., vertexchi2ndof, m_config.maxVertexChi2nDOF);
+              KFParticle_util::printSelectionCheck("SV radius", m_config.minRadialSV, sv_radial_position, std::numeric_limits<float>::max());
             }
           }
 
@@ -730,7 +730,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
   {
     sort(i.begin(), i.end());
   }
-  KFParticle_utilities::removeDuplicates(goodTracksThatMeet);
+  KFParticle_util::removeDuplicates(goodTracksThatMeet);
 
   return goodTracksThatMeet;
 }
@@ -818,25 +818,25 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
       // different charged particle has different PDGID
       // just to protect if they have different mass for different charge
       // but in EvtGen, there is no C-violation...so this is just a protection
-      daughterMass = constrainMass ? KFParticle_utilities::getParticleMass((Int_t) vDaughters[i].GetQ() * daughterOrder[i]) : vDaughters[i].GetMass();
+      daughterMass = constrainMass ? KFParticle_util::getParticleMass((Int_t) vDaughters[i].GetQ() * daughterOrder[i]) : vDaughters[i].GetMass();
     }
     else if ((Int_t) vDaughters[i].GetQ() == 0)
     {
       // For neutral particle, like pi0, eta, J/psi, etc... who do not have an anti-particle with anti-PDGID
       // and other neutral particle, like Lambda0/anti-Lambda0 ... who have an anti-particle with anti-PDGID
       // avoid charge*PDGID=0 case and getting wrong mass
-      daughterMass = constrainMass ? KFParticle_utilities::getParticleMass(daughterOrder[i]) : vDaughters[i].GetMass();
+      daughterMass = constrainMass ? KFParticle_util::getParticleMass(daughterOrder[i]) : vDaughters[i].GetMass();
     }
 
     if ((num_remaining_tracks > 0 && i >= m_config.numIntermediateStates) || isIntermediate)
     {
       if ((Int_t) vDaughters[i].GetQ() != 0)
       {
-        daughterMass = KFParticle_utilities::getParticleMass((Int_t) vDaughters[i].GetQ() * daughterOrder[i]);
+        daughterMass = KFParticle_util::getParticleMass((Int_t) vDaughters[i].GetQ() * daughterOrder[i]);
       }
       else if ((Int_t) vDaughters[i].GetQ() == 0)
       {
-        daughterMass = KFParticle_utilities::getParticleMass(daughterOrder[i]);
+        daughterMass = KFParticle_util::getParticleMass(daughterOrder[i]);
       }
     }
     inputTracks[i].Create(vDaughters[i].Parameters(),
@@ -852,11 +852,11 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
       {
         float calculated_dEdx_value = get_dEdx(topNode, vDaughters[i]);
         double expected_dEdx_value = get_dEdx_fitValue((Int_t) vDaughters[i].GetQ() * vDaughters[i].GetP(), track_PDG_ID);
-        bool accept_dEdx = KFParticle_utilities::isInRange((1 - m_config.dEdxBandWidth) * expected_dEdx_value, calculated_dEdx_value, (1 + m_config.dEdxBandWidth) * expected_dEdx_value);
+        bool accept_dEdx = KFParticle_util::isInRange((1 - m_config.dEdxBandWidth) * expected_dEdx_value, calculated_dEdx_value, (1 + m_config.dEdxBandWidth) * expected_dEdx_value);
 
         if (m_config.verbosity >= 11)
         {
-          KFParticle_utilities::printSelectionCheck("dE/dx check", (1 - m_config.dEdxBandWidth) * expected_dEdx_value, calculated_dEdx_value, (1 + m_config.dEdxBandWidth) * expected_dEdx_value);
+          KFParticle_util::printSelectionCheck("dE/dx check", (1 - m_config.dEdxBandWidth) * expected_dEdx_value, calculated_dEdx_value, (1 + m_config.dEdxBandWidth) * expected_dEdx_value);
         }
 
         if (!accept_dEdx)
@@ -868,16 +868,16 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
     mother.AddDaughter(inputTracks[i]);
     mother.AddDaughterId(vDaughters[i].Id());
-    unique_vertexID += (Int_t) vDaughters[i].GetQ() * KFParticle_utilities::getParticleMass(daughterOrder[i]);
+    unique_vertexID += (Int_t) vDaughters[i].GetQ() * KFParticle_util::getParticleMass(daughterOrder[i]);
   }
 
   if (isIntermediate)
   {
-    mother.SetPDG(KFParticle_utilities::getParticleID(m_config.intermediateNames[intermediateNumber]));
+    mother.SetPDG(KFParticle_util::getParticleID(m_config.intermediateNames[intermediateNumber]));
   }
   if (!isIntermediate && !m_config.motherName.empty())
   {
-    mother.SetPDG(KFParticle_utilities::getParticleID(m_config.motherName));
+    mother.SetPDG(KFParticle_util::getParticleID(m_config.motherName));
   }
 
   const bool chargeCheck = m_config.chargeConjugate ? std::abs(unique_vertexID) == std::abs(required_vertexID)
@@ -908,11 +908,11 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
   float max_vertex_volume = isIntermediate ? m_config.intermediateMaxVertexVolume[intermediateNumber] : m_config.motherMaxVertexVolume;
 
-  bool goodCandidate = KFParticle_utilities::isInRange(min_mass, calculated_mass, max_mass) &&
+  bool goodCandidate = KFParticle_util::isInRange(min_mass, calculated_mass, max_mass) &&
                        calculated_pt >= min_pt &&
                        daughterMassCheck &&
                        chargeCheck &&
-                       KFParticle_utilities::calculateEllipsoidVolume(mother) <= max_vertex_volume;
+                       KFParticle_util::calculateEllipsoidVolume(mother) <= max_vertex_volume;
 
   std::vector<int> crossings;
   for (int i = 0; i < nTracks; ++i)
@@ -920,7 +920,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     std::vector<int> daughterCrossings = getParticleCrossings(vDaughters[i]);
     crossings.insert(crossings.end(), daughterCrossings.begin(), daughterCrossings.end());
   }
-  KFParticle_utilities::removeDuplicates(crossings);
+  KFParticle_util::removeDuplicates(crossings);
 
   if (goodCandidate && m_config.bunchCrossingMode != BunchCrossingMode::Any)
   {
@@ -932,7 +932,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
     if (m_config.verbosity >= 11)
     {
-      KFParticle_utilities::printSelectionCheck("", "All tracks are from the same BC", "Tracks are from different BC", "", sameCrossing);
+      KFParticle_util::printSelectionCheck("", "All tracks are from the same BC", "Tracks are from different BC", "", sameCrossing);
     }
   }
 
@@ -948,8 +948,8 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
   {
     for (int k = 0; k < m_config.numIntermediateStates; ++k)
     {
-      float intermediate_DIRA = KFParticle_utilities::eventDIRA(vDaughters[k], mother);
-      float intermediate_FDchi2 = KFParticle_utilities::flightDistanceChi2(vDaughters[k], mother);
+      float intermediate_DIRA = KFParticle_util::eventDIRA(vDaughters[k], mother);
+      float intermediate_FDchi2 = KFParticle_util::flightDistanceChi2(vDaughters[k], mother);
       if (intermediate_DIRA < m_config.intermediateMinDIRA[k] ||
           intermediate_FDchi2 < m_config.intermediateMinFDChi2[k])
       {
@@ -978,8 +978,8 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
         intermediateCopy.GetDecayLengthXY(intermediate_decayLength_xy, intermediate_decayLengthErr_xy);
         float intermediate_decayTime_xy = intermediateCopy.GetPseudoProperDecayTime(mother, intermediateCopy.GetMass());
 
-        intermediate_decayTime /= KFParticle_utilities::speedOfLight;
-        intermediate_decayTime_xy /= KFParticle_utilities::speedOfLight;  // As for the mother, the pseudo-proper decay time is returned as a length (c*tau)
+        intermediate_decayTime /= KFParticle_util::speedOfLight;
+        intermediate_decayTime_xy /= KFParticle_util::speedOfLight;  // As for the mother, the pseudo-proper decay time is returned as a length (c*tau)
 
         const std::pair<float, float> noCut(-std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
         auto rangeOf = [&noCut, k](const std::vector<std::pair<float, float>> &ranges)
@@ -989,27 +989,27 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
         const auto timeRange = rangeOf(m_config.intermediateDecayTimeRange);
         const auto timeRange_xy = rangeOf(m_config.intermediateDecayTimeRangeXY);
 
-        goodCandidate = KFParticle_utilities::isInRange(lengthRange.first, intermediate_decayLength, lengthRange.second) &&
-                        KFParticle_utilities::isInRange(lengthRange_xy.first, intermediate_decayLength_xy, lengthRange_xy.second) &&
-                        KFParticle_utilities::isInRange(timeRange.first, intermediate_decayTime, timeRange.second) &&
-                        KFParticle_utilities::isInRange(timeRange_xy.first, intermediate_decayTime_xy, timeRange_xy.second);
+        goodCandidate = KFParticle_util::isInRange(lengthRange.first, intermediate_decayLength, lengthRange.second) &&
+                        KFParticle_util::isInRange(lengthRange_xy.first, intermediate_decayLength_xy, lengthRange_xy.second) &&
+                        KFParticle_util::isInRange(timeRange.first, intermediate_decayTime, timeRange.second) &&
+                        KFParticle_util::isInRange(timeRange_xy.first, intermediate_decayTime_xy, timeRange_xy.second);
 
         if (m_config.verbosity >= 11)
         {
-          KFParticle_utilities::printSelectionCheck("Intermediate Decay Length", lengthRange.first, intermediate_decayLength, lengthRange.second);
-          KFParticle_utilities::printSelectionCheck("Intermediate Decay Length xy", lengthRange_xy.first, intermediate_decayLength_xy, lengthRange_xy.second);
-          KFParticle_utilities::printSelectionCheck("Intermediate Decay Time", timeRange.first, intermediate_decayTime, timeRange.second);
-          KFParticle_utilities::printSelectionCheck("Intermediate Decay Time xy", timeRange_xy.first, intermediate_decayTime_xy, timeRange_xy.second);
+          KFParticle_util::printSelectionCheck("Intermediate Decay Length", lengthRange.first, intermediate_decayLength, lengthRange.second);
+          KFParticle_util::printSelectionCheck("Intermediate Decay Length xy", lengthRange_xy.first, intermediate_decayLength_xy, lengthRange_xy.second);
+          KFParticle_util::printSelectionCheck("Intermediate Decay Time", timeRange.first, intermediate_decayTime, timeRange.second);
+          KFParticle_util::printSelectionCheck("Intermediate Decay Time xy", timeRange_xy.first, intermediate_decayTime_xy, timeRange_xy.second);
         }
       }
 
       if (m_config.verbosity >= 10)
       {
-        KFParticle_utilities::printSelectionCheck("", "Accepted", "Rejected", "the intermediate selection", goodCandidate);
+        KFParticle_util::printSelectionCheck("", "Accepted", "Rejected", "the intermediate selection", goodCandidate);
         if (m_config.verbosity >= 11)
         {
-          KFParticle_utilities::printSelectionCheck("Intermediate DIRA", m_config.intermediateMinDIRA[k], intermediate_DIRA, std::numeric_limits<float>::max());
-          KFParticle_utilities::printSelectionCheck("Intermediate FD chi^2", m_config.intermediateMinFDChi2[k], intermediate_FDchi2, std::numeric_limits<float>::max());
+          KFParticle_util::printSelectionCheck("Intermediate DIRA", m_config.intermediateMinDIRA[k], intermediate_DIRA, std::numeric_limits<float>::max());
+          KFParticle_util::printSelectionCheck("Intermediate FD chi^2", m_config.intermediateMinFDChi2[k], intermediate_FDchi2, std::numeric_limits<float>::max());
         }
       }
     }
@@ -1017,13 +1017,13 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
   if (m_config.verbosity >= 10)
   {
-    KFParticle_utilities::printSelectionCheck("", "Accepted", "Rejected", "the mother selection", goodCandidate);
+    KFParticle_util::printSelectionCheck("", "Accepted", "Rejected", "the mother selection", goodCandidate);
     if (m_config.verbosity >= 11)
     {
-      KFParticle_utilities::printSelectionCheck("Vertex charge is", "right", "wrong", "", chargeCheck);
-      KFParticle_utilities::printSelectionCheck("Invariant Mass", min_mass, calculated_mass, max_mass);
-      KFParticle_utilities::printSelectionCheck("Mother pT", min_pt, calculated_pt, std::numeric_limits<float>::max());
-      KFParticle_utilities::printSelectionCheck("Mother SV volume", 0., KFParticle_utilities::calculateEllipsoidVolume(mother), max_vertex_volume);
+      KFParticle_util::printSelectionCheck("Vertex charge is", "right", "wrong", "", chargeCheck);
+      KFParticle_util::printSelectionCheck("Invariant Mass", min_mass, calculated_mass, max_mass);
+      KFParticle_util::printSelectionCheck("Mother pT", min_pt, calculated_pt, std::numeric_limits<float>::max());
+      KFParticle_util::printSelectionCheck("Mother SV volume", 0., KFParticle_util::calculateEllipsoidVolume(mother), max_vertex_volume);
     }
   }
   return std::make_tuple(mother, goodCandidate);
@@ -1048,21 +1048,21 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
 
   float calculated_decayTime_xy = particleCopy.GetPseudoProperDecayTime(vertex, particleCopy.GetMass());
 
-  float calculated_fdchi2 = KFParticle_utilities::flightDistanceChi2(particle, vertex);
+  float calculated_fdchi2 = KFParticle_util::flightDistanceChi2(particle, vertex);
 
   float calculated_PV_dca_xy = std::abs(particle.GetDistanceFromVertexXY(vertex));
   float calculated_PV_dca_stddev_xy = particle.GetDeviationFromVertexXY(vertex);
-  float calculated_dira_xy = KFParticle_utilities::eventDIRA(particle, vertex, false);
+  float calculated_dira_xy = KFParticle_util::eventDIRA(particle, vertex, false);
   float calculated_PV_dca = particle.GetDistanceFromVertex(vertex);
   float calculated_PV_dca_stddev = particle.GetDeviationFromVertex(vertex);
-  float calculated_dira = KFParticle_utilities::eventDIRA(particle, vertex);
+  float calculated_dira = KFParticle_util::eventDIRA(particle, vertex);
 
   float calculated_decay_time_significance = calculated_decayTime / calculated_decayTimeErr;
   float calculated_decay_length_significance = calculated_decayLength / calculated_decayLengthErr;
   float calculated_decay_length_xy_significance = calculated_decayLength_xy / calculated_decayLengthErr_xy;
 
-  calculated_decayTime /= KFParticle_utilities::speedOfLight;
-  calculated_decayTime_xy /= KFParticle_utilities::speedOfLight;  // The pseudo-proper decay time is returned as a length (c*tau), convert it to a time like the 3D one
+  calculated_decayTime /= KFParticle_util::speedOfLight;
+  calculated_decayTime_xy /= KFParticle_util::speedOfLight;  // The pseudo-proper decay time is returned as a length (c*tau), convert it to a time like the 3D one
 
   goodCandidate = calculated_fdchi2 >= m_config.motherMinFDChi2 &&
                   calculated_PV_dca <= m_config.motherMaxPVDCA &&
@@ -1072,32 +1072,32 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
                   calculated_decay_time_significance >= m_config.motherMinDecayTimeSignificance &&
                   calculated_decay_length_significance >= m_config.motherMinDecayLengthSignificance &&
                   calculated_decay_length_xy_significance >= m_config.motherMinDecayLengthSignificanceXY &&
-                  KFParticle_utilities::isInRange(m_config.motherMinDIRA, calculated_dira, m_config.motherMaxDIRA) &&
-                  KFParticle_utilities::isInRange(m_config.motherMinDIRAXY, calculated_dira_xy, m_config.motherMaxDIRAXY) &&
-                  KFParticle_utilities::isInRange(m_config.motherMinDecayTime, calculated_decayTime, m_config.motherMaxDecayTime) &&
-                  KFParticle_utilities::isInRange(m_config.motherMinDecayTimeXY, calculated_decayTime_xy, m_config.motherMaxDecayTimeXY) &&
-                  KFParticle_utilities::isInRange(m_config.motherMinDecayLength, calculated_decayLength, m_config.motherMaxDecayLength) &&
-                  KFParticle_utilities::isInRange(m_config.motherMinDecayLengthXY, calculated_decayLength_xy, m_config.motherMaxDecayLengthXY);
+                  KFParticle_util::isInRange(m_config.motherMinDIRA, calculated_dira, m_config.motherMaxDIRA) &&
+                  KFParticle_util::isInRange(m_config.motherMinDIRAXY, calculated_dira_xy, m_config.motherMaxDIRAXY) &&
+                  KFParticle_util::isInRange(m_config.motherMinDecayTime, calculated_decayTime, m_config.motherMaxDecayTime) &&
+                  KFParticle_util::isInRange(m_config.motherMinDecayTimeXY, calculated_decayTime_xy, m_config.motherMaxDecayTimeXY) &&
+                  KFParticle_util::isInRange(m_config.motherMinDecayLength, calculated_decayLength, m_config.motherMaxDecayLength) &&
+                  KFParticle_util::isInRange(m_config.motherMinDecayLengthXY, calculated_decayLength_xy, m_config.motherMaxDecayLengthXY);
 
   if (m_config.verbosity >= 10)
   {
-    KFParticle_utilities::printSelectionCheck("", "Passed", "Failed", "the PV constraint", goodCandidate);
+    KFParticle_util::printSelectionCheck("", "Passed", "Failed", "the PV constraint", goodCandidate);
     if (m_config.verbosity >= 11)
     {
-      KFParticle_utilities::printSelectionCheck("Mother DIRA", m_config.motherMinDIRA, calculated_dira, m_config.motherMaxDIRA);
-      KFParticle_utilities::printSelectionCheck("Mother DIRA xy", m_config.motherMinDIRAXY, calculated_dira_xy, m_config.motherMaxDIRAXY);
-      KFParticle_utilities::printSelectionCheck("Mother FD chi^2", m_config.motherMinFDChi2, calculated_fdchi2, std::numeric_limits<float>::max());
-      KFParticle_utilities::printSelectionCheck("Mother PV DCA", 0, calculated_PV_dca, m_config.motherMaxPVDCA);
-      KFParticle_utilities::printSelectionCheck("Mother PV DCA Std. Dev.", 0., calculated_PV_dca_stddev, m_config.motherMaxPVDCAStdDev);
-      KFParticle_utilities::printSelectionCheck("Mother PV DCA xy", 0., calculated_PV_dca_xy, m_config.motherMaxPVDCAXY);
-      KFParticle_utilities::printSelectionCheck("Mother PV DCA xy Std. Dev.", 0., calculated_PV_dca_stddev_xy, m_config.motherMaxPVDCAStdDevXY);
-      KFParticle_utilities::printSelectionCheck("Mother Decay Time", m_config.motherMinDecayTime, calculated_decayTime, m_config.motherMaxDecayTime);
-      KFParticle_utilities::printSelectionCheck("Mother Decay Time Significance", m_config.motherMinDecayTimeSignificance, calculated_decay_time_significance, std::numeric_limits<float>::max());
-      KFParticle_utilities::printSelectionCheck("Mother Decay Time xy", m_config.motherMinDecayTimeXY, calculated_decayTime_xy, m_config.motherMaxDecayTimeXY);
-      KFParticle_utilities::printSelectionCheck("Mother Decay Length", m_config.motherMinDecayLength, calculated_decayLength, m_config.motherMaxDecayLength);
-      KFParticle_utilities::printSelectionCheck("Mother Decay Length Significance", m_config.motherMinDecayLengthSignificance, calculated_decay_length_significance, std::numeric_limits<float>::max());
-      KFParticle_utilities::printSelectionCheck("Mother Decay Length xy", m_config.motherMinDecayLengthXY, calculated_decayLength_xy, m_config.motherMaxDecayLengthXY);
-      KFParticle_utilities::printSelectionCheck("Mother Decay Length xy Significance", m_config.motherMinDecayLengthSignificanceXY, calculated_decay_length_xy_significance, std::numeric_limits<float>::max());
+      KFParticle_util::printSelectionCheck("Mother DIRA", m_config.motherMinDIRA, calculated_dira, m_config.motherMaxDIRA);
+      KFParticle_util::printSelectionCheck("Mother DIRA xy", m_config.motherMinDIRAXY, calculated_dira_xy, m_config.motherMaxDIRAXY);
+      KFParticle_util::printSelectionCheck("Mother FD chi^2", m_config.motherMinFDChi2, calculated_fdchi2, std::numeric_limits<float>::max());
+      KFParticle_util::printSelectionCheck("Mother PV DCA", 0, calculated_PV_dca, m_config.motherMaxPVDCA);
+      KFParticle_util::printSelectionCheck("Mother PV DCA Std. Dev.", 0., calculated_PV_dca_stddev, m_config.motherMaxPVDCAStdDev);
+      KFParticle_util::printSelectionCheck("Mother PV DCA xy", 0., calculated_PV_dca_xy, m_config.motherMaxPVDCAXY);
+      KFParticle_util::printSelectionCheck("Mother PV DCA xy Std. Dev.", 0., calculated_PV_dca_stddev_xy, m_config.motherMaxPVDCAStdDevXY);
+      KFParticle_util::printSelectionCheck("Mother Decay Time", m_config.motherMinDecayTime, calculated_decayTime, m_config.motherMaxDecayTime);
+      KFParticle_util::printSelectionCheck("Mother Decay Time Significance", m_config.motherMinDecayTimeSignificance, calculated_decay_time_significance, std::numeric_limits<float>::max());
+      KFParticle_util::printSelectionCheck("Mother Decay Time xy", m_config.motherMinDecayTimeXY, calculated_decayTime_xy, m_config.motherMaxDecayTimeXY);
+      KFParticle_util::printSelectionCheck("Mother Decay Length", m_config.motherMinDecayLength, calculated_decayLength, m_config.motherMaxDecayLength);
+      KFParticle_util::printSelectionCheck("Mother Decay Length Significance", m_config.motherMinDecayLengthSignificance, calculated_decay_length_significance, std::numeric_limits<float>::max());
+      KFParticle_util::printSelectionCheck("Mother Decay Length xy", m_config.motherMinDecayLengthXY, calculated_decayLength_xy, m_config.motherMaxDecayLengthXY);
+      KFParticle_util::printSelectionCheck("Mother Decay Length xy Significance", m_config.motherMinDecayLengthSignificanceXY, calculated_decay_length_xy_significance, std::numeric_limits<float>::max());
     }
   }
 }
@@ -1128,7 +1128,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findUniqueDaughterCombinations(i
   std::map<int, int> daughterMap;
   for (int i = start; i < end; i++)
   {
-    daughterMap.emplace(i, std::abs(KFParticle_utilities::getParticleID(m_config.daughterNames[i])));
+    daughterMap.emplace(i, std::abs(KFParticle_util::getParticleID(m_config.daughterNames[i])));
     vect_permutations.push_back(i);
   }
   int *permutations = vect_permutations.data();
@@ -1144,7 +1144,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findUniqueDaughterCombinations(i
     uniqueCombinations.push_back(combination);
   } while (std::next_permutation(permutations, permutations + vect_permutations.size()));
 
-  KFParticle_utilities::removeDuplicates(uniqueCombinations);
+  KFParticle_util::removeDuplicates(uniqueCombinations);
 
   return uniqueCombinations;
 }
@@ -1186,7 +1186,7 @@ bool KFParticle_Tools::finalStateMatchesDecay(const std::vector<std::pair<int, i
     std::vector<std::pair<int, int>> found;
     for (unsigned int i = first; i < first + size && i < assigned.size(); ++i)
     {
-      const int absPDG = std::abs(KFParticle_utilities::getParticleID(m_config.daughterNames[i]));
+      const int absPDG = std::abs(KFParticle_util::getParticleID(m_config.daughterNames[i]));
       expected.emplace_back(m_config.daughterCharges[i], absPDG);
       expectedConjugate.emplace_back(-m_config.daughterCharges[i], absPDG);
       found.push_back(assigned[i]);
@@ -1218,7 +1218,7 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
     return -1.0;
   }
 
-  SvtxTrack *daughter_track = KFParticle_utilities::getTrack(daughter.Id(), m_dst_trackmap);
+  SvtxTrack *daughter_track = KFParticle_util::getTrack(daughter.Id(), m_dst_trackmap);
   if (!daughter_track)
   {
     // No backing SvtxTrack -- e.g. daughter is itself a built intermediate.
@@ -1229,7 +1229,7 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
   bool isTrack_v5 = daughter_track->InheritsFrom("SvtxTrack_v5");
   TrackSeedContainer *tpcSeedContainer = isTrack_v5 ? findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer") : nullptr;
 
-  TrackSeed *tpcseed = isTrack_v5 ? KFParticle_utilities::findSeed(tpcSeedContainer, daughter_track->get_tpc_seed_id()) : daughter_track->get_tpc_seed();
+  TrackSeed *tpcseed = isTrack_v5 ? KFParticle_util::findSeed(tpcSeedContainer, daughter_track->get_tpc_seed_id()) : daughter_track->get_tpc_seed();
   if (!tpcseed)
   {
     return -1;

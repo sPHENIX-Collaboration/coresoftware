@@ -6,7 +6,7 @@
 #include "KFParticle_detectorInfo.h"
 #include "KFParticle_triggerInfo.h"
 #include "KFParticle_truthInfo.h"
-#include "KFParticle_utilities.h"
+#include "KFParticle_util.h"
 
 #include <KFParticle.h>
 
@@ -67,7 +67,7 @@ class KFParticle_nTuple
   std::string m_qa_tree_path{"DecayTree"};  // name (optionally dir/name) of the tree in the QA histogram manager
 
  private:
-  static constexpr int max_tracks{KFParticle_utilities::max_tracks};
+  static constexpr int maxTracks{KFParticle_util::maxTracks};
 
   const KFParticle_Config &m_config;
 
@@ -179,40 +179,40 @@ class KFParticle_nTuple
   // float *m_calculated_intermediate_cov[max_intermediates];
   float m_calculated_intermediate_cov[max_intermediates][21]{{0}, {0}};
 
-  float m_calculated_daughter_mass[max_tracks]{0};
-  float m_calculated_daughter_PV_dca[max_tracks]{0};
-  float m_calculated_daughter_PV_dca_err[max_tracks]{0};
-  float m_calculated_daughter_PV_dca_sig[max_tracks]{0};
-  float m_calculated_daughter_PV_dca_xy[max_tracks]{0};
-  float m_calculated_daughter_PV_dca_xy_sig[max_tracks]{0};
-  float m_calculated_daughter_x[max_tracks]{0};
-  float m_calculated_daughter_y[max_tracks]{0};
-  float m_calculated_daughter_z[max_tracks]{0};
-  float m_calculated_daughter_px[max_tracks]{0};
-  float m_calculated_daughter_py[max_tracks]{0};
-  float m_calculated_daughter_pz[max_tracks]{0};
-  float m_calculated_daughter_pe[max_tracks]{0};
-  float m_calculated_daughter_p[max_tracks]{0};
-  float m_calculated_daughter_p_err[max_tracks]{0};
-  float m_calculated_daughter_pt[max_tracks]{0};
-  float m_calculated_daughter_pt_err[max_tracks]{0};
-  float m_calculated_daughter_jt[max_tracks]{0};
-  char m_calculated_daughter_q[max_tracks]{0};
-  int m_calculated_daughter_bunch_crossing[max_tracks]{0};
-  float m_calculated_daughter_eta[max_tracks]{0};
-  float m_calculated_daughter_rapidity[max_tracks]{0};
-  float m_calculated_daughter_theta[max_tracks]{0};
-  float m_calculated_daughter_phi[max_tracks]{0};
-  float m_calculated_daughter_chi2[max_tracks]{0};
-  int m_calculated_daughter_ndof[max_tracks]{0};
-  int m_calculated_daughter_trid[max_tracks]{0};
-  int m_calculated_daughter_pdgID[max_tracks]{0};
-  // float *m_calculated_daughter_cov[max_tracks];
-  float m_calculated_daughter_cov[max_tracks][21]{{0}, {0}};
-  float m_calculated_daughter_dedx[max_tracks]{0};
-  // float m_calculated_daughter_expected_dedx_pion[max_tracks] {0};
-  // float m_calculated_daughter_expected_dedx_kaon[max_tracks] {0};
-  // float m_calculated_daughter_expected_dedx_proton[max_tracks] {0}; 
+  float m_calculated_daughter_mass[maxTracks]{0};
+  float m_calculated_daughter_PV_dca[maxTracks]{0};
+  float m_calculated_daughter_PV_dca_err[maxTracks]{0};
+  float m_calculated_daughter_PV_dca_sig[maxTracks]{0};
+  float m_calculated_daughter_PV_dca_xy[maxTracks]{0};
+  float m_calculated_daughter_PV_dca_xy_sig[maxTracks]{0};
+  float m_calculated_daughter_x[maxTracks]{0};
+  float m_calculated_daughter_y[maxTracks]{0};
+  float m_calculated_daughter_z[maxTracks]{0};
+  float m_calculated_daughter_px[maxTracks]{0};
+  float m_calculated_daughter_py[maxTracks]{0};
+  float m_calculated_daughter_pz[maxTracks]{0};
+  float m_calculated_daughter_pe[maxTracks]{0};
+  float m_calculated_daughter_p[maxTracks]{0};
+  float m_calculated_daughter_p_err[maxTracks]{0};
+  float m_calculated_daughter_pt[maxTracks]{0};
+  float m_calculated_daughter_pt_err[maxTracks]{0};
+  float m_calculated_daughter_jt[maxTracks]{0};
+  char m_calculated_daughter_q[maxTracks]{0};
+  int m_calculated_daughter_bunch_crossing[maxTracks]{0};
+  float m_calculated_daughter_eta[maxTracks]{0};
+  float m_calculated_daughter_rapidity[maxTracks]{0};
+  float m_calculated_daughter_theta[maxTracks]{0};
+  float m_calculated_daughter_phi[maxTracks]{0};
+  float m_calculated_daughter_chi2[maxTracks]{0};
+  int m_calculated_daughter_ndof[maxTracks]{0};
+  int m_calculated_daughter_trid[maxTracks]{0};
+  int m_calculated_daughter_pdgID[maxTracks]{0};
+  // float *m_calculated_daughter_cov[maxTracks];
+  float m_calculated_daughter_cov[maxTracks][21]{{0}, {0}};
+  float m_calculated_daughter_dedx[maxTracks]{0};
+  // float m_calculated_daughter_expected_dedx_pion[maxTracks] {0};
+  // float m_calculated_daughter_expected_dedx_kaon[maxTracks] {0};
+  // float m_calculated_daughter_expected_dedx_proton[maxTracks] {0}; 
   float m_daughter_dca[99]{0};
   float m_daughter_dca_xy[99]{0};
   float m_daughter_dca_sig[99]{0};
@@ -248,10 +248,10 @@ class KFParticle_nTuple
   std::vector<float> allPV_z;
   std::vector<float> allPV_mother_PV_DCA;
   std::vector<float> allPV_mother_PV_DCA_StdDev;
-  std::vector<float> allPV_daughter_PV_DCA[max_tracks];
-  std::vector<float> allPV_daughter_PV_DCA_StdDev[max_tracks];
-  std::vector<float> allPV_intermediates_PV_DCA[max_tracks];
-  std::vector<float> allPV_intermediates_PV_DCA_StdDev[max_tracks];
+  std::vector<float> allPV_daughter_PV_DCA[maxTracks];
+  std::vector<float> allPV_daughter_PV_DCA_StdDev[maxTracks];
+  std::vector<float> allPV_intermediates_PV_DCA[maxTracks];
+  std::vector<float> allPV_intermediates_PV_DCA_StdDev[maxTracks];
 };
 
 #endif

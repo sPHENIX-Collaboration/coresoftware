@@ -1,5 +1,5 @@
-#ifndef KFPARTICLESPHENIX_KFPARTICLEUTILITIES_H
-#define KFPARTICLESPHENIX_KFPARTICLEUTILITIES_H
+#ifndef KFPARTICLESPHENIX_KFPARTICLEUTIL_H
+#define KFPARTICLESPHENIX_KFPARTICLEUTIL_H
 
 #include <algorithm>  // for remove, stable_sort
 #include <cstddef>    // for size_t
@@ -16,32 +16,19 @@ class TrackSeed;
 class TrackSeedContainer;
 
 // Stateless helpers shared across the package
-namespace KFParticle_utilities
+namespace KFParticle_util
 {
+  // Constants
+
   // Size of the per-daughter branch arrays
-  inline constexpr int max_tracks{20};
+  inline constexpr int maxTracks{20};
 
   // Speed of light in cm/ps: KFParticle decay times come out as lengths (c*tau, cm), divide by this to get ps
   inline constexpr float speedOfLight{2.99792458e-2};
 
-  SvtxTrack *getTrack(unsigned int track_id, SvtxTrackMap *trackmap);
+  // Particle data (TDatabasePDG)
 
-  // Beam crossing of the vertex the candidate was built with; -100 if it can't be found
-  int getPVID(PHCompositeNode *topNode, const KFParticle &kfpvertex,
-              bool dontUseGlobalVertex, bool useMbdVertex, const std::string &vtxMapName);
-
-  // Prints the ID, PDG ID, charge, mass, momentum and position (with errors) of a particle
-  void identify(const KFParticle &particle);
-
-  // Note - Only works for a 2D ellipsoid OR rotated nD ellipsoid to avoid projections. No callers
-  double calculateEllipsoidRadius(int posOrNeg, double sigma_ii, double sigma_jj, double sigma_ij);
-
-  // Cosine of the angle between the flight direction (vertex -> particle) and the momentum
-  float eventDIRA(const KFParticle &particle, const KFParticle &vertex, bool do3D = true);
-  float flightDistanceChi2(const KFParticle &particle, const KFParticle &vertex);
-  float calculateEllipsoidVolume(const KFParticle &particle);
-
-  // TDatabasePDG lookups; the particle must exist (no null check)
+  // The particle must exist (no null check)
   int getParticleID(const std::string &particle);
   float getParticleMass(const std::string &particle);
   float getParticleMass(int PDGID);
@@ -49,14 +36,32 @@ namespace KFParticle_utilities
   // False (with a message) if the name is not in TDatabasePDG
   bool findParticle(const std::string &particle);
 
+  // Kinematics
+
+  // Cosine of the angle between the flight direction (vertex -> particle) and the momentum
+  float eventDIRA(const KFParticle &particle, const KFParticle &vertex, bool do3D = true);
+  float flightDistanceChi2(const KFParticle &particle, const KFParticle &vertex);
+  float calculateEllipsoidVolume(const KFParticle &particle);
+
+  // Node and DST access
+
+  // Track with this id, or nullptr if it is not in the map
+  SvtxTrack *getTrack(unsigned int track_id, const SvtxTrackMap *trackmap);
+
   // Seed with this index, or nullptr for an unset or out-of-range id
-  TrackSeed *findSeed(TrackSeedContainer *container, unsigned short id);
+  TrackSeed *findSeed(const TrackSeedContainer *container, unsigned short id);
+
+  // Beam crossing of the vertex the candidate was built with; -100 if it can't be found
+  int getPVID(PHCompositeNode *topNode, const KFParticle &kfpvertex,
+              bool dontUseGlobalVertex, bool useMbdVertex, const std::string &vtxMapName);
+
+  // Generic helpers
 
   // min <= value <= max
   bool isInRange(float min, float value, float max);
 
-  // Removes duplicates keeping the first occurrence of each element and the original order, exactly like the
-  // previous quadratic implementation, but in O(n log n) for long vectors. Short vectors use the simple loop.
+  // Removes duplicates in place, keeping the first occurrence of each element and the original order.
+  // O(n log n) for long vectors; short vectors (up to 16 elements) use the simple quadratic loop.
   template <typename T>
   void removeDuplicates(std::vector<T> &v)
   {
@@ -105,10 +110,15 @@ namespace KFParticle_utilities
     v.erase(v.begin() + out, v.end());
   }
 
+  // Console output
+
+  // Prints the ID, PDG ID, charge, mass, momentum and position (with errors) of a particle
+  void identify(const KFParticle &particle);
+
   // Coloured pass/fail lines for the verbose selection printout
   void printSelectionCheck(const std::string &parameter, float min, float val, float max);
   void printSelectionCheck(const std::string &start, const std::string &accept, const std::string &reject, const std::string &end, bool equality);
   void printSelectionCheck(const std::string &info, unsigned int value);
-}  // namespace KFParticle_utilities
+}  // namespace KFParticle_util
 
-#endif  // KFPARTICLESPHENIX_KFPARTICLEUTILITIES_H
+#endif  // KFPARTICLESPHENIX_KFPARTICLEUTIL_H
