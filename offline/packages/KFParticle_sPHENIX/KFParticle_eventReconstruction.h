@@ -81,12 +81,9 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
   /// Method to chose best candidate from a selection of common SV's
   int selectBestCombination(bool PVconstraint, bool isAnInterMother,
                             std::vector<KFParticle> possibleCandidates,
-                            std::vector<KFParticle> possibleVertex);
+                            std::vector<KFParticle> possibleVertex) const;
 
   KFParticle createFakePV();
-
- protected:
-  bool m_constrain_int_mass;
 
  private:
   const KFParticle_Config& m_config;

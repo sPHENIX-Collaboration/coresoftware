@@ -63,11 +63,8 @@ class KFParticle_nTuple
   void setToolsInstance(KFParticle_Tools *tools) { m_tools = tools; }
 
  protected:
-  bool m_extrapolateTracksToSV_nTuple{true};
   bool isTrackEMCalmatch{true};
-  bool m_use_fake_pv_nTuple{false};
   std::string m_qa_tree_path{"DecayTree"};  // name (optionally dir/name) of the tree in the QA histogram manager
-  int m_verbosity_nTuple{0};
 
  private:
   static constexpr int max_tracks{KFParticle_utilities::max_tracks};

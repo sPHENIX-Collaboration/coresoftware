@@ -72,9 +72,8 @@ KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
 
 int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
 {
-  m_verbosity = Verbosity();
+  m_config.verbosity = Verbosity();
   m_qa_tree_path = Name() + "/DecayTree";  // one directory per module so several KFParticle modules do not clash
-  m_verbosity_nTuple = Verbosity();
   
   if (m_config.saveOutput && !m_config.lightweightNTupleToQA && Verbosity() >= VERBOSITY_SOME)
   {
@@ -97,10 +96,10 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
     init_dEdx_fits();
   }
 
-  if (m_force_mixed_event)
+  if (m_config.forceMixedEvent)
   {
-    m_require_bunch_crossing_match = false;
-    m_require_track_and_vertex_match = false;
+    m_config.requireBunchCrossingMatch = false;
+    m_config.requireTrackVertexBunchCrossingMatch = false;
 
     if (Verbosity() >= VERBOSITY_MORE)
     {
@@ -203,7 +202,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   }
   const int multiplicity = check_trackmap->size();
 
-  if (!m_use_fake_pv)
+  if (!m_config.useFakePrimaryVertex)
   {
     const bool noVertices = m_config.useMbdVertex
                                 ? findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap")->empty()
