@@ -71,20 +71,20 @@ class KFParticle_Tools
 
   std::vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
 
-  /*const*/ bool isGoodTrack(const KFParticle &particle, const std::vector<KFParticle> &primaryVertices);
+  bool isGoodTrack(const KFParticle &particle, const std::vector<KFParticle> &primaryVertices) const;
 
-  bool isTPConlyAtZeroCrossing(const KFParticle &track);
+  bool isTPConlyAtZeroCrossing(const KFParticle &track) const;
 
-  int calcMinPV_DCA(const KFParticle &track, const std::vector<KFParticle> &PVs, float &minimumPV_DCA, float &minimumPV_DCA_stddev, bool do3D = true);
+  int calcMinPV_DCA(const KFParticle &track, const std::vector<KFParticle> &PVs, float &minimumPV_DCA, float &minimumPV_DCA_stddev, bool do3D = true) const;
 
-  std::vector<std::vector<int>> findTwoProngs(const std::vector<KFParticle> &daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices);
+  std::vector<std::vector<int>> findTwoProngs(const std::vector<KFParticle> &daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices) const;
 
   std::vector<std::vector<int>> findNProngs(const std::vector<KFParticle> &daughterParticles,
                                             const std::vector<int> &goodTrackIndex,
                                             std::vector<std::vector<int>> goodTracksThatMeet,
-                                            int nRequiredTracks, unsigned int nProngs, const std::vector<KFParticle> &primaryVertices);
+                                            int nRequiredTracks, unsigned int nProngs, const std::vector<KFParticle> &primaryVertices) const;
 
-  std::vector<std::vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks, const std::vector<KFParticle> &primaryVertices);
+  std::vector<std::vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks, const std::vector<KFParticle> &primaryVertices) const;
 
   std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], int daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, PHCompositeNode *topNode);
 
@@ -93,15 +93,15 @@ class KFParticle_Tools
   std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], int daughterOrder[], KFParticle vertex,
                                               bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, PHCompositeNode *topNode);
 
-  float get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter);
+  float get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter) const;
 
   void init_dEdx_fits();
 
   double get_dEdx_fitValue(float momentum, int PID);
 
-  bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex);
+  bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex) const;
 
-  std::vector<int> getParticleCrossings(const KFParticle &particle);
+  std::vector<int> getParticleCrossings(const KFParticle &particle) const;
 
  protected:
   /// The MBD or SVTX vertex (useMbdVertex picks the cached map) with this id; nullptr if it isn't in the map

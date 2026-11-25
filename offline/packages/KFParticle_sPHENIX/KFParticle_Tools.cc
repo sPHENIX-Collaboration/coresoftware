@@ -373,7 +373,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
   return daughterParticles;
 }
 
-/*const*/ bool KFParticle_Tools::isGoodTrack(const KFParticle &particle, const std::vector<KFParticle> &primaryVertices)
+bool KFParticle_Tools::isGoodTrack(const KFParticle &particle, const std::vector<KFParticle> &primaryVertices) const
 {
   float min_PV_dca = 0;
   float min_PV_dca_stddev = 0;
@@ -412,7 +412,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
   return goodTrack;
 }
 
-bool KFParticle_Tools::isTPConlyAtZeroCrossing(const KFParticle& track)
+bool KFParticle_Tools::isTPConlyAtZeroCrossing(const KFParticle& track) const
 {
   const auto* svtxTrack = KFParticle_util::getTrack(track.Id(), m_dst_trackmap);
 
@@ -432,7 +432,7 @@ bool KFParticle_Tools::isTPConlyAtZeroCrossing(const KFParticle& track)
 }
 
 int KFParticle_Tools::calcMinPV_DCA(const KFParticle &track, const std::vector<KFParticle> &PVs,
-                                float &minimumPV_DCA, float &minimumPV_DCA_stddev, bool do3D)
+                                float &minimumPV_DCA, float &minimumPV_DCA_stddev, bool do3D) const
 {
   std::vector<float> ip;
   std::vector<float> ip_significance;
@@ -481,7 +481,7 @@ int KFParticle_Tools::calcMinPV_DCA(const KFParticle &track, const std::vector<K
   return 0;
 }
 
-std::vector<int> KFParticle_Tools::getParticleCrossings(const KFParticle &particle)
+std::vector<int> KFParticle_Tools::getParticleCrossings(const KFParticle &particle) const
 {
   std::vector<int> crossings;
 
@@ -501,7 +501,7 @@ std::vector<int> KFParticle_Tools::getParticleCrossings(const KFParticle &partic
   return crossings;
 }
 
-std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<KFParticle> &daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices)
+std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<KFParticle> &daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices) const
 {
   std::vector<std::vector<int>> goodTracksThatMeet;
 
@@ -614,7 +614,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<
 std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KFParticle> &daughterParticles,
                                                             const std::vector<int> &goodTrackIndex,
                                                             std::vector<std::vector<int>> goodTracksThatMeet,
-                                                            int nRequiredTracks, unsigned int nProngs, const std::vector<KFParticle> &primaryVertices)
+                                                            int nRequiredTracks, unsigned int nProngs, const std::vector<KFParticle> &primaryVertices) const
 {
   unsigned int nGoodProngs = goodTracksThatMeet.size();
 
@@ -742,7 +742,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const std::vector<KF
   return goodTracksThatMeet;
 }
 
-std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks, const std::vector<KFParticle> &primaryVertices)
+std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks, const std::vector<KFParticle> &primaryVertices) const
 {
   std::vector<std::vector<int>> goodTracksThatMeetIntermediates;
 
@@ -1128,7 +1128,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaught
   return std::make_tuple(candidate, isGoodCandidate);
 }
 
-float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter)
+float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter) const
 {
   SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_config.trackMapNodeName);
   TrkrClusterContainer *clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
@@ -1224,7 +1224,7 @@ double KFParticle_Tools::get_dEdx_fitValue(float momentum, int PID)
   return pidMap[PID]->Eval(momentum);
 }
 
-bool KFParticle_Tools::checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex)
+bool KFParticle_Tools::checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex) const
 {
   int vertexCrossing = std::numeric_limits<int>::min();
 
