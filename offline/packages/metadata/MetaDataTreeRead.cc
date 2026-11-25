@@ -81,7 +81,7 @@ namespace
     }
     int nblocks = 0;
     std::map<std::string, std::vector<std::string>> *types = nullptr;  // the current block
-    std::vector<std::string> *urls = nullptr;                           // the current type's list
+    std::vector<std::string> *urls = nullptr;                          // the current type's list
     std::string line;
     for (int lineno = 1; std::getline(in, line); ++lineno)
     {

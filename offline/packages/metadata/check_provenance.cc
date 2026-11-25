@@ -32,6 +32,7 @@
 #include <TFile.h>
 #include <TROOT.h>
 
+#include <unistd.h>  // getopt
 #include <cstdint>
 #include <functional>  // std::greater
 #include <iomanip>
@@ -39,7 +40,6 @@
 #include <map>
 #include <set>
 #include <string>
-#include <unistd.h>  // getopt
 #include <vector>
 
 namespace
@@ -177,10 +177,10 @@ int main(int argc, char **argv)
   // URL "(missing)" afterwards.
   struct TimestampData
   {
-    std::vector<std::string> labels{};
-    std::map<std::string, ValueCount> urls{};  // type -> url -> labels
+    std::vector<std::string> labels;
+    std::map<std::string, ValueCount> urls;  // type -> url -> labels
   };
-  
+
   std::map<ULong64_t, TimestampData> timestamps;
 
   for (Long64_t i = 0; i < nentries; ++i)
@@ -244,7 +244,7 @@ int main(int argc, char **argv)
         auto &missing = urls["(missing)"];
         for (const auto &label : ts.labels)
         {
-          if (!have.count(label))
+          if (!have.contains(label))
           {
             missing.push_back(label);
           }
