@@ -134,6 +134,10 @@ class SvtxTrack : public PHObject
   virtual float get_error(int /*i*/, int /*j*/) const { return NAN; }
   virtual void set_error(int /*i*/, int /*j*/, float /*value*/) {}
 
+  virtual float get_tpc_dedx() const { return NAN; }
+  virtual void set_tpc_dedx(float) {}
+
+
   //
   // state methods -------------------------------------------------------------
   //

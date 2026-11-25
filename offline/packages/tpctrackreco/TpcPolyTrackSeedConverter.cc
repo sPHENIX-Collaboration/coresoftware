@@ -19,7 +19,8 @@
 #include <trackbase_historic/SvtxTrackSeed_v2.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeedHelper.h>
-#include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeed_v3.h>
+
 
 #include <cmath>
 #include <iostream>
@@ -168,7 +169,7 @@ bool TpcPolyTrackSeedConverter::publishSeed(const Tpc_PolyTrack* track) const
   if (!std::isfinite(helix_center_x) || !std::isfinite(helix_center_y)) { return false;
 }
 
-  auto seed = std::make_unique<TrackSeed_v2>();
+  auto seed = std::make_unique<TrackSeed_v3>();
   seed->set_X0(static_cast<float>(helix_center_x));
   seed->set_Y0(static_cast<float>(helix_center_y));
   seed->set_Z0(static_cast<float>(z0_uncorrected));
@@ -176,6 +177,7 @@ bool TpcPolyTrackSeedConverter::publishSeed(const Tpc_PolyTrack* track) const
   seed->set_slope(static_cast<float>(track->get_seed_slope()));
   seed->set_qOverR(static_cast<float>(q_over_r));
   seed->set_crossing(crossing);
+  seed->set_dedx(track->get_dedx());
 
   for (unsigned int i = 0; i < track->size_cluster_keys(); ++i)
   {

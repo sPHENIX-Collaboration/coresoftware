@@ -48,6 +48,7 @@ class TrackSeed : public PHObject
   virtual float get_px() const { return NAN; }
   virtual float get_py() const { return NAN; }
   virtual short int get_crossing() const { return 0; }
+  virtual float get_dedx() const { return NAN; }
 
   virtual unsigned int get_silicon_seed_index() const { return std::numeric_limits<unsigned int>::max(); }
   virtual unsigned int get_tpc_seed_index() const { return std::numeric_limits<unsigned int>::max(); }
@@ -74,6 +75,7 @@ class TrackSeed : public PHObject
   virtual void set_slope(const float) {}
   virtual void set_Z0(const float) {}
   virtual void set_phi(const float) {}
+  virtual void set_dedx(const float) {}
 
   virtual void set_silicon_seed_index(const unsigned int) {}
   virtual void set_tpc_seed_index(const unsigned int) {}

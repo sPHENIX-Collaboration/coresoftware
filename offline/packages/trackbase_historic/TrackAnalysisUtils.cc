@@ -23,6 +23,13 @@ namespace TrackAnalysisUtils
                   ActsGeometry* tgeometry,
                   const float thickness_per_region[4])
   {
+    const float seed_dedx = tpcseed->get_dedx();
+  
+    if(std::isfinite(seed_dedx) && seed_dedx>0)
+      {
+	return seed_dedx;
+      }
+    
     std::vector<TrkrDefs::cluskey> clusterKeys;
     clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
                        tpcseed->end_cluster_keys());

@@ -18,6 +18,8 @@
 
 #include <trackbase/ActsGeometry.h>
 
+#include "TpcClusterdxMap.h"
+
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -70,12 +72,6 @@ double Tpc_PolyTrackReco::calc_dedx(const std::vector<const Tpc_PolyCluster*>& c
     return std::numeric_limits<double>::quiet_NaN();
   }
 
-  const double thickness_per_region[4] = {
-      m_idealPadMap->get_layer_thickness(7),
-      m_idealPadMap->get_layer_thickness(8),
-      m_idealPadMap->get_layer_thickness(27),
-      m_idealPadMap->get_layer_thickness(50)};
-
   std::vector<double> dedxlist;
   dedxlist.reserve(clusters.size());
   for (const Tpc_PolyCluster* cluster : clusters)
@@ -84,25 +80,39 @@ double Tpc_PolyTrackReco::calc_dedx(const std::vector<const Tpc_PolyCluster*>& c
     {
       continue;
     }
-    const unsigned int layer = TrkrDefs::getLayer(cluster->get_hit_index(0).first);
-    double thick = std::numeric_limits<double>::quiet_NaN();
-    if (layer < 23U)
-    {
-      thick = thickness_per_region[layer % 2U == 0U ? 1 : 0];
-    }
-    else if (layer < 39U)
-    {
-      thick = thickness_per_region[2];
-    }
-    else
-    {
-      thick = thickness_per_region[3];
-    }
-    if (!std::isfinite(thick) || thick <= 0.0)
-    {
-      continue;
-    }
 
+    const int side = cluster->get_side();
+
+    TrkrDefs::cluskey key = cluster->get_trkr_cluster_key();
+
+    int sector = TpcDefs::getSectorId(key);
+    
+    const unsigned int layer = TrkrDefs::getLayer(cluster->get_hit_index(0).first);
+
+    const unsigned int layer_local = layer-7;
+    
+    double z = cluster->get_centroid_z();
+    int zbin = (std::abs(z)/202)-1;
+    if(zbin<0 || zbin>202)
+      {
+	std::cout << "calc_dedx: Error in z indexing. Aborting..." << std::endl;
+	return Fun4AllReturnCodes::ABORTEVENT;
+      }
+    
+    // substitute dx at edge layers to dx from neighboring layers
+    int EdgeLayerCorr = layer_local;
+    if(layer_local==15||layer_local==31||layer_local==47) EdgeLayerCorr=layer_local-1;
+    else if(layer_local==16||layer_local==32) EdgeLayerCorr=layer_local+1;
+    
+    int index = ((EdgeLayerCorr*2+side)*12+sector)*202+zbin;
+    
+    double thick = m_cluster_dx->get_Cluster_dx(index);
+    
+    if (!std::isfinite(thick) || thick <= 0.0)
+      {
+	continue;
+      }
+   
     Acts::Vector3 xyz(cluster->get_centroid_x(), cluster->get_centroid_y(), cluster->get_centroid_z());
     const Acts::Vector3 xyz_sphenix =  m_geometry->transformTpcEnvelopeToWorld(xyz);
     const double r = std::hypot(xyz_sphenix.x(), xyz_sphenix.y());
@@ -170,6 +180,13 @@ int Tpc_PolyTrackReco::getNodes(PHCompositeNode* topNode)
     std::cerr << Name() << "::getNodes - missing " << m_inputNodeName << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+
+  m_cluster_dx = findNode::getClass<TpcClusterdxMap>(topNode,"TPC_CLUSTER_DX_MAP");
+    if(!m_cluster_dx)
+      {
+	std::cout << "InitRun - No TPC_CLUSTER_DX_MAP node. Aborting..." << std::endl;
+	return Fun4AllReturnCodes::ABORTEVENT;
+      }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

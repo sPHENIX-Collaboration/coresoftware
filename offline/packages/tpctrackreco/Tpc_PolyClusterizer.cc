@@ -8,6 +8,8 @@
 #include "Tpc_PolyClusterContainerv1.h"
 #include "Tpc_PolyClusterv1.h"
 
+#include "TpcClusterdxMapv1.h"
+
 #include <cdbobjects/CDBTTree.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -284,6 +286,11 @@ int Tpc_PolyClusterizer::InitRun(PHCompositeNode* topNode)
   {
     return Fun4AllReturnCodes::ABORTRUN;
   }
+
+  gain_cdbttree = new CDBTTree(gaincorrFile);
+  gain_cdbttree->LoadCalibrations();
+
+  Cluster_dx = findNode::getClass<TpcClusterdxMap>(topNode, m_ClusterdxMapName);
 
   delete m_idealPadMap;
   m_idealPadMap = new IdealPadMap();
@@ -697,6 +704,21 @@ int Tpc_PolyClusterizer::createNodes(PHCompositeNode* topNode)
     std::cout << Name() << "::createNodes - created " << m_outputNodeName << " node" << std::endl;
   }
 
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  if (!runNode)
+    {
+      runNode = new PHCompositeNode("RUN");
+      topNode->addNode(runNode);
+    }
+
+  TpcClusterdxMap *clusterdxmap = findNode::getClass<TpcClusterdxMap>(runNode, m_ClusterdxMapName);
+  if (!clusterdxmap)
+    {
+      clusterdxmap = new TpcClusterdxMapv1();
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(clusterdxmap, m_ClusterdxMapName, "PHObject");
+      runNode->addNode(newNode);
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -706,6 +728,14 @@ unsigned int Tpc_PolyClusterizer::drift_lookup_index(const unsigned int layer_in
                                                      const unsigned int sample)
 {
   return (((layer_index * NSides + side) * NSectors + sector) * NPhiSamples + sample);
+}
+
+unsigned int Tpc_PolyClusterizer::dx_index(const unsigned int layer_index,
+                                                     const unsigned int side,
+                                                     const unsigned int sector,
+						     const unsigned int z)
+{
+  return ((layer_index * NSides + side) * NSectors + sector) * nZBins + z;
 }
 
 bool Tpc_PolyClusterizer::build_drift_lookup()
@@ -731,6 +761,11 @@ bool Tpc_PolyClusterizer::build_drift_lookup()
     const unsigned int layer_index = layer - FirstLayer;
     const double radius = m_idealPadMap->get_radius(layer);
     const unsigned int pads_per_sector = m_idealPadMap->get_pads_per_sector_for_layer(layer);
+
+    const double th = m_idealPadMap->get_layer_thickness(layer);
+    const double r_in = radius-0.5*th;
+    const double r_out = radius+0.5*th;
+    
     if (!std::isfinite(radius) || pads_per_sector == 0U)
     {
       std::cerr << Name() << "::build_drift_lookup - invalid geometry for layer " << layer << std::endl;
@@ -790,6 +825,7 @@ bool Tpc_PolyClusterizer::build_drift_lookup()
 
           const int npoints = drift->GetN();
           const Float_t* xyz = drift->GetP();
+	  
           if (!xyz || npoints <= 0)
           {
             delete drift;
@@ -811,9 +847,135 @@ bool Tpc_PolyClusterizer::build_drift_lookup()
             point.delta_phi = static_cast<float>(output_phi - phi);
             point.z = xyz[idx + 2];
           }
+	  
           delete drift;
           ++nbuilt;
         }
+
+	 const unsigned int local_phibin_dx = static_cast<unsigned int>(std::llround(0.5 * static_cast<double>(pads_per_sector - 1U)));
+          const unsigned int global_pad_dx = sector * pads_per_sector + local_phibin_dx;
+          const double phi_local_dx = m_idealPadMap->get_phi(side, sector, layer, local_phibin_dx);
+          const double phi_global_dx = m_idealPadMap->get_phi(side, layer, global_pad_dx);
+          if (!std::isfinite(phi_local_dx) || !std::isfinite(phi_global_dx))
+          {
+            std::cerr << Name() << "::build_drift_lookup - invalid phi for center of layer " << layer
+                      << " side " << side
+                      << " sector " << sector
+                      << " local_phibin_dx " << local_phibin_dx
+                      << " global_pad_dx " << global_pad_dx
+                      << " phi_local_dx " << phi_local_dx
+                      << " phi_global_dx " << phi_global_dx << std::endl;
+            return false;
+          }
+
+          const double phi_diff_dx = wrap_phi(phi_global_dx - phi_local_dx);
+          if (std::abs(phi_diff_dx) > PhiConsistencyTolerance)
+          {
+            std::cerr << Name() << "::build_drift_lookup - inconsistent IdealPadMap phi overloads"
+                      << " layer " << layer
+                      << " side " << side
+                      << " sector " << sector
+                      << " local_phibin_dx " << local_phibin_dx
+                      << " global_pad_dx " << global_pad_dx
+                      << " phi_local_dx " << phi_local_dx
+                      << " phi_global_dx " << phi_global_dx
+                      << " phi_diff_dx " << phi_diff_dx << std::endl;
+            return false;
+          }
+
+          const double phi = phi_local_dx;
+
+	  const double x0_in = r_in * std::cos(phi);
+          const double y0_in = r_in * std::sin(phi);
+	  TPolyLine3D* drift_in = m_garfield->ReverseDrift(x0_in, y0_in, z0, m_reverseDriftStepNs);
+
+	  const double x0_out = r_out * std::cos(phi);
+          const double y0_out = r_out * std::sin(phi);
+	  TPolyLine3D* drift_out = m_garfield->ReverseDrift(x0_out, y0_out, z0, m_reverseDriftStepNs);
+
+	  if (!drift_in || drift_in->GetN() <= 0)
+          {
+            delete drift_in;
+            std::cerr << Name() << "::build_drift_lookup - ReverseDrift of inner layer radius failed for layer " << layer
+                      << " side " << side << " sector " << sector << std::endl;
+            return false;
+          }
+
+	  if (!drift_out || drift_out->GetN() <= 0)
+          {
+            delete drift_out;
+            std::cerr << Name() << "::build_drift_lookup - ReverseDrift of outer layer radius failed for layer " << layer
+                      << " side " << side << " sector " << sector << std::endl;
+            return false;
+          }
+
+	  const int npoints_in = drift_in->GetN();
+          const Float_t* xyz_in = drift_in->GetP();
+
+	  const int npoints_out = drift_out->GetN();
+          const Float_t* xyz_out = drift_out->GetP();
+
+	  if (!xyz_in || npoints_in <= 0)
+          {
+            delete drift_in;
+            std::cerr << Name() << "::build_drift_lookup - empty drift points of inner layer for layer " << layer
+                      << " side " << side << " sector " << sector << std::endl;
+            return false;
+          }
+
+	  if (!xyz_out || npoints_out <= 0)
+          {
+            delete drift_out;
+            std::cerr << Name() << "::build_drift_lookup - empty drift points of outer layer for layer " << layer
+                      << " side " << side << " sector " << sector << std::endl;
+            return false;
+          }
+
+	  const double zMin = 0.5;
+	  const double zMax = 101.5;
+	  std::vector<double> absZ(nZBins);
+	  const double dz = (zMax - zMin) / nZBins;
+	  for (int k = 0; k < static_cast<int>(nZBins); ++k) absZ[k] = zMin + (k + 0.5) * dz;
+
+	  const int N_in = drift_in->GetN();
+	  const float* p_in = drift_in->GetP();
+	  std::vector<double> zs_in(N_in), rs_in(N_in);
+	  for (int i = 0; i < N_in; ++i)
+	    {
+	      zs_in[i] = std::abs(static_cast<double>(p_in[3 * i + 2]));
+	      rs_in[i] = std::hypot(static_cast<double>(p_in[3 * i + 0]),static_cast<double>(p_in[3 * i + 1]));
+	    }
+	  std::reverse(zs_in.begin(), zs_in.end());
+	  std::reverse(rs_in.begin(), rs_in.end());
+
+	  const int N_out = drift_out->GetN();
+	  const float* p_out = drift_out->GetP();
+	  std::vector<double> zs_out(N_out), rs_out(N_out);
+	  for (int i = 0; i < N_out; ++i)
+	    {
+	      zs_out[i] = std::abs(static_cast<double>(p_out[3 * i + 2]));
+	      rs_out[i] = std::hypot(static_cast<double>(p_out[3 * i + 0]),static_cast<double>(p_out[3 * i + 1]));
+	    }
+	  std::reverse(zs_out.begin(), zs_out.end());
+	  std::reverse(rs_out.begin(), rs_out.end());
+	  
+	  for (size_t k = 0; k < absZ.size(); ++k)
+	    {
+	      const double zq = absZ[k];
+	      const auto it_in = std::upper_bound(zs_in.begin(), zs_in.end(), zq);
+	      const auto it_out = std::upper_bound(zs_out.begin(), zs_out.end(), zq);
+	      size_t j_in = static_cast<size_t>(std::distance(zs_in.begin(), it_in));
+	      size_t j_out = static_cast<size_t>(std::distance(zs_out.begin(), it_out));
+	      if (j_in == 0) j_in = 1;
+	      if (j_in >= zs_in.size()) j_in = zs_in.size() - 1;
+	      if (j_out == 0) j_out = 1;
+	      if (j_out >= zs_out.size()) j_out = zs_out.size() - 1;
+	      const double t_in = (zq - zs_in[j_in - 1]) / (zs_in[j_in] - zs_in[j_in - 1]);
+	      const double t_out = (zq - zs_out[j_out - 1]) / (zs_out[j_out] - zs_out[j_out - 1]);
+	      double rIn = rs_in[j_in - 1] + t_in * (rs_in[j_in] - rs_in[j_in - 1]);
+	      double rOut = rs_out[j_out - 1] + t_out * (rs_out[j_out] - rs_out[j_out - 1]);
+	      Cluster_dx->Add_Cluster_dx(dx_index(layer_index, side, sector, k),rOut-rIn);
+	    }	
       }
     }
   }
@@ -1417,7 +1579,18 @@ int Tpc_PolyClusterizer::process_event(PHCompositeNode* topNode)
           out->set_rms_z(z_error);
 
           const ClusterParameters params = make_cluster_parameters(points, centroid, static_cast<int>(points.front().side));
-          out->set_adc(params.adc);
+
+	  int zpoints = 40;
+	  int zbin = (zpoints*centroid.z)/200+zpoints/2;
+	  
+	  char varname[200];
+	  
+	  sprintf(varname,"sec%dlayer%dzbin%d",sector,centroid.layer-7,zbin);
+	  
+	  double adc_corr = params.adc*gain_cdbttree->GetDoubleValue(side,varname);
+	  
+          out->set_adc(adc_corr);
+          // out->set_adc(params.adc);
           out->set_phi_width(params.phi_width);
           out->set_time_width(params.time_width);
           out->set_phase(params.phase);
