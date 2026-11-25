@@ -51,11 +51,12 @@ class KFParticle_caloInfo
 
   const KFParticle_Config &m_config;
 
-  // Only used by the commented-out IHCal/OHCal matching
-  float m_ihcal_radius_user{117};
-  float m_ohcal_radius_user{177.423};
-  float m_ihcal_e_low_cut{0.01};
-  float m_ohcal_e_low_cut{0.01};
+  // Only used by the commented-out IHCal/OHCal matching; commented out until the calo rewrite
+  // (unused private fields are errors under the CI flags -Wall -Werror)
+  // float m_ihcal_radius_user{117};
+  // float m_ohcal_radius_user{177.423};
+  // float m_ihcal_e_low_cut{0.01};
+  // float m_ohcal_e_low_cut{0.01};
 
   // Vectors for calo info
   float detector_emcal_deltaphi[maxTracks]{std::numeric_limits<float>::quiet_NaN()};
@@ -96,10 +97,10 @@ class KFParticle_caloInfo
   TowerInfoContainer *_towersEM{nullptr};
   RawTowerGeomContainer *IHCalGeo{nullptr};
   RawClusterContainer *clustersIH{nullptr};
-  RawTowerContainer *_towersIH{nullptr};
+  // RawTowerContainer *_towersIH{nullptr};  // unused until the calo rewrite (see above)
   RawTowerGeomContainer *OHCalGeo{nullptr};
   RawClusterContainer *clustersOH{nullptr};
-  RawTowerContainer *_towersOH{nullptr};
+  // RawTowerContainer *_towersOH{nullptr};  // unused until the calo rewrite (see above)
 };
 
 #endif  // KFPARTICLESPHENIX_KFPARTICLECALOINFO_H

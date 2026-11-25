@@ -219,25 +219,24 @@ void KFParticle_truthInfo::fill(PHCompositeNode *topNode, const KFParticle &daug
     }
 
     const auto &svtxvertexvector = svtxviter->second;
-    MbdVertex *mbdvertex = nullptr;
-    SvtxVertex *svtxvertex = nullptr;
+    const Vertex *dstVertex = nullptr;
 
     for (const auto &vertex_iter : svtxvertexvector)
     {
       if (m_config.useMbdVertex)
       {
-        mbdvertex = dst_mbdvertexmap->find(vertex_iter->get_id())->second;
+        dstVertex = dst_mbdvertexmap->find(vertex_iter->get_id())->second;
       }
       else
       {
-        svtxvertex = dst_vertexmap->find(vertex_iter->get_id())->second;
+        dstVertex = dst_vertexmap->find(vertex_iter->get_id())->second;
       }
     }
 
     PHG4VtxPoint *truePoint = nullptr;
     if (m_config.useMbdVertex)
     {
-      std::set<PHG4VtxPoint *> truePointSet = vertexeval->all_truth_points(mbdvertex);
+      std::set<PHG4VtxPoint *> truePointSet = vertexeval->all_truth_points(dstVertex);
       if (!truePointSet.empty())
       {
         truePoint = *truePointSet.begin();
@@ -245,7 +244,7 @@ void KFParticle_truthInfo::fill(PHCompositeNode *topNode, const KFParticle &daug
     }
     else
     {
-      truePoint = vertexeval->max_truth_point_by_ntracks(svtxvertex);
+      truePoint = vertexeval->max_truth_point_by_ntracks(dstVertex);
     }
 
     if (truePoint == nullptr && isParticleValid)

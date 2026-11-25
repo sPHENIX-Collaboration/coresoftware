@@ -95,6 +95,13 @@ using BunchCrossingMode = KFParticle_Config::BunchCrossingMode;
     }
     return true;
   }
+
+  // The MBD measures only z. Its vertices have no x or y (MbdVertexv1 returns NaN, v2 and v3 return 0), no covariance
+  // apart from the z error, and no chi2 or NDF, so they are read differently from SVTX vertices.
+  bool isMbdVertex(const Vertex *vertex)
+  {
+    return dynamic_cast<const MbdVertex *>(vertex) != nullptr;
+  }
 }  // namespace
 
 /// KFParticle constructor
@@ -108,19 +115,21 @@ KFParticle_Tools::KFParticle_Tools(const KFParticle_Config &config)
 {
 }
 
-KFParticle KFParticle_Tools::makeVertex(PHCompositeNode * /*topNode*/)
+KFParticle KFParticle_Tools::makeVertex(const Vertex *vertex) const
 {
-  float vtxX = m_config.useMbdVertex ? 0 : m_dst_vertex->get_x();
-  float vtxY = m_config.useMbdVertex ? 0 : m_dst_vertex->get_y();
-  float vtxZ = m_config.useMbdVertex ? m_dst_mbdvertex->get_z() : m_dst_vertex->get_z();
+  const bool isMbd = isMbdVertex(vertex);
+
+  float vtxX = isMbd ? 0 : vertex->get_x();
+  float vtxY = isMbd ? 0 : vertex->get_y();
+  float vtxZ = vertex->get_z();
 
   float f_vertexParameters[6] = {vtxX, vtxY, vtxZ, 0, 0, 0};
 
   float f_vertexCovariance[21] = {0};
   unsigned int iterate = 0;
-  if (m_config.useMbdVertex)
+  if (isMbd)
   {
-    f_vertexCovariance[5] = m_dst_mbdvertex->get_z_err();
+    f_vertexCovariance[5] = vertex->get_z_err();
   }
   else
   {
@@ -128,7 +137,7 @@ KFParticle KFParticle_Tools::makeVertex(PHCompositeNode * /*topNode*/)
     {
       for (unsigned int j = 0; j <= i; ++j)
       {
-        f_vertexCovariance[iterate] = m_dst_vertex->get_error(i, j);
+        f_vertexCovariance[iterate] = vertex->get_error(i, j);
         ++iterate;
       }
     }
@@ -136,10 +145,19 @@ KFParticle KFParticle_Tools::makeVertex(PHCompositeNode * /*topNode*/)
 
   KFParticle kfp_vertex;
   kfp_vertex.Create(f_vertexParameters, f_vertexCovariance, 0, -1);
-  kfp_vertex.NDF() = m_config.useMbdVertex ? 0 : m_dst_vertex->get_ndof();
-  kfp_vertex.Chi2() = m_config.useMbdVertex ? 0 : m_dst_vertex->get_chisq();
+  kfp_vertex.NDF() = isMbd ? 0 : vertex->get_ndof();
+  kfp_vertex.Chi2() = isMbd ? 0 : vertex->get_chisq();
 
   return kfp_vertex;
+}
+
+const Vertex *KFParticle_Tools::findDstVertex(unsigned int id) const
+{
+  if (m_config.useMbdVertex)
+  {
+    return m_dst_mbdvertexmap->get(id);
+  }
+  return m_dst_vertexmap->get(id);
 }
 
 std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode *topNode, const std::string &vertexMapName)
@@ -163,8 +181,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
     {
       for (MbdVertexMap::ConstIter iter = m_dst_mbdvertexmap->begin(); iter != m_dst_mbdvertexmap->end(); ++iter)
       {
-        m_dst_mbdvertex = iter->second;
-        primaryVertices.push_back(makeVertex(topNode));
+        primaryVertices.push_back(makeVertex(iter->second));
         primaryVertices.back().SetId(iter->first);
       }
     }
@@ -172,8 +189,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
     {
       for (SvtxVertexMap::ConstIter iter = m_dst_vertexmap->begin(); iter != m_dst_vertexmap->end(); ++iter)
       {
-        m_dst_vertex = iter->second;
-        primaryVertices.push_back(makeVertex(topNode));
+        primaryVertices.push_back(makeVertex(iter->second));
         primaryVertices.back().SetId(iter->first);
       }
     }
@@ -190,13 +206,13 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
 
   for (GlobalVertexMap::ConstIter iter = m_dst_globalvertexmap->begin(); iter != m_dst_globalvertexmap->end(); ++iter)
   {
-    m_dst_globalvertex = iter->second;
+    const GlobalVertex *globalVertex = iter->second;
 
     GlobalVertex::VTXTYPE whichVtx = m_config.useMbdVertex ? GlobalVertex::MBD : GlobalVertex::SVTX;
 
-    auto svtxiter = m_dst_globalvertex->find_vertexes(whichVtx);
+    auto svtxiter = globalVertex->find_vertexes(whichVtx);
     // check that it contains a track vertex
-    if (svtxiter == m_dst_globalvertex->end_vertexes())
+    if (svtxiter == globalVertex->end_vertexes())
     {
       continue;
     }
@@ -205,33 +221,24 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
 
     for (const auto &vertex : svtxvertexvector)
     {
-      if (m_config.useMbdVertex)
-      {
-        m_dst_mbdvertex = m_dst_mbdvertexmap->find(vertex->get_id())->second;
-      }
-      else
-      {
-        m_dst_vertex = m_dst_vertexmap->find(vertex->get_id())->second;
-      }
-
-      primaryVertices.push_back(makeVertex(topNode));
-      primaryVertices.back().SetId(m_dst_globalvertex->get_id());
+      primaryVertices.push_back(makeVertex(findDstVertex(vertex->get_id())));
+      primaryVertices.back().SetId(globalVertex->get_id());
     }
   }
 
   return primaryVertices;
 }
 
-KFParticle KFParticle_Tools::makeParticle(PHCompositeNode * /*topNode*/)  /// Return a KFPTrack from track vector and covariance matrix. No mass or vertex constraints
+KFParticle KFParticle_Tools::makeParticle(const SvtxTrack *track) const  /// Return a KFPTrack from track vector and covariance matrix. No mass or vertex constraints
 {
   KFParticle kfp_particle;
 
-  float f_trackParameters[6] = {m_dst_track->get_x(),
-                                m_dst_track->get_y(),
-                                m_dst_track->get_z(),
-                                m_dst_track->get_px(),
-                                m_dst_track->get_py(),
-                                m_dst_track->get_pz()};
+  float f_trackParameters[6] = {track->get_x(),
+                                track->get_y(),
+                                track->get_z(),
+                                track->get_px(),
+                                track->get_py(),
+                                track->get_pz()};
 
   float f_trackCovariance[21];
   unsigned int iterate = 0;
@@ -239,15 +246,15 @@ KFParticle KFParticle_Tools::makeParticle(PHCompositeNode * /*topNode*/)  /// Re
   {
     for (unsigned int j = 0; j <= i; ++j)
     {
-      f_trackCovariance[iterate] = m_dst_track->get_error(i, j);
+      f_trackCovariance[iterate] = track->get_error(i, j);
       ++iterate;
     }
   }
 
-  kfp_particle.Create(f_trackParameters, f_trackCovariance, (Int_t) m_dst_track->get_charge(), -1);
-  kfp_particle.NDF() = m_dst_track->get_ndf();
-  kfp_particle.Chi2() = m_dst_track->get_chisq();
-  kfp_particle.SetId(m_dst_track->get_id());
+  kfp_particle.Create(f_trackParameters, f_trackCovariance, (Int_t) track->get_charge(), -1);
+  kfp_particle.NDF() = track->get_ndf();
+  kfp_particle.Chi2() = track->get_chisq();
+  kfp_particle.SetId(track->get_id());
 
   return kfp_particle;
 }
@@ -262,9 +269,9 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
 
   for (auto &iter : *m_dst_trackmap)
   {
-    m_dst_track = iter.second;
+    const SvtxTrack *track = iter.second;
 
-    if (m_config.bunchCrossingZeroOnly && (m_dst_track->get_crossing() != 0))
+    if (m_config.bunchCrossingZeroOnly && (track->get_crossing() != 0))
     {
       continue;
     }
@@ -276,12 +283,12 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
     int TPOT_states = 0;
 
     // The per-detector cluster count getters only exist in SvtxTrack_v5 (not in the SvtxTrack base class)
-    const auto *v5_track = dynamic_cast<const SvtxTrack_v5 *>(m_dst_track);
+    const auto *v5_track = dynamic_cast<const SvtxTrack_v5 *>(track);
 
     if (!v5_track)  // v1-v4: count the per-cluster track states
     {
-      for (auto state_iter = m_dst_track->begin_states();
-           state_iter != m_dst_track->end_states();
+      for (auto state_iter = track->begin_states();
+           state_iter != track->end_states();
            ++state_iter)
       {
         SvtxTrackState *tstate = state_iter->second;
@@ -348,8 +355,8 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
       continue;
     }
 
-    const int trackndof = m_dst_track->get_ndf();
-    const float trackchi2ndof = trackndof > 0 ? m_dst_track->get_chisq() / trackndof : std::numeric_limits<float>::quiet_NaN();
+    const int trackndof = track->get_ndf();
+    const float trackchi2ndof = trackndof > 0 ? track->get_chisq() / trackndof : std::numeric_limits<float>::quiet_NaN();
     if (m_config.verbosity > 11)
     {
       KFParticle_util::printSelectionCheck("Track chi^2/nDoF", 0, trackchi2ndof, m_config.trackMaxChi2nDOF);
@@ -359,7 +366,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
       continue;
     }
 
-    daughterParticles.push_back(makeParticle(topNode));  /// Turn all dst tracks in KFP tracks
+    daughterParticles.push_back(makeParticle(track));  /// Turn all dst tracks in KFP tracks
     daughterParticles.back().SetId(iter.first);
   }
 
@@ -1123,20 +1130,20 @@ std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaught
 
 float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter)
 {
-  m_dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_config.trackMapNodeName);
-  m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  if (!m_cluster_map)
+  SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_config.trackMapNodeName);
+  TrkrClusterContainer *clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  if (!clusterMap)
   {
-    m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_SEED");
+    clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_SEED");
   }
-  m_geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  auto *geomContainer = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-  if (!m_cluster_map || !m_geom_container || !geometry)
+  if (!clusterMap || !geomContainer || !geometry)
   {
     return -1.0;
   }
 
-  SvtxTrack *daughter_track = KFParticle_util::getTrack(daughter.Id(), m_dst_trackmap);
+  SvtxTrack *daughter_track = KFParticle_util::getTrack(daughter.Id(), trackmap);
   if (!daughter_track)
   {
     // No backing SvtxTrack -- e.g. daughter is itself a built intermediate.
@@ -1156,12 +1163,12 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
   float layerThicknesses[4] = {0.0, 0.0, 0.0, 0.0};
   // These are randomly chosen layer thicknesses for the TPC, to get the
   // correct region thicknesses in an easy to pass way to the helper fxn
-  layerThicknesses[0] = m_geom_container->GetLayerCellGeom(7)->get_thickness();
-  layerThicknesses[1] = m_geom_container->GetLayerCellGeom(8)->get_thickness();
-  layerThicknesses[2] = m_geom_container->GetLayerCellGeom(27)->get_thickness();
-  layerThicknesses[3] = m_geom_container->GetLayerCellGeom(50)->get_thickness();
+  layerThicknesses[0] = geomContainer->GetLayerCellGeom(7)->get_thickness();
+  layerThicknesses[1] = geomContainer->GetLayerCellGeom(8)->get_thickness();
+  layerThicknesses[2] = geomContainer->GetLayerCellGeom(27)->get_thickness();
+  layerThicknesses[3] = geomContainer->GetLayerCellGeom(50)->get_thickness();
 
-  return TrackAnalysisUtils::calc_dedx(tpcseed, m_cluster_map, geometry, layerThicknesses);
+  return TrackAnalysisUtils::calc_dedx(tpcseed, clusterMap, geometry, layerThicknesses);
 }
 
 void KFParticle_Tools::init_dEdx_fits()
@@ -1229,49 +1236,42 @@ bool KFParticle_Tools::checkTrackAndVertexMatch(KFParticle vDaughters[], int nTr
   float obtained_vertex[3] = {0, 0, std::numeric_limits<float>::lowest()};
   float kfp_vertex[3] = {vertex.GetX(), vertex.GetY(), vertex.GetZ()};
 
+  // Takes the crossing of a DST vertex at the position of the KFParticle vertex (MBD: z only, x and y stay 0)
+  auto matchCrossing = [&](const Vertex *dstVertex)
+  {
+    if (!isMbdVertex(dstVertex))
+    {
+      obtained_vertex[0] = dstVertex->get_x();
+      obtained_vertex[1] = dstVertex->get_y();
+    }
+    obtained_vertex[2] = dstVertex->get_z();
+    if (vertexToleranceCheck(obtained_vertex, kfp_vertex))
+    {
+      vertexCrossing = dstVertex->get_beam_crossing();
+    }
+  };
+
   if (m_config.dontUseGlobalVertex)
   {
-    if (m_config.useMbdVertex)
+    const Vertex *dstVertex = findDstVertex(vertex.Id());
+    if (!dstVertex)
     {
-      m_dst_mbdvertex = m_dst_mbdvertexmap->get(vertex.Id());
-      if (!m_dst_mbdvertex)
-      {
-        return false;
-      }
-      obtained_vertex[2] = m_dst_mbdvertex->get_z();
-      if (vertexToleranceCheck(obtained_vertex, kfp_vertex))
-      {
-        vertexCrossing = m_dst_mbdvertex->get_beam_crossing();
-      }
+      return false;
     }
-    else
-    {
-      m_dst_vertex = m_dst_vertexmap->get(vertex.Id());
-      if (!m_dst_vertex)
-      {
-        return false;
-      }
-      obtained_vertex[0] = m_dst_vertex->get_x();
-      obtained_vertex[1] = m_dst_vertex->get_y();
-      obtained_vertex[2] = m_dst_vertex->get_z();
-      if (vertexToleranceCheck(obtained_vertex, kfp_vertex))
-      {
-        vertexCrossing = m_dst_vertex->get_beam_crossing();
-      }
-    }
+    matchCrossing(dstVertex);
   }
   else
   {
-    m_dst_globalvertex = m_dst_globalvertexmap->get(vertex.Id());
-    if (!m_dst_globalvertex)
+    const GlobalVertex *globalVertex = m_dst_globalvertexmap->get(vertex.Id());
+    if (!globalVertex)
     {
       return false;
     }
 
     GlobalVertex::VTXTYPE whichVtx = m_config.useMbdVertex ? GlobalVertex::MBD : GlobalVertex::SVTX;
 
-    auto svtxiter = m_dst_globalvertex->find_vertexes(whichVtx);
-    if (svtxiter == m_dst_globalvertex->end_vertexes())
+    auto svtxiter = globalVertex->find_vertexes(whichVtx);
+    if (svtxiter == globalVertex->end_vertexes())
     {
       return false;
     }
@@ -1279,36 +1279,12 @@ bool KFParticle_Tools::checkTrackAndVertexMatch(KFParticle vDaughters[], int nTr
 
     for (const auto &gvertex : svtxvertexvector)
     {
-      if (m_config.useMbdVertex)
+      const Vertex *dstVertex = findDstVertex(gvertex->get_id());
+      if (!dstVertex)
       {
-        auto mbditer = m_dst_mbdvertexmap->find(gvertex->get_id());
-        if (mbditer == m_dst_mbdvertexmap->end())
-        {
-          continue;
-        }
-        m_dst_mbdvertex = mbditer->second;
-        obtained_vertex[2] = m_dst_mbdvertex->get_z();
-        if (vertexToleranceCheck(obtained_vertex, kfp_vertex))
-        {
-          vertexCrossing = m_dst_mbdvertex->get_beam_crossing();
-        }
+        continue;
       }
-      else
-      {
-        auto vtxiter = m_dst_vertexmap->find(gvertex->get_id());
-        if (vtxiter == m_dst_vertexmap->end())
-        {
-          continue;
-        }
-        m_dst_vertex = vtxiter->second;
-        obtained_vertex[0] = m_dst_vertex->get_x();
-        obtained_vertex[1] = m_dst_vertex->get_y();
-        obtained_vertex[2] = m_dst_vertex->get_z();
-        if (vertexToleranceCheck(obtained_vertex, kfp_vertex))
-        {
-          vertexCrossing = m_dst_vertex->get_beam_crossing();
-        }
-      }
+      matchCrossing(dstVertex);
     }
   }
 

@@ -46,13 +46,10 @@ class PHCompositeNode;
 
 class SvtxVertexMap;
 class SvtxTrackMap;
-class SvtxVertex;
+class Vertex;
 class SvtxTrack;
 class SvtxTrack_v5;
 class GlobalVertexMap;
-class GlobalVertex;
-class TrkrClusterContainer;
-class PHG4TpcGeomContainer;
 
 class KFParticle_Tools
 {
@@ -66,11 +63,11 @@ class KFParticle_Tools
 
   virtual ~KFParticle_Tools() = default;
 
-  KFParticle makeVertex(PHCompositeNode *topNode);
+  KFParticle makeVertex(const Vertex *vertex) const;
 
   std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode, const std::string &vertexMapName);
 
-  KFParticle makeParticle(PHCompositeNode *topNode);
+  KFParticle makeParticle(const SvtxTrack *track) const;
 
   std::vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
 
@@ -107,6 +104,9 @@ class KFParticle_Tools
   std::vector<int> getParticleCrossings(const KFParticle &particle);
 
  protected:
+  /// The MBD or SVTX vertex (useMbdVertex picks the cached map) with this id; nullptr if it isn't in the map
+  const Vertex *findDstVertex(unsigned int id) const;
+
   TF1 *f_pion_plus{nullptr};
   TF1 *f_kaon_plus{nullptr};
   TF1 *f_proton_plus{nullptr};
@@ -121,15 +121,9 @@ class KFParticle_Tools
   int m_next_intermediate_id{-2};
 
   GlobalVertexMap *m_dst_globalvertexmap{nullptr};
-  GlobalVertex *m_dst_globalvertex{nullptr};
   MbdVertexMap *m_dst_mbdvertexmap{nullptr};
-  MbdVertex *m_dst_mbdvertex{nullptr};
   SvtxTrackMap *m_dst_trackmap{nullptr};
-  SvtxTrack *m_dst_track{nullptr};
   SvtxVertexMap *m_dst_vertexmap{nullptr};
-  SvtxVertex *m_dst_vertex{nullptr};
-  TrkrClusterContainer *m_cluster_map{nullptr};
-  PHG4TpcGeomContainer *m_geom_container{nullptr};
 
  private:
   const KFParticle_Config &m_config;
