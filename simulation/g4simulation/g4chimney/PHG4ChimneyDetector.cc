@@ -105,13 +105,14 @@ void PHG4ChimneyDetector::ConstructMe(G4LogicalVolume *logicWorld)
   const double door_hole_d = m_Params->get_double_param("door_hole_d") * cm;
   const double slot_w = m_Params->get_double_param("door_slot_w") * cm;
   const double slot_h = m_Params->get_double_param("door_slot_h") * cm;
-  const double slot_r = m_Params->get_double_param("door_slot_r") * cm;   // slot center radius
-  const double xoff = m_Params->get_double_param("ext_xoff") * cm;        // transverse offset of the extension tube, box 2, riser and valve box
+  const double slot_r = m_Params->get_double_param("door_slot_r") * cm;                 // slot center radius
+  const double xoff = m_Params->get_double_param("ext_xoff") * cm;                      // transverse offset of the extension tube, box 2, riser and valve box
   const double door_south_shift = m_Params->get_double_param("door_south_shift") * cm;  // mode 3: full south door moved outward by this much
 
   // The OHCal envelope is placed with rot_y = 180 deg: envelope-local x = -x_lab, z = -z_lab.
   const bool flip = (std::string(logicWorld->GetName()) == "OHCal_envelope");
-  auto P = [flip](double x, double y, double z) { return flip ? G4ThreeVector(-x, y, -z) : G4ThreeVector(x, y, z); };
+  auto P = [flip](double x, double y, double z)
+  { return flip ? G4ThreeVector(-x, y, -z) : G4ThreeVector(x, y, z); };
   if (Verbosity() > 0)
   {
     std::cout << "PHG4ChimneyDetector part " << part << ": mother volume " << logicWorld->GetName() << (flip ? " (rot_y 180: flipping x, z)" : "")
@@ -121,9 +122,12 @@ void PHG4ChimneyDetector::ConstructMe(G4LogicalVolume *logicWorld)
   }
   int copy = 0;
   // Al plate from full lab extents, placed in the current mother
-  auto plate = [&](const std::string &name, double x0, double x1, double y0, double y1, double z0, double z1) {
-    if (x1 <= x0 || y1 <= y0 || z1 <= z0) { return;
-}
+  auto plate = [&](const std::string &name, double x0, double x1, double y0, double y1, double z0, double z1)
+  {
+    if (x1 <= x0 || y1 <= y0 || z1 <= z0)
+    {
+      return;
+    }
     G4Box *b = new G4Box(name + "_solid", 0.5 * (x1 - x0), 0.5 * (y1 - y0), 0.5 * (z1 - z0));
     G4LogicalVolume *lv = new G4LogicalVolume(b, aluminum, name);
     m_DisplayAction->AddVolume(lv, "CHIMNEYBOX");
@@ -131,8 +135,10 @@ void PHG4ChimneyDetector::ConstructMe(G4LogicalVolume *logicWorld)
     new G4PVPlacement(nullptr, P(0.5 * (x0 + x1), 0.5 * (y0 + y1), 0.5 * (z0 + z1)), lv, name, logicWorld, false, copy++, OverlapCheck());
   };
   // six walls of a box, restricted to y in [ylo, yhi] (the split at the envelope radius)
-  auto boxwalls = [&](const std::string &tag, double hx, double zmin, double zmax, double ylo, double yhi, double xc = 0) {
-    auto seg = [&](const std::string &n, double x0, double x1, double y0, double y1, double z0, double z1) {
+  auto boxwalls = [&](const std::string &tag, double hx, double zmin, double zmax, double ylo, double yhi, double xc = 0)
+  {
+    auto seg = [&](const std::string &n, double x0, double x1, double y0, double y1, double z0, double z1)
+    {
       plate(tag + n, xc + x0, xc + x1, std::max(y0, ylo), std::min(y1, yhi), z0, z1);
     };
     seg("Floor", -hx, hx, b_rlo, b_rlo + wall, zmin, zmax);
