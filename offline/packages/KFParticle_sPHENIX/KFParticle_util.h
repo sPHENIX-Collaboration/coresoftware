@@ -10,6 +10,7 @@
 #include <vector>
 
 class KFParticle;
+struct KFParticle_Config;
 class PHCompositeNode;
 class SvtxTrack;
 class SvtxTrackMap;
@@ -53,6 +54,10 @@ namespace KFParticle_util
   // Seed with this index, or nullptr for an unset or out-of-range id
   TrackSeed *findSeed(const TrackSeedContainer *container, unsigned short id);
 
+  // TPC dE/dx of the daughter's track (looked up in the track map trackMapName); -1 if the track, its TPC seed
+  // or one of the cluster/geometry nodes is missing
+  float get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter, const std::string &trackMapName);
+
   // MBD or SVTX vertices by id. MbdVertexMap and SvtxVertexMap have no common base class, but both hold
   // id -> vertex; copying the one in use into this map lets the rest of the code treat both alike.
   using DstVertices = std::map<unsigned int, const Vertex *>;
@@ -74,6 +79,18 @@ namespace KFParticle_util
 
   // Vertex with this id, or nullptr if it is not there
   const Vertex *findDstVertex(const DstVertices &vertices, unsigned int id);
+
+  // The MBD measures only z. Its vertices have no x or y (MbdVertexv1 returns NaN, v2 and v3 return 0), no covariance
+  // apart from the z error, and no chi2 or NDF, so they are read differently from SVTX vertices.
+  bool isMbdVertex(const Vertex *vertex);
+
+  // The vertex as a KFParticle (MBD: x = y = 0, only the z error, NDF = chi2 = 0)
+  KFParticle makeVertex(const Vertex *vertex);
+
+  // Every primary vertex of the event, from the MBD or SVTX vertices (config.useMbdVertex) through the
+  // GlobalVertexMap (id = the global vertex id) or, with config.dontUseGlobalVertex, from the vertex map
+  // directly (id = the map's id)
+  std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode, const KFParticle_Config &config);
 
   // Beam crossing of the vertex the candidate was built with; -100 if it can't be found
   int getPVID(PHCompositeNode *topNode, const KFParticle &kfpvertex,

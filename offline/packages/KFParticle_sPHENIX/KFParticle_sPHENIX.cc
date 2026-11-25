@@ -68,7 +68,6 @@ KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
   , KFParticle_eventReconstruction(m_config)  // same
   , m_outfile(nullptr)
 {
-  setToolsInstance(static_cast<KFParticle_Tools *>(this));
 }
 
 int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)

@@ -32,14 +32,8 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrack_v5.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/TrackAnalysisUtils.h>
 
-#include <g4detectors/PHG4TpcGeom.h>
-#include <g4detectors/PHG4TpcGeomContainer.h>
-
-#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <trackbase_historic/SvtxTrackSeed_v2.h>
@@ -74,13 +68,6 @@
 
 namespace
 {
-  // Shared default configuration for standalone KFParticle_Tools objects. A function-local static, so it
-  // exists before first use even when the object using it is itself a global in another file.
-  const KFParticle_Config &defaultConfig()
-  {
-    static const KFParticle_Config config;
-    return config;
-  }
 using BunchCrossingMode = KFParticle_Config::BunchCrossingMode;
 
   // True if the two positions agree to within 1e-6 cm in every coordinate
@@ -96,113 +83,12 @@ using BunchCrossingMode = KFParticle_Config::BunchCrossingMode;
     }
     return true;
   }
-
-  // The MBD measures only z. Its vertices have no x or y (MbdVertexv1 returns NaN, v2 and v3 return 0), no covariance
-  // apart from the z error, and no chi2 or NDF, so they are read differently from SVTX vertices.
-  bool isMbdVertex(const Vertex *vertex)
-  {
-    return dynamic_cast<const MbdVertex *>(vertex) != nullptr;
-  }
 }  // namespace
 
 /// KFParticle constructor
-KFParticle_Tools::KFParticle_Tools()
-  : KFParticle_Tools(defaultConfig())
-{
-}
-
 KFParticle_Tools::KFParticle_Tools(const KFParticle_Config &config)
   : m_config(config)
 {
-}
-
-KFParticle KFParticle_Tools::makeVertex(const Vertex *vertex) const
-{
-  const bool isMbd = isMbdVertex(vertex);
-
-  float vtxX = isMbd ? 0 : vertex->get_x();
-  float vtxY = isMbd ? 0 : vertex->get_y();
-  float vtxZ = vertex->get_z();
-
-  float f_vertexParameters[6] = {vtxX, vtxY, vtxZ, 0, 0, 0};
-
-  float f_vertexCovariance[21] = {0};
-  unsigned int iterate = 0;
-  if (isMbd)
-  {
-    f_vertexCovariance[5] = vertex->get_z_err();
-  }
-  else
-  {
-    for (unsigned int i = 0; i < 3; ++i)
-    {
-      for (unsigned int j = 0; j <= i; ++j)
-      {
-        f_vertexCovariance[iterate] = vertex->get_error(i, j);
-        ++iterate;
-      }
-    }
-  }
-
-  KFParticle kfp_vertex;
-  kfp_vertex.Create(f_vertexParameters, f_vertexCovariance, 0, -1);
-  kfp_vertex.NDF() = isMbd ? 0 : vertex->get_ndof();
-  kfp_vertex.Chi2() = isMbd ? 0 : vertex->get_chisq();
-
-  return kfp_vertex;
-}
-
-std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode *topNode, const std::string &vertexMapName) const
-{
-  const std::string &vtxMN = vertexMapName.empty() ? m_config.vertexMapNodeName : vertexMapName;
-
-  std::vector<KFParticle> primaryVertices;
-
-  const KFParticle_util::DstVertices vertexById = m_config.useMbdVertex
-                                                      ? KFParticle_util::dstVertices(findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap"))
-                                                      : KFParticle_util::dstVertices(findNode::getClass<SvtxVertexMap>(topNode, vtxMN));
-
-  if (m_config.dontUseGlobalVertex)
-  {
-    for (const auto &[id, vertex] : vertexById)
-    {
-      primaryVertices.push_back(makeVertex(vertex));
-      primaryVertices.back().SetId(id);
-    }
-
-    return primaryVertices;
-  }
-
-  auto *globalVertexMap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
-  if (!globalVertexMap)
-  {
-    std::cout << "Can't continue in KFParticle_Tools::makeAllPrimaryVertices" << std::endl;
-    return primaryVertices;
-  }
-
-  for (GlobalVertexMap::ConstIter iter = globalVertexMap->begin(); iter != globalVertexMap->end(); ++iter)
-  {
-    const GlobalVertex *globalVertex = iter->second;
-
-    GlobalVertex::VTXTYPE whichVtx = m_config.useMbdVertex ? GlobalVertex::MBD : GlobalVertex::SVTX;
-
-    auto svtxiter = globalVertex->find_vertexes(whichVtx);
-    // check that it contains a track vertex
-    if (svtxiter == globalVertex->end_vertexes())
-    {
-      continue;
-    }
-
-    const auto &svtxvertexvector = svtxiter->second;
-
-    for (const auto &vertex : svtxvertexvector)
-    {
-      primaryVertices.push_back(makeVertex(KFParticle_util::findDstVertex(vertexById, vertex->get_id())));
-      primaryVertices.back().SetId(globalVertex->get_id());
-    }
-  }
-
-  return primaryVertices;
 }
 
 KFParticle KFParticle_Tools::makeParticle(const SvtxTrack *track) const  /// Return a KFPTrack from track vector and covariance matrix. No mass or vertex constraints
@@ -828,7 +714,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
       int track_PDG_ID = (Int_t) vDaughters[i].GetQ() * daughterOrder[i];
       if (std::find(std::begin(particlesWithPID), std::end(particlesWithPID), std::abs(track_PDG_ID)) != std::end(particlesWithPID))
       {
-        float calculated_dEdx_value = get_dEdx(eventView.topNode(), vDaughters[i]);
+        float calculated_dEdx_value = KFParticle_util::get_dEdx(eventView.topNode(), vDaughters[i], m_config.trackMapNodeName);
         double expected_dEdx_value = get_dEdx_fitValue((Int_t) vDaughters[i].GetQ() * vDaughters[i].GetP(), track_PDG_ID);
         bool accept_dEdx = KFParticle_util::isInRange((1 - m_config.dEdxBandWidth) * expected_dEdx_value, calculated_dEdx_value, (1 + m_config.dEdxBandWidth) * expected_dEdx_value);
 
@@ -1097,49 +983,6 @@ std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaught
   return std::make_tuple(candidate, isGoodCandidate);
 }
 
-float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter) const
-{
-  SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_config.trackMapNodeName);
-  TrkrClusterContainer *clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  if (!clusterMap)
-  {
-    clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_SEED");
-  }
-  auto *geomContainer = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
-  auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-  if (!clusterMap || !geomContainer || !geometry)
-  {
-    return -1.0;
-  }
-
-  SvtxTrack *daughter_track = KFParticle_util::getTrack(daughter.Id(), trackmap);
-  if (!daughter_track)
-  {
-    // No backing SvtxTrack -- e.g. daughter is itself a built intermediate.
-    // dE/dx PID is only meaningful for a real reconstructed track.
-    return -1.0;
-  }
-
-  bool isTrack_v5 = daughter_track->InheritsFrom("SvtxTrack_v5");
-  TrackSeedContainer *tpcSeedContainer = isTrack_v5 ? findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer") : nullptr;
-
-  TrackSeed *tpcseed = isTrack_v5 ? KFParticle_util::findSeed(tpcSeedContainer, daughter_track->get_tpc_seed_id()) : daughter_track->get_tpc_seed();
-  if (!tpcseed)
-  {
-    return -1;
-  }
-
-  float layerThicknesses[4] = {0.0, 0.0, 0.0, 0.0};
-  // These are randomly chosen layer thicknesses for the TPC, to get the
-  // correct region thicknesses in an easy to pass way to the helper fxn
-  layerThicknesses[0] = geomContainer->GetLayerCellGeom(7)->get_thickness();
-  layerThicknesses[1] = geomContainer->GetLayerCellGeom(8)->get_thickness();
-  layerThicknesses[2] = geomContainer->GetLayerCellGeom(27)->get_thickness();
-  layerThicknesses[3] = geomContainer->GetLayerCellGeom(50)->get_thickness();
-
-  return TrackAnalysisUtils::calc_dedx(tpcseed, clusterMap, geometry, layerThicknesses);
-}
-
 void KFParticle_Tools::init_dEdx_fits()
 {
   const std::string dedx_fitparams = m_config.useLocalPIDFile ? m_config.localPIDFilename : CDBInterface::instance()->getUrl("TPC_DEDX_FITPARAM");
@@ -1208,7 +1051,7 @@ bool KFParticle_Tools::checkTrackAndVertexMatch(const KFParticle_eventView &even
   // Takes the crossing of a DST vertex at the position of the KFParticle vertex (MBD: z only, x and y stay 0)
   auto matchCrossing = [&](const Vertex *dstVertex)
   {
-    if (!isMbdVertex(dstVertex))
+    if (!KFParticle_util::isMbdVertex(dstVertex))
     {
       obtained_vertex[0] = dstVertex->get_x();
       obtained_vertex[1] = dstVertex->get_y();

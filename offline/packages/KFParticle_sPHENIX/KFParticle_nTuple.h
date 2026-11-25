@@ -18,7 +18,6 @@
 class PHCompositeNode;
 class TTree;
 class CentralityInfo;
-class KFParticle_Tools;
 
 class KFParticle_nTuple
 {
@@ -59,9 +58,6 @@ class KFParticle_nTuple
 
   bool fillConditionMet() const;
 
-  /// Set by KFParticle_sPHENIX to itself, for the calculations and node caches that still live in KFParticle_Tools
-  void setToolsInstance(KFParticle_Tools *tools) { m_tools = tools; }
-
  protected:
   bool isTrackEMCalmatch{true};
   std::string m_qa_tree_path{"DecayTree"};  // name (optionally dir/name) of the tree in the QA histogram manager
@@ -70,10 +66,6 @@ class KFParticle_nTuple
   static constexpr int maxTracks{KFParticle_util::maxTracks};
 
   const KFParticle_Config &m_config;
-
-  // The KFParticle_sPHENIX object itself (see setToolsInstance). Non-const because makeAllPrimaryVertices
-  // and get_dEdx update its per-event node pointers.
-  KFParticle_Tools *m_tools{nullptr};
 
   KFParticle_detectorInfo m_detector;
   KFParticle_truthInfo m_truth;

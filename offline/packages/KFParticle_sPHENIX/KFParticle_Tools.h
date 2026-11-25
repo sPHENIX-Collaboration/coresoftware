@@ -52,18 +52,11 @@ class SvtxTrack_v5;
 class KFParticle_Tools
 {
  public:
-  /// Standalone use (QA, helper objects): reads a default configuration
-  KFParticle_Tools();
-
   /// Used by KFParticle_sPHENIX. The config is owned there and is not yet constructed when this runs:
   /// store the reference only, never read through it here.
   explicit KFParticle_Tools(const KFParticle_Config &config);
 
   virtual ~KFParticle_Tools() = default;
-
-  KFParticle makeVertex(const Vertex *vertex) const;
-
-  std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode, const std::string &vertexMapName) const;
 
   KFParticle makeParticle(const SvtxTrack *track) const;
 
@@ -90,8 +83,6 @@ class KFParticle_Tools
 
   std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], int daughterOrder[], KFParticle vertex,
                                               bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, KFParticle_eventView &eventView);
-
-  float get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter) const;
 
   void init_dEdx_fits();
 

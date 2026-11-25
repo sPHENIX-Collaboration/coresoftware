@@ -1,5 +1,4 @@
 #include "KFParticle_nTuple.h"
-#include "KFParticle_Tools.h"
 #include "KFParticle_util.h"
 
 #include <ffaobjects/EventHeader.h>
@@ -539,7 +538,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     }
     if (m_config.dEdxInfo)
     {
-      m_calculated_daughter_dedx[i] = m_tools->get_dEdx(topNode, daughterArray[i]);  // m_config.dEdxInfo defaults to false; run get_dEdx_info() to change this
+      m_calculated_daughter_dedx[i] = KFParticle_util::get_dEdx(topNode, daughterArray[i], m_config.trackMapNodeName);  // m_config.dEdxInfo defaults to false; run get_dEdx_info() to change this
     }
     // m_calculated_daughter_expected_dedx_pion[i] = m_tools->get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 211);
     // m_calculated_daughter_expected_dedx_kaon[i] = m_tools->get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 321);
@@ -838,7 +837,7 @@ void KFParticle_nTuple::allPVInfo(PHCompositeNode *topNode,
                                   std::vector<KFParticle> daughters,
                                   std::vector<KFParticle> intermediates)
 {
-  std::vector<KFParticle> primaryVertices = m_tools->makeAllPrimaryVertices(topNode, m_config.vertexMapNodeName);
+  std::vector<KFParticle> primaryVertices = KFParticle_util::makeAllPrimaryVertices(topNode, m_config);
 
   for (auto &primaryVertice : primaryVertices)
   {
