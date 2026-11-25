@@ -11,6 +11,7 @@
 class TriggerAnalyzer;
 class EventPlaneData;
 class PHCompositeNode;
+class TH1;
 class TH2;
 class TProfile;
 
@@ -167,6 +168,7 @@ class sEPD_TreeGen : public SubsysReco
   EventPlaneData* m_evtdata{nullptr};
 
   TProfile *hSEPD_Charge{nullptr};
+  TH1 *hSEPD_NonFinite{nullptr};
   TH2 *h2SEPD_totalcharge_centrality{nullptr};
 };
 
