@@ -928,7 +928,7 @@ int KFParticle_nTuple::getTracksFromVertex(PHCompositeNode *topNode, const KFPar
     auto *dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, vtxMN);
     if (!dst_globalvertexmap || !dst_vertexmap)
     {
-      std::cout << "Can't continue in KFParticle_Tools::getTracksFromVertex" << std::endl;
+      std::cout << "Can't continue in KFParticle_nTuple::getTracksFromVertex" << std::endl;
       return 0;
     }
     auto *associated_gvertex = dst_globalvertexmap->get(vertex.Id());
