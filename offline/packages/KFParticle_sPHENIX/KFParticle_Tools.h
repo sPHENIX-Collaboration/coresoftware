@@ -80,8 +80,6 @@ class KFParticle_Tools
 
   int calcMinPV_DCA(const KFParticle &track, const std::vector<KFParticle> &PVs, float &minimumPV_DCA, float &minimumPV_DCA_stddev, bool do3D = true);
 
-  std::vector<int> findAllGoodTracks(const std::vector<KFParticle> &daughterParticles);//, const std::vector<KFParticle> &primaryVertices);
-
   std::vector<std::vector<int>> findTwoProngs(const std::vector<KFParticle> &daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices);
 
   std::vector<std::vector<int>> findNProngs(const std::vector<KFParticle> &daughterParticles,
@@ -93,14 +91,12 @@ class KFParticle_Tools
 
   std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], int daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, PHCompositeNode *topNode);
 
-  void constrainToVertex(KFParticle &particle, bool &goodCandidate, KFParticle &vertex);
+  void constrainToVertex(KFParticle &particle, bool &goodCandidate, KFParticle &vertex) const;
 
   std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], int daughterOrder[], KFParticle vertex,
                                               bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, PHCompositeNode *topNode);
 
   std::vector<std::vector<int>> findUniqueDaughterCombinations(int start, int end);
-
-  bool isInRange(float min, float value, float max);
 
   bool finalStateMatchesDecay(const std::vector<std::pair<int, int>> &assigned);
 
@@ -109,8 +105,6 @@ class KFParticle_Tools
   void init_dEdx_fits();
 
   double get_dEdx_fitValue(float momentum, int PID);
-
-  bool vertexToleranceCheck(float vertexMap_pos[3], float kfp_vertex_pos[3]);
 
   bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex);
 
@@ -140,17 +134,6 @@ class KFParticle_Tools
   SvtxVertex *m_dst_vertex{nullptr};
   TrkrClusterContainer *m_cluster_map{nullptr};
   PHG4TpcGeomContainer *m_geom_container{nullptr};
-
-  void removeDuplicates(std::vector<double> &v);
-  void removeDuplicates(std::vector<int> &v);
-  void removeDuplicates(std::vector<std::vector<int>> &v);
-  void removeDuplicates(std::vector<std::vector<std::string>> &v);
-
-  void printSelectionCheck(const std::string &parameter, float min, float val, float max);
-  void printSelectionCheck(const std::string &start, const std::string &accept, const std::string &reject, const std::string &end, bool equality);
-  void printSelectionCheck(const std::string &info, unsigned int value);
-  std::string accept_colour = "32";
-  std::string reject_colour = "31";
 
  private:
   const KFParticle_Config &m_config;

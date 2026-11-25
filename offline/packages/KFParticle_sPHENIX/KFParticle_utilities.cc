@@ -25,6 +25,13 @@
 #include <cstdlib>   // for abs
 #include <iostream>
 
+namespace
+{
+  // ANSI colour codes for printSelectionCheck
+  const std::string accept_colour = "32";
+  const std::string reject_colour = "31";
+}  // namespace
+
 SvtxTrack *KFParticle_utilities::getTrack(unsigned int track_id, SvtxTrackMap *trackmap)
 {
   // Track ids are the keys of the map, so look the track up directly instead of scanning the whole map
@@ -225,4 +232,31 @@ TrackSeed *KFParticle_utilities::findSeed(TrackSeedContainer *container, unsigne
     return nullptr;
   }
   return *container->find(id);
+}
+
+bool KFParticle_utilities::isInRange(float min, float value, float max)
+{
+  return min <= value && value <= max;
+}
+
+void KFParticle_utilities::printSelectionCheck(const std::string &parameter, float min, float val, float max)
+{
+  std::string trailer = "the " + parameter + " requirement\033[0m";
+  std::string passOrFail = isInRange(min, val, max) ? "\033[1;" + accept_colour + "mPassed " + trailer
+                                                    : "\033[1;" + reject_colour + "mFailed " + trailer;
+  std::cout << passOrFail << ". Lower bound = " << min << ", measured value =  " << val << ", upper bound = " << max << std::endl; 
+}
+
+void KFParticle_utilities::printSelectionCheck(const std::string &start, const std::string &accept, const std::string &reject, const std::string &end, bool equality)
+{
+  std::string decision = equality ? accept : reject;
+  std::string colour = equality ? accept_colour : reject_colour;
+  std::string spacing = start.empty() ? "" : " ";
+  std::cout << "\033[1;" << colour << "m" << start << spacing << decision << " " << end << "\033[0m" << std::endl;
+}
+
+void KFParticle_utilities::printSelectionCheck(const std::string &info, unsigned int value)
+{
+  std::string colour = value > 0 ? accept_colour : reject_colour;
+  std::cout << info << " = \033[1;" << colour << "m" << value << "\033[0m" << std::endl;
 }

@@ -40,6 +40,7 @@
 #include <cstdlib>   // for std::abs(int)
 #include <iterator>  // for begin, distance, end
 #include <memory>   // for allocator_traits<>::value_type
+#include <numeric>  // for iota
 #include <set>
 #include <string>   // for string
 #include <tuple>    // for tie, tuple
@@ -114,13 +115,14 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
 
   nPVs = primaryVertices.size();
 
-  std::vector<int> goodTrackIndex = findAllGoodTracks(daughterParticles);//, primaryVertices);
+  std::vector<int> goodTrackIndex(daughterParticles.size());
+  std::iota(goodTrackIndex.begin(), goodTrackIndex.end(), 0);  // every track index, 0..n-1
 
   if (m_config.verbosity >= 10)
   {
-    printSelectionCheck("Number of daughters passing state selection", daughterParticles.size());
-    printSelectionCheck("Number of daughters passing track selection", goodTrackIndex.size());
-    printSelectionCheck("Number of PVs passing selection", primaryVertices.size());
+    KFParticle_utilities::printSelectionCheck("Number of daughters passing state selection", daughterParticles.size());
+    KFParticle_utilities::printSelectionCheck("Number of daughters passing track selection", goodTrackIndex.size());
+    KFParticle_utilities::printSelectionCheck("Number of PVs passing selection", primaryVertices.size());
   }
 
   if (!m_config.hasIntermediates)
@@ -151,7 +153,7 @@ void KFParticle_eventReconstruction::buildBasicChain(std::vector<KFParticle>& se
 
   if (m_config.verbosity >= 10)
   { 
-    printSelectionCheck("Number of SVs passing selection", goodTracksThatMeet.size());
+    KFParticle_utilities::printSelectionCheck("Number of SVs passing selection", goodTracksThatMeet.size());
   }
 
   getCandidateDecay(selectedMotherBasic, selectedVertexBasic, selectedDaughtersBasic, daughterParticlesBasic,
@@ -191,7 +193,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 
     if (m_config.verbosity >= 10)
     { 
-      printSelectionCheck("Number of SVs passing selection", goodTracksThatMeet.size());
+      KFParticle_utilities::printSelectionCheck("Number of SVs passing selection", goodTracksThatMeet.size());
     }
 
     getCandidateDecay(potentialIntermediates[i], vertices, potentialDaughters[i], daughterParticlesAdv,
@@ -465,10 +467,10 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
           calcMinPV_DCA(candidate, primaryVerticesCand, min_PV_dca, min_PV_dca_stddev);
           calcMinPV_DCA(candidate, primaryVerticesCand, min_PV_dca_xy, min_PV_dca_stddev_xy, false);
           const int n = intermediateNumber;
-          isGood = isInRange(m_config.intermediateMinPVDCA[n], min_PV_dca, m_config.intermediateMaxPVDCA[n]) &&
-                   isInRange(m_config.intermediateMinPVDCAStdDev[n], min_PV_dca_stddev, m_config.intermediateMaxPVDCAStdDev[n]) &&
-                   isInRange(m_config.intermediateMinPVDCAXY[n], min_PV_dca_xy, m_config.intermediateMaxPVDCAXY[n]) &&
-                   isInRange(m_config.intermediateMinPVDCAStdDevXY[n], min_PV_dca_stddev_xy, m_config.intermediateMaxPVDCAStdDevXY[n]);
+          isGood = KFParticle_utilities::isInRange(m_config.intermediateMinPVDCA[n], min_PV_dca, m_config.intermediateMaxPVDCA[n]) &&
+                   KFParticle_utilities::isInRange(m_config.intermediateMinPVDCAStdDev[n], min_PV_dca_stddev, m_config.intermediateMaxPVDCAStdDev[n]) &&
+                   KFParticle_utilities::isInRange(m_config.intermediateMinPVDCAXY[n], min_PV_dca_xy, m_config.intermediateMaxPVDCAXY[n]) &&
+                   KFParticle_utilities::isInRange(m_config.intermediateMinPVDCAStdDevXY[n], min_PV_dca_stddev_xy, m_config.intermediateMaxPVDCAStdDevXY[n]);
         }
 
         if (isGood)
