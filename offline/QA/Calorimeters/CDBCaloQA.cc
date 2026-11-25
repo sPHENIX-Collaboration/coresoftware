@@ -50,6 +50,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <format>
 #include <iostream>
 #include <limits>
 #include <sstream>
@@ -87,11 +88,10 @@ int CDBCaloQA::InitRun(PHCompositeNode *topNode)
   {
     m_runnumber = runhdr->get_RunNumber();
   }
-  if (m_runnumber >= RunnumberRange::RUN2AUAU_FIRST && m_runnumber <= RunnumberRange::RUN2AUAU_LAST)
-  {
-    m_species = "AuAu";
-  }
-  else if (m_runnumber >= RunnumberRange::RUN3AUAU_FIRST && m_runnumber <= RunnumberRange::RUN3AUAU_LAST)
+  if ((m_runnumber >= RunnumberRange::RUN2AUAU_FIRST &&
+       m_runnumber <= RunnumberRange::RUN2AUAU_LAST) ||
+      (m_runnumber >= RunnumberRange::RUN3AUAU_FIRST &&
+       m_runnumber <= RunnumberRange::RUN3AUAU_LAST))
   {
     m_species = "AuAu";
   }
@@ -214,31 +214,39 @@ void CDBCaloQA::createHistos()
   }
   const int nzdc = std::lround((zdcmax + 50.) / 2.5);
   const std::string zu = "GeV";
-  h_zdc_e_south = book1("zdc_e_south", ("ZDC south energy, ZDC trigger;E (" + zu + ");events").c_str(), nzdc, -50., zdcmax);
-  h_zdc_e_north = book1("zdc_e_north", ("ZDC north energy, ZDC trigger;E (" + zu + ");events").c_str(), nzdc, -50., zdcmax);
+  h_zdc_e_south = book1("zdc_e_south", ("ZDC south energy, ZDC trigger;E (" + zu + ");events"), nzdc, -50., zdcmax);
+  h_zdc_e_north = book1("zdc_e_north", ("ZDC north energy, ZDC trigger;E (" + zu + ");events"), nzdc, -50., zdcmax);
   for (int a = 0; a < 2; a++)
   {
     const std::string arm = a ? "north" : "south";
     for (int m = 0; m < 3; m++)
     {
-      h_zdc_mod_e[3 * a + m] = book1(Form("zdc_mod_e_%s_%d", arm.c_str(), m + 1),
-                                     Form("ZDC %s compartment %d energy, ZDC trigger;E (%s);events", arm.c_str(), m + 1, zu.c_str()), nzdc, -50., zdcmax);
+      h_zdc_mod_e[3 * a + m] = book1(std::format("zdc_mod_e_{}_{}", arm, m + 1),
+                                     std::format("ZDC {} compartment {} energy, ZDC trigger;E ({});events", arm, m + 1, zu), nzdc, -50., zdcmax);
     }
   }
-  h_zdc_e_south_mb = book1("zdc_e_south_mb", ("ZDC south energy, MB;E (" + zu + ");events").c_str(), std::lround(zdcmax), 0, zdcmax);
-  h_zdc_e_north_mb = book1("zdc_e_north_mb", ("ZDC north energy, MB;E (" + zu + ");events").c_str(), std::lround(zdcmax), 0, zdcmax);
-  const double ohmax = (m_species == "pp") ? 20. : (m_species == "OO" ? 40. : 400.);
+  h_zdc_e_south_mb = book1("zdc_e_south_mb", ("ZDC south energy, MB;E (" + zu + ");events"), std::lround(zdcmax), 0, zdcmax);
+  h_zdc_e_north_mb = book1("zdc_e_north_mb", ("ZDC north energy, MB;E (" + zu + ");events"), std::lround(zdcmax), 0, zdcmax);
+  double ohmax = 400.;
+  if (m_species == "pp")
+  {
+    ohmax = 20.;
+  }
+  else if (m_species == "OO")
+  {
+    ohmax = 40.;
+  }
   const std::string zsel = (m_species == "pp") ? "MB" : "MB |z| < 10 cm";
   for (int a = 0; !m_mc && a < 2; a++)
   {
     const std::string arm = a ? "north" : "south";
-    h2_zdc_e_ohcal[a] = book2("zdc_e_ohcal_" + arm, ("ZDC " + arm + " energy vs OHCal energy sum, " + zsel + ";#SigmaE_{OHCal} (GeV);E (" + zu + ")").c_str(), 200, 0, ohmax, 250, 0, zdcmax);
-    h2_zdc_e_t0[a] = book2("zdc_e_t0_" + arm, ("ZDC " + arm + " energy vs MBD t0, " + zsel + ";t0 (ns);E (" + zu + ")").c_str(), 40, -10, 10, 250, 0, zdcmax);
-    p2_zdc_t0_ohcal[a] = new TProfile2D(("p2_" + Name() + "_zdc_t0_ohcal_" + arm).c_str(), ("ZDC " + arm + " mean energy, " + zsel + ";t0 (ns);#SigmaE_{OHCal} (GeV)").c_str(), 40, -10, 10, 40, 0, ohmax);
+    h2_zdc_e_ohcal[a] = book2("zdc_e_ohcal_" + arm, std::format("ZDC {} energy vs OHCal energy sum, {};#SigmaE_{{OHCal}} (GeV);E ({})", arm, zsel, zu), 200, 0, ohmax, 250, 0, zdcmax);
+    h2_zdc_e_t0[a] = book2("zdc_e_t0_" + arm, std::format("ZDC {} energy vs MBD t0, {};t0 (ns);E ({})", arm, zsel, zu), 40, -10, 10, 250, 0, zdcmax);
+    p2_zdc_t0_ohcal[a] = new TProfile2D(std::format("p2_{}_zdc_t0_ohcal_{}", Name(), arm).c_str(), std::format("ZDC {} mean energy, {};t0 (ns);#SigmaE_{{OHCal}} (GeV)", arm, zsel).c_str(), 40, -10, 10, 40, 0, ohmax);
     m_hm->registerHisto(p2_zdc_t0_ohcal[a]);
   }
-  h2_zdc_e_ns_mb = book2("zdc_e_ns_mb", ("ZDC north vs south energy, MB;E_{south} (" + zu + ");E_{north} (" + zu + ")").c_str(), 200, 0, zdcmax, 200, 0, zdcmax);
-  h2_zdc_e_ns = book2("zdc_e_ns", ("ZDC north vs south energy, ZDC trigger;E_{south} (" + zu + ");E_{north} (" + zu + ")").c_str(), 200, 0, zdcmax, 200, 0, zdcmax);
+  h2_zdc_e_ns_mb = book2("zdc_e_ns_mb", std::format("ZDC north vs south energy, MB;E_{{south}} ({});E_{{north}} ({})", zu, zu), 200, 0, zdcmax, 200, 0, zdcmax);
+  h2_zdc_e_ns = book2("zdc_e_ns", std::format("ZDC north vs south energy, ZDC trigger;E_{{south}} ({});E_{{north}} ({})", zu, zu), 200, 0, zdcmax, 200, 0, zdcmax);
   const int nsq = std::lround((sepdqmax + 1.) / sepdqbinw);
   h2_sepd_q_ch = book2("sepd_q_ch", "sEPD tile charge, MB;channel;q (nMIP)", 744, -0.5, 743.5, nsq, -1., sepdqmax);
   h_sepd_qsum_south = book1("sepd_qsum_south", "sEPD south charge sum per event, MB;#Sigmaq (nMIP);events", 500, 0, sepdsummax);
@@ -255,38 +263,46 @@ void CDBCaloQA::createHistos()
     const int ne = std::lround((ehi[l] - elo[l]) / ebinw[l]) + 1;
     const double elo_c = elo[l] - 0.5 * ebinw[l];
     const double ehi_c = elo_c + ne * ebinw[l];
-    h_tow_e[l] = book1(tag + "_e", (ln + " good tower energy, MB;E (GeV);towers").c_str(), ne, elo_c, ehi_c);
-    h_tow_e_noZSXCalib[l] = book1(tag + "_e_noZSXCalib", (ln + " good tower energy, no ZSCrossCalib, MB;E (GeV);towers").c_str(), ne, elo_c, ehi_c);
-    h_tow_esum[l] = book1(tag + "_esum", (ln + " good tower energy sum per event, MB;#SigmaE (GeV);events").c_str(), 1100, -0.1 * esummax, esummax);
-    const double fracmax = (m_species == "pp") ? 0.05 : (m_species == "OO" ? 0.3 : 1.0);
+    h_tow_e[l] = book1(tag + "_e", (ln + " good tower energy, MB;E (GeV);towers"), ne, elo_c, ehi_c);
+    h_tow_e_noZSXCalib[l] = book1(tag + "_e_noZSXCalib", (ln + " good tower energy, no ZSCrossCalib, MB;E (GeV);towers"), ne, elo_c, ehi_c);
+    h_tow_esum[l] = book1(tag + "_esum", (ln + " good tower energy sum per event, MB;#SigmaE (GeV);events"), 1100, -0.1 * esummax, esummax);
+    double fracmax = 1.;
+    if (m_species == "pp")
+    {
+      fracmax = 0.05;
+    }
+    else if (m_species == "OO")
+    {
+      fracmax = 0.3;
+    }
     const double fbinw = (l == kCEMC) ? 1e-4 : 1. / 1536.;
     const int nfrac = std::lround(fracmax / fbinw) + 1;
-    h_tow_occ[l] = book1(tag + "_occ", (ln + " fraction of good towers above threshold, MB;fraction;events").c_str(), nfrac, -0.5 * fbinw, (nfrac - 0.5) * fbinw);
+    h_tow_occ[l] = book1(tag + "_occ", (ln + " fraction of good towers above threshold, MB;fraction;events"), nfrac, -0.5 * fbinw, (nfrac - 0.5) * fbinw);
     p_tow_occ_mean[l] = new TProfile(("p_" + Name() + "_" + tag + "_occ_mean").c_str(), (ln + " mean fraction of good towers above threshold, MB").c_str(), 1, 0, 1);
     m_hm->registerHisto(p_tow_occ_mean[l]);
     if (l != kCEMC)
     {
       p_tsc_e[l] = new TProfile(("p_" + Name() + "_" + tag + "_tsc_e").c_str(),
-                                Form("%s good tower mean energy in %.1f-%.1f GeV, MB;tower (i#eta*64+i#phi);<E> (GeV)", ln.c_str(), m_tsclo[l], m_tschi[l]),
+                                std::format("{} good tower mean energy in {:.1f}-{:.1f} GeV, MB;tower (i#eta*64+i#phi);<E> (GeV)", ln, m_tsclo[l], m_tschi[l]).c_str(),
                                 1536, -0.5, 1535.5);
       p_tsc_occ[l] = new TProfile(("p_" + Name() + "_" + tag + "_tsc_occ").c_str(),
-                                  Form("%s good tower fraction of events with E > %.1f GeV, MB;tower (i#eta*64+i#phi);fraction", ln.c_str(), m_tsclo[l]),
+                                  std::format("{} good tower fraction of events with E > {:.1f} GeV, MB;tower (i#eta*64+i#phi);fraction", ln, m_tsclo[l]).c_str(),
                                   1536, -0.5, 1535.5);
       m_hm->registerHisto(p_tsc_e[l]);
       m_hm->registerHisto(p_tsc_occ[l]);
     }
-    h_tow_nonzs_frac[l] = book1(tag + "_nonzs_frac", (ln + " fraction of non-ZS towers, MB;fraction;events").c_str(), nfrac, -0.5 * fbinw, (nfrac - 0.5) * fbinw);
-    h_tow_time[l] = book1(tag + "_time", (ln + " tower time above threshold, MB;t (samples);towers").c_str(), 200, -10, 10);
-    h_tow_time_mbdt0[l] = book1(tag + "_time_mbdt0", (ln + " tower time - MBD t0 above threshold, MB;t - t0 (ns);towers").c_str(), 200, -100, 100);
-    h_noise_e_fine[l] = book1(tag + "_noise_e_fine", (ln + " good tower energy, MB |v_{z}|<100 cm;E (GeV);towers").c_str(), 2000, -0.25, 0.25);
-    h2_noise_e_fine_ieta[l] = book2(tag + "_noise_e_fine_ieta", (ln + " good tower energy vs i#eta, MB |v_{z}|<100 cm;i#eta;E (GeV)").c_str(),
+    h_tow_nonzs_frac[l] = book1(tag + "_nonzs_frac", (ln + " fraction of non-ZS towers, MB;fraction;events"), nfrac, -0.5 * fbinw, (nfrac - 0.5) * fbinw);
+    h_tow_time[l] = book1(tag + "_time", (ln + " tower time above threshold, MB;t (samples);towers"), 200, -10, 10);
+    h_tow_time_mbdt0[l] = book1(tag + "_time_mbdt0", (ln + " tower time - MBD t0 above threshold, MB;t - t0 (ns);towers"), 200, -100, 100);
+    h_noise_e_fine[l] = book1(tag + "_noise_e_fine", (ln + " good tower energy, MB |v_{z}|<100 cm;E (GeV);towers"), 2000, -0.25, 0.25);
+    h2_noise_e_fine_ieta[l] = book2(tag + "_noise_e_fine_ieta", (ln + " good tower energy vs i#eta, MB |v_{z}|<100 cm;i#eta;E (GeV)"),
                                     netabins[l], -0.5, netabins[l] - 0.5, 2000, -0.25, 0.25);
   }
 
   for (int t = 0; t < kNTrig; t++)
   {
-    h2_clus_e_eta[t] = book2("clus_e_eta_" + trigtag[t], ("EMCal cluster, " + trigtag[t] + ";E_{core} (GeV);#eta").c_str(), 300, 0, 30, 48, -1.2, 1.2);
-    h2_jet_pt_eta[t] = book2("jet_pt_eta_" + trigtag[t], ("R=0.4 jet, " + trigtag[t] + ";p_{T} (GeV);#eta").c_str(), 80, 0, 80, 48, -1.2, 1.2);
+    h2_clus_e_eta[t] = book2("clus_e_eta_" + trigtag[t], ("EMCal cluster, " + trigtag[t] + ";E_{core} (GeV);#eta"), 300, 0, 30, 48, -1.2, 1.2);
+    h2_jet_pt_eta[t] = book2("jet_pt_eta_" + trigtag[t], ("R=0.4 jet, " + trigtag[t] + ";p_{T} (GeV);#eta"), 80, 0, 80, 48, -1.2, 1.2);
   }
   if (m_species != "pp")
   {
@@ -444,7 +460,15 @@ int CDBCaloQA::process_event(PHCompositeNode *topNode)
                     (m_mc || m_trigname[kJet].empty() || m_ntrig[kJet] >= m_mintrig);
   if (!keep)
   {
-    return done ? Fun4AllReturnCodes::ABORTRUN : (m_select ? Fun4AllReturnCodes::ABORTEVENT : Fun4AllReturnCodes::EVENT_OK);
+    if (done)
+    {
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    if (m_select)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    return Fun4AllReturnCodes::EVENT_OK;
   }
   if (m_select)
   {
@@ -841,7 +865,22 @@ int CDBCaloQA::End(PHCompositeNode * /*topNode*/)
               << m_ntrig[kPhoton] << " photon, " << m_ntrig[kJet] << " jet events" << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  m_hm->registerHisto(new TNamed("trig_MB", m_mc ? m_mbname.c_str() : (m_mbbit_or >= 0 ? Form("%s (bits %d, %d)", m_mbname.c_str(), m_mbbit, m_mbbit_or) : Form("%s (bit %d)", m_mbname.c_str(), m_mbbit))));
+  // m_hm->registerHisto(new TNamed("trig_MB", m_mc ? m_mbname.c_str() : (m_mbbit_or >= 0 ? std::format("{} (bits {}, {})", m_mbname, m_mbbit, m_mbbit_or) : std::format("{} (bit {})", m_mbname, m_mbbit))));
+std::string title;
+if (m_mc)
+{
+  title = m_mbname;
+}
+else if (m_mbbit_or >= 0)
+{
+  title = std::format("{} (bits {}, {})", m_mbname, m_mbbit, m_mbbit_or);
+}
+else
+{
+  title = std::format("{} (bit {})", m_mbname, m_mbbit);
+}
+
+m_hm->registerHisto(new TNamed("trig_MB", title.c_str()));  
   m_hm->registerHisto(new TNamed("trig_Photon", m_mc ? "" : m_trigname[kPhoton].c_str()));
   m_hm->registerHisto(new TNamed("trig_Jet", m_mc ? "" : m_trigname[kJet].c_str()));
   m_hm->registerHisto(new TNamed("trig_ZDC", m_zdcname.c_str()));
@@ -849,7 +888,7 @@ int CDBCaloQA::End(PHCompositeNode * /*topNode*/)
   captureCdbUrls();
   for (const auto &[domain, url] : m_cdburls)
   {
-    m_hm->registerHisto(new TNamed(("cdb_" + domain).c_str(), url.c_str()));
+    m_hm->registerHisto(new TNamed(("cdb_" + domain).c_str(), url));
   }
   m_hm->dumpHistos(m_outfile);
   return Fun4AllReturnCodes::EVENT_OK;

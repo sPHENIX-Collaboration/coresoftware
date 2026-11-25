@@ -477,7 +477,6 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
  private:
   bool m_has_intermediates_sPHENIX;
   bool m_constrain_to_vertex_sPHENIX;
-  bool m_require_mva;
   bool m_save_dst;
   bool m_save_output;
   int candidateCounter = 0;

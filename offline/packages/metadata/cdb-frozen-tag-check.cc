@@ -36,6 +36,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include <unistd.h>   // getopt
 #include <algorithm>  // std::min
 #include <cstdint>
 #include <iostream>
@@ -43,7 +44,6 @@
 #include <set>
 #include <string>
 #include <tuple>
-#include <unistd.h>  // getopt
 #include <vector>
 
 namespace
@@ -76,8 +76,8 @@ namespace
   // One recorded payload, as seen in all the entries that had it.
   struct Recorded
   {
-    std::vector<std::string> labels{};  // entries with this payload
-    bool used{false};                   // used by the job itself (cdb_from_input 0) in at least one entry
+    std::vector<std::string> labels;  // entries with this payload
+    bool used{false};                 // used by the job itself (cdb_from_input 0) in at least one entry
   };
 }  // namespace
 
@@ -195,32 +195,41 @@ int main(int argc, char **argv)
   }
 
   // ---- 3. Ask the CDB what TAG holds ------------------------------------------------------------
-  SphenixClient client(tag);
-  if (!client.existGlobalTag(tag))
-  {
-    std::cerr << "cdb-frozen-tag-check: global tag " << tag << " does not exist" << std::endl;
-    return 2;
-  }
   // timestamp -> (type -> url) in TAG, one getUrlDict call per timestamp
   std::map<uint64_t, std::map<std::string, std::string>> inTag;
-  for (const auto &[key, r] : recorded)
+  try
   {
-    uint64_t timestamp = std::get<1>(key);
-    if (inTag.contains(timestamp))
+    SphenixClient client(tag);
+    if (!client.existGlobalTag(tag))
     {
-      continue;
-    }
-    nlohmann::json resp = client.getUrlDict(static_cast<long long>(timestamp));
-    if (resp["code"] != 0)
-    {
-      std::cerr << "cdb-frozen-tag-check: CDB error for " << tag << " @" << timestamp << ": " << resp["msg"] << std::endl;
+      std::cerr << "cdb-frozen-tag-check: global tag " << tag << " does not exist" << std::endl;
       return 2;
     }
-    auto &urls = inTag[timestamp];
-    for (const auto &[type, url] : resp["msg"].items())
+    for (const auto &[key, r] : recorded)
     {
-      urls[type] = url.get<std::string>();
+      uint64_t timestamp = std::get<1>(key);
+      if (inTag.contains(timestamp))
+      {
+        continue;
+      }
+      nlohmann::json resp = client.getUrlDict(static_cast<long long>(timestamp));
+      if (resp["code"] != 0)
+      {
+        std::cerr << "cdb-frozen-tag-check: CDB error for " << tag << " @" << timestamp << ": " << resp["msg"] << std::endl;
+        return 2;
+      }
+      auto &urls = inTag[timestamp];
+      for (const auto &[type, url] : resp["msg"].items())
+      {
+        urls[type] = url.get<std::string>();
+      }
     }
+  }
+  catch (const nlohmann::json::exception &e)
+  {
+    std::cerr << "cdb-frozen-tag-check: invalid CDB configuration or response for "
+              << tag << ": " << e.what() << '\n';
+    return 2;
   }
 
   // ---- 4. Compare -------------------------------------------------------------------------------

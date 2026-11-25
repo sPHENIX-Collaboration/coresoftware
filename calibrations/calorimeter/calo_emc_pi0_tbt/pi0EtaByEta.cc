@@ -857,7 +857,7 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
       float correction = 1;
       float peak = h_peak_tbt->GetBinContent(i + 1, j + 1);
       if (nPairs[i][j] <= 0 || nPairs[i][j] < minPairs)
-      {
+      {// NOLINT(bugprone-branch-clone)
         nLowStat++;
       }
       else if (!(peak > 0))  // NaN in the fit
