@@ -44,6 +44,12 @@ SvtxTrack *KFParticle_util::getTrack(unsigned int track_id, const SvtxTrackMap *
   return iter->second;
 }
 
+const Vertex *KFParticle_util::findDstVertex(const DstVertices &vertices, unsigned int id)
+{
+  auto iter = vertices.find(id);
+  return iter == vertices.end() ? nullptr : iter->second;
+}
+
 int KFParticle_util::getPVID(PHCompositeNode *topNode, const KFParticle &kfpvertex,
                              bool dontUseGlobalVertex, bool useMbdVertex, const std::string &vtxMapName)
 {

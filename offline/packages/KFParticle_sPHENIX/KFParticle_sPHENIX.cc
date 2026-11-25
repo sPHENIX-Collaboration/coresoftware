@@ -20,6 +20,7 @@
  */
 
 #include "KFParticle_sPHENIX.h"
+#include "KFParticle_eventView.h"
 
 #include <centrality/CentralityInfo.h>
 
@@ -107,6 +108,17 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
 int KFParticle_sPHENIX::InitRun(PHCompositeNode *topNode)
 {
   assert(topNode);
+
+  // The nodes the reconstruction reads every event; checked once here (KFParticle runs after the modules that make them)
+  const KFParticle_eventView eventView(topNode, m_config);
+  for (const auto &node : eventView.missingNodes())
+  {
+    std::cout << "KFParticle - [ERROR] - can't find " << node << std::endl;
+  }
+  if (!eventView.missingNodes().empty())
+  {
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   getField();
 

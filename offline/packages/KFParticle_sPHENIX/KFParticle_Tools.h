@@ -44,12 +44,10 @@
 
 class PHCompositeNode;
 
-class SvtxVertexMap;
-class SvtxTrackMap;
+class KFParticle_eventView;
 class Vertex;
 class SvtxTrack;
 class SvtxTrack_v5;
-class GlobalVertexMap;
 
 class KFParticle_Tools
 {
@@ -65,33 +63,33 @@ class KFParticle_Tools
 
   KFParticle makeVertex(const Vertex *vertex) const;
 
-  std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode, const std::string &vertexMapName);
+  std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode, const std::string &vertexMapName) const;
 
   KFParticle makeParticle(const SvtxTrack *track) const;
 
-  std::vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
+  std::vector<KFParticle> makeAllDaughterParticles(const KFParticle_eventView &eventView) const;
 
-  bool isGoodTrack(const KFParticle &particle, const std::vector<KFParticle> &primaryVertices) const;
+  bool isGoodTrack(const KFParticle_eventView &eventView, const KFParticle &particle, const std::vector<KFParticle> &primaryVertices) const;
 
-  bool isTPConlyAtZeroCrossing(const KFParticle &track) const;
+  bool isTPConlyAtZeroCrossing(const KFParticle_eventView &eventView, const KFParticle &track) const;
 
-  int calcMinPV_DCA(const KFParticle &track, const std::vector<KFParticle> &PVs, float &minimumPV_DCA, float &minimumPV_DCA_stddev, bool do3D = true) const;
+  int calcMinPV_DCA(const KFParticle_eventView &eventView, const KFParticle &track, const std::vector<KFParticle> &PVs, float &minimumPV_DCA, float &minimumPV_DCA_stddev, bool do3D = true) const;
 
-  std::vector<std::vector<int>> findTwoProngs(const std::vector<KFParticle> &daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices) const;
+  std::vector<std::vector<int>> findTwoProngs(const KFParticle_eventView &eventView, const std::vector<KFParticle> &daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices) const;
 
-  std::vector<std::vector<int>> findNProngs(const std::vector<KFParticle> &daughterParticles,
+  std::vector<std::vector<int>> findNProngs(const KFParticle_eventView &eventView, const std::vector<KFParticle> &daughterParticles,
                                             const std::vector<int> &goodTrackIndex,
                                             std::vector<std::vector<int>> goodTracksThatMeet,
                                             int nRequiredTracks, unsigned int nProngs, const std::vector<KFParticle> &primaryVertices) const;
 
-  std::vector<std::vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks, const std::vector<KFParticle> &primaryVertices) const;
+  std::vector<std::vector<int>> appendTracksToIntermediates(const KFParticle_eventView &eventView, KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks, const std::vector<KFParticle> &primaryVertices) const;
 
-  std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], int daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, PHCompositeNode *topNode);
+  std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], int daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, KFParticle_eventView &eventView);
 
   void constrainToVertex(KFParticle &particle, bool &goodCandidate, KFParticle &vertex) const;
 
   std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], int daughterOrder[], KFParticle vertex,
-                                              bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, PHCompositeNode *topNode);
+                                              bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, KFParticle_eventView &eventView);
 
   float get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter) const;
 
@@ -99,14 +97,11 @@ class KFParticle_Tools
 
   double get_dEdx_fitValue(float momentum, int PID);
 
-  bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex) const;
+  bool checkTrackAndVertexMatch(const KFParticle_eventView &eventView, KFParticle vDaughters[], int nTracks, const KFParticle &vertex) const;
 
-  std::vector<int> getParticleCrossings(const KFParticle &particle) const;
+  std::vector<int> getParticleCrossings(const KFParticle_eventView &eventView, const KFParticle &particle) const;
 
  protected:
-  /// The MBD or SVTX vertex (useMbdVertex picks the cached map) with this id; nullptr if it isn't in the map
-  const Vertex *findDstVertex(unsigned int id) const;
-
   TF1 *f_pion_plus{nullptr};
   TF1 *f_kaon_plus{nullptr};
   TF1 *f_proton_plus{nullptr};
@@ -115,15 +110,6 @@ class KFParticle_Tools
   TF1 *f_proton_minus{nullptr};
 
   std::map<int, TF1 *> pidMap;
-
-  std::map<int, std::vector<int>> m_intermediate_crossings;
-
-  int m_next_intermediate_id{-2};
-
-  GlobalVertexMap *m_dst_globalvertexmap{nullptr};
-  MbdVertexMap *m_dst_mbdvertexmap{nullptr};
-  SvtxTrackMap *m_dst_trackmap{nullptr};
-  SvtxVertexMap *m_dst_vertexmap{nullptr};
 
  private:
   const KFParticle_Config &m_config;

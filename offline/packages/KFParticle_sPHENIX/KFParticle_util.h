@@ -3,6 +3,7 @@
 
 #include <algorithm>  // for remove, stable_sort
 #include <cstddef>    // for size_t
+#include <map>
 #include <numeric>    // for iota
 #include <string>
 #include <utility>    // for move
@@ -14,6 +15,7 @@ class SvtxTrack;
 class SvtxTrackMap;
 class TrackSeed;
 class TrackSeedContainer;
+class Vertex;
 
 // Stateless helpers shared across the package
 namespace KFParticle_util
@@ -50,6 +52,28 @@ namespace KFParticle_util
 
   // Seed with this index, or nullptr for an unset or out-of-range id
   TrackSeed *findSeed(const TrackSeedContainer *container, unsigned short id);
+
+  // MBD or SVTX vertices by id. MbdVertexMap and SvtxVertexMap have no common base class, but both hold
+  // id -> vertex; copying the one in use into this map lets the rest of the code treat both alike.
+  using DstVertices = std::map<unsigned int, const Vertex *>;
+
+  // Copy of an MbdVertexMap or SvtxVertexMap; empty for a null map
+  template <class VertexMap>
+  DstVertices dstVertices(const VertexMap *vertexMap)
+  {
+    DstVertices vertices;
+    if (vertexMap)
+    {
+      for (const auto &[id, vertex] : *vertexMap)
+      {
+        vertices.emplace(id, vertex);
+      }
+    }
+    return vertices;
+  }
+
+  // Vertex with this id, or nullptr if it is not there
+  const Vertex *findDstVertex(const DstVertices &vertices, unsigned int id);
 
   // Beam crossing of the vertex the candidate was built with; -100 if it can't be found
   int getPVID(PHCompositeNode *topNode, const KFParticle &kfpvertex,

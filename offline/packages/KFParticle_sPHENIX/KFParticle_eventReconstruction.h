@@ -29,6 +29,7 @@
 #include <utility>  // for pair
 #include <vector>
 
+class KFParticle_eventView;
 class PHCompositeNode;
 
 class KFParticle_eventReconstruction : public KFParticle_Tools
@@ -58,7 +59,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                        std::vector<std::vector<KFParticle>> &selectedDaughtersBasic,
                        const std::vector<KFParticle> &daughterParticlesBasic,
                        const std::vector<int> &goodTrackIndexBasic,
-                       const std::vector<KFParticle> &primaryVerticesBasic, PHCompositeNode *topNode);
+                       const std::vector<KFParticle> &primaryVerticesBasic, KFParticle_eventView &eventView);
 
   /// Used to reconstruct more complicated decays with up to four intermediate states
   void buildChain(std::vector<KFParticle> &selectedMotherAdv,
@@ -67,7 +68,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                   std::vector<std::vector<KFParticle>> &selectedIntermediatesAdv,
                   const std::vector<KFParticle> &daughterParticlesAdv,
                   const std::vector<int> &goodTrackIndexAdv,
-                  const std::vector<KFParticle> &primaryVerticesAdv, PHCompositeNode *topNode);
+                  const std::vector<KFParticle> &primaryVerticesAdv, KFParticle_eventView &eventView);
 
   /// Basic building block for event reconstruction and selection
   void getCandidateDecay(std::vector<KFParticle> &selectedMotherCand,
@@ -77,7 +78,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                          const std::vector<std::vector<int>> &goodTracksThatMeetCand,
                          const std::vector<KFParticle> &primaryVerticesCand,
                          int n_track_start, int n_track_stop,
-                         bool isIntermediate, int intermediateNumber, bool constrainMass, PHCompositeNode *topNode);
+                         bool isIntermediate, int intermediateNumber, bool constrainMass, KFParticle_eventView &eventView);
 
   /// Method to chose best candidate from a selection of common SV's
   int selectBestCombination(bool PVconstraint, bool isAnInterMother,
