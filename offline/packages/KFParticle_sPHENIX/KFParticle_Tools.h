@@ -96,10 +96,6 @@ class KFParticle_Tools
   std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], int daughterOrder[], KFParticle vertex,
                                               bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, PHCompositeNode *topNode);
 
-  std::vector<std::vector<int>> findUniqueDaughterCombinations(int start, int end);
-
-  bool finalStateMatchesDecay(const std::vector<std::pair<int, int>> &assigned);
-
   float get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter);
 
   void init_dEdx_fits();

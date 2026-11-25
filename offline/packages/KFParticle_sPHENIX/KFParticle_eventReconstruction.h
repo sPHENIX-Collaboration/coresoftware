@@ -26,6 +26,7 @@
 
 #include <KFParticle.h>
 
+#include <utility>  // for pair
 #include <vector>
 
 class PHCompositeNode;
@@ -86,6 +87,12 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
   KFParticle createFakePV();
 
  private:
+  /// Unique |PDG ID| orderings of the daughters start..end-1 of the decay descriptor
+  std::vector<std::vector<int>> findUniqueDaughterCombinations(int start, int end) const;
+
+  /// Charges and species of the final-state tracks agree with the descriptor or its charge conjugate
+  bool finalStateMatchesDecay(const std::vector<std::pair<int, int>>& assigned) const;
+
   const KFParticle_Config& m_config;
 };
 

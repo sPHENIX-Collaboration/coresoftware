@@ -39,11 +39,14 @@
 #include <cassert>
 #include <cstdlib>   // for std::abs(int)
 #include <iterator>  // for begin, distance, end
+#include <map>
 #include <memory>   // for allocator_traits<>::value_type
 #include <numeric>  // for iota
 #include <set>
 #include <string>   // for string
 #include <tuple>    // for tie, tuple
+#include <utility>  // for pair
+#include <vector>
 
 #include <iostream>
 
@@ -553,4 +556,86 @@ KFParticle KFParticle_eventReconstruction::createFakePV()
   kfp_vertex.Chi2() = 0;
   kfp_vertex.SetId(0);
   return kfp_vertex;
+}
+
+std::vector<std::vector<int>> KFParticle_eventReconstruction::findUniqueDaughterCombinations(int start, int end) const
+{
+  std::vector<int> vect_permutations;
+  std::vector<std::vector<int>> uniqueCombinations;
+  std::map<int, int> daughterMap;
+  for (int i = start; i < end; i++)
+  {
+    daughterMap.emplace(i, std::abs(KFParticle_util::getParticleID(m_config.daughterNames[i])));
+    vect_permutations.push_back(i);
+  }
+  int *permutations = vect_permutations.data();
+
+  do
+  {
+    std::vector<int> combination;
+    combination.reserve((end - start));
+    for (int i = 0; i < (end - start); i++)
+    {
+      combination.push_back(daughterMap.find(permutations[i])->second);
+    }
+    uniqueCombinations.push_back(combination);
+  } while (std::next_permutation(permutations, permutations + vect_permutations.size()));
+
+  KFParticle_util::removeDuplicates(uniqueCombinations);
+
+  return uniqueCombinations;
+}
+
+/*
+ *  Checks the charge and the particle species given to the final-state tracks of a decay with intermediate states
+ *  against the decay descriptor. 'assigned' holds (charge, |PDG ID|) for each final-state track, ordered as the
+ *  daughters of the descriptor: the tracks of each intermediate state in turn, then the tracks coming straight from
+ *  the mother. Within one parent the tracks can be in any order, as the PID permutations are tried per track.
+ *  Either every charge is as in the descriptor or, if the charge conjugate is requested, every charge is flipped.
+ *  Mixing the two (e.g. Lambda0 -> p- pi+ in Xi- -> Lambda0 pi-) is rejected.
+ */
+bool KFParticle_eventReconstruction::finalStateMatchesDecay(const std::vector<std::pair<int, int>> &assigned) const
+{
+  if (assigned.size() != m_config.daughterNames.size() || m_config.daughterCharges.size() != m_config.daughterNames.size())
+  {
+    return true;  // The descriptor is not available in the form needed, do not reject anything
+  }
+
+  std::vector<unsigned int> groupSizes;
+  unsigned int tracksFromIntermediates = 0;
+  for (int i = 0; i < m_config.numIntermediateStates && i < (int) m_config.numTracksFromIntermediate.size(); ++i)
+  {
+    groupSizes.push_back(m_config.numTracksFromIntermediate[i]);
+    tracksFromIntermediates += m_config.numTracksFromIntermediate[i];
+  }
+  if (tracksFromIntermediates < assigned.size())
+  {
+    groupSizes.push_back(assigned.size() - tracksFromIntermediates);
+  }
+
+  bool matchesDescriptor = true;
+  bool matchesConjugate = m_config.chargeConjugate;
+  unsigned int first = 0;
+  for (const auto &size : groupSizes)
+  {
+    std::vector<std::pair<int, int>> expected;
+    std::vector<std::pair<int, int>> expectedConjugate;
+    std::vector<std::pair<int, int>> found;
+    for (unsigned int i = first; i < first + size && i < assigned.size(); ++i)
+    {
+      const int absPDG = std::abs(KFParticle_util::getParticleID(m_config.daughterNames[i]));
+      expected.emplace_back(m_config.daughterCharges[i], absPDG);
+      expectedConjugate.emplace_back(-m_config.daughterCharges[i], absPDG);
+      found.push_back(assigned[i]);
+    }
+    std::sort(expected.begin(), expected.end());
+    std::sort(expectedConjugate.begin(), expectedConjugate.end());
+    std::sort(found.begin(), found.end());
+
+    matchesDescriptor = matchesDescriptor && (found == expected);
+    matchesConjugate = matchesConjugate && (found == expectedConjugate);
+    first += size;
+  }
+
+  return matchesDescriptor || matchesConjugate;
 }
