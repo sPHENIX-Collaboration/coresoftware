@@ -951,17 +951,15 @@ int KshortReconstruction::End(PHCompositeNode* /**topNode*/)
 int KshortReconstruction::getNodes(PHCompositeNode* topNode)
 {
   // m_svtxTrackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-  m_svtxTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_input_trackMap_node_name.c_str());
+  m_svtxTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_input_trackMap_node_name);
   if (!m_svtxTrackMap)
-    {
-      std::cout << PHWHERE << "No SvtxTrackMap on node tree, exiting." << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  else
-    {
-      std::cout << PHWHERE << "Using tracks ffrom node " <<  m_input_trackMap_node_name  << std::endl;
-    }
-  
+  {
+    std::cout << PHWHERE << "No SvtxTrackMap on node tree, exiting." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  std::cout << PHWHERE << "Using tracks ffrom node " <<  m_input_trackMap_node_name  << std::endl;
+
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if (!m_vertexMap)
   {
