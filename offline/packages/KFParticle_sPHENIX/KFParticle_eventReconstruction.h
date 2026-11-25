@@ -35,7 +35,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
 {
  public:
   /// The config is owned by KFParticle_sPHENIX and is not yet constructed when this runs: pass it on, never read it here
-  explicit KFParticle_eventReconstruction(const KFParticle_Config& config);
+  explicit KFParticle_eventReconstruction(const KFParticle_Config &config);
 
   ~KFParticle_eventReconstruction() override = default;
 
@@ -47,37 +47,37 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
    * @param selectedDaughters Input a vector and it will be filled with any tracks associated to your mother
    * @param selectedIntermediates Input a vector and it will be filled with any intermediate states associated to your mother
    */
-  void createDecay(PHCompositeNode* topNode, std::vector<KFParticle>& selectedMother, std::vector<KFParticle>& selectedVertex,
-                   std::vector<std::vector<KFParticle>>& selectedDaughters,
-                   std::vector<std::vector<KFParticle>>& selectedIntermediates,
-                   int& nPVs);
+  void createDecay(PHCompositeNode *topNode, std::vector<KFParticle> &selectedMother, std::vector<KFParticle> &selectedVertex,
+                   std::vector<std::vector<KFParticle>> &selectedDaughters,
+                   std::vector<std::vector<KFParticle>> &selectedIntermediates,
+                   int &nPVs);
 
   /// Used to reconstruct simple decays with no intermediate states
-  void buildBasicChain(std::vector<KFParticle>& selectedMotherBasic,
-                       std::vector<KFParticle>& selectedVertexBasic,
-                       std::vector<std::vector<KFParticle>>& selectedDaughtersBasic,
-                       const std::vector<KFParticle>& daughterParticlesBasic,
-                       const std::vector<int>& goodTrackIndexBasic,
-                       const std::vector<KFParticle>& primaryVerticesBasic, PHCompositeNode* topNode);
+  void buildBasicChain(std::vector<KFParticle> &selectedMotherBasic,
+                       std::vector<KFParticle> &selectedVertexBasic,
+                       std::vector<std::vector<KFParticle>> &selectedDaughtersBasic,
+                       const std::vector<KFParticle> &daughterParticlesBasic,
+                       const std::vector<int> &goodTrackIndexBasic,
+                       const std::vector<KFParticle> &primaryVerticesBasic, PHCompositeNode *topNode);
 
   /// Used to reconstruct more complicated decays with up to four intermediate states
-  void buildChain(std::vector<KFParticle>& selectedMotherAdv,
-                  std::vector<KFParticle>& selectedVertexAdv,
-                  std::vector<std::vector<KFParticle>>& selectedDaughtersAdv,
-                  std::vector<std::vector<KFParticle>>& selectedIntermediatesAdv,
-                  const std::vector<KFParticle>& daughterParticlesAdv,
-                  const std::vector<int>& goodTrackIndexAdv,
-                  const std::vector<KFParticle>& primaryVerticesAdv, PHCompositeNode* topNode);
+  void buildChain(std::vector<KFParticle> &selectedMotherAdv,
+                  std::vector<KFParticle> &selectedVertexAdv,
+                  std::vector<std::vector<KFParticle>> &selectedDaughtersAdv,
+                  std::vector<std::vector<KFParticle>> &selectedIntermediatesAdv,
+                  const std::vector<KFParticle> &daughterParticlesAdv,
+                  const std::vector<int> &goodTrackIndexAdv,
+                  const std::vector<KFParticle> &primaryVerticesAdv, PHCompositeNode *topNode);
 
   /// Basic building block for event reconstruction and selection
-  void getCandidateDecay(std::vector<KFParticle>& selectedMotherCand,
-                         std::vector<KFParticle>& selectedVertexCand,
-                         std::vector<std::vector<KFParticle>>& selectedDaughtersCand,
-                         const std::vector<KFParticle>& daughterParticlesCand,
-                         const std::vector<std::vector<int>>& goodTracksThatMeetCand,
-                         const std::vector<KFParticle>& primaryVerticesCand,
+  void getCandidateDecay(std::vector<KFParticle> &selectedMotherCand,
+                         std::vector<KFParticle> &selectedVertexCand,
+                         std::vector<std::vector<KFParticle>> &selectedDaughtersCand,
+                         const std::vector<KFParticle> &daughterParticlesCand,
+                         const std::vector<std::vector<int>> &goodTracksThatMeetCand,
+                         const std::vector<KFParticle> &primaryVerticesCand,
                          int n_track_start, int n_track_stop,
-                         bool isIntermediate, int intermediateNumber, bool constrainMass, PHCompositeNode* topNode);
+                         bool isIntermediate, int intermediateNumber, bool constrainMass, PHCompositeNode *topNode);
 
   /// Method to chose best candidate from a selection of common SV's
   int selectBestCombination(bool PVconstraint, bool isAnInterMother,
@@ -91,9 +91,9 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
   std::vector<std::vector<int>> findUniqueDaughterCombinations(int start, int end) const;
 
   /// Charges and species of the final-state tracks agree with the descriptor or its charge conjugate
-  bool finalStateMatchesDecay(const std::vector<std::pair<int, int>>& assigned) const;
+  bool finalStateMatchesDecay(const std::vector<std::pair<int, int>> &assigned) const;
 
-  const KFParticle_Config& m_config;
+  const KFParticle_Config &m_config;
 };
 
 #endif  // KFPARTICLESPHENIX_KFPARTICLEEVENTRECONSTRUCTION_H

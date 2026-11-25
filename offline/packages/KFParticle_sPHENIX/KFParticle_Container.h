@@ -21,28 +21,28 @@ class KFParticle;
 class KFParticle_Container : public PHObject
 {
  public:
-  using Map = std::map<unsigned int, KFParticle*>;
+  using Map = std::map<unsigned int, KFParticle *>;
   using ConstIter = Map::const_iterator;
   using Iter = Map::iterator;
 
   KFParticle_Container();
-  KFParticle_Container(const KFParticle_Container& kfparticlemap);
-  KFParticle_Container& operator=(const KFParticle_Container& kfparticlemap);
+  KFParticle_Container(const KFParticle_Container &kfparticlemap);
+  KFParticle_Container &operator=(const KFParticle_Container &kfparticlemap);
   ~KFParticle_Container() override;
 
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream &os = std::cout) const override;
   // cppcheck-suppress [virtualCallInConstructor]
   void Reset() override;
   int isValid() const override { return 1; }
-  PHObject* CloneMe() const override { return new KFParticle_Container(*this); }
+  PHObject *CloneMe() const override { return new KFParticle_Container(*this); }
 
   bool empty() const { return m_kfpmap.empty(); }
   size_t size() const { return m_kfpmap.size(); }
   size_t count(unsigned int key) const { return m_kfpmap.count(key); }
   void clear() { Reset(); }
 
-  const KFParticle* get(unsigned int id) const;
-  KFParticle* get(unsigned int id);
+  const KFParticle *get(unsigned int id) const;
+  KFParticle *get(unsigned int id);
 
   ConstIter begin() const { return m_kfpmap.begin(); }
   ConstIter find(unsigned int key) const { return m_kfpmap.find(key); }
@@ -52,9 +52,9 @@ class KFParticle_Container : public PHObject
   Iter find(unsigned int key) { return m_kfpmap.find(key); }
   Iter end() { return m_kfpmap.end(); }
 
-  KFParticle* insert(const KFParticle* particle);
-  ConstIter addParticle(KFParticle* particle);
-  ConstIter addParticleSpecifyKey(unsigned int id, KFParticle* particle);
+  KFParticle *insert(const KFParticle *particle);
+  ConstIter addParticle(KFParticle *particle);
+  ConstIter addParticleSpecifyKey(unsigned int id, KFParticle *particle);
 
   /// Use the PDG MC ID to return a subset of the KFParticle container, if those particle exist in the container
   Map returnParticlesByPDGid(int PDGid);
