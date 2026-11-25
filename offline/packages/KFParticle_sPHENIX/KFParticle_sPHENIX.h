@@ -443,9 +443,28 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_config.bunchCrossingZeroOnly = bcZeroOnly; }
 
-  void forceMixedEvent(bool force = true) { m_config.forceMixedEvent = force; }
+  /// Bunch-crossing requirement between the tracks of a combination: Any, Same (default) or Mixed (mixed-event sample)
+  void setBunchCrossingMode(KFParticle_Config::BunchCrossingMode mode)
+  {
+    m_config.bunchCrossingMode = mode;
+    m_deprecatedForceMixedEvent = mode == KFParticle_Config::BunchCrossingMode::Mixed;
+    m_deprecatedRequireBunchCrossingMatch = mode != KFParticle_Config::BunchCrossingMode::Any;
+  }
 
-  void requireBunchCrossingMatch(bool require = true) { m_config.requireBunchCrossingMatch = require; }
+  //DEPRECATED: use setBunchCrossingMode(KFParticle_Config::BunchCrossingMode::Mixed). Still wins over
+  //requireBunchCrossingMatch whatever the call order, as before
+  void forceMixedEvent(bool force = true)
+  {
+    m_deprecatedForceMixedEvent = force;
+    updateBunchCrossingMode();
+  }
+
+  //DEPRECATED: use setBunchCrossingMode(KFParticle_Config::BunchCrossingMode::Same) or (...::Any)
+  void requireBunchCrossingMatch(bool require = true)
+  {
+    m_deprecatedRequireBunchCrossingMatch = require;
+    updateBunchCrossingMode();
+  }
 
   /// On by default. Builds each N-prong combination (3+ body decays) once, from its (N-1)-prong subset plus a track with a
   /// larger index, instead of once for every track that can be added last. About 2.7x faster, but the DCA test is made
@@ -480,6 +499,27 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
  private:
   KFParticle_Config m_config;  // the only writable configuration; base classes hold a const reference to it
+
+  // Last values given to the two deprecated crossing setters, kept only so that any call order gives the old result
+  bool m_deprecatedForceMixedEvent{false};
+  bool m_deprecatedRequireBunchCrossingMatch{true};
+  void updateBunchCrossingMode()
+  {
+    using Mode = KFParticle_Config::BunchCrossingMode;
+    if (m_deprecatedForceMixedEvent)
+    {
+      m_config.bunchCrossingMode = Mode::Mixed;
+    }
+    else if (m_deprecatedRequireBunchCrossingMatch)
+    {
+      m_config.bunchCrossingMode = Mode::Same;
+    }
+    else
+    {
+      m_config.bunchCrossingMode = Mode::Any;
+    }
+  }
+
   int candidateCounter = 0;
   //Adding member variables for BCO matching
   uint64_t m_this_event_bco{0};

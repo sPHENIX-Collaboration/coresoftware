@@ -80,6 +80,7 @@ namespace
     static const KFParticle_Config config;
     return config;
   }
+using BunchCrossingMode = KFParticle_Config::BunchCrossingMode;
 }  // namespace
 
 /// KFParticle constructor
@@ -491,7 +492,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<
   std::vector<std::vector<int>> goodTracksThatMeet;
 
   // The crossings of each particle do not depend on the pair, so get them once instead of for every pair
-  const bool checkCrossings = m_config.requireBunchCrossingMatch || m_config.forceMixedEvent;
+  const bool checkCrossings = m_config.bunchCrossingMode != BunchCrossingMode::Any;
   std::vector<std::vector<int>> particleCrossings;
   if (checkCrossings)
   {
@@ -519,7 +520,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const std::vector<
           removeDuplicates(crossings);
 
           const bool sameCrossing = crossings.size() == 1;
-          if ((m_config.requireBunchCrossingMatch && !sameCrossing) || (m_config.forceMixedEvent && sameCrossing))
+          if ((m_config.bunchCrossingMode == BunchCrossingMode::Same && !sameCrossing) || (m_config.bunchCrossingMode == BunchCrossingMode::Mixed && sameCrossing))
           {
             continue;
           }
@@ -914,10 +915,10 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
   }
   removeDuplicates(crossings);
 
-  if (goodCandidate && (m_config.requireBunchCrossingMatch || m_config.forceMixedEvent))
+  if (goodCandidate && m_config.bunchCrossingMode != BunchCrossingMode::Any)
   {
     const bool sameCrossing = crossings.size() == 1;
-    if ((m_config.requireBunchCrossingMatch && !sameCrossing) || (m_config.forceMixedEvent && sameCrossing))
+    if ((m_config.bunchCrossingMode == BunchCrossingMode::Same && !sameCrossing) || (m_config.bunchCrossingMode == BunchCrossingMode::Mixed && sameCrossing))
     {
       goodCandidate = false;
     }
@@ -1100,7 +1101,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaught
 
   if (constrain_to_vertex && isGoodCandidate && !isIntermediate)
   {
-    if (m_config.requireTrackVertexBunchCrossingMatch)
+    if (m_config.requireTrackVertexBunchCrossingMatch && m_config.bunchCrossingMode != BunchCrossingMode::Mixed)
     {
       isGoodCandidate = checkTrackAndVertexMatch(vDaughters, nTracks, vertex);
     }

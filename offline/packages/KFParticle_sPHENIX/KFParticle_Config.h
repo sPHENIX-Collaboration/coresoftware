@@ -143,10 +143,15 @@ struct KFParticle_Config
   bool use2DMatching = false;          // best-candidate PV association uses the XY deviation (selectBestCombination)
   bool bunchCrossingZeroOnly = false;  // only tracks with crossing 0
   bool useOrderedProngCombinations = true;  // see the setter for the speed/acceptance trade-off
-  // Bunch-crossing requirements. With forceMixedEvent, KFParticle_sPHENIX::Init switches both match flags off
-  bool forceMixedEvent = false;            // keep only combinations whose tracks come from different crossings
-  bool requireBunchCrossingMatch = true;   // all tracks of a combination from the same crossing
-  bool requireTrackVertexBunchCrossingMatch = false;  // tracks and PV from the same crossing (with the PV constraint)
+  // Bunch-crossing requirement between the tracks of a combination (findTwoProngs, buildMother)
+  enum class BunchCrossingMode
+  {
+    Any,   // no requirement
+    Same,  // all tracks from the same crossing
+    Mixed  // tracks from different crossings (mixed-event sample)
+  };
+  BunchCrossingMode bunchCrossingMode = BunchCrossingMode::Same;
+  bool requireTrackVertexBunchCrossingMatch = false;  // tracks and PV from the same crossing (with the PV constraint); ignored in Mixed mode
 
   // Magnetic field
   std::string magFieldFile = "FIELDMAP_TRACKING";  // file path or CDB tag; getField() replaces a tag with the resolved path

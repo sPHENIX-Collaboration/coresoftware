@@ -96,15 +96,9 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
     init_dEdx_fits();
   }
 
-  if (m_config.forceMixedEvent)
+  if (m_config.bunchCrossingMode == KFParticle_Config::BunchCrossingMode::Mixed && Verbosity() >= VERBOSITY_MORE)
   {
-    m_config.requireBunchCrossingMatch = false;
-    m_config.requireTrackVertexBunchCrossingMatch = false;
-
-    if (Verbosity() >= VERBOSITY_MORE)
-    {
-      std::cout << "KFParticle: You have forced to make a mixed-event sample. This overwrites any request to match bunch-crossings between tracks and primary vertices" << std::endl;
-    }
+    std::cout << "KFParticle: You have forced to make a mixed-event sample. This overwrites any request to match bunch-crossings between tracks and primary vertices" << std::endl;
   }
 
   return returnCode;
