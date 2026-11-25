@@ -35,10 +35,12 @@
 #include <phool/RunnumberRange.h>
 
 // -- ROOT
+#include <TH1.h>
 #include <TProfile.h>
 #include <TH2.h>
 
 // -- c++
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 
@@ -74,12 +76,18 @@ int sEPD_TreeGen::Init(PHCompositeNode *topNode)
   hSEPD_Charge = new TProfile("hSEPD_Charge", "|z| < 10 cm and MB; Channel; Avg Charge", QVecShared::SEPD_CHANNELS, 0, QVecShared::SEPD_CHANNELS);
   hSEPD_Charge->Sumw2();
 
+  // Channels whose calibrated charge is not finite, e.g. a zero gain in SEPD_NMIP_CALIB.
+  // They are excluded from the tree and the total charge.
+  hSEPD_NonFinite = new TH1F("hSEPD_NonFinite", "|z| < 10 cm and MB; Channel; Events with non-finite charge",
+                             QVecShared::SEPD_CHANNELS, 0, QVecShared::SEPD_CHANNELS);
+
   h2SEPD_totalcharge_centrality = new TH2F("h2SEPD_totalcharge_centrality",
                                            "|z| < 10 cm and MB; sEPD Total Charge; Centrality [%]",
                                            bins_sepd_totalcharge, sepd_totalcharge_low, sepd_totalcharge_high,
                                            bins_centrality, centrality_low, centrality_high);
 
   se->registerHisto(hSEPD_Charge);
+  se->registerHisto(hSEPD_NonFinite);
   se->registerHisto(h2SEPD_totalcharge_centrality);
 
   PHNodeIterator node_itr(topNode);
@@ -304,6 +312,14 @@ int sEPD_TreeGen::process_sEPD(PHCompositeNode *topNode)
 
     double charge = tower->get_energy();
     bool isZS = tower->get_isZS();
+
+    // exclude channels with a non-finite charge (EpdReco divides by the gain, so a zero gain gives inf/NaN);
+    // the charge threshold below does not catch these, since inf passes it and NaN compares false
+    if (!std::isfinite(charge))
+    {
+      hSEPD_NonFinite->Fill(channel);
+      continue;
+    }
 
     // exclude ZS
     // exclude Nmips
