@@ -51,7 +51,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
   void createDecay(PHCompositeNode *topNode, std::vector<KFParticle> &selectedMother, std::vector<KFParticle> &selectedVertex,
                    std::vector<std::vector<KFParticle>> &selectedDaughters,
                    std::vector<std::vector<KFParticle>> &selectedIntermediates,
-                   int &nPVs);
+                   int &nPVs) const;
 
   /// Used to reconstruct simple decays with no intermediate states
   void buildBasicChain(std::vector<KFParticle> &selectedMotherBasic,
@@ -59,7 +59,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                        std::vector<std::vector<KFParticle>> &selectedDaughtersBasic,
                        const std::vector<KFParticle> &daughterParticlesBasic,
                        const std::vector<int> &goodTrackIndexBasic,
-                       const std::vector<KFParticle> &primaryVerticesBasic, KFParticle_eventView &eventView);
+                       const std::vector<KFParticle> &primaryVerticesBasic, KFParticle_eventView &eventView) const;
 
   /// Used to reconstruct more complicated decays with up to four intermediate states
   void buildChain(std::vector<KFParticle> &selectedMotherAdv,
@@ -68,7 +68,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                   std::vector<std::vector<KFParticle>> &selectedIntermediatesAdv,
                   const std::vector<KFParticle> &daughterParticlesAdv,
                   const std::vector<int> &goodTrackIndexAdv,
-                  const std::vector<KFParticle> &primaryVerticesAdv, KFParticle_eventView &eventView);
+                  const std::vector<KFParticle> &primaryVerticesAdv, KFParticle_eventView &eventView) const;
 
   /// Basic building block for event reconstruction and selection
   void getCandidateDecay(std::vector<KFParticle> &selectedMotherCand,
@@ -78,14 +78,14 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                          const std::vector<std::vector<int>> &goodTracksThatMeetCand,
                          const std::vector<KFParticle> &primaryVerticesCand,
                          int n_track_start, int n_track_stop,
-                         bool isIntermediate, int intermediateNumber, bool constrainMass, KFParticle_eventView &eventView);
+                         bool isIntermediate, int intermediateNumber, bool constrainMass, KFParticle_eventView &eventView) const;
 
   /// Method to chose best candidate from a selection of common SV's
   int selectBestCombination(bool PVconstraint, bool isAnInterMother,
                             std::vector<KFParticle> possibleCandidates,
                             std::vector<KFParticle> possibleVertex) const;
 
-  KFParticle createFakePV();
+  KFParticle createFakePV() const;
 
  private:
   /// Unique |PDG ID| orderings of the daughters start..end-1 of the decay descriptor

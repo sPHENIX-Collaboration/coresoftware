@@ -77,16 +77,16 @@ class KFParticle_Tools
 
   std::vector<std::vector<int>> appendTracksToIntermediates(const KFParticle_eventView &eventView, KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks, const std::vector<KFParticle> &primaryVertices) const;
 
-  std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], int daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, KFParticle_eventView &eventView);
+  std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], int daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, KFParticle_eventView &eventView) const;
 
   void constrainToVertex(KFParticle &particle, bool &goodCandidate, KFParticle &vertex) const;
 
   std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], int daughterOrder[], KFParticle vertex,
-                                              bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, KFParticle_eventView &eventView);
+                                              bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, KFParticle_eventView &eventView) const;
 
   void init_dEdx_fits();
 
-  double get_dEdx_fitValue(float momentum, int PID);
+  double get_dEdx_fitValue(float momentum, int PID) const;
 
   bool checkTrackAndVertexMatch(const KFParticle_eventView &eventView, KFParticle vDaughters[], int nTracks, const KFParticle &vertex) const;
 

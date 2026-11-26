@@ -103,7 +103,7 @@ KFParticle_eventReconstruction::KFParticle_eventReconstruction(const KFParticle_
 void KFParticle_eventReconstruction::createDecay(PHCompositeNode *topNode, std::vector<KFParticle> &selectedMother, std::vector<KFParticle> &selectedVertex,
                                                  std::vector<std::vector<KFParticle>> &selectedDaughters,
                                                  std::vector<std::vector<KFParticle>> &selectedIntermediates,
-                                                 int &nPVs)
+                                                 int &nPVs) const
 {
   KFParticle_eventView eventView(topNode, m_config);
 
@@ -149,7 +149,7 @@ void KFParticle_eventReconstruction::buildBasicChain(std::vector<KFParticle> &se
                                                      std::vector<std::vector<KFParticle>> &selectedDaughtersBasic,
                                                      const std::vector<KFParticle> &daughterParticlesBasic,
                                                      const std::vector<int> &goodTrackIndexBasic,
-                                                     const std::vector<KFParticle> &primaryVerticesBasic, KFParticle_eventView &eventView)
+                                                     const std::vector<KFParticle> &primaryVerticesBasic, KFParticle_eventView &eventView) const
 {
   std::vector<std::vector<int>> goodTracksThatMeet = findTwoProngs(eventView, daughterParticlesBasic, goodTrackIndexBasic, m_config.numTracks, primaryVerticesBasic);
   for (int p = 3; p < m_config.numTracks + 1; ++p)
@@ -175,7 +175,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle> &selecte
                                                 std::vector<std::vector<KFParticle>> &selectedIntermediatesAdv,
                                                 const std::vector<KFParticle> &daughterParticlesAdv,
                                                 const std::vector<int> &goodTrackIndexAdv,
-                                                const std::vector<KFParticle> &primaryVerticesAdv, KFParticle_eventView &eventView)
+                                                const std::vector<KFParticle> &primaryVerticesAdv, KFParticle_eventView &eventView) const
 {
   int track_start = 0;
   int track_stop = m_config.numTracksFromIntermediate[0];
@@ -433,7 +433,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle> &
                                                        const std::vector<std::vector<int>> &goodTracksThatMeetCand,
                                                        const std::vector<KFParticle> &primaryVerticesCand,
                                                        int n_track_start, int n_track_stop,
-                                                       bool isIntermediate, int intermediateNumber, bool constrainMass, KFParticle_eventView &eventView)
+                                                       bool isIntermediate, int intermediateNumber, bool constrainMass, KFParticle_eventView &eventView) const
 {
   int nTracks = n_track_stop - n_track_start;
   std::vector<std::vector<int>> uniqueCombinations = findUniqueDaughterCombinations(n_track_start, n_track_stop);
@@ -547,7 +547,7 @@ int KFParticle_eventReconstruction::selectBestCombination(bool PVconstraint, boo
   return bestCombinationIndex;
 }
 
-KFParticle KFParticle_eventReconstruction::createFakePV()
+KFParticle KFParticle_eventReconstruction::createFakePV() const
 {
   float f_vertexParameters[6] = {0};
 

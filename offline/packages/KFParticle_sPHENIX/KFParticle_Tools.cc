@@ -653,7 +653,7 @@ std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(cons
 
 std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters[], int daughterOrder[],
                                                            bool isIntermediate, int intermediateNumber, int nTracks,
-                                                           bool constrainMass, float required_vertexID, KFParticle_eventView &eventView)
+                                                           bool constrainMass, float required_vertexID, KFParticle_eventView &eventView) const
 {
   KFParticle mother;
   std::vector<KFParticle> inputTracks(nTracks);
@@ -964,7 +964,7 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
   }
 }
 
-std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaughters[], int daughterOrder[], KFParticle vertex, bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, KFParticle_eventView &eventView)
+std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaughters[], int daughterOrder[], KFParticle vertex, bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, KFParticle_eventView &eventView) const
 {
   auto [candidate, isGoodCandidate] = buildMother(vDaughters, daughterOrder, isIntermediate, intermediateNumber, nTracks, constrainMass, required_vertexID, eventView);
 
@@ -991,7 +991,7 @@ void KFParticle_Tools::init_dEdx_fits()
 
   TFile *filefit = TFile::Open(dedx_fitparams.c_str());
 
-  if (!filefit->IsOpen())
+  if (!filefit || !filefit->IsOpen())
   {
     std::cerr << "Error opening filefit!" << std::endl;
     return;
@@ -1031,9 +1031,9 @@ void KFParticle_Tools::init_dEdx_fits()
   pidMap.emplace(-2212, f_proton_minus);
 }
 
-double KFParticle_Tools::get_dEdx_fitValue(float momentum, int PID)
+double KFParticle_Tools::get_dEdx_fitValue(float momentum, int PID) const
 {
-  return pidMap[PID]->Eval(momentum);
+  return pidMap.at(PID)->Eval(momentum);
 }
 
 bool KFParticle_Tools::checkTrackAndVertexMatch(const KFParticle_eventView &eventView, KFParticle vDaughters[], int nTracks, const KFParticle &vertex) const
