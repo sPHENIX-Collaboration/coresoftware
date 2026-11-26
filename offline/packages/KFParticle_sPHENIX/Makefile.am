@@ -21,8 +21,8 @@ pkginclude_HEADERS = \
   KFParticle_Container.h \
   KFParticle_detectorInfo.h \
   KFParticle_DST.h \
+  KFParticle_eventData.h \
   KFParticle_eventReconstruction.h \
-  KFParticle_eventView.h \
   KFParticle_nTuple.h \
   KFParticle_sPHENIX.h \
   KFParticle_Tools.h \
@@ -45,8 +45,8 @@ libkfparticle_sphenix_la_SOURCES = \
   KFParticle_caloInfo.cc \
   KFParticle_detectorInfo.cc \
   KFParticle_DST.cc \
+  KFParticle_eventData.cc \
   KFParticle_eventReconstruction.cc \
-  KFParticle_eventView.cc \
   KFParticle_nTuple.cc \
   KFParticle_sPHENIX.cc \
   KFParticle_Tools.cc \

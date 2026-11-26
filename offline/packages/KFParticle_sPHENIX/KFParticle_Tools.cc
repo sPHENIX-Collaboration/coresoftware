@@ -26,7 +26,7 @@
 /*****************/
 
 #include "KFParticle_Tools.h"
-#include "KFParticle_eventView.h"
+#include "KFParticle_eventData.h"
 #include "KFParticle_util.h"
 
 #include <trackbase_historic/SvtxTrack.h>
@@ -39,11 +39,6 @@
 #include <trackbase_historic/SvtxTrackSeed_v2.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
-
-#include <globalvertex/GlobalVertex.h>
-#include <globalvertex/GlobalVertexMap.h>
-#include <globalvertex/SvtxVertex.h>
-#include <globalvertex/SvtxVertexMap.h>
 
 #include <phool/getClass.h>
 
@@ -69,20 +64,6 @@
 namespace
 {
 using BunchCrossingMode = KFParticle_Config::BunchCrossingMode;
-
-  // True if the two positions agree to within 1e-6 cm in every coordinate
-  bool vertexToleranceCheck(float vertexMap_pos[3], float kfp_vertex_pos[3])
-  {
-    constexpr float epsilon = 1e-6F;
-    for (unsigned int i = 0; i < 3; ++i)
-    {
-      if (std::abs(vertexMap_pos[i] - kfp_vertex_pos[i]) > epsilon)
-      {
-        return false;
-      }
-    }
-    return true;
-  }
 }  // namespace
 
 /// KFParticle constructor
@@ -121,11 +102,11 @@ KFParticle KFParticle_Tools::makeParticle(const SvtxTrack *track) const  /// Ret
   return kfp_particle;
 }
 
-std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(const KFParticle_eventView &eventView) const
+std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(const SvtxTrackMap *trackMap) const
 {
   std::vector<KFParticle> daughterParticles;
 
-  for (const auto &iter : *eventView.trackMap())
+  for (const auto &iter : *trackMap)
   {
     const SvtxTrack *track = iter.second;
 
@@ -231,7 +212,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(const KFParti
   return daughterParticles;
 }
 
-bool KFParticle_Tools::isGoodTrack(const KFParticle_eventView &eventView, const KFParticle &particle, const std::vector<KFParticle> &primaryVertices) const
+bool KFParticle_Tools::isGoodTrack(const KFParticle_eventData &eventData, const KFParticle &particle) const
 {
   float min_PV_dca = 0;
   float min_PV_dca_stddev = 0;
@@ -243,8 +224,8 @@ bool KFParticle_Tools::isGoodTrack(const KFParticle_eventView &eventView, const 
   particle.GetPt(pt, pterr);  // Both pt and pterr are passed by reference. GetPt() unhelpfully returns 0 for simulated silicon-only tracks, so we are changing to this function GetPt(p_t, sigma p_T)
 
   float ptchi2 = pow(pterr / pt, 2);
-  calcMinPV_DCA(eventView, particle, primaryVertices, min_PV_dca, min_PV_dca_stddev);
-  calcMinPV_DCA(eventView, particle, primaryVertices, min_PV_dca_xy, min_PV_dca_stddev_xy, false);
+  calcMinPV_DCA(eventData, particle, min_PV_dca, min_PV_dca_stddev);
+  calcMinPV_DCA(eventData, particle, min_PV_dca_xy, min_PV_dca_stddev_xy, false);
 
   bool goodTrack = KFParticle_util::isInRange(m_config.trackMinPt, pt, m_config.trackMaxPt) &&
                    ptchi2 <= m_config.trackMaxPtChi2 &&
@@ -270,36 +251,23 @@ bool KFParticle_Tools::isGoodTrack(const KFParticle_eventView &eventView, const 
   return goodTrack;
 }
 
-bool KFParticle_Tools::isTPConlyAtZeroCrossing(const KFParticle_eventView &eventView, const KFParticle& track) const
+bool KFParticle_Tools::isTPConlyAtZeroCrossing(const KFParticle_eventData &eventData, const KFParticle &track) const
 {
-  const auto* svtxTrack = KFParticle_util::getTrack(track.Id(), eventView.trackMap());
-
-  if (!svtxTrack || svtxTrack->get_crossing() != 0)
-  {
-    return false;
-  }
-
-  // SvtxTrack_v5 keeps no seed pointers: TPC-only means no silicon clusters on the track
-  if (const auto* v5 = dynamic_cast<const SvtxTrack_v5*>(svtxTrack))
-  {
-    return v5->get_nmvtx_clusters() == 0 && v5->get_nintt_clusters() == 0;
-  }
-
-  // SvtxTrack_v4 and earlier carry the seed pointer
-  return svtxTrack->get_silicon_seed() == nullptr;
+  return eventData.tpcOnlyAtZeroCrossing.contains(track.Id());
 }
 
-int KFParticle_Tools::calcMinPV_DCA(const KFParticle_eventView &eventView, const KFParticle &track, const std::vector<KFParticle> &PVs,
+int KFParticle_Tools::calcMinPV_DCA(const KFParticle_eventData &eventData, const KFParticle &track,
                                 float &minimumPV_DCA, float &minimumPV_DCA_stddev, bool do3D) const
 {
   std::vector<float> ip;
   std::vector<float> ip_significance;
 
-  for (const auto &PV : PVs)
+  for (const auto &primaryVertex : eventData.primaryVertices)
   {
+    const KFParticle &PV = primaryVertex.vertex;
     KFParticle trackArray[1] = {track};
-    bool fromSameCrossing = checkTrackAndVertexMatch(eventView, trackArray, 1, PV);
-    if (!isTPConlyAtZeroCrossing(eventView, track))
+    bool fromSameCrossing = checkTrackAndVertexMatch(eventData, trackArray, 1, primaryVertex);
+    if (!isTPConlyAtZeroCrossing(eventData, track))
     {
       if (!fromSameCrossing)
       {
@@ -339,26 +307,14 @@ int KFParticle_Tools::calcMinPV_DCA(const KFParticle_eventView &eventView, const
   return 0;
 }
 
-std::vector<int> KFParticle_Tools::getParticleCrossings(const KFParticle_eventView &eventView, const KFParticle &particle) const
+std::vector<int> KFParticle_Tools::getParticleCrossings(const KFParticle_eventData &eventData, const KFParticle &particle) const
 {
-  std::vector<int> crossings;
-
-  SvtxTrack *thisTrack = KFParticle_util::getTrack(particle.Id(), eventView.trackMap());
-  if (thisTrack)
-  {
-    crossings.push_back(thisTrack->get_crossing());
-    return crossings;
-  }
-
-  if (const std::vector<int> *intermediateCrossings = eventView.intermediateCrossings(particle.Id()))
-  {
-    crossings = *intermediateCrossings;
-  }
-
-  return crossings;
+  // tracks (ids >= 0) and the intermediates accepted so far (ids -2, -3, ...); anything else has no crossings
+  const auto entry = eventData.crossingsById.find(particle.Id());
+  return entry == eventData.crossingsById.end() ? std::vector<int>{} : entry->second;
 }
 
-std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const KFParticle_eventView &eventView, const std::vector<KFParticle> &daughterParticles, std::vector<int> goodTrackIndex, int nTracks, const std::vector<KFParticle> &primaryVertices) const
+std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const KFParticle_eventData &eventData, const std::vector<KFParticle> &daughterParticles, std::vector<int> goodTrackIndex, int nTracks) const
 {
   std::vector<std::vector<int>> goodTracksThatMeet;
 
@@ -370,7 +326,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const KFParticle_e
     particleCrossings.resize(daughterParticles.size());
     for (const auto &idx : goodTrackIndex)
     {
-      particleCrossings[idx] = getParticleCrossings(eventView, daughterParticles[idx]);
+      particleCrossings[idx] = getParticleCrossings(eventData, daughterParticles[idx]);
     }
   }
   std::vector<int> crossings;  // reused for every pair
@@ -452,7 +408,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const KFParticle_e
             }
        
             const bool allTracksPass = std::all_of(dummy_tracks.begin(), dummy_tracks.end(),
-                                                   [&](const KFParticle &track) { return isGoodTrack(eventView, track, primaryVertices); });
+                                                   [&](const KFParticle &track) { return isGoodTrack(eventData, track); });
             if (!allTracksPass)
             {
               continue;
@@ -468,10 +424,10 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(const KFParticle_e
   return goodTracksThatMeet;
 }
 
-std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const KFParticle_eventView &eventView, const std::vector<KFParticle> &daughterParticles,
+std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const KFParticle_eventData &eventData, const std::vector<KFParticle> &daughterParticles,
                                                             const std::vector<int> &goodTrackIndex,
                                                             std::vector<std::vector<int>> goodTracksThatMeet,
-                                                            int nRequiredTracks, unsigned int nProngs, const std::vector<KFParticle> &primaryVertices) const
+                                                            int nRequiredTracks, unsigned int nProngs) const
 {
   unsigned int nGoodProngs = goodTracksThatMeet.size();
 
@@ -576,7 +532,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const KFParticle_eve
             }
 
             const bool allTracksPass = std::all_of(dummy_tracks.begin(), dummy_tracks.end(),
-                                                   [&](const KFParticle &track) { return isGoodTrack(eventView, track, primaryVertices); });
+                                                   [&](const KFParticle &track) { return isGoodTrack(eventData, track); });
             if (!allTracksPass)
             {
               continue;
@@ -599,7 +555,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(const KFParticle_eve
   return goodTracksThatMeet;
 }
 
-std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(const KFParticle_eventView &eventView, KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks, const std::vector<KFParticle> &primaryVertices) const
+std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(const KFParticle_eventData &eventData, KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks) const
 {
   std::vector<std::vector<int>> goodTracksThatMeetIntermediates;
 
@@ -613,10 +569,10 @@ std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(cons
     }
     std::vector<int> dummyTrackID(v_intermediateResonances.size());
     std::iota(dummyTrackID.begin(), dummyTrackID.end(), 0);
-    std::vector<std::vector<int>> dummyTrackList = findTwoProngs(eventView, v_intermediateResonances, dummyTrackID, (int) v_intermediateResonances.size(), primaryVertices);
+    std::vector<std::vector<int>> dummyTrackList = findTwoProngs(eventData, v_intermediateResonances, dummyTrackID, (int) v_intermediateResonances.size());
     for (unsigned int p = 3; p <= v_intermediateResonances.size(); ++p)
     {
-      dummyTrackList = findNProngs(eventView, v_intermediateResonances, dummyTrackID, dummyTrackList, (int) v_intermediateResonances.size(), (int) p, primaryVertices);
+      dummyTrackList = findNProngs(eventData, v_intermediateResonances, dummyTrackID, dummyTrackList, (int) v_intermediateResonances.size(), (int) p);
     }
     return !dummyTrackList.empty();
   };
@@ -633,10 +589,10 @@ std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(cons
   }
   else
   {
-    std::vector<std::vector<int>> goodTracksThatMeet = findTwoProngs(eventView, daughterParticles, goodTrackIndex, num_remaining_tracks, primaryVertices);
+    std::vector<std::vector<int>> goodTracksThatMeet = findTwoProngs(eventData, daughterParticles, goodTrackIndex, num_remaining_tracks);
     for (int p = 3; p <= num_remaining_tracks; ++p)
     {
-      goodTracksThatMeet = findNProngs(eventView, daughterParticles, goodTrackIndex, goodTracksThatMeet, num_remaining_tracks, p, primaryVertices);
+      goodTracksThatMeet = findNProngs(eventData, daughterParticles, goodTrackIndex, goodTracksThatMeet, num_remaining_tracks, p);
     }
 
     for (const auto &i : goodTracksThatMeet)
@@ -653,7 +609,7 @@ std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(cons
 
 std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters[], int daughterOrder[],
                                                            bool isIntermediate, int intermediateNumber, int nTracks,
-                                                           bool constrainMass, float required_vertexID, KFParticle_eventView &eventView) const
+                                                           bool constrainMass, float required_vertexID, KFParticle_eventData &eventData) const
 {
   KFParticle mother;
   std::vector<KFParticle> inputTracks(nTracks);
@@ -714,7 +670,8 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
       int track_PDG_ID = (Int_t) vDaughters[i].GetQ() * daughterOrder[i];
       if (std::find(std::begin(particlesWithPID), std::end(particlesWithPID), std::abs(track_PDG_ID)) != std::end(particlesWithPID))
       {
-        float calculated_dEdx_value = KFParticle_util::get_dEdx(eventView.topNode(), vDaughters[i], m_config.trackMapNodeName);
+        const auto dEdxEntry = eventData.dEdxById.find(vDaughters[i].Id());
+        float calculated_dEdx_value = dEdxEntry == eventData.dEdxById.end() ? -1.0F : dEdxEntry->second;  // not a track: -1, as get_dEdx
         double expected_dEdx_value = get_dEdx_fitValue((Int_t) vDaughters[i].GetQ() * vDaughters[i].GetP(), track_PDG_ID);
         bool accept_dEdx = KFParticle_util::isInRange((1 - m_config.dEdxBandWidth) * expected_dEdx_value, calculated_dEdx_value, (1 + m_config.dEdxBandWidth) * expected_dEdx_value);
 
@@ -781,7 +738,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
   std::vector<int> crossings;
   for (int i = 0; i < nTracks; ++i)
   {
-    std::vector<int> daughterCrossings = getParticleCrossings(eventView, vDaughters[i]);
+    std::vector<int> daughterCrossings = getParticleCrossings(eventData, vDaughters[i]);
     crossings.insert(crossings.end(), daughterCrossings.begin(), daughterCrossings.end());
   }
   KFParticle_util::removeDuplicates(crossings);
@@ -802,7 +759,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
   if (isIntermediate && goodCandidate)
   {
-    mother.SetId(eventView.registerIntermediate(crossings));
+    mother.SetId(KFParticle_eventData::registerIntermediate(eventData, crossings));
   }
 
   // Check the requirements of an intermediate states against this mother and re-do goodCandidate
@@ -964,19 +921,20 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
   }
 }
 
-std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaughters[], int daughterOrder[], KFParticle vertex, bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, KFParticle_eventView &eventView) const
+std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaughters[], int daughterOrder[], const KFParticle_eventData::PrimaryVertex &primaryVertex, bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, KFParticle_eventData &eventData) const
 {
-  auto [candidate, isGoodCandidate] = buildMother(vDaughters, daughterOrder, isIntermediate, intermediateNumber, nTracks, constrainMass, required_vertexID, eventView);
+  auto [candidate, isGoodCandidate] = buildMother(vDaughters, daughterOrder, isIntermediate, intermediateNumber, nTracks, constrainMass, required_vertexID, eventData);
 
   if (constrain_to_vertex && isGoodCandidate && !isIntermediate)
   {
     if (m_config.requireTrackVertexBunchCrossingMatch && m_config.bunchCrossingMode != BunchCrossingMode::Mixed)
     {
-      isGoodCandidate = checkTrackAndVertexMatch(eventView, vDaughters, nTracks, vertex);
+      isGoodCandidate = checkTrackAndVertexMatch(eventData, vDaughters, nTracks, primaryVertex);
     }
 
     if (isGoodCandidate)
     {
+      KFParticle vertex = primaryVertex.vertex;  // constrainToVertex takes a non-const reference
       constrainToVertex(candidate, isGoodCandidate, vertex);
     }
   }
@@ -1036,75 +994,23 @@ double KFParticle_Tools::get_dEdx_fitValue(float momentum, int PID) const
   return pidMap.at(PID)->Eval(momentum);
 }
 
-bool KFParticle_Tools::checkTrackAndVertexMatch(const KFParticle_eventView &eventView, KFParticle vDaughters[], int nTracks, const KFParticle &vertex) const
+bool KFParticle_Tools::checkTrackAndVertexMatch(const KFParticle_eventData &eventData, KFParticle vDaughters[], int nTracks, const KFParticle_eventData::PrimaryVertex &primaryVertex) const
 {
-  int vertexCrossing = std::numeric_limits<int>::min();
-
-  if (m_config.useFakePrimaryVertex) //Fake PV has no crossing and should always match to a track 
+  if (m_config.useFakePrimaryVertex) //Fake PV has no crossing and should always match to a track
   {
     return true;
   }
 
-  float obtained_vertex[3] = {0, 0, std::numeric_limits<float>::lowest()};
-  float kfp_vertex[3] = {vertex.GetX(), vertex.GetY(), vertex.GetZ()};
-
-  // Takes the crossing of a DST vertex at the position of the KFParticle vertex (MBD: z only, x and y stay 0)
-  auto matchCrossing = [&](const Vertex *dstVertex)
+  if (!primaryVertex.crossing)  // no DST vertex was found for this PV
   {
-    if (!KFParticle_util::isMbdVertex(dstVertex))
-    {
-      obtained_vertex[0] = dstVertex->get_x();
-      obtained_vertex[1] = dstVertex->get_y();
-    }
-    obtained_vertex[2] = dstVertex->get_z();
-    if (vertexToleranceCheck(obtained_vertex, kfp_vertex))
-    {
-      vertexCrossing = dstVertex->get_beam_crossing();
-    }
-  };
-
-  if (m_config.dontUseGlobalVertex)
-  {
-    const Vertex *dstVertex = eventView.findDstVertex(vertex.Id());
-    if (!dstVertex)
-    {
-      return false;
-    }
-    matchCrossing(dstVertex);
-  }
-  else
-  {
-    const GlobalVertex *globalVertex = eventView.globalVertexMap()->get(vertex.Id());
-    if (!globalVertex)
-    {
-      return false;
-    }
-
-    GlobalVertex::VTXTYPE whichVtx = m_config.useMbdVertex ? GlobalVertex::MBD : GlobalVertex::SVTX;
-
-    auto svtxiter = globalVertex->find_vertexes(whichVtx);
-    if (svtxiter == globalVertex->end_vertexes())
-    {
-      return false;
-    }
-    const auto &svtxvertexvector = svtxiter->second;
-
-    for (const auto &gvertex : svtxvertexvector)
-    {
-      const Vertex *dstVertex = eventView.findDstVertex(gvertex->get_id());
-      if (!dstVertex)
-      {
-        continue;
-      }
-      matchCrossing(dstVertex);
-    }
+    return false;
   }
 
   for (int i = 0; i < nTracks; ++i)
   {
-    for (const int trackCrossing : getParticleCrossings(eventView, vDaughters[i]))
+    for (const int trackCrossing : getParticleCrossings(eventData, vDaughters[i]))
     {
-      if (trackCrossing != vertexCrossing)
+      if (trackCrossing != *primaryVertex.crossing)
       {
         return false;  // no point checking remaining tracks
       }
