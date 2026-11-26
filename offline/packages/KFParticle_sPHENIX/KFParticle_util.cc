@@ -101,17 +101,14 @@ KFParticle KFParticle_util::makeVertex(const Vertex *vertex)
   return kfp_vertex;
 }
 
-std::vector<KFParticle> KFParticle_util::makeAllPrimaryVertices(PHCompositeNode *topNode, const KFParticle_Config &config)
+std::vector<KFParticle> KFParticle_util::makeAllPrimaryVertices(const DstVertices &dstVertices, const GlobalVertexMap *globalVertexMap,
+                                                                const KFParticle_Config &config)
 {
   std::vector<KFParticle> primaryVertices;
 
-  const KFParticle_util::DstVertices vertexById = config.useMbdVertex
-                                                      ? KFParticle_util::dstVertices(findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap"))
-                                                      : KFParticle_util::dstVertices(findNode::getClass<SvtxVertexMap>(topNode, config.vertexMapNodeName));
-
   if (config.dontUseGlobalVertex)
   {
-    for (const auto &[id, vertex] : vertexById)
+    for (const auto &[id, vertex] : dstVertices)
     {
       primaryVertices.push_back(makeVertex(vertex));
       primaryVertices.back().SetId(id);
@@ -120,16 +117,15 @@ std::vector<KFParticle> KFParticle_util::makeAllPrimaryVertices(PHCompositeNode 
     return primaryVertices;
   }
 
-  auto *globalVertexMap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!globalVertexMap)
   {
     std::cout << "Can't continue in KFParticle_util::makeAllPrimaryVertices" << std::endl;
     return primaryVertices;
   }
 
-  for (GlobalVertexMap::ConstIter iter = globalVertexMap->begin(); iter != globalVertexMap->end(); ++iter)
+  for (const auto &entry : *globalVertexMap)
   {
-    const GlobalVertex *globalVertex = iter->second;
+    const GlobalVertex *globalVertex = entry.second;
 
     GlobalVertex::VTXTYPE whichVtx = config.useMbdVertex ? GlobalVertex::MBD : GlobalVertex::SVTX;
 
@@ -144,12 +140,23 @@ std::vector<KFParticle> KFParticle_util::makeAllPrimaryVertices(PHCompositeNode 
 
     for (const auto &vertex : svtxvertexvector)
     {
-      primaryVertices.push_back(makeVertex(KFParticle_util::findDstVertex(vertexById, vertex->get_id())));
+      primaryVertices.push_back(makeVertex(KFParticle_util::findDstVertex(dstVertices, vertex->get_id())));
       primaryVertices.back().SetId(globalVertex->get_id());
     }
   }
 
   return primaryVertices;
+}
+
+std::vector<KFParticle> KFParticle_util::makeAllPrimaryVertices(PHCompositeNode *topNode, const KFParticle_Config &config)
+{
+  const DstVertices vertexById = config.useMbdVertex
+                                     ? dstVertices(findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap"))
+                                     : dstVertices(findNode::getClass<SvtxVertexMap>(topNode, config.vertexMapNodeName));
+
+  const GlobalVertexMap *globalVertexMap = config.dontUseGlobalVertex ? nullptr : findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+
+  return makeAllPrimaryVertices(vertexById, globalVertexMap, config);
 }
 
 float KFParticle_util::get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter, const std::string &trackMapName)

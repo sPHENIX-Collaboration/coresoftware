@@ -11,6 +11,7 @@
 
 class KFParticle;
 struct KFParticle_Config;
+class GlobalVertexMap;
 class PHCompositeNode;
 class SvtxTrack;
 class SvtxTrackMap;
@@ -88,8 +89,13 @@ namespace KFParticle_util
   KFParticle makeVertex(const Vertex *vertex);
 
   // Every primary vertex of the event, from the MBD or SVTX vertices (config.useMbdVertex) through the
-  // GlobalVertexMap (id = the global vertex id) or, with config.dontUseGlobalVertex, from the vertex map
-  // directly (id = the map's id)
+  // GlobalVertexMap (id = the global vertex id) or, with config.dontUseGlobalVertex, from dstVertices
+  // directly (id = the vertex map's id). Uses only what it is given: globalVertexMap is not read with
+  // dontUseGlobalVertex, and a null one otherwise gives no vertices.
+  std::vector<KFParticle> makeAllPrimaryVertices(const DstVertices &dstVertices, const GlobalVertexMap *globalVertexMap,
+                                                 const KFParticle_Config &config);
+
+  // The same, fetching the vertex maps the configuration names from the node tree first
   std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode, const KFParticle_Config &config);
 
   // Beam crossing of the vertex the candidate was built with; -100 if it can't be found

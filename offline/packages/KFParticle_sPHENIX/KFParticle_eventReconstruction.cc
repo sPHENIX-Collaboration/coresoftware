@@ -114,7 +114,7 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode *topNode, std::
   }
   else
   {
-    primaryVertices = KFParticle_util::makeAllPrimaryVertices(topNode, m_config);
+    primaryVertices = KFParticle_util::makeAllPrimaryVertices(eventView.dstVertices(), eventView.globalVertexMap(), m_config);
   }
 
   std::vector<KFParticle> daughterParticles = makeAllDaughterParticles(eventView);
