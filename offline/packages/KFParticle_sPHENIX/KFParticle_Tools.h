@@ -24,30 +24,18 @@
 
 #include "KFParticle_Config.h"
 
-#include <globalvertex/MbdVertex.h>
-#include <globalvertex/MbdVertexMap.h>
-#include <trackbase_historic/TrackSeed.h>
-#include <trackbase_historic/TrackSeedContainer.h>
-
 #include <dedxfitter/bethe_bloch.h> // included here so inline functions are defined on user end
 
 #include <KFParticle.h>
 
 #include <TF1.h>
 
-#include <limits>
 #include <map>      // for map
-#include <string>   // for string
 #include <tuple>    // for tuple
-#include <utility>  // for pair
 #include <vector>
 
-class PHCompositeNode;
-
 class KFParticle_eventView;
-class Vertex;
 class SvtxTrack;
-class SvtxTrack_v5;
 
 /**
  * Track, vertex and candidate building blocks for KFParticle_eventReconstruction, which is the only class that
