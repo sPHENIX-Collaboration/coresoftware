@@ -50,6 +50,7 @@ pkginclude_HEADERS = \
   EventRhov1.h \
   FastJetAlgoSub.h \
   JetBackgroundCut.h \
+  MbdChargeKnee.h \
   NullFilter.h \
   RetowerCEMC.h \
   StreakSidebandFilter.h \
@@ -59,6 +60,7 @@ pkginclude_HEADERS = \
   TowerBackground.h \
   TowerBackgroundv1.h \
   TowerRho.h \
+  TowerRhoToBackground.h \
   TowerRhov1.h
 
 ROOTDICTS = \
@@ -87,12 +89,14 @@ libjetbackground_la_SOURCES = \
   DetermineTowerRho.cc \
   FastJetAlgoSub.cc \
   JetBackgroundCut.cc \
+  MbdChargeKnee.cc \
   NullFilter.cc \
   RetowerCEMC.cc \
   StreakSidebandFilter.cc \
   SubtractTowers.cc \
   SubtractTowersCS.cc \
-  TimingCut.cc
+  TimingCut.cc \
+  TowerRhoToBackground.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
