@@ -49,7 +49,7 @@ void KFParticle_nTuple::initializeVariables()
 
 void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 {
-  // KFParticle_Tools::init_dEdx_fits(); //Cant do this! Two trees open at once!
+  // KFParticle_candidateSelection::init_dEdx_fits(); //Cant do this! Two trees open at once!
 
   delete m_tree;
   m_tree = new TTree("DecayTree", "DecayTree");
@@ -540,9 +540,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     {
       m_calculated_daughter_dedx[i] = KFParticle_util::get_dEdx(topNode, daughterArray[i], m_config.trackMapNodeName);  // m_config.dEdxInfo defaults to false; run get_dEdx_info() to change this
     }
-    // m_calculated_daughter_expected_dedx_pion[i] = KFParticle_Tools::get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 211);
-    // m_calculated_daughter_expected_dedx_kaon[i] = KFParticle_Tools::get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 321);
-    // m_calculated_daughter_expected_dedx_proton[i] = KFParticle_Tools::get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 2212);
+    // m_calculated_daughter_expected_dedx_pion[i] = KFParticle_candidateSelection::get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 211);
+    // m_calculated_daughter_expected_dedx_kaon[i] = KFParticle_candidateSelection::get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 321);
+    // m_calculated_daughter_expected_dedx_proton[i] = KFParticle_candidateSelection::get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 2212);
 
     bool tempEMCalmatch = false;
     if (m_config.caloInfo)

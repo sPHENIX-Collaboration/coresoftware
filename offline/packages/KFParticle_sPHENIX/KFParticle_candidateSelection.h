@@ -19,8 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef KFPARTICLESPHENIX_KFPARTICLETOOLS_H
-#define KFPARTICLESPHENIX_KFPARTICLETOOLS_H
+#ifndef KFPARTICLESPHENIX_KFPARTICLECANDIDATESELECTION_H
+#define KFPARTICLESPHENIX_KFPARTICLECANDIDATESELECTION_H
 
 #include "KFParticle_Config.h"
 #include "KFParticle_eventData.h"
@@ -45,14 +45,14 @@ class SvtxTrackMap;
  *   protected: what the derived classes call
  *   private:   helpers used only inside this class
  */
-class KFParticle_Tools
+class KFParticle_candidateSelection
 {
  public:
   /// Used by KFParticle_sPHENIX. The config is owned there and is not yet constructed when this runs:
   /// store the reference only, never read through it here.
-  explicit KFParticle_Tools(const KFParticle_Config &config);
+  explicit KFParticle_candidateSelection(const KFParticle_Config &config);
 
-  virtual ~KFParticle_Tools() = default;
+  virtual ~KFParticle_candidateSelection() = default;
 
  protected:
   std::vector<KFParticle> makeAllDaughterParticles(const SvtxTrackMap *trackMap) const;
@@ -103,4 +103,4 @@ class KFParticle_Tools
   std::map<int, TF1 *> pidMap;
 };
 
-#endif  // KFPARTICLESPHENIX_KFPARTICLETOOLS_H
+#endif  // KFPARTICLESPHENIX_KFPARTICLECANDIDATESELECTION_H

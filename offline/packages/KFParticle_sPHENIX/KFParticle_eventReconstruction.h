@@ -22,7 +22,7 @@
 #ifndef KFPARTICLESPHENIX_KFPARTICLEEVENTRECONSTRUCTION_H
 #define KFPARTICLESPHENIX_KFPARTICLEEVENTRECONSTRUCTION_H
 
-#include "KFParticle_Tools.h"
+#include "KFParticle_candidateSelection.h"
 
 #include <KFParticle.h>
 
@@ -31,7 +31,7 @@
 
 class PHCompositeNode;
 
-class KFParticle_eventReconstruction : public KFParticle_Tools
+class KFParticle_eventReconstruction : public KFParticle_candidateSelection
 {
  public:
   /// The config is owned by KFParticle_sPHENIX and is not yet constructed when this runs: pass it on, never read it here

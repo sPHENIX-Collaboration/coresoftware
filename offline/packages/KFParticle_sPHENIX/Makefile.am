@@ -17,6 +17,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   KFParticle_caloInfo.h \
+  KFParticle_candidateSelection.h \
   KFParticle_Config.h \
   KFParticle_Container.h \
   KFParticle_detectorInfo.h \
@@ -25,7 +26,6 @@ pkginclude_HEADERS = \
   KFParticle_eventReconstruction.h \
   KFParticle_nTuple.h \
   KFParticle_sPHENIX.h \
-  KFParticle_Tools.h \
   KFParticle_triggerInfo.h \
   KFParticle_truthInfo.h \
   KFParticle_util.h
@@ -43,13 +43,13 @@ libkfparticle_sphenix_io_la_SOURCES = \
 
 libkfparticle_sphenix_la_SOURCES = \
   KFParticle_caloInfo.cc \
+  KFParticle_candidateSelection.cc \
   KFParticle_detectorInfo.cc \
   KFParticle_DST.cc \
   KFParticle_eventData.cc \
   KFParticle_eventReconstruction.cc \
   KFParticle_nTuple.cc \
   KFParticle_sPHENIX.cc \
-  KFParticle_Tools.cc \
   KFParticle_triggerInfo.cc \
   KFParticle_truthInfo.cc \
   KFParticle_util.cc

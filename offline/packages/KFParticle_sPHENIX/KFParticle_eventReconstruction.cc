@@ -26,7 +26,7 @@
 /*****************/
 
 #include "KFParticle_eventReconstruction.h"
-#include "KFParticle_Tools.h"
+#include "KFParticle_candidateSelection.h"
 #include "KFParticle_eventData.h"
 #include "KFParticle_util.h"
 
@@ -95,7 +95,7 @@ namespace
 
 /// KFParticle constructor
 KFParticle_eventReconstruction::KFParticle_eventReconstruction(const KFParticle_Config &config)
-  : KFParticle_Tools(config)
+  : KFParticle_candidateSelection(config)
   , m_config(config)
 {
 }

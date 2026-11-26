@@ -61,7 +61,7 @@ struct KFParticle_Config
   bool useMbdVertex = false;         // MBD vertex instead of the silicon (SVTX) vertex
   bool dontUseGlobalVertex = false;  // read the MBD or SVTX vertex map directly instead of the GlobalVertexMap
 
-  // Track selection (KFParticle_Tools::isGoodTrack and the track-quality check before it)
+  // Track selection (KFParticle_candidateSelection::isGoodTrack and the track-quality check before it)
   float trackMinPt = 0;
   float trackMaxPt = 5e3;
   float trackMaxPtChi2 = std::numeric_limits<float>::max();

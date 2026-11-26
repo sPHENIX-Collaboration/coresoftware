@@ -86,7 +86,7 @@ class KFParticle_nTuple
                  std::vector<KFParticle> intermediates);
   void clearAllPVInfo();
 
-  // Event-level counts and jT, moved from KFParticle_Tools (only the nTuple uses them)
+  // Event-level counts and jT, moved from KFParticle_Tools, now KFParticle_candidateSelection (only the nTuple uses them)
   void getTracksFromBC(PHCompositeNode *topNode, const int &bunch_crossing, const std::string &vertexMapName, int &nTracks, int &nPVs) const;
   int getTracksFromVertex(PHCompositeNode *topNode, const KFParticle &vertex, const std::string &vertexMapName) const;
   static int getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, const int &bunch_crossing, int verbosity);
