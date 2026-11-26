@@ -49,6 +49,13 @@ class Vertex;
 class SvtxTrack;
 class SvtxTrack_v5;
 
+/**
+ * Track, vertex and candidate building blocks for KFParticle_eventReconstruction, which is the only class that
+ * derives from this one (KFParticle_sPHENIX inherits it through KFParticle_eventReconstruction).
+ *
+ *   protected: what the derived classes call
+ *   private:   helpers used only inside this class
+ */
 class KFParticle_Tools
 {
  public:
@@ -58,13 +65,8 @@ class KFParticle_Tools
 
   virtual ~KFParticle_Tools() = default;
 
-  KFParticle makeParticle(const SvtxTrack *track) const;
-
+ protected:
   std::vector<KFParticle> makeAllDaughterParticles(const KFParticle_eventView &eventView) const;
-
-  bool isGoodTrack(const KFParticle_eventView &eventView, const KFParticle &particle, const std::vector<KFParticle> &primaryVertices) const;
-
-  bool isTPConlyAtZeroCrossing(const KFParticle_eventView &eventView, const KFParticle &track) const;
 
   int calcMinPV_DCA(const KFParticle_eventView &eventView, const KFParticle &track, const std::vector<KFParticle> &PVs, float &minimumPV_DCA, float &minimumPV_DCA_stddev, bool do3D = true) const;
 
@@ -77,14 +79,21 @@ class KFParticle_Tools
 
   std::vector<std::vector<int>> appendTracksToIntermediates(const KFParticle_eventView &eventView, KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks, const std::vector<KFParticle> &primaryVertices) const;
 
-  std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], int daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, KFParticle_eventView &eventView) const;
-
-  void constrainToVertex(KFParticle &particle, bool &goodCandidate, KFParticle &vertex) const;
-
   std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], int daughterOrder[], KFParticle vertex,
                                               bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, KFParticle_eventView &eventView) const;
 
   void init_dEdx_fits();
+
+ private:
+  KFParticle makeParticle(const SvtxTrack *track) const;
+
+  bool isGoodTrack(const KFParticle_eventView &eventView, const KFParticle &particle, const std::vector<KFParticle> &primaryVertices) const;
+
+  bool isTPConlyAtZeroCrossing(const KFParticle_eventView &eventView, const KFParticle &track) const;
+
+  std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], int daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, KFParticle_eventView &eventView) const;
+
+  void constrainToVertex(KFParticle &particle, bool &goodCandidate, KFParticle &vertex) const;
 
   double get_dEdx_fitValue(float momentum, int PID) const;
 
@@ -92,7 +101,9 @@ class KFParticle_Tools
 
   std::vector<int> getParticleCrossings(const KFParticle_eventView &eventView, const KFParticle &particle) const;
 
- protected:
+  const KFParticle_Config &m_config;
+
+  // dE/dx fit bands, loaded by init_dEdx_fits (usePID)
   TF1 *f_pion_plus{nullptr};
   TF1 *f_kaon_plus{nullptr};
   TF1 *f_proton_plus{nullptr};
@@ -101,9 +112,6 @@ class KFParticle_Tools
   TF1 *f_proton_minus{nullptr};
 
   std::map<int, TF1 *> pidMap;
-
- private:
-  const KFParticle_Config &m_config;
 };
 
 #endif  // KFPARTICLESPHENIX_KFPARTICLETOOLS_H
