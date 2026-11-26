@@ -1,31 +1,40 @@
 #ifndef KFPARTICLESPHENIX_KFPARTICLETRIGGERINFO_H
 #define KFPARTICLESPHENIX_KFPARTICLETRIGGERINFO_H
 
-#include <calotrigger/TriggerAnalyzer.h>
-
 #include <limits>
+#include <memory>
 
-class Gl1Packet;
+class PHCompositeNode;
+class TriggerAnalyzer;
 class TTree;
 
+// Event-level GL1 trigger bits (one bool branch per named trigger) for the nTuple
 class KFParticle_triggerInfo
 {
  public:
   KFParticle_triggerInfo();  // Constructor
 
-  virtual ~KFParticle_triggerInfo();  // Destructor
+  ~KFParticle_triggerInfo();  // Destructor; out of line because TriggerAnalyzer is only forward-declared here
 
-  protected:
-    TriggerAnalyzer *triggeranalyzer{nullptr};
+  KFParticle_triggerInfo(const KFParticle_triggerInfo &) = delete;
+  KFParticle_triggerInfo &operator=(const KFParticle_triggerInfo &) = delete;
+  KFParticle_triggerInfo(KFParticle_triggerInfo &&) = delete;
+  KFParticle_triggerInfo &operator=(KFParticle_triggerInfo &&) = delete;
 
-    bool buildTriggerBranches(PHCompositeNode *topNode, TTree *m_tree);
-    void fillTriggerBranches(PHCompositeNode *topNode);
-    void resetTriggerBranches();
+  // Books the trigger branches; returns false (and books nothing) if GL1 or TriggerRunInfo is missing
+  bool initializeBranches(PHCompositeNode *topNode, TTree *m_tree);
+  void fill(PHCompositeNode *topNode);
+  void clear();
 
-  private:
-    static const int nTriggerBits = 64;
-    bool m_trigger_bit[nTriggerBits] = {std::numeric_limits<bool>::quiet_NaN()};
+  // True once initializeBranches has found the trigger information
+  bool isAvailable() const { return m_available; }
 
+ private:
+  std::unique_ptr<TriggerAnalyzer> triggeranalyzer;
+  bool m_available{false};
+
+  static const int nTriggerBits = 64;
+  bool m_trigger_bit[nTriggerBits] = {std::numeric_limits<bool>::quiet_NaN()};
 };
 
 #endif // KFPARTICLESPHENIX_KFPARTICLETRIGGERINFO_H

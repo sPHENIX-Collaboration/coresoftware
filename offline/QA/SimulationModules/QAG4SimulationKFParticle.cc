@@ -2,8 +2,9 @@
 
 #include <qautils/QAHistManagerDef.h>  // for getHistoManager
 
+#include <kfparticle_sphenix/KFParticle_Config.h>
 #include <kfparticle_sphenix/KFParticle_Container.h>
-#include <kfparticle_sphenix/KFParticle_Tools.h>
+#include <kfparticle_sphenix/KFParticle_util.h>
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>  // for SvtxEvalStack
@@ -48,12 +49,14 @@
 
 namespace
 {
-  KFParticle_Tools kfpTools;
-}
+  // Default settings, as the default-constructed KFParticle_Tools used before: SVTX vertices from
+  // "SvtxVertexMap", through the GlobalVertexMap
+  const KFParticle_Config defaultConfig;
+}  // namespace
 
 QAG4SimulationKFParticle::QAG4SimulationKFParticle(const std::string &name, const std::string &mother_name, double min_m, double max_m)
   : SubsysReco(name)
-  , m_mother_id(kfpTools.getParticleID(mother_name))
+  , m_mother_id(KFParticle_util::getParticleID(mother_name))
   , m_min_mass(min_m)
   , m_max_mass(max_m)
   , m_mother_name(mother_name)
@@ -229,7 +232,7 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
 
   // std::map<unsigned int, KFParticle*> Map = m_kfpContainer->returnParticlesByPDGid(m_mother_id);
   std::vector<int> d_id;
-  std::vector<KFParticle> vertex_vec = kfpTools.makeAllPrimaryVertices(topNode, "SvtxVertexMap");
+  std::vector<KFParticle> vertex_vec = KFParticle_util::makeAllPrimaryVertices(topNode, defaultConfig);
 
   for (auto &iter : *m_kfpContainer)
   {
@@ -385,7 +388,7 @@ CLHEP::HepLorentzVector *QAG4SimulationKFParticle::makeHepLV(PHCompositeNode *to
         if (abs((*mother)->pdg_id()) == m_mother_id)
         {
           lvParticle = new CLHEP::HepLorentzVector();
-          lvParticle->setVectM(CLHEP::Hep3Vector(track->get_px(), track->get_py(), track->get_pz()), kfpTools.getParticleMass((*p)->pdg_id()));
+          lvParticle->setVectM(CLHEP::Hep3Vector(track->get_px(), track->get_py(), track->get_pz()), KFParticle_util::getParticleMass((*p)->pdg_id()));
         }
         else
         {

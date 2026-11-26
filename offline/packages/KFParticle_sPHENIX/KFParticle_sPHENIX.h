@@ -77,58 +77,50 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
                       const KFParticle &chosenVertex,
                       const std::vector<KFParticle> &daughterParticles,
                       const std::vector<KFParticle> &intermediateParticles,
-                      int numPVs, int numTracks);
+                      int numPVs, int numTracks) const;
 
   int parseDecayDescriptor();
 
   /// Parameters for the user to vary
 
-  void setDecayDescriptor(const std::string &decayDescriptor) { m_decayDescriptor = decayDescriptor; }
+  void setDecayDescriptor(const std::string &decayDescriptor) { m_config.decayDescriptor = decayDescriptor; }
 
   static const int max_particles = 99;
 
   //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setMotherName(const std::string &mother_name)
   {
-    m_mother_name = mother_name;
-    m_mother_name_Tools = mother_name;
+    m_config.motherName = mother_name;
   }
 
   //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void hasIntermediateStates(bool has_intermediates = true)
   {
-    m_has_intermediates = has_intermediates;
-    m_has_intermediates_nTuple = has_intermediates;
-    m_has_intermediates_sPHENIX = has_intermediates;
-    m_has_intermediates_DST = has_intermediates;
+    m_config.hasIntermediates = has_intermediates;
   }
 
   //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setNumberOfTracks(int num_tracks)
   {
-    m_num_tracks = num_tracks;
-    m_num_tracks_nTuple = num_tracks;
+    m_config.numTracks = num_tracks;
   }
 
   //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setNumberTracksFromIntermeditateState(const std::vector<int> &num_tracks)
   {
-    m_num_tracks_from_intermediate.insert(m_num_tracks_from_intermediate.end(), num_tracks.begin(), num_tracks.end());
-    m_num_tracks_from_intermediate_nTuple.insert(m_num_tracks_from_intermediate_nTuple.end(), num_tracks.begin(), num_tracks.end());
+    m_config.numTracksFromIntermediate.insert(m_config.numTracksFromIntermediate.end(), num_tracks.begin(), num_tracks.end());
   }
 
   //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void setNumberOfIntermediateStates(int n_intermediates)
   {
-    m_num_intermediate_states = n_intermediates;
-    m_num_intermediate_states_nTuple = n_intermediates;
+    m_config.numIntermediateStates = n_intermediates;
   }
 
   //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
   void getChargeConjugate(bool get_charge_conjugate = true)
   {
-    m_get_charge_conjugate_nTuple = get_charge_conjugate;
-    m_get_charge_conjugate = get_charge_conjugate;
+    m_config.chargeConjugate = get_charge_conjugate;
   }
 
   //DEPRECATED: Use setDecayDescriptor instead; still called internally by parseDecayDescriptor
@@ -136,8 +128,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   {
     for (const auto &entry : daughter_list)
     {
-      m_daughter_name.push_back(entry.first);
-      m_daughter_charge.push_back(entry.second);
+      m_config.daughterNames.push_back(entry.first);
+      m_config.daughterCharges.push_back(entry.second);
     }
   }
 
@@ -146,327 +138,358 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   {
     for (const auto &entry : intermediate_list)
     {
-      m_intermediate_name_ntuple.push_back(entry.first);
-      m_intermediate_name.push_back(entry.first);
-      m_intermediate_charge.push_back(entry.second);
+      m_config.intermediateNames.push_back(entry.first);
+      m_config.intermediateCharges.push_back(entry.second);
     }
   }
 
-  void setMinimumMass(float min_mass) { m_min_mass = min_mass; }
+  void setMinimumMass(float min_mass) { m_config.motherMinMass = min_mass; }
 
-  void setMaximumMass(float max_mass) { m_max_mass = max_mass; }
+  void setMaximumMass(float max_mass) { m_config.motherMaxMass = max_mass; }
 
   void setDecayTimeRange_XY(float min_decayTime, float max_decayTime)
   {
-    m_min_decayTime_xy = min_decayTime;
-    m_max_decayTime_xy = max_decayTime;
+    m_config.motherMinDecayTimeXY = min_decayTime;
+    m_config.motherMaxDecayTimeXY = max_decayTime;
   }
 
   void setDecayLengthRange_XY(float min_decayLength, float max_decayLength)
   {
-    m_min_decayLength_xy = min_decayLength;
-    m_max_decayLength_xy = max_decayLength;
+    m_config.motherMinDecayLengthXY = min_decayLength;
+    m_config.motherMaxDecayLengthXY = max_decayLength;
   }
 
   void setDecayTimeRange(float min_decayTime, float max_decayTime)
   {
-    m_min_decayTime = min_decayTime;
-    m_max_decayTime = max_decayTime;
+    m_config.motherMinDecayTime = min_decayTime;
+    m_config.motherMaxDecayTime = max_decayTime;
   }
 
   void setDecayLengthRange(float min_decayLength, float max_decayLength)
   {
-    m_min_decayLength = min_decayLength;
-    m_max_decayLength = max_decayLength;
+    m_config.motherMinDecayLength = min_decayLength;
+    m_config.motherMaxDecayLength = max_decayLength;
   }
 
-  void setMinDecayTimeSignificance(float min = 0) { m_mother_min_decay_time_significance = min; }
+  void setMinDecayTimeSignificance(float min = 0) { m_config.motherMinDecayTimeSignificance = min; }
 
-  void setMinDecayLengthSignificance(float min = 0) { m_mother_min_decay_length_significance = min; }
+  void setMinDecayLengthSignificance(float min = 0) { m_config.motherMinDecayLengthSignificance = min; }
 
-  void setMinDecayLengthSignificance_XY(float min = 0) { m_mother_min_decay_length_xy_significance = min; }
+  void setMinDecayLengthSignificance_XY(float min = 0) { m_config.motherMinDecayLengthSignificanceXY = min; }
 
-  void setMinimumTrackPT(float pt) { m_track_min_pt = pt; }
+  void setMinimumTrackPT(float pt) { m_config.trackMinPt = pt; }
 
-  void setMaximumTrackPT(float pt) { m_track_max_pt = pt; }
+  void setMaximumTrackPT(float pt) { m_config.trackMaxPt = pt; }
 
-  void setMaximumTrackPTchi2(float ptchi2) { m_track_ptchi2 = ptchi2; }
+  void setMaximumTrackPTchi2(float ptchi2) { m_config.trackMaxPtChi2 = ptchi2; }
 
-  void setMinimumTrackPV_DCA_XY(float ip) { m_track_PV_dca_xy = ip; }
+  void setMinimumTrackPV_DCA_XY(float ip) { m_config.trackMinPVDCAXY = ip; }
 
-  void setMinimumTrackPV_DCA_StdDev_XY(float ip_significance) { m_track_PV_dca_stddev_xy = ip_significance; }
+  void setMinimumTrackPV_DCA_StdDev_XY(float ip_significance) { m_config.trackMinPVDCAStdDevXY = ip_significance; }
 
-  void setMinimumTrackPV_DCA(float ip) { m_track_PV_dca = ip; }
+  void setMinimumTrackPV_DCA(float ip) { m_config.trackMinPVDCA = ip; }
 
-  void setMinimumTrackPV_DCA_StdDev(float ip_significance) { m_track_PV_dca_stddev = ip_significance; }
+  void setMinimumTrackPV_DCA_StdDev(float ip_significance) { m_config.trackMinPVDCAStdDev = ip_significance; }
 
-  void setMaximumTrackchi2nDOF(float trackchi2ndof) { m_track_chi2ndof = trackchi2ndof; }
+  void setMaximumTrackchi2nDOF(float trackchi2ndof) { m_config.trackMaxChi2nDOF = trackchi2ndof; }
 
-  void setMinMVTXhits(int nHits) { m_nMVTXStates = nHits; } //Actually state counting but use this for backwards compatibility!
+  void setMinMVTXhits(int nHits) { m_config.minMVTXStates = nHits; } //Actually state counting but use this for backwards compatibility!
 
-  void setMinINTThits(int nHits) { m_nINTTStates = nHits; } //Actually state counting but use this for backwards compatibility!
+  void setMinINTThits(int nHits) { m_config.minINTTStates = nHits; } //Actually state counting but use this for backwards compatibility!
 
-  void setMinTPChits(int nHits) { m_nTPCStates = nHits; } //Actually state counting but use this for backwards compatibility!
+  void setMinTPChits(int nHits) { m_config.minTPCStates = nHits; } //Actually state counting but use this for backwards compatibility!
 
-  void setMinTPOThits(int nHits) { m_nTPOTStates = nHits; } //Actually state counting but use this for backwards compatibility!
+  void setMinTPOThits(int nHits) { m_config.minTPOTStates = nHits; } //Actually state counting but use this for backwards compatibility!
 
-  void useTPConlyTracks(bool use = true) { m_use_tpc_only_tracks = use; }
+  void useTPConlyTracks(bool use = true) { m_config.useTPCOnlyTracks = use; }
 
-  void setMaximumDaughterDCA_XY(float dca) { m_comb_DCA_xy = dca; }
+  void setMaximumDaughterDCA_XY(float dca) { m_config.maxDaughterDCAXY = dca; }
 
-  void setMaximumDaughterDCA(float dca) { m_comb_DCA = dca; }
+  void setMaximumDaughterDCA(float dca) { m_config.maxDaughterDCA = dca; }
  
-  void setMinimumRadialSV(float min_rad_sv) { m_min_radial_SV = min_rad_sv; }
+  void setMinimumRadialSV(float min_rad_sv) { m_config.minRadialSV = min_rad_sv; }
 
-  void setMaximumVertexchi2nDOF(float vertexchi2nDOF) { m_vertex_chi2ndof = vertexchi2nDOF; }
+  void setMaximumVertexchi2nDOF(float vertexchi2nDOF) { m_config.maxVertexChi2nDOF = vertexchi2nDOF; }
 
-  void setFlightDistancechi2(float fdchi2) { m_fdchi2 = fdchi2; }
+  void setFlightDistancechi2(float fdchi2) { m_config.motherMinFDChi2 = fdchi2; }
 
-  void setMinDIRA(float dira_min) { m_dira_min = dira_min; }
+  void setMinDIRA(float dira_min) { m_config.motherMinDIRA = dira_min; }
 
-  void setMaxDIRA(float dira_max) { m_dira_max = dira_max; }
+  void setMaxDIRA(float dira_max) { m_config.motherMaxDIRA = dira_max; }
 
-  void setMinDIRA_XY(float dira_min) { m_dira_xy_min = dira_min; }
+  void setMinDIRA_XY(float dira_min) { m_config.motherMinDIRAXY = dira_min; }
 
-  void setMaxDIRA_XY(float dira_max) { m_dira_xy_max = dira_max; }
+  void setMaxDIRA_XY(float dira_max) { m_config.motherMaxDIRAXY = dira_max; }
 
-  void setMotherPT(float mother_pt) { m_mother_pt = mother_pt; }
+  void setMotherPT(float mother_pt) { m_config.motherMinPt = mother_pt; }
 
-  void setMotherPV_DCA(float mother_PV_dca) { m_mother_PV_dca = mother_PV_dca; }
+  void setMotherPV_DCA(float mother_PV_dca) { m_config.motherMaxPVDCA = mother_PV_dca; }
 
-  void setMotherPV_DCA_XY(float mother_PV_dca) { m_mother_PV_dca_xy = mother_PV_dca; }
+  void setMotherPV_DCA_XY(float mother_PV_dca) { m_config.motherMaxPVDCAXY = mother_PV_dca; }
 
-  void setMotherPV_DCA_StdDev(float mother_PV_dca_stddev) { m_mother_PV_dca_stddev = mother_PV_dca_stddev; }
+  void setMotherPV_DCA_StdDev(float mother_PV_dca_stddev) { m_config.motherMaxPVDCAStdDev = mother_PV_dca_stddev; }
 
-  void setMotherPV_DCA_StdDev_XY(float mother_PV_dca_stddev) { m_mother_PV_dca_stddev_xy = mother_PV_dca_stddev; }
+  void setMotherPV_DCA_StdDev_XY(float mother_PV_dca_stddev) { m_config.motherMaxPVDCAStdDevXY = mother_PV_dca_stddev; }
 
-  void setMaximumMotherVertexVolume(float vertexvol) { m_mother_vertex_volume = vertexvol; }
+  void setMaximumMotherVertexVolume(float vertexvol) { m_config.motherMaxVertexVolume = vertexvol; }
 
-  void constrainToPrimaryVertex(bool constrain_to_vertex = true)
-  {
-    m_constrain_to_vertex = constrain_to_vertex;
-    m_constrain_to_vertex_nTuple = constrain_to_vertex;
-    m_constrain_to_vertex_sPHENIX = constrain_to_vertex;
-  }
+  void constrainToPrimaryVertex(bool constrain_to_vertex = true) { m_config.constrainToPrimaryVertex = constrain_to_vertex; }
 
   void useMbdVertex(bool use = true)
   {
-    m_use_mbd_vertex = use;
+    m_config.useMbdVertex = use;
   }
 
   void useCentrality(bool use = true)
   {
-    m_use_centrality_nTuple = use;
+    m_config.useCentrality = use;
   }
 
-  void dontUseGlobalVertex(bool dont = true) { m_dont_use_global_vertex = dont; }
+  void dontUseGlobalVertex(bool dont = true) { m_config.dontUseGlobalVertex = dont; }
 
   void useFakePrimaryVertex(bool use_fake = true)
   {
-    m_use_fake_pv = use_fake;
-    m_use_fake_pv_nTuple = use_fake;
+    m_config.useFakePrimaryVertex = use_fake;
   }
 
-  void allowZeroMassTracks(bool allow = true) { m_allowZeroMassTracks = allow; }
+  void allowZeroMassTracks(bool allow = true) { m_config.allowZeroMassTracks = allow; }
 
   void extrapolateTracksToSV(bool extrapolate = true)
   {
-    m_extrapolateTracksToSV = extrapolate;
-    m_extrapolateTracksToSV_nTuple = extrapolate;
+    m_config.extrapolateTracksToSV = extrapolate;
   }
 
-  void constrainIntermediateMasses(bool constrain_int_mass = true) { m_constrain_int_mass = constrain_int_mass; }
+  void constrainIntermediateMasses(bool constrain_int_mass = true) { m_config.constrainIntermediateMasses = constrain_int_mass; }
 
   void setIntermediateMassRange(const std::vector<std::pair<float, float>> &intermediate_mass_range)
   {
-    m_intermediate_mass_range.insert(m_intermediate_mass_range.end(), intermediate_mass_range.begin(), intermediate_mass_range.end());
+    m_config.intermediateMassRange.insert(m_config.intermediateMassRange.end(), intermediate_mass_range.begin(), intermediate_mass_range.end());
   }
 
   void setIntermediateMinPT(const std::vector<float> &intermediate_min_pt)
   {
-    m_intermediate_min_pt = intermediate_min_pt;
+    m_config.intermediateMinPt = intermediate_min_pt;
   }
 
   void setIntermediateMinPV_DCA_XY(const std::vector<float> &intermediate_min_PV_DCA)
   {
-    m_intermediate_min_PV_dca_xy.insert(m_intermediate_min_PV_dca_xy.end(), intermediate_min_PV_DCA.begin(), intermediate_min_PV_DCA.end());
+    m_config.intermediateMinPVDCAXY.insert(m_config.intermediateMinPVDCAXY.end(), intermediate_min_PV_DCA.begin(), intermediate_min_PV_DCA.end());
   }
 
   void setIntermediatePV_DCARange_XY(const std::vector<std::pair<float, float> /*unused*/> &intermediate_PV_DCA_range)
   {
     for (const auto &entry : intermediate_PV_DCA_range)
     {
-      m_intermediate_min_PV_dca_xy.push_back(entry.first);
-      m_intermediate_max_PV_dca_xy.push_back(entry.second);
+      m_config.intermediateMinPVDCAXY.push_back(entry.first);
+      m_config.intermediateMaxPVDCAXY.push_back(entry.second);
     }
   }
 
   void setIntermediateMinPV_DCA(const std::vector<float> &intermediate_min_PV_DCA)
   {
-    m_intermediate_min_PV_dca.insert(m_intermediate_min_PV_dca.end(), intermediate_min_PV_DCA.begin(), intermediate_min_PV_DCA.end());
+    m_config.intermediateMinPVDCA.insert(m_config.intermediateMinPVDCA.end(), intermediate_min_PV_DCA.begin(), intermediate_min_PV_DCA.end());
   }
 
   void setIntermediatePV_DCARange(const std::vector<std::pair<float, float> /*unused*/> &intermediate_PV_DCA_range)
   {
     for (const auto &entry : intermediate_PV_DCA_range)
     {
-      m_intermediate_min_PV_dca.push_back(entry.first);
-      m_intermediate_max_PV_dca.push_back(entry.second);
+      m_config.intermediateMinPVDCA.push_back(entry.first);
+      m_config.intermediateMaxPVDCA.push_back(entry.second);
     }
   }
 
   void setIntermediateMinPV_DCA_StdDev_XY(const std::vector<float> &intermediate_min_PV_DCA_StdDev)
   {
-    m_intermediate_min_PV_dca_stddev_xy.insert(m_intermediate_min_PV_dca_stddev_xy.end(), intermediate_min_PV_DCA_StdDev.begin(), intermediate_min_PV_DCA_StdDev.end());
+    m_config.intermediateMinPVDCAStdDevXY.insert(m_config.intermediateMinPVDCAStdDevXY.end(), intermediate_min_PV_DCA_StdDev.begin(), intermediate_min_PV_DCA_StdDev.end());
   }
 
   void setIntermediatePV_DCA_StdDevRange_XY(const std::vector<std::pair<float, float> /*unused*/> &intermediate_PV_DCA_StdDev_range)
   {
     for (const auto &entry : intermediate_PV_DCA_StdDev_range)
     {
-      m_intermediate_min_PV_dca_stddev_xy.push_back(entry.first);
-      m_intermediate_max_PV_dca_stddev_xy.push_back(entry.second);
+      m_config.intermediateMinPVDCAStdDevXY.push_back(entry.first);
+      m_config.intermediateMaxPVDCAStdDevXY.push_back(entry.second);
     }
   }
 
   void setIntermediateMinPV_DCA_StdDev(const std::vector<float> &intermediate_min_PV_DCA_StdDev)
   {
-    m_intermediate_min_PV_dca_stddev.insert(m_intermediate_min_PV_dca_stddev.end(), intermediate_min_PV_DCA_StdDev.begin(), intermediate_min_PV_DCA_StdDev.end());
+    m_config.intermediateMinPVDCAStdDev.insert(m_config.intermediateMinPVDCAStdDev.end(), intermediate_min_PV_DCA_StdDev.begin(), intermediate_min_PV_DCA_StdDev.end());
   }
 
   void setIntermediatePV_DCA_StdDevRange(const std::vector<std::pair<float, float> /*unused*/> &intermediate_PV_DCA_StdDev_range)
   {
     for (const auto &entry : intermediate_PV_DCA_StdDev_range)
     {
-      m_intermediate_min_PV_dca_stddev.push_back(entry.first);
-      m_intermediate_max_PV_dca_stddev.push_back(entry.second);
+      m_config.intermediateMinPVDCAStdDev.push_back(entry.first);
+      m_config.intermediateMaxPVDCAStdDev.push_back(entry.second);
     }
   }
 
   void setIntermediateMinDIRA(const std::vector<float> &intermediate_min_DIRA)
   {
-    m_intermediate_min_dira.insert(m_intermediate_min_dira.end(), intermediate_min_DIRA.begin(), intermediate_min_DIRA.end());
+    m_config.intermediateMinDIRA.insert(m_config.intermediateMinDIRA.end(), intermediate_min_DIRA.begin(), intermediate_min_DIRA.end());
   }
 
   void setIntermediateMinFDchi2(const std::vector<float> &intermediate_min_FDchi2)
   {
-    m_intermediate_min_fdchi2.insert(m_intermediate_min_fdchi2.end(), intermediate_min_FDchi2.begin(), intermediate_min_FDchi2.end());
+    m_config.intermediateMinFDChi2.insert(m_config.intermediateMinFDChi2.end(), intermediate_min_FDchi2.begin(), intermediate_min_FDchi2.end());
   }
 
   /// Decay length [cm] of each intermediate state, 3D, from the decay vertex of the mother: one (min, max) per intermediate
   void setIntermediateDecayLengthRange(const std::vector<std::pair<float, float>> &intermediate_decayLength_range)
   {
-    m_intermediate_decayLength_range = intermediate_decayLength_range;
+    m_config.intermediateDecayLengthRange = intermediate_decayLength_range;
   }
 
   /// Same in the transverse plane
   void setIntermediateDecayLengthRange_XY(const std::vector<std::pair<float, float>> &intermediate_decayLength_range)
   {
-    m_intermediate_decayLength_xy_range = intermediate_decayLength_range;
+    m_config.intermediateDecayLengthRangeXY = intermediate_decayLength_range;
   }
 
   /// Decay time [ps] of each intermediate state, 3D, from the decay vertex of the mother
   void setIntermediateDecayTimeRange(const std::vector<std::pair<float, float>> &intermediate_decayTime_range)
   {
-    m_intermediate_decayTime_range = intermediate_decayTime_range;
+    m_config.intermediateDecayTimeRange = intermediate_decayTime_range;
   }
 
   /// Same in the transverse plane (pseudo-proper decay time [ps])
   void setIntermediateDecayTimeRange_XY(const std::vector<std::pair<float, float>> &intermediate_decayTime_range)
   {
-    m_intermediate_decayTime_xy_range = intermediate_decayTime_range;
+    m_config.intermediateDecayTimeRangeXY = intermediate_decayTime_range;
   }
 
   void setIntermediateMaxVertexVolume(const std::vector<float> &intermediate_max_vertexvol)
   {
-    m_intermediate_vertex_volume.insert(m_intermediate_vertex_volume.end(), intermediate_max_vertexvol.begin(), intermediate_max_vertexvol.end());
+    m_config.intermediateMaxVertexVolume.insert(m_config.intermediateMaxVertexVolume.end(), intermediate_max_vertexvol.begin(), intermediate_max_vertexvol.end());
   }
 
-  void use2Dmatching(bool use_2D_matching_tools = true) { m_use_2D_matching_tools = use_2D_matching_tools; }
+  void use2Dmatching(bool use_2D_matching_tools = true) { m_config.use2DMatching = use_2D_matching_tools; }
 
-  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
-  void useMVA(bool /*require_mva*/ = true) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
+  void saveDST(bool save = true) { m_config.saveDST = save; }
 
-  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
-  void setNumMVAPars(unsigned int /*nPars*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
+  void saveTrackContainer(bool save = true) { m_config.writeTrackContainer = save; }
 
-  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
-  void setMVAVarList(const std::vector<std::string> & /*mva_variable_list*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
+  void saveParticleContainer(bool save = true) { m_config.writeParticleContainer = save; }
 
-  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
-  void setMVAType(const std::string & /*mva_type*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
+  void setContainerName(const std::string &name) { m_config.containerName = name; }
 
-  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
-  void setMVAWeightsPath(const std::string & /*mva_weights_path*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
+  void saveOutput(bool save = true) { m_config.saveOutput = save; }
 
-  //DEPRECATED: MVA is not used in the current implementation of KFParticle; this setting has no effect
-  void setMVACutValue(float /*cut_value*/) { std::cout << "MVA is deprecated and will be removed in future versions." << std::endl; }
+  void setOutputName(const std::string &name) { m_config.outputName = name; }
 
-  void saveDST(bool save = true) { m_save_dst = save; }
+  void doTruthMatching(bool truth = true) { m_config.truthMatching = truth; }
 
-  void saveTrackContainer(bool save = true) { m_write_track_container = save; }
+  void getTriggerInfo(bool get = true) { m_config.triggerInfo = get; }
 
-  void saveParticleContainer(bool save = true) { m_write_particle_container = save; }
+  void getDetectorInfo(bool detinfo = true) { m_config.detectorInfo = detinfo; }
 
-  void setContainerName(const std::string &name) { m_container_name = name; }
+  void getCaloInfo(bool caloinfo = true) { m_config.caloInfo = caloinfo; }
 
-  void saveOutput(bool save = true) { m_save_output = save; }
+  void requireTrackEMCalMatch(bool require = true) { m_config.requireTrackEMCalMatch = require; }
 
-  void setOutputName(const std::string &name) { m_outfile_name = name; }
-
-  void doTruthMatching(bool truth = true) { m_truth_matching = truth; }
-
-  void getTriggerInfo(bool get = true) { m_get_trigger_info = get; }
-
-  void getDetectorInfo(bool detinfo = true) { m_detector_info = detinfo; }
-
-  void getCaloInfo(bool caloinfo = true) { m_calo_info = caloinfo; }
-
-  void requireTrackEMCalMatch(bool require = true) { m_require_track_emcal_match = require; }
-
-  void getAllPVInfo(bool pvinfo = true) { m_get_all_PVs = pvinfo; }
+  void getAllPVInfo(bool pvinfo = true) { m_config.allPVInfo = pvinfo; }
 
   // QA output is a sub-mode of the lightweight nTuple
   void saveLightweightNTuple(bool minimal = true)
   {
-    m_minimal_output = minimal;
+    m_config.lightweightNTuple = minimal;
     if (!minimal)
     {
-      m_minimal_output_to_qa = false;
+      m_config.lightweightNTupleToQA = false;
     }
   }
-  void saveLightweightNTupleToQA(bool minimal = true) { m_minimal_output = m_minimal_output_to_qa = minimal; }  // also turns on the lightweight nTuple
+  void saveLightweightNTupleToQA(bool minimal = true) { m_config.lightweightNTuple = m_config.lightweightNTupleToQA = minimal; }  // also turns on the lightweight nTuple
 
-  void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_bunch_crossing_zero_only = bcZeroOnly; }
+  /// Functions to get detailed subsystem information
+  void GetDetailedTracking(bool set_variable = true)
+  {
+    m_config.detailedTracking = set_variable;
+    if (set_variable)
+    {
+      m_config.detectorInfo = true;
+    }
+  }
+  // Function that will add additional calorimetry info to the output TTree
+  void GetDetailedCalorimetry(bool set_variable = true)
+  {
+    m_config.detailedCalorimetry = set_variable;
+    if (set_variable)
+    {
+      m_config.caloInfo = true;
+    }
+  }
+  // Function that will add info from the 5x5 cell of towers around the cluster center to the output TTree
+  void GetCalo5x5CellInfo(bool set_variable = true)
+  {
+    m_config.calo5x5CellInfo = set_variable;
+    if (set_variable)
+    {
+      m_config.caloInfo = true;
+    }
+  }
+  void get_dEdx_info(bool set_variable = true) { m_config.dEdxInfo = set_variable; }
 
-  void forceMixedEvent(bool force = true) { m_force_mixed_event = force; }
+  // Track-to-EMCal matching
+  void setVerbosityTrack2Calo(int verb) { m_config.track2CaloVerbosity = verb; }
+  void set_emcal_radius_user(float set_variable) { m_config.emcalRadius = set_variable; }
+  void set_emcal_e_low_cut(float set_variable) { m_config.emcalEnergyLowCut = set_variable; }
+  void set_dphi_cut_low(float set_variable) { m_config.emcalDPhiCutLow = set_variable; }
+  void set_dphi_cut_high(float set_variable) { m_config.emcalDPhiCutHigh = set_variable; }
+  void set_dz_cut_low(float set_variable) { m_config.emcalDZCutLow = set_variable; }
+  void set_dz_cut_high(float set_variable) { m_config.emcalDZCutHigh = set_variable; }
 
-  void requireBunchCrossingMatch(bool require = true) { m_require_bunch_crossing_match = require; }
+  void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_config.bunchCrossingZeroOnly = bcZeroOnly; }
+
+  /// Bunch-crossing requirement between the tracks of a combination: Any, Same (default) or Mixed (mixed-event sample)
+  void setBunchCrossingMode(KFParticle_Config::BunchCrossingMode mode)
+  {
+    m_config.bunchCrossingMode = mode;
+    m_deprecatedForceMixedEvent = mode == KFParticle_Config::BunchCrossingMode::Mixed;
+    m_deprecatedRequireBunchCrossingMatch = mode != KFParticle_Config::BunchCrossingMode::Any;
+  }
+
+  //DEPRECATED: use setBunchCrossingMode(KFParticle_Config::BunchCrossingMode::Mixed). Still wins over
+  //requireBunchCrossingMatch whatever the call order, as before
+  void forceMixedEvent(bool force = true)
+  {
+    m_deprecatedForceMixedEvent = force;
+    updateBunchCrossingMode();
+  }
+
+  //DEPRECATED: use setBunchCrossingMode(KFParticle_Config::BunchCrossingMode::Same) or (...::Any)
+  void requireBunchCrossingMatch(bool require = true)
+  {
+    m_deprecatedRequireBunchCrossingMatch = require;
+    updateBunchCrossingMode();
+  }
 
   /// On by default. Builds each N-prong combination (3+ body decays) once, from its (N-1)-prong subset plus a track with a
   /// larger index, instead of once for every track that can be added last. About 2.7x faster, but the DCA test is made
   /// after the vertex refit, so it can reject combinations that the exhaustive search (use = false) would keep.
-  void useOrderedProngCombinations(bool use = true) { m_use_ordered_prongs = use; }
+  void useOrderedProngCombinations(bool use = true) { m_config.useOrderedProngCombinations = use; }
 
-  void requireTrackVertexBunchCrossingMatch(bool require = true) { m_require_track_and_vertex_match = require; }
+  void requireTrackVertexBunchCrossingMatch(bool require = true) { m_config.requireTrackVertexBunchCrossingMatch = require; }
 
-  void selectMotherByMassError(bool select = true) { m_select_by_mass_error = select; }
+  void selectMotherByMassError(bool select = true) { m_config.selectMotherByMassError = select; }
 
-  void usePID(bool use = true){ m_use_PID = use; }
+  void usePID(bool use = true){ m_config.usePID = use; }
 
-  void useLocalPIDFile(bool use = true){ m_use_local_PID_file = use; }
+  void useLocalPIDFile(bool use = true){ m_config.useLocalPIDFile = use; }
 
-  void setLocalPIDFilename(const std::string &filename){ m_local_PID_filename = filename; }
+  void setLocalPIDFilename(const std::string &filename){ m_config.localPIDFilename = filename; }
  
-  void setPIDacceptFraction(float frac = 0.2){ m_dEdx_band_width = frac; }
+  void setPIDacceptFraction(float frac = 0.2){ m_config.dEdxBandWidth = frac; }
 
   /// Use alternate vertex and track fitters
-  void setVertexMapNodeName(const std::string &vtx_map_node_name) { m_vtx_map_node_name = vtx_map_node_name; }
+  void setVertexMapNodeName(const std::string &vtx_map_node_name) { m_config.vertexMapNodeName = vtx_map_node_name; }
 
   /// Use alternate vertex and track fitters
-  void setTrackMapNodeName(const std::string &trk_map_node_name) { m_trk_map_node_name = m_origin_track_map_node_name = trk_map_node_name; }
+  void setTrackMapNodeName(const std::string &trk_map_node_name) { m_config.trackMapNodeName = trk_map_node_name; }
 
-  void magFieldFile(const std::string &fname) { m_magField = fname; }
+  void magFieldFile(const std::string &fname) { m_config.magFieldFile = fname; }
 
   void getField();
 
@@ -475,10 +498,28 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   int getCandidateCounter() const { return candidateCounter; }
 
  private:
-  bool m_has_intermediates_sPHENIX;
-  bool m_constrain_to_vertex_sPHENIX;
-  bool m_save_dst;
-  bool m_save_output;
+  KFParticle_Config m_config;  // the only writable configuration; base classes hold a const reference to it
+
+  // Last values given to the two deprecated crossing setters, kept only so that any call order gives the old result
+  bool m_deprecatedForceMixedEvent{false};
+  bool m_deprecatedRequireBunchCrossingMatch{true};
+  void updateBunchCrossingMode()
+  {
+    using Mode = KFParticle_Config::BunchCrossingMode;
+    if (m_deprecatedForceMixedEvent)
+    {
+      m_config.bunchCrossingMode = Mode::Mixed;
+    }
+    else if (m_deprecatedRequireBunchCrossingMatch)
+    {
+      m_config.bunchCrossingMode = Mode::Same;
+    }
+    else
+    {
+      m_config.bunchCrossingMode = Mode::Any;
+    }
+  }
+
   int candidateCounter = 0;
   //Adding member variables for BCO matching
   uint64_t m_this_event_bco{0};
@@ -486,10 +527,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   uint64_t m_prev_event_bco{0};
   int64_t m_prev_runNumber{-1};
   int64_t m_prev_eventNumber{-1}; //till here
-  std::string m_outfile_name;
   TFile *m_outfile;
-  std::string m_decayDescriptor;
-  std::string m_magField = "FIELDMAP_TRACKING";
 };
 
 #endif  // KFPARTICLESPHENIX_KFPARTICLESPHENIX_H

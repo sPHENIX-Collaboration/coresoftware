@@ -1,8 +1,12 @@
 #ifndef KFPARTICLESPHENIX_KFPARTICLENTUPLE_H
 #define KFPARTICLESPHENIX_KFPARTICLENTUPLE_H
 
+#include "KFParticle_Config.h"
+#include "KFParticle_caloInfo.h"
+#include "KFParticle_detectorInfo.h"
 #include "KFParticle_triggerInfo.h"
-#include "KFParticle_truthAndDetTools.h"
+#include "KFParticle_truthInfo.h"
+#include "KFParticle_util.h"
 
 #include <KFParticle.h>
 
@@ -15,14 +19,20 @@ class PHCompositeNode;
 class TTree;
 class CentralityInfo;
 
-class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_triggerInfo
+class KFParticle_nTuple
 {
  public:
-  /// Constructor
-  KFParticle_nTuple() = default;
+  /// Constructor; binds the configuration only (the owner's instance is not constructed yet)
+  explicit KFParticle_nTuple(const KFParticle_Config &config)
+    : m_config(config)
+    , m_detector(config)
+    , m_truth(config)
+    , m_calo(config)
+  {
+  }
 
   /// Destructor
-  ~KFParticle_nTuple() override = default;
+  virtual ~KFParticle_nTuple() = default;
 
   /// Unused for now, variables are initialised in the header
   void initializeVariables();
@@ -44,77 +54,43 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
     m_last_event_bco = last_bco;
   }
 
-  float calc_secondary_vertex_mass_noPID(std::vector<KFParticle> kfp_daughters);
+  float calc_secondary_vertex_mass_noPID(std::vector<KFParticle> kfp_daughters) const;
 
   bool fillConditionMet() const;
 
-  /// Functions to get detailed subsystem information
-  void GetDetailedTracking(bool set_variable = true)
-  {
-    m_get_detailed_tracking = set_variable;
-    if (m_get_detailed_tracking)
-    {
-      m_detector_info = true;
-    }
-  }
-  // Function that will add additional calorimetry info to the output TTree
-  void GetDetailedCalorimetry(bool set_variable = true)
-  {
-    m_get_detailed_calorimetry = set_variable;
-    if (m_get_detailed_calorimetry)
-    {
-      m_calo_info = true;
-    }
-  }
-  // Function that will add info from the 5x5 cell of towers around the cluster center to the output TTree
-  void GetCalo5x5CellInfo(bool set_variable = true) 
-  {
-    m_get_calo_5x5_cell_info = set_variable;
-    if (m_get_calo_5x5_cell_info)
-    {
-      m_calo_info = true;
-    }
-  }
-  void get_dEdx_info(bool set_variable = true)
-  {
-    m_get_dEdx = set_variable;
-  }
-
  protected:
-  bool m_has_intermediates_nTuple{false};
-  bool m_extrapolateTracksToSV_nTuple{true};
-  bool m_constrain_to_vertex_nTuple{false};
-  bool m_get_all_PVs{false};
-  // int m_num_intermediate_states_nTuple;
-  // int m_num_tracks_from_intermediate_nTuple[99];
-  std::vector<int> m_num_tracks_from_intermediate_nTuple;
-  bool m_truth_matching{false};
-  bool m_get_trigger_info{false};
-  bool m_detector_info{false};
-  bool m_calo_info{false};
-  bool m_get_dEdx{false};
-  bool m_require_track_emcal_match{false};
   bool isTrackEMCalmatch{true};
-  std::string m_mother_name;
-  // std::string m_vtx_map_node_name_nTuple;
-  bool m_use_intermediate_name{false};
-  bool m_get_charge_conjugate_nTuple{false};
-  bool m_use_fake_pv_nTuple{false};
-  bool m_minimal_output{false};
-  bool m_minimal_output_to_qa{false};
   std::string m_qa_tree_path{"DecayTree"};  // name (optionally dir/name) of the tree in the QA histogram manager
-  bool m_momentum_calibration_output{false};
-  bool m_use_centrality_nTuple{false};
-  std::vector<std::string> m_intermediate_name_ntuple;
-  int m_verbosity_nTuple{0};
 
  private:
+  static constexpr int maxTracks{KFParticle_util::maxTracks};
+
+  const KFParticle_Config &m_config;
+
+  KFParticle_detectorInfo m_detector;
+  KFParticle_truthInfo m_truth;
+  KFParticle_caloInfo m_calo;
+  KFParticle_triggerInfo m_trigger;
+
   // This fills a reduced output meant for the ML momentum calibration
   // It contains mother mass/pT/eta/phi/PID, daughter pT/pTErr/eta/phi/charge/PID/covariance and runNumber only
   void initializeMomentumCalibrationBranches(const std::string &mother_name);
   void fillMomentumCalibrationBranch(PHCompositeNode *topNode,
                                      KFParticle &motherParticle,
                                      KFParticle *daughterArray);
+
+  // Distance of the mother, daughters and intermediates to every primary vertex in the event
+  void allPVInfo(PHCompositeNode *topNode,
+                 const KFParticle &motherParticle,
+                 std::vector<KFParticle> daughters,
+                 std::vector<KFParticle> intermediates);
+  void clearAllPVInfo();
+
+  // Event-level counts and jT, moved from KFParticle_Tools, now KFParticle_candidateSelection (only the nTuple uses them)
+  void getTracksFromBC(PHCompositeNode *topNode, const int &bunch_crossing, const std::string &vertexMapName, int &nTracks, int &nPVs) const;
+  int getTracksFromVertex(PHCompositeNode *topNode, const KFParticle &vertex, const std::string &vertexMapName) const;
+  static int getNchargedSiSeedMultiplicity(PHCompositeNode *topNode, const int &bunch_crossing, int verbosity);
+  static float calculateJT(const KFParticle &mother, const KFParticle &daughter);
 
 
   TTree *m_tree{nullptr};
@@ -195,41 +171,40 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   // float *m_calculated_intermediate_cov[max_intermediates];
   float m_calculated_intermediate_cov[max_intermediates][21]{{0}, {0}};
 
-  // static const int max_tracks {20};
-  float m_calculated_daughter_mass[max_tracks]{0};
-  float m_calculated_daughter_PV_dca[max_tracks]{0};
-  float m_calculated_daughter_PV_dca_err[max_tracks]{0};
-  float m_calculated_daughter_PV_dca_sig[max_tracks]{0};
-  float m_calculated_daughter_PV_dca_xy[max_tracks]{0};
-  float m_calculated_daughter_PV_dca_xy_sig[max_tracks]{0};
-  float m_calculated_daughter_x[max_tracks]{0};
-  float m_calculated_daughter_y[max_tracks]{0};
-  float m_calculated_daughter_z[max_tracks]{0};
-  float m_calculated_daughter_px[max_tracks]{0};
-  float m_calculated_daughter_py[max_tracks]{0};
-  float m_calculated_daughter_pz[max_tracks]{0};
-  float m_calculated_daughter_pe[max_tracks]{0};
-  float m_calculated_daughter_p[max_tracks]{0};
-  float m_calculated_daughter_p_err[max_tracks]{0};
-  float m_calculated_daughter_pt[max_tracks]{0};
-  float m_calculated_daughter_pt_err[max_tracks]{0};
-  float m_calculated_daughter_jt[max_tracks]{0};
-  char m_calculated_daughter_q[max_tracks]{0};
-  int m_calculated_daughter_bunch_crossing[max_tracks]{0};
-  float m_calculated_daughter_eta[max_tracks]{0};
-  float m_calculated_daughter_rapidity[max_tracks]{0};
-  float m_calculated_daughter_theta[max_tracks]{0};
-  float m_calculated_daughter_phi[max_tracks]{0};
-  float m_calculated_daughter_chi2[max_tracks]{0};
-  int m_calculated_daughter_ndof[max_tracks]{0};
-  int m_calculated_daughter_trid[max_tracks]{0};
-  int m_calculated_daughter_pdgID[max_tracks]{0};
-  // float *m_calculated_daughter_cov[max_tracks];
-  float m_calculated_daughter_cov[max_tracks][21]{{0}, {0}};
-  float m_calculated_daughter_dedx[max_tracks]{0};
-  // float m_calculated_daughter_expected_dedx_pion[max_tracks] {0};
-  // float m_calculated_daughter_expected_dedx_kaon[max_tracks] {0};
-  // float m_calculated_daughter_expected_dedx_proton[max_tracks] {0}; 
+  float m_calculated_daughter_mass[maxTracks]{0};
+  float m_calculated_daughter_PV_dca[maxTracks]{0};
+  float m_calculated_daughter_PV_dca_err[maxTracks]{0};
+  float m_calculated_daughter_PV_dca_sig[maxTracks]{0};
+  float m_calculated_daughter_PV_dca_xy[maxTracks]{0};
+  float m_calculated_daughter_PV_dca_xy_sig[maxTracks]{0};
+  float m_calculated_daughter_x[maxTracks]{0};
+  float m_calculated_daughter_y[maxTracks]{0};
+  float m_calculated_daughter_z[maxTracks]{0};
+  float m_calculated_daughter_px[maxTracks]{0};
+  float m_calculated_daughter_py[maxTracks]{0};
+  float m_calculated_daughter_pz[maxTracks]{0};
+  float m_calculated_daughter_pe[maxTracks]{0};
+  float m_calculated_daughter_p[maxTracks]{0};
+  float m_calculated_daughter_p_err[maxTracks]{0};
+  float m_calculated_daughter_pt[maxTracks]{0};
+  float m_calculated_daughter_pt_err[maxTracks]{0};
+  float m_calculated_daughter_jt[maxTracks]{0};
+  char m_calculated_daughter_q[maxTracks]{0};
+  int m_calculated_daughter_bunch_crossing[maxTracks]{0};
+  float m_calculated_daughter_eta[maxTracks]{0};
+  float m_calculated_daughter_rapidity[maxTracks]{0};
+  float m_calculated_daughter_theta[maxTracks]{0};
+  float m_calculated_daughter_phi[maxTracks]{0};
+  float m_calculated_daughter_chi2[maxTracks]{0};
+  int m_calculated_daughter_ndof[maxTracks]{0};
+  int m_calculated_daughter_trid[maxTracks]{0};
+  int m_calculated_daughter_pdgID[maxTracks]{0};
+  // float *m_calculated_daughter_cov[maxTracks];
+  float m_calculated_daughter_cov[maxTracks][21]{{0}, {0}};
+  float m_calculated_daughter_dedx[maxTracks]{0};
+  // float m_calculated_daughter_expected_dedx_pion[maxTracks] {0};
+  // float m_calculated_daughter_expected_dedx_kaon[maxTracks] {0};
+  // float m_calculated_daughter_expected_dedx_proton[maxTracks] {0}; 
   float m_daughter_dca[99]{0};
   float m_daughter_dca_xy[99]{0};
   float m_daughter_dca_sig[99]{0};
@@ -260,7 +235,15 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   uint64_t m_event_bco{0};//current event BCO
   uint64_t m_last_event_bco{0}; //only keeping this, BCO for the last event
 
-  bool m_trigger_info_available{false};
+  std::vector<float> allPV_x;
+  std::vector<float> allPV_y;
+  std::vector<float> allPV_z;
+  std::vector<float> allPV_mother_PV_DCA;
+  std::vector<float> allPV_mother_PV_DCA_StdDev;
+  std::vector<float> allPV_daughter_PV_DCA[maxTracks];
+  std::vector<float> allPV_daughter_PV_DCA_StdDev[maxTracks];
+  std::vector<float> allPV_intermediates_PV_DCA[maxTracks];
+  std::vector<float> allPV_intermediates_PV_DCA_StdDev[maxTracks];
 };
 
 #endif
