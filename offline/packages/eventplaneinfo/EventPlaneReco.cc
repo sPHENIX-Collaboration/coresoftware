@@ -27,6 +27,7 @@
 #include <phool/PHCompositeNode.h>
 
 // c++ includes --
+#include <cmath>
 #include <iostream>
 #include <format>
 #include <algorithm>
@@ -356,6 +357,12 @@ int EventPlaneReco::process_sEPD(PHCompositeNode* topNode)
 
     // Skip Innermost Ring
     if (m_skipRing0 && rbin == 0)
+    {
+      continue;
+    }
+
+    // Skip non-finite charge: NaN passes the noise cut and the clamp below
+    if (!std::isfinite(charge))
     {
       continue;
     }
